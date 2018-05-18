@@ -47,6 +47,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         self._ExecuteBeforeSolutionLoop()
 
+    def OutputSolutionStep(self):
+        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
+
+        if self.solver.SaveRestart()
+
 
     #### Internal functions ####
     def _CreateSolver(self, external_model_part=None):
@@ -66,26 +71,24 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         import python_solvers_wrapper_structural
         self.solver = python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.project_parameters)
 
-        ## Adds the necessary variables to the model_part only if they don't exist
-        self.solver.AddVariables()
-
         if not self.using_external_model_part:
             ## Read the model - note that SetBufferSize is done here
             self.solver.ReadModelPart() # TODO move to global instance
 
     def _SetUpGiDOutput(self):
-        '''Initialize self.output as a GiD output instance.'''
-        self.have_output = self.project_parameters.Has("output_configuration")
-        if self.have_output:
-            self.__CheckForDeprecatedGiDSettings()
-            if self.parallel_type == "OpenMP":
-                from gid_output_process import GiDOutputProcess as OutputProcess
-            elif self.parallel_type == "MPI":
-                from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+        '''Initialize a GiD output instance'''
+        self.__CheckForDeprecatedGiDSettings()
+        if self.parallel_type == "OpenMP":
+            from gid_output_process import GiDOutputProcess as OutputProcess
+        elif self.parallel_type == "MPI":
+            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-            self.output = OutputProcess(self.solver.GetComputingModelPart(),
-                                        self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                        self.project_parameters["output_configuration"])
+        gid_output = OutputProcess(self.solver.GetComputingModelPart(),
+                                   self.project_parameters["problem_data"]["problem_name"].GetString() ,
+                                   self.project_parameters["output_configuration"])
+
+        return gid_output
+
 
     def _ExecuteInitialize(self):
         """ Initializing the Analysis """
@@ -105,32 +108,32 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             for properties in self.main_model_part.Properties:
                 KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
 
-    def _SetUpListOfProcesses(self):
-        from process_factory import KratosProcessFactory
-        factory = KratosProcessFactory(self.model)
-        self.list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
-        self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
-        if (self.project_parameters.Has("list_other_processes") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
-        if (self.project_parameters.Has("json_output_process") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
-        # Processes for tests
-        if (self.project_parameters.Has("json_check_process") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
-        if (self.project_parameters.Has("check_analytic_results_process") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
+    # def _SetUpListOfProcesses(self):
+    #     from process_factory import KratosProcessFactory
+    #     factory = KratosProcessFactory(self.model)
+    #     self.list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
+    #     self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
+    #     if (self.project_parameters.Has("list_other_processes") is True):
+    #         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
+    #     if (self.project_parameters.Has("json_output_process") is True):
+    #         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
+    #     # Processes for tests
+    #     if (self.project_parameters.Has("json_check_process") is True):
+    #         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
+    #     if (self.project_parameters.Has("check_analytic_results_process") is True):
+    #         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
 
-        #TODO this should be generic
-        # initialize GiD  I/O
-        self._SetUpGiDOutput()
-        if self.have_output:
-            self.list_of_processes += [self.output,]
+    #     #TODO this should be generic
+    #     # initialize GiD  I/O
+    #     self._SetUpGiDOutput()
+    #     if self.have_output:
+    #         self.list_of_processes += [self.output,]
 
-        if self.is_printing_rank and self.echo_level > 1:
-            count = 0
-            for process in self.list_of_processes:
-                count += 1
-                # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
+    #     if self.is_printing_rank and self.echo_level > 1:
+    #         count = 0
+    #         for process in self.list_of_processes:
+    #             count += 1
+    #             # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
 
     def _ExecuteBeforeSolutionLoop(self):
         """ Perform Operations before the SolutionLoop """

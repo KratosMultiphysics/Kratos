@@ -41,7 +41,15 @@ class AnalysisStage(object):
         else:
             self.is_printing_rank = True
 
-        self._GetSolver.AddVariables() # this creates the solver and adds the variables
+        main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
+        if self.model.HasModelPart(main_model_part_name):
+            self.main_model_part = self.model[main_model_part_name]
+        else:
+            self.main_model_part = KratosMultiphysics.ModelPart(main_model_part_name)
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
+                                                      self.project_parameters["problem_data"]["domain_size"].GetInt())
+
+        self._GetSolver().AddVariables() # this creates the solver and adds the variables
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -84,6 +92,17 @@ class AnalysisStage(object):
 
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
+
+        ## Stepping and time settings
+        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+
+        if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
+            self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
+        else:
+            self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+
+        if self.is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
 
     def Finalize(self):
@@ -175,26 +194,61 @@ class AnalysisStage(object):
 
     def _GetListOfProcesses(self):
         if not hasattr(self, '_list_of_processes'):
-            self._list_of_processes = self._CreateListOfProcesses()
+            order_processes_initialization = self._GetOrderOfProcessesInitialization()
+            self._list_of_processes = self._CreateProcesses("processes", order_processes_initialization)
         return self._list_of_processes
-
-    def _CreateListOfProcesses(self):
-        """Create the list of Processes
-        """
-        raise Exception("Creation of the processes must be implemented in the derived class.")
 
     def _GetListOfOutputProcesses(self):
         if not hasattr(self, '_list_of_output_processes'):
-            self._list_of_output_processes = self._CreateListOfOutputProcesses()
+            order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
+            self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+
+            if self.project_parameters.Has("output_configuration"):
+                self._list_of_output_processes += self._SetUpGiDOutput()
+
             self._GetListOfProcesses() += [self._list_of_output_processes,] # Adding the output processes to the regular processes
         return self._list_of_output_processes
 
-    def _CreateListOfOutputProcesses(self):
-        """Create the list of Output-Processes
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of Processes
         """
-        raise Exception("Creation of the output processes must be implemented in the derived class.")
+        list_of_processes = []
+
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(self.model)
+
+        processes = self.project_parameters["parameter_name"]
+
+        # first initialize the processes that depend on the order
+        for processes_names in initialization_order:
+            list_of_processes += factory.ConstructListOfProcesses(processes[processes_names])
+
+        # first initialize the processes that don't depend on the order
+        for i in range(processes.size()):
+            if not proc_name in initialization_order
+                list_of_processes += factory.ConstructListOfProcesses(processes[i])
+
+        return list_of_processes
+
+    def _SetUpGiDOutput(self):
+        """This function can be implemented to initialize GiDIO in the old way
+        It will be removed at some point
+        """
+        pass
+
+    def _GetOrderOfProcessesInitialization(self):
+        """This function can be overridden in derived classes if the order of
+        initialization for the processes matters
+        """
+        return []
+
+    def _GetOrderOfOutputProcessesInitialization(self):
+        """This function can be overridden in derived classes if the order of
+        initialization for the output-processes matters
+        """
+        return []
 
     def _GetSimulationName(self):
         """Returns the name of the AnalysisStage
         """
-        return "AnalysisStage"
+        return "Analysis"

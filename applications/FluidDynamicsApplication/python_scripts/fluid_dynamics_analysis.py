@@ -15,24 +15,9 @@ class FluidDynamicsAnalysis(AnalysisStage):
     def __init__(self,model,parameters):
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
-        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
-        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-
-        # If this is an MPI run, load the distributed memory modules
-        if (self.parallel_type == "MPI"):
-            from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication
-            import KratosMultiphysics.TrilinosApplication
-            self.is_printing_rank = (mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
-
-        ## Create model part and solver (but don't initialize them yet)
-        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        self.main_model_part = Kratos.ModelPart(model_part_name)
-
+    def _CreateSolver(self):
         import python_solvers_wrapper_fluid
-        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
+        return python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
 
     def Initialize(self):
         '''
@@ -62,49 +47,38 @@ class FluidDynamicsAnalysis(AnalysisStage):
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
-    def InitializeSolutionStep(self):
-
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.main_model_part.ProcessInfo[Kratos.STEP])
-            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
-
-        super(FluidDynamicsAnalysis,self).InitializeSolutionStep()
-
     def OutputSolutionStep(self):
-
-        if self.have_output and self.output.IsOutputStep():
-
-            for process in self.list_of_processes:
-                process.ExecuteBeforeOutputStep()
-
-            self.output.PrintOutput()
-
-            for process in self.list_of_processes:
-                process.ExecuteAfterOutputStep()
+        super(FluidDynamicsAnalysis, self).OutputSolutionStep()
 
         if self.save_restart:
             self.restart_utility.SaveRestart()
 
-    def _SetUpListOfProcesses(self):
-        '''
-        Read the definition of initial and boundary conditions for the problem and initialize the processes that will manage them.
-        Also initialize any additional processes present in the problem (such as those used to calculate additional results).
-        '''
-        from process_factory import KratosProcessFactory
-        factory = KratosProcessFactory(self.model)
-        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
-        # Note 1: gravity is constructed first. Outlet process might need its information.
-        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
+    # def _SetUpListOfProcesses(self):
+    #     '''
+    #     Read the definition of initial and boundary conditions for the problem and initialize the processes that will manage them.
+    #     Also initialize any additional processes present in the problem (such as those used to calculate additional results).
+    #     '''
+    #     from process_factory import KratosProcessFactory
+    #     factory = KratosProcessFactory(self.model)
+    #     # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
+    #     # Note 1: gravity is constructed first. Outlet process might need its information.
+    #     # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
+    #     self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
+    #     self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
+    #     self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
+    #     self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
 
-        #TODO this should be generic
-        # initialize GiD  I/O
-        self.output = self._SetUpGiDOutput()
-        if self.output is not None:
-            self.list_of_processes += [self.output,]
+    #     #TODO this should be generic
+    #     # initialize GiD  I/O
+    #     self.output = self._SetUpGiDOutput()
+    #     if self.output is not None:
+    #         self.list_of_processes += [self.output,]
+
+    def _GetOrderOfProcessesInitialization(self):
+        return ["gravity",
+                "initial_conditions_process_list",
+                "boundary_conditions_process_list",
+                "auxiliar_process_list"]
 
     def _SetUpAnalysis(self):
         '''
@@ -133,19 +107,17 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
 
     def _SetUpGiDOutput(self):
-        '''Initialize self.output as a GiD output instance.'''
-        self.have_output = self.project_parameters.Has("output_configuration")
-        if self.have_output:
-            if self.parallel_type == "OpenMP":
-                from gid_output_process import GiDOutputProcess as OutputProcess
-            elif self.parallel_type == "MPI":
-                from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+        '''Initialize a GiD output instance'''
+        if self.parallel_type == "OpenMP":
+            from gid_output_process import GiDOutputProcess as OutputProcess
+        elif self.parallel_type == "MPI":
+            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-            output = OutputProcess(self.solver.GetComputingModelPart(),
-                                   self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                   self.project_parameters["output_configuration"])
+        output = OutputProcess(self.solver.GetComputingModelPart(),
+                                self.project_parameters["problem_data"]["problem_name"].GetString() ,
+                                self.project_parameters["output_configuration"])
 
-            return output
+        return output
 
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
@@ -168,6 +140,9 @@ class FluidDynamicsAnalysis(AnalysisStage):
         else:
             self.load_restart = False
             self.save_restart = False
+
+    def _GetSimulationName(self):
+        return "Fluid Dynamics Analysis"
 
 if __name__ == '__main__':
     from sys import argv
