@@ -633,6 +633,11 @@ public:
     */
     void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, IndexType ThisIndex = 0);
 
+    /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
+    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ElementId, IndexType ThisIndex = 0);
+
+    /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
+    MasterSlaveConstraintType& GetElement(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
 
    
     ///@}
