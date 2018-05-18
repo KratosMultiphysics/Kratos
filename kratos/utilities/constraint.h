@@ -37,7 +37,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
   public:
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
-
+    typedef std::size_t IndexType;
     typedef Dof<double> DofType;
     typedef Node<3> NodeType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
@@ -52,11 +52,29 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     /**
 	    Creates a MultipointConstraint object
 	*/
-    MasterSlaveConstraint() : Flags()
+    MasterSlaveConstraint(IndexType Id) : IndexedObject(Id), Flags()
     {
     }
+
+    MasterSlaveConstraint() : IndexedObject(0), Flags()
+    {
+    }    
     /// Destructor.
-    virtual ~MasterSlaveConstraint(){};        
+    virtual ~MasterSlaveConstraint(){};    
+
+    /**
+     * creates a new constraint pointer
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    virtual Pointer Create(IndexType NewId) const
+    {
+        KRATOS_TRY
+        return Kratos::make_shared<MasterSlaveConstraint>(NewId);
+        KRATOS_CATCH("");
+    }        
 
 
     ///@}
