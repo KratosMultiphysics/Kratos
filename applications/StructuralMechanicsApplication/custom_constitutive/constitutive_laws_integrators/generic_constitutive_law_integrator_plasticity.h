@@ -318,20 +318,34 @@ public:
 				else phi = -1.0;
 			}
 
-			double acosphi = acos(phi);
+			const double acosphi = std::acos(phi);
 			phi = acosphi / 3.0;
 
-			double aux1 = 0.666666666666667*sqrt(II1 - 3.0*I2);
-			double aux2 = I1 / 3.0;
+			const double aux1 = 2.0/3.0*std::sqrt(II1 - 3.0*I2);
+			const double aux2 = I1 / 3.0;
 
-			rPrincipalStressVector[0] = aux2 + aux1*cos(phi);
-			rPrincipalStressVector[1] = aux2 + aux1*cos(phi - 2.09439510239);
-			rPrincipalStressVector[2] = aux2 + aux1*cos(phi - 4.18879020478);
+			rPrincipalStressVector[0] = aux2 + aux1*std::cos(phi);
+			rPrincipalStressVector[1] = aux2 + aux1*std::cos(phi - 2.09439510239);
+			rPrincipalStressVector[2] = aux2 + aux1*std::cos(phi - 4.18879020478);
 		}
 		else 
 		{
 			rPrincipalStressVector = ZeroVector(3);
 		}
+    }
+
+    static void CalculateDeviatorVector(const Vector& StressVector, Vector& rDeviator, const double rJ2)
+    {
+        rDeviator = StressVector;
+        const double I1 = StressVector[0] + StressVector[1] + StressVector[2];
+        const double Pmean = I1 / 3.0;
+
+        rDeviator[0] -= Pmean;
+        rDeviator[1] -= Pmean;
+        rDeviator[2] -= Pmean;
+
+        rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + Deviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
+            (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
     }
 
 

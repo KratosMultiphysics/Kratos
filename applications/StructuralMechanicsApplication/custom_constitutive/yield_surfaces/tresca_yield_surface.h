@@ -9,8 +9,8 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_MODIFIED_MOHR_COULOMB_YIELD_SURFACE_H_INCLUDED)
-#define  KRATOS_MODIFIED_MOHR_COULOMB_YIELD_SURFACE_H_INCLUDED
+#if !defined(KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED)
+#define  KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 #include <string>
@@ -21,7 +21,6 @@
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
-#include "includes/global_variables.h"
 
 namespace Kratos
 {
@@ -44,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ModifiedMohrCoulombYieldSurface
+ * @class TrescaYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
@@ -52,7 +51,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template <class TPlasticPotentialType , class TVoigtSize>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurface
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
 {
 public:
     ///@name Type Definitions
@@ -61,81 +60,56 @@ public:
     /// The type of potential plasticity
     typedef typename TPlasticPotentialType PlasticPotentialType;
 
-    /// Counted pointer of ModifiedMohrCoulombYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( ModifiedMohrCoulombYieldSurface );
+    /// Counted pointer of TrescaYieldSurface
+    KRATOS_CLASS_POINTER_DEFINITION( TrescaYieldSurface );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Initialization constructor.
-    ModifiedMohrCoulombYieldSurface()
+    TrescaYieldSurface()
     {
     }
 
     /// Copy constructor
-    ModifiedMohrCoulombYieldSurface(ModifiedMohrCoulombYieldSurface const& rOther)
+    TrescaYieldSurface(TrescaYieldSurface const& rOther)
     {
     }
 
     /// Assignment operator
-    ModifiedMohrCoulombYieldSurface& operator=(ModifiedMohrCoulombYieldSurface const& rOther)
+    TrescaYieldSurface& operator=(TrescaYieldSurface const& rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~ModifiedMohrCoulombYieldSurface() {};
+    virtual ~TrescaYieldSurface() {};
 
     ///@}
     ///@name Operators
     ///@{
+
     ///@}
     ///@name Operations
     ///@{
 
-    static void CalculateEquivalentStress(  
+    static void CalculateEquivalentStress(
         const Vector& StressVector,
         const Vector& StrainVector, 
         double& rEqStress, 
         const Properties& rMaterialProperties
     )
-    {      
-		double sigma_c = rMaterialProperties[YIELD_STRESS_C];
-		double sigma_t = rMaterialProperties[YIELD_STRESS_T];
-		double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+    {
+        double I1, J2, J3, LodeAngle;
+        Vector Deviator = ZeroVector(TVoigtSize);
 
-		// Check input variables 
-        double tol = std::numeric_limits<double>::epsilon();
-		if (friction_angle < tol) { friction_angle = 32 * Globals::Pi / 180; std::cout << "Friction Angle not defined, assumed equal to 32 deg " << std::endl; }
-		if (sigma_c < tol) { KRATOS_ERROR << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa "; }
-		if (sigma_t < tol) { KRATOS_ERROR << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_T in .mdpa "; }
-
-		double K1, K2, K3, Rmorh, R, alpha_r, theta;
-		R = std::abs(sigma_c / sigma_t);
-		Rmorh = std::pow(tan((Globals::Pi / 4.0) + friction_angle / 2.0), 2);
-		alpha_r = R / Rmorh;
-		double sinphi = std::sin(friction_angle);
-
-		double I1, J2, J3;
         CalculateI1Invariant(StressVector, I1);
-		Vector Deviator = ZeroVector(6);
         CalculateJ2Invariant(StressVector, I1, Deviator, J2);
-		CalculateJ3Invariant(Deviator, J3);
+        CalculateJ3Invariant(Deviator, J3);
+        CalculateLodeAngle(J2, J3, LodeAngle);
 
-		K1 = 0.5*(1 + alpha_r) - 0.5*(1 - alpha_r)*sinphi;
-		K2 = 0.5*(1 + alpha_r) - 0.5*(1 - alpha_r) / sinphi;
-		K3 = 0.5*(1 + alpha_r)*sinphi - 0.5*(1 - alpha_r);
-
-		double rEqStress; 
-		// Check Modified Mohr-Coulomb criterion
-		if (I1 == 0.0)  rEqStress = 0.0; 
-		else
-		{
-			CalculateLodeAngle(J2, J3, theta);
-			rEqStress = (2.0*std::tan(Globals::Pi*0.25 + friction_angle*0.5) / std::cos(friction_angle))*((I1*K3 / 3.0) + 
-                std::sqrt(J2)*(K1*std::cos(theta) - K2*std::sin(theta)*sinphi / std::sqrt(3.0)));
-		}
+        rEqStress = 2.0*std::cos(LodeAngle)*std::sqrt(J2);
     }
 
     static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
@@ -154,6 +128,13 @@ public:
         rI3 = (StressVector[1]*StressVector[2] - StressVector[4]*StressVector[4])*StressVector[0] -
             StressVector[1]*StressVector[5]*StressVector[5] - StressVector[2]*StressVector[3]*StressVector[3] +
             2.0*StressVector[3]*StressVector[4]*StressVector[5];
+    }
+
+    static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
+    {
+        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
+			Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
+			Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
     }
 
     static void CalculateJ2Invariant(const Vector& StressVector, const double& I1, Vector& rDeviator, double& rJ2)
@@ -177,13 +158,6 @@ public:
 
     }
 
-    static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
-    {
-        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
-			Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
-			Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
-    }
-
     // Computes dG/dS
     static void CalculatePlasticPotentialDerivative(
         const Vector& StressVector,
@@ -200,8 +174,8 @@ public:
     {
 		const double sint3 = (-3.0*std::sqrt(3.0)*J3) / (2.0*J2*std::sqrt(J2));
 		if (sint3 < -0.95) sint3 = -1;
-		if (sint3 > 0.95)  sint3 = 1; 
-		LodeAngle = std::asin(sint3) / 3.0;
+		if (sint3 > 0.95)  sint3 =  1; 
+		LodeAngle = asin(sint3) / 3.0;
     }
 
     ///@}
@@ -293,7 +267,7 @@ private:
 
     ///@}
 
-}; // Class ModifiedMohrCoulombYieldSurface
+}; // Class TrescaYieldSurface
 
 ///@}
 

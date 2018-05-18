@@ -154,9 +154,11 @@ public:
         const Vector& StressVector,
         const Vector& Deviator,
         const double J2, 
-        Vector& rg)
+        Vector& rg,
+        const Properties& rMaterialProperties
+    )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
     }
 
     ///@}
