@@ -101,6 +101,11 @@ class AnalysisStage(object):
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
+        ## If the echo level is high enough, print the complete list of settings used to run the simualtion
+        if self.is_printing_rank and self.echo_level > 1:
+            with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
+                parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 

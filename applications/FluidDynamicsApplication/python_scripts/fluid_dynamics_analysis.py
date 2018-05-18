@@ -19,39 +19,39 @@ class FluidDynamicsAnalysis(AnalysisStage):
         import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
 
-    def Initialize(self):
-        '''
-        Construct and initialize all classes and tools used in the simulation loop.
-        '''
-        domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
+    # def Initialize(self):
+    #     '''
+    #     Construct and initialize all classes and tools used in the simulation loop.
+    #     '''
+    #     domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
+    #     self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
 
-        self._SetUpRestart()
+    #     self._SetUpRestart()
 
-        if self.load_restart:
-            self.restart_utility.LoadRestart()
-        else:
-            self.solver.AddVariables()
-            self.solver.ImportModelPart()
-            self.solver.AddDofs()
+    #     if self.load_restart:
+    #         self.restart_utility.LoadRestart()
+    #     else:
+    #         self.solver.AddVariables()
+    #         self.solver.ImportModelPart()
+    #         self.solver.AddDofs()
 
-        self.model.AddModelPart(self.main_model_part)
+    #     self.model.AddModelPart(self.main_model_part)
 
-        # this should let eventual derived stages modify the model after reading.
-        self.ModifyInitialProperties()
-        self.ModifyInitialGeometry()
+    #     # this should let eventual derived stages modify the model after reading.
+    #     self.ModifyInitialProperties()
+    #     self.ModifyInitialGeometry()
 
-        self._SetUpListOfProcesses()
-        self._SetUpAnalysis()
+    #     self._SetUpListOfProcesses()
+    #     self._SetUpAnalysis()
 
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
+    #     for process in self.list_of_processes:
+    #         process.ExecuteBeforeSolutionLoop()
 
     def OutputSolutionStep(self):
         super(FluidDynamicsAnalysis, self).OutputSolutionStep()
 
-        if self.save_restart:
-            self.restart_utility.SaveRestart()
+        # if self.save_restart:
+        #     self.restart_utility.SaveRestart()
 
     # def _SetUpListOfProcesses(self):
     #     '''
@@ -80,30 +80,30 @@ class FluidDynamicsAnalysis(AnalysisStage):
                 "boundary_conditions_process_list",
                 "auxiliar_process_list"]
 
-    def _SetUpAnalysis(self):
-        '''
-        Initialize the Python solver and its auxiliary tools and processes.
-        This function should prepare everything so that the simulation
-        can start immediately after exiting it.
-        '''
+    # def _SetUpAnalysis(self):
+    #     '''
+    #     Initialize the Python solver and its auxiliary tools and processes.
+    #     This function should prepare everything so that the simulation
+    #     can start immediately after exiting it.
+    #     '''
 
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
+    #     for process in self.list_of_processes:
+    #         process.ExecuteInitialize()
 
-        self.solver.Initialize()
+    #     self.solver.Initialize()
 
-        ## If the echo level is high enough, print the complete list of settings used to run the simualtion
-        if self.is_printing_rank and self.echo_level > 1:
-            with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
-                parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
+    #     ## If the echo level is high enough, print the complete list of settings used to run the simualtion
+    #     if self.is_printing_rank and self.echo_level > 1:
+    #         with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
+    #             parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
-        ## Stepping and time settings
-        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+    #     ## Stepping and time settings
+    #     self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-        if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
-            self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
-        else:
-            self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+    #     if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
+    #         self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
+    #     else:
+    #         self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
 
     def _SetUpGiDOutput(self):
