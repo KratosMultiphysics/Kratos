@@ -18,8 +18,9 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-//Utilities
 
+//Utilities
+#include "custom_processes/read_materials_process.hpp"
 
 namespace Kratos
 {
@@ -29,8 +30,11 @@ namespace Python
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
-    
 
+    class_<ReadMaterialProcess, Process>(m, "ReadMaterialProcess")
+        .def(init< ModelPart&, Parameters >())
+        .def("Execute",&ReadMaterialProcess::Execute)
+        ;
 }
 
 }  // namespace Python.  
