@@ -259,12 +259,19 @@ public:
             MatrixType v_svd; // Orthogonal matrix (n x n)
             const auto svd_its = SVDUtils<double>::SingularValueDecomposition(aux2,u_svd,w_svd,v_svd);
 
+            // Compute the QR decomposition of matrix trans(V)*V
+            // QR<double, row_major> QRUtil;
+            // QRUtil.compute(data_cols, data_cols, &(aux2)(0,0));
+
             // Set the cuf-off threshold
             const double cut_off_tol = mCutOffEpsilon * TSpace::TwoNorm(w_svd);
+            // const double cut_off_tol = mCutOffEpsilon * QRUtil.normR();
 
             // Check if the last information columns are linear dependent
             const std::size_t last_col = w_svd.size2() - 1;
             if (w_svd(last_col, last_col) < cut_off_tol){
+            // if (std::abs(QRUtil.R(data_cols - 1, data_cols - 1)) < cut_off_tol){
+                // std::cout << "Dropping new info!: " << std::abs(QRUtil.R(data_cols - 1, data_cols - 1)) << " tolerance: " << cut_off_tol << std::endl;
                 // Drop the observation matrices last column
                 this->DropObservationMatricesLastColum();
                 // Update the number of columns

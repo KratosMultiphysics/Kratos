@@ -35,13 +35,13 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.input_file = "test_FSI_emulator_Structural"
 
         self.Dt = 0.1
-        self.end_time = 0.09
+        self.end_time = 1.0
 
         self.point_load_updater = 1.5
         self.initial_point_load = 10000
 
-        self.nl_tol = 1.0e-8
-        self.max_nl_it = 10
+        self.nl_tol = 1.0e-9
+        self.max_nl_it = 25
         self.initial_relaxation = 0.825
 
     def tearDown(self):
@@ -63,7 +63,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQNRecursive(self):
-        buffer_size = 7
+        buffer_size = 3
         self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size)
         self.RunTestCase()
 
@@ -134,10 +134,15 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
             step = 0
             time = 0.0
 
+
             while(time <= self.end_time):
 
                 time = time + self.Dt
                 step = step + 1
+
+                print("##################################")
+                print("###### step = ", step, "##########")
+                print("##################################")
 
                 self.structure_solver.main_model_part.ProcessInfo.SetValue(TIME_STEPS, step)
 
@@ -149,7 +154,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 self.structure_solver.Predict()
 
                 self.coupling_utility.InitializeSolutionStep()
-
+                print("")
                 for nl_it in range(1,self.max_nl_it+1):
 
                     self.coupling_utility.InitializeNonLinearIteration()
@@ -157,6 +162,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                     # Residual computation
                     disp_residual = self.ComputeDirichletNeumannResidual()
                     nl_res_norm = UblasSparseSpace().TwoNorm(disp_residual)
+
+                    print("nl_it: ",nl_it," nl_res_norm: ",nl_res_norm)
 
                     # Check convergence
                     if nl_res_norm < self.nl_tol:
