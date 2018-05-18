@@ -523,7 +523,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
                 CalculateAndAddExtForceContribution(
                     rN, rCurrentProcessInfo, body_force, residual_deriv, weight_deriv);
                 for (std::size_t k = 0; k < residual_deriv.size(); ++k)
-                    rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) = residual_deriv(k);
+                    rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) += residual_deriv(k);
             }
         }
 
