@@ -316,6 +316,17 @@ public:
         return NormDp;
     }
 
+    bool SolveSolutionStep() override
+    {
+        double norm_dp = this->Solve();
+        /* If not doing predictor corrector iterations, norm_dp will
+         * typically be "large" since we are not iterating on pressure.
+         * It makes no sense to report that the iteration didn't converge
+         * based on this.
+         */
+        return mPredictorCorrector ? this->CheckPressureConvergence(norm_dp) : true;
+    }
+
 
     virtual void CalculateReactions()
     {

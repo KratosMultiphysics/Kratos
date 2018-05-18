@@ -18,7 +18,6 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {

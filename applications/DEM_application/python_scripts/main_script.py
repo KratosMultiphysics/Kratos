@@ -8,22 +8,37 @@ sys.path.insert(0, '')
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
-    print("Running under MPI...........")
-    from KratosMultiphysics.MetisApplication import *
-    from KratosMultiphysics.MPISearchApplication import *
-    from KratosMultiphysics.mpi import *
-    import DEM_procedures_mpi as DEM_procedures
-    import DEM_material_test_script_mpi as DEM_material_test_script
+    if "DO_NOT_PARTITION_DOMAIN" in os.environ:
+        Logger.Print("Running under MPI...........",label="DEM")
+        from KratosMultiphysics.mpi import *
+        import DEM_procedures_mpi_no_partitions as DEM_procedures
+        import DEM_material_test_script
+    else:
+        Logger.Print("Running under OpenMP........",label="DEM")
+        from KratosMultiphysics.MetisApplication import *
+        from KratosMultiphysics.MPISearchApplication import *
+        from KratosMultiphysics.mpi import *
+        import DEM_procedures_mpi as DEM_procedures
+        import DEM_material_test_script_mpi as DEM_material_test_script
 else:
-    print("Running under OpenMP........")
+    Logger.Print("Running under OpenMP........",label="DEM")
     import DEM_procedures
     import DEM_material_test_script
 
 class Solution(object):
 
+    @classmethod
+    def GetParametersFileName(self):
+        return "ProjectParametersDEM.json"
+
+    @classmethod
+    def GetInputParameters(self):
+        parameters_file_name = self.GetParametersFileName()
+        parameters_file = open(parameters_file_name, 'r')
+        return Parameters(parameters_file.read())
+
     def LoadParametersFile(self):
-        parameters_file = open("ProjectParametersDEM.json", 'r')
-        self.DEM_parameters = Parameters(parameters_file.read())
+        self.DEM_parameters = self.GetInputParameters()
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
 
@@ -35,6 +50,10 @@ class Solution(object):
     @classmethod
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
+
+    @classmethod
+    def GetMainPath(self):
+        return os.getcwd()
 
     def __init__(self):
 
@@ -50,9 +69,9 @@ class Solution(object):
         self.KRATOSprint = self.procedures.KRATOSprint
 
         # Creating necessary directories:
-        self.main_path = os.getcwd()
-        problem_name = self.GetProblemTypeFilename()
-        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(problem_name))
+        self.main_path = self.GetMainPath()
+        self.problem_name = self.GetProblemTypeFilename()
+        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name))
 
         self.SetGraphicalOutput()
         self.report = DEM_procedures.Report()
@@ -229,8 +248,10 @@ class Solution(object):
 
         self.ReadModelParts()
 
+        self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
+                self.post_normal_impact_velocity_option = True
                 self.FillAnalyticSubModelParts()
 
         # Setting up the buffer size
@@ -239,7 +260,7 @@ class Solution(object):
         self.AddAllDofs()
 
         os.chdir(self.main_path)
-        self.KRATOSprint("\nInitializing Problem...")
+        self.KRATOSprint("Initializing Problem...")
 
         self.GraphicalOutputInitialize()
 
@@ -276,7 +297,7 @@ class Solution(object):
 
         self.materialTest.Initialize(self.DEM_parameters, self.procedures, self.solver, self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
 
-        self.KRATOSprint("Initialization Complete" + "\n")
+        self.KRATOSprint("Initialization Complete")
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
 
@@ -304,17 +325,20 @@ class Solution(object):
     def SolverInitialize(self):
         self.solver.Initialize() # Possible modifications of number of elements and number of nodes
 
+    def GetProblemNameWithPath(self):
+        return self.DEM_parameters["problem_name"].GetString()
+
     def GetMpFilename(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM"
+        return self.GetProblemNameWithPath() + "DEM"
 
     def GetInletFilename(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM_Inlet"
+        return self.GetProblemNameWithPath() + "DEM_Inlet"
 
     def GetFemFilename(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"
+        return self.GetProblemNameWithPath() + "DEM_FEM_boundary"
 
     def GetClusterFilename(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM_Clusters"
+        return self.GetProblemNameWithPath() + "DEM_Clusters"
 
     def GetProblemTypeFilename(self):
         return self.DEM_parameters["problem_name"].GetString()
@@ -408,14 +432,14 @@ class Solution(object):
             self.BeforePrintingOperations(self.time)
 
             #### GiD IO ##########################################
-            time_to_print = self.time - self.time_old_print
-
-            if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt:
-
+            if self.IsTimeToPrintPostProcess():
                 self.PrintResultsForGid(self.time)
                 self.time_old_print = self.time
 
             self.FinalizeTimeStep(self.time)
+
+    def IsTimeToPrintPostProcess(self):
+        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.dt
 
     def SolverSolve(self):
         self.solver.Solve()
@@ -433,24 +457,21 @@ class Solution(object):
         pass
 
     def BeforeSolveOperations(self, time):
-        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
-                if self.IsCountStep():
-                    #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
-                    #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
-                    self.FillAnalyticSubModelPartsWithNewParticles()
+        if self.post_normal_impact_velocity_option:
+            if self.IsCountStep():
+                #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
+                #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
+                self.FillAnalyticSubModelPartsWithNewParticles()
 
     def BeforePrintingOperations(self, time):
         pass
 
     def AfterSolveOperations(self):
-        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
-                self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-                time_to_print = self.time - self.time_old_print
-                if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt:
-                    self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                    self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+        if self.post_normal_impact_velocity_option:
+            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
+            if self.IsTimeToPrintPostProcess():
+                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
+                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 
     def FinalizeTimeStep(self, time):
         pass

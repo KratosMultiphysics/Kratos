@@ -242,6 +242,7 @@ public:
         
         
         const int nelem = static_cast<int>(mp_distance_model_part->Elements().size());
+        
         #pragma omp parallel for
         for(int iii=0; iii<nelem; iii++)
         {
@@ -278,8 +279,10 @@ public:
                 {
                     
                     double& d = geom[i].FastGetSolutionStepValue(DISTANCE);
+                    geom[i].SetLock();
                     if(std::abs(d) > std::abs(distances[i])) d = distances[i];
                     geom[i].Fix(DISTANCE);
+                    geom[i].UnSetLock();
                 }
             }
         }

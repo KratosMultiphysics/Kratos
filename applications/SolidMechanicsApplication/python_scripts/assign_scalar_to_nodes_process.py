@@ -147,7 +147,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
                 if( self.fix_time_integration ):
                     for node in self.model_part.Nodes:
-                        self.TimeIntegrationMethod.Predict(node)
+                        self.TimeIntegrationMethod.Assign(node)
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -162,7 +162,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
             if( self.fix_time_integration ):
                 for node in self.model_part.Nodes:
-                    self.TimeIntegrationMethod.Predict(node)
+                    self.TimeIntegrationMethod.Assign(node)
 
     def ExecuteFinalizeSolutionStep(self):
 

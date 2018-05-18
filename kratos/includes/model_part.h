@@ -212,7 +212,7 @@ public:
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -251,7 +251,7 @@ public:
     ModelPart(std::string const& NewName, IndexType NewBufferSize);
 
     /// Copy constructor.
-    explicit ModelPart(ModelPart const& rOther);
+    ModelPart(ModelPart const& rOther) = delete;
 
 
     /// Destructor.
@@ -263,7 +263,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    ModelPart & operator=(ModelPart const& rOther);
+    ModelPart & operator=(ModelPart const& rOther) = delete;
 
     ///@}
     ///@name Solution Steps

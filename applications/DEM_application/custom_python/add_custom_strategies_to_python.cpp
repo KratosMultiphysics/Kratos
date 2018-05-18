@@ -2,9 +2,6 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-// External includes
-#include "spaces/ublas_space.h"
-
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 
@@ -89,7 +86,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(init<>())
         ;
 
-    class_<DemSearchType, DemSearchType::Pointer>(m, "OMP_DEMSearch")
+    class_<DemSearchType, DemSearchType::Pointer, SpatialSearch>(m, "OMP_DEMSearch")
         .def(init<>())
         .def(init<const double, const double, const double, const double, const double, const double>(), arg("min_x"), arg("min_y"), arg("min_z"), arg("max_x"), arg("max_y"), arg("max_z"))
         ;

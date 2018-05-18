@@ -27,6 +27,7 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipIf(missing_external_dependencies,"Missing required application: "+ missing_application)
 class FSIProblemEmulatorTest(UnitTest.TestCase):
 
     def setUp(self):

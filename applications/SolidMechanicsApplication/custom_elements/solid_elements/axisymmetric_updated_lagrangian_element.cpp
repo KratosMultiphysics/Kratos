@@ -243,6 +243,8 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVa
     rVariables.F0.resize(3,3,false);
     rVariables.F0 = IdentityMatrix(3);
 
+    rVariables.H.resize(3,3,false);
+    
     //set variables including all integration points values
 
     //reading shape functions
@@ -250,6 +252,9 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVa
 
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+
+    //set process info
+    rVariables.SetProcessInfo(rCurrentProcessInfo);
 
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
@@ -383,7 +388,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateKinematics(ElementVariables&
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
 
     //Current Deformation Gradient [dx_n+1/dx_n]
-    CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
+    CalculateDeformationGradient (rVariables.F, rVariables.DN_DX, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
 
     //Determinant of the deformation gradient F
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
@@ -460,11 +465,11 @@ void AxisymmetricUpdatedLagrangianElement::CalculateRadius(double & rCurrentRadi
 //*************************COMPUTE DEFORMATION GRADIENT*******************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::CalculateDeformationGradient(const Matrix& rDN_DX,
-        Matrix&  rF,
-        Matrix&  rDeltaPosition,
-        double & rCurrentRadius,
-        double & rReferenceRadius)
+void AxisymmetricUpdatedLagrangianElement::CalculateDeformationGradient(Matrix&  rF,
+                                                                        const Matrix& rDN_DX,
+                                                                        const Matrix& rDeltaPosition,
+                                                                        const double & rCurrentRadius,
+                                                                        const double & rReferenceRadius)
 {
     KRATOS_TRY
 
@@ -509,9 +514,9 @@ void AxisymmetricUpdatedLagrangianElement::CalculateDeformationGradient(const Ma
 
 
 void AxisymmetricUpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rDN_DX,
-        Vector& rN,
-        double & rCurrentRadius)
+                                                                      const Matrix& rDN_DX,
+                                                                      const Vector& rN,
+                                                                      const double & rCurrentRadius)
 {
     KRATOS_TRY
 
@@ -564,7 +569,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateGreenLagrangeStrain(const Ma
 
     //Right Cauchy-Green Calculation
     Matrix C ( 3, 3 );
-    noalias( C ) = prod( trans( rF ), rF );
+    noalias ( C )  = prod( trans( rF ), rF );
 
     if( dimension == 2 )
     {

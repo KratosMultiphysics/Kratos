@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Guillermo Casas gcasas@gmail.com
@@ -183,13 +183,13 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         return Condition::Pointer(new MonolithicDEMCoupledWallCondition(NewId, Condition::GetGeometry().Create(ThisNodes), pProperties));
     }
     Condition::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const
+                           PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_shared< MonolithicDEMCoupledWallCondition >(NewId, pGeom, pProperties);
     }
@@ -200,7 +200,7 @@ public:
       */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) ? TDim + 1 : TDim;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -221,7 +221,7 @@ public:
       @see DampingMatrix
       */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType BlockSize = (rCurrentProcessInfo[FRACTIONAL_STEP] == 1) ? TDim + 1 : TDim;
         const SizeType LocalSize = BlockSize * TNumNodes;
@@ -237,7 +237,7 @@ public:
       @see CalculateLocalVelocityContribution
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        ProcessInfo& rCurrentProcessInfo) override
     {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1){
             const SizeType BlockSize = TDim + 1;
@@ -304,7 +304,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Returns a list of the element's Dofs
@@ -313,7 +313,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo);
+                            ProcessInfo& CurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -330,7 +330,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MonolithicDEMCoupledWallCondition" << TDim << "D";
@@ -338,13 +338,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MonolithicDEMCoupledWallCondition";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const  override{}
 
 
     ///@}
@@ -406,12 +406,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }

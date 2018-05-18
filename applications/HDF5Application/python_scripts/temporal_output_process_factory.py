@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import hdf5_io
+import hdf5_defaults
 
 
 class FactoryHelper:
@@ -9,24 +10,17 @@ class FactoryHelper:
         """Return objects needed for constructing a temporal output process."""
         if not isinstance(settings, KratosMultiphysics.Parameters):
             raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "model_part_name" : "MainModelPart",
-                "file_settings" : {},
-                "model_part_output_settings" : {},
-                "nodal_results_settings" : {},
-                "output_time_settings" : {}
-            }
-            """)
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.hdf5_default_settings)
         settings = settings.Clone()
         settings.ValidateAndAssignDefaults(default_settings)
         model_part = Model[settings["model_part_name"].GetString()]
         hdf5_file_factory = self.FileFactory(settings["file_settings"])
         model_part_output = self.ModelPartOutput(settings["model_part_output_settings"])
         nodal_results_output = self.NodalResultsOutput(settings["nodal_results_settings"])
+        element_results_output = self.ElementResultsOutput(settings["element_results_settings"])
         temporal_output_process = hdf5_io.TemporalOutputProcess(
-            model_part, hdf5_file_factory, settings["output_time_settings"], [model_part_output, nodal_results_output])
-        return (temporal_output_process, model_part_output, [nodal_results_output])
+            model_part, hdf5_file_factory, settings["output_time_settings"], [model_part_output, nodal_results_output, element_results_output])
+        return (temporal_output_process, model_part_output, [nodal_results_output, element_results_output])
 
 
 class SerialFactory:
@@ -52,6 +46,9 @@ class ResultsFactory:
     def NodalResultsOutput(self, nodal_results_settings):
         return hdf5_io.NodalResultsOutput(nodal_results_settings)
 
+    def ElementResultsOutput(self, element_results_settings):
+        return hdf5_io.ElementResultsOutput(element_results_settings)
+
 
 class PrimalResultsFactory:
 
@@ -60,6 +57,9 @@ class PrimalResultsFactory:
 
     def NodalResultsOutput(self, nodal_results_settings):
         return hdf5_io.PrimalBossakOutput(nodal_results_settings, self.alpha_bossak)
+
+    def ElementResultsOutput(self, element_results_settings):
+        return hdf5_io.ElementResultsOutput(element_results_settings)
 
 
 class TemporalOutputFactoryHelper(FactoryHelper, SerialFactory, ResultsFactory):
