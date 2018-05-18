@@ -24,7 +24,8 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "mapper_local_system.h"
+#include "custom_utilities/mapper_local_system.h"
+#include "custom_utilities/mapper_flags.h"
 
 
 namespace Kratos
@@ -79,6 +80,9 @@ class MappingOperationUtility
     using TSystemMatrixUniquePointerType = Kratos::unique_ptr<TSystemMatrixType>;
     using TSystemVectorUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
 
+    using DoubleVariableType = Variable<double>;
+    using Array3VariableType = Variable<array_1d<double, 3>>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -120,25 +124,25 @@ class MappingOperationUtility
 
     // The "Solve" function
     virtual void ExecuteMapping(
-        const TSystemMatrixType& rMdo,
+        TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Variable<double>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const = 0;
 
     // The "Solve" function
     virtual void ExecuteMapping(
-        const TSystemMatrixType& rMdo,
+        TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Variable<array_1d<double, 3>>& rOriginVariable,
-        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const Array3VariableType& rOriginVariable,
+        const Array3VariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const = 0;
 

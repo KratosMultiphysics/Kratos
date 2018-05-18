@@ -140,13 +140,13 @@ namespace Kratos
     // The "Solve" function
     template<>
     void UtilityType::ExecuteMapping(
-        const TSystemMatrixType& rMdo,
+        TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Variable<double>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const
     {
@@ -156,13 +156,13 @@ namespace Kratos
     // The "Solve" function
     template<>
     void UtilityType::ExecuteMapping(
-        const TSystemMatrixType& rMdo,
+        TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Variable<array_1d<double, 3>>& rOriginVariable,
-        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const Array3VariableType& rOriginVariable,
+        const Array3VariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const
     {

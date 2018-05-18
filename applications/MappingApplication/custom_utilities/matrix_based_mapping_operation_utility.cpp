@@ -75,7 +75,12 @@ namespace Kratos
                           const TVarType& rVariable,
                           const Kratos::Flags& rMappingOptions)
     {
-
+        #pragma omp parallel for
+        for (int i = 0; i<static_cast<int>(rModelPart.NumberOfNodes()); i++)
+        {
+            auto it = rModelPart.NodesBegin() + i;
+            rVector[i] = it->FastGetSolutionStepValue(rVariable);
+        }
     }
 
     template< class TVarType>
@@ -84,7 +89,17 @@ namespace Kratos
                 const TVarType& rVariable,
                 const Kratos::Flags& rMappingOptions)
     {
+        // TODO create a function ptr to not have the if all the time
+        #pragma omp parallel for
+        for (int i = 0; i<static_cast<int>(rModelPart.NumberOfNodes()); i++)
+        {
+            auto it = rModelPart.NodesBegin() + i;
 
+            if (rMappingOptions.Is(MapperFlags::ADD_VALUES))
+                it->FastGetSolutionStepValue(rVariable) += rVector[i] /** Factor*/;
+            else
+                it->FastGetSolutionStepValue(rVariable) = rVector[i] /** Factor*/;
+        }
     }
 
     /***********************************************************************************/
@@ -163,41 +178,41 @@ namespace Kratos
     // The "Solve" function
     template<>
     void UtilityType::ExecuteMapping(
-        const TSystemMatrixType& rMdo,
+        TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Variable<double>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const
     {
         if (UseTranspose)
         {
-            // FillSystemVector(rQd, rModelPartDestination, rDestinationVariable, MappingOptions);
+            FillSystemVector(rQd, rModelPartDestination, rDestinationVariable, MappingOptions);
+            SparseSpaceType::TransposeMult(rMdo, rQd, rQo); // rQo = rMdo^T * rQo
+            Update(rQo, rModelPartOrigin, rOriginVariable, MappingOptions);
         }
         else
         {
+            KRATOS_INFO("BuildMappingMatrix, non-mpi") << "Doing the mapping steps" << std::endl;
             FillSystemVector(rQo, rModelPartOrigin, rOriginVariable, MappingOptions);
             SparseSpaceType::Mult(rMdo, rQo, rQd); // rQd = rMdo * rQo
             Update(rQd, rModelPartDestination, rDestinationVariable, MappingOptions);
         }
-
-
-
     }
 
     // The "Solve" function
     template<>
     void UtilityType::ExecuteMapping(
-        const TSystemMatrixType& rMdo,
+        TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Variable<array_1d<double, 3>>& rOriginVariable,
-        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const Array3VariableType& rOriginVariable,
+        const Array3VariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const
     {

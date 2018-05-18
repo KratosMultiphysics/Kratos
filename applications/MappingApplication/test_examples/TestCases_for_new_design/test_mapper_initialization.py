@@ -9,6 +9,14 @@ import KratosMultiphysics.MappingApplication as KratosMapping
 model_part_origin = KratosMultiphysics.ModelPart()
 model_part_destination = KratosMultiphysics.ModelPart()
 
+model_part_origin.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+model_part_origin.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+model_part_destination.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+model_part_destination.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+
+model_part_origin.CreateNewNode(1,1.0,2.0,3.0)
+model_part_destination.CreateNewNode(1,2.0,2.0,3.0)
+
 mapper_settings = KratosMultiphysics.Parameters(
     """
     {
@@ -25,3 +33,5 @@ mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_
 
 
 print(mapper)
+
+mapper.Map(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE)
