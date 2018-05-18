@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:  ilaria$
-//   Date:                $Date:  July 2015$
-//   Revision:            $Revision: 1.3 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ilaria Iaconeta
 //
 //
 
@@ -64,6 +69,7 @@ namespace Kratos
 KRATOS_CREATE_VARIABLE( int, COUNTER )
 KRATOS_CREATE_VARIABLE( int, MP_NUMBER )
 KRATOS_CREATE_VARIABLE( int, MP_BOOL )
+KRATOS_CREATE_VARIABLE( int, MP_MATERIAL_ID )
 KRATOS_CREATE_VARIABLE( double, WEIGHT )
 KRATOS_CREATE_VARIABLE( double, MP_MASS )
 KRATOS_CREATE_VARIABLE( double, MP_DENSITY )
@@ -96,7 +102,6 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_VEL )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_ACC )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_ACC )
 KRATOS_CREATE_VARIABLE( double, NODAL_LUMPED_MASS)
-
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
 //MP element variable
@@ -126,7 +131,6 @@ KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
     //mUpdatedLagrangianUP3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4) ) ) )
     //mUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-
     //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
     //mMPMLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
@@ -140,11 +144,11 @@ void KratosParticleMechanicsApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    //std::cout << "     KRATOS  _ |   \\  _ |   ||  | | _ |               " << std::endl;
-    //std::cout << "              _| \  \\   | |  | (  | _|                " << std::endl;
-    //std::cout << "           __|__/ \__\\|\\_|  | _| _| _| MECHANICS     " << std::endl;
-    std::cout << " Initializing KratosParticleMechanicsApplication... " << std::endl;
-
+    KRATOS_INFO("") << "           ____ __   ____ _____ _  ___ _   ____                 " << std::endl
+                    << "     KRATOS  _ |  \\ |  _ |_   _| |/   | | | ___|               " << std::endl
+                    << "          |   _| \\ \\|    | | | | |   (  |_| _|_               " << std::endl
+                    << "          |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____| MECHANICS " << std::endl
+                    << "Initializing KratosParticleMechanicsApplication...              " << std::endl;
 
 // 	    KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 // 	    KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
@@ -169,6 +173,7 @@ void KratosParticleMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( COUNTER )
     KRATOS_REGISTER_VARIABLE( MP_NUMBER )
     KRATOS_REGISTER_VARIABLE( MP_BOOL )
+    KRATOS_REGISTER_VARIABLE( MP_MATERIAL_ID )
     KRATOS_REGISTER_VARIABLE( WEIGHT )
     KRATOS_REGISTER_VARIABLE( MP_MASS )
     KRATOS_REGISTER_VARIABLE( MP_DENSITY )
@@ -226,13 +231,21 @@ void KratosParticleMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
 
+    //Register Constitutive Laws
     //Hyperelastic ViscoPlastic laws
-    Serializer::Register( "HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw );
-    Serializer::Register( "HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw );
-    Serializer::Register("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
-    Serializer::Register("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
-    Serializer::Register("HenckyMCPlasticUP3DLaw", mHenckyMCPlasticUP3DLaw);
-    Serializer::Register("HenckyMCPlasticPlaneStrainUP2DLaw", mHenckyMCPlasticPlaneStrainUP2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticUP3DLaw", mHenckyMCPlasticUP3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticPlaneStrainUP2DLaw", mHenckyMCPlasticPlaneStrainUP2DLaw);
+
+    // Serializer::Register( "HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw );
+    // Serializer::Register( "HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw );
+    // Serializer::Register("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
+    // Serializer::Register("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
+    // Serializer::Register("HenckyMCPlasticUP3DLaw", mHenckyMCPlasticUP3DLaw);
+    // Serializer::Register("HenckyMCPlasticPlaneStrainUP2DLaw", mHenckyMCPlasticPlaneStrainUP2DLaw);
 
     //Hyperelastic Drucker-Prager laws
 

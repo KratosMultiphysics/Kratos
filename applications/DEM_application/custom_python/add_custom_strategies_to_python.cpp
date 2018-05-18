@@ -2,9 +2,6 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-// External includes
-#include "spaces/ublas_space.h"
-
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 
@@ -89,7 +86,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(init<>())
         ;
 
-    class_<DemSearchType, DemSearchType::Pointer>(m, "OMP_DEMSearch")
+    class_<DemSearchType, DemSearchType::Pointer, SpatialSearch>(m, "OMP_DEMSearch")
         .def(init<>())
         .def(init<const double, const double, const double, const double, const double, const double>(), arg("min_x"), arg("min_y"), arg("min_z"), arg("max_x"), arg("max_y"), arg("max_z"))
         ;
@@ -104,7 +101,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     class_<ExplicitSolverStrategy, ExplicitSolverStrategy::Pointer>(m, "ExplicitSolverStrategy")
-        .def(init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, const bool>())
+        .def(init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, const bool>())
         .def("Solve", &ExplicitSolverStrategy::Solve)
         .def("Initialize", &ExplicitSolverStrategy::Initialize)
         .def("SetSearchRadiiOnAllParticles", &ExplicitSolverStrategy::SetSearchRadiiOnAllParticles)
@@ -117,7 +114,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
-        .def(init< ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer,  SpatialSearch::Pointer>())
+        .def(init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer,  SpatialSearch::Pointer>())
         .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategy::PrepareContactElementsForPrinting)
         ;
 

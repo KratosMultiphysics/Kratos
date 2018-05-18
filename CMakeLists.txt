@@ -1,19 +1,24 @@
+project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
 
+
+
+# Setting some policies
 if(POLICY CMP0054)
   cmake_policy(SET CMP0054 OLD)
 endif(POLICY CMP0054)
 
-project (KratosMultiphysics)
+# Uses INTERFACE_LINK_LIBRARIES instead of LINK_INTERFACE_LIBRARIES
+if(POLICY CMP0022)
+  cmake_policy(SET CMP0022 NEW)
+endif(POLICY CMP0022)
+
+
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 6)
 set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
-
-
-
-
 
 # Define custom compiler build types
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
@@ -32,6 +37,8 @@ SET( CMAKE_C_FLAGS_CUSTOM "" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "" )
 SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
 SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
+SET( CMAKE_MODULE_LINKER_FLAGS_FULLDEBUG "${CMAKE_MODULE_LINKER_FLAGS}")
+SET( CMAKE_MODULE_LINKER_FLAGS_CUSTOM "${CMAKE_MODULE_LINKER_FLAGS}")
 
 if(USE_COTIRE MATCHES ON)
     set(CMAKE_SKIP_RPATH ON)
@@ -80,6 +87,9 @@ configure_file(
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
   message("additional default options were set for gcc")
@@ -115,6 +125,8 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_C_COMPILER} MATCHES "icc.*$")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+
+
 # Old non-compatible versions of VS
 if(${MSVC80})
   message( "DEPRECATED: detected compiler as MSVC80")
@@ -144,8 +156,8 @@ endif(${MSVC12})
 # Common flags for MSVC
 if(${MSVC})
   message("Detected compiler as MSVC")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
@@ -291,7 +303,6 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 ##*****************************
 #finding Mpi
-set(MPI_NEEDED OFF)
 if(${METIS_APPLICATION} MATCHES ON )
   set(MPI_NEEDED ON)
 endif(${METIS_APPLICATION} MATCHES ON )
@@ -310,7 +321,7 @@ if(${MPI_NEEDED} MATCHES ON )
   set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 
   # Note: that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
-  include_directories(${MPI_INCLUDE_PATH})
+  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
   # find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
@@ -328,7 +339,15 @@ else( ZLIB_FOUND )
   include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
 endif( ZLIB_FOUND )
-  
+
+# including the AMatrix
+if( AMATRIX_DIR )
+    message("AMATRIX_DIR : ${AMATRIX_DIR}")
+    include_directories ( "${AMATRIX_DIR}/include" )
+    add_definitions(-DKRATOS_USE_AMATRIX)
+else()
+    message( "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
+endif()
 
 ##echo user options
 message( " ")
@@ -403,7 +422,7 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 # Kratos Testing. Install everything except sources
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests 
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests
     PATTERN "*.git" EXCLUDE
     PATTERN "*.c" EXCLUDE
     PATTERN "*.h" EXCLUDE

@@ -50,7 +50,7 @@ Element::Pointer SymbolicNavierStokes<TElementData>::Create(IndexType NewId,Geom
 
 template <class TElementData>
 int SymbolicNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) {
-    
+
     KRATOS_TRY;
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
@@ -112,19 +112,19 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     VectorType& rRHS) {
 
     // Set the current Gauss pt. Voigt notation normal projection matrix
-    bounded_matrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
+    BoundedMatrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
     FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal, voigt_normal_projection_matrix);
 
     // Set the current Gauss pt. strain matrix
-    bounded_matrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
+    BoundedMatrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX, B_matrix);
-    
+
     // Compute some Gauss pt. auxiliar matrices
-    const bounded_matrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
-    const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+    const BoundedMatrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
+    const BoundedMatrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
     // Fill the pressure to Voigt notation operator matrix
-    bounded_matrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
+    BoundedMatrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
     for (unsigned int i=0; i<NumNodes; ++i) {
         for (unsigned int comp=0; comp<Dim; ++comp) {
             pres_to_voigt_matrix_op(comp, i*BlockSize+Dim) = rData.N[i];
@@ -132,7 +132,7 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     }
 
     // Set the shape functions auxiliar transpose matrix
-    bounded_matrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
+    BoundedMatrix<double, LocalSize, Dim> N_aux_trans = ZeroMatrix(LocalSize, Dim);
     for (unsigned int i=0; i<NumNodes; ++i) {
         for (unsigned int comp=0; comp<Dim; ++comp) {
             N_aux_trans(i*BlockSize+comp, comp) = rData.N[i];
@@ -143,12 +143,12 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     noalias(rData.lhs) = prod(N_aux_trans, aux_matrix_ACB);
 
     // Contribution coming from the pressure terms
-    const bounded_matrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
+    const BoundedMatrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
     noalias(rData.lhs) -= prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
 
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
-    
+
     rData.lhs *= rData.Weight;
     noalias(rLHS) -= rData.lhs;
     noalias(rRHS) += prod(rData.lhs,values);

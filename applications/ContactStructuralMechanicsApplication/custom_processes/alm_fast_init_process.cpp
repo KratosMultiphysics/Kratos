@@ -29,18 +29,20 @@ void ALMFastInit::Execute()
     // We initialize the penalty parameter
     const double epsilon = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
     
+    // Auxiliar zero array
+    const array_1d<double, 3> zero_array(3, 0.0);
+
     // We iterate over the nodes
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
-    {
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
         
         // Weighted values
         it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-        if (is_frictional == true)
-            it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = 0.0;
+        if (is_frictional)
+            it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array;
         
         // Penalty parameter
         it_node->SetValue(INITIAL_PENALTY, epsilon);
@@ -48,8 +50,8 @@ void ALMFastInit::Execute()
         // Auxiliar values
         it_node->SetValue(DYNAMIC_FACTOR, 1.0);
         it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
-        if (is_frictional == true)
-            it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
+        if (is_frictional)
+            it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, zero_array);
     }
     
     // Now we iterate over the conditions
@@ -59,6 +61,38 @@ void ALMFastInit::Execute()
     for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
         (conditions_array.begin() + i)->SetValue(NORMAL, ZeroVector(3)); // The normal and tangents vectors
 
+    if (is_frictional) {
+        // We initialize the frictional coefficient. The evolution of the frictional coefficient it is supposed to be controled by a law
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+            auto it_node = nodes_array.begin() + i;
+            it_node->SetValue(FRICTION_COEFFICIENT, 0.0);
+            it_node->SetValue(NODAL_AREA, 0.0);
+        }
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
+            auto it_cond = (conditions_array.begin() + i);
+
+            auto p_prop = it_cond->pGetProperties();
+            const double friction_coefficient = p_prop->GetValue(FRICTION_COEFFICIENT);
+            auto& geom = it_cond->GetGeometry();
+
+            for (auto& node : geom) {
+                node.SetLock();
+                node.GetValue(FRICTION_COEFFICIENT) += friction_coefficient;
+                node.GetValue(NODAL_AREA) += 1.0;
+                node.UnSetLock();
+            }
+        }
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+            auto it_node = nodes_array.begin() + i;
+            double& friction_coefficient = it_node->GetValue(FRICTION_COEFFICIENT);
+            friction_coefficient /= it_node->GetValue(NODAL_AREA);
+        }
+    }
 
     KRATOS_CATCH("");
 } // class ALMFastInit

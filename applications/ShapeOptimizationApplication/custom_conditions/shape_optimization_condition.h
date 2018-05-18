@@ -92,7 +92,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties ) const;
+			      PropertiesType::Pointer pProperties ) const override;
 
 
     /**
@@ -102,8 +102,8 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
+    Condition::Pointer Clone(IndexType NewId,
+			     NodesArrayType const& ThisNodes) const override;
 
 
 
@@ -122,7 +122,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -203,9 +203,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 }; // class ShapeOptimizationCondition.
 

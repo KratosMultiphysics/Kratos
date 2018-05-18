@@ -237,8 +237,8 @@ public:
                 mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
                 mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
-            if (nodes_array.begin()->SolutionStepsDataHas(NORMAL_CONTACT_STRESS))
-                mpGidIO->WriteNodalResults(NORMAL_CONTACT_STRESS, rModelPart.Nodes(), label, 0);
+            if (nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+                mpGidIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
             else
                 mpGidIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
             mpGidIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
@@ -280,9 +280,9 @@ public:
         // GiD IO for debugging
         if (mIODebug == true) {
             mpGidIO->CloseResultFile();
-            std::string new_name = "POST_LINEAR_ITER_STEP=";
-            new_name.append(std::to_string(rModelPart.GetProcessInfo()[STEP]));
-            mpGidIO->ChangeOutputName(new_name);
+            std::ostringstream new_name ;
+            new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
+            mpGidIO->ChangeOutputName(new_name.str());
         }
     }
     

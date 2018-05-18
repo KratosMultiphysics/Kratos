@@ -22,6 +22,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
@@ -33,6 +34,9 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stokes_3D_twofluid.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_ausas_navier_stokes.cpp
+  #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes2D.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes3D.cpp
 
   # conditions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
@@ -80,11 +84,11 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################################
 ## FluidDynamicsApplication core library (C++ parts)
 add_library( KratosFluidDynamicsCore SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES} ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES} )
-target_link_libraries( KratosFluidDynamicsCore PRIVATE KratosCore)
+target_link_libraries( KratosFluidDynamicsCore PUBLIC KratosCore)
 set_target_properties( KratosFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsApplication python module
-pybind11_add_module( KratosFluidDynamicsApplication MODULE ${KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES} )
+pybind11_add_module( KratosFluidDynamicsApplication MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosFluidDynamicsApplication PRIVATE KratosFluidDynamicsCore)
 set_target_properties( KratosFluidDynamicsApplication PROPERTIES PREFIX "")
 

@@ -47,7 +47,7 @@ namespace Kratos
  * 
  * @author Vicente Mataix Ferrandiz
 */
-class TotalStructuralMassProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalStructuralMassProcess
     : public Process
 {
 public:

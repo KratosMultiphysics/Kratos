@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class VelocityVerletScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) VelocityVerletScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;

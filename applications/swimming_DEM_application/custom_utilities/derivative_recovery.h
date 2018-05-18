@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "geometries/triangle_2d_3.h"
@@ -64,8 +65,7 @@ namespace Kratos
 */
 
 template <std::size_t TDim>
-
-class DerivativeRecovery
+class KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery
 {
 public:
 ///@name Type Definitions
@@ -94,7 +94,19 @@ KRATOS_CLASS_POINTER_DEFINITION(DerivativeRecovery_TDim);
 
 /// Default constructor.
 
-DerivativeRecovery(ModelPart& r_model_part): mModelPart(r_model_part), mMyCustomFunctions(), mFirstGradientRecovery(true), mFirstLaplacianRecovery(true), mSomeCloudsDontWork(false), mCalculatingTheGradient(false), mCalculatingTheLaplacian(false), mCalculatingGradientAndLaplacian(false), mFirstTimeAppending(true){}
+DerivativeRecovery(ModelPart& r_model_part, Parameters& r_parameters):
+    mModelPart(r_model_part),
+    mMyCustomFunctions(),
+    mFirstGradientRecovery(true),
+    mFirstLaplacianRecovery(true),
+    mSomeCloudsDontWork(false),
+    mCalculatingTheGradient(false),
+    mCalculatingTheLaplacian(false),
+    mCalculatingGradientAndLaplacian(false),
+    mFirstTimeAppending(true)
+{
+    mStoreFullGradient = r_parameters.GetValue("store_full_gradient_option").GetBool();
+}
 
 /// Destructor.
 virtual ~DerivativeRecovery(){}
@@ -139,6 +151,8 @@ void CalculateVorticityContributionOfTheGradientOfAComponent(ModelPart& r_model_
 template <class TScalarVariable>
 void CalculateGradient(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container);
 
+void SmoothVectorField(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_field, Variable<array_1d<double, 3> >& auxiliary_veriable);
+
 void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
 
 void CalculateVelocityLaplacianRate(ModelPart& r_model_part);
@@ -174,12 +188,12 @@ virtual void PrintData(std::ostream& rOStream) const {}
 ///@}
 ///@name Friends
 ///@{
-vector<unsigned int>& GetElementPartition()
+DenseVector<unsigned int>& GetElementPartition()
 {
   return (mElementsPartition);
 }
 
-vector<unsigned int>& GetNodePartition()
+DenseVector<unsigned int>& GetNodePartition()
 {
   return (mNodesPartition);
 }
@@ -211,8 +225,8 @@ NodesArrayType::iterator GetNodePartitionEnd(ModelPart& r_model_part, unsigned i
 
 protected:
 
-vector<unsigned int> mElementsPartition;
-vector<unsigned int> mNodesPartition;
+DenseVector<unsigned int> mElementsPartition;
+DenseVector<unsigned int> mNodesPartition;
 
 private:
 
@@ -225,11 +239,12 @@ bool mCalculatingTheGradient;
 bool mCalculatingTheLaplacian;
 bool mCalculatingGradientAndLaplacian;
 bool mFirstTimeAppending;
+bool mStoreFullGradient;
 double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;
 std::vector<double> mPressures;
-std::vector<vector<double> > mFirstRowsOfB;
+std::vector<DenseVector<double> > mFirstRowsOfB;
 bool mMustCalculateMaxNodalArea;
 double mMinFluidFraction;
 double mMaxNodalAreaInv;
@@ -260,7 +275,7 @@ void OrderByDistance(Node<3>::Pointer &p_node, WeakPointerVector<Node<3> >& neig
 bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p_node);
 bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node);
 double SecondDegreeTestPolynomial(const array_1d <double, 3>& coordinates);
-double SecondDegreeGenericPolynomial(boost::numeric::ublas::matrix<double> C, const array_1d <double, 3>& coordinates);
+double SecondDegreeGenericPolynomial(DenseMatrix<double> C, const array_1d <double, 3>& coordinates);
 inline int Factorial(const unsigned int n);
 bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer& p_node);
 unsigned int GetNumberOfUniqueNeighbours(const int my_id, const WeakPointerVector<Element>& my_neighbour_elements);

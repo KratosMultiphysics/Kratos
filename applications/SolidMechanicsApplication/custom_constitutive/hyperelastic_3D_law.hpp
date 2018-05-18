@@ -93,7 +93,7 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
@@ -124,7 +124,7 @@ public:
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension()
+    SizeType WorkingSpaceDimension() override
     {
         return 3;
     };
@@ -132,49 +132,49 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()
+    SizeType GetStrainSize() override
     {
         return 6;
     };
 
 
-    bool Has( const Variable<double>& rThisVariable );
-    bool Has( const Variable<Vector>& rThisVariable );
-    bool Has( const Variable<Matrix>& rThisVariable );
+    bool Has( const Variable<double>& rThisVariable ) override;
+    bool Has( const Variable<Vector>& rThisVariable ) override;
+    bool Has( const Variable<Matrix>& rThisVariable ) override;
 
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
     
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue ) override;
 
 
     void SetValue( const Variable<double>& rVariable,
                    const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Vector>& rThisVariable,
                    const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     void SetValue( const Variable<Matrix>& rThisVariable,
                    const Matrix& rValue,
-                   const ProcessInfo& rCurrentProcessInfo );
+                   const ProcessInfo& rCurrentProcessInfo ) override;
     /**
      * Material parameters are inizialized
      */
     void InitializeMaterial( const Properties& rMaterialProperties,
                              const GeometryType& rElementGeometry,
-                             const Vector& rShapeFunctionsValues );
+                             const Vector& rShapeFunctionsValues ) override;
 
 
     void InitializeSolutionStep( const Properties& rMaterialProperties,
                                  const GeometryType& rElementGeometry, //this is just to give the array of nodes
                                  const Vector& rShapeFunctionsValues ,
-                                 const ProcessInfo& rCurrentProcessInfo);
+                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep( const Properties& rMaterialProperties,
                                const GeometryType& rElementGeometry, //this is just to give the array of nodes
                                const Vector& rShapeFunctionsValues ,
-                               const ProcessInfo& rCurrentProcessInfo);
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Computes the material response:
@@ -182,7 +182,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponsePK1 (Parameters & rValues);
+    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -190,7 +190,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponsePK2 (Parameters & rValues);
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -198,7 +198,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
 
     /**
@@ -207,7 +207,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponseCauchy (Parameters & rValues);
+    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
 
     /**
@@ -216,7 +216,7 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    virtual void FinalizeMaterialResponsePK1 (Parameters & rValues);
+    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -224,7 +224,7 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    virtual void FinalizeMaterialResponsePK2 (Parameters & rValues);
+    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -232,7 +232,7 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    virtual void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
+    void FinalizeMaterialResponseKirchhoff (Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -240,14 +240,14 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    virtual void FinalizeMaterialResponseCauchy (Parameters & rValues);
+    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
 
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -258,7 +258,7 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Input and output
@@ -266,15 +266,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -503,7 +503,7 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
 	rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
@@ -511,7 +511,7 @@ private:
 	rSerializer.save("mStrainEnergy",mStrainEnergy);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
 	rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);

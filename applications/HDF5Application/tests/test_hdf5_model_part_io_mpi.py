@@ -135,7 +135,6 @@ class TestCase(KratosUnittest.TestCase):
     def _get_nodal_solution_step_data_io(self, hdf5_file):
         params = Parameters("""
         {
-            "partitioned" : true,
             "prefix" : "/ResultsData",
             "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
         }""")

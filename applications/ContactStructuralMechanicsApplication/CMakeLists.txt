@@ -48,7 +48,6 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_condition.cpp # Frictionless
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_components_mortar_contact_condition.cpp # Frictionless
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.cpp # Frictionless axisym
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/DALM_frictionless_mortar_contact_condition.cpp # Frictionless
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_condition.cpp # Frictional
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_axisym_condition.cpp # Frictional axisym
 )
@@ -59,11 +58,16 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosContactStructuralMechanicsApplication MODULE ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES} ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES})
+pybind11_add_module(KratosContactStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES} ${KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES})
 
 target_link_libraries(KratosContactStructuralMechanicsApplication PRIVATE KratosCore)
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "CONTACT_STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosContactStructuralMechanicsApplication PROPERTIES PREFIX "")
+if(USE_COTIRE MATCHES ON)
+    ## The interface_preprocess is not compatible with cotire (solve problem with explicit instantations)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
+    cotire(KratosContactStructuralMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosContactStructuralMechanicsApplication DESTINATION libs )
 
 

@@ -37,6 +37,7 @@
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
+#include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -200,9 +201,10 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-	    typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
-	    typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+            typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
+            typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFDisplacementSchemeType;
+            typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFCustomSchemeType;
 
             class_< BaseSchemeType, typename BaseSchemeType::Pointer >(m,"Scheme")
             .def(init< >())
@@ -231,34 +233,48 @@ namespace Kratos
                     (m, "ResidualBasedIncrementalUpdateStaticScheme")
                     .def(init< >()
                     );
-
+                    
+            
+            typedef typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::RotationToolPointerType RotationToolPointerType;
+            
+            
+                   
             class_< ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>,
                     typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::Pointer,
                     ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >
                     (m,"ResidualBasedIncrementalUpdateStaticSchemeSlip")
-                    .def(init<unsigned int, unsigned int>());
+                    .def(init<unsigned int, unsigned int>())
+                    .def(init<RotationToolPointerType>());                   
+ 
 
-	    // Residual Based Bossak Scheme Type
-	    class_< ResidualBasedBossakDisplacementSchemeType,
+	         // Residual Based Bossak Scheme Type
+	         class_< ResidualBasedBossakDisplacementSchemeType,
                     typename ResidualBasedBossakDisplacementSchemeType::Pointer,
                     BaseSchemeType  >
-            (m,"ResidualBasedBossakDisplacementScheme")
-            .def(init< double >() )
-            .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-            ;
+                    (m,"ResidualBasedBossakDisplacementScheme")
+                    .def(init< double >() )
+                    .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+                    ;
 
-	    // Residual Based Newmark Scheme Type
-	    class_< ResidualBasedNewmarkDisplacementSchemeType,
-            typename ResidualBasedNewmarkDisplacementSchemeType::Pointer,
-             BaseSchemeType >(m,"ResidualBasedNewmarkDisplacementScheme")
-                .def(init< >() )
-                .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-            ;
+	         // Residual Based Newmark Scheme Type
+	         class_< ResidualBasedNewmarkDisplacementSchemeType,
+                   typename ResidualBasedNewmarkDisplacementSchemeType::Pointer,
+                   BaseSchemeType >(m,"ResidualBasedNewmarkDisplacementScheme")
+                   .def(init< >() )
+                   .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+                   ;
             
             // Residual Based BDF displacement Scheme Type
             class_< ResidualBasedBDFDisplacementSchemeType,typename ResidualBasedBDFDisplacementSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFDisplacementScheme")
                 .def(init<  >() )
                 .def(init <const std::size_t>())
+            ;
+            
+            // Residual Based BDF custom Scheme Type
+            class_< ResidualBasedBDFCustomSchemeType, typename ResidualBasedBDFCustomSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFCustomScheme")
+                .def(init<  >() )
+                .def(init <const std::size_t>())
+                .def(init <const std::size_t, Parameters>())
             ;
 
             //********************************************************************

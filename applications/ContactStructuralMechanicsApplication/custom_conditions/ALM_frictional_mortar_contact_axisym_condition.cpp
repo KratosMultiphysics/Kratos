@@ -25,7 +25,7 @@ namespace Kratos
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TNumNodes, bool TNormalVariation >
 Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create( 
     IndexType NewId,
     NodesArrayType const& rThisNodes,
@@ -37,7 +37,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactAxisymConditi
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TNumNodes, bool TNormalVariation >
 Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
@@ -49,14 +49,14 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactAxisymConditi
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TNumNodes, bool TNormalVariation >
 AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation>::~AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition( )
 = default;
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TNumNodes, bool TNormalVariation >
 double AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
 {
     const double radius = CalculateRadius(rVariables);
@@ -67,7 +67,7 @@ double AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes
 /*************************COMPUTE AXYSIMMETRIC RADIUS*******************************/
 /***********************************************************************************/
 
-template< unsigned int TNumNodes, bool TNormalVariation >
+template< std::size_t TNumNodes, bool TNormalVariation >
 double AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateRadius(const GeneralVariables& rVariables) const
 {
     KRATOS_TRY;
@@ -75,7 +75,7 @@ double AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes
     double current_radius = 0.0;
 //     double reference_radius = 0.0;
 
-    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
     {
         // Displacement from the reference to the current configuration
 //         const array_1d<double, 3 > DeltaDisplacement = this->GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);  

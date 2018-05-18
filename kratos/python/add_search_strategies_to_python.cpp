@@ -16,8 +16,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -30,13 +28,13 @@ namespace Kratos
 namespace Python
 {
   
-void  AddSearchStrategiesToPython()
+void  AddSearchStrategiesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
   
-    class_<SpatialSearch, boost::noncopyable >
-             ("SpatialSearch", init< >())
-             ;
+    class_<SpatialSearch, SpatialSearch::Pointer>(m, "SpatialSearch")
+        .def(init< >())
+        ;
 }
 
 }  // namespace Python.

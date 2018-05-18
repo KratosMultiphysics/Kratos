@@ -7,6 +7,7 @@
 #include <limits>
 #include <iostream>
 #include <iomanip>
+#include <list>
 
 // Project includes
 #include "includes/define.h"
@@ -20,7 +21,7 @@
 
 namespace Kratos
 {
-class AnalyticFaceWatcher {
+class KRATOS_API(DEM_APPLICATION) AnalyticFaceWatcher {
 
 public:
 

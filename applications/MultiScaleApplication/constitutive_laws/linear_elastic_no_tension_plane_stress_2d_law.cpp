@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	LinearElasticNoTensionPlaneStress2DLaw::LinearElasticNoTensionPlaneStress2DLaw() 
+	LinearElasticNoTensionPlaneStress2DLaw::LinearElasticNoTensionPlaneStress2DLaw()
 		: ConstitutiveLaw()
 	{
 	}
@@ -103,7 +103,7 @@ namespace Kratos
 	}
 
 	int& LinearElasticNoTensionPlaneStress2DLaw::GetValue(
-		const Variable<int>& rThisVariable, 
+		const Variable<int>& rThisVariable,
 		int& rValue)
 	{
 		rValue = 0;
@@ -111,7 +111,7 @@ namespace Kratos
 	}
 
 	double& LinearElasticNoTensionPlaneStress2DLaw::GetValue(
-		const Variable<double>& rThisVariable, 
+		const Variable<double>& rThisVariable,
 		double& rValue)
 	{
 		rValue = 0.0;
@@ -119,28 +119,28 @@ namespace Kratos
 	}
 
 	Vector& LinearElasticNoTensionPlaneStress2DLaw::GetValue(
-		const Variable<Vector>& rThisVariable, 
+		const Variable<Vector>& rThisVariable,
 		Vector& rValue)
 	{
 		return rValue;
 	}
 
 	Matrix& LinearElasticNoTensionPlaneStress2DLaw::GetValue(
-		const Variable<Matrix>& rThisVariable, 
+		const Variable<Matrix>& rThisVariable,
 		Matrix& rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 3 > & LinearElasticNoTensionPlaneStress2DLaw::GetValue(
-		const Variable<array_1d<double, 3 > >& rVariable, 
+		const Variable<array_1d<double, 3 > >& rVariable,
 		array_1d<double, 3 > & rValue)
 	{
 		return rValue;
 	}
 
 	array_1d<double, 6 > & LinearElasticNoTensionPlaneStress2DLaw::GetValue(
-		const Variable<array_1d<double, 6 > >& rVariable, 
+		const Variable<array_1d<double, 6 > >& rVariable,
 		array_1d<double, 6 > & rValue)
 	{
 		return rValue;
@@ -162,14 +162,14 @@ namespace Kratos
 
 	void LinearElasticNoTensionPlaneStress2DLaw::SetValue(
 		const Variable<Vector >& rVariable,
-		const Vector& rValue, 
+		const Vector& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
 
 	void LinearElasticNoTensionPlaneStress2DLaw::SetValue(
 		const Variable<Matrix >& rVariable,
-		const Matrix& rValue, 
+		const Matrix& rValue,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 	}
@@ -270,19 +270,19 @@ namespace Kratos
 		const Vector& strain_vector       = rValues.GetStrainVector();
 		Vector&       stress_vector       = rValues.GetStressVector();
 		Matrix&       constitutive_matrix  = rValues.GetConstitutiveMatrix();
-		
+
 		if(stress_vector.size() != 3)
 			stress_vector.resize(3, false);
 		stress_vector.clear();
-		
+
 		if(constitutive_matrix.size1() != 3 || constitutive_matrix.size2() != 3)
 			constitutive_matrix.resize(3,3,false);
 		constitutive_matrix.clear();
-		
+
 		constitutive_matrix.clear();
-		
+
 		double E  = props[YOUNG_MODULUS];
-		
+
 		if(strain_vector(0) <= 0.0)
 		{
 			stress_vector(0) = E*strain_vector(0);

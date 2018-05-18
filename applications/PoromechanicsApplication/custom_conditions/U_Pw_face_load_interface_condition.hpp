@@ -53,13 +53,13 @@ public:
     }
 
     // Destructor
-    virtual ~UPwFaceLoadInterfaceCondition() {}
+    ~UPwFaceLoadInterfaceCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
  
-    void Initialize();
+    void Initialize() override;
  
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -73,14 +73,14 @@ protected:
 
     void CalculateInitialGap(const GeometryType& Geom);
     
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
-    void CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& rRotationMatrix,
+    void CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,TDim,TDim>& rRotationMatrix,
                             const double& MinimumJointWidth, const GeometryType& Geom);
 
-    void CalculateJointWidth( double& rJointWidth, const boost::numeric::ublas::bounded_matrix<double,TDim,TDim*TNumNodes>& Nu,
+    void CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,TDim,TDim*TNumNodes>& Nu,
                                 const array_1d<double,TDim*TNumNodes>& DisplacementVector, array_1d<double,TDim>& rRelDispVector,
-                                const boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& RotationMatrix,
+                                const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                 array_1d<double,TDim>& rLocalRelDispVector, const double& MinimumJointWidth, const unsigned int& GPoint );
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth);
@@ -97,12 +97,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }

@@ -52,6 +52,10 @@ namespace Kratos
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
+            this_model_part.CreateSubModelPart("SlaveModelPart");
+            ModelPart& slave_model_part = this_model_part.GetSubModelPart("SlaveModelPart");
+            this_model_part.CreateSubModelPart("MasterModelPart");
+            ModelPart& master_model_part = this_model_part.GetSubModelPart("MasterModelPart");
             
             this_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -92,25 +96,16 @@ namespace Kratos
             this_set.AddId(2);
             p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             
-            // Setting flags
             // SLAVE
-            p_node_1->Set(SLAVE, true);
-            p_node_1->Set(MASTER, false);
-            p_node_2->Set(SLAVE, true);
-            p_node_2->Set(MASTER, false);
-            p_node_3->Set(SLAVE, true);
-            p_node_3->Set(MASTER, false);
-            p_cond_0->Set(SLAVE, true);
-            p_cond_0->Set(MASTER, false);
+            slave_model_part.AddNode(p_node_1);
+            slave_model_part.AddNode(p_node_2);
+            slave_model_part.AddNode(p_node_3);
+            slave_model_part.AddCondition(p_cond_0);
             // MASTER
-            p_node_4->Set(SLAVE, false);
-            p_node_4->Set(MASTER, true);
-            p_node_5->Set(SLAVE, false);
-            p_node_5->Set(MASTER, true);
-            p_node_6->Set(SLAVE, false);
-            p_node_6->Set(MASTER, true);
-            p_cond_1->Set(SLAVE, false);
-            p_cond_1->Set(MASTER, true);
+            master_model_part.AddNode(p_node_4);
+            master_model_part.AddNode(p_node_5);
+            master_model_part.AddNode(p_node_6);
+            master_model_part.AddCondition(p_cond_1);
             
             // We compute the normals
             MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part);
@@ -120,7 +115,7 @@ namespace Kratos
             p_node_6->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_6->X(), 2) + std::pow(p_node_6->Y(), 2);
                          
             typedef SimpleMortarMapperProcess<3, 3, Variable<double>, Historical> MapperType;
-            MapperType process = MapperType(this_model_part, TEMPERATURE);
+            MapperType process = MapperType(master_model_part, slave_model_part, TEMPERATURE);
             process.Execute();
             
             // DEBUG         
@@ -141,6 +136,10 @@ namespace Kratos
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
+            this_model_part.CreateSubModelPart("SlaveModelPart");
+            ModelPart& slave_model_part = this_model_part.GetSubModelPart("SlaveModelPart");
+            this_model_part.CreateSubModelPart("MasterModelPart");
+            ModelPart& master_model_part = this_model_part.GetSubModelPart("MasterModelPart");
             
             this_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -184,30 +183,19 @@ namespace Kratos
             IndexSet this_set;
             this_set.AddId(2);
             p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
-            
-            // Setting flags
+
             // SLAVE
-            p_node_1->Set(SLAVE, true);
-            p_node_1->Set(MASTER, false);
-            p_node_2->Set(SLAVE, true);
-            p_node_2->Set(MASTER, false);
-            p_node_3->Set(SLAVE, true);
-            p_node_3->Set(MASTER, false);
-            p_node_4->Set(SLAVE, true);
-            p_node_4->Set(MASTER, false);
-            p_cond_0->Set(SLAVE, true);
-            p_cond_0->Set(MASTER, false);
+            slave_model_part.AddNode(p_node_1);
+            slave_model_part.AddNode(p_node_2);
+            slave_model_part.AddNode(p_node_3);
+            slave_model_part.AddNode(p_node_4);
+            slave_model_part.AddCondition(p_cond_0);
             // MASTER
-            p_node_5->Set(SLAVE, false);
-            p_node_5->Set(MASTER, true);
-            p_node_6->Set(SLAVE, false);
-            p_node_6->Set(MASTER, true);
-            p_node_7->Set(SLAVE, false);
-            p_node_7->Set(MASTER, true);
-            p_node_8->Set(SLAVE, false);
-            p_node_8->Set(MASTER, true);
-            p_cond_1->Set(SLAVE, false);
-            p_cond_1->Set(MASTER, true);
+            master_model_part.AddNode(p_node_5);
+            master_model_part.AddNode(p_node_6);
+            master_model_part.AddNode(p_node_7);
+            master_model_part.AddNode(p_node_8);
+            master_model_part.AddCondition(p_cond_1);
             
             // We compute the normals
             MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part);
@@ -218,7 +206,7 @@ namespace Kratos
             p_node_8->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_8->X(), 2) + std::pow(p_node_8->Y(), 2);
                          
             typedef SimpleMortarMapperProcess<3, 4, Variable<double>, Historical> MapperType;
-            MapperType process = MapperType(this_model_part, TEMPERATURE);
+            MapperType process = MapperType(master_model_part, slave_model_part, TEMPERATURE);
             process.Execute();
             
             // DEBUG         
@@ -240,6 +228,10 @@ namespace Kratos
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
+            this_model_part.CreateSubModelPart("SlaveModelPart");
+            ModelPart& slave_model_part = this_model_part.GetSubModelPart("SlaveModelPart");
+            this_model_part.CreateSubModelPart("MasterModelPart");
+            ModelPart& master_model_part = this_model_part.GetSubModelPart("MasterModelPart");
             
             this_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -297,34 +289,21 @@ namespace Kratos
             this_set1.AddId(4);
             p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set0));
             p_cond_1->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set1));
-            
-            // Setting flags
+
             // SLAVE
-            p_node_1->Set(SLAVE, true);
-            p_node_1->Set(MASTER, false);
-            p_node_2->Set(SLAVE, true);
-            p_node_2->Set(MASTER, false);
-            p_node_3->Set(SLAVE, true);
-            p_node_3->Set(MASTER, false);
-            p_node_4->Set(SLAVE, true);
-            p_node_4->Set(MASTER, false);
-            p_cond_0->Set(SLAVE, true);
-            p_cond_0->Set(MASTER, false);
-            p_cond_1->Set(SLAVE, true);
-            p_cond_1->Set(MASTER, false);
+            slave_model_part.AddNode(p_node_1);
+            slave_model_part.AddNode(p_node_2);
+            slave_model_part.AddNode(p_node_3);
+            slave_model_part.AddNode(p_node_4);
+            slave_model_part.AddCondition(p_cond_0);
+            slave_model_part.AddCondition(p_cond_1);
             // MASTER
-            p_node_5->Set(SLAVE, false);
-            p_node_5->Set(MASTER, true);
-            p_node_6->Set(SLAVE, false);
-            p_node_6->Set(MASTER, true);
-            p_node_7->Set(SLAVE, false);
-            p_node_7->Set(MASTER, true);
-            p_node_8->Set(SLAVE, false);
-            p_node_8->Set(MASTER, true);
-            p_cond_2->Set(SLAVE, false);
-            p_cond_2->Set(MASTER, true);
-            p_cond_3->Set(SLAVE, false);
-            p_cond_3->Set(MASTER, true);
+            master_model_part.AddNode(p_node_5);
+            master_model_part.AddNode(p_node_6);
+            master_model_part.AddNode(p_node_7);
+            master_model_part.AddNode(p_node_8);
+            master_model_part.AddCondition(p_cond_2);
+            master_model_part.AddCondition(p_cond_3);
             
             // We compute the normals
             MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part);
@@ -335,7 +314,7 @@ namespace Kratos
             p_node_8->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_8->Z(), 2) + std::pow(p_node_8->Y(), 2);
                          
             typedef SimpleMortarMapperProcess<3, 3, Variable<double>, Historical> MapperType;
-            MapperType process = MapperType(this_model_part, TEMPERATURE);
+            MapperType process = MapperType(master_model_part, slave_model_part, TEMPERATURE);
             process.Execute();
             
             // DEBUG         

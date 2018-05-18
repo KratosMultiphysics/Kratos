@@ -37,11 +37,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-#if !defined(FRAMEWORK_EULER_LAGRANGE)
-#define FRAMEWORK_EULER_LAGRANGE
-    enum FrameworkEulerLagrange {Eulerian = 0, Lagrangian = 1};
-#endif
-    
 ///@}
 ///@name  Functions
 ///@{
@@ -50,11 +45,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief NodalValuesInterpolationProcess
- * This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+/** 
+ * @class NodalValuesInterpolationProcess
+ * @ingroup MeshingApplication
+ * @brief NodalValuesInterpolationProcess
+ * @details This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
  * The process employs the projection.h from MeshingApplication, which works internally using a kd-tree 
+ * @author Vicente Mataix Ferrandiz
  */
-
 template<unsigned int TDim>
 class NodalValuesInterpolationProcess 
     : public Process
@@ -74,16 +72,23 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( NodalValuesInterpolationProcess );
       
     ///@}
+    ///@name  Enum's
+    ///@{
+    
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
+    
+    ///@}
     ///@name Life Cycle
     ///@{
 
-    // Class Constructor
-    
     /**
-     * The constructor of the search utility uses the following inputs:
-     * @param rOriginMainModelPart: The model part from where interpolate values
-     * @param rDestinationMainModelPart: The model part where we want to interpolate the values
-     * @param ThisParameters: The parameters containing all the information needed
+     * @brief The constructor of the search utility uses the following inputs:
+     * @param rOriginMainModelPart The model part from where interpolate values
+     * @param rDestinationMainModelPart The model part where we want to interpolate the values
+     * @param ThisParameters The parameters containing all the information needed
      */
     
     NodalValuesInterpolationProcess(
@@ -92,6 +97,7 @@ public:
         Parameters ThisParameters = Parameters(R"({})")
         );
     
+    /// Destructor
     ~NodalValuesInterpolationProcess() override= default;;
 
     ///@}
@@ -108,7 +114,7 @@ public:
     ///@{
     
     /**
-     * We execute the search relative to the old and new model part
+     * @brief We execute the search relative to the old and new model part
      */
     
     void Execute() override;
@@ -187,13 +193,13 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrOriginMainModelPart;                    // The origin model part
-    ModelPart& mrDestinationMainModelPart;               // The destination model part
-    unsigned int mMaxNumberOfResults;                    // The maximum number of results to consider in the search
-    unsigned int mStepDataSize;                          // The size of the database
-    unsigned int mBufferSize;                            // The size of the buffer
-    FrameworkEulerLagrange mFramework;                   // The framework
-    unsigned int mEchoLevel;                             // The level of verbosity
+    ModelPart& mrOriginMainModelPart;                    /// The origin model part
+    ModelPart& mrDestinationMainModelPart;               /// The destination model part
+    unsigned int mMaxNumberOfResults;                    /// The maximum number of results to consider in the search
+    unsigned int mStepDataSize;                          /// The size of the database
+    unsigned int mBufferSize;                            /// The size of the buffer
+    FrameworkEulerLagrange mFramework;                   /// The framework
+    unsigned int mEchoLevel;                             /// The level of verbosity
     
     ///@}
     ///@name Private Operators
@@ -204,25 +210,37 @@ private:
     ///@{
     
     /**
-     * It calculates the Step data interpolated to the node
-     * @return itNode: The node pointer
-     * @param pElement: The element pointer
+     * @brief This converts the framework string to an enum
+     * @param Str The string
+     * @return FrameworkEulerLagrange: The equivalent enum
+     */
+        
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
+    {
+        if(Str == "Lagrangian" || Str == "LAGRANGIAN") 
+            return FrameworkEulerLagrange::LAGRANGIAN;
+        else if(Str == "Eulerian" || Str == "EULERIAN") 
+            return FrameworkEulerLagrange::EULERIAN;
+        else if(Str == "ALE") 
+            return FrameworkEulerLagrange::ALE;
+        else
+            return FrameworkEulerLagrange::EULERIAN;
+    }
+    
+    /**
+     * @brief It calculates the Step data interpolated to the node
+     * @param pNode The node pointer
+     * @param pElement The element pointer
+     * @param rShapeFunctions The shape functions
+     * @param Step The current time step
      */
     
     void CalculateStepData(
         NodeType::Pointer pNode,
         const Element::Pointer& pElement,
-        const Vector& ShapeFunctions,
+        const Vector& rShapeFunctions,
         const unsigned int Step
         );
-    
-    /**
-     * This converts the framework string to an enum
-     * @param str: The string
-     * @return FrameworkEulerLagrange: The equivalent enum
-     */
-        
-    FrameworkEulerLagrange ConvertFramework(const std::string& str);
     
     ///@}
     ///@name Private  Access

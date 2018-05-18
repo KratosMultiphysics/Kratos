@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import math
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
+#from KratosMultiphysics.IncompressibleFluidApplication import *
 #from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
@@ -14,12 +14,13 @@ class ProjectionModule:
         self.fluid_model_part            = fluid_model_part
         self.particles_model_part        = balls_model_part
         self.FEM_DEM_model_part          = FEM_DEM_model_part
+        self.pp                          = pp
         self.dimension                   = pp.domain_size
         self.min_fluid_fraction          = pp.CFD_DEM["min_fluid_fraction"].GetDouble()
         self.coupling_type               = pp.CFD_DEM["coupling_weighing_type"].GetInt()
         self.time_averaging_type         = pp.CFD_DEM["time_averaging_type"].GetInt()
         self.viscosity_modification_type = pp.CFD_DEM["viscosity_modification_type"].GetInt()
-        self.n_particles_in_depth        = pp.CFD_DEM.n_particles_in_depth
+        self.n_particles_in_depth        = pp.CFD_DEM["n_particles_in_depth"].GetInt()
         self.meso_scale_length           = pp.CFD_DEM["meso_scale_length"].GetDouble()
         self.shape_factor                = pp.CFD_DEM["shape_factor"].GetDouble()
         self.do_impose_flow_from_field   = pp.CFD_DEM["do_impose_flow_from_field_option"].GetBool()
@@ -88,7 +89,11 @@ class ProjectionModule:
             self.InterpolateVelocityOnSlipVelocity()
 
     def ProjectFromFluid(self, alpha):
-        self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
+        self.projector.InterpolateFromFluidMesh(self.fluid_model_part,
+                                                self.particles_model_part,
+                                                self.pp.CFD_DEM,
+                                                self.bin_of_objects_fluid,
+                                                alpha)
 
     def ProjectFromNewestFluid(self):
         self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)

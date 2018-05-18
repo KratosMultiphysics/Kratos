@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -34,9 +34,9 @@ void  AddModelToPython(pybind11::module& m)
     .def(init<>())
     .def("AddModelPart", &Model::AddModelPart)
     .def("GetModelPart", &Model::GetModelPart, return_value_policy::reference_internal)
-//     .def("__setitem__", &Model::AddModelPart)
+    .def("HasModelPart", &Model::HasModelPart)
     .def("__getitem__", &Model::GetModelPart, return_value_policy::reference_internal)
-    .def("__repr__", &Model::Info)
+    .def("__repr__", [](const Model& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
     ;
 }
 

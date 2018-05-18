@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosParticleMechanicsApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemSolidMechanicsApplication )
@@ -46,12 +49,10 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 )
 
 ###############################################################
-## define library Kratos which defines the basic python interface
-add_library(KratosParticleMechanicsApplication SHARED ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosParticleMechanicsApplication KratosCore KratosSolidMechanicsApplication )
-set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
+pybind11_add_module(KratosParticleMechanicsApplication MODULE THIN_LTO ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
+target_link_libraries(KratosParticleMechanicsApplication PUBLIC KratosCore KratosSolidMechanicsCore)
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
-install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
+set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
 
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -61,6 +62,12 @@ install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosParticleMechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosParticleMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

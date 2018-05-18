@@ -30,8 +30,6 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/schemes/scheme.h"
 
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-
 // Application includes
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incremental_aitken_static_scheme.h"
@@ -251,7 +249,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "TrilinosSpalartAllmarasTurbulenceModel";
@@ -259,13 +257,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "TrilinosSpalartAllmarasTurbulenceModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

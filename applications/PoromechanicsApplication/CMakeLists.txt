@@ -7,7 +7,7 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsMechanicsApplication )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/PoromechanicsApplication )
 
 ## Define application core sources (pure C++ parts)
 set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
@@ -85,7 +85,7 @@ if(${USE_PORO_MPI} MATCHES ON)
 
     ## PoromechanicsApplication core library (C++ parts)
     add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosTrilinosApplication KratosSolidMechanicsApplication)
+    target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosTrilinosApplication KratosSolidMechanicsCore)
 
 else()
 
@@ -101,7 +101,7 @@ else()
 
     ## PoromechanicsApplication core library (C++ parts)
     add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosSolidMechanicsApplication)
+    target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosSolidMechanicsCore)
 
 endif()
 
@@ -111,11 +111,11 @@ endif()
 ###############################################################################
 ## PoromechanicsApplication core library (C++ parts)
 #add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-#target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosSolidMechanicsApplication)
+#target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosSolidMechanicsCore)
 set_target_properties( KratosPoromechanicsCore PROPERTIES COMPILE_DEFINITIONS "POROMECHANICS_APPLICATION=EXPORT,API")
 
 ## PoromechanicsApplication python module
-pybind11_add_module(KratosPoromechanicsApplication MODULE ${KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES})
+pybind11_add_module(KratosPoromechanicsApplication MODULE THIN_LTO ${KRATOS_POROMECHANICS_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosPoromechanicsApplication PRIVATE KratosPoromechanicsCore)
 set_target_properties(KratosPoromechanicsApplication PROPERTIES PREFIX "")
 
@@ -129,6 +129,12 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPoromechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+###############################################################################
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosPoromechanicsCore)
+    cotire(KratosPoromechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
 
 ###############################################################################
 ## installing the resulting libraries

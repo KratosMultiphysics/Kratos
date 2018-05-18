@@ -4,8 +4,7 @@
     },
     "model_settings"           : {
         "domain_parts_list"    : ["Parts_Parts_Auto1"],
-        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","ROTATION_Rotation_Auto1","PointMoment3D_Moment_on_points_Auto1"],
-        "dofs"                 : ["ROTATION"]
+        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","ROTATION_Rotation_Auto1","PointMoment3D_Moment_on_points_Auto1"]
     },
     "solver_settings"          : {
         "solver_type" : "solid_mechanics_static_solver",
@@ -22,7 +21,8 @@
                 "convergence_criterion"       : "Residual_criterion",
                 "residual_relative_tolerance" : 1e-6,
                 "residual_absolute_tolerance" : 1e-9
-            }
+            },
+	    "dofs" : ["ROTATION"]
         }
     },
     "constraints_process_list" : [{
@@ -36,7 +36,7 @@
         "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
         "Parameters"    : {
             "model_part_name" : "PointMoment3D_Moment_on_points_Auto1",
-            "variable_name"   : "POINT_MOMENT",
+            "variable_name"   : "MOMENT_LOAD",
             "modulus"         : "3.1416*t",
             "direction"       : [0.0,0.0,1.0]
         }

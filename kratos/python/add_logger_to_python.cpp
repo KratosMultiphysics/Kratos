@@ -14,7 +14,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "input_output/logger.h"
 
@@ -49,7 +48,7 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         if(kwargs.contains("label")) {
             label = str(kwargs["label"]);
         } else {
-            label = "undefined";
+            label = "";
         }
     } else {
         label = str(args[0]); //if the kwargs label is false, consider the first entry of the args as the label
@@ -137,7 +136,7 @@ void  AddLoggerToPython(pybind11::module& m) {
 
     class_<Logger, Kratos::shared_ptr<Logger>> logger_scope(m,"Logger");
     logger_scope.def(init<std::string const &>());
-    logger_scope.def("Print", printDefault); // raw_function(printDefault,1))
+    logger_scope.def_static("Print", printDefault); // raw_function(printDefault,1))
     logger_scope.def_static("PrintInfo",printInfo); // raw_function(printInfo,1))
     logger_scope.def_static("PrintWarning", printWarning); //raw_function(printWarning,1))
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, return_value_policy::reference); //_internal )

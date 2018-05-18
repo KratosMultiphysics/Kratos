@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_FIX_SCALAR_DOF_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_FIX_SCALAR_DOF_PROCESS_H_INCLUDED)
 #define  KRATOS_FIX_SCALAR_DOF_PROCESS_H_INCLUDED
 
 
@@ -44,7 +44,7 @@ public:
     ///@{
     FixScalarDofProcess(ModelPart& model_part,
 			Parameters rParameters
-			) : Process() , mr_model_part(model_part)
+			) : Process() , mrModelPart(model_part)
     {
         KRATOS_TRY
 			 
@@ -99,7 +99,7 @@ public:
     }
 
     FixScalarDofProcess(ModelPart& model_part,
-			const Variable<double>& rVariable) : Process(), mr_model_part(model_part)
+			const Variable<double>& rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
 
@@ -115,7 +115,7 @@ public:
     }
 
     FixScalarDofProcess(ModelPart& model_part,
-			const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable) : Process(), mr_model_part(model_part)
+			const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
 
@@ -130,7 +130,7 @@ public:
     }
 
     FixScalarDofProcess(ModelPart& model_part,
-			const Variable< int >& rVariable) : Process(), mr_model_part(model_part)
+			const Variable< int >& rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
 
@@ -145,7 +145,7 @@ public:
     }
 
     FixScalarDofProcess(ModelPart& model_part,
-			const Variable< bool >& rVariable) : Process(), mr_model_part(model_part)
+			const Variable< bool >& rVariable) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY;
 
@@ -182,7 +182,7 @@ public:
 
 
     /// Execute method is used to execute the FixScalarDofProcess algorithms.
-    virtual void Execute() 
+    void Execute()  override
     {
 
         KRATOS_TRY;
@@ -208,43 +208,43 @@ public:
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
+    void ExecuteBeforeSolutionLoop() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
+    void ExecuteBeforeOutputStep() override
     {
     }
 
 
     /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
+    void ExecuteAfterOutputStep() override
     {
     }
 
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 
@@ -264,19 +264,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "FixScalarDofProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FixScalarDofProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -322,7 +322,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
 
     ///@}
@@ -332,11 +332,11 @@ private:
     template< class TVarType >
     void InternalFixDof(TVarType& rVar)
     {
-        const int nnodes = mr_model_part.GetMesh().Nodes().size();
+        const int nnodes = mrModelPart.GetMesh().Nodes().size();
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)

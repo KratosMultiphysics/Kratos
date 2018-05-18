@@ -504,9 +504,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     virtual bool IsInside( 
@@ -515,7 +515,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon() 
         ) override
     {
-        PrivatePointLocalCoordinates( rResult, rPoint, true );
+        PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
         if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
         {
@@ -530,8 +530,8 @@ public:
     
     /**
      * Returns the local coordinates of a given arbitrary point
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates( 
@@ -539,7 +539,7 @@ public:
         const CoordinatesArrayType& rPoint 
         ) override
     {
-        return PrivatePointLocalCoordinates(rResult, rPoint);
+        return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
 
     ///@}
@@ -1020,7 +1020,7 @@ public:
     }
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 4 )
             NumberNodesInFaces.resize(4,false);
@@ -1032,7 +1032,7 @@ public:
 
     }
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 4)
             NodesInFaces.resize(3,4,false);
@@ -1072,9 +1072,6 @@ public:
     ///@name Shape Function
     ///@{
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -1126,9 +1123,6 @@ public:
         return rResult;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the Gradients of the shape functions.
      * Calculates the gradients of the shape functions with regard to
@@ -1397,7 +1391,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1476,42 +1470,42 @@ private:
     ///@{
 
     /**
-     * Returns the local coordinates of a given arbitrary point 
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
-     * @param IsInside: THe flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
+     * @brief Returns the local coordinates of a given arbitrary point 
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
      * @return The vector containing the local coordinates of the point
      */
-    CoordinatesArrayType& PrivatePointLocalCoordinates( 
+    CoordinatesArrayType& PointLocalCoordinatesImplementation(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint,
         const bool IsInside = false
         )
     {
-        boost::numeric::ublas::bounded_matrix<double,3,4> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
-            X(0,i ) = this->GetPoint( i ).X();
-            X(1,i ) = this->GetPoint( i ).Y();
-            X(2,i ) = this->GetPoint( i ).Z();
+        BoundedMatrix<double,3,4> X;
+        BoundedMatrix<double,3,2> DN;
+        for(IndexType i=0; i<this->size();i++) {
+            X(0, i) = this->GetPoint( i ).X();
+            X(1, i) = this->GetPoint( i ).Y();
+            X(2, i) = this->GetPoint( i ).Z();
         }
 
-        const double tol = 1.0e-8;
-        const int maxiter = 500;
+        static constexpr double MaxNormPointLocalCoordinates = 300.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 500;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
 
         Matrix J = ZeroMatrix( 2, 2 );
         Matrix invJ = ZeroMatrix( 2, 2 );
 
         // Starting with xi = 0
         rResult = ZeroVector( 3 );
-        Vector DeltaXi = ZeroVector( 2 );
-        array_1d<double,3> CurrentGlobalCoords;
+        array_1d<double, 2> DeltaXi( 2, 0.0 );
+	const array_1d<double, 3> zero_array(3, 0.0);
+        array_1d<double, 3> CurrentGlobalCoords;
 
         //Newton iteration:
-        for ( int k = 0; k < maxiter; k++ )
-        {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
+        for ( IndexType k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ ) {
+            noalias(CurrentGlobalCoords) = zero_array;
             this->GlobalCoordinates( CurrentGlobalCoords, rResult );
 
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
@@ -1522,7 +1516,7 @@ private:
             noalias(DN) = prod(X,shape_functions_gradients);
 
             noalias(J) = prod(trans(DN),DN);
-            Vector res = prod(trans(DN),CurrentGlobalCoords);
+            const array_1d<double, 2> res = prod(trans(DN), CurrentGlobalCoords);
 
             // Deteminant of Jacobian
             const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
@@ -1539,27 +1533,18 @@ private:
             rResult[0] += DeltaXi[0];
             rResult[1] += DeltaXi[1];
 
-            if ( norm_2( DeltaXi ) > 300 )
-            {
-                if (IsInside == false && k > 0)
-                {
-                    std::cout << "detJ =\t" << det_j << " DeltaX =\t" << DeltaXi << " stopping calculation. Iteration:\t" << k << std::endl;
-                }
+            if ( norm_2( DeltaXi ) > MaxNormPointLocalCoordinates ) {
+                KRATOS_WARNING_IF("Quadrilateral3D4", IsInside == false && k > 0) << "detJ =\t" << det_j << " DeltaX =\t" << DeltaXi << " stopping calculation. Iteration:\t" << k << std::endl;
                 break;
             }
 
-            if ( norm_2( DeltaXi ) < tol )
-            {
+            if ( norm_2( DeltaXi ) < MaxTolerancePointLocalCoordinates )
                 break;
-            }
         }
 
-        return( rResult );
+        return rResult;
     }
     
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1601,9 +1586,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the local gradients of all shape functions
      * in all integration points.

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
 //
 
 #if !defined(KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED )
@@ -99,7 +99,6 @@ namespace Kratos
       ///@name Access
       ///@{
 
-	  ModelPart& GetSkinRepresentation() { return mSkinRepresentation; }
 
       ///@}
       ///@name Input and output
@@ -124,8 +123,6 @@ namespace Kratos
         ModelPart& mrSkinPart;
         ModelPart& mrVolumePart;
 
-		ModelPart mSkinRepresentation;
-
       ///@}
       ///@name Private Operations
       ///@{
@@ -133,6 +130,35 @@ namespace Kratos
 		void CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
 
 		double CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon);
+
+    unsigned int ComputeEdgesIntersections(
+      Element& rElement1, 
+      const PointerVector<GeometricalObject>& rIntersectedObjects,
+      std::vector<unsigned int> &rCutEdgesVector,
+      std::vector<array_1d <double,3> > &rIntersectionPointsArray);
+
+    int ComputeEdgeIntersection(
+      const Element::GeometryType& rIntObjGeometry,
+      const Element::NodeType& rEdgePoint1,
+      const Element::NodeType& rEdgePoint2, 
+      Point& rIntersectionPoint);
+
+    void ComputeIntersectionNormal(
+      Element::GeometryType& rGeometry,
+      const Vector& rElementalDistances,
+      array_1d<double,3> &rNormal);
+
+    void ComputePlaneApproximation(
+      const Element& rElement1,
+      const std::vector< array_1d<double,3> >& rPointsCoord,
+      array_1d<double,3>& rPlaneBasePointCoords,
+      array_1d<double,3>& rPlaneNormal);
+
+    void CorrectDistanceOrientation(
+      Element::GeometryType& rGeometry,
+      const PointerVector<GeometricalObject>& rIntersectedObjects,
+      Vector& rElementalDistances
+    );
 
       ///@}
 

@@ -97,7 +97,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -106,7 +106,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //************* STARTING - ENDING  METHODS
@@ -147,24 +147,24 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     ElementVariables& rVariables,
-                                    double& rIntegrationWeight);
+                                    double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 				    ElementVariables & rVariables,
                                     Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+                                    double& rIntegrationWeight) override;
 
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -209,9 +209,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "geometries/triangle_2d_3.h"
@@ -181,7 +182,7 @@ void AddFluidVariableToBeTimeFiltered(const VariableData& r_variable, const doub
     mIsFirstTimeFiltering[r_variable] = true;
 }
 
-void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
+void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, Parameters& parameters, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
 void ImposeFlowOnDEMFromField(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
 void ImposeVelocityOnDEMFromFieldToSlipVelocity(FluidFieldUtility& r_flow, ModelPart& r_dem_model_part);
 void InterpolateVelocityOnSlipVelocity(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid);
@@ -220,12 +221,12 @@ virtual void PrintData(std::ostream& rOStream) const {}
 ///@}
 ///@name Friends
 ///@{
-vector<unsigned int>& GetElementPartition()
+DenseVector<unsigned int>& GetElementPartition()
 {
   return (mElementsPartition);
 }
 
-vector<unsigned int>& GetNodePartition()
+DenseVector<unsigned int>& GetNodePartition()
 {
   return (mNodesPartition);
 }
@@ -257,8 +258,8 @@ NodesArrayType::iterator GetNodePartitionEnd(ModelPart& r_model_part, unsigned i
 
 protected:
 
-vector<unsigned int> mElementsPartition;
-vector<unsigned int> mNodesPartition;
+DenseVector<unsigned int> mElementsPartition;
+DenseVector<unsigned int> mNodesPartition;
 
 private:
 
