@@ -420,9 +420,12 @@ public:
         NodesArrayType& nodes_array = rModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
-            noalias((nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL)) = ZeroVector(3);
+            noalias((nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL)) = zero_array;
         
         // Sum all the nodes normals
         ConditionsArrayType& conditions_array = rModelPart.Conditions();
@@ -431,7 +434,7 @@ public:
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
             GeometryType& this_geometry = it_cond->GetGeometry();
-            
+
             // Aux coordinates
             CoordinatesArrayType aux_coords;
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
