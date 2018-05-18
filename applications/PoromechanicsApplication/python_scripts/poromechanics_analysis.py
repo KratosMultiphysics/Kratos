@@ -6,12 +6,9 @@ import os
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
-# import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-
-sys.stdout.flush()
 
 from analysis_stage import AnalysisStage
 
@@ -21,7 +18,6 @@ class PoromechanicsAnalysis(AnalysisStage):
     def __init__(self,model,parameters):
         # Time monitoring
         print(timer.ctime())
-        sys.stdout.flush()
         self.initial_time = timer.perf_counter()
 
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
@@ -122,7 +118,6 @@ class PoromechanicsAnalysis(AnalysisStage):
         # Time control
         print("Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
         print(timer.ctime())
-        sys.stdout.flush()
 
     def _SetUpListOfProcesses(self):
         '''

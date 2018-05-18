@@ -108,7 +108,7 @@ class FracturePropagationUtility:
         else:
             return False
 
-    def CheckPropagation(self,model,main_model_part,solver,list_of_processes):
+    def CheckPropagation(self,model,main_model_part,solver,list_of_processes,output):
 
         # Check fracture propagation
         propagate_fractures = False
@@ -140,10 +140,11 @@ class FracturePropagationUtility:
             with open("FracturesData.json",'r') as parameter_file:
                 self.FracturesData = KratosMultiphysics.Parameters(parameter_file.read())
 
-            model,main_model_part,solver,list_of_processes = self.GenereateNewModelPart(model,
+            model,main_model_part,solver,list_of_processes,output = self.GenereateNewModelPart(model,
                                                                                         main_model_part,
                                                                                         solver,
-                                                                                        list_of_processes)
+                                                                                        list_of_processes,
+                                                                                        output)
 
             # Overwrite current problem files with original state files
             for filename in self.list_of_files_names:
@@ -151,9 +152,9 @@ class FracturePropagationUtility:
                 shutil.copy(str(filepath), str(self.problem_path))
 
 
-        return model,main_model_part,solver,list_of_processes
+        return model,main_model_part,solver,list_of_processes,output
 
-    def GenereateNewModelPart(self,model,main_model_part,solver,list_of_processes):
+    def GenereateNewModelPart(self,model,main_model_part,solver,list_of_processes,output):
 
         ### Finalize Old Model ---------------------------------------------------------------------------------------
 
@@ -266,7 +267,7 @@ class FracturePropagationUtility:
         # Check new mesh
         #IsConverged = solver._CheckConvergence()
 
-        return model,main_model_part,solver,list_of_processes
+        return model,main_model_part,solver,list_of_processes,gid_output
 
     def Finalize(self):
 

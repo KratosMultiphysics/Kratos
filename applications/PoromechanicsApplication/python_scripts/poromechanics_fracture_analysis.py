@@ -1,16 +1,12 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import time as timer
-import sys
-import os
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-
-sys.stdout.flush()
 
 from poromechanics_analysis import PoromechanicsAnalysis
 
@@ -39,10 +35,11 @@ class PoromechanicsFractureAnalysis(PoromechanicsAnalysis):
 
         # Check Fracture Propagation Utility
         if self.fracture_utility.IsPropagationStep():
-            self.model,self.main_model_part,self.solver,self.list_of_processes = self.fracture_utility.CheckPropagation(self.model,
+            self.model,self.main_model_part,self.solver,self.list_of_processes,self.output = self.fracture_utility.CheckPropagation(self.model,
                                                                                                                         self.main_model_part,
                                                                                                                         self.solver,
-                                                                                                                        self.list_of_processes)
+                                                                                                                        self.list_of_processes,
+                                                                                                                        self.output)
 
     def Finalize(self):
 
