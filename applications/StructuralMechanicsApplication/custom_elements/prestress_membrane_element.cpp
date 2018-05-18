@@ -430,7 +430,7 @@ void PrestressMembraneElement::CalculateAndAddNonlinearKm(
 //***********************************************************************************
 //***********************************************************************************
 
-void PrestressMembraneElement::CalculateQ( 
+void PrestressMembraneElement::CalculateQ(
     BoundedMatrix<double, 3, 3>& Q,
     const unsigned int& rPointNumber)
 
@@ -487,7 +487,7 @@ void PrestressMembraneElement::CalculateB(
         b(2, index + 2) = 0.5*(DN_De(i, 1) * g1[2] + DN_De(i, 0) * g2[2]);
     }
 
-    rB = prod(rQ, b); 
+    rB = prod(rQ, b);
 
     KRATOS_CATCH("")
 }
@@ -507,7 +507,6 @@ void PrestressMembraneElement::CalculateStrain(
     rStrainVector[0] = 0.5 * (rgab[0] - rGab[0]);
     rStrainVector[1] = 0.5 * (rgab[1] - rGab[1]);
     rStrainVector[2] = 0.5 * (rgab[2] - rGab[2]);
-
 
     KRATOS_CATCH("")
 }
@@ -874,11 +873,11 @@ void PrestressMembraneElement::ProjectPrestress(
         array_1d<double,3> global_prestress_axis1; // = direction of rotational axis
         for(unsigned int i=0; i<3;i++)
             global_prestress_axis1[i] = GetValue(PRESTRESS_AXIS_1)(i,rPointNumber);
-        
+
         #ifdef KRATOS_DEBUG
             KRATOS_ERROR_IF(norm_2(global_prestress_axis1) < std::numeric_limits<double>::epsilon() && norm_2(global_prestress_axis1) > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
         #endif
-        
+
         // compute T1, T2, T3
         MathUtils<double>::CrossProduct(T1, global_prestress_axis1, E3);
         T1 /= norm_2(T1);
@@ -923,7 +922,7 @@ void PrestressMembraneElement::ProjectPrestress(
 //***********************************************************************************
 
 void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
-    
+
 }
 //***********************************************************************************
 //***********************************************************************************
@@ -1296,7 +1295,7 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
     this->SetValue(PRESTRESS_AXIS_1, prestress_direction1);
     this->SetValue(PRESTRESS_AXIS_2, prestress_direction2);
 
-    
+
     if(GetProperties().Has(PRESTRESS_VECTOR)){
         Matrix& prestress_variable = this->GetValue(MEMBRANE_PRESTRESS);
         Matrix& prestress_axis_1 = this->GetValue(PRESTRESS_AXIS_1);
@@ -1338,7 +1337,7 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
                     if((GetProperties()[PROJECTION_TYPE_COMBO] == "planar") || (GetProperties()[PROJECTION_TYPE_COMBO] == "radial"))
                         ProjectPrestress(point_number);
                 }
-                
+
             }
 
             // in case of isotropic prestress: set prestress in the first step (no transformation necessary)
@@ -1535,11 +1534,13 @@ int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     // Verify that the constitutive law exists
-    KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+    KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW ))
+        << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
 
     // Verify that the constitutive law has the correct dimension
     const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
-    KRATOS_ERROR_IF( strain_size != 3) << "Wrong constitutive law used. This is a membrane element! expected strain size is 3 (el id = ) " << this->Id() << std::endl;
+    KRATOS_ERROR_IF( strain_size != 3) << "Wrong constitutive law used. This is a membrane element! "
+        << "Expected strain size is 3 (el id = " << this->Id() << ")" << std::endl;
 
     //check constitutive law
     if(GetValue(IS_FORMFINDING)== false){
@@ -1550,13 +1551,16 @@ int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
             ConstitutiveLaw::Features LawFeatures;
             mConstitutiveLawVector[i]->GetLawFeatures(LawFeatures);
 
-            if (LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW))
-                KRATOS_ERROR<<"Constitutive law is compatible only with a plane stress 2D law for membrane element with Id"<<this->Id()<<std::endl;
+            KRATOS_ERROR_IF(LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW))
+                << "Constitutive law is compatible only with a plane stress 2D law for "
+                << "membrane element with Id " << this->Id() << std::endl;
 
-                if (LawFeatures.mOptions.IsNot(ConstitutiveLaw::INFINITESIMAL_STRAINS))
-                    KRATOS_ERROR<<"Constitutive law is compatible only with a law using infinitessimal strains for membrane element with Id"<<this->Id()<<std::endl;
+            KRATOS_ERROR_IF(LawFeatures.mOptions.IsNot(ConstitutiveLaw::INFINITESIMAL_STRAINS))
+                << "Constitutive law is compatible only with a law using infinitessimal "
+                << "strains for membrane element with Id " << this->Id() << std::endl;
 
-                    if (LawFeatures.mStrainSize != 3) KRATOS_ERROR<<"Constitutive law expects a strain size different from 3 for membrane element with Id"<<this->Id()<<std::endl;
+            KRATOS_ERROR_IF(LawFeatures.mStrainSize != 3) << "Constitutive law expects a strain "
+                << "size different from 3 for membrane element with Id "<< this->Id() <<std::endl;
         }
     }
     return 0;

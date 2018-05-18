@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/line_search_strategy.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "includes/gid_io.h"
 
 
@@ -114,7 +114,7 @@ namespace Kratos
                 mPrintIterations(PrintIterations),
                 mIncludeLineSearch(IncludeLineSearch)
         {
-            if (this->GetEchoLevel() >= 1 && PrintIterations)
+            if (PrintIterations)
             {
                 mPrintIterations = true;
                 InitializeIterationIO();
@@ -139,7 +139,7 @@ namespace Kratos
                 pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
                 MoveMeshFlag), mPrintIterations(PrintIterations), mIncludeLineSearch(IncludeLineSearch)
         {
-            if (this->GetEchoLevel() >= 1 && PrintIterations)
+            if (PrintIterations)
             {
                 mPrintIterations = true;
                 InitializeIterationIO();
@@ -364,7 +364,7 @@ void UpdateDatabase(
 
         void InitializeIterationIO()
         {
-            mpIterationIO = Kratos::make_shared<IterationIOType>(
+            mpIterationIO = Kratos::make_unique<IterationIOType>(
                 "Formfinding_Iterations",
                 GiD_PostAscii, // GiD_PostAscii // for debugging GiD_PostBinary
                 MultiFileFlag::SingleFile,
