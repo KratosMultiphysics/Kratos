@@ -564,7 +564,6 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructural
                 semi_analytic_sensitivity_matrix(k, i * ws_dim + d) =
                     semi_analytic_sensitivity_vector(k);
         }
-    KRATOS_WATCH(semi_analytic_sensitivity_matrix);
     for (std::size_t i = 0; i < sensitivity_matrix.size1(); ++i)
         for (std::size_t j = 0; j < sensitivity_matrix.size2(); ++j)
             KRATOS_CHECK_NEAR(sensitivity_matrix(i, j), semi_analytic_sensitivity_matrix(i,j), 1e-1);
