@@ -630,13 +630,7 @@ public:
                     ++nodes_counter;
                 }
 			
-            }
-            
-            //std::cout << " ============ " <<  NormVel << " ============ " << std::cout;
-
-            //  std::cout << "Node Count = " << nodes_counter << std::endl;
-            
-            
+            }    
 
             NormVel = sqrt(NormVel);
             NormAcc = sqrt(NormAcc);

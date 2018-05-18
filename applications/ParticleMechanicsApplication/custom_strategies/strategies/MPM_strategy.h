@@ -187,8 +187,6 @@ public:
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {
 
-        //populate for the first time the mpm_model_part
-
         //assigning the nodes to the new model part
         mpm_model_part.Nodes() = grid_model_part.Nodes();
 
@@ -196,9 +194,6 @@ public:
         mpm_model_part.SetBufferSize(grid_model_part.GetBufferSize());
         mpm_model_part.SetProperties(initial_model_part.pProperties());
         mpm_model_part.SetConditions(grid_model_part.pConditions());
-
-
-
 
         array_1d<double,3> xg = ZeroVector(3);
         array_1d<double,3> MP_Displacement = ZeroVector(3);
@@ -344,7 +339,7 @@ public:
 
         }
         //define a standard static strategy to be used in the calculation
-        if(SolutionType == "StaticSolver")
+        if(SolutionType == "StaticSolver" || SolutionType == "Static")
         {
 
 
@@ -373,7 +368,7 @@ public:
         }
 
         //define a dynamic strategy to be used in the calculation
-        else if(SolutionType == "DynamicSolver")
+        else if(SolutionType == "DynamicSolver" || SolutionType == "Dynamic")
         {
             double Alpham;
             double Dynamic;
@@ -402,7 +397,7 @@ public:
         }
 
         //define a quasi-static strategy to be used in the calculation
-        else if(SolutionType == "QuasiStaticSolver")
+        else if(SolutionType == "QuasiStaticSolver" || SolutionType == "Quasi-static")
         {
             double Alpham;
             double Dynamic;
@@ -429,17 +424,6 @@ public:
 
             mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
         }
-
-
-
-
-        initial_model_part.Nodes().clear();
-        initial_model_part.Elements().clear();
-
-
-
-
-
     }
     /*@} */
 
