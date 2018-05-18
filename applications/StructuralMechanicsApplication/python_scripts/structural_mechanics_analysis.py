@@ -58,78 +58,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         return gid_output
 
-
-    # def _ExecuteInitialize(self):
-    #     """ Initializing the Analysis """
-    #     ## ModelPart is being prepared to be used by the solver
-    #     self.solver.PrepareModelPartForSolver()
-
-    #     ## Adds the Dofs if they don't exist
-    #     self.solver.AddDofs()
-
-    #     ## Add the Modelpart to the Model if it is not already there
-    #     if not self.using_external_model_part:
-    #         self.model.AddModelPart(self.main_model_part)
-
-    #     ## Print model_part and properties
-    #     if self.is_printing_rank and self.echo_level > 1:
-    #         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
-    #         for properties in self.main_model_part.Properties:
-    #             KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
-
-    # def _SetUpListOfProcesses(self):
-    #     from process_factory import KratosProcessFactory
-    #     factory = KratosProcessFactory(self.model)
-    #     self.list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
-    #     self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
-    #     if (self.project_parameters.Has("list_other_processes") is True):
-    #         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
-    #     if (self.project_parameters.Has("json_output_process") is True):
-    #         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
-    #     # Processes for tests
-    #     if (self.project_parameters.Has("json_check_process") is True):
-    #         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
-    #     if (self.project_parameters.Has("check_analytic_results_process") is True):
-    #         self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
-
-    #     #TODO this should be generic
-    #     # initialize GiD  I/O
-    #     self._SetUpGiDOutput()
-    #     if self.have_output:
-    #         self.list_of_processes += [self.output,]
-
-    #     if self.is_printing_rank and self.echo_level > 1:
-    #         count = 0
-    #         for process in self.list_of_processes:
-    #             count += 1
-    #             # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
-
-    # def _ExecuteBeforeSolutionLoop(self):
-    #     """ Perform Operations before the SolutionLoop """
-
-    #     for process in self.list_of_processes:
-    #         process.ExecuteBeforeSolutionLoop()
-
-    #     ## Writing the full ProjectParameters file before solving
-    #     if self.is_printing_rank and self.echo_level > 1:
-    #         f = open("ProjectParametersOutput.json", 'w')
-    #         f.write(self.project_parameters.PrettyPrintJsonString())
-    #         f.close()
-
-    #     ## Stepping and time settings
-    #     self.solver.SetDeltaTime(self.project_parameters["problem_data"]["time_step"].GetDouble())
-    #     start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-    #     self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
-
-    #     if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] is True:
-    #         self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-    #     else:
-    #         self.time = start_time
-    #         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
-
-    #     if self.is_printing_rank:
-    #         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
-
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
         This method is temporary to not break existing code
@@ -155,6 +83,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
             if (self.project_parameters.Has("check_analytic_results_process") is True):
                 list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
+            if (self.project_parameters.Has("contact_process_list") is True):
+                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["contact_process_list"])
         else:
             if self.project_parameters.Has("constraints_process_list"):
                 raise Exception("Mixing of process initialization is not alowed!")
@@ -167,6 +97,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             if self.project_parameters.Has("json_check_process"):
                 raise Exception("Mixing of process initialization is not alowed!")
             if self.project_parameters.Has("check_analytic_results_process"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("contact_process_list"):
                 raise Exception("Mixing of process initialization is not alowed!")
 
         return list_of_processes
