@@ -35,9 +35,7 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
 
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
-
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/line_gauss_lobatto_3d_2.h"
