@@ -859,51 +859,47 @@ void ModelPart::RemoveElementsFromAllLevels(Flags identifier_flag)
     Functions for Master-Slave Constraint
 */
 
-    /** Inserts a master-slave constraint in the current mesh.
-     */
-    void ModelPart::AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, IndexType ThisIndex = 0){}
-    
-    /** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
-     */    
-    void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, IndexType ThisIndex = 0){}
+/** Inserts a master-slave constraint in the current mesh.
+ */
+void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
 
-    /** Inserts an master-slave constraint in the current mesh.
-     */
-    MasterSlaveConstraintType::Pointer ModelPart::CreateMasterSlaveConstraint(std::string ConstraintName, IndexType SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<MasterWeightType> MasterWerights, IndexType ThisIndex = 0){}
+/** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
+ */    
+void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, ModelPart::IndexType ThisIndex){}
 
-    /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
-    */
-    void ModelPart::RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0){}
+/** Inserts an master-slave constraint in the current mesh.
+ */
+ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateMasterSlaveConstraint(std::string ConstraintName, ModelPart::IndexType SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<ModelPart::MasterWeightType> MasterWerights, ModelPart::IndexType ThisIndex){}
 
-    /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
-    */
-    void ModelPart::RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0){}
+/** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
+*/
+void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex){}
 
-    /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
-    */
-    void ModelPart::RemoveMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, IndexType ThisIndex = 0){}
+/** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
+*/
+void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
 
-    /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
-    */
-    void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0){}
+/** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
+*/
+void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
 
-    /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
-    */
-    void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0){}
+/** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
+*/
+void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex){}
 
-    /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
-    */
-    void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, IndexType ThisIndex = 0){}
+/** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
+*/
+void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
 
-    /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
-    MasterSlaveConstraintType::Pointer ModelPart::pGetMasterSlaveConstraint(IndexType ElementId, IndexType ThisIndex = 0){}
+/** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
+*/
+void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
 
-    /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
-    MasterSlaveConstraintType& ModelPart::GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0){}
+/** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
+ModelPart::MasterSlaveConstraintType::Pointer ModelPart::pGetMasterSlaveConstraint(ModelPart::IndexType ElementId, ModelPart::IndexType ThisIndex){}
 
-
-
-
+/** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
+ModelPart::MasterSlaveConstraintType& ModelPart::GetMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex){}
 
 
 /** Inserts a condition in the mesh with ThisIndex.
