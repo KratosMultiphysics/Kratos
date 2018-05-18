@@ -5,7 +5,7 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                            "name": "LinearElasticPlaneStress2DLaw"
                     },
                     "Variables": {
                             "YOUNG_MODULUS": 0.00000E+00,
