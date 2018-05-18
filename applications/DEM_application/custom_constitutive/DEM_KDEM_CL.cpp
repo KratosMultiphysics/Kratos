@@ -28,10 +28,9 @@ namespace Kratos {
     void DEM_KDEM::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
 
         KRATOS_TRY
-//         double radius_sum = radius + other_radius;
-//         double equiv_radius = radius * other_radius / radius_sum;
-//         double equiv_radius = 0.5 * radius_sum;
-        double equiv_radius = std::min(radius, other_radius);
+        double radius_sum = radius + other_radius;
+        double equiv_radius = radius * other_radius / radius_sum;
+        //double equiv_radius = 0.5 * radius_sum;
         calculation_area = Globals::Pi * equiv_radius * equiv_radius;
         KRATOS_CATCH("")
     }
@@ -263,9 +262,9 @@ namespace Kratos {
         LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
 
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                  + LocalElasticContactForce[1] * LocalElasticContactForce[1]);        
-        
-        if (failure_type == 0) { // This means it has not broken 
+                                  + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+
+        if (failure_type == 0) { // This means it has not broken
             //Properties& element1_props = element1->GetProperties();
             //Properties& element2_props = element2->GetProperties();
             if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) { //TODO: use this only for intact bonds (not broken))
@@ -351,34 +350,34 @@ namespace Kratos {
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaRotatedAngle, LocalDeltaRotatedAngle);
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
         //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mContactMoment, LocalRotationalMoment);
-        
+
         const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
         const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
         const double debugging_rotational_factor = 5.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
-                        
+
         const double element_mass  = element->GetMass();
         const double neighbor_mass = neighbor->GetMass();
         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
-        
+
         // Viscous parameter taken from J.S.Marshall, 'Discrete-element modeling of particle aerosol flows', section 4.3. Twisting resistance
         const double alpha = 0.9; // TODO: Hardcoded only for testing purposes. This value depends on the restitution coefficient and goes from 0.1 to 1.0
         const double visc_param = 0.5 * equivalent_radius * equivalent_radius * alpha * sqrt(1.33333333333333333 * equiv_mass * equiv_young * equivalent_radius);
-             
+
         //equiv_young or G in torsor (LocalRotationalMoment[2]) ///////// TODO
-        
+
         ElasticLocalRotationalMoment[0] = -debugging_rotational_factor * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
         ///- debugging_rotational_factor * equiv_shear * (calculation_area / distance) * (OtherWeightedRadius * MyLocalDeltaDisplacement[0] - MyWeightedRadius * OtherLocalDeltaDisplacement[0]);
-        
+
         ElasticLocalRotationalMoment[1] = -debugging_rotational_factor * equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;
         ///- debugging_rotational_factor * equiv_shear * (calculation_area / distance) * (OtherWeightedRadius * MyLocalDeltaDisplacement[1] - MyWeightedRadius * OtherLocalDeltaDisplacement[1]);
-        
+
         ElasticLocalRotationalMoment[2] = -debugging_rotational_factor * equiv_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance;
-        
+
         ViscoLocalRotationalMoment[0] = -visc_param * LocalDeltaAngularVelocity[0];
         ViscoLocalRotationalMoment[1] = -visc_param * LocalDeltaAngularVelocity[1];
         ViscoLocalRotationalMoment[2] = -visc_param * LocalDeltaAngularVelocity[2];
-        
+
         // TODO: Judge if the rotation spring is broken or not
         /*
         double ForceN  = LocalElasticContactForce[2];
