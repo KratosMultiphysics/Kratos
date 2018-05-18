@@ -216,7 +216,7 @@ public:
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
 
     /// The container of the constraints
-    typedef PointerVectorMap<DofType, ConstraintType> MasterSlaveConstraintContainerType;    
+    typedef PointerVectorMap<DofType, MasterSlaveConstraintType> MasterSlaveConstraintContainerType;    
 
     /** Iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
@@ -607,7 +607,7 @@ public:
 
     /** Inserts an master-slave constraint in the current mesh.
      */
-    MasterSlaveConstraintType::Pointer CreateMasterSlaveConstraint(std::string ConstraintName, IndexType Id, SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<MasterWeightType> MasterWerights, IndexType ThisIndex = 0);
+    MasterSlaveConstraintType::Pointer CreateMasterSlaveConstraint(std::string ConstraintName, IndexType SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<MasterWeightType> MasterWerights, IndexType ThisIndex = 0);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
@@ -637,7 +637,7 @@ public:
     MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ElementId, IndexType ThisIndex = 0);
 
     /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
-    MasterSlaveConstraintType& GetElement(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+    MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
 
    
     ///@}
