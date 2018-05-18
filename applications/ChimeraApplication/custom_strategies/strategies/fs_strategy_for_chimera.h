@@ -288,8 +288,6 @@ public:
     {
 
         std::cout<<"Inside FS Strategy for chimera solve"<<std::endl;
-
-
         // Initialize BDF2 coefficients
         ModelPart& rModelPart = BaseType::GetModelPart();
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
@@ -592,6 +590,34 @@ protected:
         if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Fractional velocity iterations did not converge." << std::endl;
 
+        std::cout<<"Printing Fract velocity values of Slaves and its masters to check continuity"<<std::endl;
+
+        for (auto mpcData : (*mpcDataVector))
+        {
+            for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+            {
+                SlavePairType slaveDofMap = slaveMasterDofMap.first;
+                MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
+                std::size_t slaveNodeId = slaveDofMap.first;
+                NodeType &node = rModelPart.Nodes()[slaveNodeId];
+                std::cout<<" Slave Fract velocity"<<node.FastGetSolutionStepValue(FRACT_VEL)<<std::endl;
+                array_1d<double,3> Fract_Vel_interpolated = array_1d<double,3>(3,0.0);
+                std::cout<<"variable before interpolation"<<Fract_Vel_interpolated<<std::endl;
+                for (auto masterDofMapElem : masterDofMap)
+                {
+                    std::size_t masterNodeId;
+                    double constant;
+                    std::size_t masterDofKey;
+                    std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+                    double weight = masterDofMapElem.second;
+                    NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
+                    Fract_Vel_interpolated +=(masterNode.FastGetSolutionStepValue(FRACT_VEL))*weight;
+                }
+                std::cout<<" Fract velocity interpolated from its masters "<<Fract_Vel_interpolated<<std::endl;
+                //node.FastGetSolutionStepValue(FRACT_VEL) = Fract_Vel_interpolated;
+            }
+        }
+
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
         this->ComputeSplitOssProjections(rModelPart);
@@ -599,7 +625,7 @@ protected:
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
-/*
+
     #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -608,34 +634,17 @@ protected:
 
             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
             {
-                if (! itNode->Is(SLAVE) ){
+                bool is_slave = false;
+                if ((itNode)->IsDefined(SLAVE))
+                    is_slave = (itNode)->Is(SLAVE);
+
+                if (! is_slave )
+                {
                     const double OldPress = itNode->FastGetSolutionStepValue(PRESSURE);
                     itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
                 }
             }
         }
- */
-
-    //Rishith's code
-            ModelPart::ElementIterator ElemBegin;
-            ModelPart::ElementIterator ElemEnd;
-            for ( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem )
-            {
-
-             bool element_is_active = true;
-                if ((itElem)->IsDefined(ACTIVE))
-                    element_is_active = (itElem)->Is(ACTIVE);
-
-                if(element_is_active)
-                {
-                    for (unsigned int i_node = 0; i_node < itElem->GetGeometry().PointsNumber(); ++i_node)
-                    {
-                        const double OldPress = itElem->GetGeometry()[i_node].FastGetSolutionStepValue(PRESSURE);
-                        itElem->GetGeometry()[i_node].FastGetSolutionStepValue(PRESSURE_OLD_IT) = -OldPress;
-                    }
-                }
-            }
-    //till here
 
         for (auto mpcData : (*mpcDataVector))
         {
@@ -655,6 +664,32 @@ protected:
             std::cout << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
 
+     /*
+        for (auto mpcData : (*mpcDataVector))
+        {
+            for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+            {
+                SlavePairType slaveDofMap = slaveMasterDofMap.first;
+                MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
+                std::size_t slaveNodeId = slaveDofMap.first;
+                NodeType &node = rModelPart.Nodes()[slaveNodeId];
+                std::cout<<" Slave pressure"<<node.FastGetSolutionStepValue(PRESSURE)<<std::endl;
+                double Pressure_interpolated = 0.0;
+                for (auto masterDofMapElem : masterDofMap)
+                {
+                    std::size_t masterNodeId;
+                    double constant;
+                    std::size_t masterDofKey;
+                    std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+                    double weight = masterDofMapElem.second;
+                    NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
+                    Pressure_interpolated +=(masterNode.FastGetSolutionStepValue(PRESSURE))*weight;
+                }
+                std::cout<<" Pressure interpolated from its masters "<<Pressure_interpolated<<std::endl;
+            }
+        }
+        */
+
         for (auto mpcData : (*mpcDataVector))
         {
             mpcData->SetActive(true);
@@ -668,10 +703,8 @@ protected:
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
 
             for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
-                //if (! itNode->Is(SLAVE) )
-                //{
-                    itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
-                //}
+                itNode->FastGetSolutionStepValue(PRESSURE_OLD_IT) += itNode->FastGetSolutionStepValue(PRESSURE);
+
         }
 
         // 3. Compute end-of-step velocity
@@ -831,7 +864,7 @@ protected:
             for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
             {
                 const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if( NodalArea > 1E-8)
+                if( NodalArea > 1E-8 )
                 {
                     itNode->FastGetSolutionStepValue(CONV_PROJ) /= NodalArea;
                     itNode->FastGetSolutionStepValue(PRESS_PROJ) /= NodalArea;
@@ -917,21 +950,20 @@ protected:
 
                 for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
                 {
+                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
 
-                    //if (! itNode->Is(SLAVE) )
-                    //{
-                        const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                        if(NodalArea > 1E-8)
-                        {
-                            if ( ! itNode->IsFixed(VELOCITY_X) )
-                                itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                            if ( ! itNode->IsFixed(VELOCITY_Y) )
-                                itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                        }
-                    //}
+                    if(NodalArea >1E-8)
+                    {
+                        if ( ! itNode->IsFixed(VELOCITY_X) )
+                            itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                        if ( ! itNode->IsFixed(VELOCITY_Y) )
+                            itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                    }
                 }
             }
+
             //std::cout<<"Interpolating end step velocity to slave nodes from their Masters"<<std::endl;
+
          /*    ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
             MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
             for (auto mpcData : (*mpcDataVector))
