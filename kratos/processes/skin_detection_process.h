@@ -17,6 +17,7 @@
 
 // External includes
 #include <unordered_set>
+#include <unordered_map>
 
 // Project includes
 #include "processes/process.h"
@@ -98,11 +99,17 @@ public:
     /// Definition of the key comparor considered
     typedef VectorIndexComparor<VectorIndexType> VectorIndexComparorType;
 
-    /// Define the map considered for elemento pointers
+    /// Define the set considered for elemento pointers
     typedef std::unordered_set<VectorIndexType, VectorIndexHasherType, VectorIndexComparorType > HashSetVectorIntType;
 
     /// Define the HashMapVectorIntElementPointerType iterator type
     typedef HashSetVectorIntType::iterator HashSetVectorIntTypeIteratorType;
+
+    /// Define the map considered for elemento pointers
+    typedef std::unordered_map<VectorIndexType, VectorIndexType, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntType;
+
+    /// Define the HashMapVectorIntElementPointerType iterator type
+    typedef HashMapVectorIntType::iterator HashMapVectorIntTypeIteratorType;
 
     ///@}
     ///@name Life Cycle
