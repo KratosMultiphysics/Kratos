@@ -45,15 +45,11 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 "amp": 1.618,
                 "etmxa": 5,
                 "etmna": 0.1
-            },
-            "print_formfinding_iterations": false,
-            "line_search": false
+            }
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, static_settings)
         self.arc_length_settings = static_settings["arc_length_settings"]
-        self.print_formfinding_settings = static_settings["print_formfinding_iterations"]
-        self.line_search = static_settings["line_search"]
         # Validate the remaining settings in the base class.
 
         # Construct the base solver.
@@ -114,11 +110,9 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 mechanical_solution_strategy = self._create_line_search_strategy()
         elif analysis_type == "arc_length":
             mechanical_solution_strategy = self._create_arc_length_strategy()
-        elif analysis_type == "formfinding":
-            mechanical_solution_strategy = self._create_formfinding_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\", \"formfinding\""
+            err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\""
             raise Exception(err_msg)
         return mechanical_solution_strategy
 
@@ -140,22 +134,3 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                 self.settings["move_mesh_flag"].GetBool())
-
-    def _create_formfinding_strategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
-        return StructuralMechanicsApplication.FormfindingUpdatedReferenceStrategy(
-                                                                computing_model_part,
-                                                                mechanical_scheme,
-                                                                linear_solver,
-                                                                mechanical_convergence_criterion,
-                                                                builder_and_solver,
-                                                                self.settings["max_iteration"].GetInt(),
-                                                                self.settings["compute_reactions"].GetBool(),
-                                                                self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                self.settings["move_mesh_flag"].GetBool(),
-                                                                self.print_formfinding_settings.GetBool(),
-                                                                self.line_search.GetBool())
