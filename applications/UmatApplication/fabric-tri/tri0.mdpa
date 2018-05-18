@@ -1,0 +1,141 @@
+
+
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+
+Begin Properties 0
+End Properties
+
+Begin Properties 1
+ DENSITY 7.80000e-06
+ THICKNESS 1.00000e+00
+	        YOUNG_MODULUS 42.0E3
+		POISSON_RATIO 0.17
+		ALPHA 1.0
+		BETA 1.0
+		MF 2.2
+		CC 0.8
+		MM -0.5
+		RHOS 5.0
+		KSIS -1.0
+		RHOM 10.0
+		KSIM -2.0
+		PC0 500.0
+		VOID_RATIO 6.92
+		PS -1000.0
+		PM -1000.0
+		PLASTIC_MULTIPLIER -2000.0
+End Properties
+
+
+
+
+Begin Nodes
+1        0.00000e+00        1.00000e+00        0.00000e+00
+2        0.00000e+00        0.00000e+00        0.00000e+00
+3        1.00000e+00        1.00000e+00        0.00000e+00
+4        1.00000e+00        0.00000e+00        0.00000e+00
+End Nodes
+
+
+
+Begin Elements AxisymSmallDisplacementElement2D3N
+1 1 2 4 3
+2 1 3 1 2
+End Elements
+
+
+
+
+
+
+Begin Conditions AxisymLineLoadCondition2D2N
+ 1 1 4 3
+End Conditions
+
+
+
+
+
+
+
+Begin SubModelPart group_DeformableBodies-auto-1 // 1
+
+ Begin SubModelPartNodes
+ 1
+ 2
+ 3
+ 4
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ 1
+ 2
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+Begin SubModelPart group_LINEAR_MOVEMENT-auto-1 // 2
+
+ Begin SubModelPartNodes
+ 1
+ 2
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+Begin SubModelPart group_LINEAR_MOVEMENT-auto-2 // 3
+
+ Begin SubModelPartNodes
+ 2
+ 4
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+Begin SubModelPart group_LINEAR_MOVEMENT-auto-3 // 4
+
+ Begin SubModelPartNodes
+ 1
+ 3
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ End SubModelPartConditions
+
+End SubModelPart
+Begin SubModelPart group_LINE_LOAD-auto-1 // 5
+
+ Begin SubModelPartNodes
+ 3
+ 4
+ End SubModelPartNodes
+
+ Begin SubModelPartElements
+ End SubModelPartElements
+      
+ Begin SubModelPartConditions
+ 1
+ End SubModelPartConditions
+
+End SubModelPart
+
+
+ 
