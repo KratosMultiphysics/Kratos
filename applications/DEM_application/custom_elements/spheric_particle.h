@@ -341,14 +341,6 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(do
                                                                               const array_1d<double, 3>& ang_vel,
                                                                               SphericParticle* p_neighbour);
 
-virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(double DeltDesp[3],  
-                                                                            double RelVel[3],  
-                                                                            const double OldLocalCoordSystem[3][3],  
-                                                                            const double &other_radius,  
-                                                                            const double &dt,  
-                                                                            const array_1d<double, 3> &angl_vel,  
-                                                                            SphericParticle* neighbour_iterator); 
-
 virtual void ComputeMoments(double normalLocalContactForce,
                             double GlobalElasticContactForces[3],
                             double& RollingResistance,
@@ -433,7 +425,7 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 
-virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
+virtual void ApplyGlobalDampingToContactForces();
 
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 double mRadius;
