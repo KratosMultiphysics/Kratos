@@ -9,6 +9,7 @@ except ImportError:
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
 
@@ -37,7 +38,7 @@ class FluidAnalysisTest(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._run_test(settings_file_name)
 
-            self._delete_file_if_existing("cylinder_2d.time")
+            kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
 
     def _run_test(self,settings_file_name):
         model = km.Model()
@@ -69,12 +70,6 @@ class FluidAnalysisTest(UnitTest.TestCase):
 
         analysis = FluidDynamicsAnalysis(model,settings)
         analysis.Run()
-
-    def _delete_file_if_existing(self,file_name):
-        try:
-            os.remove(file_name)
-        except FileNotFoundError as e:
-            pass
 
 if __name__ == '__main__':
     test_case = AnalysisTest()
