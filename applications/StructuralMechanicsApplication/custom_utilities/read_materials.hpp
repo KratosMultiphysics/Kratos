@@ -21,8 +21,8 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
+#include "includes/io.h"
 
-#include "custom_io/gid_eigen_io.h"
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -60,16 +60,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialProcess : public 
     /// Pointer definition of ReadMaterialProcess
     KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialProcess);
 
-    typedef std::size_t SizeType;
+    //typedef std::size_t SizeType;
 
-    typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
+    //typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
     
     ///@}
     ///@name Life Cycle
     ///@{
 
     ReadMaterialProcess(ModelPart &rModelPart,
-                                  Parameters parameters);
+                        Parameters parameters);
 
     ///@}
     ///@name Operators
@@ -155,7 +155,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialProcess : public 
     ///@{
 
     ModelPart& mrModelPart;
-    //Parameters mParametersFilename;
 
     ///@}
     ///@name Private Operators

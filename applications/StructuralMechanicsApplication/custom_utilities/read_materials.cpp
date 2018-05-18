@@ -18,10 +18,7 @@
 
 // Project includes
 #include "custom_utilities/read_materials.hpp"
-#include "structural_mechanics_application_variables.h"
-#include "input_output/logger.h"
-#include "includes/kratos_parameters.h"
-#include "includes/checks.h"
+//#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -29,7 +26,6 @@ namespace Kratos
     ReadMaterialProcess::ReadMaterialProcess(ModelPart &rModelPart,
                                              Parameters parameters)
             : mrModelPart(rModelPart)
-            //  mParameddtersFilename(parameters)
     {
         Parameters default_parameters(R"(
             {
