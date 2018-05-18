@@ -53,6 +53,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
+template<class TDataHolder>
 class MapperInterfaceInfo
 {
 public:
@@ -69,7 +70,12 @@ public:
     /// Default constructor.
     MapperInterfaceInfo() {}
 
-    MapperInterfaceInfo(const Point rPoint, const int SourceLocalSystemIndex, const int SouceRank=0);
+    MapperInterfaceInfo(const Point rPoint, const int SourceLocalSystemIndex, const int SourceRank=0)
+        : mSourceLocalSystemIndex(SourceLocalSystemIndex),
+          mSourceRank(SourceRank),
+          mCoordinates(rPoint)
+    {
+    }
 
     /// Destructor.
     virtual ~MapperInterfaceInfo() {
@@ -86,28 +92,32 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) = 0;
-
-    virtual bool LocalSearchSuccessful() = 0;
-
-    virtual void GetNeighborIds(std::vector<int>& rNeighborIdVector) const
+    void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
     {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
+        mInterfaceData.ProcessSearchResult(pInterfaceObject);
     }
 
-    virtual void GetNeighborDistances(std::vector<double>& rNeighborDistancesVector) const
+    TDataHolder& GetInterfaceData()
     {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return mInterfaceData;
     }
 
-    virtual void GetNeighborGeometries(std::vector<double>& rNeighborGeometriesVector) const
+    bool SendBack()
     {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return mInterfaceData.SendBack();
     }
 
-    virtual MapperInterfaceInfo::Pointer Create(const Point rPoint, const int SourceLocalSystemIndex, const int SouceRank) = 0;
+    MapperInterfaceInfo::Pointer Create(const Point rPoint, const int SourceLocalSystemIndex, const int SouceRank)
+    {
+        return Kratos::make_shared<MapperInterfaceInfo<TDataHolder>>(rPoint,
+                                                                     SourceLocalSystemIndex,
+                                                                     SouceRank);
+    }
 
-    virtual void Clear() {}
+    void Clear()
+    {
+        mInterfaceData.Clear();
+    }
 
     int GetSourceRank() const { return mSourceRank; }
 
@@ -198,6 +208,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    TDataHolder mInterfaceData;
+
 
     ///@}
     ///@name Private Operators
@@ -218,11 +230,13 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         rSerializer.save("LocalSysIdx", mSourceLocalSystemIndex);
+        rSerializer.save("InterfaceData", mInterfaceData);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         rSerializer.load("LocalSysIdx", mSourceLocalSystemIndex);
+        rSerializer.load("InterfaceData", mInterfaceData);
     }
 
     ///@}
@@ -254,23 +268,23 @@ private:
 ///@name Input and output
 ///@{
 
-inline std::istream & operator >> (std::istream& rIStream, MapperInterfaceInfo& rThis);
+// inline std::istream & operator >> (std::istream& rIStream, MapperInterfaceInfo& rThis);
 
-/// output stream function
-inline std::ostream & operator << (std::ostream& rOStream, const MapperInterfaceInfo& rThis) {
-//   rThis.PrintInfo(rOStream);
-  rOStream << " : " << std::endl;
-//   rThis.PrintData(rOStream);
-  return rOStream;
-}
+// /// output stream function
+// inline std::ostream & operator << (std::ostream& rOStream, const MapperInterfaceInfo& rThis) {
+// //   rThis.PrintInfo(rOStream);
+//   rOStream << " : " << std::endl;
+// //   rThis.PrintData(rOStream);
+//   return rOStream;
+// }
 
-/// output stream function
-inline std::ostream & operator << (std::ostream& rOStream, const std::vector<MapperInterfaceInfo::Pointer>& rThis) {
-//   rThis.PrintInfo(rOStream);
-  rOStream << " : " << std::endl;
-//   rThis.PrintData(rOStream);
-  return rOStream;
-}
+// /// output stream function
+// inline std::ostream & operator << (std::ostream& rOStream, const std::vector<MapperInterfaceInfo::Pointer>& rThis) {
+// //   rThis.PrintInfo(rOStream);
+//   rOStream << " : " << std::endl;
+// //   rThis.PrintData(rOStream);
+//   return rOStream;
+// }
 
 
 ///@}

@@ -23,17 +23,17 @@
 
 namespace Kratos
 {
-    /***********************************************************************************/
-    /* PUBLIC Methods */
-    /***********************************************************************************/
-    MapperInterfaceInfo::MapperInterfaceInfo(const Point rPoint,
-                                             const int LocalSystemIndex,
-                                             const int SourceRank)
-        : mLocalSystemIndex(LocalSystemIndex),
-          mSourceRank(SourceRank),
-          mCoordinates(rPoint)
-    {
-    }
+    // /***********************************************************************************/
+    // /* PUBLIC Methods */
+    // /***********************************************************************************/
+    // MapperInterfaceInfo::MapperInterfaceInfo(const Point rPoint,
+    //                                          const int SourceLocalSystemIndex,
+    //                                          const int SourceRank)
+    //     : mSourceLocalSystemIndex(SourceLocalSystemIndex),
+    //       mSourceRank(SourceRank),
+    //       mCoordinates(rPoint)
+    // {
+    // }
 
 
     /***********************************************************************************/

@@ -58,6 +58,7 @@ namespace Kratos
 /// This is the "Condition" of the Mappers.
 /** Detail class definition.
 */
+template<class TDataHolder>
 class MapperLocalSystem
 {
 public:
@@ -68,7 +69,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MapperLocalSystem);
 
     using MapperLocalSystemUniquePointer = Kratos::unique_ptr<MapperLocalSystem>;
-    using MapperInterfaceInfoPointer = MapperInterfaceInfo::Pointer;
+    using MapperInterfaceInfoPointer = MapperInterfaceInfo<TDataHolder>::Pointer;
 
     using IndexType = std::size_t;
 
@@ -300,20 +301,20 @@ private:
 ///@{
 
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                MapperLocalSystem& rThis);
+// /// input stream function
+// inline std::istream& operator >> (std::istream& rIStream,
+//                 MapperLocalSystem& rThis);
 
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const MapperLocalSystem& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+// /// output stream function
+// inline std::ostream& operator << (std::ostream& rOStream,
+//                 const MapperLocalSystem& rThis)
+// {
+//     rThis.PrintInfo(rOStream);
+//     rOStream << std::endl;
+//     rThis.PrintData(rOStream);
 
-    return rOStream;
-}
+//     return rOStream;
+// }
 ///@}
 
 ///@} addtogroup block

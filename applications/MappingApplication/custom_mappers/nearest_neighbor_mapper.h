@@ -155,89 +155,84 @@ public:
 
     ///@}
 
-    // class NearestNeigborInterfaceInfo : public MapperInterfaceInfo
-    // {
-    // public:
-    //     MapperInterfaceInfo::Pointer Create(const Point rPoint, const int SourceLocalSystemIndex, const int SouceRank) override
-    //     {
+    class NearestNeigborInterfaceData
+    {
+    public:
 
-    //     }
+        bool SendBack() const
+        {
+            return mSendingBackRequired;
+        }
 
-    //     bool LocalSearchSuccessful() override
-    //     {
-    //         return (mNearestNeighborId > -1);
-    //     }
+        void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
+        {
+            mSendingBackRequired = true; // If this function is called it means that the search was successful
 
-    //     void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) override
-    //     {
-    //         const double distance = 1.0; // TODO how to get the distance?
-    //         if (distance < mNearestNeighborDistance)
-    //         {
-    //             mNearestNeighborDistance = distance;
-    //             mNearestNeighborId = pInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
-    //         }
-    //     };
+            const double distance = 1.0; // TODO how to get the distance?
+            if (distance < mNearestNeighborDistance)
+            {
+                mNearestNeighborDistance = distance;
+                mNearestNeighborId = pInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
+            }
+        };
 
-    //     virtual void GetNeighborIds(std::vector<int>& rNeighborIdVector) const
-    //     {
-    //         if (!rNeighborIdVector.size() == 1) rNeighborIdVector.resize(1);
-    //         rNeighborIdVector[0] = mNearestNeighborId;
-    //     }
+        std::size_t GetNearestNeighborId() const
+        {
+            return mNearestNeighborId;
+        }
 
-    //     virtual void GetNeighborDistances(std::vector<double>& rNeighborDistancesVector) const
-    //     {
-    //         if (!rNeighborDistancesVector.size() == 1) rNeighborDistancesVector.resize(1);
-    //         rNeighborDistancesVector[0] = mNearestNeighborDistance;
-    //     }
+        double GetNearestNeighborDistance() const
+        {
+            return mNearestNeighborDistance;
+        }
 
-    // private:
-    //     int mNearestNeighborId = -1; // default value, indicates an unsuccessful local search
-    //     double mNearestNeighborDistance;
+    private:
+        int mNearestNeighborId = -1; // default value, indicates an unsuccessful local search
+        double mNearestNeighborDistance = std::numeric_limits<double>::max();
+        bool mSendingBackRequired = false; // this is not being serialized since it is not needed after mpi-data-exchange!
 
-    //     friend class Serializer;
+        friend class Serializer;
 
-    //     virtual void save(Serializer& rSerializer) const
-    //     {
-    //         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MapperInterfaceInfo );
-    //         rSerializer.save("NearestNeighborId", mNearestNeighborId);
-    //         rSerializer.save("NearestNeighborDistance", mNearestNeighborDistance);
-    //     }
+        virtual void save(Serializer& rSerializer) const
+        {
+            rSerializer.save("NearestNeighborId", mNearestNeighborId);
+            rSerializer.save("NearestNeighborDistance", mNearestNeighborDistance);
+        }
 
-    //     virtual void load(Serializer& rSerializer)
-    //     {
-    //         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MapperInterfaceInfo );
-    //         rSerializer.load("NearestNeighborId", mNearestNeighborId);
-    //         rSerializer.load("NearestNeighborDistance", mNearestNeighborDistance);
-    //     }
+        virtual void load(Serializer& rSerializer)
+        {
+            rSerializer.load("NearestNeighborId", mNearestNeighborId);
+            rSerializer.load("NearestNeighborDistance", mNearestNeighborDistance);
+        }
 
-    // };
+    };
 
-    // class NearestNeigborLocalSystem : public MapperLocalSystem
-    // {
-    //     Kratos::unique_ptr<MapperLocalSystem> Create(const NodeType& rNode) const override
-    //     {
-    //         return Kratos::make_unique<NearestNeigborLocalSystem>();
-    //     }
+    class NearestNeigborLocalSystem : public MapperLocalSystem
+    {
+        Kratos::unique_ptr<MapperLocalSystem> Create(const NodeType& rNode) const override
+        {
+            return Kratos::make_unique<NearestNeigborLocalSystem>();
+        }
 
-    //     void CalculateAll(MappingWeightsVector& rMappingWeights,
-    //                       EquationIdVectorType& rOriginIds,
-    //                       EquationIdVectorType& rDestinationIds) const override
-    //     {
-    //         std::vector<int> neighbor_ids;
-    //         std::vector<double> neighbor_distances;
+        void CalculateAll(MappingWeightsVector& rMappingWeights,
+                          EquationIdVectorType& rOriginIds,
+                          EquationIdVectorType& rDestinationIds) const override
+        {
+            std::vector<int> neighbor_ids;
+            std::vector<double> neighbor_distances;
 
-    //         for (const auto& r_info : mInterfaceInfos)
-    //         {
-    //             r_info->GetNeighborIds(neighbor_ids);
-    //         }
+            for (const auto& r_info : mInterfaceInfos)
+            {
+                r_info->GetNeighborIds(neighbor_ids);
+            }
 
-    //         KRATOS_WARNING_IF("NearestNeighborMapper", mInterfaceInfos.size()==0)
-    //             << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
-    //     }
+            KRATOS_WARNING_IF("NearestNeighborMapper", mInterfaceInfos.size()==0)
+                << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
+        }
 
-    //     bool UseNodesAsBasis() const override { return true; }
+        bool UseNodesAsBasis() const override { return true; }
 
-    // };
+    };
 
 protected:
 
