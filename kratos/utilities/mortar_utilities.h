@@ -146,13 +146,11 @@ public:
 
             PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
             KRATOS_WARNING("Warning: Zero projection vector.") << " Projection using the condition vector instead." << std::endl;
-        }
-        else if (std::abs(inner_prod(Vector, Normal) ) > zero_tolerance) {
+        } else if (std::abs(inner_prod(Vector, Normal) ) > zero_tolerance) {
             distance = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
 
             PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
-        }
-        else {
+        } else {
             PointProjected.Coordinates() = PointDestiny.Coordinates();
             KRATOS_WARNING("Warning: The line and the plane are coplanar.")  << " Something wrong happened " << std::endl;
         }
@@ -235,7 +233,7 @@ public:
             normal_xi = normal_xi/norm_2(normal_xi); 
             
             current_global_coords = ZeroVector(3);
-            for( unsigned int i_node = 0; i_node < 2; ++i_node )
+            for( IndexType i_node = 0; i_node < 2; ++i_node )
                 current_global_coords += N_origin[i_node] * GeomOrigin[i_node].Coordinates(); 
             
             const array_1d<double,3> VectorPoints = GeomOrigin.Center() - PointDestiny;
@@ -353,12 +351,12 @@ public:
         BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
         
         if (Inversed == false) {
-            for (unsigned int i = 0; i < 3; ++i) {
+            for (IndexType i = 0; i < 3; ++i) {
                 rotation_matrix(0, i) = SlaveTangentXi[i];
                 rotation_matrix(1, i) = SlaveTangentEta[i];
             }
         } else {
-            for (unsigned int i = 0; i < 3; ++i) {
+            for (IndexType i = 0; i < 3; ++i) {
                 rotation_matrix(i, 0) = SlaveTangentXi[i];
                 rotation_matrix(i, 1) = SlaveTangentEta[i];
             }
@@ -379,7 +377,7 @@ public:
         const GeometryType& Geom
         ) {
         array_1d<double,3> normal(3, 0.0);
-        for( unsigned int i_node = 0; i_node < Geom.PointsNumber(); ++i_node )
+        for( IndexType i_node = 0; i_node < Geom.PointsNumber(); ++i_node )
             normal += N[i_node] * Geom[i_node].FastGetSolutionStepValue(NORMAL); 
         
         const double this_norm = norm_2(normal);
@@ -470,28 +468,27 @@ public:
      * @return coordinates The matrix containing the coordinates of the geometry
      */
     
-    template< unsigned int TDim, unsigned int TNumNodes>
+    template< SizeType TDim, SizeType TNumNodes>
     static inline BoundedMatrix<double, TNumNodes, TDim> GetCoordinates(
         const GeometryType& ThisNodes,
         const bool Current = true,
-        const unsigned int Step = 0
+        const IndexType Step = 0
         ) {
         /* DEFINITIONS */            
         BoundedMatrix<double, TNumNodes, TDim> coordinates;
         array_1d<double, 3> coord;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
-        {
-            if (Current == true)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            if (Current) {
                 coord = ThisNodes[i_node].Coordinates();
-            else {
+            } else {
                 coord = ThisNodes[i_node].GetInitialPosition();
                 
                 if (Step > 0)
                     coord += ThisNodes[i_node].FastGetSolutionStepValue(DISPLACEMENT, Step);
             }
 
-            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
+            for (IndexType i_dof = 0; i_dof < TDim; ++i_dof)
                 coordinates(i_node, i_dof) = coord[i_dof];
         }
         
@@ -504,7 +501,7 @@ public:
      * @return tangent_matrix The matrix containing the tangent vectors of the LM
      */
 
-    template< unsigned int TNumNodes, unsigned int TDim>
+    template< SizeType TNumNodes, SizeType TDim>
     static inline BoundedMatrix<double, TNumNodes, TDim> ComputeTangentMatrix(const GeometryType& ThisNodes) {
         /* DEFINITIONS */
         // Zero tolerance
@@ -542,16 +539,16 @@ public:
      * @return var_vector The vector containing the variables of the geometry
      */
     
-    template< unsigned int TNumNodes, class TVarType = Variable<double>>
+    template< SizeType TNumNodes, class TVarType = Variable<double>>
     static inline array_1d<double, TNumNodes> GetVariableVector(
         const GeometryType& ThisNodes,
         const TVarType& rVariable,
-        const unsigned int Step
+        const IndexType Step
         ) {
         /* DEFINITIONS */        
         array_1d<double, TNumNodes> var_vector;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
             var_vector[i_node] = ThisNodes[i_node].FastGetSolutionStepValue(rVariable, Step);
         
         return var_vector;
@@ -565,7 +562,7 @@ public:
      * @return var_vector The vector containing the variables of the geometry
      */
         
-    template< unsigned int TNumNodes, class TVarType = Variable<double> >
+    template< SizeType TNumNodes, class TVarType = Variable<double> >
     static inline BoundedMatrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& ThisNodes,
         const TVarType& rVariable,
@@ -574,7 +571,7 @@ public:
         /* DEFINITIONS */        
         BoundedMatrix<double, TNumNodes, 1> var_vector;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
             var_vector(i_node, 0) = ThisNodes[i_node].FastGetSolutionStepValue(rVariable, Step);
 
         return var_vector;
@@ -587,7 +584,7 @@ public:
      * @return var_vector The vector containing the variables of the geometry
      */
         
-    template< unsigned int TNumNodes, class TVarType = Variable<double> >
+    template< SizeType TNumNodes, class TVarType = Variable<double> >
     static inline array_1d<double, TNumNodes> GetVariableVector(
         const GeometryType& ThisNodes,
         const TVarType& rVariable
@@ -595,7 +592,7 @@ public:
         /* DEFINITIONS */        
         array_1d<double, TNumNodes> var_vector;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
             var_vector[i_node] = ThisNodes[i_node].GetValue(rVariable);
         
         return var_vector;
@@ -608,7 +605,7 @@ public:
      * @return var_vector The vector containing the variables of the geometry
      */
     
-    template< unsigned int TNumNodes, class TVarType = Variable<double> >
+    template< SizeType TNumNodes, class TVarType = Variable<double> >
     static inline BoundedMatrix<double, TNumNodes, 1> GetVariableVectorMatrix(
         const GeometryType& ThisNodes,
         const TVarType& rVariable
@@ -616,7 +613,7 @@ public:
         /* DEFINITIONS */        
         BoundedMatrix<double, TNumNodes, 1> var_vector;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node)
             var_vector(i_node, 0) = ThisNodes[i_node].GetValue(rVariable);
         
         return var_vector;
@@ -630,7 +627,7 @@ public:
      * @return var_matrix The matrix containing the variables of the geometry
      */
     
-    template< unsigned int TDim, unsigned int TNumNodes>
+    template< SizeType TDim, SizeType TNumNodes>
     static inline BoundedMatrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable,
@@ -639,9 +636,9 @@ public:
         /* DEFINITIONS */        
         BoundedMatrix<double, TNumNodes, TDim> var_matrix;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVariable, Step);
-            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            const array_1d<double, 3>& value = Nodes[i_node].FastGetSolutionStepValue(rVariable, Step);
+            for (IndexType i_dof = 0; i_dof < TDim; ++i_dof)
                 var_matrix(i_node, i_dof) = value[i_dof];
         }
         
@@ -655,7 +652,7 @@ public:
      * @return var_matrix The matrix containing the variables of the geometry
      */
         
-    template< unsigned int TDim, unsigned int TNumNodes>
+    template< SizeType TDim, SizeType TNumNodes>
     static inline BoundedMatrix<double, TNumNodes, TDim> GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable
@@ -663,9 +660,9 @@ public:
         /* DEFINITIONS */        
         BoundedMatrix<double, TNumNodes, TDim> var_matrix;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& value = Nodes[i_node].GetValue(rVariable);
-            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
+            for (IndexType i_dof = 0; i_dof < TDim; ++i_dof)
                 var_matrix(i_node, i_dof) = value[i_dof];
         }
         
@@ -678,13 +675,13 @@ public:
      * @return AbsMatrix The matrix containing the absolute value of another matrix
      */
         
-    template< unsigned int TDim, unsigned int TNumNodes>
+    template< SizeType TDim, SizeType TNumNodes>
     static inline BoundedMatrix<double, TNumNodes, TDim> GetAbsMatrix(const BoundedMatrix<double, TNumNodes, TDim>& InputMatrix) {
         /* DEFINITIONS */        
         BoundedMatrix<double, TNumNodes, TDim> AbsMatrix;
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+            for (IndexType i_dof = 0; i_dof < TDim; ++i_dof)
                 AbsMatrix(i_node, i_dof) = std::abs(InputMatrix(i_node, i_dof));
         }
         
@@ -694,7 +691,7 @@ public:
     /**
      * @brief This method gives the size to be computed
      */
-    template< unsigned int TDim, class TVarType>
+    template< SizeType TDim, class TVarType>
     static inline unsigned int SizeToCompute()
     {
        if (typeid(TVarType) == typeid(Variable<array_1d<double, 3>>))
@@ -930,7 +927,7 @@ inline void MortarUtilities::MatrixValue<Variable<double>, Historical>(
     if (ThisValue.size1() != ThisGeometry.size() || ThisValue.size2() != 1)
         ThisValue.resize(ThisGeometry.size(), 1, false);
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
         ThisValue(i_node, 0) = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
 }
 
@@ -943,7 +940,7 @@ inline void MortarUtilities::MatrixValue<ComponentType, Historical>(
     if (ThisValue.size1() != ThisGeometry.size() || ThisValue.size2() != 1)
         ThisValue.resize(ThisGeometry.size(), 1, false);
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
         ThisValue(i_node, 0) = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
 }
 
@@ -958,7 +955,7 @@ inline void MortarUtilities::MatrixValue<Variable<array_1d<double, 3>>, Historic
     if (ThisValue.size1() != num_nodes || ThisValue.size2() != dimension)
         ThisValue.resize(num_nodes, dimension, false);
     
-    for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+    for (IndexType i_node = 0; i_node < num_nodes; ++i_node)
         row(ThisValue, i_node) = subrange(ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable), 0, dimension);
 }
 template<> 
@@ -970,7 +967,7 @@ inline void MortarUtilities::MatrixValue<Variable<double>, NonHistorical>(
     if (ThisValue.size1() != ThisGeometry.size() || ThisValue.size2() != 1)
         ThisValue.resize(ThisGeometry.size(), 1, false);
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
         ThisValue(i_node, 0) = ThisGeometry[i_node].GetValue(ThisVariable);
 }
 
@@ -983,7 +980,7 @@ inline void MortarUtilities::MatrixValue<ComponentType, NonHistorical>(
     if (ThisValue.size1() != ThisGeometry.size() || ThisValue.size2() != 1)
         ThisValue.resize(ThisGeometry.size(), 1, false);
     
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
         ThisValue(i_node, 0) = ThisGeometry[i_node].GetValue(ThisVariable);
 }
 
@@ -998,7 +995,7 @@ inline void MortarUtilities::MatrixValue<Variable<array_1d<double, 3>>, NonHisto
     if (ThisValue.size1() != num_nodes || ThisValue.size2() != dimension)
         ThisValue.resize(num_nodes, dimension, false);
     
-    for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+    for (IndexType i_node = 0; i_node < num_nodes; ++i_node)
         row(ThisValue, i_node) = subrange(ThisGeometry[i_node].GetValue(ThisVariable), 0, dimension);
 }
 
@@ -1008,7 +1005,7 @@ inline void MortarUtilities::AddValue<Variable<double>, Historical>(
         Variable<double>& ThisVariable,
         const Matrix& ThisValue
         ) {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
         ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += ThisValue(i_node, 0);
 }
 
@@ -1018,7 +1015,7 @@ inline void MortarUtilities::AddValue<ComponentType, Historical>(
         ComponentType& ThisVariable,
         const Matrix& ThisValue
         ) {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
         ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable) += ThisValue(i_node, 0);
 }
 
@@ -1028,7 +1025,7 @@ inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, Historical>
         Variable<array_1d<double, 3>>& ThisVariable,
         const Matrix& ThisValue
         ) {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node) {
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node) {
         auto& aux_vector = ThisGeometry[i_node].FastGetSolutionStepValue(ThisVariable);
         for (unsigned int i_dim = 0; i_dim < ThisGeometry.WorkingSpaceDimension(); ++i_dim)
             aux_vector[i_dim] += ThisValue(i_node, i_dim);
@@ -1040,7 +1037,7 @@ inline void MortarUtilities::AddValue<Variable<double>, NonHistorical>(
         Variable<double>& ThisVariable,
         const Matrix& ThisValue
         ) {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
         ThisGeometry[i_node].GetValue(ThisVariable) += ThisValue(i_node, 0);
 }
 
@@ -1050,7 +1047,7 @@ inline void MortarUtilities::AddValue<ComponentType, NonHistorical>(
         ComponentType& ThisVariable,
         const Matrix& ThisValue
         ) {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node)
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node)
         ThisGeometry[i_node].GetValue(ThisVariable) += ThisValue(i_node, 0);
 }
 
@@ -1060,7 +1057,7 @@ inline void MortarUtilities::AddValue<Variable<array_1d<double, 3>>, NonHistoric
         Variable<array_1d<double, 3>>& ThisVariable,
         const Matrix& ThisValue
         ) {
-    for (unsigned int i_node = 0; i_node < ThisGeometry.size(); ++i_node) {
+    for (IndexType i_node = 0; i_node < ThisGeometry.size(); ++i_node) {
         auto& aux_vector = ThisGeometry[i_node].GetValue(ThisVariable);
         for (unsigned int i_dim = 0; i_dim < ThisGeometry.WorkingSpaceDimension(); ++i_dim)
             aux_vector[i_dim] += ThisValue(i_node, i_dim);

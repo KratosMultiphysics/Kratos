@@ -20,11 +20,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.delta_option > 0):
             self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
 
-        if not "LoadingVelocity" in DEM_parameters.keys():
-            self.fixed_vel = 0
-        else:
-            self.fixed_vel = DEM_parameters["LoadingVelocity"].GetDouble()
-
         if "DontSearchUntilFailure" in DEM_parameters.keys(): #TODO: important Todo. When Json gets divided in encapsulated parts, all these checks should be done in one functions, comparing with defaults!
             if DEM_parameters["DontSearchUntilFailure"].GetBool():
                 print ("Search is not active until a bond is broken.")
@@ -79,9 +74,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
         else:
             self.spheres_model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 0)
-
-        self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel)
-        self.spheres_model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel)
 
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POISSON_EFFECT_OPTION, self.poisson_effect_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION, self.shear_strain_parallel_to_bond_option)
