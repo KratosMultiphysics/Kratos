@@ -69,9 +69,11 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
     mDofs = mrModelPart.NodesBegin()->GetDofs();
 
     // Compute the sub model part maps
+    std::unordered_map<int, std::vector<std::string>> colors;
     SubModelPartsListUtility colors_utility(mrModelPart);
-    colors_utility.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
-    SubModelPartsListUtility::IntersectColors(mColors, mIntersections);
+    colors_utility.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, colors);
+    SubModelPartsListUtility::IntersectColors(colors, mIntersections);
+    mColorsPointers = SubModelPartsListUtility::GetModelPartColorsPointers(mrModelPart, colors);
 }
 
 
@@ -312,10 +314,9 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
         const int key = mIntersections[std::minmax(key0, key1)];
         if (key != 0)  // NOTE: key==0 is the main model part
         {
-            for (std::string sub_name : mColors[key])
+            for (auto sub_model_part : mColorsPointers[key])
             {
-                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-                sub_model_part.AddNode(middle_node);
+                sub_model_part->AddNode(middle_node);
             }
         }
         mNodesColorMap[middle_node->Id()] = key;
@@ -394,10 +395,9 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
         key0 = mIntersections[std::minmax(key0, key1)];
         if (key0 != 0)  // NOTE: key==0 is the main model part
         {
-            for (std::string sub_name : mColors[key0])
+            for (auto sub_model_part : mColorsPointers[key0])
             {
-                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-                sub_model_part.AddNode(middle_node);
+                sub_model_part->AddNode(middle_node);
             }
         }
         mNodesColorMap[middle_node->Id()] = key0;
@@ -501,10 +501,9 @@ void UniformRefineUtility<TDim>::CreateElement(
         int key = mElemColorMap[pOriginElement->Id()];
         if (key != 0)  // NOTE: key==0 is the main model part
         {
-            for (std::string sub_name : mColors[key])
+            for (auto sub_model_part : mColorsPointers[key])
             {
-                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-                sub_model_part.AddElement(sub_element);
+                sub_model_part->AddElement(sub_element);
             }
         }
         mElemColorMap[sub_element->Id()] = key;
@@ -535,10 +534,9 @@ void UniformRefineUtility<TDim>::CreateCondition(
         int key = mCondColorMap[pOriginCondition->Id()];
         if (key != 0)  // NOTE: key==0 is the main model part
         {
-            for (std::string sub_name : mColors[key])
+            for (auto sub_model_part : mColorsPointers[key])
             {
-                ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-                sub_model_part.AddCondition(sub_condition);
+                sub_model_part->AddCondition(sub_condition);
             }
         }
         mCondColorMap[sub_condition->Id()] = key;
