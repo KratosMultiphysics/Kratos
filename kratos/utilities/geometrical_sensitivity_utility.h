@@ -33,6 +33,17 @@ struct ShapeParameter
 {
     std::size_t NodeIndex;
     std::size_t Direction;
+    
+    bool operator==(const ShapeParameter& rOther) const
+    {
+        return (NodeIndex == rOther.NodeIndex && Direction == rOther.Direction);
+    }
+
+    bool operator!=(const ShapeParameter& rOther) const
+    {
+        return !(this->operator==(rOther));
+    }
+
     class Sequence;
 };
 

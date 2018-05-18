@@ -24,6 +24,8 @@
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 #include "includes/variables.h"
+#include "custom_utilities/large_displacement_variables.h"
+#include "custom_utilities/large_displacement_sensitivity_variables.h"
 
 namespace Kratos
 {
@@ -44,19 +46,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class ShapeParameter;
-
 /**
  * @class TotalLagrangian
  * @ingroup StructuralMechanicsApplication
  * @brief Total Lagrangian element for 2D and 3D geometries.
- * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @details Implements a total Lagrangian definition for structural
+ * analysis. This works for arbitrary geometries in 2D and 3D
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
-    : public BaseSolidElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian : public BaseSolidElement
 {
 public:
     ///@name Type Definitions
@@ -78,9 +78,6 @@ public:
     /// Default constructor.
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-    /// Destructor.
-    ~TotalLagrangian() override;
 
     ///@}
     ///@name Operators
@@ -164,18 +161,15 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-        
-    /**
-     * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
-     * @param PointNumber The integration point considered
-     */ 
-    void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) override;
-    
+
+    void CalculateKinematicVariables(KinematicVariables& rThisKinematicVariables,
+                                     const unsigned int PointNumber,
+                                     const GeometryType::IntegrationMethod& rIntegrationMethod) override;
+
+    double GetIntegrationWeight(const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
+                                const unsigned int PointNumber,
+                                const double detJ) override;
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -206,52 +200,43 @@ private:
     ///@name Private Operations
     ///@{
    
-    /**
-     * @brief This method computes the deformation matrix B
-     * @param rB The deformation matrix
-     * @param rF The deformation gradient
-     * @param rDN_DX The gradient derivative of the shape function
-     */
-    void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
-
-    void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
-
-    void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
+    void CalculateStressAndConstitutiveMatrix(LargeDisplacementDeformationVariables& rDeformationVars,
+                                              std::size_t IntegrationIndex,
+                                              ConstitutiveVariables& rOutput,
+                                              ProcessInfo const& rCurrentProcessInfo);
 
     void CalculateStress(Vector& rStrain,
-                         std::size_t IntegrationPoint,
+                         std::size_t IntegrationIndex,
                          Vector& rStress,
                          ProcessInfo const& rCurrentProcessInfo);
 
-    void CalculateStress(Matrix const& rF,
-                         std::size_t IntegrationPoint,
-                         Vector& rStress,
-                         ProcessInfo const& rCurrentProcessInfo);
-
-    void CalculateStrain(Matrix const& rF,
-                         std::size_t IntegrationPoint,
-                         Vector& rStrain,
-                         ProcessInfo const& rCurrentProcessInfo);
-
-    void CalculateShapeSensitivity(ShapeParameter Deriv,
-                                   Matrix& rDN_DX0_Deriv,
-                                   Matrix& rF_Deriv,
-                                   double& rDetJ0_Deriv,
-                                   std::size_t IntegrationPointIndex);
-
-    void CalculateBSensitivity(Matrix const& rDN_DX,
-                               Matrix const& rF,
-                               Matrix const& rDN_DX_Deriv,
-                               Matrix const& rF_Deriv,
-                               Matrix& rB_Deriv);
+    void CalculateStiffnessMatrix(LargeDisplacementDeformationVariables& rDeformationVars,
+                                  ConstitutiveVariables& rConstitutiveVars,
+                                  std::size_t IntegrationIndex,
+                                  double Weight,
+                                  MatrixType& rStiffnessMatrix);
 
     std::size_t GetStrainSize() const;
 
-    bool IsAxissymmetric() const;
+    bool IsAxisymmetric() const;
+
+    void CalculateInternalForceSensitivityContribution(
+        Vector& rResidualSensitivity,
+        std::size_t IntegrationIndex,
+        ShapeParameter Deriv,
+        LargeDisplacementDeformationVariables& rDeformationVars,
+        LargeDisplacementSensitivityVariables& rSensitivityVars,
+        Vector const& rStressVector,
+        Vector const& rStressSensitivityVector);
+
+    void CalculateAndAddExternalForceSensitivityContribution(
+        Vector& rResidualSensitivity,
+        std::size_t IntegrationIndex,
+        ShapeParameter Deriv,
+        LargeDisplacementSensitivityVariables& rSensitivityVars,
+        Vector const& rN,
+        Vector const& rBodyForce,
+        ProcessInfo const& rCurrentProcessInfo);
 
     ///@}
     ///@name Private  Access

@@ -1235,15 +1235,29 @@ void BaseSolidElement::CalculateAndAddResidualVector(
     const double IntegrationWeight
     )
 {
+    CalculateAndAddResidualVector(rRightHandSideVector, rThisKinematicVariables.N,
+                                  rThisKinematicVariables.B, rCurrentProcessInfo,
+                                  rBodyForce, rStressVector, IntegrationWeight);
+}
+
+void BaseSolidElement::CalculateAndAddResidualVector(VectorType& rRightHandSideVector,
+                                                     const Vector& rN,
+                                                     const Matrix& rB,
+                                                     const ProcessInfo& rCurrentProcessInfo,
+                                                     const Vector& rBodyForce,
+                                                     const Vector& rStressVector,
+                                                     double IntegrationWeight)
+{
     KRATOS_TRY
 
     // Operation performed: rRightHandSideVector += ExtForce * IntegrationWeight
-    this->CalculateAndAddExtForceContribution( rThisKinematicVariables.N, rCurrentProcessInfo, rBodyForce, rRightHandSideVector, IntegrationWeight );
+    this->CalculateAndAddExtForceContribution(
+        rN, rCurrentProcessInfo, rBodyForce, rRightHandSideVector, IntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= IntForce * IntegrationWeight
-    noalias( rRightHandSideVector ) -= IntegrationWeight * prod( trans( rThisKinematicVariables.B ), rStressVector );
+    noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(rB), rStressVector);
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
