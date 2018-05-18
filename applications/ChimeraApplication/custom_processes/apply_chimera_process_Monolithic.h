@@ -451,6 +451,8 @@ class ApplyChimeraProcessMonolithic : public Process
 				std::cout << "Patch boundary coupled with background & HoleBoundary  coupled with patch  using conservative approach" << std::endl;
 			}
 		}
+
+		//pMpc->GetInfo();
 	}
 
 	void SetOverlapDistance(double distance)

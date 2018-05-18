@@ -820,6 +820,7 @@ protected:
 
         // If there are periodic conditions, add contributions from both sides to the periodic nodes
         this->PeriodicConditionProjectionCorrection(rModelPart);
+        this->ChimeraProjectionCorrection(rModelPart);
 
 #pragma omp parallel
         {
@@ -880,6 +881,7 @@ protected:
 
         rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
         this->PeriodicConditionVelocityCorrection(rModelPart);
+        this->ChimeraVelocityCorrection(rModelPart);
 
         // Force the end of step velocity to verify slip conditions in the model
         if (mUseSlipConditions)
@@ -1100,6 +1102,61 @@ protected:
          }
      }
 
+     void ChimeraProjectionCorrection(ModelPart& rModelPart)
+     {
+        ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+        for (auto mpcData : (*mpcDataVector))
+        {
+            for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+            {
+                SlavePairType slaveDofMap = slaveMasterDofMap.first;
+                MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
+                std::size_t slaveNodeId = slaveDofMap.first;
+                NodeType &node = rModelPart.Nodes()[slaveNodeId];
+                node.GetValue(NODAL_AREA)= 0;
+                node.GetValue(CONV_PROJ)= array_1d<double,3>(3,0.0);
+                node.GetValue(PRESS_PROJ)= array_1d<double,3>(3,0.0);
+                node.GetValue(DIVPROJ)= 0 ;
+
+                for (auto masterDofMapElem : masterDofMap)
+                {
+                    std::size_t masterNodeId;
+                    double constant;
+                    std::size_t masterDofKey;
+                    std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+                    double weight = masterDofMapElem.second;
+                    NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
+                    node.GetValue(NODAL_AREA) +=(masterNode.FastGetSolutionStepValue(NODAL_AREA))*weight;
+                    node.GetValue(CONV_PROJ) +=(masterNode.FastGetSolutionStepValue(CONV_PROJ))*weight;
+                    node.GetValue(PRESS_PROJ) +=(masterNode.FastGetSolutionStepValue(PRESS_PROJ))*weight;
+                    node.GetValue(DIVPROJ) +=(masterNode.FastGetSolutionStepValue(DIVPROJ))*weight;
+                }
+            }
+        }
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(CONV_PROJ);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(PRESS_PROJ);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+
+        for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+        {
+            if (itNode->GetValue(NODAL_AREA) >1E-8)
+            {
+                itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
+                itNode->FastGetSolutionStepValue(CONV_PROJ) = itNode->GetValue(CONV_PROJ);
+                itNode->FastGetSolutionStepValue(PRESS_PROJ) = itNode->GetValue(PRESS_PROJ);
+                itNode->FastGetSolutionStepValue(DIVPROJ) = itNode->GetValue(DIVPROJ);
+                // reset for next iteration
+                itNode->GetValue(NODAL_AREA) = 0.0;
+                itNode->GetValue(CONV_PROJ) = array_1d<double,3>(3,0.0);
+                itNode->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
+                itNode->GetValue(DIVPROJ) = 0.0;
+            }
+        }
+     }
+
      void PeriodicConditionVelocityCorrection(ModelPart& rModelPart)
      {
          if (mrPeriodicIdVar.Key() != 0)
@@ -1155,6 +1212,45 @@ protected:
              }
          }
      }
+
+    void ChimeraVelocityCorrection(ModelPart& rModelPart)
+    {
+        ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+        MpcDataPointerVectorType mpcDataVector = CurrentProcessInfo.GetValue(MPC_DATA_CONTAINER);
+        for (auto mpcData : (*mpcDataVector))
+        {
+            for (auto slaveMasterDofMap : mpcData->mDofConstraints)
+            {
+                SlavePairType slaveDofMap = slaveMasterDofMap.first;
+                MasterDofWeightMapType &masterDofMap = slaveMasterDofMap.second;
+                std::size_t slaveNodeId = slaveDofMap.first;
+                NodeType &node = rModelPart.Nodes()[slaveNodeId];
+                node.FastGetSolutionStepValue(FRACT_VEL)= array_1d<double,3>(3,0.0);
+                for (auto masterDofMapElem : masterDofMap)
+                {
+                    std::size_t masterNodeId;
+                    double constant;
+                    std::size_t masterDofKey;
+                    std::tie(masterNodeId, masterDofKey, constant) = masterDofMapElem.first;
+                    double weight = masterDofMapElem.second;
+                    NodeType &masterNode = rModelPart.Nodes()[masterNodeId];
+                    node.GetValue(FRACT_VEL) +=(masterNode.FastGetSolutionStepValue(FRACT_VEL))*weight;
+                }
+            }
+        }
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(FRACT_VEL);
+
+        for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+        {
+            array_1d<double,3>& rDeltaVel = itNode->GetValue(FRACT_VEL);
+            if ( rDeltaVel[0]*rDeltaVel[0] + rDeltaVel[1]*rDeltaVel[1] + rDeltaVel[2]*rDeltaVel[2] != 0.0)
+            {
+                itNode->FastGetSolutionStepValue(FRACT_VEL) = itNode->GetValue(FRACT_VEL);
+                rDeltaVel = array_1d<double,3>(3,0.0);
+            }
+        }
+    }
 
 
     ///@}

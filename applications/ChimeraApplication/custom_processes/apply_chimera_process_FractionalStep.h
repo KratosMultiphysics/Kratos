@@ -810,6 +810,9 @@ class ApplyChimeraProcessFractionalStep : public Process
 			}
 
 		}
+
+		//pMpcPressure->GetInfo();
+		//pMpcVelocity->GetInfo();
 	}
 
 	void SetOverlapDistance(double distance)
