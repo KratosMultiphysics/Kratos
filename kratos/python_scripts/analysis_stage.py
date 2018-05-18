@@ -28,6 +28,19 @@ class AnalysisStage(object):
         self.model = model
         self.project_parameters = project_parameters
 
+        ## Get echo level and parallel type
+        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
+        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+
+        ## Import parallel modules if needed
+        if (self.parallel_type == "MPI"):
+            import KratosMultiphysics.mpi as KratosMPI
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
+        else:
+            self.is_printing_rank = True
+
         self._GetSolver.AddVariables() # this creates the solver and adds the variables
 
     def Run(self):
@@ -80,6 +93,9 @@ class AnalysisStage(object):
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
+        if self.is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
+
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.
@@ -88,6 +104,9 @@ class AnalysisStage(object):
         self.ChangeMaterialProperties() #this is normally empty
         self._GetSolver().InitializeSolutionStep()
 
+        if self.is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
@@ -174,3 +193,8 @@ class AnalysisStage(object):
         """Create the list of Output-Processes
         """
         raise Exception("Creation of the output processes must be implemented in the derived class.")
+
+    def _GetSimulationName(self):
+        """Returns the name of the AnalysisStage
+        """
+        return "AnalysisStage"

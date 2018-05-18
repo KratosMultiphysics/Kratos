@@ -31,19 +31,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
-        ## Get echo level and parallel type
-        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
-        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-
-        ## Import parallel modules if needed
-        if (self.parallel_type == "MPI"):
-            import KratosMultiphysics.mpi as KratosMPI
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
-
         self._CreateSolver()
 
     def Initialize(self):
@@ -59,33 +46,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         self.solver.Initialize()
 
         self._ExecuteBeforeSolutionLoop()
-
-    def InitializeSolutionStep(self):
-        super(StructuralMechanicsAnalysis, self).InitializeSolutionStep()
-
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
-        sys.stdout.flush()
-
-    def OutputSolutionStep(self):
-        if self.have_output and self.output.IsOutputStep():
-
-            for process in self.list_of_processes:
-                process.ExecuteBeforeOutputStep()
-
-            self.output.PrintOutput()
-
-            for process in self.list_of_processes:
-                process.ExecuteAfterOutputStep()
-
-        self.solver.SaveRestart() # whether a restart-file is written is decided internally
-
-    def Finalize(self):
-        super(StructuralMechanicsAnalysis, self).Finalize()
-
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
 
     #### Internal functions ####
