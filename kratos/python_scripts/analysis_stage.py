@@ -28,10 +28,7 @@ class AnalysisStage(object):
         self.model = model
         self.project_parameters = project_parameters
 
-
-
-        ##HERE WE SHOULD CONSTRUCT A SOLVER - stages should contain at least one solver
-        ##self._GetSolver() = ... HERE WE CONSTRUCT THE SOLVER
+        self._GetSolver.AddVariables() # this creates the solver and adds the variables
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -45,7 +42,6 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-
         while self.time < self.end_time:
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
@@ -60,7 +56,10 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        self._GetSolver().ImportModelPart()
+        self._GetSolver().ReadModelPart()
+        self._GetSolver().PrepareModelPart()
+        self._GetSolver().AddDofs()
+
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
 
@@ -102,13 +101,22 @@ class AnalysisStage(object):
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
-        for process in self._GetListOfProcesses():
-            process.ExecuteBeforeOutputStep()
+        is_output_step = False
+        for output_process in self._GetListOfOutputProcesses()
+            if output_process.IsOutputStep():
+                is_output_step = True
+                break
 
-        #here the output should be done when needed
+        if is_output_step: # At least one of the output processes will print output
+            for process in self._GetListOfProcesses():
+                process.ExecuteBeforeOutputStep()
 
-        for process in self._GetListOfProcesses():
-            process.ExecuteAfterOutputStep()
+            for output_process in self._GetListOfOutputProcesses()
+                if output_process.IsOutputStep():
+                    output_process.PrintOutput()
+
+            for process in self._GetListOfProcesses():
+                process.ExecuteAfterOutputStep()
 
 
     def Check(self):
@@ -155,3 +163,14 @@ class AnalysisStage(object):
         """Create the list of Processes
         """
         raise Exception("Creation of the processes must be implemented in the derived class.")
+
+    def _GetListOfOutputProcesses(self):
+        if not hasattr(self, '_list_of_output_processes'):
+            self._list_of_output_processes = self._CreateListOfOutputProcesses()
+            self._GetListOfProcesses() += [self._list_of_output_processes,] # Adding the output processes to the regular processes
+        return self._list_of_output_processes
+
+    def _CreateListOfOutputProcesses(self):
+        """Create the list of Output-Processes
+        """
+        raise Exception("Creation of the output processes must be implemented in the derived class.")
