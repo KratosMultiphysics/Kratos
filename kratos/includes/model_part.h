@@ -600,7 +600,6 @@ public:
     /** Inserts a master-slave constraint in the current mesh.
      */
     void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, IndexType ThisIndex = 0);
-
     
     /** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
@@ -609,6 +608,31 @@ public:
     /** Inserts an master-slave constraint in the current mesh.
      */
     MasterSlaveConstraintType::Pointer CreateMasterSlaveConstraint(std::string ConstraintName, IndexType Id, SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<MasterWeightType> MasterWerights, IndexType ThisIndex = 0);
+
+    /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+
+    /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+
+    /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
 
    
     ///@}
