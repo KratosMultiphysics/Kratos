@@ -89,7 +89,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ShellRigid
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ShellRigid
     : public Element
 {
 public:

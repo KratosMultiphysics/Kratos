@@ -58,7 +58,7 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class ComputeMaterialDerivativeSimplex : public Element
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ComputeMaterialDerivativeSimplex : public Element
 {
 public:
     ///@name Type Definitions

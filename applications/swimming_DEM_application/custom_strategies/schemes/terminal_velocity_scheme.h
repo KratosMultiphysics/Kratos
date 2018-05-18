@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class TerminalVelocityScheme : public HybridBashforthScheme {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) TerminalVelocityScheme : public HybridBashforthScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
