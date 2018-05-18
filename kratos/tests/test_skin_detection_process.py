@@ -10,6 +10,7 @@ def GetFilePath(fileName):
 class TestSkinDetecttionProcess(KratosUnittest.TestCase):
 
     def test_SkinDetectionProcess(self):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
