@@ -18,15 +18,15 @@ class ImposeNodalReferenceTemperatureProcess(Process):
         initial_value = settings["initial_value"].GetDouble()
         input_file_name = settings["input_file_name"].GetString()
         
-        if not ((input_file_name == "") or (input_file_name == "- No file") or (input_file_name == "- Add new file")):
+        if ((input_file_name == "") or (input_file_name == "- No file") or (input_file_name == "- Add new file")):
+            self.table = PiecewiseLinearTable()
+        else:
             self.table = PiecewiseLinearTable()
             with open(input_file_name,'r') as file_name:
                 for j, line in enumerate(file_name):
                     file_1 = line.split(" ")
                     if (len(file_1)) > 1: 
                         self.table.AddRow(float(file_1[0]), float(file_1[1]))
-        else:
-            self.table = PiecewiseLinearTable()
             
         self.process = DamNodalReferenceTemperatureProcess(model_part, self.table, settings) 
 

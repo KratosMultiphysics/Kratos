@@ -130,7 +130,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
         
-            if (mInitialValue != 0)
+            if ((mInputFile == "") or (mInputFile == "- No file") or (mInputFile == "- Add new file"))
             {
                 #pragma omp parallel for
                 for(int i = 0; i<nnodes; i++)
