@@ -86,7 +86,7 @@ class LineSearchSolutionStrategy
                      unsigned int MaxIterations = 30,
                      unsigned int LineSearchType = 0)
       : NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pBuilderAndSolver, pConvergenceCriterion, rOptions, MaxIterations), mType(LineSearchType)
-  {}
+  {mAlpha=1.0;}
 
   LineSearchSolutionStrategy(ModelPart& rModelPart,
                      typename SchemeType::Pointer pScheme,
@@ -96,7 +96,7 @@ class LineSearchSolutionStrategy
                      unsigned int MaxIterations = 30,
                      unsigned int LineSearchType = 0)      
       : NewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pLinearSolver, pConvergenceCriterion, rOptions, MaxIterations), mType(LineSearchType)
-  {}
+  {mAlpha=1.0;}
 
   /// Destructor
   ~LineSearchSolutionStrategy() override {}
