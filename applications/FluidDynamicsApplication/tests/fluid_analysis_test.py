@@ -1,5 +1,10 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.FluidDynamicsApplication as kfd
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError:
+    have_external_solvers = False
 
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
@@ -18,7 +23,8 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
 
-class AnalysisTest(UnitTest.TestCase):
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
+class FluidAnalysisTest(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
