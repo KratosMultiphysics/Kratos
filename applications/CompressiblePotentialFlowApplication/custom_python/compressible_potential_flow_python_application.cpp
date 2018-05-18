@@ -21,8 +21,6 @@
 #include "includes/define.h"
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
 
@@ -45,8 +43,6 @@ namespace Python
 			  .def(init<>())
 			;
 
-	AddCustomStrategiesToPython(m);
-	AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
 	//registering variables in python
 
