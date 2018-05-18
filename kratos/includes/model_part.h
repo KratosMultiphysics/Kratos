@@ -209,8 +209,6 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef TablesContainerType::const_iterator TableConstantIterator;
-
-
     /**
      *
      */
@@ -231,6 +229,11 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIterator;    
+
+    /**
+     * Type of the weight for a master  
+     * */
+    typedef double MasterWeightType;
 
 
     /// The container of the sub model parts. A hash table is used.
@@ -585,7 +588,29 @@ public:
     }
 
 
+    ///@}
+    ///@name MasterSlaveConstraints
+    ///@{
 
+    SizeType NumberOfMasterSlaveConstraints() const
+    {
+        return mMasterSlaveConstraints.size();
+    }
+
+    /** Inserts a master-slave constraint in the current mesh.
+     */
+    void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    
+    /** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
+     */    
+    void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, IndexType ThisIndex = 0);
+
+    /** Inserts an master-slave constraint in the current mesh.
+     */
+    MasterSlaveConstraintType::Pointer CreateMasterSlaveConstraint(std::string ConstraintName, IndexType Id, SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<MasterWeightType> MasterWerights, IndexType ThisIndex = 0);
+
+   
     ///@}
     ///@name Properties
     ///@{
@@ -1327,6 +1352,8 @@ private:
     ModelPart* mpParentModelPart;
 
     SubModelPartsContainerType mSubModelParts;
+
+    MasterSlaveConstraintContainerType mMasterSlaveConstraints;
 
     ///@}
     ///@name Private Operators
