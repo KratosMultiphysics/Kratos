@@ -66,6 +66,9 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Pointer definition of MortarUtilities
+    KRATOS_CLASS_POINTER_DEFINITION( MortarUtilities );
+
     // Some geometrical definitions
     typedef Node<3>                                              NodeType;
     typedef Point                                               PointType;
