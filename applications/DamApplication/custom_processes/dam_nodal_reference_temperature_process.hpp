@@ -63,6 +63,7 @@ public:
 
         mVariableName = rParameters["variable_name"].GetString();
         mInitialValue = rParameters["initial_value"].GetDouble();
+        mInputFile = rParameters["input_file_name"].GetString();
        
         KRATOS_CATCH("");
     }
@@ -87,7 +88,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
         
-            if (mInitialValue != 0)
+            if ((mInputFile == "") or (mInputFile == "- No file") or (mInputFile == "- Add new file"))
             {
                 #pragma omp parallel for
                 for(int i = 0; i<nnodes; i++)
@@ -185,6 +186,7 @@ protected:
     TableType& mrTable;
     std::string mVariableName;
     double mInitialValue;
+    std::string mInputFile;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
