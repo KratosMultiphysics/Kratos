@@ -778,7 +778,14 @@ namespace Kratos {
 
         Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(0); ////This is Properties 0 ?????
 
-        std::string ElementNameString = "RigidBodyElement3D";
+        std::string ElementNameString;
+        
+        if (!submp[FLOATING_OPTION]) {
+            ElementNameString = "RigidBodyElement3D";
+        } else {
+            ElementNameString = "ShipElement3D";
+        }
+        
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         Element::Pointer RigidBodyElement3D_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
         RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
