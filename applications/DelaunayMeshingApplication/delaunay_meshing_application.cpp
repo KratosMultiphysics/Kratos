@@ -49,9 +49,9 @@ namespace Kratos
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "            ___      _                                        " << std::endl
-    std::cout << "     KRATOS|   \\ ___| |__ _ _  _ _ _  __ _ _  _              " << std::endl
-    std::cout << "           | |) / -_| / _` | || | ' \\/ _` | || |             " << std::endl
+    std::cout << "            ___      _                                        " << std::endl;
+    std::cout << "     KRATOS|   \\ ___| |__ _ _  _ _ _  __ _ _  _              " << std::endl;
+    std::cout << "           | |) / -_| / _` | || | ' \\/ _` | || |             " << std::endl;
     std::cout << "           |___/\\___|_\\__,_|\\_,_|_||_\\__,_|\\_, |MESHING  " << std::endl;
     std::cout << "                                            |__/              " << std::endl;
     std::cout << "Initializing KratosDelaunayMeshingApplication    ...          " << std::endl;
