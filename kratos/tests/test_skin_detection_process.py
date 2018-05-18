@@ -11,7 +11,7 @@ class TestSkinDetecttionProcess(KratosUnittest.TestCase):
 
     def test_SkinDetecttionProcess(self):
         model_part = KratosMultiphysics.ModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("processes_tests_files/skin_detection_test"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
         # We set a flag in the already knon node in the skin
@@ -21,10 +21,13 @@ class TestSkinDetecttionProcess(KratosUnittest.TestCase):
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
+        ## DEBUG
+        #self._post_process(model_part)
+
         for node in model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
 
-    def _post_process(model_part):
+    def _post_process(self, model_part):
         from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(model_part,
                                     "gid_output",
@@ -37,7 +40,7 @@ class TestSkinDetecttionProcess(KratosUnittest.TestCase):
                                                     "WriteConditionsFlag": "WriteConditions",
                                                     "MultiFileFlag": "SingleFile"
                                                 },
-                                                "nodal_flags_results" : ["INTERFACE"]
+                                                "nodal_flags_results" : ["INTERFACE","ACTIVE"]
                                             }
                                         }
                                         """)
