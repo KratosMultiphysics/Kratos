@@ -219,7 +219,8 @@ public:
 
 
                 Properties::Pointer properties = i->pGetProperties();
-                double Density = i->GetProperties()[DENSITY];
+                int Material_id = i->GetProperties().Id();
+                double Density  = i->GetProperties()[DENSITY];
                 //std::cout<< "Density "<< Density<<std::endl;
                 Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                 Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
@@ -293,7 +294,8 @@ public:
                     }
                     Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
                     //Element::Pointer p_element = NewElement.Create((1+PointNumber+number_nodes)+(integration_point_per_element*k), rGeom, properties);
-                    double MP_Density = Density;
+                    double MP_Density  = Density;
+                    int MP_Material_Id = Material_id;
                     //std::cout<<"MPM ID "<<(1+PointNumber+number_elements)+(integration_point_per_element*k)<<std::endl;
                     xg.clear();
 
@@ -313,6 +315,7 @@ public:
                     //xg[0] = -1.4626;
                     //xg[1] = -0.39545;
                     //std::cout<<"xg "<< xg<<std::endl;
+                    p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
                     p_element -> SetValue(GAUSS_COORD, xg);
                     p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
                     //p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
