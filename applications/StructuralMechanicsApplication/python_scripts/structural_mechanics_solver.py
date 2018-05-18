@@ -202,7 +202,7 @@ class MechanicalSolver(object):
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished reading model part.")
 
-    def PrepareModelPartForSolver(self):
+    def PrepareModelPart(self):
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
@@ -277,11 +277,7 @@ class MechanicalSolver(object):
         return new_time
 
     def ComputeDeltaTime(self):
-        return self.delta_time
-
-    def SetDeltaTime(self, dt):
-        # This is a TEMPORARY function until the solver can compute dt!
-        self.delta_time = dt
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
     def SetEchoLevel(self, level):
         self.get_mechanical_solution_strategy().SetEchoLevel(level)

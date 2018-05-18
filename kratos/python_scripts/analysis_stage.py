@@ -96,8 +96,8 @@ class AnalysisStage(object):
         ## Stepping and time settings
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-        if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
-            self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
@@ -108,7 +108,6 @@ class AnalysisStage(object):
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
-
 
     def Finalize(self):
         """This function finalizes the AnalysisStage
@@ -145,7 +144,7 @@ class AnalysisStage(object):
         """This function printed / writes output files after the solution of a step
         """
         is_output_step = False
-        for output_process in self._GetListOfOutputProcesses()
+        for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():
                 is_output_step = True
                 break
@@ -154,7 +153,7 @@ class AnalysisStage(object):
             for process in self._GetListOfProcesses():
                 process.ExecuteBeforeOutputStep()
 
-            for output_process in self._GetListOfOutputProcesses()
+            for output_process in self._GetListOfOutputProcesses():
                 if output_process.IsOutputStep():
                     output_process.PrintOutput()
 
@@ -178,6 +177,7 @@ class AnalysisStage(object):
     def ApplyBoundaryConditions(self):
         """here the boundary conditions is applied, by calling the InitializeSolutionStep function of the processes"""
 
+        print(self._GetListOfProcesses())
         for process in self._GetListOfProcesses():
             process.ExecuteInitializeSolutionStep()
 
@@ -201,6 +201,7 @@ class AnalysisStage(object):
         if not hasattr(self, '_list_of_processes'):
             order_processes_initialization = self._GetOrderOfProcessesInitialization()
             self._list_of_processes = self._CreateProcesses("processes", order_processes_initialization)
+            print(self._list_of_processes)
         return self._list_of_processes
 
     def _GetListOfOutputProcesses(self):
@@ -211,7 +212,8 @@ class AnalysisStage(object):
             if self.project_parameters.Has("output_configuration"):
                 self._list_of_output_processes += self._SetUpGiDOutput()
 
-            self._GetListOfProcesses() += [self._list_of_output_processes,] # Adding the output processes to the regular processes
+            list_processes = self._GetListOfProcesses()
+            list_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
         return self._list_of_output_processes
 
     def _CreateProcesses(self, parameter_name, initialization_order):
@@ -222,16 +224,18 @@ class AnalysisStage(object):
         from process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
 
-        processes = self.project_parameters["parameter_name"]
+        if self.project_parameters.Has(parameter_name):
+            errr
+            processes = self.project_parameters[parameter_name]
 
-        # first initialize the processes that depend on the order
-        for processes_names in initialization_order:
-            list_of_processes += factory.ConstructListOfProcesses(processes[processes_names])
+            # first initialize the processes that depend on the order
+            for processes_names in initialization_order:
+                list_of_processes += factory.ConstructListOfProcesses(processes[processes_names])
 
-        # first initialize the processes that don't depend on the order
-        for i in range(processes.size()):
-            if not proc_name in initialization_order
-                list_of_processes += factory.ConstructListOfProcesses(processes[i])
+            # first initialize the processes that don't depend on the order
+            for name, value in processes.items():
+                if not name in initialization_order:
+                    list_of_processes += factory.ConstructListOfProcesses(value) # Does this work? or should it be processes[name]
 
         return list_of_processes
 

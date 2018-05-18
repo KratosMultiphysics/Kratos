@@ -74,6 +74,36 @@ class FluidDynamicsAnalysis(AnalysisStage):
     #     if self.output is not None:
     #         self.list_of_processes += [self.output,]
 
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of Processes
+        This method is temporary to not break existing code
+        It will be removed in the future
+        """
+        list_of_processes = super(FluidDynamicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+
+        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
+        # Note 1: gravity is constructed first. Outlet process might need its information.
+        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
+        if len(list_of_processes) == 0:
+            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the processes, this will be removed!")
+            from process_factory import KratosProcessFactory
+            factory = KratosProcessFactory(self.model)
+            list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
+            list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
+            list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
+            list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
+        else:
+            if self.project_parameters.Has("gravity"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("initial_conditions_process_list"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("boundary_conditions_process_list"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("auxiliar_process_list"):
+                raise Exception("Mixing of process initialization is not alowed!")
+
+        return list_of_processes
+
     def _GetOrderOfProcessesInitialization(self):
         return ["gravity",
                 "initial_conditions_process_list",
@@ -113,7 +143,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         elif self.parallel_type == "MPI":
             from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-        output = OutputProcess(self.solver.GetComputingModelPart(),
+        output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                 self.project_parameters["output_configuration"])
 

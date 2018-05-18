@@ -34,7 +34,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def OutputSolutionStep(self):
         super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
 
-        if self.solver.SaveRestart()
+        self._GetSolver().SaveRestart()
 
 
     #### Internal functions ####
@@ -52,7 +52,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         elif self.parallel_type == "MPI":
             from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-        gid_output = OutputProcess(self.solver.GetComputingModelPart(),
+        gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(),
                                    self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                    self.project_parameters["output_configuration"])
 
@@ -129,6 +129,47 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
     #     if self.is_printing_rank:
     #         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
+
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of Processes
+        This method is temporary to not break existing code
+        It will be removed in the future
+        """
+        list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+
+        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
+        # Note 1: gravity is constructed first. Outlet process might need its information.
+        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
+        if len(list_of_processes) == 0:
+            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+            from process_factory import KratosProcessFactory
+            factory = KratosProcessFactory(self.model)
+            list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
+            list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
+            if (self.project_parameters.Has("list_other_processes") is True):
+                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
+            if (self.project_parameters.Has("json_output_process") is True):
+                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
+            # Processes for tests
+            if (self.project_parameters.Has("json_check_process") is True):
+                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
+            if (self.project_parameters.Has("check_analytic_results_process") is True):
+                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
+        else:
+            if self.project_parameters.Has("constraints_process_list"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("loads_process_list"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("list_other_processes"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("json_output_process"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("json_check_process"):
+                raise Exception("Mixing of process initialization is not alowed!")
+            if self.project_parameters.Has("check_analytic_results_process"):
+                raise Exception("Mixing of process initialization is not alowed!")
+
+        return list_of_processes
 
     def _GetSimulationName(self):
         return "::[KSM Simulation]:: "
