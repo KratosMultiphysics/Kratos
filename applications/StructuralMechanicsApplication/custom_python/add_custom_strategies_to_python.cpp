@@ -30,7 +30,6 @@
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
-#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -100,12 +99,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
-    
-    // Residual Based Arc Length Strategy      
-    class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
-    .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
-                                                                unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
-            ;
+
+    // Residual Based Arc Length Strategy
+    // Currently not woking
+    // class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
+    // .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
+    //                                                             unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
+    //        ;
 
     // Eigensolver Strategy
     class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")

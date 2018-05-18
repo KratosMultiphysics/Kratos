@@ -109,6 +109,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             else:
                 mechanical_solution_strategy = self._create_line_search_strategy()
         elif analysis_type == "arc_length":
+            raise Exception('"arc_length is not available at the moment"')
             mechanical_solution_strategy = self._create_arc_length_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
