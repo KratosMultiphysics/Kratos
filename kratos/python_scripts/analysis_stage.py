@@ -31,7 +31,7 @@ class AnalysisStage(object):
 
 
         ##HERE WE SHOULD CONSTRUCT A SOLVER - stages should contain at least one solver
-        ##self.solver = ... HERE WE CONSTRUCT THE SOLVER
+        ##self._GetSolver() = ... HERE WE CONSTRUCT THE SOLVER
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -47,10 +47,10 @@ class AnalysisStage(object):
         """
 
         while self.time < self.end_time:
-            self.time = self.solver.AdvanceInTime(self.time)
+            self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            self.solver.Predict()
-            self.solver.SolveSolutionStep()
+            self._GetSolver().Predict()
+            self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -60,7 +60,7 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        self.solver.ImportModelPart()
+        self._GetSolver().ImportModelPart()
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
 
@@ -68,7 +68,7 @@ class AnalysisStage(object):
         for process in self.list_of_processes:
             process.ExecuteInitialize()
 
-        self.solver.Initialize()
+        self._GetSolver().Initialize()
 
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
@@ -87,14 +87,14 @@ class AnalysisStage(object):
         """
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
-        self.solver.InitializeSolutionStep()
+        self._GetSolver().InitializeSolutionStep()
 
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) AFTER solving the solution step.
         """
-        self.solver.FinalizeSolutionStep()
+        self._GetSolver().FinalizeSolutionStep()
 
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -132,7 +132,16 @@ class AnalysisStage(object):
 
         #other operations as needed
 
-
     def ChangeMaterialProperties(self):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
+
+    def _GetSolver(self):
+        if not hasattr(self, '_solver'):
+            self._solver = self._CreateSolver()
+        return self._solver
+
+    def _CreateSolver(self):
+        """Create the solver
+        """
+        raise Exception("Creation of the solver must be implemented in the derived class.")
