@@ -216,19 +216,20 @@ public:
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
 
     /// The container of the constraints
-    typedef PointerVectorMap<DofType, MasterSlaveConstraintType> MasterSlaveConstraintContainerType;    
+    typedef PointerVectorSet<MasterSlaveConstraintType, IndexedObject> MasterSlaveConstraintContainerType;    
+    //typedef PointerVectorSet<DofType, MasterSlaveConstraintType> MasterSlaveConstraintContainerType;    
 
     /** Iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
     Table by * operator and not a pointer for more convenient
     usage. */
-    typedef MasterSlaveConstraintContainerType::iterator MasterSlaveConstraintIterator;
+    typedef MasterSlaveConstraintContainerType::iterator MasterSlaveConstraintIteratorType;
 
     /** Const iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
     Table by * operator and not a pointer for more convenient
     usage. */
-    typedef MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIterator;    
+    typedef MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIteratorType;    
 
     /**
      * Type of the weight for a master  
@@ -597,6 +598,16 @@ public:
         return mMasterSlaveConstraints.size();
     }
 
+    MasterSlaveConstraintContainerType& MasterSlaveConstraints()
+    {
+        return mMasterSlaveConstraints;
+    }
+
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsEnd() const
+    {
+        return mMasterSlaveConstraints.end();
+    }
+
     /** Inserts a master-slave constraint in the current mesh.
      */
     void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, IndexType ThisIndex = 0);
@@ -607,7 +618,7 @@ public:
 
     /** Inserts an master-slave constraint in the current mesh.
      */
-    MasterSlaveConstraintType::Pointer CreateMasterSlaveConstraint(std::string ConstraintName, IndexType SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<MasterWeightType> MasterWerights, IndexType ThisIndex = 0);
+    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<MasterWeightType> MasterWerights, IndexType ThisIndex = 0);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */

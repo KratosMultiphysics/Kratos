@@ -861,45 +861,194 @@ void ModelPart::RemoveElementsFromAllLevels(Flags identifier_flag)
 
 /** Inserts a master-slave constraint in the current mesh.
  */
-void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
+void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, ModelPart::IndexType ThisIndex)
+{
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->AddMasterSlaveConstraint(pNewMasterSlaveConstraint, ThisIndex);
+    }
+    else
+    {
+        auto existing_condition_it = MasterSlaveConstraints().find(pNewMasterSlaveConstraint->Id());
+        if( existing_condition_it == MasterSlaveConstraintsEnd()) //master-slave constraint did not exist
+        {
+            mMasterSlaveConstraints.insert(mMasterSlaveConstraints.begin(), pNewMasterSlaveConstraint);
+        }
+        else //master-slave constraint did exist already
+        {
+            // In this case, we should update the equation with possible additional masters in the new incoming constraint. 
+            if(&(*existing_condition_it) != (pNewMasterSlaveConstraint.get()))//check if the pointee coincides
+            {
+                KRATOS_ERROR << "attempting to add pNewCondition with Id :" << pNewMasterSlaveConstraint->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
+            }
+            else // This means a possible updated constraint is passed in.  
+            {   
+                KRATOS_WARNING("AddMasterSlaveConstraint") <<"This condition already existis in the database. The changes made will be taken care automatically."<<std::endl;
+            }
+        }
+    }
+}
 
 /** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
  */    
-void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, ModelPart::IndexType ThisIndex){}
+void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, ModelPart::IndexType ThisIndex)
+{
+    KRATOS_TRY
+    if(IsSubModelPart()) //does nothing if we are on the top model part
+    {
+        //obtain from the root model part the corresponding list of nodes
+        ModelPart* root_model_part = &this->GetRootModelPart();
+        ModelPart::MasterSlaveConstraintContainerType  aux;
+        aux.reserve(MasterSlaveConstraintIds.size());
+        for(unsigned int i=0; i<MasterSlaveConstraintIds.size(); i++)
+        {
+            ModelPart::MasterSlaveConstraintContainerType::iterator it = root_model_part->MasterSlaveConstraints().find(MasterSlaveConstraintIds[i]);
+            if(it!=root_model_part->MasterSlaveConstraintsEnd())
+                aux.push_back(*(it.base()));
+            else
+                KRATOS_ERROR << "the master-slave constraint with Id " << MasterSlaveConstraintIds[i] << " does not exist in the root model part";
+        }
+
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
+
+            current_part->MasterSlaveConstraints().Unique();
+
+            current_part = current_part->GetParentModelPart();
+        }
+    }
+    KRATOS_CATCH("");
+}
 
 /** Inserts an master-slave constraint in the current mesh.
  */
-ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateMasterSlaveConstraint(std::string ConstraintName, ModelPart::IndexType SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<ModelPart::MasterWeightType> MasterWerights, ModelPart::IndexType ThisIndex){}
+ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveConstraint(std::string ConstraintName, 
+                                                                                        ModelPart::IndexType SlaveNodeId, 
+                                                                                        std::vector<IndexType> MasterNodeIds, 
+                                                                                        std::vector<ModelPart::MasterWeightType> MasterWerights, 
+                                                                                        ModelPart::IndexType ThisIndex)
+{
+
+    KRATOS_TRY
+    if (IsSubModelPart())
+    {
+        MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, 
+                                                                                                             SlaveNodeId, 
+                                                                                                             MasterNodeIds, 
+                                                                                                             MasterWerights, 
+                                                                                                             ThisIndex);
+        this->AddMasterSlaveConstraint(p_new_constraint, ThisIndex);
+        return p_new_constraint;
+    }
+
+    auto existing_element_iterator = this->mMasterSlaveConstraints.find(SlaveNodeId);
+    if(existing_element_iterator != this->MasterSlaveConstraintsEnd() )
+        KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << SlaveNodeId << " however a constraint with the same Id already exists";
+
+
+    //create the new element
+    MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
+    MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(SlaveNodeId);
+
+    //add the new element
+    this->AddMasterSlaveConstraint(p_new_constraint, ThisIndex);
+
+    return p_new_constraint;
+    KRATOS_CATCH("")
+    
+}
 
 /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
 */
-void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex){}
+void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex)
+{
+    mMasterSlaveConstraints.erase(MasterSlaveConstraintId);
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+        i_sub_model_part->RemoveMasterSlaveConstraint(MasterSlaveConstraintId, ThisIndex);    
+}
 
 /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
 */
-void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
+void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex)
+{
+    mMasterSlaveConstraints.erase(ThisMasterSlaveConstraint.Id());
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+        i_sub_model_part->RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint.Id(), ThisIndex);     
+}
 
 /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
 */
-void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
+void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex)
+{
+    mMasterSlaveConstraints.erase(pThisMasterSlaveConstraint->Id());
+
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+        i_sub_model_part->RemoveMasterSlaveConstraint(pThisMasterSlaveConstraint->Id(), ThisIndex);     
+}
 
 /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
 */
-void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex){}
+void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex)
+{
+
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveMasterSlaveConstraint(MasterSlaveConstraintId, ThisIndex);
+        return;
+    }
+
+    RemoveMasterSlaveConstraint(MasterSlaveConstraintId, ThisIndex);
+
+}
 
 /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
 */
-void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
+void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex)
+{
+
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint.Id(), ThisIndex);
+        return;
+    }
+
+    RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint.Id(), ThisIndex);
+
+}
 
 /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
 */
-void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex){}
+void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint, ModelPart::IndexType ThisIndex)
+{
+  
+    if (IsSubModelPart())
+    {
+        mpParentModelPart->RemoveMasterSlaveConstraint(pThisMasterSlaveConstraint->Id(), ThisIndex);
+        return;
+    }
+
+    RemoveMasterSlaveConstraint(pThisMasterSlaveConstraint->Id(), ThisIndex);
+}
 
 /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
-ModelPart::MasterSlaveConstraintType::Pointer ModelPart::pGetMasterSlaveConstraint(ModelPart::IndexType ElementId, ModelPart::IndexType ThisIndex){}
+ModelPart::MasterSlaveConstraintType::Pointer ModelPart::pGetMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex)
+{
+        auto i = mMasterSlaveConstraints.find(MasterSlaveConstraintId);
+        KRATOS_ERROR_IF(i == mMasterSlaveConstraints.end()) << " constraint index not found: " << MasterSlaveConstraintId << ".";
+        return *i.base();        
+}
 
 /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
-ModelPart::MasterSlaveConstraintType& ModelPart::GetMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex){}
+ModelPart::MasterSlaveConstraintType& ModelPart::GetMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId, ModelPart::IndexType ThisIndex)
+{
+        auto i = mMasterSlaveConstraints.find(MasterSlaveConstraintId);
+        KRATOS_ERROR_IF(i == mMasterSlaveConstraints.end()) << " constraint index not found: " << MasterSlaveConstraintId << ".";
+        return *i;
+}
 
 
 /** Inserts a condition in the mesh with ThisIndex.
