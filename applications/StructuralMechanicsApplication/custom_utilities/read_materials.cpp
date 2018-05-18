@@ -17,7 +17,7 @@
 
 
 // Project includes
-#include "custom_processes/read_materials_process.hpp"
+#include "custom_utilities/read_materials.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "input_output/logger.h"
 #include "includes/kratos_parameters.h"

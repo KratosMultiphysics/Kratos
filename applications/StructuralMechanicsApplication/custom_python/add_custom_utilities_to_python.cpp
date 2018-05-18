@@ -20,7 +20,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 //Utilities
-#include "custom_processes/read_materials_process.hpp"
+#include "custom_utilities/read_materials.hpp"
 
 namespace Kratos
 {
