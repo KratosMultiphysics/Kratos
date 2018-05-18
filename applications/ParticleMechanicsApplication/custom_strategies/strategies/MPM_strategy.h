@@ -187,8 +187,6 @@ public:
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {
 
-        //populate for the first time the mpm_model_part
-
         //assigning the nodes to the new model part
         mpm_model_part.Nodes() = grid_model_part.Nodes();
 
@@ -196,9 +194,6 @@ public:
         mpm_model_part.SetBufferSize(grid_model_part.GetBufferSize());
         mpm_model_part.SetProperties(initial_model_part.pProperties());
         mpm_model_part.SetConditions(grid_model_part.pConditions());
-
-
-
 
         array_1d<double,3> xg = ZeroVector(3);
         array_1d<double,3> MP_Displacement = ZeroVector(3);
@@ -224,7 +219,8 @@ public:
 
 
                 Properties::Pointer properties = i->pGetProperties();
-                double Density = i->GetProperties()[DENSITY];
+                int Material_id = i->GetProperties().Id();
+                double Density  = i->GetProperties()[DENSITY];
                 //std::cout<< "Density "<< Density<<std::endl;
                 Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                 Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
@@ -298,7 +294,8 @@ public:
                     }
                     Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
                     //Element::Pointer p_element = NewElement.Create((1+PointNumber+number_nodes)+(integration_point_per_element*k), rGeom, properties);
-                    double MP_Density = Density;
+                    double MP_Density  = Density;
+                    int MP_Material_Id = Material_id;
                     //std::cout<<"MPM ID "<<(1+PointNumber+number_elements)+(integration_point_per_element*k)<<std::endl;
                     xg.clear();
 
@@ -318,6 +315,7 @@ public:
                     //xg[0] = -1.4626;
                     //xg[1] = -0.39545;
                     //std::cout<<"xg "<< xg<<std::endl;
+                    p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
                     p_element -> SetValue(GAUSS_COORD, xg);
                     p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
                     //p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
@@ -344,7 +342,7 @@ public:
 
         }
         //define a standard static strategy to be used in the calculation
-        if(SolutionType == "StaticSolver")
+        if(SolutionType == "StaticSolver" || SolutionType == "Static")
         {
 
 
@@ -373,7 +371,7 @@ public:
         }
 
         //define a dynamic strategy to be used in the calculation
-        else if(SolutionType == "DynamicSolver")
+        else if(SolutionType == "DynamicSolver" || SolutionType == "Dynamic")
         {
             double Alpham;
             double Dynamic;
@@ -402,7 +400,7 @@ public:
         }
 
         //define a quasi-static strategy to be used in the calculation
-        else if(SolutionType == "QuasiStaticSolver")
+        else if(SolutionType == "QuasiStaticSolver" || SolutionType == "Quasi-static")
         {
             double Alpham;
             double Dynamic;
@@ -429,17 +427,6 @@ public:
 
             mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
         }
-
-
-
-
-        initial_model_part.Nodes().clear();
-        initial_model_part.Elements().clear();
-
-
-
-
-
     }
     /*@} */
 
