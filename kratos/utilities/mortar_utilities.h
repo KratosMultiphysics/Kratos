@@ -462,7 +462,7 @@ public:
             array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
             const double norm_normal = norm_2(normal);
             if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
-            else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
+            else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
     
