@@ -214,6 +214,8 @@ namespace Kratos
       for (unsigned int Node = 0; Node < number_of_nodes; Node++) {
          double& DetFNodal = GetGeometry()[Node].GetSolutionStepValue(JACOBIAN );
          DetFNodal = 1.0;
+         double& DetFNodalPrev = GetGeometry()[Node].GetSolutionStepValue(JACOBIAN , 1);
+         DetFNodalPrev = 1.0;
       }
 
       KRATOS_CATCH( "" )
