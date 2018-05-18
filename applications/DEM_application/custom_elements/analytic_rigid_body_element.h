@@ -26,7 +26,7 @@ namespace Kratos {
         AnalyticRigidBodyElement(IndexType NewId, NodesArrayType const& ThisNodes);
         AnalyticRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+        //Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
         /// Destructor
         virtual ~AnalyticRigidBodyElement();
