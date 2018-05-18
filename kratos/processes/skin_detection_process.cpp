@@ -135,6 +135,7 @@ void SkinDetectionProcess<TDim>::Execute()
 
     // The auxiliar name of the condition
     const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
+    const std::string pre_name = TDim == 2 ? "" : "Surface";
 
     // The number of conditions
     IndexType condition_id = mrModelPart.Conditions().size();
@@ -150,7 +151,7 @@ void SkinDetectionProcess<TDim>::Execute()
         for (auto& index : set)
             nodes_in_the_skin.insert(index);
 
-        const std::string complete_name = name_condition + std::to_string(TDim) + "D" + std::to_string(set.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
+        const std::string complete_name = pre_name + name_condition + std::to_string(TDim) + "D" + std::to_string(set.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
         if (TDim == 2) {
             auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, set, p_prop_0);
             p_auxiliar_model_part->AddCondition(p_cond);
