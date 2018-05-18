@@ -70,6 +70,7 @@ def AssambleTestSuites():
     nightSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     nightSuite.addTest(TimeIntegratedFluidElementTest('testCavity'))
     nightSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
+    nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -79,7 +80,6 @@ def AssambleTestSuites():
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
-    allSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
 
     return suites
 
