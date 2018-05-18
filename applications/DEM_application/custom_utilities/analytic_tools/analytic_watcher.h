@@ -20,7 +20,7 @@
 
 namespace Kratos
 {
-class AnalyticWatcher {
+class KRATOS_API(DEM_APPLICATION) AnalyticWatcher {
 
 public:
 
