@@ -65,12 +65,12 @@ class AnalysisStage(object):
         self.ModifyInitialGeometry()
 
         ##here we initialize user-provided processes
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
         self._GetSolver().Initialize()
 
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
 
 
@@ -78,7 +78,7 @@ class AnalysisStage(object):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
         """
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
     def InitializeSolutionStep(self):
@@ -96,18 +96,18 @@ class AnalysisStage(object):
         """
         self._GetSolver().FinalizeSolutionStep()
 
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteBeforeOutputStep()
 
         #here the output should be done when needed
 
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteAfterOutputStep()
 
 
@@ -127,7 +127,7 @@ class AnalysisStage(object):
     def ApplyBoundaryConditions(self):
         """here the boundary conditions is applied, by calling the InitializeSolutionStep function of the processes"""
 
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteInitializeSolutionStep()
 
         #other operations as needed
@@ -145,3 +145,13 @@ class AnalysisStage(object):
         """Create the solver
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
+
+    def _GetListOfProcesses(self):
+        if not hasattr(self, '_list_of_processes'):
+            self._list_of_processes = self._CreateListOfProcesses()
+        return self._list_of_processes
+
+    def _CreateListOfProcesses(self):
+        """Create the list of Processes
+        """
+        raise Exception("Creation of the processes must be implemented in the derived class.")
