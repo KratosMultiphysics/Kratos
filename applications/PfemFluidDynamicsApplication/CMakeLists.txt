@@ -32,15 +32,7 @@ endif(NOT DEFINED ${INCLUDE_TETGEN})
 ## generate variables with the sources
 set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_fluid_dynamics_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
-
+	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application_variables.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_solid_element.cpp
@@ -48,14 +40,26 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
 
 )
 
+set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE
+        # Custom python
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_fluid_dynamics_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
+)
+
+add_library(KratosPfemFluidDynamicsCore SHARED ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE})
+target_link_libraries(KratosPfemFluidDynamicsCore PUBLIC KratosCore KratosPfemCore)
+set_target_properties(KratosPfemFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS "PFEM_FLUID_DYNAMICS_APPLICATION=EXPORT,API")
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosPfemFluidDynamicsApplication MODULE ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES})
-#####***target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore)
-#target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore SolidMechanicsApplication KratosPfemApplication)
-target_link_libraries(KratosPfemFluidDynamicsApplication KratosCore KratosPfemApplication)
+pybind11_add_module(KratosPfemFluidDynamicsApplication MODULE ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosPfemFluidDynamicsApplication PRIVATE KratosCore) 
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES PREFIX "")
-set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )
 
 
