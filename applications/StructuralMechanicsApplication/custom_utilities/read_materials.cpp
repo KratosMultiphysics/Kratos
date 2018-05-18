@@ -28,8 +28,8 @@ namespace Kratos
 
     ReadMaterialProcess::ReadMaterialProcess(ModelPart &rModelPart,
                                              Parameters parameters)
-            : mrModelPart(rModelPart),
-              mParametersFilename(parameters)
+            : mrModelPart(rModelPart)
+            //  mParameddtersFilename(parameters)
     {
         Parameters default_parameters(R"(
             {
@@ -37,23 +37,30 @@ namespace Kratos
             }  )"
         );
 
-        mParametersFilename.RecursivelyValidateAndAssignDefaults(default_parameters);
+        parameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        KRATOS_INFO("::[Reading materials process DEBUG]::") << "Started" << std::endl;
+
+        // read json string in materials file, create Parameters
+        std::string materials_filename = parameters["materials_filename"].GetString();
+        std::ifstream infile(materials_filename);
+        std::stringstream buffer;
+        buffer << infile.rdbuf();
+        Parameters materials(buffer.str());
+
+        for (auto i = 0; i < materials["properties"].size(); ++i)
+        {
+            Parameters material = materials["properties"].GetArrayItem(i);
+            AssignPropertyBlock(material);
+        }
+
+        KRATOS_INFO("::[Reading materials process DEBUG]::") << "Finished" << std::endl;
     }
 
 
     void ReadMaterialProcess::Execute()
     {
-        LoggerMessage logger("::[Reading materials process DEBUG]::");
-
-        logger << "Started";
-
-        Parameters materials = mParametersFilename.GetValue("materials_filename");
-        //for(auto prop = materials.begin(); prop != materials.end(); prop++)
-        //    AssignPropertyBlock(prop->GetValue() );
-        logger << materials;
-
-        logger << "Finished";
-}
+    }
 
     void ReadMaterialProcess::AssignPropertyBlock(Parameters data)
     {
@@ -91,27 +98,34 @@ namespace Kratos
         }
         */
 
-        /*
+        //KRATOS_WATCH(data);
+
         // Get the properties for the specified model part.
-        IndexType property_id = data["properties_id"].GetInt()
+        IndexType property_id = data["properties_id"].GetInt();
         IndexType mesh_id = 0;
         Properties prop = mrModelPart.GetProperties(property_id, mesh_id);
 
-        if len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables():
-            KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has variables." )
-        if len(data["Material"]["Tables"].keys()) > 0 and prop.HasTables():
-            KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has tables." )
+        //TODO(marcelo): Complete the "keys()" part
+        //if (len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables())
+        if (prop.HasVariables())
+            KRATOS_INFO("::[Reading materials process DEBUG]::") << "Property " << property_id << " already has variables." << std::endl;
+        //if (len(data["Material"]["Tables"].keys()) > 0 && prop.HasTables())
+        if (prop.HasTables())
+            KRATOS_INFO("::[Reading materials process DEBUG]::") << "Property " << property_id << " already has tables." << std::endl;
 
-        # Assign the properties to the model part's elements and conditions.
-        for elem in model_part.Elements:
-            elem.Properties = prop
+        // Assign the properties to the model part's elements and conditions.
+        /*
+        for (auto elem = mrModelPart.ElementsBegin(); elem != mrModelPart.ElementsEnd(); elem++)
+            //elem-> Propertie = prop
+            //KRATOS_WATCH(elem->pGetProperties());
+            elem->SetProperties(prop);
 
         for cond in model_part.Conditions:
             cond.Properties = prop
 
-        mat = data["Material"]
+        Parameters mat = data["Material"];
 
-        # Set the CONSTITUTIVE_LAW for the current properties.
+        //Set the CONSTITUTIVE_LAW for the current properties.
         constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
 
         prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
@@ -150,6 +164,21 @@ namespace Kratos
         */
     }
 
+    /*
+    ConstitutiveLaw ReadMaterialProces::GetConstitutiveLaw(my_string)
+    {
+        //Return the Constitutive Law object named by the string argument.
+        //
+        //Example:
+        //recommended usage:
+        //constitutive_law = self._GetConstitutiveLaw('LinearElastic3DLaw')
+        //deprecated:
+        //constitutive_law = self._GetConstitutiveLaw('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
+        //constitutive_law = self._GetConstitutiveLaw('StructuralMechanicsApplication.LinearElastic3DLaw')
+
+        //return KratosGlobals<ConstitutiveLaw>("constitutive_law_name");
+    }
+    */
 
 
 }  // namespace Kratos.

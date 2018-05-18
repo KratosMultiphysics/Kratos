@@ -153,9 +153,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialProcess : public 
     ///@}
     ///@name Member Variables
     ///@{
+
     ModelPart& mrModelPart;
-    Parameters mParametersFilename;
-    GidEigenIO::Pointer mpGidEigenIO;
+    //Parameters mParametersFilename;
 
     ///@}
     ///@name Private Operators
