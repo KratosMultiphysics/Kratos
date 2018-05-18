@@ -69,7 +69,7 @@ public:
     /// Default constructor.
     MapperInterfaceInfo() {}
 
-    MapperInterfaceInfo(const Point rPoint, const int LocalSystemIndex, const int SouceRank=0);
+    MapperInterfaceInfo(const Point rPoint, const int SourceLocalSystemIndex, const int SouceRank=0);
 
     /// Destructor.
     virtual ~MapperInterfaceInfo() {
@@ -88,23 +88,26 @@ public:
 
     virtual void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) = 0;
 
-    std::vector<int> GetNeighborIds() const
+    virtual bool LocalSearchSuccessful() = 0;
+
+    virtual void GetNeighborIds(std::vector<int>& rNeighborIdVector) const
     {
-        std::vector<int> neighbor_ids(1);
-        // neighbor_ids[0] = mNeighborId;
-        return neighbor_ids;
+        KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
-    std::vector<double> GetNeighborDistances() const
+    virtual void GetNeighborDistances(std::vector<double>& rNeighborDistancesVector) const
     {
-        std::vector<double> neighbor_distances(1);
-        // neighbor_distances[0] = mNeighborDistance;
-        return neighbor_distances;
+        KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
-    virtual MapperInterfaceInfo::Pointer Create(const Point rPoint, const int LocalSystemIndex, const int SouceRank) = 0;
+    virtual void GetNeighborGeometries(std::vector<double>& rNeighborGeometriesVector) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
 
-    void Clear() {}
+    virtual MapperInterfaceInfo::Pointer Create(const Point rPoint, const int SourceLocalSystemIndex, const int SouceRank) = 0;
+
+    virtual void Clear() {}
 
     int GetSourceRank() const { return mSourceRank; }
 
@@ -153,7 +156,7 @@ protected:
     ///@{
 
     // These variables need serialization
-    int mLocalSystemIndex;
+    int mSourceLocalSystemIndex;
 
     // These variables are NOT being serialized bcs they are not needed after searching!
     int mSourceRank = 0;
@@ -214,12 +217,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        rSerializer.save("LocalSysIdx", mLocalSystemIndex);
+        rSerializer.save("LocalSysIdx", mSourceLocalSystemIndex);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        rSerializer.load("LocalSysIdx", mLocalSystemIndex);
+        rSerializer.load("LocalSysIdx", mSourceLocalSystemIndex);
     }
 
     ///@}
