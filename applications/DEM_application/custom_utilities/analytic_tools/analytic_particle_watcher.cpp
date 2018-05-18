@@ -2,6 +2,8 @@
 //
 
 // Project includes
+// Project includes
+#include "analytic_particle_watcher.h"
 
 // System includes
 #include <limits>
@@ -14,8 +16,6 @@
 #include <omp.h>
 #endif
 
-// Project includes
-#include "analytic_particle_watcher.h"
 
 namespace Kratos
 {
