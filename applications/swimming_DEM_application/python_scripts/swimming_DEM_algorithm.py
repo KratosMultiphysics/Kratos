@@ -733,18 +733,10 @@ class Algorithm(object):
                     self.projection_module.ProjectFromParticles()
                     
                 #Phantom                
-                #self.MakeAnalyticsMeasurements()
+                self.disperse_phase_solution.RunAnalytics(self.time)
                 
                 if False: #self.analytic_data_counter.Tick():
                     self.ProcessAnalyticData()
-                
-                times = []
-                neighbour_ids = []
-                masses = []
-                normal_relative_vel = []
-                tangential_relative_vel = []
-                
-                #self.watcher.GetAllFacesData(self.GetAnalyticFacesModelParts(), times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel)
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
