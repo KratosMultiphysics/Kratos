@@ -14,6 +14,7 @@ from __future__ import print_function, absolute_import, division
 # Additional imports
 from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
+from algorithm_svd import AlgorithmSVD
 
 # ==============================================================================
 def CreateAlgorithm( optimization_settings, model_part_controller, analyzer, communicator ):
@@ -29,6 +30,11 @@ def CreateAlgorithm( optimization_settings, model_part_controller, analyzer, com
                                              model_part_controller,
                                              analyzer,
                                              communicator )
+    elif algorithm_name == "svd":
+        return AlgorithmSVD( optimization_settings,
+                             model_part_controller,
+                             analyzer,
+                             communicator)
     else:
         raise NameError("The following optimization algorithm not supported by the algorithm factory: " + AlgorithmName)
 

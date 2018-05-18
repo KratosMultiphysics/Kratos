@@ -86,6 +86,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
         .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
         // ----------------------------------------------------------------
+        // For running SVD method
+        // ----------------------------------------------------------------
+        .def("ComputeSVDSearchDirection", &OptimizationUtilities::ComputeSVDSearchDirection)
+        //.def("ComputeSVDSearchDirectionDiff", &OptimizationUtilities::ComputeSVDSearchDirectionDiff)
+        // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
         .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)

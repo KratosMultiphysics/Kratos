@@ -64,6 +64,11 @@ public:
 
     typedef array_1d<double,3> array_3d;
 
+    typedef UblasSpace<double, Matrix, Vector> TDenseSpaceType;
+    typedef TDenseSpaceType::MatrixType DenseMatrixType;    
+    typedef UblasSpace<double, CompressedMatrix, Vector> TSparseSpaceType;
+    typedef TSparseSpaceType::VectorType VectorType;        
+
     /// Pointer definition of OptimizationUtilities
     KRATOS_CLASS_POINTER_DEFINITION(OptimizationUtilities);
 
@@ -287,6 +292,89 @@ public:
 
         return correction_scaling;
     }
+
+    // ==============================================================================
+    // For running svd method
+    // ==============================================================================    
+    double ComputeSVDSearchDirection(
+            DenseMatrixType& M,
+            DenseMatrixType& U,
+            DenseMatrixType& V,
+            double correlationFactor)
+    {
+        std::cout<< "#####################" << std::endl;
+        std::cout << U << std::endl;
+
+        std::cout<< " Start computing search directiono..." << std::endl;
+        double a1 = 1.0;
+        double a2 = 1.0;
+        if(U(0,0) > 0.0)
+            a1 = -1.0;
+        if(U(0,1) > 0.0)
+            a2 = -1.0;
+
+        
+        VectorType v0 = row(M,0);
+        VectorType v11;
+        VectorType v22;
+
+        // Determine v11 and v22
+        if(U(0,0) * U(1,0) <= 0)
+        {
+            v11 = column(V,0);
+            v22 = column(V,1);
+        }
+        if (U(0,0) * U(1,0) > 0)
+        {
+            v11 = column(V,1);
+            v22 = column(V,0);
+        }
+
+        //VectorType v11 = column(V,0);
+        //VectorType v22 = column(V,1); 
+
+        std::cout << "############ v0:" << norm_2(v0) << std::endl;
+        std::cout << "############ v11:" << norm_2(v11) << std::endl;
+        std::cout << "############ v22:" << norm_2(v22) << std::endl;
+
+        //double cos1 = (trans(v0) * v11)(0) / (norm_2(v0) * norm_2(v11));
+        double cos1 = inner_prod(v0, v11) /(norm_2(v0) * norm_2(v11));
+        std::cout << "############ cos1:" << cos1 << std::endl;
+        double cos2 = correlationFactor * inner_prod(v0, v22) /(norm_2(v0) * norm_2(v22));
+        std::cout << "############ cos2:" << cos2 << std::endl;
+        
+        std::cout << "############ correlationFactor:" << correlationFactor << std::endl;
+
+
+        if (cos1 < 0.0)
+        {
+            cos1 *= -1.0;
+        }
+
+        if (cos2 < 0.0)
+        {
+            cos2 *= -1.0;
+        }        
+
+
+        VectorType v_update = v11 * a1 * cos1 + v22 * a2 * cos2;
+
+        unsigned int i = 0;
+        for (auto & node_i : mrDesignSurface.Nodes())
+    	{
+
+        	array_3d search_direction_i;
+            search_direction_i[0] = v_update[3*i + 0];
+            search_direction_i[1] = v_update[3*i + 1];
+            search_direction_i[2] = v_update[3*i + 2];
+            i++;
+            node_i.FastGetSolutionStepValue(SEARCH_DIRECTION) = search_direction_i;
+        }
+
+        return abs(cos1);
+
+    }
+
 
     // ==============================================================================
 
