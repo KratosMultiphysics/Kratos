@@ -10,9 +10,10 @@ def GetFilePath(fileName):
 class TestMortarUtilities(KratosUnittest.TestCase):
 
     def test_ComputeNodesMeanNormalModelPart(self):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
         model = KratosMultiphysics.Model()
         model_part = KratosMultiphysics.ModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
         model.AddModelPart(model_part)
@@ -20,46 +21,44 @@ class TestMortarUtilities(KratosUnittest.TestCase):
         detect_skin = KratosMultiphysics.SkinDetectionProcess3D(model_part)
         detect_skin.Execute()
 
-        print(model_part)
-
         normal_compute = KratosMultiphysics.MortarUtilities
-        normal_compute.ComputeNodesMeanNormalModelPart(model_part)
+        normal_compute.ComputeNodesMeanNormalModelPart(model_part.GetSubModelPart("SkinModelPart"))
 
         ## DEBUG
-        self._post_process(model_part)
+        #self._post_process(model_part)
 
-        #import from_json_check_result_process
+        import from_json_check_result_process
 
-        #check_parameters = KratosMultiphysics.Parameters("""
+        check_parameters = KratosMultiphysics.Parameters("""
+        {
+            "check_variables"      : ["NORMAL"],
+            "input_file_name"      : "mortar_mapper_python_tests/normal_results.json",
+            "model_part_name"      : "Main",
+            "sub_model_part_name"  : "Skin_Part"
+        }
+        """)
+
+        check = from_json_check_result_process.FromJsonCheckResultProcess(model, check_parameters)
+        check.ExecuteInitialize()
+        check.ExecuteBeforeSolutionLoop()
+        check.ExecuteFinalizeSolutionStep()
+
+        ## The following is used to create the solution database
+        #import json_output_process
+
+        #out_parameters = KratosMultiphysics.Parameters("""
         #{
-            #"check_variables"      : ["NORMAL"],
-            #"input_file_name"      : "mortar_mapper_python_tests/normal_results.json",
+            #"output_variables"     : ["NORMAL"],
+            #"output_file_name"     : "mortar_mapper_python_tests/normal_results.json",
             #"model_part_name"      : "Main",
             #"sub_model_part_name"  : "Skin_Part"
         #}
         #""")
 
-        #check = from_json_check_result_process.FromJsonCheckResultProcess(self.StructureModel, check_parameters)
-        #check.ExecuteInitialize()
-        #check.ExecuteBeforeSolutionLoop()
-        #check.ExecuteFinalizeSolutionStep()
-
-        # The following is used to create the solution database
-        import json_output_process
-
-        out_parameters = KratosMultiphysics.Parameters("""
-        {
-            "output_variables"      : ["NORMAL"],
-            "output_file_name"      : "mortar_mapper_python_tests/normal_results.json",
-            #"model_part_name"      : "Main",
-            #"sub_model_part_name"  : "Skin_Part"
-        }
-        """)
-
-        out = json_output_process.JsonOutputProcess(self.StructureModel, out_parameters)
-        out.ExecuteInitialize()
-        out.ExecuteBeforeSolutionLoop()
-        out.ExecuteFinalizeSolutionStep()
+        #out = json_output_process.JsonOutputProcess(model, out_parameters)
+        #out.ExecuteInitialize()
+        #out.ExecuteBeforeSolutionLoop()
+        #out.ExecuteFinalizeSolutionStep()
 
     def _post_process(self, model_part):
         from gid_output_process import GiDOutputProcess
