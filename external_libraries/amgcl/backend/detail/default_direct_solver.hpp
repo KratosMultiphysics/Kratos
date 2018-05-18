@@ -45,14 +45,14 @@ struct default_direct_solver {
     typedef typename Backend::matrix       matrix;
     typedef typename builtin<real>::matrix host_matrix;
 
-    boost::shared_ptr<matrix> Ainv;
+    std::shared_ptr<matrix> Ainv;
 
     default_direct_solver(
-            boost::shared_ptr<host_matrix> A,
+            std::shared_ptr<host_matrix> A,
             typename Backend::params const &prm
             )
     {
-        boost::shared_ptr<host_matrix> ainv = boost::make_shared<host_matrix>();
+        std::shared_ptr<host_matrix> ainv = std::make_shared<host_matrix>();
         *ainv = inverse(*A);
         Ainv = Backend::copy_matrix(ainv, prm);
     }

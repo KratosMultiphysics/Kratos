@@ -46,7 +46,7 @@ class ContactStructuralMechanicsTestFactory(KratosUnittest.TestCase):
                 if (ProjectParameters.Has("output_configuration") is True):
                     list_nodal_var = ProjectParameters["output_configuration"]["result_file_configuration"]["nodal_results"]
                     for i in range(0, list_nodal_var.size()):
-                        if (list_nodal_var[i].GetString() == "NORMAL_CONTACT_STRESS"):
+                        if (list_nodal_var[i].GetString() == "LAGRANGE_MULTIPLIER_CONTACT_PRESSURE"):
                             list_nodal_var[i].SetString("VECTOR_LAGRANGE_MULTIPLIER")
                     new_list = list_nodal_var.Clone()
                     ProjectParameters["output_configuration"]["result_file_configuration"].RemoveValue("nodal_results")
@@ -61,13 +61,20 @@ class ContactStructuralMechanicsTestFactory(KratosUnittest.TestCase):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             # Creating the test
-            self.test = contact_structural_mechanics_analysis.ContactStructuralMechanicsAnalysis(ProjectParameters)
+            model = KratosMultiphysics.Model()
+            self.test = contact_structural_mechanics_analysis.ContactStructuralMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
+
+    def modify_parameters(self, project_parameters):
+        """This function can be used in derived classes to modify existing parameters
+        before the execution of the test (e.g. switch to MPI)
+        """
+        pass
 
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.RunMainTemporalLoop()
+            self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:

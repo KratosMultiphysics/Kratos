@@ -8,13 +8,13 @@
 
 namespace Kratos {
 
-    class DEM_KDEM : public DEMContinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEM : public DEMContinuumConstitutiveLaw {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM);
 
         DEM_KDEM() {
-        }    
+        }
 
         void Initialize() override;
 
@@ -64,7 +64,7 @@ namespace Kratos {
                              int time_steps,
                              bool& sliding,
                              int search_control,
-                             vector<int>& search_control_vector,
+                             DenseVector<int>& search_control_vector,
                              double &equiv_visco_damp_coeff_normal,
                              double &equiv_visco_damp_coeff_tangential,
                              double LocalRelVel[3],
@@ -88,8 +88,8 @@ namespace Kratos {
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
-                double LocalCoordSystem[3][3],             
-                double LocalDeltDisp[3],                
+                double LocalCoordSystem[3][3],
+                double LocalDeltDisp[3],
                 const double kt_el,
                 const double equiv_shear,
                 double& contact_sigma,
@@ -102,19 +102,19 @@ namespace Kratos {
                 int i_neighbour_count,
                 bool& sliding,
                 int search_control,
-                vector<int>& search_control_vector,
+                DenseVector<int>& search_control_vector,
                 const ProcessInfo& r_process_info) override;
-        
+
         void AddContributionOfShearStrainParallelToBond(double OldLocalElasticContactForce[3],
-                                                    double LocalElasticExtraContactForce[3], 
+                                                    double LocalElasticExtraContactForce[3],
                                                     array_1d<double, 3>& OldElasticExtraContactForce,
                                                     double LocalCoordSystem[3][3],
                                                     const double kt_el,
                                                     const double calculation_area,
-                                                    SphericContinuumParticle* element1, 
+                                                    SphericContinuumParticle* element1,
                                                     SphericContinuumParticle* element2);
-        
-        
+
+
         void CalculateViscoDamping(double LocalRelVel[3],
                                    double ViscoDampingLocalContactForce[3],
                                    double indentation,
@@ -122,7 +122,7 @@ namespace Kratos {
                                    double equiv_visco_damp_coeff_tangential,
                                    bool& sliding,
                                    int failure_id) override;
-        
+
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                       SphericContinuumParticle* neighbor,
@@ -134,10 +134,10 @@ namespace Kratos {
                                                       double ViscoLocalRotationalMoment[3],
                                                       double equiv_poisson,
                                                       double indentation) override;
-        
-        void AddPoissonContribution(const double equiv_poisson, 
-                                    double LocalCoordSystem[3][3], 
-                                    double& normal_force, 
+
+        void AddPoissonContribution(const double equiv_poisson,
+                                    double LocalCoordSystem[3][3],
+                                    double& normal_force,
                                     double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
 

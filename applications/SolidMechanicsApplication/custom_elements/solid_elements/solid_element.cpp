@@ -24,8 +24,6 @@ namespace Kratos
  */
 KRATOS_CREATE_LOCAL_FLAG( SolidElement, COMPUTE_RHS_VECTOR,                 0 );
 KRATOS_CREATE_LOCAL_FLAG( SolidElement, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( SolidElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( SolidElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
 //******************************CONSTRUCTOR*******************************************
@@ -565,6 +563,9 @@ void SolidElement::InitializeElementVariables (ElementVariables& rVariables, con
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
+    //set process info
+    rVariables.SetProcessInfo(rCurrentProcessInfo);
+    
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
@@ -593,18 +594,33 @@ void SolidElement::TransformElementVariables(ElementVariables& rVariables, const
 //************************************************************************************
 //************************************************************************************
 
+unsigned int SolidElement::GetDofsSize()
+{
+  KRATOS_TRY
+     
+  const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+  const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
+  
+  unsigned int size = number_of_nodes * dimension; //usual size for displacement based elements
+  
+  return size;   
+  
+  KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
 void SolidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					    VectorType& rRightHandSideVector,
 					    Flags& rCalculationFlags)
 
 {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension;
-
+    const unsigned int MatSize = this->GetDofsSize();
+    
     if ( rCalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
@@ -639,7 +655,7 @@ void SolidElement::SetElementVariables(ElementVariables& rVariables,
 //************************************************************************************
 
 void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-							 ProcessInfo& rCurrentProcessInfo)
+                                             ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -822,49 +838,15 @@ void SolidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, 
 void SolidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
 {
     KRATOS_TRY
-      
-    //contributions of the stiffness matrix calculated on the reference configuration
-    if( rLocalSystem.CalculationFlags.Is( SolidElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
-      {
-	std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
-	const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
+       
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
 
-	for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
-	  {
-	    bool calculated = false;
-	    if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX )
-	      {
-		// operation performed: add Km to the rLefsHandSideMatrix
-		this->CalculateAndAddKuum( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-		calculated = true;
-	      }
-	  
-	    if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX )
-	      {
-		// operation performed: add Kg to the rLefsHandSideMatrix
-		this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-		calculated = true;
-	      }
-
-	    if(calculated == false)
-	      {
-		KRATOS_ERROR << " ELEMENT can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
-	      }
-
-	  }
-      } 
-    else{
+    // operation performed: add Km to the rLefsHandSideMatrix
+    this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
     
-      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
-
-      // operation performed: add Km to the rLefsHandSideMatrix
-      this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-      
-      // operation performed: add Kg to the rLefsHandSideMatrix
-      this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    }
-
+    // operation performed: add Kg to the rLefsHandSideMatrix
+    this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    
     //KRATOS_WATCH( rLeftHandSideMatrix )
   
     KRATOS_CATCH( "" )  
@@ -879,44 +861,14 @@ void SolidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, Eleme
     KRATOS_TRY
       
     //contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( SolidElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
-    {
-
-      std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
-      const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
-      for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
-	{
-	  bool calculated = false;
-	  if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ){
-	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-	    this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rVolumeForce, rIntegrationWeight );
-	    calculated = true;
-	  }
-	  
-	  if( rRightHandSideVariables[i] == INTERNAL_FORCES_VECTOR ){
-	    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-	    this->CalculateAndAddInternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
-	    calculated = true;
-	  }
-
-	  if(calculated == false)
-	    {
-	      KRATOS_ERROR << " ELEMENT can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
-	    }
-
-	}
-    }
-    else{
-      
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
-
-      // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
-
-      // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-      this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
-
-    }
+     
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+    
+    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+    
+    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+    this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
     
     KRATOS_CATCH( "" )
 }
@@ -932,8 +884,8 @@ void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
   //mass matrix
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-  unsigned int MatSize = dimension * number_of_nodes;
-
+  const unsigned int MatSize = this->GetDofsSize();
+    
   if(rLeftHandSideMatrix.size1() != MatSize)
     rLeftHandSideMatrix.resize (MatSize, MatSize, false);
 
@@ -979,8 +931,8 @@ void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, E
   //mass matrix
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-  unsigned int MatSize = dimension * number_of_nodes;
-
+  const unsigned int MatSize = this->GetDofsSize();
+  
   MatrixType MassMatrix( MatSize, MatSize );
   noalias(MassMatrix) = ZeroMatrix( MatSize, MatSize );
   
@@ -1073,44 +1025,6 @@ void SolidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, Pro
     //Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    //Calculate elemental system
-    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void SolidElement::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-  
-    //create local system components
-    LocalSystemComponents LocalSystem;
-
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType LeftHandSideMatrix = Matrix();
-
-    //Initialize sizes for the system components:
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-      rRightHandSideVectors.resize(rRHSVariables.size());
-    
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-      {
-	this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
-      }
-
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
     //Calculate elemental system
     this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
@@ -1259,63 +1173,6 @@ void SolidElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatr
 
 	value = original;
       }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void SolidElement::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
-					 const std::vector< Variable< MatrixType > >& rLHSVariables,
-					 std::vector< VectorType >& rRightHandSideVectors,
-					 const std::vector< Variable< VectorType > >& rRHSVariables,
-					 ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-      
-    //create local system components
-    LocalSystemComponents LocalSystem;
-
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-
-    //Initialize sizes for the system components:
-    if( rLHSVariables.size() != rLeftHandSideMatrices.size() )
-      rLeftHandSideMatrices.resize(rLHSVariables.size());
-
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-      rRightHandSideVectors.resize(rRHSVariables.size());
-    
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX);
-    for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
-      {
-	//Note: rRightHandSideVectors.size() > 0
-	this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
-      }
-
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX,false);
-
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-      {
-	//Note: rLeftHandSideMatrices.size() > 0
-    	this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
-      }
-    LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX,true);
-
-
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetLeftHandSideVariables(rLHSVariables);
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
-
-    //Calculate elemental system
-    this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
     KRATOS_CATCH( "" )
 }
@@ -1793,8 +1650,8 @@ void SolidElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandS
     //1.-Calculate Tangent Inertia Matrix:
     this->CalculateDampingMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
 
-    double MatSize = rLeftHandSideMatrix.size1();
-
+    const unsigned int MatSize = this->GetDofsSize();
+  
     //2.-Calculate Inertial Forces:
     if ( rRightHandSideVector.size() != MatSize )
       rRightHandSideVector.resize( MatSize, false );
@@ -1853,7 +1710,7 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       //1.-Calculate Tangent Inertia Matrix:
       this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
 
-      double MatSize = rLeftHandSideMatrix.size1();
+      const unsigned int MatSize = this->GetDofsSize();
 
       //2.-Calculate Inertial Forces:
       if ( rRightHandSideVector.size() != MatSize )
@@ -1968,8 +1825,8 @@ void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVecto
       //1.-Calculate Tangent Inertia Matrix:
       this->CalculateMassMatrix( LeftHandSideMatrix, rCurrentProcessInfo );
 
-      double MatSize = LeftHandSideMatrix.size1();
-
+      const unsigned int MatSize = this->GetDofsSize();
+      
       //2.-Calculate Inertial Forces:
       if ( rRightHandSideVector.size() != MatSize )
 	rRightHandSideVector.resize( MatSize, false );
@@ -2038,8 +1895,7 @@ void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
       //lumped
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      unsigned int MatSize = dimension * number_of_nodes;
-
+      const unsigned int MatSize = this->GetDofsSize();
       if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
 
@@ -2078,11 +1934,9 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
     KRATOS_TRY
 
     //0.-Initialize the DampingMatrix:
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension;
+    const unsigned int MatSize = this->GetDofsSize();
 
     if ( rDampingMatrix.size1() != MatSize )
         rDampingMatrix.resize( MatSize, MatSize, false );
@@ -2170,7 +2024,6 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateValue(Values,rVariable,rOutput[PointNumber]);
-	    std::cout<<" rOutput "<<rOutput[PointNumber]<<std::endl;
 
         }
     }    

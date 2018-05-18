@@ -275,7 +275,7 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
 
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -296,7 +296,7 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
         {
             double Area;
             array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+            BoundedMatrix<double, NumNodes, Dim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double,3> AdvVel;
@@ -362,7 +362,7 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
 
         double Area;
         array_1d<double, NumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        BoundedMatrix<double, NumNodes, Dim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
@@ -385,7 +385,7 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
         {
             double Area;
             array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+            BoundedMatrix<double, NumNodes, Dim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             array_1d<double,3> AdvVel;
@@ -519,7 +519,7 @@ double MonolithicDEMCoupled<3,4>::FilterWidth()
  * @see MonolithicDEMCoupled::FilterWidth
  */
 template <>
-double MonolithicDEMCoupled<2,3>::FilterWidth(const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX)
+double MonolithicDEMCoupled<2,3>::FilterWidth(const BoundedMatrix<double,3,2>& DN_DX)
 {
     double inv_h_max = 0.0;
     for(unsigned int i=0; i<3; i++)
@@ -541,7 +541,7 @@ double MonolithicDEMCoupled<2,3>::FilterWidth(const boost::numeric::ublas::bound
  * @see MonolithicDEMCoupled::FilterWidth
  */
 template <>
-double MonolithicDEMCoupled<3,4>::FilterWidth(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX)
+double MonolithicDEMCoupled<3,4>::FilterWidth(const BoundedMatrix<double,4,3>& DN_DX)
 {
     double inv_h_max = 0.0;
     for(unsigned int i=0; i<4; i++)
@@ -562,8 +562,8 @@ double MonolithicDEMCoupled<3,4>::FilterWidth(const boost::numeric::ublas::bound
  * See MonolithicDEMCoupled::CalculateB
  */
 template <>
-void MonolithicDEMCoupled<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >& rB,
-                           const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv)
+void MonolithicDEMCoupled<2,3>::CalculateB( BoundedMatrix<double, 3, 6 >& rB,
+                           const BoundedMatrix<double, 3, 2 >& rShapeDeriv)
 {
     KRATOS_TRY
 
@@ -585,8 +585,8 @@ void MonolithicDEMCoupled<2,3>::CalculateB( boost::numeric::ublas::bounded_matri
  * See MonolithicDEMCoupled::CalculateB
  */
 template <>
-void MonolithicDEMCoupled<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >& rB,
-                           const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv)
+void MonolithicDEMCoupled<3,4>::CalculateB( BoundedMatrix<double, 6, 12 >& rB,
+                           const BoundedMatrix<double, 4, 3 >& rShapeDeriv)
 {
     KRATOS_TRY
 
@@ -624,7 +624,7 @@ void MonolithicDEMCoupled<3,4>::CalculateB( boost::numeric::ublas::bounded_matri
  * See MonolithicDEMCoupled::CalculateC
  */
 template <>
-void MonolithicDEMCoupled<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rC,
+void MonolithicDEMCoupled<2,3>::CalculateC(BoundedMatrix<double, 3, 3 > & rC,
                           const double Viscosity)
 {
     rC(0, 0) =  Viscosity*(1.3333333333333333333333333333333);
@@ -642,7 +642,7 @@ void MonolithicDEMCoupled<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix
  * See MonolithicDEMCoupled::CalculateC
  */
 template <>
-void MonolithicDEMCoupled<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & rC,
+void MonolithicDEMCoupled<3,4>::CalculateC(BoundedMatrix<double, 6,6 > & rC,
                           const double Viscosity)
 {
     noalias(rC) = ZeroMatrix(6,6);
@@ -677,7 +677,7 @@ void MonolithicDEMCoupled<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix
  */
 template <>
 void MonolithicDEMCoupled<2,3>::AddViscousTerm(MatrixType& rDampMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
+                              const BoundedMatrix<double,3,2>& rShapeDeriv,
                               const double Weight)
 {
     const unsigned int NumNodes = 3;
@@ -712,7 +712,7 @@ void MonolithicDEMCoupled<2,3>::AddViscousTerm(MatrixType& rDampMatrix,
  */
 template <>
 void MonolithicDEMCoupled<3,4>::AddViscousTerm(MatrixType& rDampMatrix,
-                              const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
+                              const BoundedMatrix<double,4,3>& rShapeDeriv,
                               const double Weight)
 {
     const unsigned int NumNodes = 4;

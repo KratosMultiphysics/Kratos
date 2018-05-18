@@ -250,13 +250,13 @@ class bicgstab {
     private:
         size_t n;
 
-        boost::shared_ptr<vector> r;
-        boost::shared_ptr<vector> p;
-        boost::shared_ptr<vector> v;
-        boost::shared_ptr<vector> s;
-        boost::shared_ptr<vector> t;
-        boost::shared_ptr<vector> rh;
-        boost::shared_ptr<vector> T;
+        std::shared_ptr<vector> r;
+        std::shared_ptr<vector> p;
+        std::shared_ptr<vector> v;
+        std::shared_ptr<vector> s;
+        std::shared_ptr<vector> t;
+        std::shared_ptr<vector> rh;
+        std::shared_ptr<vector> T;
 
         InnerProduct inner_product;
 

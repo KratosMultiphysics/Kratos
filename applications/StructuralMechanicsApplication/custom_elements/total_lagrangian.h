@@ -44,6 +44,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class ShapeParameter;
+
 /**
  * @class TotalLagrangian
  * @ingroup StructuralMechanicsApplication
@@ -103,6 +105,10 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
+
+    void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -167,7 +173,7 @@ protected:
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
     
     ///@}
@@ -195,28 +201,57 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
    
     /**
      * @brief This method computes the deformation matrix B
      * @param rB The deformation matrix
      * @param rF The deformation gradient
      * @param rDN_DX The gradient derivative of the shape function
-     * @param StrainSize The size of the Voigt notation stress vector
-     * @param IntegrationPoints The array containing the integration points
-     * @param PointNumber The integration point considered
      */
-    void CalculateB(
-        Matrix& rB,
-        const Matrix& rF,
-        const Matrix& rDN_DX,
-        const unsigned int StrainSize,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
-        );
+    void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+    void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+
+    void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+
+    void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
+
+    void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
+
+    void CalculateStress(Vector& rStrain,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStress(Matrix const& rF,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStrain(Matrix const& rF,
+                         std::size_t IntegrationPoint,
+                         Vector& rStrain,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateShapeSensitivity(ShapeParameter Deriv,
+                                   Matrix& rDN_DX0_Deriv,
+                                   Matrix& rF_Deriv,
+                                   double& rDetJ0_Deriv,
+                                   std::size_t IntegrationPointIndex);
+
+    void CalculateBSensitivity(Matrix const& rDN_DX,
+                               Matrix const& rF,
+                               Matrix const& rDN_DX_Deriv,
+                               Matrix const& rF_Deriv,
+                               Matrix& rB_Deriv);
+
+    std::size_t GetStrainSize() const;
+
+    bool IsAxissymmetric() const;
 
     ///@}
     ///@name Private  Access

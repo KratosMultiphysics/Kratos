@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosSolidMechanicsApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConstitutiveModelsApplication )
 
@@ -9,24 +12,18 @@ if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
     message(SEND_ERROR "The ConsitutiveModelsApplication must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
 endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
 
-## generate variables with the sources
-set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
+## Generate variables with the sources
+set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/solid_mechanics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/solid_mechanics_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/solid_mechanics_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 
-	# time integration methods
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/static_step_rotation_method.cpp		
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/newmark_step_rotation_method.cpp	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/simo_step_rotation_method.cpp	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/emc_step_rotation_method.cpp
-	
-	# solid elements
+	# Time integration methods
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/static_step_rotation_method.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/newmark_step_rotation_method.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/simo_step_rotation_method.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/emc_step_rotation_method.cpp
+
+	# Solid elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/linear_solid_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_element.cpp
@@ -39,8 +36,10 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_V_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_V_element.cpp
 
-	# beam elements
+	# Beam elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/beam_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/small_displacement_beam_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/small_displacement_beam_element_3D2N.cpp
@@ -49,13 +48,13 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_semc_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/geometrically_exact_rod_element.cpp
 
-	# shell elements
+	# Shell elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thick_element_3D4N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thin_element_3D3N.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/boundary_condition.cpp
 
-	# load conditions
+	# Load conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/point_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/line_load_condition.cpp
@@ -63,25 +62,26 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/axisymmetric_point_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/axisymmetric_line_load_condition.cpp
 
-	# moment conditions		
+	# Moment conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_conditions/moment_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_conditions/point_moment_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_conditions/line_moment_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_conditions/surface_moment_condition.cpp
 
-	# elastic conditions
+	# Elastic conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/elastic_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/point_elastic_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/line_elastic_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/surface_elastic_condition.cpp	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/surface_elastic_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/axisymmetric_point_elastic_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/axisymmetric_line_elastic_condition.cpp
 
-	# utilites
+	# Utilites
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
-	
-	## Constitutive Models Application ##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION
-	
+
+
+	##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION ##
+	# Constitutive laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.cpp
@@ -140,23 +140,30 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_modified_mises_plane_stress_2D_law.cpp
 
-	## Constitutive Models Application ##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION
-
-	
+	## DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION ##
 )
+
+## Generate variables with the sources
+set( KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
+        # Custom python
+  	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/solid_mechanics_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
+)
+
+add_library(KratosSolidMechanicsCore SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_CORE})
+#target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore KratosConstitutiveModelsCore)
+target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore)
+set_target_properties(KratosSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosSolidMechanicsApplication SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosSolidMechanicsApplication KratosCore)
-##target_link_libraries(KratosSolidMechanicsApplication KratosCore KratosConstitutiveModelsApplication)
+pybind11_add_module(KratosSolidMechanicsApplication MODULE THIN_LTO ${KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosSolidMechanicsApplication PRIVATE KratosSolidMechanicsCore)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
-set_target_properties(KratosSolidMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
-install(TARGETS KratosSolidMechanicsApplication DESTINATION libs )
-
-
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -168,11 +175,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosSolidMechanicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# install testing files
 if(${INSTALL_TESTING_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
+# install the python files
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
@@ -181,6 +190,14 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosSolidMechanicsCore)
+    cotire(KratosSolidMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosSolidMechanicsCore DESTINATION libs )
+install(TARGETS KratosSolidMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/SolidMechanicsApplication.py" DESTINATION KratosMultiphysics )

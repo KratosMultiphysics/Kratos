@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosEmpireApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 
@@ -13,8 +16,8 @@ set( KRATOS_EMPIRE_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosEmpireApplication SHARED ${KRATOS_EMPIRE_APPLICATION_SOURCES})
-target_link_libraries(KratosEmpireApplication KratosCore )
+pybind11_add_module(KratosEmpireApplication MODULE THIN_LTO ${KRATOS_EMPIRE_APPLICATION_SOURCES})
+target_link_libraries(KratosEmpireApplication PRIVATE KratosCore )
 set_target_properties(KratosEmpireApplication PROPERTIES PREFIX "")
 install(TARGETS KratosEmpireApplication DESTINATION libs )
 

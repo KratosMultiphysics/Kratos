@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMeshingApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
@@ -31,7 +34,8 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
@@ -49,6 +53,7 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
@@ -63,9 +68,10 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
-
+pybind11_add_module(KratosMeshingApplication MODULE THIN_LTO ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosMeshingApplication PRIVATE KratosCore triangle tetMeshOpt)
+set_target_properties(KratosMeshingApplication PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
+set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingApplication ${TETGEN_LIBRARIES})

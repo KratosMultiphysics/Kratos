@@ -535,7 +535,7 @@ protected:
     virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
         const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         );
         
     /**
@@ -561,7 +561,7 @@ protected:
      * @param DeltaDisplacement The matrix containing the increment of displacements
      * @return DeltaDisplacement: The matrix containing the increment of displacements
      */
-    Matrix CalculateDeltaDisplacement(Matrix& DeltaDisplacement);
+    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement);
     
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -676,7 +676,7 @@ protected:
      * @param detJ The determinant of the jacobian of the element
      */
     virtual double GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+        const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
         const unsigned int PointNumber,
         const double detJ
         );

@@ -57,7 +57,7 @@ namespace Kratos
         /** 
          * Checks if the MixedULMLinear solver performs correctly the resolution of the system
          */
-        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestSystem, ContactStructuralApplicationFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestSystem, KratosContactStructuralMechanicsFastSuite)
         {
             constexpr double tolerance = 1e-6;
             
@@ -143,7 +143,7 @@ namespace Kratos
         /** 
          * Checks if the MixedULMLinear solver performs correctly the resolution of the system with inactive nodes
          */
-        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestWithInactiveSystem, ContactStructuralApplicationFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestWithInactiveSystem, KratosContactStructuralMechanicsFastSuite)
         {
             constexpr double tolerance = 1e-6;
             
@@ -236,7 +236,7 @@ namespace Kratos
         /** 
          * Checks if the MixedULMLinear solver performs correctly the resolution of the system. Unordered case
          */
-        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestUnorderedSystem, ContactStructuralApplicationFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestUnorderedSystem, KratosContactStructuralMechanicsFastSuite)
         {
             constexpr double tolerance = 1e-6;
             
@@ -351,7 +351,7 @@ namespace Kratos
          * Checks if the MixedULMLinear solver performs correctly the resolution of the system. Multiple dofs
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFSystem, ContactStructuralApplicationFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFSystem, KratosContactStructuralMechanicsFastSuite)
         {
             constexpr double tolerance = 1e-5;
             
@@ -446,7 +446,7 @@ namespace Kratos
         /** 
          * Checks if the MixedULMLinear solver performs correctly the resolution of the system. Multiple dof Unordered case
          */
-        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFUnorderedSystem, ContactStructuralApplicationFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFUnorderedSystem, KratosContactStructuralMechanicsFastSuite)
         {
             constexpr double tolerance = 1e-5;
             
@@ -585,7 +585,7 @@ namespace Kratos
          * Checks if the MixedULMLinear solver performs correctly the resolution of the system. Multiple dofs (ii)
          */
         
-        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFSystem, ContactStructuralApplicationFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFSystem, KratosContactStructuralMechanicsFastSuite)
         {
             constexpr double tolerance = 1e-3;
             
@@ -688,7 +688,7 @@ namespace Kratos
         /** 
          * Checks if the MixedULMLinear solver performs correctly the resolution of the system. Multiple dof Unordered case (II)
          */
-        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFUnorderedSystem, ContactStructuralApplicationFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFUnorderedSystem, KratosContactStructuralMechanicsFastSuite)
         {
             constexpr double tolerance = 1e-3;
             
@@ -850,7 +850,7 @@ namespace Kratos
         /** 
          * Checks if the MixedULMLinear solver performs correctly the resolution of the system. Multiple dof Unordered case (II)
          */
-        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverRealSystem, ContactStructuralApplicationFastSuite) 
+        KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverRealSystem, KratosContactStructuralMechanicsFastSuite)
         {
             constexpr double tolerance = 1e-3;
             

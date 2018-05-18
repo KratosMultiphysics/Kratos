@@ -27,8 +27,8 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def __init__(self, main_model_part, custom_settings):
         if not custom_settings.Has("linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type" : "Klu",
-                "scaling" : false
+                "solver_type" : "AmesosSolver",
+                "amesos_solver_type" : "Amesos_Klu"
             }""")
             custom_settings.AddValue("linear_solver_settings", linear_solver_settings)
 
@@ -49,18 +49,35 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Construct the Trilinos import model part utility.
             import trilinos_import_model_part_utility
-            TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+            self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
             # Execute the Metis partitioning and reading.
-            TrilinosModelPartImporter.ExecutePartitioningAndReading()
-            # Call the base class execute after reading (check and prepare model process and set the constitutive law).
-            super(TrilinosMechanicalSolver, self)._execute_after_reading()
-            # Call the base class set and fill buffer size.
-            super(TrilinosMechanicalSolver, self)._set_and_fill_buffer()
-            # Construct the communicators
-            TrilinosModelPartImporter.CreateCommunicators()
+            self.trilinos_model_part_importer.ExecutePartitioningAndReading()
+            # Call the base class PrepareModelPartForSolver
+            super(TrilinosMechanicalSolver, self).PrepareModelPartForSolver()
         else:
             raise Exception("Other model part input options are not yet implemented.")
         self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
+
+    def ReadModelPart(self):
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Reading model part.")
+        if self.is_restarted():
+            self.get_restart_utility().LoadRestart()
+        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            # Construct the Trilinos import model part utility.
+            import trilinos_import_model_part_utility
+            self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+            # Execute the Metis partitioning and reading.
+            self.trilinos_model_part_importer.ExecutePartitioningAndReading()
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
+
+    def PrepareModelPartForSolver(self):
+        if not self.is_restarted():
+            super(TrilinosMechanicalSolver, self).PrepareModelPartForSolver()
+            # Construct the communicators
+            self.trilinos_model_part_importer.CreateCommunicators()
+        KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]::", "ModelPart prepared for Solver.")
 
     #### Specific internal functions ####
 

@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
+#from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
@@ -502,7 +502,7 @@ def ChangeInputDataForConsistency(pp):
     if pp.CFD_DEM["flow_in_porous_medium_option"].GetBool():
         pp.coupling_weighing_type = - 1 # the fluid fraction is not projected from DEM (there may not be a DEM part) but is externally imposed
 
-    pp.CFD_DEM.time_steps_per_stationarity_step = max( 1, int(pp.CFD_DEM["time_steps_per_stationarity_step"].GetInt()) ) # it should never be smaller than 1!
+    pp.CFD_DEM["time_steps_per_stationarity_step"].SetInt(max(1, int(pp.CFD_DEM["time_steps_per_stationarity_step"].GetInt())))
 
     if pp.CFD_DEM["coupling_level_type"].GetInt() > 1:
         pp.CFD_DEM["stationary_problem_option"].SetBool(False)

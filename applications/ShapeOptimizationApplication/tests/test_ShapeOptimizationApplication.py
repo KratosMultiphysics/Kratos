@@ -9,7 +9,7 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics import ShapeOptimizationApplication
 from KratosMultiphysics import StructuralMechanicsApplication
-from KratosMultiphysics import ALEApplication
+from KratosMultiphysics import MeshMovingApplication
 from KratosMultiphysics import ExternalSolversApplication
 
 # Import Kratos "wrapper" for unittests
@@ -31,6 +31,7 @@ from shape_optimization_test_factory import opt_process_shell_test as opt_proces
 from shape_optimization_test_factory import opt_process_solid_test as opt_process_solid_test
 from shape_optimization_test_factory import opt_process_vertex_morphing_test as opt_process_vertex_morphing_test
 from shape_optimization_test_factory import opt_process_eigenfrequency_test as opt_process_eigenfrequency_test
+from shape_optimization_test_factory import opt_process_weighted_eigenfrequency_test as opt_process_weighted_eigenfrequency_test
 from shape_optimization_test_factory import algorithm_steepest_descent_test as algorithm_steepest_descent_test
 from shape_optimization_test_factory import algorithm_penalized_projection_test as algorithm_penalized_projection_test
 
@@ -62,6 +63,7 @@ def AssambleTestSuites():
     smallSuite.addTest(opt_process_solid_test('test_execution'))
     if is_eigen_app_missing == False:
         smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
+        smallSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
     smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
     smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
 

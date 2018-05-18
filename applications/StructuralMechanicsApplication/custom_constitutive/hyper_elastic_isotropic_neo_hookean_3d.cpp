@@ -56,7 +56,7 @@ HyperElasticIsotropicNeoHookean3D::~HyperElasticIsotropicNeoHookean3D()
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1 (Parameters& rValues)
+void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
     
@@ -72,6 +72,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1 (Parameters
 
 void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
+    KRATOS_TRY;
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
@@ -79,7 +80,6 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     
     const Properties& material_properties  = rValues.GetMaterialProperties();
     Vector& strain_vector                  = rValues.GetStrainVector();
-    Vector& stress_vector                  = rValues.GetStressVector();
     
     // The material properties
     const double& young_modulus = material_properties[YOUNG_MODULUS];
@@ -115,14 +115,16 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
+        Vector& stress_vector = rValues.GetStressVector();
         CalculatePK2Stress( inverse_C_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
+    KRATOS_CATCH("");
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
     // Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
@@ -167,7 +169,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Para
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy (Parameters& rValues)
+void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseKirchhoff(rValues);
     
@@ -183,7 +185,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy (Paramet
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK1(Parameters& rValues)
+void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 //     this->CalculateMaterialResponsePK1(rValues);
@@ -193,7 +195,7 @@ void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK1(Parameters& 
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK2(Parameters& rValues)
+void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 //     this->CalculateMaterialResponsePK2(rValues);
@@ -203,7 +205,7 @@ void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK2(Parameters& 
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
+void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 //     this->CalculateMaterialResponseCauchy(rValues);
@@ -213,7 +215,7 @@ void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseCauchy(Parameter
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 //     this->CalculateMaterialResponseKirchhoff(rValues);
@@ -224,7 +226,7 @@ void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseKirchhoff(Parame
 //************************************************************************************
 
 double& HyperElasticIsotropicNeoHookean3D::CalculateValue(
-    Parameters& rParameterValues, 
+    ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable, 
     double& rValue
     )
@@ -420,7 +422,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateKirchhoffStress(
 //************************************************************************************
 
 void HyperElasticIsotropicNeoHookean3D::CalculateCauchyGreenStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
 {
@@ -442,7 +444,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateCauchyGreenStrain(
 //************************************************************************************
 
 void HyperElasticIsotropicNeoHookean3D::CalculateAlmansiStrain(
-    Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
 {

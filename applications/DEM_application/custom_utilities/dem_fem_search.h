@@ -64,7 +64,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class DEM_FEM_Search : public SpatialSearch
+class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
 {
     public:
       ///@name Type Definitions
@@ -140,7 +140,7 @@ class DEM_FEM_Search : public SpatialSearch
       RadiusArrayType Radius_out;
 
       int num_of_threads = OpenMPUtils::GetNumThreads();
-      vector<unsigned int> total_dem_partition_index; vector<unsigned int> total_fem_partition_index;
+      DenseVector<unsigned int> total_dem_partition_index; vector<unsigned int> total_fem_partition_index;
 
       OpenMPUtils::CreatePartition(num_of_threads, elements_sear.size(), total_dem_partition_index);
       OpenMPUtils::CreatePartition(num_of_threads, conditions_bins.size(), total_fem_partition_index);
@@ -297,7 +297,7 @@ class DEM_FEM_Search : public SpatialSearch
       mBins = new GeometricalBinsType(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());
 
       //7. PERFORM THE SEARCH ON THE SPHERES
-      #pragma omp parallel 
+      #pragma omp parallel
       {
         GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
         DistanceType                          localResultsDistances(MaxNumberOfElements);

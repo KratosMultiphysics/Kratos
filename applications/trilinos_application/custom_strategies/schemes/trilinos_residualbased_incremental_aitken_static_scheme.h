@@ -1,40 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
 
 #ifndef KRATOS_TRILINOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H
 #define KRATOS_TRILINOS_RESIDUALBASED_INCREMENTAL_AITKEN_STATIC_SCHEME_H
@@ -51,7 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 
 // Application includes
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 
 namespace Kratos
@@ -82,7 +57,7 @@ namespace Kratos
 /** Aitken's method intends to improve convergence by introducing a relaxation factor in the update of the solution after each iteration.
   */
 template< class TSparseSpace,class TDenseSpace >
-class TrilinosResidualBasedIncrementalAitkenStaticScheme : public TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
+class TrilinosResidualBasedIncrementalAitkenStaticScheme : public ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -91,7 +66,7 @@ public:
     /// Pointer definition of TrilinosResidualBasedIncrementalAitkenStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosResidualBasedIncrementalAitkenStaticScheme);
 
-    typedef TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -114,7 +89,7 @@ public:
     /** @param DefaultOmega Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
       */
     TrilinosResidualBasedIncrementalAitkenStaticScheme(double DefaultOmega):
-        TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
         mDefaultOmega(DefaultOmega),
         mOldOmega(DefaultOmega)
     {}
@@ -139,10 +114,10 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void InitializeSolutionStep(ModelPart &r_model_part,
+    void InitializeSolutionStep(ModelPart &r_model_part,
                                         TSystemMatrixType &A,
                                         TSystemVectorType &Dx,
-                                        TSystemVectorType &b)
+                                        TSystemVectorType &b) override
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
         mIterationCounter = 0;
@@ -155,10 +130,10 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void InitializeNonLinIteration(ModelPart &r_model_part,
+    void InitializeNonLinIteration(ModelPart &r_model_part,
                                            TSystemMatrixType &A,
                                            TSystemVectorType &Dx,
-                                           TSystemVectorType &b)
+                                           TSystemVectorType &b) override
     {
         BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
     }
@@ -171,11 +146,11 @@ public:
       * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
       * @param b Right hand side vector
       */
-    virtual void Update(ModelPart &r_model_part,
+    void Update(ModelPart &r_model_part,
                         DofsArrayType &rDofSet,
                         TSystemMatrixType &A,
                         TSystemVectorType &Dx,
-                        TSystemVectorType &b)
+                        TSystemVectorType &b) override
     {
         KRATOS_TRY;
 
@@ -207,6 +182,12 @@ public:
         mOldOmega = Omega;
 
         KRATOS_CATCH("");
+    }
+
+    void Clear() override
+    {
+        mpDofImporter.reset();
+        mImporterIsInitialized = false;
     }
 
     ///@}
@@ -327,7 +308,7 @@ protected:
         Dx.Comm().Barrier();
 
         //performing the update
-        typename DofsArrayType::iterator dof_begin = rDofSet.begin();
+        auto dof_begin = rDofSet.begin();
         for(unsigned int iii=0; iii<rDofSet.size(); iii++)
         {
             int global_id = (dof_begin+iii)->EquationId();
@@ -341,15 +322,70 @@ protected:
         KRATOS_CATCH("");
     }
 
+
+    virtual void InitializeDofImporter(DofsArrayType& rDofSet,
+                                       TSystemVectorType& Dx)
+    {
+        int system_size = TSparseSpace::Size(Dx);
+        int number_of_dofs = rDofSet.size();
+        std::vector< int > index_array(number_of_dofs);
+
+        //filling the array with the global ids
+        int counter = 0;
+        for(auto i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        {
+            int id = i_dof->EquationId();
+            if( id < system_size )
+            {
+                index_array[counter] = id;
+                counter += 1;
+            }
+        }
+
+        std::sort(index_array.begin(),index_array.end());
+        std::vector<int>::iterator NewEnd = std::unique(index_array.begin(),index_array.end());
+        index_array.resize(NewEnd-index_array.begin());
+
+        int check_size = -1;
+        int tot_update_dofs = index_array.size();
+        Dx.Comm().SumAll(&tot_update_dofs,&check_size,1);
+        KRATOS_ERROR_IF( (check_size < system_size) &&  (Dx.Comm().MyPID() == 0) )
+            << "Dof count is not correct. There are less dofs then expected." << std::endl
+            << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
+
+        //defining a map as needed
+        Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,Dx.Comm() );
+
+        //defining the importer class
+        Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map,Dx.Map());
+        mpDofImporter.swap(pDofImporter);
+
+        mImporterIsInitialized = true;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
 
+    /// Get pointer Epetra_Import instance that can be used to import values from Dx to the owner of each Dof.
+    /**
+     * @note Important: always check that the Importer is initialized before calling using
+     * DofImporterIsInitialized or initialize it with InitializeDofImporter.
+     * @return Importer
+     */
+    Kratos::shared_ptr<Epetra_Import> pGetImporter()
+    {
+        return mpDofImporter;
+    }
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
+    bool DofImporterIsInitialized() const
+    {
+        return mImporterIsInitialized;
+    }
 
     ///@}
     ///@name Protected LifeCycle
@@ -381,6 +417,10 @@ private:
 
     /// Vector of solution variations obtained in the previous iteration.
     SystemVectorPointerType mpPreviousDx;
+
+    bool mImporterIsInitialized = false;
+
+    Kratos::shared_ptr<Epetra_Import> mpDofImporter = nullptr;
 
     ///@}
     ///@name Private Operators

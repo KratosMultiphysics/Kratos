@@ -126,13 +126,13 @@ public:
     typedef std::ptrdiff_t  SignedIndexType;
 
     /// A vector of indexes
-    typedef vector<IndexType> IndexVectorType;
+    typedef DenseVector<IndexType> IndexVectorType;
 
     /// A vector of indexes (signed)
-    typedef vector<SignedIndexType> SignedIndexVectorType;
+    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
 
     /// A vector of types
-    typedef vector<BlockType> BlockTypeVectorType;
+    typedef DenseVector<BlockType> BlockTypeVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -493,7 +493,7 @@ public:
             mWhichBlockType.resize(tot_active_dofs, false);
 
         // Size check
-        KRATOS_ERROR_IF_NOT(n_lm_active_dofs == n_slave_active_dofs) << "The number of active LM dofs: " << n_slave_active_dofs << " and active slave nodes dofs: " << n_slave_active_dofs << " does not coincide" << std::endl;
+        KRATOS_ERROR_IF_NOT(n_lm_active_dofs == n_slave_active_dofs) << "The number of active LM dofs: " << n_lm_active_dofs << " and active slave nodes dofs: " << n_slave_active_dofs << " does not coincide" << std::endl;
 
         /**
          * Construct aux_lists as needed
@@ -701,7 +701,7 @@ protected:
         {
             // We iterate over original matrix
             #pragma omp for
-            for (IndexType i=0; i<rA.size1(); i++) {
+            for (int i=0; i<static_cast<int>(rA.size1()); i++) {
                 const IndexType row_begin = index1[i];
                 const IndexType row_end   = index1[i+1];
                 const IndexType local_row_id = mGlobalToLocalIndexing[i];
@@ -828,7 +828,7 @@ protected:
         {
             // We iterate over original matrix
             #pragma omp for
-            for (IndexType i=0; i<rA.size1(); i++) {
+            for (int i=0; i<static_cast<int>(rA.size1()); i++) {
                 const IndexType row_begin = index1[i];
                 const IndexType row_end   = index1[i+1];
                 const IndexType local_row_id = mGlobalToLocalIndexing[i];

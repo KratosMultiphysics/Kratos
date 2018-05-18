@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:  ilaria$
-//   Date:                $Date:  July 2015$
-//   Revision:            $Revision: 1.3 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ilaria Iaconeta
 //
 //
 
@@ -96,7 +101,6 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_VEL )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_ACC )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_ACC )
 KRATOS_CREATE_VARIABLE( double, NODAL_LUMPED_MASS)
-
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
 //MP element variable
@@ -126,7 +130,6 @@ KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
     //mUpdatedLagrangianUP3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4) ) ) )
     //mUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
-
     //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
     //mMPMLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
@@ -225,6 +228,7 @@ void KratosParticleMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
+
 
     //Hyperelastic ViscoPlastic laws
     Serializer::Register( "HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw );

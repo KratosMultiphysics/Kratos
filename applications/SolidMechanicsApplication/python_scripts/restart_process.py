@@ -237,7 +237,7 @@ class RestartProcess(KratosMultiphysics.Process):
             for f in filelist:
                 try:
                     os.remove(f)
-                except WindowsError:
+                except OSError:
                     pass
 
     #
@@ -271,5 +271,5 @@ class RestartProcess(KratosMultiphysics.Process):
             for f in filelist:
                 try:
                     os.remove(f)
-                except WindowsError:
+                except OSError:
                     pass

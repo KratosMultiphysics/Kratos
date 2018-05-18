@@ -1020,7 +1020,7 @@ public:
     }
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 4 )
             NumberNodesInFaces.resize(4,false);
@@ -1032,7 +1032,7 @@ public:
 
     }
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 4)
             NodesInFaces.resize(3,4,false);
@@ -1072,9 +1072,6 @@ public:
     ///@name Shape Function
     ///@{
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -1126,9 +1123,6 @@ public:
         return rResult;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the Gradients of the shape functions.
      * Calculates the gradients of the shape functions with regard to
@@ -1397,7 +1391,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1488,8 +1482,8 @@ private:
         const bool IsInside = false
         )
     {
-        bounded_matrix<double,3,4> X;
-        bounded_matrix<double,3,2> DN;
+        BoundedMatrix<double,3,4> X;
+        BoundedMatrix<double,3,2> DN;
         for(IndexType i=0; i<this->size();i++) {
             X(0, i) = this->GetPoint( i ).X();
             X(1, i) = this->GetPoint( i ).Y();
@@ -1552,9 +1546,6 @@ private:
     }
     
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
      * @param ThisMethod the current integration method
@@ -1595,9 +1586,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the local gradients of all shape functions
      * in all integration points.

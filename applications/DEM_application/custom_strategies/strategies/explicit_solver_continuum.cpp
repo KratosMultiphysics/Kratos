@@ -1,4 +1,4 @@
-//        
+//
 // Author: Miguel AngelCeligueta, maceli@cimne.upc.edu
 //
 
@@ -7,16 +7,16 @@
 namespace Kratos {
 
     void ContinuumExplicitSolverStrategy::Initialize() {
-        
+
         KRATOS_TRY
 
         ModelPart& r_model_part = GetModelPart();
         ModelPart& fem_model_part = GetFemModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        
+
         if (r_model_part.GetCommunicator().MyPID() == 0) {
-            std::cout << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
-        }        
+            KRATOS_INFO("DEM") << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
+        }
 
         // Omp initializations
         mNumberOfThreads = OpenMPUtils::GetNumThreads();
@@ -112,10 +112,10 @@ namespace Kratos {
             CreateContactElements();
             InitializeContactElements();
         }
-        
+
         r_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(NEIGHBOUR_IDS);
         r_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(NEIGHBOURS_CONTACT_AREAS);
-        
+
         if (r_process_info[CASE_OPTION] != 0) {
             CalculateMeanContactArea();
             CalculateMaxSearchDistance();
@@ -125,7 +125,6 @@ namespace Kratos {
         // 5. Finalize Solution Step
         //BaseType::FinalizeSolutionStep();
 
-        //KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
         KRATOS_CATCH("")
     }// Initialize()
 
@@ -142,7 +141,7 @@ namespace Kratos {
 
         BaseType::InitializeSolutionStep();
         SearchDEMOperations(r_model_part, has_mpi);
-        SearchFEMOperations(r_model_part, has_mpi);               
+        SearchFEMOperations(r_model_part, has_mpi);
         BaseType::ForceOperations(r_model_part);
         BaseType::PerformTimeIntegrationOfMotion();
         FinalizeSolutionStep();
@@ -166,9 +165,9 @@ namespace Kratos {
     }
 
     void ContinuumExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
-        
-        
-        
+
+
+
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
         if (r_process_info[SEARCH_CONTROL] == 0) {
@@ -176,7 +175,7 @@ namespace Kratos {
                 if (r_process_info[SEARCH_CONTROL_VECTOR][i] == 1) {
                     r_process_info[SEARCH_CONTROL] = 1;
                     if(r_model_part.GetCommunicator().MyPID() == 0) {
-                        std::cout << "From now on, the search is activated because some failure occurred " << std::endl;
+                        KRATOS_WARNING("DEM") << "From now on, the search is activated because some failure occurred " << std::endl;
                     }
                     break;
                 }
@@ -205,7 +204,7 @@ namespace Kratos {
                 RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
 
                 BaseType::SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT] + r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION], 1.0);
-                
+
                 SearchNeighbours(); //the amplification factor has been modified after the first search.
 
                 RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
@@ -222,9 +221,9 @@ namespace Kratos {
                 BaseType::RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
 
                 ComputeNewNeighboursHistoricalData();
-                
+
                 MarkNewSkinParticles();
-                
+
                 r_process_info[SEARCH_CONTROL] = 2;
                 //if (r_process_info[BOUNDING_BOX_OPTION] == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
                 if (r_process_info[CONTACT_MESH_OPTION] == 1) {
@@ -241,7 +240,7 @@ namespace Kratos {
     }
 
     void ContinuumExplicitSolverStrategy::MarkNewSkinParticles() {
-        
+
         KRATOS_TRY
 
         #pragma omp parallel
@@ -263,7 +262,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            boost::numeric::ublas::vector<int> TempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
+            DenseVector<int> TempNeighboursIds; //We are passing all these temporal vectors as arguments because creating them inside the function is slower (memory allocation and deallocation)
             std::vector<array_1d<double, 3> > TempNeighbourElasticContactForces;
             std::vector<SphericParticle*> TempNeighbourElements;
 
@@ -413,7 +412,7 @@ namespace Kratos {
         KRATOS_TRY
         //CONTACT MODEL PART
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        vector<unsigned int> contact_element_partition;
+        DenseVector<unsigned int> contact_element_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
         #pragma omp parallel for
@@ -433,7 +432,7 @@ namespace Kratos {
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
         ProcessInfo& r_process_info = (*mpContact_model_part).GetProcessInfo();
 
-        vector<unsigned int> contact_element_partition;
+        DenseVector<unsigned int> contact_element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
         #pragma omp parallel for
@@ -453,7 +452,7 @@ namespace Kratos {
 
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
 
-        vector<unsigned int> contact_element_partition;
+        DenseVector<unsigned int> contact_element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
@@ -482,7 +481,7 @@ namespace Kratos {
         double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
 
         if(r_model_part.GetCommunicator().MyPID() == 0) {
-            std::cout << "Setting up Coordination Number by increasing or decreasing the search radius... " << std::endl;
+            KRATOS_WARNING("DEM") << "Setting up Coordination Number by increasing or decreasing the search radius... " << std::endl;
         }
 
         if (in_coordination_number <= 0.0) {
@@ -492,9 +491,9 @@ namespace Kratos {
         while (fabs(out_coordination_number / in_coordination_number - 1.0) > 1e-3) {
             if (iteration >= maxiteration) break;
             iteration++;
-            if(r_model_part.GetCommunicator().MyPID() == 0) { std::cout<<" * "<<std::flush; }
+            if(r_model_part.GetCommunicator().MyPID() == 0) { KRATOS_INFO("DEM") <<" * "<<std::flush; }
             if (out_coordination_number == 0.0) {
-                std::cout << "Coordination Number method not supported in this case" << "\n" << std::endl;
+                KRATOS_WARNING("DEM") << "Coordination Number method not supported in this case" << "\n" << std::endl;
                 KRATOS_THROW_ERROR(std::runtime_error, "The specified tangency method is not supported for this problem, please use absolute value instead", " ")
                 break;
             }
@@ -504,19 +503,19 @@ namespace Kratos {
             out_coordination_number = ComputeCoordinationNumber(standard_dev);
         }//while
 
-        if(r_model_part.GetCommunicator().MyPID() == 0) { std::cout<<std::endl;}
-        
+        if(r_model_part.GetCommunicator().MyPID() == 0) { KRATOS_INFO("DEM") <<std::endl;}
+
         if (iteration < maxiteration){
             if(r_model_part.GetCommunicator().MyPID() == 0) {
-                std::cout << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an extension of " << added_search_distance << ". " << "\n" << std::endl;
-                std::cout << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
-                std::cout << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << out_coordination_number-standard_dev << "–" << out_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
+                KRATOS_WARNING("DEM") << "Coordination Number iterative procedure converged after " << iteration << " iterations, to value " << out_coordination_number << " using an extension of " << added_search_distance << ". " << "\n" << std::endl;
+                KRATOS_WARNING("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
+                KRATOS_WARNING("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << out_coordination_number-standard_dev << "–" << out_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
             }
         }
 
         else {
             if(r_model_part.GetCommunicator().MyPID() == 0) {
-                std::cout << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << out_coordination_number << ". " << "\n" << std::endl;
+                KRATOS_WARNING("DEM") << "Coordination Number iterative procedure did NOT converge after " << iteration << " iterations. Coordination number reached is " << out_coordination_number << ". " << "\n" << std::endl;
                 KRATOS_THROW_ERROR(std::runtime_error, "Please use a Absolute tolerance instead ", " ")
                     //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
             }
@@ -608,7 +607,7 @@ namespace Kratos {
         #pragma omp parallel for
         for (int i = 0; i < number_of_particles; i++) {
             double max_sphere = mListOfSphericContinuumParticles[i]->CalculateMaxSearchDistance(has_mpi, r_process_info);
-            if (max_sphere > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sphere;                        
+            if (max_sphere > thread_maxima[OpenMPUtils::ThisThread()]) thread_maxima[OpenMPUtils::ThisThread()] = max_sphere;
         }
 
         double maximum_across_threads = 0.0;
@@ -617,25 +616,25 @@ namespace Kratos {
         }
 
         r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] = maximum_across_threads;
-        
+
         const double ratio = r_process_info[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION] / r_process_info[SEARCH_RADIUS_INCREMENT];
         const double max_ratio = r_process_info[MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS];
-        
+
         static unsigned int counter = 0;
         unsigned int maximum_number_of_prints = 500;
-        
+
         if ((ratio > max_ratio) && (counter <= maximum_number_of_prints)) {
-            std::cout<<std::endl;
-            std::cout<<"************************************************************************"<<std::endl;
-            std::cout<<"WARNING! The automatic extension of the search radius, based on mechanical"<<std::endl;
-            std::cout<<"reasons, is trying to extend more than "<<max_ratio<<" times the "<<std::endl;
-            std::cout<<"previously set search radius!"<<std::endl;
-            std::cout<<"Some bonds might break for search reasons instead of mechanical reasons."<<std::endl;
-            std::cout<<"The ratio is limited to that value ("<<max_ratio<<" times by the input "<<std::endl;
-            std::cout<<"variable 'MaxAmplificationRatioOfSearchRadius'"<<std::endl;
-            std::cout<<"************************************************************************"<<std::endl;
+            KRATOS_INFO("DEM") <<std::endl;
+            KRATOS_WARNING("DEM") <<"************************************************************************"<<std::endl;
+            KRATOS_WARNING("DEM") <<"WARNING! The automatic extension of the search radius, based on mechanical"<<std::endl;
+            KRATOS_WARNING("DEM") <<"reasons, is trying to extend more than "<<max_ratio<<" times the "<<std::endl;
+            KRATOS_WARNING("DEM") <<"previously set search radius!"<<std::endl;
+            KRATOS_WARNING("DEM") <<"Some bonds might break for search reasons instead of mechanical reasons."<<std::endl;
+            KRATOS_WARNING("DEM") <<"The ratio is limited to that value ("<<max_ratio<<" times by the input "<<std::endl;
+            KRATOS_WARNING("DEM") <<"variable 'MaxAmplificationRatioOfSearchRadius'"<<std::endl;
+            KRATOS_WARNING("DEM") <<"************************************************************************"<<std::endl;
         }
-        
+
         ++counter;
 
         KRATOS_CATCH("")
@@ -657,16 +656,16 @@ namespace Kratos {
         }
 
         GetModelPart().GetCommunicator().SynchronizeElementalFlags();
-        
+
         DestroyMarkedParticlesRebuildLists();
 
-        //std::cout << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
+        //KRATOS_WARNING("DEM") << "Mesh repair complete. In MPI node " <<GetModelPart().GetCommunicator().MyPID()<<". "<< particle_counter << " particles were removed. " << "\n" << std::endl;
         double total_spheres_removed = particle_counter;
         GetModelPart().GetCommunicator().SumAll(total_spheres_removed);
-        
+
         if(GetModelPart().GetCommunicator().MyPID() == 0) {
-            std::cout << "A total of "<<total_spheres_removed<<" spheres were removed due to excessive overlapping." << std::endl;
-        } 
+            KRATOS_WARNING("DEM") << "A total of "<<total_spheres_removed<<" spheres were removed due to excessive overlapping." << std::endl;
+        }
 
         KRATOS_CATCH("")
     }
@@ -747,11 +746,11 @@ namespace Kratos {
     void ContinuumExplicitSolverStrategy::FinalizeSolutionStep() {
         BaseType::FinalizeSolutionStep();
         FinalizeSolutionStepFEM();
-                
+
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         if (r_process_info[COMPUTE_STRESS_TENSOR_OPTION]) {
             const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
-            #pragma omp parallel 
+            #pragma omp parallel
             {
                 #pragma omp for
                 for (int i = 0; i < number_of_particles; i++) {
@@ -760,12 +759,12 @@ namespace Kratos {
                 #pragma omp for
                 for (int i = 0; i < number_of_particles; i++) {
                     mListOfSphericContinuumParticles[i]->GetStressTensorFromNeighbourStep2();
-                } 
+                }
                 #pragma omp for
                 for (int i = 0; i < number_of_particles; i++) {
                     mListOfSphericContinuumParticles[i]->GetStressTensorFromNeighbourStep3();
-                } 
-            }   
+                }
+            }
         }
     }
 
@@ -775,7 +774,7 @@ namespace Kratos {
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
         Vector rhs_cond;
-        vector<unsigned int> condition_partition;
+        DenseVector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
 
         #pragma omp parallel for private (rhs_cond)

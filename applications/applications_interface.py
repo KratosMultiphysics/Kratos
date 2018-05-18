@@ -14,7 +14,7 @@ Import_UmatApplication = False
 Import_MachiningApplication = False
 Import_StringDynamicsApplication = False
 Import_ConvectionDiffusionApplication = False
-Import_ALEApplication = False
+Import_MeshMovingApplication = False
 Import_IncompressibleFluidApplication = False
 Import_StructuralApplication = False
 Import_StructuralMechanicsApplication = False
@@ -39,7 +39,6 @@ Import_KratosSwimmingDEMApplication = False
 Import_KratosMixedElementApplication = False
 Import_ThermoMechanicalApplication = False
 Import_DEM_FEM_Application = False
-Import_WindTurbineApplication = False
 Import_MultiScaleApplication = False
 Import_ContactStructuralMechanicsApplication = False
 Import_KratosMappingApplication = False
@@ -59,7 +58,7 @@ print("Import_MachiningApplication: False")
 print("Import_StringDynamicsApplication: False")
 print("Import_ConvectionDiffusionApplication: False")
 print("Import_MeshingApplication: False")
-print("Import_ALEApplication: False")
+print("Import_MeshMovingApplication: False")
 print("Import_IncompressibleFluidApplication: False")
 print("Import_StructuralApplication: False")
 print("Import_StructuralMechanicsApplication: False")
@@ -83,7 +82,6 @@ print("Import_KratosSwimmingDEMApplication: False")
 print("Import_KratosMixedElementApplication: False")
 print("Import_ThermoMechanicalApplication: False")
 print("Import_DEM_FEM_Application: False")
-print("Import_WindTurbineApplication: False")
 print("Import_MultiScaleApplication: False")
 print("Import_ContactStructuralMechanicsApplication: False")
 print("Import_KratosMappingApplication: False")
@@ -107,7 +105,7 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_StringDynamicsApplication: " + str(Import_StringDynamicsApplication))
     print("Import_ConvectionDiffusionApplication: " + str(Import_ConvectionDiffusionApplication)
     print("Import_MeshingApplication: " + str(Import_MeshingApplication))
-    print("Import_ALEApplication: " + str(Import_ALEApplication))
+    print("Import_MeshMovingApplication: " + str(Import_MeshMovingApplication))
     print("Import_IncompressibleFluidApplication: " + str(Import_IncompressibleFluidApplication))
     print("Import_StructuralApplication: " + str(Import_StructuralApplication))
     print("Import_StructuralMechanicsApplication: " + str(Import_StructuralMechanicsApplication))
@@ -131,7 +129,6 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_KratosSwimmingDEMApplication:  " + str(Import_KratosSwimmingDEMApplication))
     print("Import_ThermoMechanicalApplication: " + str(Import_ThermoMechanicalApplication))
     print("Import_DEM_FEM_Application: " + str(Import_DEM_FEM_Application))
-    print("Import_WindTurbineApplication: " + str(Import_WindTurbineApplication))
     print("Import_MultiScaleApplication: " + str(Import_MultiScaleApplication))
     print("Import_ContactStructuralMechanicsApplication: " + str(Import_ContactStructuralMechanicsApplication))
     print("Import_KratosMappingApplication: " + str(Import_KratosMappingApplication))
@@ -246,14 +243,14 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.ImportApplication(meshing_application)
         print("KratosMeshingApplication sucessfully imported")
 
-    if(Import_ALEApplication):
-        print("importing KratosALEApplication ...")
-        sys.path.append(applications_path + '/ALEapplication/python_scripts')
-        sys.path.append(applications_path + '/ALEapplication/Linux')
-        from KratosALEApplication import *
-        ale_app = KratosALEApplication()
-        kernel.ImportApplication(ale_app)
-        print("KratosALEApplication Succesfully imported")
+    if(Import_MeshMovingApplication):
+        print("importing KratosMeshMovingApplication ...")
+        sys.path.append(applications_path + '/MeshMovingApplication/python_scripts')
+        sys.path.append(applications_path + '/MeshMovingApplication/Linux')
+        from KratosMeshMovingApplication import *
+        mesh_moving_app = KratosMeshMovingApplication()
+        kernel.ImportApplication(mesh_moving_app)
+        print("KratosMeshMovingApplication Succesfully imported")
 
     if(Import_IncompressibleFluidApplication):
         print("importing KratosIncompressibleFluidApplication ...")
@@ -447,14 +444,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.ImportApplication(dem_fem_application)
         print("KratosDem_Fem_Application sucessfully imported")
 
-    if(Import_WindTurbineApplication):
-        print("importing KratosWindTurbineApplication ...")
-        sys.path.append(applications_path + '/wind_turbine_application/python_scripts')
-        from KratosWindTurbineApplication import *
-        wind_turbine_application = KratosWindTurbineApplication()
-        kernel.ImportApplication(wind_turbine_application)
-        print("KratosWindTurbineApplication sucessfully imported")
-
     if(Import_MultiScaleApplication):
         print("importing KratosMultiscaleApplication ...")
         sys.path.append(applications_path + '/MultiScaleApplication/python_scripts')
@@ -513,8 +502,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(pfem_fluid_dynamics_application)
     if(Import_StringDynamicsApplication):
         kernel.InitializeApplication(string_dynamics_application)
-    if(Import_ALEApplication):
-        kernel.InitializeApplication(ale_app)
+    if(Import_MeshMovingApplication):
+        kernel.InitializeApplication(mesh_moving_app)
     if(Import_IncompressibleFluidApplication):
         kernel.InitializeApplication(incompressible_fluid_application)
     if(Import_StructuralApplication):
@@ -567,8 +556,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(thermo_mechanical_application)
     if(Import_DEM_FEM_Application):
         kernel.InitializeApplication(dem_fem_application)
-    if(Import_WindTurbineApplication):
-        kernel.InitializeApplication(wind_turbine_application)
     if(Import_MultiScaleApplication):
         kernel.InitializeApplication(MultiScaleApplication)
     if(Import_ContactMechanicsApplication):

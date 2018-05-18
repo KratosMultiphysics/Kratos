@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
     ModelPart & rMainModelPart,
     Parameters ThisParameters
@@ -43,7 +43,6 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
         "final_string"                         : "",
         "inverted_search"                      : false,
         "dynamic_search"                       : false,
-        "double_formulation"                   : false,
         "predefined_master_slave"              : true
     })" );
 
@@ -97,7 +96,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
     // We identify the type of solution
     mTypeSolution =  TypeSolution::VectorLagrangeMultiplier;
     if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER) == false) {
-        if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(NORMAL_CONTACT_STRESS))
+        if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
             mTypeSolution = TypeSolution::NormalContactStress;
         else
             mTypeSolution = TypeSolution::ScalarLagrangeMultiplier;
@@ -107,7 +106,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::InitializeMortarConditions()
 {
     // Iterate in the conditions
@@ -126,7 +125,7 @@ void TreeContactSearch<TDim, TNumNodes>::InitializeMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::SetOriginDestinationModelParts(ModelPart& rModelPart)
 {
     // We check if the MasterSubModelPart already exists
@@ -208,7 +207,7 @@ void TreeContactSearch<TDim, TNumNodes>::SetOriginDestinationModelParts(ModelPar
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::ClearMortarConditions()
 {
     ResetContactOperators();
@@ -231,7 +230,7 @@ void TreeContactSearch<TDim, TNumNodes>::ClearMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::CreatePointListMortar()
 {
     // Clearing the vector
@@ -264,7 +263,7 @@ void TreeContactSearch<TDim, TNumNodes>::CreatePointListMortar()
 
 #ifdef KRATOS_DEBUG
     // NOTE: We check the list
-    for (unsigned int i_point = 0; i_point < mPointListDestination.size(); ++i_point )
+    for (IndexType i_point = 0; i_point < mPointListDestination.size(); ++i_point )
         mPointListDestination[i_point]->Check();
 //     KRATOS_INFO("Check list") << "The list is properly built" << std::endl;
 #endif
@@ -273,7 +272,7 @@ void TreeContactSearch<TDim, TNumNodes>::CreatePointListMortar()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::UpdatePointListMortar()
 {
     // We check if we are in a dynamic or static case
@@ -300,7 +299,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdatePointListMortar()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
 {
     // We update the list of points
@@ -321,10 +320,10 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
     const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) : false;
 
     // Some auxiliar values
-    const unsigned int allocation_size = mThisParameters["allocation_size"].GetInt();           // Allocation size for the vectors and max number of potential results
+    const IndexType allocation_size = mThisParameters["allocation_size"].GetInt();           // Allocation size for the vectors and max number of potential results
     const double search_factor = mThisParameters["search_factor"].GetDouble();                  // The search factor to be considered
     SearchTreeType type_search = ConvertSearchTree(mThisParameters["type_search"].GetString()); // The search tree considered
-    unsigned int bucket_size = mThisParameters["bucket_size"].GetInt();                         // Bucket size for kd-tree
+    IndexType bucket_size = mThisParameters["bucket_size"].GetInt();                         // Bucket size for kd-tree
 
     // Create a tree
     // It will use a copy of mNodeList (a std::vector which contains pointers)
@@ -354,7 +353,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
             // Initialize values
             PointVector points_found(allocation_size);
 
-            unsigned int number_points_found = 0;
+            IndexType number_points_found = 0;
 
             if (type_search == SearchTreeType::KdtreeInRadius) {
                 GeometryType& geometry = it_cond->GetGeometry();
@@ -379,8 +378,8 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
                 it_cond->GetGeometry().ShapeFunctionsValues( N_min, local_point_min );
                 it_cond->GetGeometry().ShapeFunctionsValues( N_max, local_point_max );
 
-                const array_1d<double,3>& normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
-                const array_1d<double,3>& normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
+                const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, it_cond->GetGeometry());
+                const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, it_cond->GetGeometry());
 
                 ContactUtilities::ScaleNode<NodeType>(min_point, normal_min, length_search);
                 ContactUtilities::ScaleNode<NodeType>(max_point, normal_max, length_search);
@@ -395,7 +394,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
 
             #ifdef KRATOS_DEBUG
                 // NOTE: We check the list
-                for (unsigned int i_point = 0; i_point < number_points_found; ++i_point )
+                for (IndexType i_point = 0; i_point < number_points_found; ++i_point )
                     points_found[i_point]->Check();
 //                 KRATOS_INFO("Check search") << "The search is properly done" << std::endl;
             #endif
@@ -404,7 +403,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
 
                 // If not active we check if can be potentially in contact
                 if (mCheckGap == CheckGap::MappingCheck) {
-                    for (unsigned int i_point = 0; i_point < number_points_found; ++i_point ) {
+                    for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                         Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
                         const CheckResult condition_checked_right = CheckCondition(indexes_set, (*it_cond.base()), p_cond_master, mInvertedSearch);
                         if (condition_checked_right == CheckResult::OK) indexes_set->AddId(p_cond_master->Id());
@@ -443,7 +442,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
@@ -461,24 +460,13 @@ void TreeContactSearch<TDim, TNumNodes>::AddPairing(
         // We activate the condition and initialize it
         p_auxiliar_condition->Set(ACTIVE, true);
         p_auxiliar_condition->Initialize();
-        if (mThisParameters["double_formulation"].GetBool()) {
-            ++rConditionId;
-            Condition::Pointer p_auxiliar_condition = rComputingModelPart.CreateNewCondition(mConditionName, rConditionId, pCondMaster->GetGeometry(), pCondMaster->pGetProperties());
-            // We set the geometrical values
-            p_auxiliar_condition->SetValue(PAIRED_GEOMETRY, pCondSlave->pGetGeometry());
-            p_auxiliar_condition->SetValue(NORMAL, pCondMaster->GetValue(NORMAL));
-            p_auxiliar_condition->SetValue(PAIRED_NORMAL, pCondSlave->GetValue(NORMAL));
-            // We activate the condition and initialize it
-            p_auxiliar_condition->Set(ACTIVE, true);
-            p_auxiliar_condition->Initialize();
-        }
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::AddPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
@@ -495,7 +483,7 @@ void TreeContactSearch<TDim, TNumNodes>::AddPairing(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::CheckMortarConditions()
 {
     // Iterate in the conditions
@@ -525,7 +513,7 @@ void TreeContactSearch<TDim, TNumNodes>::CheckMortarConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::InvertSearch()
 {
     mInvertedSearch = !mInvertedSearch;
@@ -534,7 +522,7 @@ void TreeContactSearch<TDim, TNumNodes>::InvertSearch()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::ClearScalarMortarConditions(NodesArrayType& NodesArray)
 {
     #pragma omp parallel for
@@ -548,7 +536,7 @@ void TreeContactSearch<TDim, TNumNodes>::ClearScalarMortarConditions(NodesArrayT
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::ClearComponentsMortarConditions(NodesArrayType& NodesArray)
 {
     #pragma omp parallel for
@@ -562,25 +550,25 @@ void TreeContactSearch<TDim, TNumNodes>::ClearComponentsMortarConditions(NodesAr
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::ClearALMFrictionlessMortarConditions(NodesArrayType& NodesArray)
 {
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(NodesArray.size()); ++i) {
         auto it_node = NodesArray.begin() + i;
         if (it_node->Is(ACTIVE) == false)
-            (NodesArray.begin() + i)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+            (NodesArray.begin() + i)->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::ComputeLinearRegressionGapPressure(
-        double& a,
-        double& b
-        )
+    double& a,
+    double& b
+    )
 {
     // Initialize the n
     SizeType n = 0;
@@ -605,7 +593,13 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeLinearRegressionGapPressu
 
         if (it_node->Is(ACTIVE)) {
             xi = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-            yi = it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+            if (mTypeSolution == TypeSolution::NormalContactStress) {
+                yi = it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+            } else {
+                const array_1d<double, 3>& lm = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
+                yi = inner_prod(lm, normal);
+            }
             sum_x += xi;
             sum_xsq += std::pow(xi, 2);
             sum_y += yi;
@@ -623,7 +617,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeLinearRegressionGapPressu
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline double TreeContactSearch<TDim, TNumNodes>::GetMaxNodalH()
 {
     // We iterate over the nodes
@@ -651,7 +645,7 @@ inline double TreeContactSearch<TDim, TNumNodes>::GetMaxNodalH()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline double TreeContactSearch<TDim, TNumNodes>::GetMeanNodalH()
 {
     // We iterate over the nodes
@@ -674,7 +668,7 @@ inline double TreeContactSearch<TDim, TNumNodes>::GetMeanNodalH()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline typename TreeContactSearch<TDim, TNumNodes>::CheckResult TreeContactSearch<TDim, TNumNodes>::CheckCondition(
     IndexSet::Pointer IndexesSet,
     const Condition::Pointer pCond1,
@@ -710,7 +704,7 @@ inline typename TreeContactSearch<TDim, TNumNodes>::CheckResult TreeContactSearc
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::NotPredefinedMasterSlave(ModelPart& rModelPart)
 {
     // We iterate over the conditions
@@ -786,7 +780,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::NotPredefinedMasterSlave(ModelPa
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline IndexType TreeContactSearch<TDim, TNumNodes>::ReorderConditionsIds()
 {
     ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
@@ -803,25 +797,26 @@ inline IndexType TreeContactSearch<TDim, TNumNodes>::ReorderConditionsIds()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId,
     Condition::Pointer pCondSlave,
     PointVector& rPointsFound,
-    const unsigned int NumberOfPointsFound,
+    const IndexType NumberOfPointsFound,
     IndexSet::Pointer IndexesSet
     )
 {
     // Some auxiliar values
     const double active_check_factor = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR];
     const double tolerance = std::numeric_limits<double>::epsilon();
+    const bool frictional = mrMainModelPart.IsDefined(SLIP) ? mrMainModelPart.Is(SLIP) : false;
 
     // Slave geometry
     GeometryType& geom_slave = pCondSlave->GetGeometry();
     const array_1d<double, 3>& normal_slave = pCondSlave->GetValue(NORMAL);
 
-    for (unsigned int i_point = 0; i_point < NumberOfPointsFound; ++i_point ) {
+    for (IndexType i_point = 0; i_point < NumberOfPointsFound; ++i_point ) {
         bool at_least_one_node_potential_contact = false;
 
         // Master condition
@@ -832,7 +827,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
             const array_1d<double, 3>& normal_master = p_cond_master->GetValue(NORMAL);
             GeometryType& geom_master = p_cond_master->GetGeometry();
 
-            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 if (geom_slave[i_node].Is(ACTIVE) == false) {
                     Point projected_point;
                     double aux_distance = 0.0;
@@ -846,46 +841,30 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
                     if (aux_distance <= geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_master.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                         at_least_one_node_potential_contact = true;
                         geom_slave[i_node].Set(ACTIVE, true);
+                        if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional)
+                            if (norm_2(geom_slave[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance)
+                                geom_slave[i_node].Set(SLIP, false);
                     }
 
                     aux_distance = MortarUtilities::FastProjectDirection(geom_master, geom_slave[i_node], projected_point, normal_master, -normal_master);
                     if (aux_distance <= geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_master.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                         at_least_one_node_potential_contact = true;
                         geom_slave[i_node].Set(ACTIVE, true);
+                        if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional)
+                            if (norm_2(geom_slave[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance)
+                                geom_slave[i_node].Set(SLIP, false);
                     }
                 } else
                     at_least_one_node_potential_contact = true;
             }
-            if (mThisParameters["double_formulation"].GetBool()) {
-                for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-                    if (geom_master[i_node].Is(ACTIVE) == false) {
-                        Point projected_point;
-                        double aux_distance = 0.0;
-                        const array_1d<double, 3> normal = geom_master[i_node].GetValue(NORMAL);
-                        if (norm_2(normal) < tolerance)
-                            aux_distance = MortarUtilities::FastProjectDirection(geom_slave, geom_master[i_node], projected_point, normal_master, normal_master);
-                        else
-                            aux_distance = MortarUtilities::FastProjectDirection(geom_slave, geom_master[i_node], projected_point, normal_master, normal);
-
-                        array_1d<double, 3> result;
-                        if (aux_distance <= geom_master[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_slave.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
-                            at_least_one_node_potential_contact = true;
-                            geom_master[i_node].Set(ACTIVE, true);
-                        }
-
-                        aux_distance = MortarUtilities::FastProjectDirection(geom_slave, geom_master[i_node], projected_point, normal_master, -normal_master);
-                        if (aux_distance <= geom_master[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_slave.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
-                            at_least_one_node_potential_contact = true;
-                            geom_master[i_node].Set(ACTIVE, true);
-                        }
-                    } else
-                        at_least_one_node_potential_contact = true;
-                }
-            }
         } else {
             at_least_one_node_potential_contact = true;
-            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 geom_slave[i_node].Set(ACTIVE, true);
+                if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && frictional)
+                        if (norm_2(geom_slave[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance)
+                            geom_slave[i_node].Set(SLIP, false);
+            }
         }
 
         if (at_least_one_node_potential_contact)
@@ -896,7 +875,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
     ModelPart& rComputingModelPart,
     IndexType& rConditionId
@@ -919,8 +898,6 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
 
     // We compute the gap in the slave
     ComputeMappedGap(!mInvertedSearch);
-    if (mThisParameters["double_formulation"].GetBool())
-        ComputeMappedGap(mInvertedSearch);
 
     // We revert the nodes to the original position
     NodesArrayType& nodes_array = rcontact_model_part.Nodes();
@@ -950,7 +927,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::ComputeMappedGap(const bool SearchOrientation)
 {
     // Some auxiliar values
@@ -1025,7 +1002,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeMappedGap(const bool Sear
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::ComputeActiveInactiveNodes()
 {
     // Some auxiliar values
@@ -1062,12 +1039,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeActiveInactiveNodes()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::SetActiveNode(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     if (ItNode->Is(ACTIVE) ) {
         switch(mTypeSolution) {
@@ -1110,7 +1087,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::SetActiveNode(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::SetInactiveNode(NodesArrayType::iterator ItNode)
 {
     if (ItNode->Is(ACTIVE) ) {
@@ -1123,7 +1100,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::SetInactiveNode(NodesArrayType::
                 ItNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
                 break;
             case TypeSolution::NormalContactStress :
-                ItNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+                ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
                 break;
         }
     }
@@ -1135,12 +1112,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::SetInactiveNode(NodesArrayType::
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectScalarMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1148,12 +1125,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectScalarMortarLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1161,17 +1138,17 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectComponentsMortarLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
 //     const double old_weighted_gap = ItNode->FastGetSolutionStepValue(WEIGHTED_GAP, 1);
     const double current_weighted_gap = ItNode->FastGetSolutionStepValue(WEIGHTED_GAP);
 
-    double& current_contact_stress = ItNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    double& current_contact_stress = ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
 
     // Apply linear regression
     const double aux_press = a + current_weighted_gap * b;
@@ -1211,12 +1188,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessMortarLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1224,12 +1201,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionlessComponents
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionalMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1237,12 +1214,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::CorrectALMFrictionalMortarLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictScalarMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1250,12 +1227,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictScalarMortarLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1263,12 +1240,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictComponentsMortarLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
 //     // The penalty to be use (TODO: think about use the nodal penalty)
 //     ProcessInfo& current_process_info = mrMainModelPart.GetProcessInfo(); // TODO: Avoid call the process info each time
@@ -1280,7 +1257,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessMortarLM(
 //     const double nodal_area = ItNode->GetValue(NODAL_AREA);
 //     const bool current_penetration = (current_weighted_gap < 0.0) ? true : false;
 //
-    double& current_contact_stress = ItNode->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    double& current_contact_stress = ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
 
     // Apply linear regression
     const double aux_press = a + current_weighted_gap * b;
@@ -1298,12 +1275,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessMortarLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
 //     // The penalty to be use (TODO: think about use the nodal penalty)
 //     ProcessInfo& current_process_info = mrMainModelPart.GetProcessInfo(); // TODO: Avoid call the process info each time
@@ -1337,12 +1314,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionlessComponents
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionalMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        )
+    NodesArrayType::iterator ItNode,
+    const double a,
+    const double b
+    )
 {
     // TODO: Add correction
 }
@@ -1350,26 +1327,30 @@ inline void TreeContactSearch<TDim, TNumNodes>::PredictALMFrictionalMortarLM(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::ComputeWeightedReaction()
 {
+    // Auxiliar zero array
+    const array_1d<double, 3> zero_array(3, 0.0);
+
     // Auxiliar gap
     ModelPart& rcontact_model_part = mrMainModelPart.GetSubModelPart("Contact");
+    NodesArrayType& nodes_array = rcontact_model_part.Nodes();
     switch(mTypeSolution) {
         case TypeSolution::VectorLagrangeMultiplier :
             if (mrMainModelPart.Is(SLIP)) {
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, rcontact_model_part.Nodes());
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SLIP, 0.0, rcontact_model_part.Nodes());
+                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
             } else if (mrMainModelPart.Is(CONTACT)) {
-                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, rcontact_model_part.Nodes());
+                VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
             } else
-                VariableUtils().SetVectorVar(WEIGHTED_VECTOR_RESIDUAL, ZeroVector(3), rcontact_model_part.Nodes());
+                VariableUtils().SetVectorVar(WEIGHTED_VECTOR_RESIDUAL, zero_array, nodes_array);
             break;
         case TypeSolution::ScalarLagrangeMultiplier :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SCALAR_RESIDUAL, 0.0, rcontact_model_part.Nodes());
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SCALAR_RESIDUAL, 0.0, nodes_array);
             break;
         case TypeSolution::NormalContactStress :
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, rcontact_model_part.Nodes());
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
             break;
     }
     ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
@@ -1385,7 +1366,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeWeightedReaction()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::CreateAuxiliarConditions(
     ModelPart& rContactModelPart,
     ModelPart& rComputingModelPart,
@@ -1410,13 +1391,13 @@ inline void TreeContactSearch<TDim, TNumNodes>::CreateAuxiliarConditions(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 inline double TreeContactSearch<TDim, TNumNodes>::Radius(GeometryType& ThisGeometry)
 {
     double radius = 0.0;
     const Point& center = ThisGeometry.Center();
 
-    for(unsigned int i_node = 0; i_node < ThisGeometry.PointsNumber(); ++i_node)  {
+    for(IndexType i_node = 0; i_node < ThisGeometry.PointsNumber(); ++i_node)  {
         const array_1d<double, 3>& aux_vector = center.Coordinates() - ThisGeometry[i_node].Coordinates();
         const double aux_value = inner_prod(aux_vector, aux_vector);
         if(aux_value > radius) radius = aux_value;
@@ -1428,7 +1409,7 @@ inline double TreeContactSearch<TDim, TNumNodes>::Radius(GeometryType& ThisGeome
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::ResetContactOperators()
 {
     ConditionsArrayType& conditions_array = mrMainModelPart.GetSubModelPart("Contact").Conditions();
@@ -1460,7 +1441,7 @@ void TreeContactSearch<TDim, TNumNodes>::ResetContactOperators()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 typename TreeContactSearch<TDim, TNumNodes>::SearchTreeType TreeContactSearch<TDim, TNumNodes>::ConvertSearchTree(const std::string& str)
 {
     KRATOS_ERROR_IF(str == "KDOP") << "KDOP contact search: Not yet implemented" << std::endl;
@@ -1478,7 +1459,7 @@ typename TreeContactSearch<TDim, TNumNodes>::SearchTreeType TreeContactSearch<TD
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<unsigned int TDim, unsigned int TNumNodes>
+template<std::size_t TDim, std::size_t TNumNodes>
 typename TreeContactSearch<TDim, TNumNodes>::CheckGap TreeContactSearch<TDim, TNumNodes>::ConvertCheckGap(const std::string& str)
 {
     if(str == "NoCheck" || str == "no_check")

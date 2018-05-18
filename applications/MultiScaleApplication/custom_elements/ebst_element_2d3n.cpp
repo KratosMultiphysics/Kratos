@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define EBST_ELEM_NUM_IP 1
 #if EBST_ELEM_NUM_IP==1
-#define EBST_SIMULATE_2D  
+#define EBST_SIMULATE_2D
 #endif // EBST_ELEM_NUM_IP==1
 
 
@@ -536,7 +536,7 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVaria
 		boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
 
 		WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
-	
+
 		//fill the aux matrix of coordinates
 		for (unsigned int i = 0; i < 3; i++)
 		{
@@ -550,7 +550,7 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVaria
 			ms_coord(i + 3, 1) = neigb[i].Y();
 			ms_coord(i + 3, 2) = neigb[i].Z();
 		}
-	
+
 		//compute phis on center and all gauss points
 		boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiM;
 		boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG1;
@@ -606,7 +606,7 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVaria
 		DN(2, 5) = mdcgM(0, 2);
 
 		noalias(msB_f) = 2.0 * prod(DN, msL1);
-	
+
 		//take care ... in msB_f we miss the second part of Eqn 62!
 		array_1d<double, 3 > h00, h11, h01;
 		Calculate_h_ab(h00, 0, 0, phiG1, phiG2, phiG3, mdcgM);
@@ -634,7 +634,7 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVaria
 		const double& N22 = mdcgM(1, 1);
 		const double& N31 = mdcgM(0, 2);
 		const double& N32 = mdcgM(1, 2);
-	
+
 		boost::numeric::ublas::bounded_matrix<double, 3, 3 > m;
 		m(0, 0) = 2 * (N11 * ro111 + N12 * ro211);
 		m(1, 0) = 2 * (N11 * ro122 + N12 * ro222);
@@ -671,7 +671,7 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVaria
 		{
 			noalias(mK0) = bending_strain;
 		}
-	
+
 		//subtract to the curvature the original curvature
 		noalias(bending_strain) -= mK0;
 
@@ -751,11 +751,11 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVaria
 			boost::numeric::ublas::bounded_matrix<double, 3, 3 > Dmat_f;
 			double h_on_h0;
 			CalculateEquivalentStresses(
-				membrane_strain, bending_strain, 
-				Dmat_m, Dmat_f, 
-				membrane_stress, bending_stress, 
+				membrane_strain, bending_strain,
+				Dmat_m, Dmat_f,
+				membrane_stress, bending_stress,
 				h_on_h0,rCurrentProcessInfo,phi1);
-			
+
 			array_1d<double,6> temp;
 			array_1d<double,6> global_stress;
 			array_1d<double,3>& v1 = phi1;
@@ -787,8 +787,8 @@ void EBSTElement2D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVaria
 	}
 }
 
-void EBSTElement2D3N::SetValueOnIntegrationPoints(const Variable<double>& rVariable, 
-												   std::vector<double>& rValues, 
+void EBSTElement2D3N::SetValueOnIntegrationPoints(const Variable<double>& rVariable,
+												   std::vector<double>& rValues,
 												   const ProcessInfo& rCurrentProcessInfo)
 {
 	if(rValues.size() == mConstitutiveLawVector.size())
@@ -796,8 +796,8 @@ void EBSTElement2D3N::SetValueOnIntegrationPoints(const Variable<double>& rVaria
 			mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
 }
 
-void EBSTElement2D3N::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, 
-												   std::vector<Vector>& rValues, 
+void EBSTElement2D3N::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+												   std::vector<Vector>& rValues,
 												   const ProcessInfo& rCurrentProcessInfo)
 {
 	if(rValues.size() == mConstitutiveLawVector.size())
@@ -805,8 +805,8 @@ void EBSTElement2D3N::SetValueOnIntegrationPoints(const Variable<Vector>& rVaria
 			mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
 }
 
-void EBSTElement2D3N::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
-												   std::vector<Matrix>& rValues, 
+void EBSTElement2D3N::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+												   std::vector<Matrix>& rValues,
 												   const ProcessInfo& rCurrentProcessInfo)
 {
 	if(rValues.size() == mConstitutiveLawVector.size())
@@ -847,7 +847,7 @@ void EBSTElement2D3N::CalculateAll(
     boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
 
     WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
-	
+
     //fill the aux matrix of coordinates
     for (unsigned int i = 0; i < 3; i++)
     {
@@ -861,7 +861,7 @@ void EBSTElement2D3N::CalculateAll(
         ms_coord(i + 3, 1) = neigb[i].Y();
         ms_coord(i + 3, 2) = neigb[i].Z();
     }
-	
+
     //compute phis on center and all gauss points
     boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiM;
     boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG1;
@@ -917,7 +917,7 @@ void EBSTElement2D3N::CalculateAll(
     DN(2, 5) = mdcgM(0, 2);
 
     noalias(msB_f) = 2.0 * prod(DN, msL1);
-	
+
     //take care ... in msB_f we miss the second part of Eqn 62!
     array_1d<double, 3 > h00, h11, h01;
     Calculate_h_ab(h00, 0, 0, phiG1, phiG2, phiG3, mdcgM);
@@ -945,7 +945,7 @@ void EBSTElement2D3N::CalculateAll(
     const double& N22 = mdcgM(1, 1);
     const double& N31 = mdcgM(0, 2);
     const double& N32 = mdcgM(1, 2);
-	
+
     boost::numeric::ublas::bounded_matrix<double, 3, 3 > m;
     m(0, 0) = 2 * (N11 * ro111 + N12 * ro211);
     m(1, 0) = 2 * (N11 * ro122 + N12 * ro222);
@@ -982,7 +982,7 @@ void EBSTElement2D3N::CalculateAll(
     {
         noalias(mK0) = bending_strain;
     }
-	
+
     //subtract to the curvature the original curvature
     noalias(bending_strain) -= mK0;
 
@@ -1009,11 +1009,11 @@ void EBSTElement2D3N::CalculateAll(
     boost::numeric::ublas::bounded_matrix<double, 3, 3 > Dmat_f;
     double h_on_h0;
     CalculateEquivalentStresses(
-		membrane_strain, bending_strain, 
-		Dmat_m, Dmat_f, 
-		membrane_stress, bending_stress, 
+		membrane_strain, bending_strain,
+		Dmat_m, Dmat_f,
+		membrane_stress, bending_stress,
 		h_on_h0,rCurrentProcessInfo,phi1);
-	
+
     //bending contribution to the elemental stiffness
     boost::numeric::ublas::bounded_matrix<double, 3, 18 > aux;
     noalias(aux) = prod(Dmat_f, msB_f);
@@ -1025,7 +1025,7 @@ void EBSTElement2D3N::CalculateAll(
 
     //adding the geometric membrane stiffness
     CalculateAndAdd_Membrane_Kg(msK, mdcg1, mdcg2, mdcg3, membrane_stress);
-	
+
     //calculate rhs
     array_1d<double, 18 > rhs_full = ZeroVector(18);
     /*const array_1d<double, 3 > & aaa = GetProperties()[BODY_FORCE];
@@ -1080,7 +1080,7 @@ void EBSTElement2D3N::CalculateAll(
         }
     }
 
-	
+
 
     //add the first 9*9 block
     for (unsigned int i = 0; i < 18; i++)
@@ -1718,7 +1718,7 @@ void EBSTElement2D3N::CalculateEquivalentStresses(
     mstrains(1,1) = strain[1];
     mstrains(1,2) = strain[2];
 #ifndef EBST_SIMULATE_2D
-	mConstitutiveLawVector[1]->CalculateMaterialResponseCauchy(parameters);  
+	mConstitutiveLawVector[1]->CalculateMaterialResponseCauchy(parameters);
 #endif // !EBST_SIMULATE_2D
 	noalias(Dmat_m)             += membrane_weight * D;
     noalias(membrane_stress)    += membrane_weight * stress;
@@ -1737,7 +1737,7 @@ void EBSTElement2D3N::CalculateEquivalentStresses(
     mstrains(2,1) = strain[1];
     mstrains(2,2) = strain[2];
 #ifndef EBST_SIMULATE_2D
-	mConstitutiveLawVector[2]->CalculateMaterialResponseCauchy(parameters);  
+	mConstitutiveLawVector[2]->CalculateMaterialResponseCauchy(parameters);
 #endif // !EBST_SIMULATE_2D
 	noalias(Dmat_m)             += membrane_weight * D;
     noalias(membrane_stress)    += membrane_weight * stress;
@@ -1756,7 +1756,7 @@ void EBSTElement2D3N::CalculateEquivalentStresses(
     mstrains(3,1) = strain[1];
     mstrains(3,2) = strain[2];
 #ifndef EBST_SIMULATE_2D
-	mConstitutiveLawVector[3]->CalculateMaterialResponseCauchy(parameters);  
+	mConstitutiveLawVector[3]->CalculateMaterialResponseCauchy(parameters);
 #endif // !EBST_SIMULATE_2D
 	noalias(Dmat_m)             += membrane_weight * D;
     noalias(membrane_stress)    += membrane_weight * stress;

@@ -741,7 +741,7 @@ public:
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        boost::numeric::ublas::vector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 8 );
+        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 8 );
         /*vector<double>*/
         ShapeFunctionsValuesInIntegrationPoint = row(
                 CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ),
@@ -1470,7 +1470,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
