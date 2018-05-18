@@ -341,11 +341,11 @@ class MonolithicSolver(object):
             if( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) and (not scalar_dof_method_set) ):
                 scalar_integration_methods[dof].CalculateParameters(self.process_info)
                 scalar_dof_method_set = True
-                print("::[Scalar_dof]:: ",dof," ",scalar_integration_methods[dof])
+                print("::[Integration]:: ",scalar_integration_methods[dof],"(",dof,")")
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) and (not vector_dof_method_set) ):
                 component_integration_methods[dof+"_X"].CalculateParameters(self.process_info)
                 vector_dof_method_set = True
-                print("::[Vector_dof]:: ",dof," ",component_integration_methods[dof+"_X"])
+                print("::[Integration]:: ",component_integration_methods[dof+"_X"],"(",dof,")")
 
         return scalar_integration_methods, component_integration_methods
 

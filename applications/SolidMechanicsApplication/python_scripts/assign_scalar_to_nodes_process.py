@@ -207,13 +207,13 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                     self.TimeIntegrationMethod = time_integration_methods.Get(method_variable_name).Clone()
 
 
-        if( self.TimeIntegrationMethod == None ):
-            print(self.variable_name+": No time integration ")
-        else:
+        if( self.TimeIntegrationMethod != None ):
             self.fix_time_integration = True
             #set input variable
             input_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.variable_name)
             self.TimeIntegrationMethod.SetInputVariable(input_variable)
+        #else:
+        #    print(self.variable_name+": No time integration ")
 
     #
     def CreateAssignmentProcess(self, params):
