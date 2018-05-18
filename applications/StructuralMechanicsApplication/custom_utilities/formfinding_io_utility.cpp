@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Anna Rehr 
+//  Main authors:    Anna Rehr
 //
-	        
+
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -27,10 +27,11 @@
 namespace Kratos
 {
 
-	FormfindingIOUtility::FormfindingIOUtility(ModelPart& rModelPart, const Parameters rParameter): 
+	FormfindingIOUtility::FormfindingIOUtility(ModelPart& rModelPart, const Parameters rParameter):
 		mModelPart(rModelPart)
 		{}
-    void FormfindingIOUtility::PrintModelPart(){
+    void FormfindingIOUtility::PrintModelPart()
+    {
 
 		KRATOS_INFO("FormfindingIOUtility") << "Attention: Removing internal modelpart data. The modelpart will not work in the same way as before." << std::endl;
 		// erase nodal data
@@ -52,20 +53,21 @@ namespace Kratos
     	// erase conditional data
     	for( auto& cond: mModelPart.Conditions())
     	        cond.Data().Clear();
-    	
+
 		// erase properties
 		for( auto& prop: mModelPart.rProperties())
 			prop.Data().Clear();
-		
+
 
 		// Write ModelPart
     	ModelPartIO model_part_io("formfinding_out", IO::WRITE);
     	model_part_io.WriteModelPart(mModelPart);
-		
+
 	}
 
-	void FormfindingIOUtility::PrintPrestressData(){
-
+	void FormfindingIOUtility::PrintPrestressData()
+    {
+        KRATOS_ERROR << "This function is currently not working, use \"PrintModelPart\" instead"  << std::endl;
 		// erase elemental data
     	for( auto& ele: mModelPart.Elements()){
     	    const Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get("MEMBRANE_PRESTRESS");
@@ -76,16 +78,16 @@ namespace Kratos
     	    }
     	    else
     	        ele.Data().Clear();
-
     	}
 
 		// write prestress data
 		ModelPartIO model_part_io_prestress("prestress_data", IO::WRITE);
-    	model_part_io_prestress.WriteDataBlock(mModelPart.Elements(), "Element");
+    	// model_part_io_prestress.WriteDataBlock(mModelPart.Elements(), "Element");
 
 	}
 
-	void FormfindingIOUtility::ReadPrestressData(){
+	void FormfindingIOUtility::ReadPrestressData()
+    {
 		ModelPartIO model_part_io("prestress_data", IO::READ);
 		model_part_io.ReadInitialValues(mModelPart);
 	}
