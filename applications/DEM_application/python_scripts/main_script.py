@@ -450,12 +450,7 @@ class Solution(object):
             self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
 
             #Phantom
-            self.MakeAnalyticsMeasurements()
-            if self.IsTimeToPrintPostProcess():  # or IsCountStep()
-                #self.FlushFluxData()
-                for sub_part in self.rigid_face_model_part.SubModelParts:
-                    if sub_part[IS_GHOST] == True:
-                        self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
+            self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
 
             '''
             if self.analytic_data_counter.Tick():
@@ -463,16 +458,30 @@ class Solution(object):
             '''
 
             self.BeforePrintingOperations(self.time)
-
-            #### GiD IO ##########################################
-            if self.IsTimeToPrintPostProcess():
-                self.PrintResultsForGid(self.time)
-                self.time_old_print = self.time
+            
+            self.PrintResults()
+            
 
             self.FinalizeTimeStep(self.time)
+            
+    def RunAnalytics(self, time, is_time_to_print=True):
+        
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:  # or IsCountStep()
+            #self.FlushFluxData()
+            for sub_part in self.rigid_face_model_part.SubModelParts:
+                if sub_part[IS_GHOST] == True:
+                    self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(time)
 
-    def IsTimeToPrintPostProcess(self):
-        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.dt
+    def IsTimeToPrintPostProcess(self, time):
+        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.dt
+    
+    def PrintResults(self):
+        #### GiD IO ##########################################
+        if self.IsTimeToPrintPostProcess(self.time):
+            self.PrintResultsForGid(self.time)
+            self.time_old_print = self.time
+        
 
     def SolverSolve(self):
         self.solver.Solve()

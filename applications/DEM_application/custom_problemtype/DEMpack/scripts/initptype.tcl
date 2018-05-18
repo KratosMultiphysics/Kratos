@@ -160,7 +160,7 @@ proc kipt::BeforeMeshGeneration {elementsize} {
 	set groupid "-AKGSkinMesh3D"
 	::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid
 	# Find boundaries
-	set bsurfacelist [::wkcf::FindBoundariesOfNonSphericElements $entitytype]
+	set bsurfacelist [::wkcf::FindBoundaries_no_spheric_elems $entitytype]
 	#
 	::wkcf::AssignGeometricalEntitiesToSkinSphere3D
 	# Get the surface type list
