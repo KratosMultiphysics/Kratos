@@ -2,10 +2,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosPfemFluidDynamicsApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemApplication )
-include(pybind11Tools)
+
 
 #if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
 #    message(SEND_ERROR "The Solid Mechanics Application must be compiled before this one. Set SOLID_MECHANICS_APPLICATION=ON in the configure file.")
@@ -57,11 +60,9 @@ set_target_properties(KratosPfemFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosPfemFluidDynamicsApplication MODULE ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosPfemFluidDynamicsApplication PRIVATE KratosCore) 
+pybind11_add_module(KratosPfemFluidDynamicsApplication MODULE THIN_LTO ${KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosPfemFluidDynamicsApplication PRIVATE KratosPfemFluidDynamicsCore) 
 set_target_properties(KratosPfemFluidDynamicsApplication PROPERTIES PREFIX "")
-install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )
-
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
@@ -83,6 +84,14 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosPfemFluidDynamicsCore)
+    cotire(KratosPfemFluidDynamicsApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosPfemFluidDynamicsCore DESTINATION libs )
+install(TARGETS KratosPfemFluidDynamicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PfemFluidDynamicsApplication.py" DESTINATION KratosMultiphysics )

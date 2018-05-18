@@ -7,7 +7,7 @@
 //
 //
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/node.h"
@@ -40,7 +40,7 @@
 
 namespace Kratos
 {
-	
+
   namespace Python
   {
 
@@ -54,58 +54,58 @@ namespace Kratos
 
 
 
-      class_<RecoverVolumeLossesProcess, bases<ProcessBaseType> >
+      class_<RecoverVolumeLossesProcess, ProcessBaseType>
 	(m, "RecoverVolumeLosses")
 	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
 
-      class_<RemoveMeshNodesForFluidsProcess, bases<ProcessBaseType> >
+      class_<RemoveMeshNodesForFluidsProcess, ProcessBaseType>
       	(m, "RemoveMeshNodesForFluids")
 	.def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>());
 
-      class_<GenerateNewNodesBeforeMeshingProcess, bases<ProcessBaseType> >
+      class_<GenerateNewNodesBeforeMeshingProcess, ProcessBaseType>
       	(m, "GenerateNewNodesBeforeMeshing")
 	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
 
-      class_<SelectMeshElementsForFluidsProcess, bases<ProcessBaseType> >
+      class_<SelectMeshElementsForFluidsProcess, ProcessBaseType>
 	(m, "SelectMeshElementsForFluids")
 	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
 
-      class_<InletManagementProcess, bases<ProcessBaseType> >
+      class_<InletManagementProcess, ProcessBaseType>
       	(m, "InletManagement")
 	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
 
-      class_<SetInletProcess, bases<ProcessBaseType> >
+      class_<SetInletProcess, ProcessBaseType>
       	(m, "SetInlet")
 	.def(init<ModelPart&, int>());
 
-      class_<SplitElementsProcess, bases<ProcessBaseType> >
+      class_<SplitElementsProcess, ProcessBaseType>
 	(m,"SplitElementsProcess")
 	.def(init<ModelPart&, int>());
 
-      class_<SetActiveFlagProcess,  bases<ProcessBaseType> >
+      class_<SetActiveFlagProcess, ProcessBaseType>
 	(m, "SetActiveFlagProcess")
 	.def(init<ModelPart&, bool, bool, int>());
 
-      class_<AdaptiveTimeIntervalProcess, bases<ProcessBaseType> >
+      class_<AdaptiveTimeIntervalProcess, ProcessBaseType>
       	(m, "AdaptiveTimeIntervalProcess")
 	.def(init<ModelPart&, int>());
 
-     class_<ModelStartEndMeshingForFluidsProcess, bases<ModelStartEndMeshingProcessType> >
+     class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingProcessType>
        (m, "ModelMeshingForFluids")
        .def(init<ModelPart&, Flags, int>());
 
       //**********TRANSFER ELEMENTS TO MODEL PART*********//
 
-      class_<TransferModelPartElementsProcess, bases<ProcessBaseType> >
+      class_<TransferModelPartElementsProcess, ProcessBaseType>
       	(m, "TransferModelPartElementsProcess")
-	.def(init<ModelPart&, ModelPart&>());
+	  .def(init<ModelPart&, ModelPart&>())
         .def("Execute", &TransferModelPartElementsProcess::Execute)
       	;
-      
 
-    }	
- 
- 
+
+    }
+
+
   }  // namespace Python.
 
 } // Namespace Kratos

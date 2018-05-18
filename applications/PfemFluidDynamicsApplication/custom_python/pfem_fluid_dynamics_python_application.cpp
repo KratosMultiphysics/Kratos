@@ -41,9 +41,9 @@ namespace Kratos
 
       class_<KratosPfemFluidDynamicsApplication,
 	     KratosPfemFluidDynamicsApplication::Pointer,
-	     KratosApplication(m, "KratosPfemFluidDynamicsApplication")
-	     .def(init<>());
-	;
+	     KratosApplication>(m, "KratosPfemFluidDynamicsApplication")
+	     .def(init<>())
+	    ;
 
       AddCustomProcessesToPython(m);
       AddCustomUtilitiesToPython(m);

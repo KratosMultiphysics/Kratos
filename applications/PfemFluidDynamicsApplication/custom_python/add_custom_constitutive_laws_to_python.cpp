@@ -9,7 +9,7 @@
 
 // System includes
 #include <pybind11/pybind11.h>
-#include <pybind11/st1.h>
+//#include <pybind11/stl.h>
 // External includes
 
 
@@ -22,10 +22,6 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/properties.h"
-
-#include "python/pointer_vector_set_python_interface.h"
-#include "python/variable_indexing_python.h"
-#include "python/add_mesh_to_python.h"
 
 
 //Application includes
@@ -54,6 +50,6 @@ namespace Kratos
     {
 
     }
-    
+
   }  // namespace Python.
 }  // namespace Kratos.
