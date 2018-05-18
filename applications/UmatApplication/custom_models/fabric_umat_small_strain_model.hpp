@@ -152,9 +152,8 @@ namespace Kratos
             return 16;
          };
 
-         virtual void InitializeStateVariables( Vector& rStateVariables) override;
+         virtual void InitializeStateVariables( Vector& rStateVariables, const Properties & rMaterialProperties) override;
         
-         virtual void SetInitialStressTEMPORARY(VectorType & rStressVector) override;
          /*
             Create the vector with constitutive parameters value
           */
