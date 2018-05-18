@@ -130,6 +130,7 @@ class Solution(object):
 
     def SetAnalyticFaceWatcher(self):
         from analytic_tools import analytic_data_procedures
+        self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
         self.face_watcher_dict = dict()
         self.face_watcher_analyser = dict()
         for sub_part in self.rigid_face_model_part.SubModelParts:
@@ -449,39 +450,35 @@ class Solution(object):
 
             self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
 
-            #Phantom
-            self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
-
             '''
             if self.analytic_data_counter.Tick():
                 self.ProcessAnalyticData()
             '''
 
             self.BeforePrintingOperations(self.time)
-            
+
             self.PrintResults()
-            
+
 
             self.FinalizeTimeStep(self.time)
-            
+
     def RunAnalytics(self, time, is_time_to_print=True):
-        
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:  # or IsCountStep()
-            #self.FlushFluxData()
-            for sub_part in self.rigid_face_model_part.SubModelParts:
-                if sub_part[IS_GHOST] == True:
-                    self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(time)
+            self.FaceAnalyzerClass.CreateNewFile()
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                self.face_watcher_analyser[sp.Name].UpdateDataFiles(time)
+            self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self, time):
         return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.dt
-    
+
     def PrintResults(self):
         #### GiD IO ##########################################
         if self.IsTimeToPrintPostProcess(self.time):
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
-        
+
 
     def SolverSolve(self):
         self.solver.Solve()
@@ -511,9 +508,12 @@ class Solution(object):
     def AfterSolveOperations(self):
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess():
+            if self.IsTimeToPrintPostProcess(self.time):
                 self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+
+        #Phantom
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
 
     def FinalizeTimeStep(self, time):
         pass

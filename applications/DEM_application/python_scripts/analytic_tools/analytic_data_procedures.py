@@ -1,4 +1,6 @@
 import os
+import numpy as np
+import h5py
 
 class ParticleWatcherAnalyzer:
     def __init__(self, analytic_particle_watcher, path, do_clear_data = True):
@@ -23,16 +25,44 @@ class FaceWatcherAnalyzer:
         self.mass_data_base_names = []
         self.n_particles_accumulated = 0
         self.mass_accumulated = 0.0
-        self.folder_path = path
-        self.file_path = path + '/flux_data.hdf5'
         self.inlet = None
 
-        if os.path.exists(self.file_path):
-            os.remove(self.file_path)
+        self.folder_path = path
+        self.file_path = path + '/flux_data_new.hdf5'
+        self.old_file_path = self.file_path.replace('_new.hdf5', '.hdf5')
+
+        FaceWatcherAnalyzer.file_path = self.file_path
+        FaceWatcherAnalyzer.file_path_old =self.old_file_path
+        FaceWatcherAnalyzer.RemoveFiles()
+
+    @staticmethod
+    def RemoveFiles():
+        new_path = FaceWatcherAnalyzer.file_path
+        old_path = FaceWatcherAnalyzer.file_path_old
+        for path in (p for p in [new_path, old_path] if os.path.exists(p)):
+            os.remove(path)
+
+    @staticmethod
+    def CreateNewFile():
+        new_path = FaceWatcherAnalyzer.file_path
+        old_path = FaceWatcherAnalyzer.file_path_old
+        if os.path.exists(new_path):
+            os.rename(new_path, old_path)
+
+        h5py.File(new_path)
+
+    @staticmethod
+    def RemoveOldFile():
+        old_path = FaceWatcherAnalyzer.file_path_old
+        f = h5py.File(old_path)
+        if os.path.exists(old_path):
+            os.remove(old_path)
 
     def MakeReading(self):
         times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [], [], [], [], []
         self.face_watcher.GetTotalFlux(times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass)
+        lists = [times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass]
+        times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [np.array(l) for l in lists]
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
@@ -53,9 +83,6 @@ class FaceWatcherAnalyzer:
         return self.GetJointData(self.mass_data_base_names)
 
     def GetJointData(self, data_base_names):
-        import h5py
-        import numpy as np
-
         data_list = []
 
         with h5py.File(self.file_path, 'r') as f:
@@ -75,18 +102,18 @@ class FaceWatcherAnalyzer:
         return acc_number_flux, acc_mass_flux
 
     def CalculateAccumulated(self, original_list, old_accumulated = 0):
-        import numpy as np
         new_accumulated = np.cumsum(np.array(original_list)) + old_accumulated
         return new_accumulated
 
+    def GroupExists(self):
+        return os.path.exists(self.old_file_path)
 
     def UpdateDataFiles(self, time):
-        import h5py
-        import numpy as np
-        shape, time, n_particles, mass, vel_nr_mass, vel_tg_mass = np.array(self.MakeReading())  # initial with 1 for each surface, should be one for each condition in each surface
+        print('time', time)
+        shape, time, n_particles, mass, vel_nr_mass = self.MakeReading()[:-1]  # initial with 1 for each surface, should be one for each condition in each surface
+        print('group_name', self.face_watcher_name)
         if np.sum(mass) != 0.0:
             avg_vel_nr = vel_nr_mass/mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
-            #avg_vel_tg = vel_tg_mass/mass  # is this rlly useful for something?
         else:
             avg_vel_nr = mass*0.0
             avg_vel_tg = mass*0.0
@@ -98,60 +125,50 @@ class FaceWatcherAnalyzer:
         # group2 = f.create_group('group2/subfolder')
         # group2.create_dataset('data',data=d)
 
-        with h5py.File(self.file_path, 'a') as f:
-            if  self.face_watcher_name in f:
-                f['/' + self.face_watcher_name + '/times_old'] = f['/' + self.face_watcher_name + '/time']
-                del f['/' + self.face_watcher_name + '/time']
-                times_db_old = f['/' + self.face_watcher_name + '/times_old']
+        def CreateDataSets(f, current_shape):
+            surface_data = f.require_group(self.face_watcher_name)
+            surface_data.attrs['Surface Identifier'] = self.face_watcher_name
+            time_db = surface_data.require_dataset('time', shape = current_shape, dtype = np.float64)
+            n_particles_db = surface_data.require_dataset(name_n_particles, shape = current_shape, dtype = np.int64)
+            mass_db = surface_data.require_dataset(name_mass, shape = current_shape, dtype = np.float64)
+            avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = np.float64)
+            return time_db, n_particles_db, mass_db, avg_vel_nr_db
 
-                f['/' + self.face_watcher_name + '/n_particles_old'] = f['/' + self.face_watcher_name + '/'+ name_n_particles]
-                del f['/' + self.face_watcher_name + '/'+ name_n_particles]
-                n_particles_db_old = f['/' + self.face_watcher_name + '/n_particles_old']
+        if self.GroupExists():
 
-                f['/' + self.face_watcher_name + '/mass_old'] = f['/' + self.face_watcher_name + '/'+ name_mass]
-                del f['/' + self.face_watcher_name + '/'+ name_mass]
-                mass_db_old = f['/' + self.face_watcher_name + '/mass_old']
+            with h5py.File(self.file_path) as f, h5py.File(self.old_file_path, 'r') as f_old:
+                shape_old = f_old['/' + self.face_watcher_name + '/time'].shape
+                current_shape = (shape_old[0] + shape[0], )
+                time_db, n_particles_db, mass_db, avg_vel_nr_db = CreateDataSets(f, current_shape)
+                current_surface = f['/' + self.face_watcher_name]
 
-                f['/' + self.face_watcher_name + '/mass_avg_normal_vel_old'] = f['/' + self.face_watcher_name + '/'+ name_avg_vel_nr]
-                del f['/' + self.face_watcher_name + '/'+ name_avg_vel_nr]
-                avg_vel_nr_db_old = f['/' + self.face_watcher_name + '/mass_avg_normal_vel_old']
+                print('shape_old', shape_old)
+                print('shape', shape)
+                print('current_shape', current_shape)
+                print('time.shape', time.shape)
+                print('time_db.shape', time_db.shape)
 
-                current_shape = (times_db_old.shape[0]+shape[0], )
+                time_db[:shape_old[0]] = f_old['/' + self.face_watcher_name + '/time'][:]
+                time_db[shape_old[0]:] = time[:]
+                n_particles_db[:shape_old[0]] = f_old['/' + self.face_watcher_name + '/' + name_n_particles][:]
+                n_particles_db[shape_old[0]:] = n_particles[:]
+                mass_db[:shape_old[0]] = f_old['/' + self.face_watcher_name + '/' + name_mass][:]
+                mass_db[shape_old[0]:] = mass[:]
+                avg_vel_nr_db[:shape_old[0]] = f_old['/' + self.face_watcher_name + '/' + name_avg_vel_nr][:]
+                avg_vel_nr_db[shape_old[0]:] = avg_vel_nr[:]
 
-                times_db = []; n_particles_db = []; mass_db = []; avg_vel_nr_db = []
-                times_db[:times_db_old.shape[0]] = times_db_old[:]
-                times_db[times_db_old.shape[0]:] = time[:]
+        else:
+            with h5py.File(self.file_path) as f:
+                time_db, n_particles_db, mass_db, avg_vel_nr_db = CreateDataSets(f, shape)
+                time_db[:] = time[:]
+                n_particles_db[:] = n_particles[:]
+                mass_db[:] = mass[:]
+                avg_vel_nr_db[:] = avg_vel_nr[:]
 
-                n_particles_db[:n_particles_db_old.shape[0]] = n_particles_db_old[:]
-                n_particles_db[n_particles_db_old.shape[0]:] = n_particles[:]
-
-                mass_db[:mass_db_old.shape[0]] = mass_db_old[:]
-                mass_db[mass_db_old.shape[0]:] = mass[:]
-
-                avg_vel_nr_db[:avg_vel_nr_db_old.shape[0]] = avg_vel_nr_db_old[:]
-                avg_vel_nr_db[avg_vel_nr_db_old.shape[0]:] = avg_vel_nr[:]
-
-                surface_data = f.require_group(self.face_watcher_name)
-                surface_data.require_dataset('time', data = times_db, shape = current_shape, dtype = np.float64)
-                del f['/' + self.face_watcher_name + '/times_old']
-                surface_data.require_dataset(name_n_particles, data = n_particles_db, shape = current_shape, dtype = np.float64)
-                del f['/' + self.face_watcher_name + '/n_particles_old']
-                surface_data.require_dataset(name_mass, data = mass_db, shape = current_shape, dtype = np.float64)
-                del f['/' + self.face_watcher_name + '/mass_old']
-                surface_data.require_dataset(name_avg_vel_nr, data = avg_vel_nr_db, shape = current_shape, dtype = np.float64)
-                del f['/' + self.face_watcher_name + '/mass_avg_normal_vel_old']
-            else:
-                surface_data = f.require_group(self.face_watcher_name)
-                surface_data.attrs['Surface Identifier'] = self.face_watcher_name
-                surface_data.require_dataset('time', data = time, shape = shape, dtype = np.float64)
-                surface_data.require_dataset(name_n_particles, data = n_particles, shape = shape, dtype = np.int64)
-                surface_data.require_dataset(name_mass, data = mass, shape = shape, dtype = np.float64)
-                surface_data.require_dataset(name_avg_vel_nr, data = avg_vel_nr, shape = shape, dtype = np.float64)
-
-            # how to extract data from h5 subgrouped datasets:
-            #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
-            #x_h5 = input_data.get('/patch/X')
-            #x = np.array(x_h5)
+        # how to extract data from h5 subgrouped datasets:
+        #input_data = h5py.File('Cemib_P660_SpreadPattern.dat.hdf5','r')
+        #x_h5 = input_data.get('/patch/X')
+        #x = np.array(x_h5)
 
         if self.do_clear_data:
             if len(n_particles):
