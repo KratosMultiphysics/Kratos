@@ -20,8 +20,6 @@
 
 // Project includes
 
-#include "custom_processes/custom_hole_cutting_process.h"
-
 // System includes
 #include <iostream>
 #include <string>
@@ -29,7 +27,6 @@
 #include "math.h"
 
 // External includes
-#include <boost/python.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -97,9 +94,25 @@ class CustomHoleCuttingProcess
 	{
 		std::size_t operator()(const vector<int> &k) const
 		{
-			return boost::hash_range(k.begin(), k.end());
+			std::size_t seed = 0.0;
+			std::hash<int> hasher;
+
+			for (std::size_t i = 0; i < k.size(); i++)
+			{
+				seed ^= hasher(k[i]) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+			}
+
+			return seed;
 		}
+
 	};
+
+/*
+
+
+
+*/
+
 
 	///@name Type Definitions
 	///@{
@@ -278,8 +291,8 @@ class CustomHoleCuttingProcess
 		std::cout << "::[Surface Mesh Extraction]::" << std::endl;
 
 		// Some type-definitions
-		typedef boost::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
-		typedef boost::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
+		typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
+		typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
 
 		// Create map to ask for number of faces for the given set of node ids representing on face in the model part
 		hashmap n_faces_map;
@@ -424,8 +437,8 @@ class CustomHoleCuttingProcess
 		std::cout << "::[Boundary Mesh Extraction]::" << std::endl;
 
 		// Some type-definitions
-		typedef boost::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
-		typedef boost::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
+		typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
+		typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
 
 		// Create map to ask for number of edges for the given set of node ids representing on edge in the model part
 		hashmap n_edges_map;

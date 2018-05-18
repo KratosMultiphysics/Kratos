@@ -22,7 +22,8 @@
 
 //#include "custom_processes/spalart_allmaras_turbulence_model_for_chimera.h"
 #include "custom_processes/custom_hole_cutting_process.h"
-#include "custom_processes/apply_chimera_process.h"
+#include "custom_processes/apply_chimera_process_Monolithic.h"
+#include "custom_processes/apply_chimera_process_FractionalStep.h"
 #include "custom_processes/custom_calculate_signed_distance_process.h"
 #include "custom_processes/calculate_signed_distance_to_2d_condition_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
@@ -38,27 +39,41 @@ using namespace pybind11;
 void AddCustomProcessesToPython(pybind11::module& m)
 {
 
-	/*
-	 * ApplyChimeraProcess for 2d and 3d
-	 */
-	class_<ApplyChimeraProcess<2>, Process>(m, "ApplyChimeraProcess2d")
+	class_<ApplyChimeraProcessMonolithic<2>, Process>(m, "ApplyChimeraProcessMonolithic2d")
 		.def(init< ModelPart&, Parameters >())
-		.def("ApplyMpcConstraint", &ApplyChimeraProcess<2>::ApplyMpcConstraint)
-		.def("FormulateChimera2D", &ApplyChimeraProcess<2>::FormulateChimera)
-		.def("SetOverlapDistance",&ApplyChimeraProcess<2>::SetOverlapDistance)
-		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcess<2>::CalculateNodalAreaAndNodalMass)
-		.def("SetType",&ApplyChimeraProcess<2>::SetType)
+		.def("ApplyMpcConstraint", &ApplyChimeraProcessMonolithic<2>::ApplyMpcConstraint)
+		.def("FormulateChimera2D", &ApplyChimeraProcessMonolithic<2>::FormulateChimera)
+		.def("SetOverlapDistance",&ApplyChimeraProcessMonolithic<2>::SetOverlapDistance)
+		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessMonolithic<2>::CalculateNodalAreaAndNodalMass)
+		.def("SetType",&ApplyChimeraProcessMonolithic<2>::SetType)
 		;
 
-	class_<ApplyChimeraProcess<3>, Process>(m, "ApplyChimeraProcess3d")
+	class_<ApplyChimeraProcessMonolithic<3>, Process>(m, "ApplyChimeraProcessMonolithic3d")
 		.def(init< ModelPart&, Parameters >())
-		.def("ApplyMpcConstraint", &ApplyChimeraProcess<3>::ApplyMpcConstraint)
-		.def("FormulateChimera2D", &ApplyChimeraProcess<3>::FormulateChimera)
-		.def("SetOverlapDistance",&ApplyChimeraProcess<3>::SetOverlapDistance)
-		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcess<3>::CalculateNodalAreaAndNodalMass)
-		.def("SetType",&ApplyChimeraProcess<3>::SetType)
+		.def("ApplyMpcConstraint", &ApplyChimeraProcessMonolithic<3>::ApplyMpcConstraint)
+		.def("FormulateChimera2D", &ApplyChimeraProcessMonolithic<3>::FormulateChimera)
+		.def("SetOverlapDistance",&ApplyChimeraProcessMonolithic<3>::SetOverlapDistance)
+		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessMonolithic<3>::CalculateNodalAreaAndNodalMass)
+		.def("SetType",&ApplyChimeraProcessMonolithic<3>::SetType)
 		;
 
+	class_<ApplyChimeraProcessFractionalStep<2>, Process>(m, "ApplyChimeraProcessFractionalStep2d")
+		.def(init< ModelPart&, Parameters >())
+		.def("ApplyMpcConstraint", &ApplyChimeraProcessFractionalStep<2>::ApplyMpcConstraint)
+		.def("FormulateChimera2D", &ApplyChimeraProcessFractionalStep<2>::FormulateChimera)
+		.def("SetOverlapDistance",&ApplyChimeraProcessFractionalStep<2>::SetOverlapDistance)
+		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessFractionalStep<2>::CalculateNodalAreaAndNodalMass)
+		.def("SetType",&ApplyChimeraProcessFractionalStep<2>::SetType)
+		;
+
+	class_<ApplyChimeraProcessFractionalStep<3>, Process>(m, "ApplyChimeraProcessFractionalStep3d")
+		.def(init< ModelPart&, Parameters >())
+		.def("ApplyMpcConstraint", &ApplyChimeraProcessFractionalStep<3>::ApplyMpcConstraint)
+		.def("FormulateChimera2D", &ApplyChimeraProcessFractionalStep<3>::FormulateChimera)
+		.def("SetOverlapDistance",&ApplyChimeraProcessFractionalStep<3>::SetOverlapDistance)
+		.def("CalculateNodalAreaAndNodalMass",&ApplyChimeraProcessFractionalStep<3>::CalculateNodalAreaAndNodalMass)
+		.def("SetType",&ApplyChimeraProcessFractionalStep<3>::SetType)
+		;
 
 	/* class_<ApplyChimeraProcess<3>,bases<Process> >("ApplyChimeraProcess3d", init< ModelPart&, Parameters >())
 			.def("ApplyMpcConstraint", &ApplyChimeraProcess<3>::ApplyMpcConstraint)

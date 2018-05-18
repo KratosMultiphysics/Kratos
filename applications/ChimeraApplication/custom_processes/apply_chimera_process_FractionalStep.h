@@ -9,8 +9,8 @@
 // ==============================================================================
 //
 
-#if !defined(KRATOS_CUSTOM_APPLY_CHIMERA_USING_CHIMERA_H_INCLUDED)
-#define KRATOS_CUSTOM_APPLY_CHIMERA_USING_CHIMERA_H_INCLUDED
+#if !defined(KRATOS_CUSTOM_APPLY_CHIMERA_FRACTIONALSTEP_H_INCLUDED)
+#define KRATOS_CUSTOM_APPLY_CHIMERA_FRACTIONALSTEP_H_INCLUDED
 
 // System includes
 
@@ -28,7 +28,6 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/kratos_flags.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "geometries/geometry_data.h"
 #include "includes/variables.h"
@@ -75,7 +74,7 @@ namespace Kratos
 
 template <std::size_t TDim>
 
-class ApplyChimeraProcess : public Process
+class ApplyChimeraProcessFractionalStep : public Process
 {
   public:
 	///@name Type Definitions
@@ -83,8 +82,8 @@ class ApplyChimeraProcess : public Process
 
 	///@}
 	///@name Pointer Definitions
-	/// Pointer definition of ApplyChimeraProcess
-	KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcess);
+	/// Pointer definition of ApplyChimeraProcessFractionalStep
+	KRATOS_CLASS_POINTER_DEFINITION(ApplyChimeraProcessFractionalStep);
 	typedef ProcessInfo::Pointer ProcessInfoPointerType;
 	typedef typename BinBasedFastPointLocator<TDim>::Pointer BinBasedPointLocatorPointerType;
 	typedef ModelPart::ConditionsContainerType ConditionsArrayType;
@@ -104,98 +103,66 @@ class ApplyChimeraProcess : public Process
 	///@name Life Cycle
 	///@{
 
-	ApplyChimeraProcess(ModelPart &MainModelPart, Parameters rParameters) : Process(Flags()), mrMainModelPart(MainModelPart), m_parameters(rParameters)
+	ApplyChimeraProcessFractionalStep(ModelPart &MainModelPart, Parameters rParameters) : Process(Flags()), mrMainModelPart(MainModelPart), m_parameters(rParameters)
 	{
 
 		Parameters default_parameters(R"(
             {
-                "process_name":"apply_chimera_process",
+                "process_name":"apply_chimera_process_fractionalstep",
                     "background": {
 									"model_part_name":"GENERIC_background",
-									"pressure_coupling":"",
-									"type" : "nearest_element",
-									"IsWeak" : true
+									"pressure_coupling":"all"
                                   },
                 	"patch" :     {
 									"model_part_name":"GENERIC_patch",
-									"pressure_coupling" : "one",
-									"type" : "nearest_element",
-									"IsWeak" : true
+									"pressure_coupling" : "all"
                                   },
+					"type" : "nearest_element",
+					"IsWeak" : true,
 					"pressure_coupling_node" : 0.0,
                     "patch_boundary_model_part_name":"GENERIC_patchBoundary",
-					"overlap_distance":0.045,
-					"solution_strategy":"monolithic"
+					"overlap_distance":0.045
             })");
 
 		m_background_model_part_name = m_parameters["background"]["model_part_name"].GetString();
 		m_patch_model_part_name = m_parameters["patch"]["model_part_name"].GetString();
 		m_patch_boundary_model_part_name = m_parameters["patch_boundary_model_part_name"].GetString();
-		m_type_patch = m_parameters["patch"]["type"].GetString();
-		m_solution_strategy_name = m_parameters["solution_strategy"].GetString();
-		m_type_background = m_parameters["background"]["type"].GetString();
+		m_type = m_parameters["type"].GetString();
 		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
 
 		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
 		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
 
 		ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
-		if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
+		if (info->GetValue(MPC_DATA_CONTAINER) == nullptr)
 			info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
 
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
-		if(m_solution_strategy_name=="monolithic")
-		{
-			this->pMpcPatch = MpcDataPointerType(new MpcData(m_type_patch));
-			this->pMpcBackground = MpcDataPointerType(new MpcData(m_type_background));
-			this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
-			this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
+		this->pMpcVelocity = MpcDataPointerType(new MpcData(m_type));
+		this->pMpcPressure = MpcDataPointerType(new MpcData(m_type));
 
-			this->pMpcPatch->SetName(m_patch_model_part_name);
-			this->pMpcBackground->SetName(m_background_model_part_name);
-			this->pMpcPatch->SetActive(true);
-			this->pMpcBackground->SetActive(true);
+		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
+		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
-			MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
-			(*mpcDataVector).push_back(pMpcPatch);
-			(*mpcDataVector).push_back(pMpcBackground);
-		}
-		else
-		{
+		this->pMpcVelocity->SetName("MPC_Velocity");
+		this->pMpcPressure->SetName("MPC_Pressure");
 
-			this->pMpcPatchVelocity = MpcDataPointerType(new MpcData(m_type_patch));
-			this->pMpcPatchPressure = MpcDataPointerType(new MpcData(m_type_patch));
-			this->pMpcBackgroundVelocity = MpcDataPointerType(new MpcData(m_type_background));
-			this->pMpcBackgroundPressure = MpcDataPointerType(new MpcData(m_type_background));
-			this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
-			this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
+		this->pMpcVelocity->SetActive(true);
+		this->pMpcPressure->SetActive(true);
 
-			this->pMpcPatchVelocity->SetName(m_patch_model_part_name+"Velocity");
-			this->pMpcPatchPressure->SetName(m_patch_model_part_name+"Pressure");
-			this->pMpcBackgroundVelocity->SetName(m_background_model_part_name+"Velocity");
-			this->pMpcBackgroundPressure->SetName(m_background_model_part_name+"Pressure");
-			this->pMpcPatchVelocity->SetActive(true);
-			this->pMpcPatchPressure->SetActive(true);
-			this->pMpcBackgroundVelocity->SetActive(true);
-			this->pMpcBackgroundPressure->SetActive(true);
-			this->pMpcPatchVelocity->SetVelocityOrPressure("Velocity");
-			this->pMpcPatchPressure->SetVelocityOrPressure("Pressure");
-			this->pMpcBackgroundVelocity->SetVelocityOrPressure("Velocity");
-			this->pMpcBackgroundPressure->SetVelocityOrPressure("Pressure");
+		this->pMpcVelocity->SetVelocityOrPressure("Velocity");
+		this->pMpcPressure->SetVelocityOrPressure("Pressure");
 
+		MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
+		(*mpcDataVector).push_back(pMpcVelocity);
+		(*mpcDataVector).push_back(pMpcPressure);
 
-			MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
-			(*mpcDataVector).push_back(pMpcPatchVelocity);
-			(*mpcDataVector).push_back(pMpcPatchPressure);
-			(*mpcDataVector).push_back(pMpcBackgroundVelocity);
-			(*mpcDataVector).push_back(pMpcBackgroundPressure);
-		}
 	}
 
 	/// Destructor.
-	virtual ~ApplyChimeraProcess()
+	virtual ~ApplyChimeraProcessFractionalStep()
 	{
 		Clear();
 	}
@@ -219,22 +186,9 @@ class ApplyChimeraProcess : public Process
 
 	virtual void Clear()
 	{
-		if(m_solution_strategy_name=="monolithic")
-		{
-			pMpcBackground->Clear();
-			pMpcPatch->Clear();
-			std::cout << "Monolithic Chimera process is cleared" << std::endl;
-		}
-		else if(m_solution_strategy_name=="fractionalstep")
-		{
-			pMpcPatchVelocity->Clear();
-			pMpcPatchPressure->Clear();
-			pMpcBackgroundVelocity->Clear();
-			pMpcBackgroundPressure->Clear();
-			std::cout << "FractionalStep Chimera process is cleared" << std::endl;
-		}
-
-
+		pMpcVelocity->Clear();
+		pMpcPressure->Clear();
+		std::cout << "FractionalStep Chimera process is cleared" << std::endl;
 	}
 
 	void ExecuteBeforeSolutionLoop() override
@@ -833,80 +787,26 @@ class ApplyChimeraProcess : public Process
 			CalculateNodalAreaAndNodalMass(rPatchBoundaryModelPart, 1);
 			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
 
-			if(m_solution_strategy_name=="monolithic")
+
+			std::cout<<"Formulate chimera for fractional step"<<std::endl;
+			pMpcVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
+			pMpcPressure->SetIsWeak(m_parameters["IsWeak"].GetBool());
+
+			std::string pr_coupling_patch = m_parameters["patch"]["pressure_coupling"].GetString();
+			std::string pr_coupling_background = m_parameters["background"]["pressure_coupling"].GetString();
+
+			if (m_type == "nearest_element")
 			{
-				pMpcPatch->SetIsWeak(m_parameters["patch"]["IsWeak"].GetBool());
-				pMpcBackground->SetIsWeak(m_parameters["background"]["IsWeak"].GetBool());
-
-				std::string pr_coupling_patch = m_parameters["patch"]["pressure_coupling"].GetString();
-				std::string pr_coupling_background = m_parameters["background"]["pressure_coupling"].GetString();
-
-				if (m_type_patch == "nearest_element")
-				{
-					ApplyMpcConstraint(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatch, pr_coupling_patch);
-					std::cout << "Patch boundary coupled with background" << std::endl;
-				}
-
-				else if (m_type_patch == "conservative")
-				{
-					ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatch, pr_coupling_patch);
-					std::cout << "Patch boundary coupled with background using conservative approach" << std::endl;
-				}
-
-				if (m_type_background == "nearest_element")
-				{
-					ApplyMpcConstraint(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackground, pr_coupling_background);
-					std::cout << "HoleBoundary  coupled with patch" << std::endl;
-				}
-
-				else if (m_type_background == "conservative")
-				{
-					ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackground, pr_coupling_background);
-					std::cout << "HoleBoundary  coupled with patch using conservative approach" << std::endl;
-				}
+				ApplyMpcConstraintForFractionalStep(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
+				ApplyMpcConstraintForFractionalStep(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure, pr_coupling_background);
+				std::cout << "Fractional : Patch boundary coupled with background" << std::endl;
 			}
-			else if(m_solution_strategy_name=="fractionalstep")
+			else if (m_type == "conservative")
 			{
-				std::cout<<"inside - formulate chimera for fractional step"<<std::endl;
-				pMpcPatchVelocity->SetIsWeak(m_parameters["patch"]["IsWeak"].GetBool());
-				pMpcPatchPressure->SetIsWeak(m_parameters["patch"]["IsWeak"].GetBool());
-				pMpcBackgroundVelocity->SetIsWeak(m_parameters["background"]["IsWeak"].GetBool());
-				pMpcBackgroundPressure->SetIsWeak(m_parameters["background"]["IsWeak"].GetBool());
-
-				std::string pr_coupling_patch = m_parameters["patch"]["pressure_coupling"].GetString();
-				std::string pr_coupling_background = m_parameters["background"]["pressure_coupling"].GetString();
-
-				if (m_type_patch == "nearest_element")
-				{
-					ApplyMpcConstraintForFractionalStep(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity,pMpcPatchPressure, pr_coupling_patch);
-					//ApplyMpcConstraintFractionalVelocity(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity, pr_coupling_patch);
-					//ApplyMpcConstraintFractionalPressure(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchPressure, pr_coupling_patch);
-					std::cout << "Fractional : Patch boundary coupled with background" << std::endl;
-				}
-
-				else if (m_type_patch == "conservative")
-				{
-					std::cout<<"Fractional step MPC Conservative not yet implemented "<<std::endl;
-					//ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchVelocity, pr_coupling_patch);
-					//ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPatchPressure, pr_coupling_patch);
-					std::cout << "Patch boundary coupled with background using conservative approach" << std::endl;
-				}
-
-				if (m_type_background == "nearest_element")
-				{
-					ApplyMpcConstraintForFractionalStep(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity,pMpcBackgroundPressure, pr_coupling_background);
-					//ApplyMpcConstraintFractionalVelocity(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity, pr_coupling_background);
-					//ApplyMpcConstraintFractionalPressure(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundPressure, pr_coupling_background);
-					std::cout << " Fractional : HoleBoundary  coupled with patch" << std::endl;
-				}
-
-				else if (m_type_background == "conservative")
-				{
-					std::cout<<"Fractional step MPC Conservative not yet implemented "<<std::endl;
-					//ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundVelocity, pr_coupling_background);
-					//ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcBackgroundPressure, pr_coupling_background);
-					std::cout << "HoleBoundary  coupled with patch using conservative approach" << std::endl;
-				}
+				std::cout<<"Fractional step MPC Conservative not yet implemented "<<std::endl;
+				//ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity, pr_coupling_patch);
+				//ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcPressure, pr_coupling_patch);
+				std::cout << "Patch boundary coupled with background using conservative approach" << std::endl;
 			}
 
 		}
@@ -918,28 +818,16 @@ class ApplyChimeraProcess : public Process
 		this->m_overlap_distance = distance;
 	}
 
-	void SetType(std::string model_part_string, std::string type)
+	void SetType(std::string type)
 	{
 		KRATOS_TRY
 		{
 			if ((type != "nearest_element") && (type != "conservative"))
 				KRATOS_THROW_ERROR("", "Second argument should be either nearest_element or conservative \n", "");
 
-			if (model_part_string == "patch")
-			{
-				this->m_type_patch = type;
-				pMpcPatch->SetType(this->m_type_patch);
-			}
-
-			else if (model_part_string == "background")
-			{
-				this->m_type_background = type;
-				pMpcBackground->SetType(this->m_type_background);
-			}
-
-			else
-
-				KRATOS_THROW_ERROR("", "First argument should be either patch or background \n", "");
+			this->m_type = type;
+			pMpcVelocity->SetType(this->m_type);
+			pMpcPressure->SetType(this->m_type);
 		}
 
 		KRATOS_CATCH("")
@@ -1237,8 +1125,8 @@ class ApplyChimeraProcess : public Process
 		*/
 	void SetActive(bool isActive = true)
 	{
-		pMpcPatch->SetActive(isActive);
-		pMpcBackground->SetActive(isActive);
+		pMpcPressure->SetActive(isActive);
+		pMpcVelocity->SetActive(isActive);
 	}
 
 	void SetRtMinvR(MpcDataPointerType pMpc, double value)
@@ -1283,24 +1171,24 @@ class ApplyChimeraProcess : public Process
 
 	virtual std::string Info() const
 	{
-		return "ApplyChimeraProcess";
+		return "ApplyChimeraProcessFractionalStep";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const
 	{
-		rOStream << "ApplyChimeraProcess";
+		rOStream << "ApplyChimeraProcessFractionalStep";
 	}
 
 	/// Print object's data.
 	virtual void PrintData(std::ostream &rOStream) const
 	{
 
-		std::cout << "\nNumber of  patch slave nodes :: " << std::endl;
-		pMpcPatch->GetInfo();
+		std::cout << "\nNumber of  Velocity slave nodes :: " << std::endl;
+		pMpcPressure->GetInfo();
 
-		std::cout << "\nNumber of  background slave nodes :: " << std::endl;
-		pMpcBackground->GetInfo();
+		std::cout << "\nNumber of  Pressure slave nodes :: " << std::endl;
+		pMpcVelocity->GetInfo();
 	}
 
 	///@}
@@ -1352,15 +1240,9 @@ class ApplyChimeraProcess : public Process
 	BinBasedPointLocatorPointerType pBinLocatorForBackground; // Template argument 3 stands for 3D case
 	BinBasedPointLocatorPointerType pBinLocatorForPatch;
 
-	//for monolithic
-	MpcDataPointerType pMpcPatch;
-	MpcDataPointerType pMpcBackground;
+	MpcDataPointerType pMpcVelocity;
+	MpcDataPointerType pMpcPressure;
 
-	// for fractional step
-	MpcDataPointerType pMpcPatchVelocity;
-	MpcDataPointerType pMpcPatchPressure;
-	MpcDataPointerType pMpcBackgroundVelocity;
-	MpcDataPointerType pMpcBackgroundPressure;
 
 	CustomHoleCuttingProcess::Pointer pHoleCuttingProcess;
 	typename CustomCalculateSignedDistanceProcess<TDim>::Pointer pCalculateDistanceProcess;
@@ -1371,9 +1253,7 @@ class ApplyChimeraProcess : public Process
 	std::string m_background_model_part_name;
 	std::string m_patch_boundary_model_part_name;
 	std::string m_patch_model_part_name;
-	std::string m_type_patch;
-	std::string m_type_background;
-	std::string m_solution_strategy_name;
+	std::string m_type;
 
 	// epsilon
 	//static const double epsilon;
@@ -1399,7 +1279,7 @@ class ApplyChimeraProcess : public Process
 	///@{
 
 	/// Assignment operator.
-	ApplyChimeraProcess &operator=(ApplyChimeraProcess const &rOther);
+	ApplyChimeraProcessFractionalStep &operator=(ApplyChimeraProcessFractionalStep const &rOther);
 
 	/// Copy constructor.
 	//CustomExtractVariablesProcess(CustomExtractVariablesProcess const& rOther);

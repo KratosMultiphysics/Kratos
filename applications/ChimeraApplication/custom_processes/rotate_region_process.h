@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ale_variables.h"
+#include "includes/variables.h"
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
