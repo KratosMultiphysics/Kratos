@@ -11,7 +11,7 @@
 namespace Kratos
 {
 
-class AnalyticRigidFace3D : public RigidFace3D
+class KRATOS_API(DEM_APPLICATION) AnalyticRigidFace3D : public RigidFace3D
 {
 public:
 
