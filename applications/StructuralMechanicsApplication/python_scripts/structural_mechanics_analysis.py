@@ -29,6 +29,14 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     It can be imported and used as "black-box"
     """
     def __init__(self, model, project_parameters):
+        # In case of the old format, where dT is given under "problem_data", copy it to solver settings
+        solver_settings = project_parameters["solver_settings"]
+        if not solver_settings.Has("time_stepping"):
+            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
+            time_stepping_params = KratosMultiphysics.Parameters("{}")
+            time_stepping_params.AddValue("time_step"), project_parameters["problem_data"]["time_step"]
+            solver_settings.AddValue("time_stepping", time_stepping_params)
+
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def OutputSolutionStep(self):

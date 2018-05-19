@@ -84,6 +84,7 @@ class MechanicalSolver(object):
                 "scaling": false,
                 "verbosity": 1
             },
+            "time_stepping"                : { },
             "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : []
@@ -277,7 +278,7 @@ class MechanicalSolver(object):
         return new_time
 
     def ComputeDeltaTime(self):
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def SetEchoLevel(self, level):
         self.get_mechanical_solution_strategy().SetEchoLevel(level)
