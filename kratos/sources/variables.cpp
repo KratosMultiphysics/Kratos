@@ -310,7 +310,6 @@ KRATOS_CREATE_VARIABLE(double, AMBIENT_TEMPERATURE)
 //for ULF (surface_tension) application:
 KRATOS_CREATE_VARIABLE(double, TRIPLE_POINT)
 KRATOS_CREATE_VARIABLE(double, CONTACT_ANGLE)
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SOLID_FRACTION_GRADIENT)
 
 //vectors
 
@@ -1024,7 +1023,6 @@ void KratosApplication::RegisterVariables() {
     //--------------- ULF Application (surface_tension) -------------------//
     KRATOS_REGISTER_VARIABLE(TRIPLE_POINT)
     KRATOS_REGISTER_VARIABLE(CONTACT_ANGLE)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SOLID_FRACTION_GRADIENT)
 
 
     //Register objects with general definition

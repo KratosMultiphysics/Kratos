@@ -415,7 +415,6 @@ namespace Kratos
     //for ULF (surface_tension) application:
     KRATOS_DEFINE_VARIABLE(double, TRIPLE_POINT)
     KRATOS_DEFINE_VARIABLE(double, CONTACT_ANGLE)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SOLID_FRACTION_GRADIENT)
 
     //for General kratos application:
 

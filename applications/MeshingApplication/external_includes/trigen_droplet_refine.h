@@ -1350,7 +1350,7 @@ private:
 	pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
 	pnode->FastGetSolutionStepValue(TRIPLE_POINT)=0.0;
 	pnode->FastGetSolutionStepValue(CONTACT_ANGLE)=0.0;
-	pnode->FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT_X)=0.0;
+	//pnode->FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT_X)=0.0;
 			
 	pnode->Set(TO_ERASE,false);
 
