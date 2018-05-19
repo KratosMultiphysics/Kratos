@@ -48,12 +48,6 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "DENSITY": DENSITY,
                         "VISCOSITY": VISCOSITY}
 
-#lagrangian_model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_JM)
-#lagrangian_model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_BM)
-#lagrangian_model_part.AddNodalSolutionStepVariable(DISSIPATIVE_FORCE_COEFF_SM)
-#lagrangian_model_part.AddNodalSolutionStepVariable(SOLID_AIR_SURFTENS_COEFF)
-#lagrangian_model_part.AddNodalSolutionStepVariable(SOLID_LIQIUD_SURFTENS_COEFF)
-
 #defining a model part for the fluid 
 lagrangian_model_part = ModelPart("LagrangianPart");
 
