@@ -34,10 +34,21 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if not solver_settings.Has("time_stepping"):
             KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
             time_stepping_params = KratosMultiphysics.Parameters("{}")
-            time_stepping_params.AddValue("time_step"), project_parameters["problem_data"]["time_step"]
+            time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
             solver_settings.AddValue("time_stepping", time_stepping_params)
 
+        # Create the ModelPart
+        # Note that this in temporary and will be done through the model in the future
+        main_model_part_name = project_parameters["problem_data"]["model_part_name"].GetString()
+        if model.HasModelPart(main_model_part_name):
+            self.main_model_part = model[main_model_part_name]
+        else:
+            self.main_model_part = KratosMultiphysics.ModelPart(main_model_part_name)
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
+                                                      project_parameters["problem_data"]["domain_size"].GetInt())
+
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+
 
     def OutputSolutionStep(self):
         super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
@@ -52,6 +63,40 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         import python_solvers_wrapper_structural
         return python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.project_parameters)
 
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of Processes
+        This method is temporary to not break existing code
+        It will be removed in the future
+        """
+        list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+
+        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
+        # Note 1: gravity is constructed first. Outlet process might need its information.
+        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
+        if parameter_name == "processes":
+            old_processes_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process"
+                "json_check_process", "check_analytic_results_process", "contact_process_list"]
+            if len(list_of_processes) == 0:
+                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                from process_factory import KratosProcessFactory
+                factory = KratosProcessFactory(self.model)
+                for process_name in old_processes_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
+            else:
+                for process_name in old_processes_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        raise Exception("Mixing of process initialization is not alowed!")
+        elif parameter_name == "output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                #KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                gid_output= self._SetUpGiDOutput()
+                list_of_processes += [gid_output,]
+        else:
+            raise NameError("wrong parameter name")
+
+        return list_of_processes
+
     def _SetUpGiDOutput(self):
         '''Initialize a GiD output instance'''
         self.__CheckForDeprecatedGiDSettings()
@@ -65,51 +110,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                                    self.project_parameters["output_configuration"])
 
         return gid_output
-
-    def _CreateProcesses(self, parameter_name, initialization_order):
-        """Create a list of Processes
-        This method is temporary to not break existing code
-        It will be removed in the future
-        """
-        list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
-
-        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
-        # Note 1: gravity is constructed first. Outlet process might need its information.
-        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        if len(list_of_processes) == 0:
-            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
-            from process_factory import KratosProcessFactory
-            factory = KratosProcessFactory(self.model)
-            list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
-            list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
-            if (self.project_parameters.Has("list_other_processes") is True):
-                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
-            if (self.project_parameters.Has("json_output_process") is True):
-                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
-            # Processes for tests
-            if (self.project_parameters.Has("json_check_process") is True):
-                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
-            if (self.project_parameters.Has("check_analytic_results_process") is True):
-                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
-            if (self.project_parameters.Has("contact_process_list") is True):
-                list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["contact_process_list"])
-        else:
-            if self.project_parameters.Has("constraints_process_list"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("loads_process_list"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("list_other_processes"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("json_output_process"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("json_check_process"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("check_analytic_results_process"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("contact_process_list"):
-                raise Exception("Mixing of process initialization is not alowed!")
-
-        return list_of_processes
 
     def _GetSimulationName(self):
         return "::[KSM Simulation]:: "

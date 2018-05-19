@@ -41,14 +41,6 @@ class AnalysisStage(object):
         else:
             self.is_printing_rank = True
 
-        main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        if self.model.HasModelPart(main_model_part_name):
-            self.main_model_part = self.model[main_model_part_name]
-        else:
-            self.main_model_part = KratosMultiphysics.ModelPart(main_model_part_name)
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
-                                                      self.project_parameters["problem_data"]["domain_size"].GetInt())
-
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
 
     def Run(self):
@@ -80,6 +72,10 @@ class AnalysisStage(object):
         self._GetSolver().ReadModelPart()
         self._GetSolver().PrepareModelPart()
         self._GetSolver().AddDofs()
+
+        # This is temporary until the Model is fully supported
+        if not self.model.HasModelPart(self.main_model_part.Name):
+            self.model.AddModelPart(self.main_model_part)
 
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -177,7 +173,6 @@ class AnalysisStage(object):
     def ApplyBoundaryConditions(self):
         """here the boundary conditions is applied, by calling the InitializeSolutionStep function of the processes"""
 
-        print(self._GetListOfProcesses())
         for process in self._GetListOfProcesses():
             process.ExecuteInitializeSolutionStep()
 
@@ -201,16 +196,12 @@ class AnalysisStage(object):
         if not hasattr(self, '_list_of_processes'):
             order_processes_initialization = self._GetOrderOfProcessesInitialization()
             self._list_of_processes = self._CreateProcesses("processes", order_processes_initialization)
-            print(self._list_of_processes)
         return self._list_of_processes
 
     def _GetListOfOutputProcesses(self):
         if not hasattr(self, '_list_of_output_processes'):
             order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
             self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
-
-            if self.project_parameters.Has("output_configuration"):
-                self._list_of_output_processes += self._SetUpGiDOutput()
 
             list_processes = self._GetListOfProcesses()
             list_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
@@ -225,25 +216,20 @@ class AnalysisStage(object):
         factory = KratosProcessFactory(self.model)
 
         if self.project_parameters.Has(parameter_name):
-            errr
-            processes = self.project_parameters[parameter_name]
+            TestMe
+            processes_params = self.project_parameters[parameter_name]
 
             # first initialize the processes that depend on the order
             for processes_names in initialization_order:
-                list_of_processes += factory.ConstructListOfProcesses(processes[processes_names])
+                if processes_params.Has(processes_names):
+                    list_of_processes += factory.ConstructListOfProcesses(processes_params[processes_names])
 
-            # first initialize the processes that don't depend on the order
-            for name, value in processes.items():
+            # them initialize the processes that don't depend on the order
+            for name, value in processes_params.items():
                 if not name in initialization_order:
                     list_of_processes += factory.ConstructListOfProcesses(value) # Does this work? or should it be processes[name]
 
         return list_of_processes
-
-    def _SetUpGiDOutput(self):
-        """This function can be implemented to initialize GiDIO in the old way
-        It will be removed at some point
-        """
-        pass
 
     def _GetOrderOfProcessesInitialization(self):
         """This function can be overridden in derived classes if the order of
@@ -258,6 +244,6 @@ class AnalysisStage(object):
         return []
 
     def _GetSimulationName(self):
-        """Returns the name of the AnalysisStage
+        """Returns the name of the Simulation
         """
         return "Analysis"

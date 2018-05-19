@@ -15,10 +15,14 @@ class FluidDynamicsAnalysis(AnalysisStage):
     def __init__(self,model,parameters):
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
+        # Create the ModelPart
+        # Note that this in temporary and will be done through the model in the future
+        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
+        self.main_model_part = Kratos.ModelPart(model_part_name)
+
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
-
 
     def OutputSolutionStep(self):
         super(FluidDynamicsAnalysis, self).OutputSolutionStep()
@@ -36,23 +40,26 @@ class FluidDynamicsAnalysis(AnalysisStage):
         # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        if len(list_of_processes) == 0:
-            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the processes, this will be removed!")
-            from process_factory import KratosProcessFactory
-            factory = KratosProcessFactory(self.model)
-            list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
-            list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
-            list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
-            list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
+        if parameter_name == "processes":
+            old_processes_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            if len(list_of_processes) == 0:
+                KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                from process_factory import KratosProcessFactory
+                factory = KratosProcessFactory(self.model)
+                for process_name in old_processes_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
+            else:
+                for process_name in old_processes_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        raise Exception("Mixing of process initialization is not alowed!")
+        elif parameter_name == "output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                #KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                gid_output= self._SetUpGiDOutput()
+                list_of_processes += [gid_output,]
         else:
-            if self.project_parameters.Has("gravity"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("initial_conditions_process_list"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("boundary_conditions_process_list"):
-                raise Exception("Mixing of process initialization is not alowed!")
-            if self.project_parameters.Has("auxiliar_process_list"):
-                raise Exception("Mixing of process initialization is not alowed!")
+            raise NameError("wrong parameter name")
 
         return list_of_processes
 
