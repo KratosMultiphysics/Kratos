@@ -95,7 +95,7 @@ class PythonSolver(object):
         file.close()
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
-    def AdvanceInTime(self):
+    def AdvanceInTime(self, current_time):
         """This function advances the PythonSolver in time
         Usage: It is designed to be called once per solution step, before performing the solution
         """
