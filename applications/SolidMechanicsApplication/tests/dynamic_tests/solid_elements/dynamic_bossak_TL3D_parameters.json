@@ -1,6 +1,10 @@
 {
-    "input_settings":{
+    "input_settings" : {
 	"materials_file_name": "dynamic_tests/solid_elements/dynamic_bossak_TL3D_materials.json"
+    },
+    "time_settings" : {
+        "time_step"  : 0.01,
+        "end_time"   : 0.05
     },
     "model_settings"           : {
         "dimension"            : 3,
@@ -10,10 +14,6 @@
     "solver_settings"          : {
         "solver_type" : "solid_mechanics_implicit_dynamic_solver",
         "Parameters"  : {
-            "time_settings"             : {
-                "time_step"  : 0.01,
-                "end_time"   : 0.05
-            },
             "time_integration_settings" : {
                 "solution_type"      : "Dynamic",
                 "time_integration"   : "Implicit",
