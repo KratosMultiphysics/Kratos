@@ -1,12 +1,10 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import time as timer
-
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
-import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.PoromechanicsApplication
 
 from poromechanics_analysis import PoromechanicsAnalysis
 

@@ -5,9 +5,9 @@ import sys
 import os
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
+import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 from analysis_stage import AnalysisStage
