@@ -260,6 +260,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<BoundingBoxRule, SpaceTimeRule > (m, "BoundingBoxRule")
+        .def(init<>())
         .def(init<const double, const double, const double, const double, const double, const double, const double, const double>())
         .def("SetTimeBoundingInterval", &BoundingBoxRule::SetTimeBoundingInterval)
         .def("SetXBoundingInterval", &BoundingBoxRule::SetXBoundingInterval)
@@ -483,6 +484,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         ;
 
     class_<MeshRotationUtility> (m, "MeshRotationUtility")
+        .def(init<Parameters&>())
         .def("RotateMesh", &MeshRotationUtility::RotateMesh)
         .def("RotateDEMMesh", &MeshRotationUtility::RotateDEMMesh)
         .def("SetStationaryField", &MeshRotationUtility::SetStationaryField)

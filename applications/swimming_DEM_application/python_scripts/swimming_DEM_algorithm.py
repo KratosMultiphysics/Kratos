@@ -733,10 +733,7 @@ class Algorithm(object):
                     self.projection_module.ProjectFromParticles()
                     
                 #Phantom                
-                self.disperse_phase_solution.RunAnalytics(self.time)
-                
-                if False: #self.analytic_data_counter.Tick():
-                    self.ProcessAnalyticData()
+                self.disperse_phase_solution.RunAnalytics(self.time, is_time_to_print=self.analytic_data_counter.Tick())
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)

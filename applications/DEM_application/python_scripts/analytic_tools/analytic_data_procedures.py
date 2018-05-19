@@ -105,13 +105,11 @@ class FaceWatcherAnalyzer:
         new_accumulated = np.cumsum(np.array(original_list)) + old_accumulated
         return new_accumulated
 
-    def GroupExists(self):
+    def OldFileExists(self):
         return os.path.exists(self.old_file_path)
 
     def UpdateDataFiles(self, time):
-        print('time', time)
         shape, time, n_particles, mass, vel_nr_mass = self.MakeReading()[:-1]  # initial with 1 for each surface, should be one for each condition in each surface
-        print('group_name', self.face_watcher_name)
         if np.sum(mass) != 0.0:
             avg_vel_nr = vel_nr_mass/mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
         else:
@@ -134,19 +132,13 @@ class FaceWatcherAnalyzer:
             avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = np.float64)
             return time_db, n_particles_db, mass_db, avg_vel_nr_db
 
-        if self.GroupExists():
+        if self.OldFileExists():
 
             with h5py.File(self.file_path) as f, h5py.File(self.old_file_path, 'r') as f_old:
                 shape_old = f_old['/' + self.face_watcher_name + '/time'].shape
                 current_shape = (shape_old[0] + shape[0], )
                 time_db, n_particles_db, mass_db, avg_vel_nr_db = CreateDataSets(f, current_shape)
                 current_surface = f['/' + self.face_watcher_name]
-
-                print('shape_old', shape_old)
-                print('shape', shape)
-                print('current_shape', current_shape)
-                print('time.shape', time.shape)
-                print('time_db.shape', time_db.shape)
 
                 time_db[:shape_old[0]] = f_old['/' + self.face_watcher_name + '/time'][:]
                 time_db[shape_old[0]:] = time[:]
@@ -176,17 +168,15 @@ class FaceWatcherAnalyzer:
                 self.mass_accumulated = mass[-1]
             self.face_watcher.ClearData()
 
-
-
     def MakeTotalFluxPlot(self):
         import matplotlib.pyplot as plt
-        self.MakeReading()
-        times = self.GetTimes()
-        mass_flux = self.GetMassFlux()
+        with h5py.File(self.file_path) as f:
+            times = f['/' + self.face_watcher_name + '/' + '/time'].value
+            mass_flux = f['/' + self.face_watcher_name + '/' + '/m_accum'].value
         plt.xlabel('time')
         plt.ylabel('accumulated mass throughput')
         plt.plot(times, mass_flux)
-        plt.savefig(self.folder_path + '/mass_throughput.svg')
+        plt.savefig(self.folder_path + '/mass_throughput.pdf', bbox_inches='tight')
 
     def MakeFluxOfNumberOfParticlesPlot(self):
         import matplotlib.pyplot as plt
