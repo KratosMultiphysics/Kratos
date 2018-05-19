@@ -1619,10 +1619,8 @@ protected:
                   double v_clx = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X);
                   double v_cly = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y);
 //          
-                  double mu, rho;
+                  double mu;
                   mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
-                  rho = this->GetGeometry()[ii].FastGetSolutionStepValue(DENSITY);
-//                   mu *= rho;
                 
                   //capillary
 		  double v_clx_abs = fabs (v_clx);
