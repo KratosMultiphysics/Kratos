@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_HYPERELASTIC_MODEL_H_INCLUDED )
-#define  KRATOS_HYPERELASTIC_MODEL_H_INCLUDED
+#if !defined(KRATOS_HYPER_ELASTIC_MODEL_H_INCLUDED )
+#define  KRATOS_HYPER_ELASTIC_MODEL_H_INCLUDED
 
 // System includes
 #include <string>
@@ -534,6 +534,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPERELASTIC_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_HYPER_ELASTIC_MODEL_H_INCLUDED  defined 
 
 
