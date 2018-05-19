@@ -114,8 +114,8 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     (m, "DamAzenhaHeatFluxProcess")
     .def(init < ModelPart&, Parameters&>());
     
-    // Nodal Young Modulus Process     
-    class_< DamNodalReferenceTemperatureProcess, Process >
+    // Nodal Reference Temperature Process     
+    class_< DamNodalReferenceTemperatureProcess, DamNodalReferenceTemperatureProcess::Pointer, Process >
     (m, "DamNodalReferenceTemperatureProcess")
     .def(init < ModelPart&, TableType&, Parameters&>());
     }
