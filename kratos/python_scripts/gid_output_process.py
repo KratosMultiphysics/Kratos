@@ -251,7 +251,7 @@ class GiDOutputProcess(Process):
             self.point_output_process.ExecuteBeforeOutputStep()
 
         # Print the output
-        time = self.model_part.ProcessInfo[TIME]
+        time = self.__get_gid_output_time()
         self.printed_step_count += 1
         self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
@@ -275,7 +275,7 @@ class GiDOutputProcess(Process):
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
-                while self.next_output <= time:
+                while self.next_output <= self.model_part.ProcessInfo[TIME]:
                     self.next_output += self.output_frequency
             else:
                 while self.next_output <= self.step_count:
@@ -335,6 +335,14 @@ class GiDOutputProcess(Process):
                                 self.multifile_flag,
                                 self.write_deformed_mesh,
                                 WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
+
+    def __get_gid_output_time(self):
+        # get pretty gid output time
+        time = self.model_part.ProcessInfo[TIME]
+        time = "{0:.12g}".format(time)
+        time = float(time)
+
+        return time 
 
     def __get_gidpost_flag(self, param, label, dictionary):
         '''Parse gidpost settings using an auxiliary dictionary of acceptable values.'''

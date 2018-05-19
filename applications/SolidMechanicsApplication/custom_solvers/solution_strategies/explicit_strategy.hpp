@@ -63,7 +63,7 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
 
   typedef typename BaseType::LocalFlagType                                 LocalFlagType;
 
-  typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>        ConvergenceCriterionType;
+  typedef ConvergenceCriterion<TSparseSpace, TDenseSpace>       ConvergenceCriterionType;
 
   typedef typename BaseType::BuilderAndSolverType                   BuilderAndSolverType;
 

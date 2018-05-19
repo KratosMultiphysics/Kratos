@@ -1093,18 +1093,35 @@ void SphericParticle::ComputeWear(double LocalRelVel[3],
     }
 
     //COMPUTING THE PROJECTED POINT
-
-    array_1d<double, 3> normal_to_wall;
-
-    wall->CalculateNormal(normal_to_wall);
-
+    array_1d<double, 3> inner_point = ZeroVector(3);
     array_1d<double, 3> relative_vector = wall->GetGeometry()[0].Coordinates() - node_coor_array; //We could have chosen [1] or [2], also.
 
-    double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, normal_to_wall);
+    if (wall->GetGeometry().size()>2){
+        array_1d<double, 3> normal_to_wall;
 
-    DEM_MULTIPLY_BY_SCALAR_3(normal_to_wall, dot_prod);
+        wall->CalculateNormal(normal_to_wall);
+        
+        double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, normal_to_wall);
 
-    array_1d<double, 3> inner_point = node_coor_array + normal_to_wall;
+        DEM_MULTIPLY_BY_SCALAR_3(normal_to_wall, dot_prod);
+
+        inner_point = node_coor_array + normal_to_wall;
+    }
+    else{
+        // projection on a line element
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+        array_1d<double, 3> line_vector = wall->GetGeometry()[1].Coordinates()-wall->GetGeometry()[0].Coordinates();
+        KRATOS_ERROR_IF(wall->GetGeometry().Length()<=numerical_limit) << "Line element has zero length" << std::endl;
+        line_vector/=wall->GetGeometry().Length();
+
+        DEM_COPY_SECOND_TO_FIRST_3(inner_point,line_vector);
+        double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, line_vector);
+        DEM_MULTIPLY_BY_SCALAR_3(inner_point, dot_prod);
+        DEM_ADD_SECOND_TO_FIRST(inner_point,wall->GetGeometry()[0].Coordinates());
+    }
+
+
 
     array_1d<double, 3> point_local_coordinates;
     Vector shape_functions_coefs(3);
