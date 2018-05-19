@@ -13,7 +13,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return FormfindingIOProcess(Model,settings)
+    return FormfindingIO(Model,settings)
 
 class FormfindingIO(KratosMultiphysics.Process):
     """

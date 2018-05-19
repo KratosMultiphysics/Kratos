@@ -1295,55 +1295,54 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
     this->SetValue(PRESTRESS_AXIS_1, prestress_direction1);
     this->SetValue(PRESTRESS_AXIS_2, prestress_direction2);
 
+    if(GetProperties().Has(PROJECTION_TYPE_COMBO)){
+        if(GetProperties()[PROJECTION_TYPE_COMBO] != "file"){
+            if(GetProperties().Has(PRESTRESS_VECTOR)){
+                Matrix& prestress_variable = this->GetValue(MEMBRANE_PRESTRESS);
+                Matrix& prestress_axis_1 = this->GetValue(PRESTRESS_AXIS_1);
+                Matrix& prestress_axis_2 = this->GetValue(PRESTRESS_AXIS_2);
 
-    if(GetProperties().Has(PRESTRESS_VECTOR)){
-        Matrix& prestress_variable = this->GetValue(MEMBRANE_PRESTRESS);
-        Matrix& prestress_axis_1 = this->GetValue(PRESTRESS_AXIS_1);
-        Matrix& prestress_axis_2 = this->GetValue(PRESTRESS_AXIS_2);
+                if(std::abs(GetProperties()[PRESTRESS_VECTOR](0)- GetProperties()[PRESTRESS_VECTOR](1)) <std::numeric_limits<double>::epsilon() && GetProperties()[PRESTRESS_VECTOR](2) == 0)
+                    mAnisotropicPrestress = false;
 
-        if(std::abs(GetProperties()[PRESTRESS_VECTOR](0)- GetProperties()[PRESTRESS_VECTOR](1)) <std::numeric_limits<double>::epsilon() && GetProperties()[PRESTRESS_VECTOR](2) == 0)
-            mAnisotropicPrestress = false;
-
-        else
-            mAnisotropicPrestress = true;
+                else
+                    mAnisotropicPrestress = true;
 
 
-        // read prestress from the material properties
-        for(unsigned int point_number = 0; point_number < rIntegrationPointSize;point_number ++){
-            // anisotropic case: prestress projection in the membrane
-            if(mAnisotropicPrestress) {
-                // Initialize Prestress
-                for (unsigned int i_strain=0; i_strain<strain_size; i_strain++){
-                    prestress_variable(i_strain,point_number) = GetProperties()[PRESTRESS_VECTOR](i_strain);
-                    if(GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL))
-                        prestress_axis_1(i_strain,point_number) = GetProperties()[PRESTRESS_AXIS_1_GLOBAL](i_strain);
-                    if(GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL))
-                        prestress_axis_2(i_strain,point_number) = GetProperties()[PRESTRESS_AXIS_2_GLOBAL](i_strain);
-                }
-                // in case that no prestress directions are prescribed: hardcode the prestress direction
-                if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) == false){
-                    prestress_axis_1(0,point_number) = 1;
-                    prestress_axis_1(1,point_number) = 0;
-                    prestress_axis_1(2,point_number) = 0;
-                }
-                if (GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL) == false){
-                    prestress_axis_2(0,point_number) = 0;
-                    prestress_axis_2(1,point_number) = 1;
-                    prestress_axis_2(2,point_number) = 0;
-                }
+                // read prestress from the material properties
+                for(unsigned int point_number = 0; point_number < rIntegrationPointSize;point_number ++){
+                    // anisotropic case: prestress projection in the membrane
+                    if(mAnisotropicPrestress) {
+                        // Initialize Prestress
+                        for (unsigned int i_strain=0; i_strain<strain_size; i_strain++){
+                            prestress_variable(i_strain,point_number) = GetProperties()[PRESTRESS_VECTOR](i_strain);
+                            if(GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL))
+                                prestress_axis_1(i_strain,point_number) = GetProperties()[PRESTRESS_AXIS_1_GLOBAL](i_strain);
+                            if(GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL))
+                                prestress_axis_2(i_strain,point_number) = GetProperties()[PRESTRESS_AXIS_2_GLOBAL](i_strain);
+                        }
+                        // in case that no prestress directions are prescribed: hardcode the prestress direction
+                        if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) == false){
+                            prestress_axis_1(0,point_number) = 1;
+                            prestress_axis_1(1,point_number) = 0;
+                            prestress_axis_1(2,point_number) = 0;
+                        }
+                        if (GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL) == false){
+                            prestress_axis_2(0,point_number) = 0;
+                            prestress_axis_2(1,point_number) = 1;
+                            prestress_axis_2(2,point_number) = 0;
+                        }
 
-                // Project prestress in membrane plane
-                if(GetProperties().Has(PROJECTION_TYPE_COMBO)){
-                    if((GetProperties()[PROJECTION_TYPE_COMBO] == "planar") || (GetProperties()[PROJECTION_TYPE_COMBO] == "radial"))
+                        // Project prestress in membrane plane
                         ProjectPrestress(point_number);
-                }
+                    }
 
-            }
-
-            // in case of isotropic prestress: set prestress in the first step (no transformation necessary)
-            else {
-                for (unsigned int i_strain=0; i_strain<strain_size; i_strain++){
-                    prestress_variable(i_strain,point_number) = GetProperties()[PRESTRESS_VECTOR](i_strain);
+                    // in case of isotropic prestress: set prestress in the first step (no transformation necessary)
+                    else {
+                        for (unsigned int i_strain=0; i_strain<strain_size; i_strain++){
+                            prestress_variable(i_strain,point_number) = GetProperties()[PRESTRESS_VECTOR](i_strain);
+                        }
+                    }
                 }
             }
         }
