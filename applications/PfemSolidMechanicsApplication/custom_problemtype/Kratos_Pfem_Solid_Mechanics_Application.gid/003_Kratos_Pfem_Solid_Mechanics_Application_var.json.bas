@@ -4,6 +4,11 @@
         "threads"         : *GenData(Number_of_threads,INT),
         "echo_level"      : *GenData(Echo_Level)
     },
+    "time_settings"             : {
+         "time_step"  : *GenData(Time_Step),
+         "start_time" : *GenData(Start_Time),
+         "end_time"   : *GenData(End_Time)
+    },
     "model_settings"           : {
         "model_name": "Main_Domain",
         "dimension"       : *GenData(DIMENSION,INT),
@@ -106,11 +111,6 @@
         "solver_type" : "solid_mechanics_static_solver",
 *endif
         "Parameters"  : {       
-              "time_settings"             : {
-	           "time_step"  : *GenData(Time_Step),
-                   "start_time" : *GenData(Start_Time),
-                   "end_time"   : *GenData(End_Time)
-              },
               "time_integration_settings" : {
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
                    "solution_type"         : "Dynamic",
@@ -132,9 +132,9 @@
 *else
                    "solution_type"         : "Static",
 *if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
-                   "integration_method"    : "Linear"
+                   "integration_method"    : "Static"
 *elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
-                   "integration_method"    : "Non-Linear"
+                   "integration_method"    : "Static"
 *endif
 *endif
               },
@@ -146,13 +146,15 @@
 *if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
                    "stabilization_factor"        : *GenData(Stabilization_Factor),
 *endif
+                   "max_iteration"               : *GenData(Max_Iter,INT)
+              },
+              "convergence_criterion_settings":{
                    "convergence_criterion"       : "*GenData(Convergence_Criteria)",
                    "reform_dofs_at_each_step"    : true,
                    "variable_relative_tolerance" : *GenData(Convergence_Tolerance),
                    "variable_absolute_tolerance" : *GenData(Absolute_Tolerance),
                    "residual_relative_tolerance" : *GenData(Convergence_Tolerance),
-                   "residual_absolute_tolerance" : *GenData(Absolute_Tolerance),
-                   "max_iteration"               : *GenData(Max_Iter,INT)
+                   "residual_absolute_tolerance" : *GenData(Absolute_Tolerance)
               },
               "linear_solver_settings"   : {
                    "solver_type"    : "*GenData(Linear_Solver)",
@@ -161,26 +163,36 @@
                    "scaling"        : false
               },
               "dofs"                            : [
+*if(strcmp(GenData(DOFS),"DISPLACEMENTS")==0)
+                                                "DISPLACEMENT"
+*endif
 *if(strcmp(GenData(DOFS),"ROTATIONS")==0)
+                                                "DISPLACEMENT",
                                                 "ROTATION"
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
+                                                "DISPLACEMENT",
                                                 "PRESSURE"
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0 )
+                                                "DISPLACEMENT",
                                                 "WATER_PRESSURE"
 *endif
 *if( strcmp(GenData(DOFS),"U-J-wP")==0 )
+                                                "DISPLACEMENT",
                                                 "WATER_PRESSURE",
 						"JACOBIAN"
 *endif
 *if( strcmp(GenData(DOFS),"U-J")==0 )
+                                                "DISPLACEMENT",
 						"JACOBIAN"
 *endif
 *if(strcmp(GenData(DOFS),"U-W")==0)
+                                                "DISPLACEMENT",
 						"WATER_DISPLACEMENT"
 *endif
 *if(strcmp(GenData(DOFS),"U-W-wP")==0)
+                                                "DISPLACEMENT",
 						"WATER_DISPLACEMENT",
                                                 "WATER_PRESSURE"
 *endif
