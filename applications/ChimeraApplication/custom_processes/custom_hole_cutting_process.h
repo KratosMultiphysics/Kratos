@@ -197,7 +197,7 @@ class CustomHoleCuttingProcess
 		KRATOS_CATCH("");
 	}
 
-	void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, double distance)
+	void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, double distance,bool domainboundary)
 
 	{
 		KRATOS_TRY;
@@ -218,11 +218,23 @@ class CustomHoleCuttingProcess
 			for (j = 0; j < geom.size(); j++)
 			{
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
-				if (elementDistance < distance)
 
+				if(domainboundary == true)
 				{
-					numPointsOutside++;
+					if (elementDistance > 0)
+					{
+						numPointsOutside++;
+					}
+
 				}
+				else
+				{
+					if (elementDistance < distance)
+					{
+						numPointsOutside++;
+					}
+				}
+
 			}
 
 			if (numPointsOutside == geom.size())

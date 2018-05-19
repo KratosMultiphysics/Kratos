@@ -121,12 +121,14 @@ class ApplyChimeraProcessMonolithic : public Process
 					"IsWeak" : true,
 					"pressure_coupling_node" : 0.0,
                     "patch_boundary_model_part_name":"GENERIC_patchBoundary",
+					"domain_boundary_model_part_name":"GENERIC_DomainBoundary",
 					"overlap_distance":0.045
             })");
 
 		m_background_model_part_name = m_parameters["background"]["model_part_name"].GetString();
 		m_patch_model_part_name = m_parameters["patch"]["model_part_name"].GetString();
 		m_patch_boundary_model_part_name = m_parameters["patch_boundary_model_part_name"].GetString();
+		m_domain_boundary_model_part_name = m_parameters["domain_boundary_model_part_name"].GetString();
 		m_type = m_parameters["type"].GetString();
 		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
 
@@ -401,6 +403,8 @@ class ApplyChimeraProcessMonolithic : public Process
 	{
 		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
 		ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
+		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
+		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
 
 		this->pBinLocatorForBackground->UpdateSearchDatabase();
 		this->pBinLocatorForPatch->UpdateSearchDatabase();
@@ -422,8 +426,14 @@ class ApplyChimeraProcessMonolithic : public Process
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
+			ModelPart::Pointer pOutsideDomainModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
+			ModelPart::Pointer pOutsideDomainBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
+
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchBoundaryModelPart);
-			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
+			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance,false);
+
+			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
+			this->pHoleCuttingProcess->CreateHoleAfterDistance(rPatchModelPart, *pOutsideDomainModelPart, *pOutsideDomainBoundaryModelPart, m_overlap_distance,true);
 
 			//for multipatch
 			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
@@ -890,6 +900,7 @@ class ApplyChimeraProcessMonolithic : public Process
 	Parameters m_parameters;
 	std::string m_background_model_part_name;
 	std::string m_patch_boundary_model_part_name;
+	std::string m_domain_boundary_model_part_name;
 	std::string m_patch_model_part_name;
 	std::string m_type;
 
