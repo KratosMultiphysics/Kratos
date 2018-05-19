@@ -1,45 +1,3 @@
-/*
-==============================================================================
-KratosIncompressibleFluidApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2011
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
-//
 //   Project Name:        KratosParticleMechanicsApplication $
 //   Last modified by:    $Author:                 ilaria $
 //   Date:                $Date:                April 2016 $
@@ -128,9 +86,6 @@ public:
     void UpdateSearchDatabase()
     {
         KRATOS_TRY
-        //std::cout<<"**********************************"<<std::endl;
-        //std::cout<<" in the UpdateSearchDatabase "<<std::endl;
-        //std::cout<<"**********************************"<<std::endl;
         //copy the elements to a new container, as the list will
         //be shuffled duringthe construction of the tree
         ContainerType& rElements = mr_model_part.ElementsArray();
@@ -170,12 +125,8 @@ public:
                          const unsigned int MaxNumberOfResults)
     {
         typedef std::size_t SizeType;
-        //std::cout<<"**********************************"<<std::endl;
-        //std::cout<<" in the FindPointOnMesh "<<std::endl;
-        //std::cout<<"**********************************"<<std::endl;
 
         PointType  Result = coords;
-        //std::cout<<" coords "<<coords<< std::endl;
 
         //ask to the container for the list of candidate elements
         SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults);
