@@ -39,6 +39,7 @@ namespace Kratos
         void ComputeBuoyancyEffects();
         void ComputeEngineForce();
         void ComputeWaterDragForce();
+        void ComputeWaterDragForce2();
         void ComputeExternalForces(const array_1d<double,3>& gravity) override;
         
         // Engine characteristics        

@@ -330,6 +330,10 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
     
 }
 
+void RigidFace3D::Test() {
+    KRATOS_WATCH("SESCALLA")
+}
+
 void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
                                                SphericParticle* const particle,
                                                double LocalCoordSystem[3][3],
