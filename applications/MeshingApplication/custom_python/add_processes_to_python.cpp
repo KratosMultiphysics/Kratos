@@ -133,14 +133,14 @@ void  AddProcessesToPython(pybind11::module& m)
         ;
 
         //SPR_ERROR
-        class_<SPRMetricProcess<2>, Process >(m, "SPRMetricProcess2D")
+        class_<SPRMetricProcess<2>, SPRMetricProcess<2>::Pointer, Process >(m, "SPRMetricProcess2D")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         .def(init<ModelPart&, Parameters, LinearSolverType::Pointer>())
         .def("Execute",&SPRMetricProcess<2>::Execute)
         ;
 
-        class_<SPRMetricProcess<3>, Process >(m, "SPRMetricProcess3D")
+        class_<SPRMetricProcess<3>, SPRMetricProcess<3>::Pointer, Process >(m, "SPRMetricProcess3D")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         .def(init<ModelPart&, Parameters, LinearSolverType::Pointer>())
