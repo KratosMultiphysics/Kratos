@@ -144,14 +144,14 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension + number_of_nodes;
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        int index = i * dimension + i;
+        int index = i * dimension;
         rResult[index]     = GetGeometry()[i].GetDof( VELOCITY_X ).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof( VELOCITY_Y ).EquationId();
 
@@ -174,7 +174,7 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
 
     // operation performed: add Km to the rLefsHandSideMatrix
     this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+   
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
@@ -265,15 +265,16 @@ void LargeDisplacementVElement::SetElementVariables(ElementVariables& rVariables
     }
 
     if( strain_rate_measure ){     
-      //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1]      
-      this->CalculateVelocityGradient( rVariables.H, rVariables.DN_DX, step );
-    }
-    else{
-      //Compute F and detF (from 0 to n+1) : store it in H variable and detH
-      rVariables.detH = rVariables.detF * rVariables.detF0;
-      noalias(rVariables.H) = prod( rVariables.F, rVariables.F0 );
+      //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
+      this->CalculateVelocityGradientVector( rVariables.StrainVector, rVariables.DN_DX, step );
+      Flags &ConstitutiveLawOptions=rValues.GetOptions();
+      ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     }
 
+    //Compute F and detF (from 0 to n+1) : store it in H variable and detH
+    rVariables.detH = rVariables.detF * rVariables.detF0;
+    noalias(rVariables.H) = prod( rVariables.F, rVariables.F0 );
+    
     rValues.SetDeterminantF(rVariables.detH);
     rValues.SetDeformationGradientF(rVariables.H);
     rValues.SetStrainVector(rVariables.StrainVector);
@@ -296,14 +297,14 @@ void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rH = identity_matrix<double> ( dimension );
+    rH = zero_matrix<double> ( dimension );
 
     if( dimension == 2 )
     {
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
           
             rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
             rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
@@ -335,10 +336,67 @@ void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
     {
       KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
     }
-
+    
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementVElement::CalculateVelocityGradientVector(Vector& rH,
+                                                                const Matrix& rDN_DX,
+                                                                unsigned int step)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    rH = ZeroVector( dimension * dimension );
+
+    if( dimension == 2 )
+    {
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+          
+            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rH[2] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rH[3] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+
+        }
+
+    }
+    else if( dimension == 3)
+    {
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+            
+            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rH[2] += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+            
+            rH[3] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rH[4] += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+            rH[5] += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+
+            rH[6] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rH[7] += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+            rH[8] += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+        }
+
+    }
+    else
+    {
+      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
+    }
+    
+    KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -430,7 +488,21 @@ int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = LargeDisplacementElement::Check(rCurrentProcessInfo);
-    
+
+    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+      {
+	// Nodal data
+	Node<3> &rNode = this->GetGeometry()[i];
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	
+	// Nodal dofs
+	KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
+	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3)
+	  KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+      }
     // Check compatibility with the constitutive law
 
     // Check that all required variables have been registered
