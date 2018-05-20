@@ -41,29 +41,12 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
     """
     def __init__(self, main_model_part, custom_settings):
         # Set defaults and validate custom settings.
-        adaptative_remesh_settings = KratosMultiphysics.Parameters("""
+        adaptative_remesh_parameters = KratosMultiphysics.Parameters("""
         {
-        "adaptative_remesh_settings" : {
+            "adaptative_remesh_settings" : {
                 "error_mesh_tolerance" : 5.0e-3,
                 "error_mesh_constant"  : 5.0e-3,
-                "remeshing_utility"    : "MMG",
                 "strategy"             : "Error",
-                "remeshing_parameters":
-                {
-                    "filename"                             : "out",
-                    "framework"                            : "Lagrangian",
-                    "internal_variables_parameters"        :
-                    {
-                        "allocation_size"                      : 1000,
-                        "bucket_size"                          : 4,
-                        "search_factor"                        : 2,
-                        "interpolation_type"                   : "LST",
-                        "internal_variable_interpolation_list" :[]
-                    },
-                    "save_external_files"              : false,
-                    "max_number_of_searchs"            : 1000,
-                    "echo_level"                       : 0
-                },
                 "error_strategy_parameters":
                 {
                     "minimal_size"                        : 0.01,
@@ -76,13 +59,29 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
                     "number_of_elements"                  : 1000,
                     "average_nodal_h"                     : false
                 }
+            },
+            "remeshing_parameters":
+            {
+                "filename"                             : "out",
+                "framework"                            : "Lagrangian",
+                "internal_variables_parameters"        :
+                {
+                    "allocation_size"                      : 1000,
+                    "bucket_size"                          : 4,
+                    "search_factor"                        : 2,
+                    "interpolation_type"                   : "LST",
+                    "internal_variable_interpolation_list" :[]
+                },
+                "save_external_files"              : false,
+                "max_number_of_searchs"            : 1000,
+                "echo_level"                       : 0
             }
         }
         """)
 
         # Validate the remaining settings in the base class.
-        self.validate_and_transfer_matching_settings(custom_settings, adaptative_remesh_settings)
-        self.adaptative_remesh_settings = adaptative_remesh_settings["adaptative_remesh_settings"]
+        self.validate_and_transfer_matching_settings(custom_settings, adaptative_remesh_parameters)
+        self.adaptative_remesh_parameters = adaptative_remesh_parameters
 
         # Construct the base solver.
         super(AdaptativeImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
@@ -90,9 +89,6 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         if (self.settings["reform_dofs_at_each_step"].GetBool() is False):
             self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
-        #if (self.settings["max_iteration"].GetInt() > 1):
-            #self.print_on_rank_zero("NL Iteration", "Stage takes into account the NL iterations, setting to 1")
-            #self.settings["max_iteration"].SetInt(1)
 
         self.print_on_rank_zero("::[AdaptativeImplicitMechanicalSolver]:: ", "Construction finished")
 
@@ -103,6 +99,20 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         if (missing_meshing_dependencies is False):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.print_on_rank_zero("::[AdaptativeImplicitMechanicalSolver]:: ", "Variables ADDED")
+
+    def get_remeshing_process(self):
+        if not hasattr(self, '_remeshing_process'):
+            self._remeshing_process = self._create_remeshing_process()
+        return self._remeshing_process
+
+    def _create_remeshing_process(self):
+        computing_model_part = self.GetComputingModelPart()
+        if (computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            remeshing_process = MeshingApplication.MmgProcess2D(computing_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
+        else:
+            remeshing_process = MeshingApplication.MmgProcess3D(computing_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
+
+        return remeshing_process
 
     def _create_convergence_criterion(self):
         error_criteria = self.settings["convergence_criterion"].GetString()
@@ -115,7 +125,7 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
                 raise NameError('The AdaptativeErrorCriteria can not be used without compiling the MeshingApplication')
         else:
             if (error_criteria == "adaptative_remesh_criteria"):
-                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings)
+                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_parameters["adaptative_remesh_settings"])
                 adaptative_error_criteria.SetEchoLevel(conv_settings["echo_level"].GetInt())
                 return adaptative_error_criteria
 
@@ -126,7 +136,7 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         # If we combine the regular convergence criteria with adaptative
         if (missing_meshing_dependencies is False):
             if ("_with_adaptative_remesh" in error_criteria):
-                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_settings)
+                adaptative_error_criteria = MeshingApplication.ErrorMeshCriteria(self.adaptative_remesh_parameters["adaptative_remesh_settings"])
                 adaptative_error_criteria.SetEchoLevel(conv_settings["echo_level"].GetInt())
                 convergence_criterion.mechanical_convergence_criterion = KratosMultiphysics.AndCriteria(convergence_criterion.mechanical_convergence_criterion, adaptative_error_criteria)
         return convergence_criterion.mechanical_convergence_criterion
