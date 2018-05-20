@@ -218,14 +218,14 @@ class AnalysisStage(object):
         """Create a list of processes
         Format:
         "processes" : {
-            initial_processes : {
-                process_1 : [ proces_specific_params ],
-                process_2 : [ proces_specific_params ]
-            },
-            boundary_processes : {
-                process_one : [ proces_specific_params ],
-                process_two : [ proces_specific_params ]
-            }
+            initial_processes : [
+                { proces_specific_params },
+                { proces_specific_params }
+            ],
+            boundary_processes : [
+                { proces_specific_params },
+                { proces_specific_params }
+            ]
         }
         The order of intialization can be specified by setting it in "initialization_order"
         if e.g. the "boundary_processes" should be constructed before the "initial_processes", then
