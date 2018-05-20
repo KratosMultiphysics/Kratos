@@ -55,7 +55,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def("Execute", &TotalStructuralMassProcess::Execute)
         ;
 
-    class_<CableNetMpcProcess, ApplyMultipointConstraintsProcess>(m,"CableNetMpcProcess")
+    class_<CableNetMpcProcess, CableNetMpcProcess::Pointer, ApplyMultipointConstraintsProcess>(m,"CableNetMpcProcess")
         .def(init<ModelPart&,Parameters&>())
         .def("CoupleModelParts", &CableNetMpcProcess::CoupleModelParts)
         ;    
