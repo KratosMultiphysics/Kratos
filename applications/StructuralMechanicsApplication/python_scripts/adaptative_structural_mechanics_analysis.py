@@ -90,6 +90,10 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                     self.is_printing_rank = True
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                     break
+                elif (non_linear_iteration == self.non_linear_iterations):
+                    self.is_printing_rank = True
+                    KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
+                    break
                 else:
                     remeshing_process.Execute()
                     computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
