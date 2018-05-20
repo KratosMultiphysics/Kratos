@@ -37,11 +37,14 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
 
         # Construct the base analysis.
         self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
+        project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         super(AdaptativeStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeStructuralMechanicsAnalysis, self).Initialize()
+        convergence_criteria = self.solver.get_convergence_criterion()
+        convergence_criteria.Initialize(self.solver.GetComputingModelPart())
         self.solver.SetEchoLevel(self.echo_level)
 
     def RunSolutionLoop(self):
@@ -49,64 +52,53 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
         It can be overridden by derived classes
         """
         computing_model_part = self.solver.GetComputingModelPart()
+        remeshing_process = self.solver.get_remeshing_process()
+        convergence_criteria = self.solver.get_convergence_criterion()
+        builder_and_solver = self.solver.get_builder_and_solver()
+        mechanical_solution_strategy = self.solver.get_mechanical_solution_strategy()
 
-        # Default solution, works for very simple problem, but doesn't set the dof and BC
         while self.time < self.end_time:
             self.time = self.solver.AdvanceInTime(self.time)
-            self.InitializeSolutionStep()
-            self.solver.Predict()
-            self.solver.SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
-                self._SetUpGiDOutput()
-                if self.have_output:
-                    self.list_of_processes[-1] = self.output
+            non_linear_iteration = 1
+            while non_linear_iteration <= self.non_linear_iterations:
+                if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    # Set again all  GiD  I/O
+                    self._SetUpGiDOutput()
+                    if self.have_output:
+                        self.list_of_processes[-1] = self.output
+                    # WE INITIALIZE THE SOLVER
+                    self.solver.FinalizeSolutionStep()
+                    # WE RECOMPUTE THE PROCESSES AGAIN
+                    ## Processes initialization
+                    #for process in self.list_of_processes:
+                        #process.ExecuteInitialize()
                     self.output.ExecuteInitialize()
-                    self.output.ExecuteBeforeSolutionLoop()
-                    self.output.ExecuteInitializeSolutionStep()
+                    ## Processes before the loop
+                    for process in self.list_of_processes:
+                        process.ExecuteBeforeSolutionLoop()
+                    ## Processes of initialize the solution step
+                    for process in self.list_of_processes:
+                        process.ExecuteInitializeSolutionStep()
+                if (non_linear_iteration == 1 or computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    self.InitializeSolutionStep()
+                    self.solver.Predict()
+                    computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
+                    self.is_printing_rank = False
+                computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
+                is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
+                self.solver.SolveSolutionStep()
+                is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
+                if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True or is_converged):
+                    self.FinalizeSolutionStep()
+                if (is_converged):
+                    self.is_printing_rank = True
+                    KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
+                    break
+                else:
+                    remeshing_process.Execute()
+                    computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
+                    non_linear_iteration += 1
             self.OutputSolutionStep()
-
-        #while self.time < self.end_time:
-            #self.time = self.solver.AdvanceInTime(self.time)
-            #non_linear_iteration = 1
-            #while non_linear_iteration <= self.non_linear_iterations:
-                #if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
-                    ## Set again all  GiD  I/O
-                    #self._SetUpGiDOutput()
-                    #if self.have_output:
-                        #self.list_of_processes[-1] = self.output
-                    ##self._SetUpListOfProcesses()
-                    ## WE INITIALIZE THE SOLVER
-                    ##self.solver.Initialize()
-                    ## WE RECOMPUTE THE PROCESSES AGAIN
-                    ### Processes initialization
-                    ##for process in self.list_of_processes:
-                        ##process.ExecuteInitialize()
-                    #self.output.ExecuteInitialize()
-                    ### Processes before the loop
-                    #for process in self.list_of_processes:
-                        #process.ExecuteBeforeSolutionLoop()
-                    ### Processes of initialize the solution step
-                    #for process in self.list_of_processes:
-                        #process.ExecuteInitializeSolutionStep()
-                #if (non_linear_iteration == 1 or computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
-                    #self.InitializeSolutionStep()
-                    #self.solver.Predict()
-                    #computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
-                #computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
-                #self.solver.SolveSolutionStep()
-                #if (computing_model_part[MA.ERROR_ESTIMATE] < 0.0):
-                    #is_converged = True
-                #else:
-                    #is_converged = False
-                #if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True or is_converged):
-                    #self.FinalizeSolutionStep()
-                #if (is_converged):
-                    #KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
-                    #break
-                #else:
-                    #non_linear_iteration += 1
-            #self.OutputSolutionStep()
 
     #### Internal functions ####
     def _CreateSolver(self, external_model_part=None):
