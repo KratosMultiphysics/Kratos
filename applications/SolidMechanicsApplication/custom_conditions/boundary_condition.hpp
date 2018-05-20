@@ -50,6 +50,10 @@ public:
 
     ///@name Type Definitions
     ///@{
+
+    typedef Variable<array_1d<double,3>>      VariableVectorType;
+    typedef Variable<double>                  VariableScalarType;
+    
     // Counted pointer of BoundaryCondition
     KRATOS_CLASS_POINTER_DEFINITION( BoundaryCondition );
     ///@}
@@ -446,10 +450,16 @@ protected:
 
 
     /**
-     * Check condition rotation dofs
+     * Check dof for a vector variable
      */    
-    virtual bool HasRotationDofs();
+    virtual bool HasVariableDof(VariableVectorType& rVariable);
 
+    /**
+     * Check dof for a double variable
+     */    
+    virtual bool HasVariableDof(VariableScalarType& rVariable);
+
+    
     /**
      * Get condition size from the dofs
      */    
