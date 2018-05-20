@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/solid_elements/large_displacement_V_element.hpp"
+#include "custom_elements/solid_elements/large_displacement_segregated_V_P_element.hpp"
 #include "solid_mechanics_application_variables.h"
 
 
@@ -23,8 +23,8 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LargeDisplacementVElement::LargeDisplacementVElement()
-    : LargeDisplacementElement()
+LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement()
+    : LargeDisplacementVElement()
 {
 }
 
@@ -32,8 +32,8 @@ LargeDisplacementVElement::LargeDisplacementVElement()
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LargeDisplacementVElement::LargeDisplacementVElement( IndexType NewId, GeometryType::Pointer pGeometry )
-    : LargeDisplacementElement( NewId, pGeometry )
+LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( IndexType NewId, GeometryType::Pointer pGeometry )
+    : LargeDisplacementVElement( NewId, pGeometry )
 {
 }
 
@@ -41,8 +41,8 @@ LargeDisplacementVElement::LargeDisplacementVElement( IndexType NewId, GeometryT
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LargeDisplacementVElement::LargeDisplacementVElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : LargeDisplacementElement( NewId, pGeometry, pProperties )
+LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    : LargeDisplacementVElement( NewId, pGeometry, pProperties )
 {
 }
 
@@ -50,8 +50,8 @@ LargeDisplacementVElement::LargeDisplacementVElement( IndexType NewId, GeometryT
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-LargeDisplacementVElement::LargeDisplacementVElement( LargeDisplacementVElement const& rOther)
-    :LargeDisplacementElement(rOther)
+LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( LargeDisplacementSegregatedVPElement const& rOther)
+    :LargeDisplacementVElement(rOther)
 {
 }
 
@@ -59,9 +59,9 @@ LargeDisplacementVElement::LargeDisplacementVElement( LargeDisplacementVElement 
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
-LargeDisplacementVElement&  LargeDisplacementVElement::operator=(LargeDisplacementVElement const& rOther)
+LargeDisplacementSegregatedVPElement&  LargeDisplacementSegregatedVPElement::operator=(LargeDisplacementSegregatedVPElement const& rOther)
 {
-    LargeDisplacementElement::operator=(rOther);
+    LargeDisplacementVElement::operator=(rOther);
 
     return *this;
 }
@@ -70,21 +70,21 @@ LargeDisplacementVElement&  LargeDisplacementVElement::operator=(LargeDisplaceme
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
-Element::Pointer LargeDisplacementVElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer LargeDisplacementSegregatedVPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new LargeDisplacementVElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new LargeDisplacementSegregatedVPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
 
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Element::Pointer LargeDisplacementVElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer LargeDisplacementSegregatedVPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!", "" )
+    KRATOS_ERROR << "Calling Clone for a large displacement segregated VP 3D element ... illegal operation!!" << std::endl;
 
-    LargeDisplacementVElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    LargeDisplacementSegregatedVPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     //-----------//
 
@@ -96,20 +96,20 @@ Element::Pointer LargeDisplacementVElement::Clone( IndexType NewId, NodesArrayTy
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
+	  KRATOS_ERROR << "constitutive law not has the correct size " << NewElement.mConstitutiveLawVector.size() << std::endl;
       }
     
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
        
-    return Element::Pointer( new LargeDisplacementVElement(NewElement) );
+    return Element::Pointer( new LargeDisplacementSegregatedVPElement(NewElement) );
 }
 
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-LargeDisplacementVElement::~LargeDisplacementVElement()
+LargeDisplacementSegregatedVPElement::~LargeDisplacementSegregatedVPElement()
 {
 }
 
@@ -118,15 +118,15 @@ LargeDisplacementVElement::~LargeDisplacementVElement()
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
 {
     rElementalDofList.resize( 0 );
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     
-    switch(rCurrentProcessInfo[FRACTIONAL_STEP])
+    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
     {
-      case 1:
+      case VELOCITY_STEP:
         {
           for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
           {
@@ -137,7 +137,7 @@ void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, P
               rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_Z ) );
           }
         }
-      case 2:
+      case PRESSURE_STEP:
         {
           for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
           {
@@ -145,7 +145,7 @@ void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, P
           }
         }
       default:
-        KRATOS_ERROR << "Unexpected value for FRACTIONAL_STEP index: " << rCurrentProcessInfo[FRACTIONAL_STEP] << std::endl;
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
     }
 }
 
@@ -153,7 +153,7 @@ void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, P
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -162,9 +162,9 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
 
-    switch(rCurrentProcessInfo[FRACTIONAL_STEP])
+    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
     {
-      case 1:
+      case VELOCITY_STEP:
         {
           for ( unsigned int i = 0; i < number_of_nodes; i++ )
           {
@@ -177,7 +177,7 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
           }
           break;
         }
-      case 2:
+      case PRESSURE_STEP:
         {
           for ( unsigned int i = 0; i < number_of_nodes; i++ )
           {
@@ -186,24 +186,152 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
           break;
         }
       default:
-        KRATOS_ERROR << "Unexpected value for FRACTIONAL_STEP index: " << rCurrentProcessInfo[FRACTIONAL_STEP] << std::endl;
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
     }
 
 }
 
 
+//*********************************DISPLACEMENT***************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int Step )
+{
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int       dofs_size       = GetDofsSize();
+    
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
+
+    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    {
+      case VELOCITY_STEP:
+        {
+          unsigned int index = 0;
+          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          {
+            index = i * dimension;
+            rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
+            rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+
+            if ( dimension == 3 )
+              rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+
+          }
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          {
+            rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
+          }
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+    }
+
+}
+
+
+//************************************VELOCITY****************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+{
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int       dofs_size       = GetDofsSize();
+    
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
+
+    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    {
+      case VELOCITY_STEP:
+        {
+          unsigned int index = 0;
+          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          {
+            index = i * dimension;
+            rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+            rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+
+            if ( dimension == 3 )
+              rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+          }
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          {
+            rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PRESSURE_VELOCITY, Step );
+          }
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+    }  
+ 
+}
+
+//*********************************ACCELERATION***************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+{
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int       dofs_size       = GetDofsSize();
+    
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
+
+    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    {
+      case VELOCITY_STEP:
+        {
+          unsigned int index = 0;
+          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          {
+            index = i * dimension;
+            rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+            rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+
+            if ( dimension == 3 )
+              rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+          }
+          break;
+        }
+      case PRESSURE_STEP:
+        {
+          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          {
+            rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PRESSURE_ACCELERATION, Step );
+          }
+          break;
+        }
+      default:
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+    }
+
+}
+
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
 {
     KRATOS_TRY
        
     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
 
-    switch(rCurrentProcessInfo[FRACTIONAL_STEP])
+    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
     {
-      case 1:
+      case VELOCITY_STEP:
         {
           // operation performed: add Km to the rLefsHandSideMatrix
           this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -214,14 +342,14 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
           rLeftHandSideMatrix *= rVariables.GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)  
           break;
         }
-      case 2:
+      case PRESSURE_STEP:
         {
           // operation performed: add Kpp to the rLefsHandSideMatrix
-          this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+          this->CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
           break;
         }
       default:
-        KRATOS_ERROR << "Unexpected value for FRACTIONAL_STEP index: " << rCurrentProcessInfo[FRACTIONAL_STEP] << std::endl;
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
     }
     
     //KRATOS_WATCH( rLeftHandSideMatrix )
@@ -235,7 +363,7 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
 //************************************************************************************
 //************************************************************************************
 
-unsigned int LargeDisplacementVElement::GetDofsSize()
+unsigned int LargeDisplacementSegregatedVPElement::GetDofsSize()
 {
   KRATOS_TRY
      
@@ -243,16 +371,16 @@ unsigned int LargeDisplacementVElement::GetDofsSize()
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   
   unsigned int size = 0;
-  switch(rCurrentProcessInfo[FRACTIONAL_STEP])
+  switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
   {
-    case 1:
-      size = number_of_nodes * dimension; //usual size for velocity
+    case VELOCITY_STEP:
+      size = number_of_nodes * dimension; //size for velocity
       break;
-    case 2:
+    case PRESSURE_STEP:
       size = number_of_nodes; //size for pressure
       break;
     default:
-      KRATOS_ERROR << "Unexpected value for FRACTIONAL_STEP index: " << rCurrentProcessInfo[FRACTIONAL_STEP] << std::endl;
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
       
   }
   return size;   
@@ -260,303 +388,30 @@ unsigned int LargeDisplacementVElement::GetDofsSize()
   KRATOS_CATCH( "" )
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementVElement::SetElementVariables(ElementVariables& rVariables,
-                                                    ConstitutiveLaw::Parameters& rValues,
-                                                    const int & rPointNumber)
-{
-
-    //to take in account previous step for output print purposes
-    unsigned int step = 0;
-    if( mFinalizedStep ){
-      step = 1;
-      this->GetHistoricalVariables(rVariables,rPointNumber);
-    }
-  
-    if(rVariables.detF<0){
-        
-	std::cout<<" Element: "<<this->Id()<<std::endl;
-
-	unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
-	    array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-	    array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-	    array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-	    array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-	    std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<" (Cur: "<<CurrentPosition<<") "<<std::endl;
-	    std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
-	  }
-
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
-	    if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
-	      array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
-	      array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-	      std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
-	    }
-	    else{
-	      std::cout<<" ---Contact_Force: NULL "<<std::endl;
-	    }
-	  }
-	
-        KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
-    }
-
-
-
-    //Compute strain rate measures if they are required by the constitutive law
-    ConstitutiveLaw::Features LawFeatures;
-    mConstitutiveLawVector[rPointNumber]->GetLawFeatures(LawFeatures);
-    
-    bool strain_rate_measure = false;
-    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
-    {
-      if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient)
-	strain_rate_measure = true;
-    }
-
-    if( strain_rate_measure ){     
-      //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
-      this->CalculateVelocityGradientVector( rVariables.StrainVector, rVariables.DN_DX, step );
-      Flags &ConstitutiveLawOptions=rValues.GetOptions();
-      ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    }
-
-    //Compute F and detF (from 0 to n+1) : store it in H variable and detH
-    rVariables.detH = rVariables.detF * rVariables.detF0;
-    noalias(rVariables.H) = prod( rVariables.F, rVariables.F0 );
-    
-    rValues.SetDeterminantF(rVariables.detH);
-    rValues.SetDeformationGradientF(rVariables.H);
-    rValues.SetStrainVector(rVariables.StrainVector);
-    rValues.SetStressVector(rVariables.StressVector);
-    rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-    rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-    rValues.SetShapeFunctionsValues(rVariables.N);
-
-}
 
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
-                                                          const Matrix& rDN_DX,
-                                                          unsigned int step)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    rH = zero_matrix<double> ( dimension );
-
-    if( dimension == 2 )
-    {
-
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
-          
-            rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-        }
-
-    }
-    else if( dimension == 3)
-    {
-
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
-            
-            rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH ( 0 , 2 ) += rCurrentVelocity[0]*rDN_DX ( i , 2 );
-            rH ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH ( 1 , 2 ) += rCurrentVelocity[1]*rDN_DX ( i , 2 );
-            rH ( 2 , 0 ) += rCurrentVelocity[2]*rDN_DX ( i , 0 );
-            rH ( 2 , 1 ) += rCurrentVelocity[2]*rDN_DX ( i , 1 );
-            rH ( 2 , 2 ) += rCurrentVelocity[2]*rDN_DX ( i , 2 );
-        }
-
-    }
-    else
-    {
-      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
-    }
-    
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementVElement::CalculateVelocityGradientVector(Vector& rH,
-                                                                const Matrix& rDN_DX,
-                                                                unsigned int step)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    rH = ZeroVector( dimension * dimension );
-
-    if( dimension == 2 )
-    {
-
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
-          
-            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH[2] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH[3] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-
-        }
-
-    }
-    else if( dimension == 3)
-    {
-
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
-            
-            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH[2] += rCurrentVelocity[2]*rDN_DX ( i , 2 );
-            
-            rH[3] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH[4] += rCurrentVelocity[1]*rDN_DX ( i , 2 );
-            rH[5] += rCurrentVelocity[2]*rDN_DX ( i , 0 );
-
-            rH[6] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH[7] += rCurrentVelocity[2]*rDN_DX ( i , 1 );
-            rH[8] += rCurrentVelocity[0]*rDN_DX ( i , 2 );
-        }
-
-    }
-    else
-    {
-      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
-    }
-    
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementVElement::CalculateSymmetricVelocityGradient(const Matrix& rH,
-                                                                  Vector& rStrainVector)
-{
-    KRATOS_TRY
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    if( dimension == 2 )
-    {
-        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-
-        rStrainVector[0] = rH( 0, 0 );
-        rStrainVector[1] = rH( 1, 1 );
-        rStrainVector[2] = (rH( 0, 1 ) + rH( 1, 0 )); // xy
-
-    }
-    else if( dimension == 3 )
-    {
-        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-
-        rStrainVector[0] = rH( 0, 0 );
-        rStrainVector[1] = rH( 1, 1 );
-        rStrainVector[2] = rH( 2, 2 );
-        rStrainVector[3] = ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
-        rStrainVector[4] = ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
-        rStrainVector[5] = ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
-
-    }
-    else
-    {
-        KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementVElement::CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
-                                                                      Vector& rStrainVector)
-{
-    KRATOS_TRY
-
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    if( dimension == 2 )
-    {
-        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-
-        rStrainVector[0] = 0.0;
-        rStrainVector[1] = 0.0;
-        rStrainVector[2] = (rH( 0, 1 ) - rH( 1, 0 )); // xy
-
-    }
-    else if( dimension == 3 )
-    {
-        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-
-        rStrainVector[0] = 0.0;
-        rStrainVector[1] = 0.0;
-        rStrainVector[2] = 0.0;
-        rStrainVector[3] = ( rH( 0, 1 ) - rH( 1, 0 ) ); // xy
-        rStrainVector[4] = ( rH( 1, 2 ) - rH( 2, 1 ) ); // yz
-        rStrainVector[5] = ( rH( 0, 2 ) - rH( 2, 0 ) ); // xz
-
-    }
-    else
-    {
-        KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  LargeDisplacementSegregatedVPElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     // Perform base element checks
     int ErrorCode = 0;
-    ErrorCode = LargeDisplacementElement::Check(rCurrentProcessInfo);
+    ErrorCode = LargeDisplacementVElement::Check(rCurrentProcessInfo);
 
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];
-	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
+        //KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_VELOCITY,rNode);
+        //KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_ACCELERATION,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 	
 	// Nodal dofs
-	KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
-	KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
-	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3)
-	  KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
       }
     // Check compatibility with the constitutive law
 
@@ -571,14 +426,14 @@ int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
 //************************************************************************************
 
 
-void LargeDisplacementVElement::save( Serializer& rSerializer ) const
+void LargeDisplacementSegregatedVPElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementVElement )
 }
 
-void LargeDisplacementVElement::load( Serializer& rSerializer )
+void LargeDisplacementSegregatedVPElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementVElement )
 }
 
 

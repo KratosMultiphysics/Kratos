@@ -96,7 +96,7 @@ Element::Pointer LargeDisplacementVElement::Clone( IndexType NewId, NodesArrayTy
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
+	  KRATOS_ERROR << "constitutive law not has the correct size " << NewElement.mConstitutiveLawVector.size() << std::endl;
       }
     
     NewElement.SetData(this->GetData());
@@ -236,19 +236,7 @@ void LargeDisplacementVElement::SetElementVariables(ElementVariables& rVariables
 	    std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
 	  }
 
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
-	    if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
-	      array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
-	      array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-	      std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
-	    }
-	    else{
-	      std::cout<<" ---Contact_Force: NULL "<<std::endl;
-	    }
-	  }
-	
-        KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
+        KRATOS_ERROR << " LARGE DISPLACEMENT VP ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
     }
 
 

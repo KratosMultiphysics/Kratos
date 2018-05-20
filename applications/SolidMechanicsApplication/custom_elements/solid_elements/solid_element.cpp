@@ -177,7 +177,7 @@ void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension;
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
@@ -201,7 +201,7 @@ void SolidElement::GetValuesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension;
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
@@ -227,7 +227,7 @@ void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension;
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
@@ -251,7 +251,7 @@ void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension;
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
