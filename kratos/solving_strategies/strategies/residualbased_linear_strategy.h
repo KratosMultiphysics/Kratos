@@ -608,16 +608,6 @@ public:
     }
 
     /**
-     * @brief This method directly sets the input as the LHS
-     * @param A The LHS matrix
-     * @todo Remove if unused
-     */
-    void GetDirectSystemMatrix(TSystemMatrixType& A)
-    {
-        A = *mpA;
-    }
-
-    /**
      * @brief This method returns the RHS vector
      * @return The RHS vector
      */
