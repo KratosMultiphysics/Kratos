@@ -66,13 +66,10 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                     self._SetUpGiDOutput()
                     if self.have_output:
                         self.list_of_processes[-1] = self.output
-                    # WE INITIALIZE THE SOLVER
-                    self.solver.FinalizeSolutionStep()
                     # WE RECOMPUTE THE PROCESSES AGAIN
-                    ## Processes initialization
-                    #for process in self.list_of_processes:
-                        #process.ExecuteInitialize()
-                    self.output.ExecuteInitialize()
+                    # Processes initialization
+                    for process in self.list_of_processes:
+                        process.ExecuteInitialize()
                     ## Processes before the loop
                     for process in self.list_of_processes:
                         process.ExecuteBeforeSolutionLoop()
@@ -88,8 +85,7 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                 is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                 self.solver.SolveSolutionStep()
                 is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
-                if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True or is_converged):
-                    self.FinalizeSolutionStep()
+                self.FinalizeSolutionStep()
                 if (is_converged):
                     self.is_printing_rank = True
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
