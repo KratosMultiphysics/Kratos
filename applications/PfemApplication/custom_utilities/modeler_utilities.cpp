@@ -558,9 +558,9 @@ namespace Kratos
     double MaximumFaceArea = std::numeric_limits<double>::min();
     double MinimumFaceArea = std::numeric_limits<double>::max();
 
-    boost::numeric::ublas::matrix<unsigned int> lpofa;  //points that define the faces
+    DenseMatrix<unsigned int> lpofa;  //points that define the faces
     rGeometry.NodesInFaces(lpofa);
-    boost::numeric::ublas::vector<unsigned int> lnofa;  //number of nodes per face (3)
+    DenseVector<unsigned int> lnofa;  //number of nodes per face (3)
     rGeometry.NumberNodesInFaces(lnofa);
 
     //calculate face normals
@@ -679,7 +679,7 @@ namespace Kratos
     rMaximumSideLength = std::numeric_limits<double>::min();
     rMinimumSideLength = std::numeric_limits<double>::max();
     
-    boost::numeric::ublas::matrix<unsigned int> lpofa;
+    DenseMatrix<unsigned int> lpofa;
     rGeometry.NodesInFaces(lpofa);
 
     double SideLength = 0;
@@ -871,8 +871,8 @@ namespace Kratos
         
     if( dimension == 2 ){
 
-      bounded_matrix<double,2,2> mJ;    //local jacobian
-      bounded_matrix<double,2,2> mJinv; //inverse jacobian
+      BoundedMatrix<double,2,2> mJ;    //local jacobian
+      BoundedMatrix<double,2,2> mJinv; //inverse jacobian
 
       //calculation of the jacobian  //coordinate center point 0
       for(unsigned int i = 0; i < dimension; i++)
@@ -920,9 +920,9 @@ namespace Kratos
     }
     else if( dimension == 3 ){
 
-      bounded_vector<double,3>   mRHS;  //center pos
-      bounded_matrix<double,3,3> mJ;    //local jacobian
-      bounded_matrix<double,3,3> mJinv; //inverse jacobian
+      BoundedVector<double,3>   mRHS;  //center pos
+      BoundedMatrix<double,3,3> mJ;    //local jacobian
+      BoundedMatrix<double,3,3> mJinv; //inverse jacobian
 
 
       //calculation of the jacobian  //coordinate center point 0
@@ -1312,7 +1312,7 @@ namespace Kratos
     Condition::Pointer pMasterCondition;
 
     Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
-    boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+    DenseMatrix<unsigned int> lpofa; //points that define the faces
     rGeometry.NodesInFaces(lpofa);   
 		
     //std::cout<<" lpofa "<<lpofa<<std::endl;
@@ -1483,7 +1483,7 @@ namespace Kratos
     Condition::Pointer pMasterCondition;
 
     Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
-    boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+    DenseMatrix<unsigned int> lpofa; //points that define the faces
     rGeometry.NodesInFaces(lpofa);   
 		
     //std::cout<<" lpofa "<<lpofa<<std::endl;
@@ -1662,7 +1662,7 @@ namespace Kratos
   //**************************************************************************
   //**************************************************************************
 
-  bool ModelerUtilities::FindCondition(Geometry< Node<3> >& rConditionGeometry ,Geometry< Node<3> >& rGeometry, boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
+  bool ModelerUtilities::FindCondition(Geometry< Node<3> >& rConditionGeometry ,Geometry< Node<3> >& rGeometry, DenseMatrix<unsigned int>& lpofa, DenseVector<unsigned int>& lnofa, unsigned int& iface)
   {
       
     KRATOS_TRY
