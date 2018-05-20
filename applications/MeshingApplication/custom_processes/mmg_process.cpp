@@ -2063,10 +2063,17 @@ void MmgProcess<TDim>::CreateAuxiliarSubModelPartForFlags()
     const auto& flags = KratosComponents<Flags>::GetComponents();
 
     for (auto& flag : flags) {
-        p_auxiliar_model_part->CreateSubModelPart(flag.first);
-        ModelPart& auxiliar_sub_model_part = p_auxiliar_model_part->GetSubModelPart("FLAG_"+flag.first);
+        const std::string name_sub_model = "FLAG_"+flag.first;
+        p_auxiliar_model_part->CreateSubModelPart(name_sub_model);
+        ModelPart& auxiliar_sub_model_part = p_auxiliar_model_part->GetSubModelPart(name_sub_model);
         FastTransferBetweenModelPartsProcess transfer_process = FastTransferBetweenModelPartsProcess(auxiliar_sub_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, *(flag.second));
         transfer_process.Execute();
+        // If the number of elements transfered is 0 we remove the model part
+        if (auxiliar_sub_model_part.NumberOfNodes() == 0
+         && auxiliar_sub_model_part.NumberOfElements() == 0
+         && auxiliar_sub_model_part.NumberOfConditions() == 0) {
+            p_auxiliar_model_part->RemoveSubModelPart(name_sub_model);
+        }
     }
 }
 
@@ -2080,10 +2087,13 @@ void MmgProcess<TDim>::AssignAndClearAuxiliarSubModelPartForFlags()
 
     ModelPart& auxiliar_model_part = mrThisModelPart.GetSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
     for (auto& flag : flags) {
-        ModelPart& auxiliar_sub_model_part = auxiliar_model_part.GetSubModelPart("FLAG_"+flag.first);
-        VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Nodes());
-        VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Conditions());
-        VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Elements());
+        const std::string name_sub_model = "FLAG_"+flag.first;
+        if (auxiliar_model_part.HasSubModelPart(name_sub_model)) {
+            ModelPart& auxiliar_sub_model_part = auxiliar_model_part.GetSubModelPart(name_sub_model);
+            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Nodes());
+            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Conditions());
+            VariableUtils().SetFlag(*(flag.second), true, auxiliar_sub_model_part.Elements());
+        }
     }
 
     mrThisModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
