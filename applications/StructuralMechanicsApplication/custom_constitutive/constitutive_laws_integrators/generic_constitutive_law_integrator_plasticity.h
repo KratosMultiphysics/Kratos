@@ -118,18 +118,19 @@ public:
         double& UniaxialStress, 
         double& Threshold, 
         double& PlasticDenominator, 
-        Vector& Fflux, Vector& Gflux, 
+        Vector& Fflux, 
+        Vector& Gflux, 
         double& PlasticDissipation, 
         Vector& PlasticStrainIncrement,  
         const Matrix& C, 
         Vector& PlasticStrain, 
         const Properties& rMaterialProperties
-    )  
-    { 
+    )
+    {
         bool is_converged = false; 
         int iteration = 0, max_iter = 9000; 
         BoundedVector<double, TVoigtSize> DSigma, DS; 
-        double PlasticConsistencyFactorIncrement = 0.0;  // Lambda 
+        double PlasticConsistencyFactorIncrement = 0.0;  // Lambda
 
         // Backward Euler  
         while (is_converged == false && iteration <= max_iter) 
@@ -186,8 +187,7 @@ public:
         CalculateEquivalentStressThreshold(PlasticDissipation, r0,
             r1, Threshold, Slope, rMaterialProperties);
         CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam); // FFlux or GFlux????
-        CalculatePlasticDenominator(Fflux, C, HardParam, PlasticDenominator)
-
+        CalculatePlasticDenominator(Fflux, C, HardParam, PlasticDenominator);
     }
 
     // DF/DS
@@ -213,12 +213,12 @@ public:
     )
     {
         YieldSurfaceType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, 
-            FFluxVector, rMaterialProperties);
+            GFluxVector, rMaterialProperties);
     }
     
     // Calculates the McAully factors 
     /* These "r"  differentiate between the 
-          tensile/compressive state      */
+    tensile/compressive state            */
     static void CalculateRFactors(
         const Vector& StressVector,
         double& r0,
@@ -233,7 +233,7 @@ public:
 
 		for (int i = 0; i < 3; i++)
 		{
-			SA[i] = abs(PrincipalStresses[i]);
+			SA[i] = std::abs(PrincipalStresses[i]);
 			SB[i] = 0.5*(PrincipalStresses[i]  + SA[i]);
 			SC[i] = 0.5*(-PrincipalStresses[i] + SA[i]);
 
@@ -300,7 +300,7 @@ public:
 
     // Calculates the stress threshold 
     static void CalculateEquivalentStressThreshold(
-        const double Capap, 
+        const double PasticDissipation, 
         const double r0,
         const double r1, 
         double& rEquivalentStressThreshold, 
@@ -308,27 +308,113 @@ public:
         const Properties& rMaterialProperties
     )
     {
+        const int CurveType = rMaterialProperties[HARDENING_CURVE];
+        // ....
+		const double YieldCompr   = rMaterialProperties[YIELD_STRESS_C];
+		const double YieldTension = rMaterialProperties[YIELD_STRESS_T];
+        const double n = YieldCompr / YieldTension;
 
+        BoundedVector<double,2> Gf, Slopes, EqThrsholds;
+
+        Gf[0] = rMaterialProperties[FRACTURE_ENERGY];
+        Gf[1] = std::pow(n, 2)*Gf[0];
+
+        for (int i = 0; i < 2; i++)
+        {
+            switch(CurveType)
+            {
+                case 1:
+                    CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1,
+                        EqThrsholds[i], Slopes[i], rMaterialProperties);
+                case 2:
+                    CalculateEqStressThresholdHardCurve2(PlasticDissipation, r0, r1,
+                        EqThrsholds[i], Slopes[i], rMaterialProperties);
+                case 3:
+                    CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1,
+                        EqThrsholds[i], Slopes[i], rMaterialProperties);                    
+                // Add more cases...
+            }
+        }
+
+        rEquivalentStressThreshold = r0*EqThrsholds[0] + r1*EqThrsholds[1];
+        rSlope = rEquivalentStressThreshold*((r0*Slopes[0] / EqThrsholds[0]) + (r1*Slopes[1] / EqThrsholds[1]));
+    }
+
+    // softening with straight line
+    static void CalculateEqStressThresholdHardCurve1(        
+        const double PasticDissipation, 
+        const double r0,
+        const double r1, 
+        double& rEquivalentStressThreshold, 
+        double& rSlope,
+        const Properties& rMaterialProperties
+    )
+    {
+        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_C];
+
+        rEquivalentStressThreshold = InitialThreshold * std::sqrt(1 - PasticDissipation);
+        rSlope = -0.5*(std::pow(InitialThreshold, 2) / (rEquivalentStressThreshold));
+    }
+
+    // softening with exponential function
+    static void CalculateEqStressThresholdHardCurve2(        
+        const double PasticDissipation, 
+        const double r0,
+        const double r1, 
+        double& rEquivalentStressThreshold, 
+        double& rSlope,
+        const Properties& rMaterialProperties
+    )
+    {
+        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_C];
+
+        rEquivalentStressThreshold = InitialThreshold * (1 - PasticDissipation);
+        rSlope = -0.5*InitialThreshold;
+    }
+
+    // initial hardening followed by exponential softening
+    static void CalculateEqStressThresholdHardCurve3(        
+        const double PasticDissipation, 
+        const double r0,
+        const double r1, 
+        double& rEquivalentStressThreshold, 
+        double& rSlope,
+        const Properties& rMaterialProperties
+    )
+    {
+        // to be continued
     }
 
     static void CalculateHardeningParameter(
-        const Vector& FluxVector, 
+        const Vector& GFlux, 
         const double SlopeThreshold,
         const Vector& HCapa, 
         double& rHardParameter
-    ) // todo which Flux=??????
+    ) 
     {
-
+        rHardParameter = -SlopeThreshold;
+        double aux = 0.0;
+        for (int i = 0; i < 6; i++) aux += HCapa[i] * GFlux[i];
+        if (aux != 0.0) rHardParameter *= aux;
     }
 
     static void CalculatePlasticDenominator(
-        const Vector& FluxVector, 
+        const Vector& FFlux, 
+        const Vector& GFlux,
         const Matrix& C,
         const double HardParam, 
         double& PlasticDenominator
     )
     {
+        const Vector noalias(DVect) = prod(C, GFlux);
 
+        double A1 = 0.0;
+        for (int i = 0; i < 6; i++) A1 += FFlux[i] * DVect[i];
+
+        const double A2 = 0.0; // Only for isotropic hard
+        const double A3 = HardParam;
+
+        rHardParameter = 1 / (A1 + A2 + A3);
     }
 
     static void CalculatePrincipalStresses(

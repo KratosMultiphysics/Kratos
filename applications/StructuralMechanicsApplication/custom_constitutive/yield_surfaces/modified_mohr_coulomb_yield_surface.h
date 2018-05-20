@@ -101,21 +101,21 @@ public:
         const Properties& rMaterialProperties
     )
     {      
-		const double sigma_c = rMaterialProperties[YIELD_STRESS_C];
-		const double sigma_t = rMaterialProperties[YIELD_STRESS_T];
-		const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+		const double YieldCompression = rMaterialProperties[YIELD_STRESS_C];
+		const double YieldTension = rMaterialProperties[YIELD_STRESS_T];
+		const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 
 		// Check input variables 
         double tol = std::numeric_limits<double>::epsilon();
-		if (friction_angle < tol) { friction_angle = 32 * Globals::Pi / 180; std::cout << "Friction Angle not defined, assumed equal to 32 deg " << std::endl; }
-		if (sigma_c < tol) { KRATOS_ERROR << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa "; }
-		if (sigma_t < tol) { KRATOS_ERROR << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_T in .mdpa "; }
+		if (FrictionAngle < tol) { FrictionAngle = 32 * Globals::Pi / 180; std::cout << "Friction Angle not defined, assumed equal to 32 deg " << std::endl; }
+		if (YieldCompression < tol) { KRATOS_ERROR << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa "; }
+		if (YieldTension < tol) { KRATOS_ERROR << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_T in .mdpa "; }
 
 		double K1, K2, K3, Rmorh, R, alpha_r, theta;
-		R = std::abs(sigma_c / sigma_t);
-		Rmorh = std::pow(tan((Globals::Pi / 4.0) + friction_angle / 2.0), 2);
+		R = std::abs(YieldCompression / YieldTension);
+		Rmorh = std::pow(tan((Globals::Pi / 4.0) + FrictionAngle / 2.0), 2);
 		alpha_r = R / Rmorh;
-		double sinphi = std::sin(friction_angle);
+		double sinphi = std::sin(FrictionAngle);
 
 		double I1, J2, J3;
         CalculateI1Invariant(StressVector, I1);
@@ -133,7 +133,7 @@ public:
 		else
 		{
 			CalculateLodeAngle(J2, J3, theta);
-			rEqStress = (2.0*std::tan(Globals::Pi*0.25 + friction_angle*0.5) / std::cos(friction_angle))*((I1*K3 / 3.0) + 
+			rEqStress = (2.0*std::tan(Globals::Pi*0.25 + FrictionAngle*0.5) / std::cos(FrictionAngle))*((I1*K3 / 3.0) + 
                 std::sqrt(J2)*(K1*std::cos(theta) - K2*std::sin(theta)*sinphi / std::sqrt(3.0)));
 		}
     }
