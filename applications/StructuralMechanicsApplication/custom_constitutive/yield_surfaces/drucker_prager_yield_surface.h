@@ -100,10 +100,10 @@ public:
         double& rEqStress, 
         const Properties& rMaterialProperties
     )
-    {   // it compares with abs(sigma_t*(3 + sin(friction_angle)) / (3 * sin(friction_angle) - 3))
-		double sigma_c = this->GetProperties()[YIELD_STRESS_C];
-		double sigma_t = this->GetProperties()[YIELD_STRESS_T];
-		double friction_angle = this->GetProperties()[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+    {   
+		const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        const double SinPhi = std::sin(friction_angle);
+        const double Root3 = std::sqrt(3.0);
 
 		// Check input variables 
         double tol = std::numeric_limits<double>::epsilon();
@@ -117,10 +117,19 @@ public:
 		if (I1 == 0.0) { rEqStress = 0; }
 		else
 		{
-			const double CFL = -std::sqrt(3.0)*(3.0 - std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0);
-			const double TEN0 = 6.0 * I1*std::sin(friction_angle) / (std::sqrt(3.0)*(3.0 - std::sin(friction_angle))) + std::sqrt(J2);
+			const double CFL = -Root3*(3.0 - SinPhi) / (3.0 * SinPhi - 3.0);
+			const double TEN0 = 6.0 * I1*SinPhi / (Root3*(3.0 - SinPhi)) + std::sqrt(J2);
 			rEqStress = std::abs(CFL*TEN0);
 		}
+    }
+
+    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    {
+        const double YieldTension = rMaterialProperties[YIELD_STRESS_T];
+        const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        const double SinPhi = std::sin(friction_angle);
+        
+        rThreshold = std::abs(YieldTension*(3.0 + SinPhi) / (3.0*SinPhi - 3.0));
     }
 
     static void CalculateI1Invariant(const Vector& StressVector, double& rI1)

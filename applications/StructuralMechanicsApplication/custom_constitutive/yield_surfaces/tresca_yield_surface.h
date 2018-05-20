@@ -112,6 +112,11 @@ public:
         rEqStress = 2.0*std::cos(LodeAngle)*std::sqrt(J2);
     }
 
+    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    {
+        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_T]);  // TODO Check
+    }
+
     static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
     {
         rI1 = StressVector[0] + StressVector[1] + StressVector[2];

@@ -110,6 +110,13 @@ public:
         rEqStress = std::sqrt(3.0*J2);
     }
 
+
+    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    {
+        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_T]);
+    }
+
+    
     static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
     {
         rI1 = StressVector[0] + StressVector[1] + StressVector[2];

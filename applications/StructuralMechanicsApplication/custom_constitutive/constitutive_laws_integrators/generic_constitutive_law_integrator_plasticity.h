@@ -129,7 +129,7 @@ public:
         bool is_converged = false; 
         int iteration = 0, max_iter = 9000; 
         BoundedVector<double, TVoigtSize> DSigma, DS; 
-        double PlasticConsistencyFactorIncrement = 0.0;     // Lambda 
+        double PlasticConsistencyFactorIncrement = 0.0;  // Lambda 
 
         // Backward Euler  
         while (is_converged == false && iteration <= max_iter) 
@@ -147,7 +147,7 @@ public:
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, rMaterialProperties); 
 
-            double F = UniaxialStress - Threshold; 
+            const double F = UniaxialStress - Threshold; 
 
             if (F < std::abs(1.0e-8 * Threshold)) // Has converged 
             { 
@@ -218,7 +218,7 @@ public:
     
     // Calculates the McAully factors 
     /* These "r"  differentiate between the 
-    tensile/compressive state*/
+          tensile/compressive state      */
     static void CalculateRFactors(
         const Vector& StressVector,
         double& r0,
@@ -259,12 +259,43 @@ public:
         const double r0,
         const double r1, 
         const Vector& PlasticStrainInc, 
-        double& rCapap, 
-        Vector& HCapa,
+        double& rPlasticDissipation, 
+        Vector& rHCapa,
         const Properties& rMaterialProperties
     )
     {
+        const double Young = rMaterialProperties[YOUNG_MODULUS];
+        const double YieldCompression = rMaterialProperties[YIELD_STRESS_C];
+        const double YieldTension     = rMaterialProperties[YIELD_STRESS_T];
+        const double n = YieldCompression / YieldTension;
+        const double Gf = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
+        const double Gfc = rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
+        const double CharacteristicLength = 0.0; // TODO how to access????
 
+        const double gf  = Gf / CharacteristicLength;
+        const double gfc = Gfc / CharacteristicLength;
+
+        const double hlim = 2.0*Young*gfc / (std::pow(YieldCompression, 2));
+        if (CharacteristicLength > hlim) KRATOS_THROW_ERROR(std::invalid_argument, "The Fracture Energy is to low ", gfc)
+
+        double Const0 = 0.0, Const1 = 0.0, DPlasticdissipation = 0.0;
+        if (gf > 0.000001)
+        {
+            Const0 = r0 / gf;
+            Const1 = r1 / gfc;
+        }
+        const double Const = Const0 + Const1;
+
+        for (int i = 0; i < 6; i++)
+        {
+            rHCapa[i] = Const*StressVector[i];
+            DPlasticdissipation += rHCapa[i]*PlasticStrainInc[i];
+        }
+
+        if (DPlasticdissipation > 0.0 | DPlasticdissipation > 1.0) DPlasticdissipation = 0.0;
+
+        rPlasticDissipation += DPlasticdissipation;
+        if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999;
     }
 
     // Calculates the stress threshold 

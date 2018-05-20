@@ -103,7 +103,7 @@ public:
     {      
 		const double sigma_c = rMaterialProperties[YIELD_STRESS_C];
 		const double sigma_t = rMaterialProperties[YIELD_STRESS_T];
-		const double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+		const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 
 		// Check input variables 
         double tol = std::numeric_limits<double>::epsilon();
@@ -136,6 +136,11 @@ public:
 			rEqStress = (2.0*std::tan(Globals::Pi*0.25 + friction_angle*0.5) / std::cos(friction_angle))*((I1*K3 / 3.0) + 
                 std::sqrt(J2)*(K1*std::cos(theta) - K2*std::sin(theta)*sinphi / std::sqrt(3.0)));
 		}
+    }
+
+    static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
+    {
+        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_C]);
     }
 
     static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
