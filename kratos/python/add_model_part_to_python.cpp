@@ -710,9 +710,15 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels2)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
-		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart)
+// 		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart)
+                .def("CreateSubModelPart", [](ModelPart& self, const std::string& Name) -> ModelPart& //TODO: this is a chapuza to avoid returning a ModelPart::Pointer
+                    {
+                        auto p_new = self.CreateSubModelPart(Name);
+                        return *p_new;
+                    }, return_value_policy::reference_internal)
 		.def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
-		.def("GetSubModelPart", &ModelPart::pGetSubModelPart)
+// 		.def("GetSubModelPart", &ModelPart::pGetSubModelPart)
+                .def("GetSubModelPart", &ModelPart::GetSubModelPart, return_value_policy::reference_internal)
 		.def("RemoveSubModelPart", RemoveSubModelPart1)
 		.def("RemoveSubModelPart", RemoveSubModelPart2)
 		.def("HasSubModelPart", &ModelPart::HasSubModelPart)
