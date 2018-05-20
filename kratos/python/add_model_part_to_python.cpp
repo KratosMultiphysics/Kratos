@@ -746,7 +746,7 @@ void AddModelPartToPython(pybind11::module& m)
 		;
                 
         //defining the "constructor"
-        m.def("ModelPart", [](std::string const& name) -> ModelPart& { return Kernel::GetModel()->CreateModelPart(name);}, return_value_policy::reference);
+        m.def("ModelPart", [](std::string const& name) -> ModelPart& { return Kernel::GetModel().CreateModelPart(name);}, return_value_policy::reference);
 
 }
 

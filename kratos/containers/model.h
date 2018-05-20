@@ -69,20 +69,10 @@ namespace Kratos
       ///@{
 
       /// Default constructor.
-      Model();
-//       {
-//           Model*& pregistered_model = Kernel::GetModel();
-//           if(pregistered_model != nullptr)
-//               KRATOS_ERROR << "trying to create a new Model, however one is already existing" << std::endl;
-//           pregistered_model = &(*this);
-//       };
+      Model(){};
 
       /// Destructor.
-      virtual ~Model();
-//       {
-//         Model*& pregistered_model = Kernel::GetModel();    
-//         pregistered_model = nullptr;
-//       };
+      virtual ~Model(){};
       
       Model & operator=(const Model&) = delete;
       Model(const Model&) = delete;

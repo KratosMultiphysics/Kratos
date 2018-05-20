@@ -8,14 +8,12 @@ import sys
 class TestModel(KratosUnittest.TestCase):
 
     def test_model(self):
-        model = KratosMultiphysics.Model() #this should go before the creation of any modelpart
-        
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.CreateSubModelPart("Inlets")
         model_part.CreateSubModelPart("Temp")
         outlet = model_part.CreateSubModelPart("Outlet")
 
-        
+        model = KratosMultiphysics.Model()
         #model.AddModelPart(model_part)
         print("----------------")
 

@@ -37,16 +37,10 @@ std::unordered_set<std::string> &Kernel::GetApplicationsList() {
   return application_list;
 }
 
-// Model& Kernel::GetModel()
-// {
-//     static Model smodel;
-//     return smodel;
-// }
-
-Model*& Kernel::GetModel()
+Model& Kernel::GetModel()
 {
-    static Model* spmodel;
-    return spmodel;
+    static Model smodel;
+    return smodel;
 }
 
 bool Kernel::IsImported(std::string ApplicationName) const {
