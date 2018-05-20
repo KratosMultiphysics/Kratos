@@ -43,6 +43,7 @@ Model& Kernel::GetModel()
     return smodel;
 }
 
+
 bool Kernel::IsImported(std::string ApplicationName) const {
     if (GetApplicationsList().find(ApplicationName) !=
         GetApplicationsList().end())
