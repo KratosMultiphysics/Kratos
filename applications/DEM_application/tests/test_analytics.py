@@ -130,7 +130,7 @@ class GhostsTestSolution(main_script.Solution):
         for face_watcher in self.face_watcher_dict.values():
             face_watcher.MakeMeasurements()
 
-        if self.IsTimeToPrintPostProcess():
+        if self.IsTimeToPrintPostProcess(self.time):
             for sub_part in self.rigid_face_model_part.SubModelParts:
                 if sub_part[IS_GHOST]:
                     self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
@@ -170,7 +170,7 @@ class MultiGhostsTestSolution(main_script.Solution):
         for face_watcher in self.face_watcher_dict.values():
             face_watcher.MakeMeasurements()
 
-        if self.IsTimeToPrintPostProcess():
+        if self.IsTimeToPrintPostProcess(self.time):
             for sub_part in self.rigid_face_model_part.SubModelParts:
                 if sub_part[IS_GHOST]:
                     print(sub_part)
