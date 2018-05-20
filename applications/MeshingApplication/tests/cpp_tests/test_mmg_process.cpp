@@ -50,7 +50,7 @@ namespace Kratos
         * Test triangle 
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess1, KratosMMGProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -134,7 +134,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess2, KratosMMGProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
