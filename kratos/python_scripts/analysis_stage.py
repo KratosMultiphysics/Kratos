@@ -219,12 +219,12 @@ class AnalysisStage(object):
         Format:
         "processes" : {
             initial_processes : {
-                process_1 : { proces_specific_params},
-                process_2 : { proces_specific_params},
+                process_1 : [ proces_specific_params ],
+                process_2 : [ proces_specific_params ]
             },
             boundary_processes : {
-                process_one : { proces_specific_params},
-                process_two : { proces_specific_params},
+                process_one : [ proces_specific_params ],
+                process_two : [ proces_specific_params ]
             }
         }
         The order of intialization can be specified by setting it in "initialization_order"
@@ -238,7 +238,6 @@ class AnalysisStage(object):
         factory = KratosProcessFactory(self.model)
 
         if self.project_parameters.Has(parameter_name):
-            TestMe
             processes_params = self.project_parameters[parameter_name]
 
             # first initialize the processes that depend on the order

@@ -40,7 +40,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
-        This method is temporary to not break existing code
+        This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
         list_of_processes = super(FluidDynamicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)

@@ -51,6 +51,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
 
     def OutputSolutionStep(self):
+        # This function is temporary until restart saving is handled through process
         super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
 
         self._GetSolver().SaveRestart()
