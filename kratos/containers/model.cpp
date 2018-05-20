@@ -27,6 +27,10 @@
 
 namespace Kratos
 {
+    void Model::Reset()
+    {
+        mRootModelPartMap.clear();
+    }
     
     ModelPart& Model::CreateModelPart( const std::string ModelPartName ) 
     {
@@ -252,7 +256,7 @@ namespace Kratos
         std::stringstream ss;
         for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); it++)
         {
-//             ss<< (it->second).get()->Info() << std::endl << std::endl;
+             ss<< *((it->second).get()) << std::endl << std::endl;
         }
         return ss.str();
     }
