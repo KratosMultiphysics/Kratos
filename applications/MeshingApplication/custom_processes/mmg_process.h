@@ -115,7 +115,7 @@ namespace Kratos
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
  * @author Vicente Mataix Ferrandiz
  */
-template<unsigned int TDim>  
+template<SizeType TDim>
 class MmgProcess 
     : public Process
 {
@@ -128,10 +128,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
     
     /// Conditions array size
-    static constexpr unsigned int ConditionsArraySize = (TDim == 2) ? 1 : 2;
+    static constexpr SizeType ConditionsArraySize = (TDim == 2) ? 1 : 2;
     
     /// Elements array size
-    static constexpr unsigned int ElementsArraySize = (TDim == 2) ? 1 : 2;
+    static constexpr SizeType ElementsArraySize = (TDim == 2) ? 1 : 2;
  
     ///@}
     ///@name  Enum's
@@ -271,7 +271,7 @@ private:
     
     char* mFilename;                                              /// I/O file name
     std::string mStdStringFilename;                               /// I/O file name (string)
-    unsigned int mEchoLevel;                                      /// The echo level
+    IndexType mEchoLevel;                                         /// The echo level
 
     FrameworkEulerLagrange mFramework;                            /// The framework
     
@@ -340,38 +340,38 @@ private:
      * @brief It checks if the nodes are repeated and remove the repeated ones
      */
     
-    std::vector<unsigned int> CheckNodes();
+    std::vector<IndexType> CheckNodes();
     
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
     
-    std::vector<unsigned int> CheckConditions0();
+    std::vector<IndexType> CheckConditions0();
     
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
         
-    std::vector<unsigned int> CheckConditions1();
+    std::vector<IndexType> CheckConditions1();
     
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
     
-    std::vector<unsigned int> CheckElements0();
+    std::vector<IndexType> CheckElements0();
     
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
         
-    std::vector<unsigned int> CheckElements1();
+    std::vector<IndexType> CheckElements1();
     
     /**
      * @brief It blocks certain nodes before remesh the model
      * @param iNode The index of the noode
      */
     
-    void BlockNode(unsigned int iNode);
+    void BlockNode(IndexType iNode);
     
     /**
      * @brief It creates the new node
@@ -382,7 +382,7 @@ private:
      */
     
     NodeType::Pointer CreateNode(
-        unsigned int iNode,
+        IndexType iNode,
         int& Ref, 
         int& IsRequired
         );
@@ -396,7 +396,7 @@ private:
      */
     
     ConditionType::Pointer CreateCondition0(
-        const unsigned int CondId,
+        const IndexType CondId,
         int& PropId, 
         int& IsRequired,
         bool SkipCreation
@@ -411,7 +411,7 @@ private:
      */
     
     ConditionType::Pointer CreateCondition1(
-        const unsigned int CondId,
+        const IndexType CondId,
         int& PropId, 
         int& IsRequired,
         bool SkipCreation
@@ -426,7 +426,7 @@ private:
      */
     
     ElementType::Pointer CreateElement0(
-        const unsigned int ElemId,
+        const IndexType ElemId,
         int& PropId, 
         int& IsRequired,
         bool SkipCreation
@@ -441,7 +441,7 @@ private:
      */
     
     ElementType::Pointer CreateElement1(
-        const unsigned int ElemId,
+        const IndexType ElemId,
         int& PropId, 
         int& IsRequired,
         bool SkipCreation
@@ -533,7 +533,7 @@ private:
     
     void OutputMesh(
         const bool PostOutput, 
-        const unsigned int Step
+        const IndexType Step
         );
     
     /**
@@ -549,7 +549,7 @@ private:
     
     void OutputSol(
         const bool PostOutput, 
-        const unsigned int Step
+        const IndexType Step
         );
     
     /**
