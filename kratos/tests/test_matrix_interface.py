@@ -6,6 +6,9 @@ import math
 
 
 class TestMatrixInterface(KratosUnittest.TestCase):
+
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
         
     def test_assignement(self):
         a = Matrix(2,3)

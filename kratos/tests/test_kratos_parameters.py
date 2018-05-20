@@ -2,6 +2,7 @@
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
+from KratosMultiphysics import Model
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -190,6 +191,8 @@ four_levels_defaults = """{
 }"""
 
 class TestParameters(KratosUnittest.TestCase):    
+    def tearDown(self):
+        Model().Reset()
 
     def setUp(self):
         self.kp = Parameters(json_string)

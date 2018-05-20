@@ -8,6 +8,8 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestMaterialsInput(KratosUnittest.TestCase):
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
 
     def test_input(self):
         try:

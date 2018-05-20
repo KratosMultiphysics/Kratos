@@ -10,6 +10,9 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
+
     def __base_test_mapping(self, input_filename, num_nodes, pure_implicit):
         self.main_model_part = KratosMultiphysics.ModelPart("Structure")
         self.main_model_part.SetBufferSize(2)

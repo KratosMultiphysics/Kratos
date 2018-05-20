@@ -12,6 +12,10 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestGidIO(KratosUnittest.TestCase):
+    
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
+
 
     def __WriteOutput(self, model_part, output_file):
 

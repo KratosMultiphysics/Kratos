@@ -10,6 +10,9 @@ class TestModelPart(KratosUnittest.TestCase):
     def setUp(self):
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
+            
+    def tearDown(self):
+        Model().Reset()
 
     def test_model_part_sub_model_parts(self):
         model_part = ModelPart("Main")
