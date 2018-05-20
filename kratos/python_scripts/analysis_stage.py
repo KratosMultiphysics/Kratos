@@ -139,13 +139,15 @@ class AnalysisStage(object):
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
         """
+        # first we check if one of the output processes will print output in this step
+        # this is done to save computation in case none of them will print
         is_output_step = False
         for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():
                 is_output_step = True
                 break
 
-        if is_output_step: # At least one of the output processes will print output
+        if is_output_step: # at least one of the output processes will print output
             for process in self._GetListOfProcesses():
                 process.ExecuteBeforeOutputStep()
 
@@ -193,22 +195,42 @@ class AnalysisStage(object):
         raise Exception("Creation of the solver must be implemented in the derived class.")
 
     def _GetListOfProcesses(self):
+        """This function returns the list of processes involved in this Analysis
+        The list of processes is constructed in case it is not existing yet
+        """
         if not hasattr(self, '_list_of_processes'):
             order_processes_initialization = self._GetOrderOfProcessesInitialization()
             self._list_of_processes = self._CreateProcesses("processes", order_processes_initialization)
+            list_output_processes = self._GetListOfOutputProcesses()
+            self._list_of_processes.extend(list_output_processes) # Adding the output processes to the regular processes
         return self._list_of_processes
 
     def _GetListOfOutputProcesses(self):
+        """This function returns the list of output processes involved in this Analysis
+        The list of output processes is constructed in case it is not existing yet
+        """
         if not hasattr(self, '_list_of_output_processes'):
             order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
             self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
-
-            list_processes = self._GetListOfProcesses()
-            list_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
         return self._list_of_output_processes
 
     def _CreateProcesses(self, parameter_name, initialization_order):
-        """Create a list of Processes
+        """Create a list of processes
+        Format:
+        "processes" : {
+            initial_processes : {
+                process_1 : { proces_specific_params},
+                process_2 : { proces_specific_params},
+            },
+            boundary_processes : {
+                process_one : { proces_specific_params},
+                process_two : { proces_specific_params},
+            }
+        }
+        The order of intialization can be specified by setting it in "initialization_order"
+        if e.g. the "boundary_processes" should be constructed before the "initial_processes", then
+        initialization_order should be a list containing ["boundary_processes", "initial_processes"]
+        see the functions _GetOrderOfProcessesInitialization and _GetOrderOfOutputProcessesInitialization
         """
         list_of_processes = []
 
@@ -224,7 +246,7 @@ class AnalysisStage(object):
                 if processes_params.Has(processes_names):
                     list_of_processes += factory.ConstructListOfProcesses(processes_params[processes_names])
 
-            # them initialize the processes that don't depend on the order
+            # then initialize the processes that don't depend on the order
             for name, value in processes_params.items():
                 if not name in initialization_order:
                     list_of_processes += factory.ConstructListOfProcesses(value) # Does this work? or should it be processes[name]

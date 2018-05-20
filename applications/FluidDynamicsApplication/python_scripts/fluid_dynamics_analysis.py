@@ -13,22 +13,30 @@ class FluidDynamicsAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
     def __init__(self,model,parameters):
-        super(FluidDynamicsAnalysis,self).__init__(model,parameters)
-
         # Create the ModelPart
         # Note that this in temporary and will be done through the model in the future
-        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
+        model_part_name = parameters["problem_data"]["model_part_name"].GetString()
         self.main_model_part = Kratos.ModelPart(model_part_name)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
+                                                  parameters["problem_data"]["domain_size"].GetInt())
+
+        super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
 
+    def Initialize(self):
+        # This function is temporary until restart saving is handled through process
+        self._SetUpRestart()
+        super(FluidDynamicsAnalysis, self).Initialize()
+
     def OutputSolutionStep(self):
+        # This function is temporary until restart saving is handled through process
         super(FluidDynamicsAnalysis, self).OutputSolutionStep()
 
-        # if self.save_restart:
-        #     self.restart_utility.SaveRestart()
+        if self.save_restart:
+            self.restart_utility.SaveRestart()
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -87,7 +95,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
         if self.project_parameters.Has("restart_settings"):
             restart_settings = self.project_parameters["restart_settings"]
-            self.load_restart = restart_settings["load_restart"].GetBool()
             self.save_restart = restart_settings["save_restart"].GetBool()
             restart_settings.RemoveValue("load_restart")
             restart_settings.RemoveValue("save_restart")
@@ -102,7 +109,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
             self.restart_utility = Restart(self.main_model_part,
                                            self.project_parameters["restart_settings"])
         else:
-            self.load_restart = False
             self.save_restart = False
 
     def _GetSimulationName(self):

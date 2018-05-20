@@ -65,14 +65,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
-        This method is temporary to not break existing code
+        This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
         list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
-        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
-        # Note 1: gravity is constructed first. Outlet process might need its information.
-        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
         if parameter_name == "processes":
             old_processes_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process"
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
