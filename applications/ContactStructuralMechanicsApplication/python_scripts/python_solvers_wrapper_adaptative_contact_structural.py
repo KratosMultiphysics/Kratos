@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
+
 def CreateSolver(main_model_part, custom_settings):
 
     if (type(main_model_part) != KratosMultiphysics.ModelPart):
@@ -15,27 +16,18 @@ def CreateSolver(main_model_part, custom_settings):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "dynamic" or solver_type == "Dynamic"):
-            solver_module_name = "contact_structural_mechanics_implicit_dynamic_solver"
-
-        elif (solver_type == "static" or solver_type == "Static"):
-            solver_module_name = "contact_structural_mechanics_static_solver"
+        if (solver_type == "static" or solver_type == "Static"):
+            solver_module_name = "adaptative_contact_structural_mechanics_static_solver"
+        elif (solver_type == "dynamic" or solver_type == "Dynamic"):
+            solver_module_name = "adaptative_contact_structural_mechanics_implicit_dynamic_solver"
         else:
-            raise Exception("The requested solver type is not in the python solvers wrapper")
-
-    # Solvers for MPI parallelism
-    elif (parallelism == "MPI"):
-        raise Exception("The requested solver type is not in the python solvers wrapper")
-        #if (solver_type == "dynamic" or solver_type == "Dynamic"):
-            #solver_module_name = "trilinos_contact_structural_mechanics_implicit_dynamic_solver"
-
-        #elif (solver_type == "static" or solver_type == "Static"):
-            #solver_module_name = "trilinos_contact_structural_mechanics_static_solver"
-
-        #else:
-            #raise Exception("The requested solver type is not in the python solvers wrapper")
+            err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
+            err_msg += "Available options are: \"static\", \"dynamic\""
+            raise Exception(err_msg)
     else:
-        raise Exception("Parallelism is neither OpenMP nor MPI")
+        err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
+        err_msg += "Available options are: \"OpenMP\""
+        raise Exception(err_msg)
 
     # Remove settings that are not needed any more
     custom_settings["solver_settings"].RemoveValue("solver_type")
