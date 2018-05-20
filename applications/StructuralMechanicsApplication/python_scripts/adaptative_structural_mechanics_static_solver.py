@@ -106,11 +106,10 @@ class AdaptativeStaticMechanicalSolver(structural_mechanics_static_solver.Static
         return self._remeshing_process
 
     def _create_remeshing_process(self):
-        computing_model_part = self.GetComputingModelPart()
-        if (computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            remeshing_process = MeshingApplication.MmgProcess2D(computing_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            remeshing_process = MeshingApplication.MmgProcess2D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
         else:
-            remeshing_process = MeshingApplication.MmgProcess3D(computing_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
+            remeshing_process = MeshingApplication.MmgProcess3D(self.main_model_part, self.adaptative_remesh_parameters["remeshing_parameters"])
 
         return remeshing_process
 
