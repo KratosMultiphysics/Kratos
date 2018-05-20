@@ -139,15 +139,13 @@ void MmgProcess<TDim>::Execute()
     InitMesh();
     
     /* We print the original model part */
-    if (mEchoLevel > 0) {
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------  BEFORE REMESHING   ---------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl << std::endl;
-        
-        KRATOS_WATCH(mrThisModelPart);
-    }
+    KRATOS_INFO_IF("", mEchoLevel > 0) <<
+    "//---------------------------------------------------//" << std::endl <<
+    "//---------------------------------------------------//" << std::endl <<
+    "//---------------  BEFORE REMESHING   ---------------//" << std::endl <<
+    "//---------------------------------------------------//" << std::endl <<
+    "//---------------------------------------------------//" << std::endl <<
+    std::endl << mrThisModelPart << std::endl;
     
     // We initialize the mesh and solution data
     InitializeMeshData();
@@ -163,15 +161,13 @@ void MmgProcess<TDim>::Execute()
     ExecuteRemeshing();
     
     /* We print the resulting model part */
-    if (mEchoLevel > 0) {
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------   AFTER REMESHING   ---------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl;
-        std::cout << "//---------------------------------------------------//" << std::endl << std::endl;
-        
-        KRATOS_WATCH(mrThisModelPart);
-    }
+    KRATOS_INFO_IF("", mEchoLevel > 0) <<
+    "//---------------------------------------------------//" << std::endl <<
+    "//---------------------------------------------------//" << std::endl <<
+    "//---------------   AFTER REMESHING   ---------------//" << std::endl <<
+    "//---------------------------------------------------//" << std::endl <<
+    "//---------------------------------------------------//" << std::endl <<
+    std::endl << mrThisModelPart << std::endl;
     
     KRATOS_CATCH("");
 }
