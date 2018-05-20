@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-class KRATOS_API(DEM_APPLICATION) AnalyticFaceWatcher {
+class AnalyticFaceWatcher {
 
 public:
 
