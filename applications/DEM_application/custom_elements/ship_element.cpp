@@ -50,7 +50,7 @@ namespace Kratos {
         KRATOS_TRY
 
         const double water_density = 1000;
-        const double drag_coefficient = 0.05;
+        const double drag_coefficient = 0.5;
         const double water_level = 0.0;
 
         for (unsigned int i = 0; i != mListOfRigidFaces.size(); ++i) {
@@ -70,47 +70,22 @@ namespace Kratos {
                 continue;
             }
             
-            array_1d<double, 3> nodes_velocities_sum = ZeroVector(3);
+            array_1d<double, 3> rigid_face_velocity = ZeroVector(3);
             
-            mListOfRigidFaces[i]->Test();
+            rigid_face_velocity = mListOfRigidFaces[i]->GetRigidFaceVelocity();
             
-            double vel_x = 0.0;
-            double vel_y = 0.0;
-            double vel_z = 0.0;
-            //this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY)
-            for (unsigned int j = 0; j < 3; j++) {
-                vel_x += mListOfRigidFaces[i]->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY)[0];
-                vel_y += mListOfRigidFaces[i]->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY)[1];
-                vel_z += mListOfRigidFaces[i]->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY)[2];
+            double velocity_modulus = DEM_MODULUS_3(rigid_face_velocity);
+            
+            if (velocity_modulus) {
+                DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, 1.0/velocity_modulus)
             }
-            
-            nodes_velocities_sum = mListOfRigidFaces[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-            
-            KRATOS_WATCH(nodes_velocities_sum[0])
-            
-            nodes_velocities_sum[0] = mListOfRigidFaces[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0];
-            nodes_velocities_sum[1] = mListOfRigidFaces[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1];
-            nodes_velocities_sum[2] = mListOfRigidFaces[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2];
-            
-            KRATOS_WATCH(nodes_velocities_sum[0])
-            KRATOS_WATCH(nodes_velocities_sum[1])
-            KRATOS_WATCH(nodes_velocities_sum[2])
-            
-            //DEM_MULTIPLY_BY_SCALAR_3(nodes_velocities_sum, 0.3333333333333333333333333)
-            
-            double velocity_modulus = DEM_MODULUS_3(nodes_velocities_sum);
-            DEM_MULTIPLY_BY_SCALAR_3(nodes_velocities_sum, 1.0/velocity_modulus)
             
             rigid_face_centroid = mListOfRigidFaces[i]->GetGeometry().Center();
             rigid_face_area = mListOfRigidFaces[i]->GetGeometry().Area();
-            
-            DEM_MULTIPLY_BY_SCALAR_3(nodes_velocities_sum, -0.5*drag_coefficient*water_density*velocity_modulus*velocity_modulus*rigid_face_area)
-            DEM_COPY_SECOND_TO_FIRST_3(drag_force, nodes_velocities_sum)
-                    
-            KRATOS_WATCH(drag_force[0])
-            KRATOS_WATCH(drag_force[1])
-            KRATOS_WATCH(drag_force[2])
-            
+                        
+            DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, -0.5*drag_coefficient*water_density*velocity_modulus*velocity_modulus*rigid_face_area)
+            DEM_COPY_SECOND_TO_FIRST_3(drag_force, rigid_face_velocity)
+                                
             for (unsigned int i = 0; i < 3; i++) {
                 rigid_body_centroid_to_rigid_face_centroid_vector[0] = rigid_face_centroid.Coordinates()[0] - GetGeometry()[0].Coordinates()[0];
                 rigid_body_centroid_to_rigid_face_centroid_vector[1] = rigid_face_centroid.Coordinates()[1] - GetGeometry()[0].Coordinates()[1];
@@ -218,6 +193,9 @@ namespace Kratos {
         ComputeBuoyancyEffects();
         ComputeEngineForce();
         ComputeWaterDragForce();
+        
+        const array_1d<double, 3> external_applied_torque = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT)) += external_applied_torque;
 
         KRATOS_CATCH("")
     }

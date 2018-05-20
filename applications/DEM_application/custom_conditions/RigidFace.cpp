@@ -330,8 +330,19 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
     
 }
 
-void RigidFace3D::Test() {
-    KRATOS_WATCH("SESCALLA")
+array_1d<double, 3> RigidFace3D::GetRigidFaceVelocity() {
+        
+    size_t FE_size = this->GetGeometry().size();
+    array_1d<double, 3> rigid_face_velocity = ZeroVector(3);
+    
+    for (std::size_t inode = 0; inode < FE_size; inode++) {
+        
+        DEM_ADD_SECOND_TO_FIRST(rigid_face_velocity, this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY))
+    }
+    
+    DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, 0.333333333333333333333333)
+    
+    return rigid_face_velocity;
 }
 
 void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
