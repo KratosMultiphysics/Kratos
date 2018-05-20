@@ -114,13 +114,11 @@ public:
 		Vector Deviator = ZeroVector(TVoigtSize);
 		CalculateJ2Invariant(StressVector,I1, Deviator, J2);
 
-		double CFL, TEN0;
-		// Check DruckerPrager criterion
 		if (I1 == 0.0) { rEqStress = 0; }
 		else
 		{
-			CFL = -std::sqrt(3.0)*(3.0 - std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0);
-			TEN0 = 6.0 * I1*std::sin(friction_angle) / (std::sqrt(3.0)*(3.0 - std::sin(friction_angle))) + std::sqrt(J2);
+			const double CFL = -std::sqrt(3.0)*(3.0 - std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0);
+			const double TEN0 = 6.0 * I1*std::sin(friction_angle) / (std::sqrt(3.0)*(3.0 - std::sin(friction_angle))) + std::sqrt(J2);
 			rEqStress = std::abs(CFL*TEN0);
 		}
     }
@@ -191,44 +189,85 @@ public:
 		LodeAngle = asin(sint3) / 3.0;
     }
 
-	static void CalculatePrincipalStresses(Vector& rPrincipalStressVector, const Vector StressVector)
-	{
-		rPrincipalStressVector.resize(3);
-		double I1, I2, I3, phi, Num, Denom, II1;
-		CalculateI1Invariant(StressVector, I1);
-		CalculateI2Invariant(StressVector, I2);
-		CalculateI3Invariant(StressVector, I3);
-		II1 = I1*I1;
+    /*
+    This  script  calculates  the derivatives  of the Yield Surf
+    according   to   NAYAK-ZIENKIEWICZ   paper International
+    journal for numerical methods in engineering vol 113-135 1972.
+    As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+    */
+    static void CalculateYieldSurfaceDerivative(
+        const Vector& StressVector, 
+        const Vector& Deviator,
+        const double J2, 
+        Vector& rFFlux,
+        const Properties& rMaterialProperties
+    )
+    {
+        Vector FirstVector, SecondVector, ThirdVector;
 
-		Num = (2.0*II1 - 9.0*I2)*I1 + 27.0*I3;
-		Denom = (II1 - 3.0*I2);
+        CalculateFirstVector(FirstVector);
+        CalculateSecondVector(Deviator, J2, SecondVector);
+        CalculateThirdVector(Deviator, J2, ThirdVector);
 
-		if (Denom != 0.0)
-		{
-			phi = Num / (2.0*Denom*std::sqrt(Denom));
+        double c1, c2, c3;
+        c3 = 0.0;
 
-			if (std::abs(phi) > 1.0)
-			{
-				if (phi > 0.0) phi = 1.0;
-				else phi = -1.0;
-			}
+        const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE];
+        const double SinPhi    = std::sin(FrictionAngle);
+        const double Root3     = std::sqrt(3.0);
 
-			double acosphi = std::acos(phi);
-			phi = acosphi / 3.0;
+        const double CFL = -Root3*(3.0-SinPhi) / (3.0*SinPhi-3.0);
+        c1 = CFL*2.0*SinPhi / (Root3*(3.0-SinPhi));
+        c2 = CFL;
 
-			double aux1 = 0.666666666666667*sqrt(II1 - 3.0*I2);
-			double aux2 = I1 / 3.0;
+        noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+    }
 
-			rPrincipalStressVector[0] = aux2 + aux1*cos(phi);
-			rPrincipalStressVector[1] = aux2 + aux1*cos(phi - 2.09439510239);
-			rPrincipalStressVector[2] = aux2 + aux1*cos(phi - 4.18879020478);
-		}
-		else 
-		{
-			rPrincipalStressVector = ZeroVector(3);
-		}
-		
-	}
+    static void CalculateFirstVector(Vector& FirstVector)
+    {
+        FirstVector = ZeroVector(6);
+        FirstVector[0] = 1.0;
+        FirstVector[1] = 1.0;
+        FirstVector[2] = 1.0;
+
+    }
+
+    static void CalculateSecondVector(
+        const Vector Deviator, 
+        const double J2, 
+        Vector& SecondVector
+    )
+    {
+        const double twosqrtJ2 = 2.0*std::sqrt(J2);
+        for (int i = 0; i < 6; i++)
+        {
+            SecondVector[i] = Deviator[i] / (twosqrtJ2);
+        }
+
+        SecondVector[3] *= 2.0;
+        SecondVector[4] *= 2.0;
+        SecondVector[5] *= 2.0;
+    }
+
+    static void CalculateThirdVector(
+        const Vector Deviator, 
+        const double J2, 
+        Vector& ThirdVector
+    )
+    {
+        ThirdVector.resize(6);
+        const double J2thirds = J2 / 3.0;
+
+        ThirdVector[0] = Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4] + J2thirds;
+        ThirdVector[1] = Deviator[0]*Deviator[2] - Deviator[5]*Deviator[5] + J2thirds;
+        ThirdVector[2] = Deviator[0]*Deviator[1] - Deviator[3]*Deviator[3] + J2thirds;
+        ThirdVector[3] = 2.0*(Deviator[4]*Deviator[5] - Deviator[3]*Deviator[2]);
+        ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
+        ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
+    }
+
+
+
 
 
     ///@}

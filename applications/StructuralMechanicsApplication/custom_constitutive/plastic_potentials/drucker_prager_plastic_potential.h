@@ -112,14 +112,16 @@ public:
         CalculateSecondVector(Deviator, J2, SecondVector);
         CalculateThirdVector(Deviator, J2, ThirdVector);
 
-        double J3, LodeAngle;
-        CalculateJ3Invariant(Deviator, J3);
-        CalculateLodeAngle(J2, J3, LodeAngle);
-
         double c1, c2, c3;
-        c1 = 0.0;
+        c3 = 0.0;
 
-        // to be continued... 
+        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE];
+        const double SinDil    = std::sin(Dilatancy);
+        const double Root3     = std::sqrt(3.0);
+
+        const double CFL = -Root3*(3.0-SinDil) / (3.0*SinDil-3.0);
+        c1 = CFL*2.0*SinDil / (Root3*(3.0-SinDil));
+        c2 = CFL;
 
         noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }

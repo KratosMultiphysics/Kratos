@@ -101,9 +101,9 @@ public:
         const Properties& rMaterialProperties
     )
     {      
-		double sigma_c = rMaterialProperties[YIELD_STRESS_C];
-		double sigma_t = rMaterialProperties[YIELD_STRESS_T];
-		double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+		const double sigma_c = rMaterialProperties[YIELD_STRESS_C];
+		const double sigma_t = rMaterialProperties[YIELD_STRESS_T];
+		const double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 
 		// Check input variables 
         double tol = std::numeric_limits<double>::epsilon();
@@ -189,11 +189,11 @@ public:
         const Vector& StressVector,
         const Vector& Deviator,
         const double J2, 
-        Vector& rg,
+        Vector& GFlux,
         const Properties& rMaterialProperties
     )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, GFlux, rMaterialProperties);
     }
 
     static void CalculateLodeAngle(const double J2, const double J3, double& LodeAngle)
@@ -204,6 +204,118 @@ public:
 		LodeAngle = std::asin(sint3) / 3.0;
     }
 
+    /*
+    This  script  calculates  the derivatives  of the Yield Surf
+    according   to   NAYAK-ZIENKIEWICZ   paper International
+    journal for numerical methods in engineering vol 113-135 1972.
+    As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+    */
+
+    static void CalculateYieldSurfaceDerivative(
+        const Vector& StressVector, 
+        const Vector& Deviator,
+        const double J2, 
+        Vector& rFFlux,
+        const Properties& rMaterialProperties
+    )
+    {
+        Vector FirstVector, SecondVector, ThirdVector;
+
+        CalculateFirstVector(FirstVector);
+        CalculateSecondVector(Deviator, J2, SecondVector);
+        CalculateThirdVector(Deviator, J2, ThirdVector);
+
+        double J3, LodeAngle;
+        CalculateJ3Invariant(Deviator, J3);
+        CalculateLodeAngle(J2, J3, LodeAngle);
+
+        const double Checker = std::abs(LodeAngle*57.29577951308);
+
+        double c1, c2, c3;
+        const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE];
+        const double SinPhi    = std::sin(FrictionAngle);
+        const double CosPhi    = std::cos(FrictionAngle);
+        const double SinTheta  = std::sin(LodeAngle);
+        const double CosTheta  = std::cos(LodeAngle);
+        const double Cos3Theta = std::cos(3.0*LodeAngle);
+        const double TanTheta  = std::tan(LodeAngle);
+        const double Tan3Theta = std::tan(3.0*LodeAngle);
+        const double Root3     = std::sqrt(3.0);
+
+        const double ComprYield = rMaterialProperties[YIELD_STRESS_C];
+		const double TensiYield = rMaterialProperties[YIELD_STRESS_T];
+        const double n = ComprYield / TensiYield;
+
+        const double AnglePhi = (Globals::Pi * 0.25) + Dilatancy * 0.5;
+        const double alpha = n / (std::tan(AnglePhi) * std::tan(AnglePhi));
+
+        const double CFL = 2.0 * std::tan(AnglePhi) / CosPhi;
+
+		const double K1 = 0.5*(1 + alpha) - 0.5*(1 - alpha)*SinPhi;
+		const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / SinPhi;
+		const double K3 = 0.5*(1 + alpha)*SinPhi - 0.5*(1 - alpha);
+
+        if (SinPhi != 0.0) c1 = CFL * K3 / 3.0;
+        else c1 = 0.0; // check
+
+        if (Checker < 29.0)
+        {
+            c2 = CosTheta * CFL * (K1*(1+TanTheta*Tan3Theta) + K2*SinPhi*(Tan3Theta-TanTheta) / Root3);
+            c3 = CFL*(K1*Root3*SinTheta + K2*SinPhi*CosTheta) / (2.0*J2*Cos3Theta);
+        }
+        else
+        {
+            c3 = 0.0;
+            double Aux = 1.0;
+            if (LodeAngle > 0.0) Aux = -1.0;
+            c2 = 0.5*CFL*(K1*Root3 + Aux*K2*SinPhi/Root3);
+        }
+
+        noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+    }
+
+    static void CalculateFirstVector(Vector& FirstVector)
+    {
+        FirstVector = ZeroVector(6);
+        FirstVector[0] = 1.0;
+        FirstVector[1] = 1.0;
+        FirstVector[2] = 1.0;
+
+    }
+
+    static void CalculateSecondVector(
+        const Vector Deviator, 
+        const double J2, 
+        Vector& SecondVector
+    )
+    {
+        const double twosqrtJ2 = 2.0*std::sqrt(J2);
+        for (int i = 0; i < 6; i++)
+        {
+            SecondVector[i] = Deviator[i] / (twosqrtJ2);
+        }
+
+        SecondVector[3] *= 2.0;
+        SecondVector[4] *= 2.0;
+        SecondVector[5] *= 2.0;
+    }
+
+    static void CalculateThirdVector(
+        const Vector Deviator, 
+        const double J2, 
+        Vector& ThirdVector
+    )
+    {
+        ThirdVector.resize(6);
+        const double J2thirds = J2 / 3.0;
+
+        ThirdVector[0] = Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4] + J2thirds;
+        ThirdVector[1] = Deviator[0]*Deviator[2] - Deviator[5]*Deviator[5] + J2thirds;
+        ThirdVector[2] = Deviator[0]*Deviator[1] - Deviator[3]*Deviator[3] + J2thirds;
+        ThirdVector[3] = 2.0*(Deviator[4]*Deviator[5] - Deviator[3]*Deviator[2]);
+        ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
+        ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
+    }
     ///@}
     ///@name Access
     ///@{

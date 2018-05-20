@@ -169,9 +169,10 @@ public:
         ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, rValues.GetStrainVector(),
             UniaxialStress, Kp, PlasticDenominator, Fflux, Gflux, Capap, PlasticStrainIncrement, C);
 
-        double F = UniaxialStress - Kp;
+        double F = UniaxialStress - Kp; // Elastic case
 
-        if (F <= std::abs(1.0e-8 * Kp)) { // Elastic case
+        if (F <= std::abs(1.0e-8 * Kp)) 
+        { 
             IntegratedStressVector = PredictiveStressVector;
             tangent_tensor = C;
             this->SetNonConvPlasticDissipation(Capap);

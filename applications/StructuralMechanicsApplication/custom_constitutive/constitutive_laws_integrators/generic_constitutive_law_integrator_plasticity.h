@@ -178,11 +178,11 @@ public:
 
         YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, StrainVector, UniaxialStress, rMaterialProperties);
         CalculateDeviatorVector(PredictiveStressVector, Deviator, J2);
-        CalculateFFluxVector(PredictiveStressVector, Deviator, J2, Fflux);
-        CalculateGFluxVector(PredictiveStressVector, Deviator, J2, Gflux);
+        CalculateFFluxVector(PredictiveStressVector, Deviator, J2, Fflux, rMaterialProperties);
+        CalculateGFluxVector(PredictiveStressVector, Deviator, J2, Gflux, rMaterialProperties);
         CalculateRFactors(PredictiveStressVector, r0, r1);
-        CalculatePlasticDissipation(PredictiveStressVector, r0,
-            r1, PlasticStrainIncrement, PlasticDissipation, HCapa);
+        CalculatePlasticDissipation(PredictiveStressVector, r0, r1, PlasticStrainIncrement,
+            PlasticDissipation, HCapa, rMaterialProperties);
         CalculateEquivalentStressThreshold(PlasticDissipation, r0,
             r1, Threshold, Slope, rMaterialProperties);
         CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam); // FFlux or GFlux????
@@ -195,10 +195,12 @@ public:
         const Vector& StressVector, 
         const Vector& Deviator,
         const double J2, 
-        Vector& FFluxVector
+        Vector& FFluxVector,
+        const Properties& rMaterialProperties
     )
     {
-
+        YieldSurfaceType::CalculateYieldSurfaceDerivative(StressVector, Deviator, J2, 
+            FFluxVector, rMaterialProperties);
     }
 
     // DG/DS
@@ -206,13 +208,17 @@ public:
         const Vector& StressVector, 
         const Vector& Deviator,
         const double J2, 
-        Vector& GFluxVector
+        Vector& GFluxVector,
+        const Properties& rMaterialProperties
     )
     {
-
+        YieldSurfaceType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, 
+            FFluxVector, rMaterialProperties);
     }
     
     // Calculates the McAully factors 
+    /* These "r"  differentiate between the 
+    tensile/compressive state*/
     static void CalculateRFactors(
         const Vector& StressVector,
         double& r0,
@@ -254,7 +260,8 @@ public:
         const double r1, 
         const Vector& PlasticStrainInc, 
         double& rCapap, 
-        Vector& HCapa
+        Vector& HCapa,
+        const Properties& rMaterialProperties
     )
     {
 

@@ -161,6 +161,77 @@ public:
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
     }
 
+    /*
+    This  script  calculates  the derivatives  of the Yield Surf
+    according   to   NAYAK-ZIENKIEWICZ   paper International
+    journal for numerical methods in engineering vol 113-135 1972.
+    As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+    */
+    static void CalculateYieldSurfaceDerivative(
+        const Vector& StressVector, 
+        const Vector& Deviator,
+        const double J2, 
+        Vector& rFFlux,
+        const Properties& rMaterialProperties
+    )
+    {
+        Vector FirstVector, SecondVector, ThirdVector;
+
+        CalculateFirstVector(FirstVector);
+        CalculateSecondVector(Deviator, J2, SecondVector);
+        CalculateThirdVector(Deviator, J2, ThirdVector);
+
+        double c1, c2, c3;
+        c1 = 0.0;
+        c2 = std::sqrt(3.0);
+        c3 = 0.0;
+
+        noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+    }
+
+    static void CalculateFirstVector(Vector& FirstVector)
+    {
+        FirstVector = ZeroVector(6);
+        FirstVector[0] = 1.0;
+        FirstVector[1] = 1.0;
+        FirstVector[2] = 1.0;
+
+    }
+
+    static void CalculateSecondVector(
+        const Vector Deviator, 
+        const double J2, 
+        Vector& SecondVector
+    )
+    {
+        const double twosqrtJ2 = 2.0*std::sqrt(J2);
+        for (int i = 0; i < 6; i++)
+        {
+            SecondVector[i] = Deviator[i] / (twosqrtJ2);
+        }
+
+        SecondVector[3] *= 2.0;
+        SecondVector[4] *= 2.0;
+        SecondVector[5] *= 2.0;
+    }
+
+    static void CalculateThirdVector(
+        const Vector Deviator, 
+        const double J2, 
+        Vector& ThirdVector
+    )
+    {
+        ThirdVector.resize(6);
+        const double J2thirds = J2 / 3.0;
+
+        ThirdVector[0] = Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4] + J2thirds;
+        ThirdVector[1] = Deviator[0]*Deviator[2] - Deviator[5]*Deviator[5] + J2thirds;
+        ThirdVector[2] = Deviator[0]*Deviator[1] - Deviator[3]*Deviator[3] + J2thirds;
+        ThirdVector[3] = 2.0*(Deviator[4]*Deviator[5] - Deviator[3]*Deviator[2]);
+        ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
+        ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
+    }
+
     ///@}
     ///@name Access
     ///@{

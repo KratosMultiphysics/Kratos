@@ -9,8 +9,9 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED)
-#define  KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED
+
+#if !defined(KRATOS_MODIFIED_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED)
+#define  KRATOS_MODIFIED_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED
 
 // System includes
 #include <string>
@@ -21,6 +22,8 @@
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
+#include "includes/global_variables.h"
+
 
 namespace Kratos
 {
@@ -43,48 +46,44 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class TrescaYieldSurface
+ * @class ModifiedMohrCoulombPlasticPotential
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @tparam TPlasticPotentialType 
  * @author Alejandro Cornejo
  */
-template <class TPlasticPotentialType , class TVoigtSize>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPotential
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// The type of potential plasticity
-    typedef typename TPlasticPotentialType PlasticPotentialType;
-
-    /// Counted pointer of TrescaYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( TrescaYieldSurface );
+    /// Counted pointer of ModifiedMohrCoulombPlasticPotential
+    KRATOS_CLASS_POINTER_DEFINITION(ModifiedMohrCoulombPlasticPotential);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Initialization constructor.
-    TrescaYieldSurface()
+    ModifiedMohrCoulombPlasticPotential()
     {
     }
 
     /// Copy constructor
-    TrescaYieldSurface(TrescaYieldSurface const& rOther)
+    ModifiedMohrCoulombPlasticPotential(ModifiedMohrCoulombPlasticPotential const& rOther)
     {
     }
 
     /// Assignment operator
-    TrescaYieldSurface& operator=(TrescaYieldSurface const& rOther)
+    ModifiedMohrCoulombPlasticPotential& operator=(ModifiedMohrCoulombPlasticPotential const& rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~TrescaYieldSurface() {};
+    virtual ~ModifiedMohrCoulombPlasticPotential() {};
+
 
     ///@}
     ///@name Operators
@@ -94,101 +93,18 @@ public:
     ///@name Operations
     ///@{
 
-    static void CalculateEquivalentStress(
-        const Vector& StressVector,
-        const Vector& StrainVector, 
-        double& rEqStress, 
-        const Properties& rMaterialProperties
-    )
-    {
-        double I1, J2, J3, LodeAngle;
-        Vector Deviator = ZeroVector(TVoigtSize);
-
-        CalculateI1Invariant(StressVector, I1);
-        CalculateJ2Invariant(StressVector, I1, Deviator, J2);
-        CalculateJ3Invariant(Deviator, J3);
-        CalculateLodeAngle(J2, J3, LodeAngle);
-
-        rEqStress = 2.0*std::cos(LodeAngle)*std::sqrt(J2);
-    }
-
-    static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
-    {
-        rI1 = StressVector[0] + StressVector[1] + StressVector[2];
-    }
-
-    static void CalculateI2Invariant(const Vector& StressVector, double& rI2)
-    {
-        rI2 = (StressVector[0] + StressVector[2])*StressVector[1] + StressVector[0]*StressVector[2] +
-            - StressVector[3]*StressVector[3] - StressVector[4]*StressVector[4] - StressVector[5]*StressVector[5];
-    }
-
-    static void CalculateI3Invariant(const Vector& StressVector, double& rI3)
-    {
-        rI3 = (StressVector[1]*StressVector[2] - StressVector[4]*StressVector[4])*StressVector[0] -
-            StressVector[1]*StressVector[5]*StressVector[5] - StressVector[2]*StressVector[3]*StressVector[3] +
-            2.0*StressVector[3]*StressVector[4]*StressVector[5];
-    }
-
-    static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
-    {
-        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
-			Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
-			Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
-    }
-
-    static void CalculateJ2Invariant(const Vector& StressVector, const double& I1, Vector& rDeviator, double& rJ2)
-    {
-        if (TVoigtSize == 6)
-        {
-            rDeviator = StressVector;
-            const double Pmean = I1 / 3.0;
-
-            rDeviator[0] -= Pmean;
-            rDeviator[1] -= Pmean;
-            rDeviator[2] -= Pmean;
-
-            rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + rDeviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
-                (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
-        }
-        else
-        {
-            // 2d
-        }
-
-    }
-
-    // Computes dG/dS
-    static void CalculatePlasticPotentialDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
-        const double J2, 
-        Vector& rg,
-        const Properties& rMaterialProperties
-    )
-    {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
-    }
-
-    static void CalculateLodeAngle(const double J2, const double J3, double& LodeAngle)
-    {
-		const double sint3 = (-3.0*std::sqrt(3.0)*J3) / (2.0*J2*std::sqrt(J2));
-		if (sint3 < -0.95) sint3 = -1;
-		if (sint3 > 0.95)  sint3 =  1; 
-		LodeAngle = asin(sint3) / 3.0;
-    }
-
     /*
-    This  script  calculates  the derivatives  of the Yield Surf
-    according   to   NAYAK-ZIENKIEWICZ   paper International
+    This  script  calculates  the derivatives  of the potential
+    functions according to NAYAK-ZIENKIEWICZ paper International
     journal for numerical methods in engineering vol 113-135 1972.
-    As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+    As:            DG/DS = c1*V1 + c2*V2 + c3*V3
     */
-    static void CalculateYieldSurfaceDerivative(
+
+    static void CalculatePlasticPotentialDerivative(
         const Vector& StressVector, 
         const Vector& Deviator,
         const double J2, 
-        Vector& rFFlux,
+        Vector& rGFlux,
         const Properties& rMaterialProperties
     )
     {
@@ -205,20 +121,46 @@ public:
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
         double c1, c2, c3;
-        c1 = 0.0;
+        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE];
+        const double SinDil    = std::sin(Dilatancy);
+        const double CosDil    = std::cos(Dilatancy);
+        const double SinTheta  = std::sin(LodeAngle);
+        const double CosTheta  = std::cos(LodeAngle);
+        const double Cos3Theta = std::cos(3.0*LodeAngle);
+        const double TanTheta  = std::tan(LodeAngle);
+        const double Tan3Theta = std::tan(3.0*LodeAngle);
+        const double Root3     = std::sqrt(3.0);
+
+        const double ComprYield = rMaterialProperties[YIELD_STRESS_C];
+		const double TensiYield = rMaterialProperties[YIELD_STRESS_T];
+        const double n = ComprYield / TensiYield;
+
+        const double AnglePhi = (Globals::Pi * 0.25) + Dilatancy * 0.5;
+        const double alpha = n / (std::tan(AnglePhi) * std::tan(AnglePhi));
+
+        const double CFL = 2.0 * std::tan(AnglePhi) / CosDil;
+
+		const double K1 = 0.5*(1 + alpha) - 0.5*(1 - alpha)*SinDil;
+		const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / SinDil;
+		const double K3 = 0.5*(1 + alpha)*SinDil - 0.5*(1 - alpha);
+
+        if (SinDil != 0.0) c1 = CFL * K3 / 3.0;
+        else c1 = 0.0; // check
 
         if (Checker < 29.0)
         {
-            c2 = 2.0*(std::cos(LodeAngle) + std::sin(LodeAngle)*std::tan(3.0*LodeAngle));
-            c3 = std::sqrt(3.0)*std::sin(LodeAngle) / (J2*std::cos(3.0*LodeAngle));
+            c2 = CosTheta * CFL * (K1*(1+TanTheta*Tan3Theta) + K2*SinDil*(Tan3Theta-TanTheta) / Root3);
+            c3 = CFL*(K1*Root3*SinTheta + K2*SinDil*CosTheta) / (2.0*J2*Cos3Theta);
         }
         else
         {
-            c2 = std::sqrt(3.0);
             c3 = 0.0;
+            double Aux = 1.0;
+            if (LodeAngle > 0.0) Aux = -1.0;
+            c2 = 0.5*CFL*(K1*Root3 + Aux*K2*SinDil/Root3);
         }
 
-        noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+        noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }
 
     static void CalculateFirstVector(Vector& FirstVector)
@@ -263,6 +205,22 @@ public:
         ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
         ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
     }
+
+    static void CalculateLodeAngle(const double J2, const double J3, double& LodeAngle)
+    {
+		double sint3 = (-3.0*std::sqrt(3.0)*J3) / (2.0*J2*std::sqrt(J2));
+		if (sint3 < -0.95) sint3 = -1;
+		if (sint3 > 0.95)  sint3 = 1; 
+		LodeAngle = std::asin(sint3) / 3.0;
+    }
+
+    static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
+    {
+        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
+			Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
+			Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -310,6 +268,7 @@ protected:
     ///@{
 
     ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -344,15 +303,17 @@ private:
 
     void save(Serializer& rSerializer) const
     {
+
     }
 
     void load(Serializer& rSerializer)
     {
+
     }
 
     ///@}
 
-}; // Class TrescaYieldSurface
+}; // Class GenericYieldSurface
 
 ///@}
 
