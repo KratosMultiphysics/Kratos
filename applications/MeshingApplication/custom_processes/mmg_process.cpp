@@ -187,8 +187,11 @@ void MmgProcess<TDim>::operator()()
 template<SizeType TDim>
 void MmgProcess<TDim>::InitializeMeshData()
 {                
+    // We create a list of submodelparts to later reassign flags after remesh
+    CreateAuxiliarSubModelPartForFlags();
+
     // First we compute the colors
-    std::unordered_map<IndexType,int> nodes_colors, cond_colors, elem_colors;
+    ColorsMapType nodes_colors, cond_colors, elem_colors;
     SubModelPartsListUtility sub_model_parts_list(mrThisModelPart);
     sub_model_parts_list.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, mColors);
     
@@ -462,7 +465,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
     
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
-    std::unordered_map<int, std::vector<IndexType>> color_nodes, color_cond_0, color_cond_1, color_elem_0, color_elem_1;
+    std::unordered_map<int, IndexVectorType> color_nodes, color_cond_0, color_cond_1, color_elem_0, color_elem_1;
     
     // The tempotal store of 
     ConditionsArrayType created_conditions_vector;
@@ -488,7 +491,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         IndexType cond_id = 1;
         
         IndexType counter_cond_0 = 0;
-        const std::vector<IndexType> condition_to_remove_0 = CheckConditions0();
+        const IndexVectorType condition_to_remove_0 = CheckConditions0();
         for (IndexType i_cond = 1; i_cond <= n_conditions[0]; ++i_cond) {
             bool skip_creation = false;
             if (counter_cond_0 < condition_to_remove_0.size()) {
@@ -508,7 +511,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         }
         
         IndexType counter_cond_1 = 0;
-        const std::vector<IndexType> condition_to_remove_1 = CheckConditions1();
+        const IndexVectorType condition_to_remove_1 = CheckConditions1();
         for (IndexType i_cond = 1; i_cond <= n_conditions[1]; ++i_cond)
         {                    
             bool skip_creation = false;
@@ -534,7 +537,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         IndexType elem_id = 1;
         
         IndexType counter_elem_0 = 0;
-        const std::vector<IndexType> elements_to_remove_0 = CheckElements0();
+        const IndexVectorType elements_to_remove_0 = CheckElements0();
         for (IndexType i_elem = 1; i_elem <= n_elements[0]; ++i_elem) {
             bool skip_creation = false;
             if (counter_elem_0 < elements_to_remove_0.size()) {
@@ -555,7 +558,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         }
         
         IndexType counter_elem_1 = 0;
-        const std::vector<IndexType> elements_to_remove_1 = CheckElements1();
+        const IndexVectorType elements_to_remove_1 = CheckElements1();
         for (IndexType i_elem = 1; i_elem <= n_elements[1]; ++i_elem) {
             bool skip_creation = false;  
             if (counter_elem_1 < elements_to_remove_1.size()) {
@@ -628,7 +631,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 node_ids.insert(elem_geom[i_node].Id());
         }
         
-        std::vector<IndexType> vector_ids;
+        IndexVectorType vector_ids;
         std::copy(node_ids.begin(), node_ids.end(), std::back_inserter(vector_ids));
         r_sub_model_part.AddNodes(vector_ids);
     }
@@ -641,6 +644,9 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     
     /* After that we reorder nodes, conditions and elements: */
     ReorderAllIds();
+
+    /* We assign flags and clear the auxiliar model parts created to reassing the flags */
+    AssignAndClearAuxiliarSubModelPartForFlags();
     
     /* Unmoving the original mesh to be able to interpolate */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
@@ -726,21 +732,20 @@ void MmgProcess<TDim>::InitializeElementsAndConditions()
 /***********************************************************************************/
     
 template<SizeType TDim>
-std::vector<IndexType> MmgProcess<TDim>::CheckNodes()
+IndexVectorType MmgProcess<TDim>::CheckNodes()
 {
-    typedef std::unordered_map<std::vector<double>, IndexType, KeyHasherRange<std::vector<double>>, KeyComparorRange<std::vector<double>> > HashMap;
-    HashMap node_map;
+    DoubleVectorMapType node_map;
     
-    std::vector<IndexType> nodes_to_remove_ids;
+    IndexVectorType nodes_to_remove_ids;
     
-    std::vector<double> coords(TDim);
+    DoubleVectorType coords(TDim);
     
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     
     for(SizeType i = 0; i < nodes_array.size(); ++i) {
         auto it_node = nodes_array.begin() + i;
         
-        const array_1d<double, 3> coordinates = it_node->Coordinates();
+        const array_1d<double, 3>& coordinates = it_node->Coordinates();
         
         for(IndexType i_coord = 0; i_coord < TDim; i_coord++)
             coords[i_coord] = coordinates[i_coord];
@@ -760,14 +765,13 @@ std::vector<IndexType> MmgProcess<TDim>::CheckNodes()
 /***********************************************************************************/
 
 template<>  
-std::vector<IndexType> MmgProcess<2>::CheckConditions0()
+IndexVectorType MmgProcess<2>::CheckConditions0()
 {
-    typedef std::unordered_map<std::vector<IndexType>, IndexType, KeyHasherRange<std::vector<IndexType>>, KeyComparorRange<std::vector<IndexType>> > HashMap;
-    HashMap edge_map;
+    IndexVectorMapType edge_map;
 
-    std::vector<IndexType> ids(2);
+    IndexVectorType ids(2);
 
-    std::vector<IndexType> conditions_to_remove;
+    IndexVectorType conditions_to_remove;
     
     // Iterate in the conditions
     for(int i = 0; i < mmgMesh->na; ++i) {
@@ -795,14 +799,13 @@ std::vector<IndexType> MmgProcess<2>::CheckConditions0()
 /***********************************************************************************/
 
 template<>  
-std::vector<IndexType> MmgProcess<3>::CheckConditions0()
+IndexVectorType MmgProcess<3>::CheckConditions0()
 {
-    typedef std::unordered_map<std::vector<IndexType>, IndexType, KeyHasherRange<std::vector<IndexType>>, KeyComparorRange<std::vector<IndexType>> > HashMap;
-    HashMap triangle_map;
+    IndexVectorMapType triangle_map;
 
-    std::vector<IndexType> ids_triangles(3);
+    IndexVectorType ids_triangles(3);
 
-    std::vector<IndexType> conditions_to_remove;
+    IndexVectorType conditions_to_remove;
             
     for(int i = 0; i < mmgMesh->nt; ++i) {
         int vertex_0, vertex_1, vertex_2, prop_id, is_required;
@@ -830,9 +833,9 @@ std::vector<IndexType> MmgProcess<3>::CheckConditions0()
 /***********************************************************************************/
 
 template<>  
-std::vector<IndexType> MmgProcess<2>::CheckConditions1()
+IndexVectorType MmgProcess<2>::CheckConditions1()
 {
-    std::vector<IndexType> conditions_to_remove(0);
+    IndexVectorType conditions_to_remove(0);
     
     return conditions_to_remove;
 }
@@ -841,14 +844,13 @@ std::vector<IndexType> MmgProcess<2>::CheckConditions1()
 /***********************************************************************************/
 
 template<>  
-std::vector<IndexType> MmgProcess<3>::CheckConditions1()
+IndexVectorType MmgProcess<3>::CheckConditions1()
 {
-    typedef std::unordered_map<std::vector<IndexType>, IndexType, KeyHasherRange<std::vector<IndexType>>, KeyComparorRange<std::vector<IndexType>> > HashMap;
-    HashMap quadrilateral_map;
+    IndexVectorMapType quadrilateral_map;
 
-    std::vector<IndexType> ids_quadrialteral(4);
+    IndexVectorType ids_quadrialteral(4);
 
-    std::vector<IndexType> conditions_to_remove;
+    IndexVectorType conditions_to_remove;
             
     for(int i = 0; i < mmgMesh->nquad; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
@@ -877,14 +879,13 @@ std::vector<IndexType> MmgProcess<3>::CheckConditions1()
 /***********************************************************************************/
 
 template<>  
-std::vector<IndexType> MmgProcess<2>::CheckElements0()
+IndexVectorType MmgProcess<2>::CheckElements0()
 {
-    typedef std::unordered_map<std::vector<IndexType>, IndexType, KeyHasherRange<std::vector<IndexType>>, KeyComparorRange<std::vector<IndexType>> > HashMap;
-    HashMap triangle_map;
+    IndexVectorMapType triangle_map;
 
-    std::vector<IndexType> ids_triangles(3);
+    IndexVectorType ids_triangles(3);
 
-    std::vector<IndexType> elements_to_remove;
+    IndexVectorType elements_to_remove;
     
     // Iterate in the elements
     for(int i = 0; i < mmgMesh->nt; ++i) {
@@ -913,14 +914,13 @@ std::vector<IndexType> MmgProcess<2>::CheckElements0()
 /***********************************************************************************/
 
 template<>  
-std::vector<IndexType> MmgProcess<3>::CheckElements0()
+IndexVectorType MmgProcess<3>::CheckElements0()
 {
-    typedef std::unordered_map<std::vector<IndexType>, IndexType, KeyHasherRange<std::vector<IndexType>>, KeyComparorRange<std::vector<IndexType>> > HashMap;
-    HashMap triangle_map;
+    IndexVectorMapType triangle_map;
 
-    std::vector<IndexType> ids_tetrahedron(4);
+    IndexVectorType ids_tetrahedron(4);
 
-    std::vector<IndexType> elements_to_remove;
+    IndexVectorType elements_to_remove;
             
     for(int i = 0; i < mmgMesh->ne; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, prop_id, is_required;
@@ -949,9 +949,9 @@ std::vector<IndexType> MmgProcess<3>::CheckElements0()
 /***********************************************************************************/
 
 template<>  
-std::vector<IndexType> MmgProcess<2>::CheckElements1()
+IndexVectorType MmgProcess<2>::CheckElements1()
 {
-    std::vector<IndexType> elements_to_remove(0);
+    IndexVectorType elements_to_remove(0);
     return elements_to_remove;
 }
 
@@ -959,14 +959,13 @@ std::vector<IndexType> MmgProcess<2>::CheckElements1()
 /***********************************************************************************/
 
 template<>  
-std::vector<IndexType> MmgProcess<3>::CheckElements1()
+IndexVectorType MmgProcess<3>::CheckElements1()
 {
-    typedef std::unordered_map<std::vector<IndexType>, IndexType, KeyHasherRange<std::vector<IndexType>>, KeyComparorRange<std::vector<IndexType>> > HashMap;
-    HashMap prism_map;
+    IndexVectorMapType prism_map;
 
-    std::vector<IndexType> ids_prisms(6);
+    IndexVectorType ids_prisms(6);
 
-    std::vector<IndexType> elements_to_remove;
+    IndexVectorType elements_to_remove;
             
     for(int i = 0; i < mmgMesh->nprism; ++i) {
         int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5, prop_id, is_required;
@@ -1425,8 +1424,8 @@ void MmgProcess<3>::InitVerbosityParameter(const int& VerbosityMMG)
 template<>  
 void MmgProcess<2>::SetMeshSize(
     const SizeType NumNodes,
-    const array_1d<SizeType, ElementsArraySize> NumArrayElements, 
-    const array_1d<SizeType, ConditionsArraySize> NumArrayConditions
+    const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
+    const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
     )
 {
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D) 
@@ -1440,8 +1439,8 @@ void MmgProcess<2>::SetMeshSize(
 template<>  
 void MmgProcess<3>::SetMeshSize(
     const SizeType NumNodes,
-    const array_1d<SizeType, ElementsArraySize> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
-    const array_1d<SizeType, ConditionsArraySize> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
+    const array_1d<SizeType, ElementsArraySize>& NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+    const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
     )
 {
     //Give the size of the mesh: NumNodes Vertex, num_elements tetra and prism, NumArrayConditions triangles and quadrilaterals, 0 edges (3D) 
@@ -2049,6 +2048,24 @@ void MmgProcess<3>::SetMetricTensor(
 {
     if ( MMG3D_Set_tensorSol(mmgSol, Metric[0], Metric[1], Metric[2], Metric[3], Metric[4], Metric[5], NodeId) != 1 )
         exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void MmgProcess<TDim>::CreateAuxiliarSubModelPartForFlags()
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void MmgProcess<TDim>::AssignAndClearAuxiliarSubModelPartForFlags()
+{
+
 }
 
 /***********************************************************************************/
