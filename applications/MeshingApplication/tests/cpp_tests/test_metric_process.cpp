@@ -48,7 +48,7 @@ namespace Kratos
             gid_io.WriteNodalResults(DISTANCE_GRADIENT, ThisModelPart.Nodes(), label, 0);
             gid_io.WriteNodalResultsNonHistorical(MMG_METRIC, ThisModelPart.Nodes(), label);
         }
-
+      
         void GiDIODebugMetricSPR(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_METRIC_SPR", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
