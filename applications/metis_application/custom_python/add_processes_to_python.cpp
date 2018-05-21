@@ -51,49 +51,49 @@ void AddProcessesToPython(pybind11::module& m)
 
 
 #ifndef KRATOS_USE_METIS_5
-    class_<MetisScalarReorder, Process >(m,"MetisScalarReorder").def(init<ModelPart&>())
+    class_<MetisScalarReorder, MetisScalarReorder::Pointer, Process>(m,"MetisScalarReorder").def(init<ModelPart&>())
     ;
 
-    class_<MetisPartitioningProcess, Process >(m,"MetisPartitioningProcess")
+    class_<MetisPartitioningProcess, MetisPartitioningProcess::Pointer, Process>(m,"MetisPartitioningProcess")
     .def(init<ModelPart&, IO&, unsigned int, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int>())
     ;
 
-    class_<MetisDivideInputToPartitionsProcess, Process >(m,"MetisDivideInputToPartitionsProcess")
+    class_<MetisDivideInputToPartitionsProcess, MetisDivideInputToPartitionsProcess::Pointer, Process>(m,"MetisDivideInputToPartitionsProcess")
     .def(init<IO&, unsigned int, unsigned int>())
     .def(init<IO&, unsigned int>())
     ;
 
-    class_<MetisContactPartitioningProcess, MetisPartitioningProcess >(m, "MetisContactPartitioningProcess")
+    class_<MetisContactPartitioningProcess, MetisContactPartitioningProcess::Pointer, MetisPartitioningProcess>(m, "MetisContactPartitioningProcess")
     .def(init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
     ;
 
-    class_<MetisPartitioningProcessQuadratic, MetisPartitioningProcess >(m, "MetisPartitioningProcessQuadratic")
+    class_<MetisPartitioningProcessQuadratic, MetisPartitioningProcessQuadratic::Pointer, MetisPartitioningProcess >(m, "MetisPartitioningProcessQuadratic")
     .def(init<ModelPart&, IO&, unsigned int, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int>())
     ;
 #endif
-    class_<MetisDivideHeterogeneousInputProcess, Process >(m,"MetisDivideHeterogeneousInputProcess")
+    class_<MetisDivideHeterogeneousInputProcess, MetisDivideHeterogeneousInputProcess::Pointer, Process>(m,"MetisDivideHeterogeneousInputProcess")
     .def(init<IO&, unsigned int>())
             .def(init<IO&, unsigned int, int>())
             .def(init<IO&, unsigned int, int, int>())
             .def(init<IO&, unsigned int, int, int, bool>())
             ;
 
-    class_<MetisDivideHeterogeneousInputInMemoryProcess, Process >(m,"MetisDivideHeterogeneousInputInMemoryProcess")
+    class_<MetisDivideHeterogeneousInputInMemoryProcess, MetisDivideHeterogeneousInputInMemoryProcess::Pointer, Process>(m,"MetisDivideHeterogeneousInputInMemoryProcess")
     .def(init<IO&, unsigned int>())
             .def(init<IO&, unsigned int, int>())
             .def(init<IO&, unsigned int, int, int>())
             .def(init<IO&, unsigned int, int, int, bool>())
             ;
 
-    class_<MortonDivideInputToPartitionsProcess, Process >(m,"MetisDivideNodalInputToPartitionsProcess")
+    class_<MortonDivideInputToPartitionsProcess, MortonDivideInputToPartitionsProcess::Pointer, Process>(m,"MetisDivideNodalInputToPartitionsProcess")
     .def(init<IO&, std::size_t, int>())
             .def(init<IO&, std::size_t>())
     ;
 
-    class_<SetMPICommunicatorProcess, Process >(m,"SetMPICommunicatorProcess")
+    class_<SetMPICommunicatorProcess, SetMPICommunicatorProcess::Pointer, Process>(m,"SetMPICommunicatorProcess")
     .def(init<ModelPart&>())
     ;
 

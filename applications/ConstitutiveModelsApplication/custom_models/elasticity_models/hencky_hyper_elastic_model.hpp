@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_HENCKY_HYPERELASTIC_MODEL_H_INCLUDED )
-#define  KRATOS_HENCKY_HYPERELASTIC_MODEL_H_INCLUDED
+#if !defined(KRATOS_HENCKY_HYPER_ELASTIC_MODEL_H_INCLUDED )
+#define  KRATOS_HENCKY_HYPER_ELASTIC_MODEL_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/hyper_elastic_model.hpp"
 
 namespace Kratos
 {
@@ -308,6 +308,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HENCKY_HYPERELASTIC_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_HENCKY_HYPER_ELASTIC_MODEL_H_INCLUDED  defined 
 
 

@@ -16,8 +16,7 @@ def CreateSolver(grid_model_part, initial_material_model_part, material_model_pa
 class ParticleMPMSolver(object):
 
     ### Solver constructor
-    def __init__(self, grid_model_part, initial_material_model_part, material_model_part, custom_settings):      
-        
+    def __init__(self, grid_model_part, initial_material_model_part, material_model_part, custom_settings):
         # Default settings
         self.model_part1 = grid_model_part              #grid_model_part
         self.model_part2 = initial_material_model_part  #initial_model_part
@@ -98,7 +97,7 @@ class ParticleMPMSolver(object):
 
         # Construct the linear solvers
         import linear_solver_factory
-        if(self.settings["linear_solver_settings"]["solver_type"].GetString() == "AMGCL"):     
+        if(self.settings["linear_solver_settings"]["solver_type"].GetString() == "AMGCL"):
             self.block_builder = True
         else:
             self.block_builder = False
@@ -173,7 +172,7 @@ class ParticleMPMSolver(object):
             if(self.settings["time_step_prediction_level"].GetString() == "Automatic"):
                 value = 1
             elif(self.settings["time_step_prediction_level"].GetString()== "RefreshEveryTimeStep"):
-                value = 2        
+                value = 2
             self.time_step_prediction_level = value
 
         # Set definition of the echo level
@@ -229,7 +228,7 @@ class ParticleMPMSolver(object):
         # Add nodal force variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        #model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)  
+        #model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
         
         # Add specific variables for the problem conditions
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
@@ -261,7 +260,7 @@ class ParticleMPMSolver(object):
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)        
+            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
         if self.settings["pressure_dofs"].GetBool():
             # add specific variables for the problem (pressure dofs)
             model_part.AddNodalSolutionStepVariable(KratosSolid.PRESSURE_REACTION)
@@ -342,13 +341,13 @@ class ParticleMPMSolver(object):
         if self.min_buffer_size > current_buffer_size:
             self.model_part1.SetBufferSize(self.min_buffer_size)
         else:
-            self.model_part1.SetBufferSize(current_buffer_size)            
+            self.model_part1.SetBufferSize(current_buffer_size)
         
         current_buffer_size = self.model_part2.GetBufferSize()
         if self.min_buffer_size > current_buffer_size:
             self.model_part2.SetBufferSize(self.min_buffer_size)
         else:
-            self.model_part2.SetBufferSize(current_buffer_size)  
+            self.model_part2.SetBufferSize(current_buffer_size)
 
     def _set_echo_level(self):
         self.solver.SetEchoLevel(self.echo_level)

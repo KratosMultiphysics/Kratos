@@ -59,7 +59,7 @@ namespace Kratos
       
     public:
       
-      bounded_matrix<double,6,6>   ConstitutiveTensor;
+      BoundedMatrix<double,6,6>   ConstitutiveTensor;
       
       //Set Data Pointers
       void SetState           (Flags& rState)                    {mpState = &rState;};

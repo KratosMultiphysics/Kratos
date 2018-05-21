@@ -526,6 +526,10 @@ proc ::wkcf::WriteProperties {AppId} {
 		                } else {
 		                    GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_viscous_Coulomb"
 		                }
+
+					} elseif {$contact_law eq "Linear_HighStiffness"} {
+		                    GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_HighStiffness"
+
 		            } elseif {$contact_law eq "LinearCustomized"} {
 		                GiD_File fprintf $filechannel "K_NORMAL [::xmlutils::setXml DEMMaterial//m.$material//p.KNormal dv read {} mat]"
 		                GiD_File fprintf $filechannel "K_TANGENTIAL [::xmlutils::setXml DEMMaterial//m.$material//p.KTangential dv read {} mat]"
