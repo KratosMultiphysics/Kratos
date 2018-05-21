@@ -7,7 +7,7 @@ import os
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class TestSkinDetecttionProcess(KratosUnittest.TestCase):
+class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
     def test_SkinDetectionProcess(self):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
