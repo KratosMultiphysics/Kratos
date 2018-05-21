@@ -32,11 +32,8 @@ class AnalysisStage(object):
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
 
-        ## Import parallel modules if needed
         if (self.parallel_type == "MPI"):
             import KratosMultiphysics.mpi as KratosMPI
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             self.is_printing_rank = (KratosMPI.mpi.rank == 0)
         else:
             self.is_printing_rank = True

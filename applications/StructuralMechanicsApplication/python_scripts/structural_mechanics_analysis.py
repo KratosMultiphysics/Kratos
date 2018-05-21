@@ -19,9 +19,6 @@ except ImportError:
 # Importing the base class
 from analysis_stage import AnalysisStage
 
-# Other imports
-import sys
-
 class StructuralMechanicsAnalysis(AnalysisStage):
     """
     This class is the main-script of the StructuralMechanicsApplication put in a class
@@ -49,6 +46,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
+        ## Import parallel modules if needed
+        if (self.parallel_type == "MPI"):
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
 
     def OutputSolutionStep(self):
         # This function is temporary until restart saving is handled through process
@@ -58,7 +60,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
 
     #### Internal functions ####
-    def _CreateSolver(self, external_model_part=None):
+    def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
         import python_solvers_wrapper_structural
@@ -72,17 +74,17 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            old_processes_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process"
+            processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process"
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
             if len(list_of_processes) == 0:
                 KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
-                for process_name in old_processes_names:
+                for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
                         list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else:
-                for process_name in old_processes_names:
+                for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":

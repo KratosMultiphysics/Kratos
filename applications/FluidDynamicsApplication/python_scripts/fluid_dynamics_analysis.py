@@ -22,6 +22,11 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
+        ## Import parallel modules if needed
+        if (self.parallel_type == "MPI"):
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
@@ -49,16 +54,16 @@ class FluidDynamicsAnalysis(AnalysisStage):
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
         if parameter_name == "processes":
-            old_processes_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
             if len(list_of_processes) == 0:
                 KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
-                for process_name in old_processes_names:
+                for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
                         list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else:
-                for process_name in old_processes_names:
+                for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
