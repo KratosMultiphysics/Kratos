@@ -36,12 +36,12 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        std::cout << "within CreateModelPart address of Model is " <<  &(*this) << std::endl;
+        KRATOS_INFO("Model") << "within CreateModelPart address of Model is " <<  &(*this) << std::endl; //TODO: remove - debugging purposes
         
         auto search = mRootModelPartMap.find(ModelPartName);
         if( search == mRootModelPartMap.end())
         {
-            std::cout << ModelPartName << std::endl;
+            KRATOS_INFO("Model") << ModelPartName << std::endl; //TODO: remove only for debugging purposes
             mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(new ModelPart(ModelPartName));
             return *(mRootModelPartMap[ModelPartName].get());
         }
@@ -58,7 +58,7 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        std::cout << "Model::AddModelPart is deprecated and is currently doing nothing" << std::endl;
+        KRATOS_WARNING("Model") << "Model::AddModelPart is deprecated and is currently doing nothing" << std::endl;
 
 //         //TODO: flat map should disappear in the future!!
 //         auto search = mflat_map.find(pModelPart->Name());
@@ -88,7 +88,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        std::cout << "Model::AddModelPartRawPointer is deprecated and is currently doing nothing" << std::endl;
+        KRATOS_WARNING("Model") << "Model::AddModelPartRawPointer is deprecated and is currently doing nothing" << std::endl;
 
 //         //TODO: flat map should disappear in the future!!
 //         auto search = mflat_map.find(pModelPart->Name());
@@ -118,7 +118,7 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        std::cout << "within GetModelPart address of Model is " <<  &(*this) << std::endl;
+        KRATOS_INFO("Model") << "within GetModelPart address of Model is " <<  &(*this) << std::endl; //TODO: remove, this is for debugging purposes
 
         KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
             << "ModelPart with empty name (\"\")!" << std::endl;
@@ -126,8 +126,6 @@ namespace Kratos
         std::vector< std::string > subparts_list;
         GetSubPartsList(rFullModelPartName, subparts_list);
         
-        KRATOS_WATCH(subparts_list.size())
-        KRATOS_WATCH(subparts_list[0])
         
         if(subparts_list.size() == 1) //it is a root model part
         {
@@ -154,7 +152,7 @@ namespace Kratos
         }
         else //it is a submodelpart with the full name provided
         {
-            std::cout << rFullModelPartName << std::endl;
+            KRATOS_INFO("Model") << rFullModelPartName << std::endl; //TODO: remove - only for debugging purposes
             auto search = mRootModelPartMap.find(subparts_list[0]);
             if(search != mRootModelPartMap.end())
             {
