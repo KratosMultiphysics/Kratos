@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"

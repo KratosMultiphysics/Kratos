@@ -778,7 +778,14 @@ namespace Kratos {
 
         Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(0); ////This is Properties 0 ?????
 
-        std::string ElementNameString = "RigidBodyElement3D";
+        std::string ElementNameString;
+        
+        if (!submp[FLOATING_OPTION]) {
+            ElementNameString = "RigidBodyElement3D";
+        } else {
+            ElementNameString = "ShipElement3D";
+        }
+        
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         Element::Pointer RigidBodyElement3D_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
         RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
@@ -845,8 +852,7 @@ namespace Kratos {
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
 
                 Condition::GeometryType& geom = it->GetGeometry();
-                if (geom.size()>2)
-                {
+                
                 //double Element_Area = geom.Area();
 
                 it->CalculateRightHandSide(rhs_cond, r_process_info);
@@ -854,7 +860,7 @@ namespace Kratos {
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
                 array_1d<double, 3> Normal_to_Element = ZeroVector(3);
 
-                p_wall->CalculateNormal(Normal_to_Element);
+                if (geom.size()>2) p_wall->CalculateNormal(Normal_to_Element);
 
                 const unsigned int& dim = geom.WorkingSpaceDimension();
 
@@ -881,7 +887,6 @@ namespace Kratos {
                     noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
 
                     geom[i].UnSetLock();
-                }
                 }
             }
         }

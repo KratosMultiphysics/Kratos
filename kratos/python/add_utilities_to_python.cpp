@@ -50,12 +50,25 @@
 #include "utilities/interval_utility.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos
 {
 
 namespace Python
 {
+
+/**
+ * @brief Sets the current table utility on the process info
+ * @param rCurrentProcessInfo The process info
+ */
+void SetOnProcessInfo(
+    typename TableStreamUtility::Pointer pTable,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    rCurrentProcessInfo[TABLE_UTILITY] = pTable;
+}
 
 
 void AddUtilitiesToPython(pybind11::module& m)
@@ -147,6 +160,8 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ElementsContainerType>)
         .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
         .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
+        .def("SaveVectorNonHistoricalVar", &VariableUtils::SaveVectorNonHistoricalVar)
+        .def("SaveScalarNonHistoricalVar", &VariableUtils::SaveScalarNonHistoricalVar)
         .def("SelectNodeList", &VariableUtils::SelectNodeList)
         .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
         .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
@@ -398,6 +413,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
     .def(init<>())
     .def(init< bool >())
+    .def("SetOnProcessInfo",SetOnProcessInfo)
     ;
 
     // Exact integration (for testing)
@@ -419,6 +435,15 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+    ;
+
+    // Sparse matrix multiplication utility
+    class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
+    .def(init<>())
+    .def("MatrixMultiplication",&SparseMatrixMultiplicationUtility::MatrixMultiplication<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
     ;
 }
 

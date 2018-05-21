@@ -30,6 +30,21 @@ namespace Kratos {
 
     ShipElement3D::~ShipElement3D() {}
 
+    void ShipElement3D::CustomInitialize(ModelPart& rigid_body_element_sub_model_part) {
+        
+        RigidBodyElement3D::CustomInitialize(rigid_body_element_sub_model_part);
+        
+        mEnginePower = rigid_body_element_sub_model_part[DEM_ENGINE_POWER];
+        mMaxEngineForce = rigid_body_element_sub_model_part[DEM_MAX_ENGINE_FORCE];
+        mThresholdVelocity = rigid_body_element_sub_model_part[DEM_THRESHOLD_VELOCITY];
+        mEnginePerformance = rigid_body_element_sub_model_part[DEM_ENGINE_PERFORMANCE];
+        
+        mDragConstantVector = ZeroVector(3);
+        mDragConstantVector[0] = rigid_body_element_sub_model_part[DEM_DRAG_CONSTANT_X];
+        mDragConstantVector[1] = rigid_body_element_sub_model_part[DEM_DRAG_CONSTANT_Y];
+        mDragConstantVector[2] = rigid_body_element_sub_model_part[DEM_DRAG_CONSTANT_Z];
+    }
+    
     void ShipElement3D::ComputeBuoyancyEffects() {
 
         KRATOS_TRY
@@ -84,18 +99,14 @@ namespace Kratos {
     void ShipElement3D::ComputeEngineForce() {
 
         KRATOS_TRY
-
-        // We are assuming the ship is moving in the X direction
-        const double engine_power = 60000000; // 60MW Arktika-class icebreaker
-        const double max_engine_force = 60000000; // with 20MN the ship almost couldn't make it through the ice
-        const double threshold_velocity = 1.0; // It was set to 3.0 m/s before, which corresponded to a maximum force of 20MN
-        const double engine_performance = 1.0;
-
+        
         array_1d<double, 3>& external_applied_force = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
         const array_1d<double, 3> velocity = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
-        if ((GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0]) < threshold_velocity) external_applied_force[0] = engine_performance * max_engine_force;
-        else if (velocity[0]) external_applied_force[0] = engine_performance * engine_power / velocity[0];
+        if ((GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0]) < mThresholdVelocity) external_applied_force[0] = mEnginePerformance * mMaxEngineForce;
+        else if (velocity[0]) external_applied_force[0] = mEnginePerformance * mEnginePower / velocity[0];
+        
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += external_applied_force;
 
         KRATOS_CATCH("")
     }
@@ -103,28 +114,25 @@ namespace Kratos {
     void ShipElement3D::ComputeWaterDragForce() {
 
         KRATOS_TRY
-
-        const double drag_constant_X = 500000; // Such that the X maximum velocity is 11 m/s, which corresponds to Arktika-class icebreakers
-        const double drag_constant_Y = 240000000; // Such that the Y maximum velocity is 0.5 m/s
-        const double drag_constant_Z = 240000000; // Such that the Z maximum velocity is 0.5 m/s
-        array_1d<double, 3>& external_applied_force  = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+        
+        array_1d<double, 3> water_drag_force;
         const array_1d<double, 3> velocity = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
-        // Drag forces due to water. We are assuming the ship is moving in the X direction
-        // Quadratic laws were chosen. They may be linear
-        external_applied_force[0] += ((velocity[0] >= 0.0) ? -drag_constant_X * velocity[0] * velocity[0] : drag_constant_X * velocity[0] * velocity[0]);
-        external_applied_force[1] += ((velocity[1] >= 0.0) ? -drag_constant_Y * velocity[1] * velocity[1] : drag_constant_Y * velocity[1] * velocity[1]);
-        external_applied_force[2] += ((velocity[2] >= 0.0) ? -drag_constant_Z * velocity[2] * velocity[2] : drag_constant_Z * velocity[2] * velocity[2]);
+        water_drag_force[0] = ((velocity[0] >= 0.0) ? -mDragConstantVector[0] * velocity[0] * velocity[0] : mDragConstantVector[0] * velocity[0] * velocity[0]);
+        water_drag_force[1] = ((velocity[1] >= 0.0) ? -mDragConstantVector[1] * velocity[1] * velocity[1] : mDragConstantVector[1] * velocity[1] * velocity[1]);
+        water_drag_force[2] = ((velocity[2] >= 0.0) ? -mDragConstantVector[2] * velocity[2] * velocity[2] : mDragConstantVector[2] * velocity[2] * velocity[2]);
+        
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += water_drag_force;
 
         KRATOS_CATCH("")
     }
 
-    void ShipElement3D::ComputeAdditionalForces(const array_1d<double,3>& gravity) {
+    void ShipElement3D::ComputeExternalForces(const array_1d<double,3>& gravity) {
 
         KRATOS_TRY
-        // Gravity
-        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += RigidBodyElement3D::GetMass() * gravity;
 
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += RigidBodyElement3D::GetMass() * gravity;
+        
         ComputeBuoyancyEffects();
         ComputeEngineForce();
         ComputeWaterDragForce();
