@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Jordi Cotela
 //
 
-// This is an adapted version of the boundary condition for the stabilized ASGS/OSS element described in 
+// This is an adapted version of the boundary condition for the stabilized ASGS/OSS element described in
 // J. Cotela "Applications of Turbulence Modeling in Civil Engineering" PhD thesis, 2016
 
 #ifndef KRATOS_SKSY_FLUID_CONDITION_H
@@ -154,11 +154,11 @@ namespace Kratos
           @param ThisNodes An array containing the nodes of the new condition
           @param pProperties Pointer to the element's properties
           */
-        virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+        virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
         virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                           ProcessInfo& rCurrentProcessInfo);
+                                           ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -170,16 +170,16 @@ namespace Kratos
           */
         virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo);
+                                          ProcessInfo& rCurrentProcessInfo) override;
 
 
         virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
                                                         VectorType& rRightHandSideVector,
-                                                        ProcessInfo& rCurrentProcessInfo);
+                                                        ProcessInfo& rCurrentProcessInfo) override;
 
 
         /// Check that all data required by this condition is available and reasonable
-        virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+        virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
         /// Provides the global indices for each one of this element's local rows.
@@ -188,7 +188,7 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info object (unused)
          */
         virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      ProcessInfo& rCurrentProcessInfo) override;
 
 
         /// Returns a list of the element's Dofs
@@ -197,7 +197,7 @@ namespace Kratos
          * @param rCurrentProcessInfo the current process info instance
          */
         virtual void GetDofList(DofsVectorType& ConditionDofList,
-                                ProcessInfo& CurrentProcessInfo);
+                                ProcessInfo& CurrentProcessInfo) override;
 
 
         /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
@@ -206,32 +206,32 @@ namespace Kratos
          * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
          */
         virtual void GetValuesVector(Vector& Values,
-                                     int Step = 0);
+                                     int Step = 0) override;
 
 
         virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                                  std::vector<array_1d<double, 3 > >& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+                                                 const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
         virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                                                  std::vector<double>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+                                                 const ProcessInfo& rCurrentProcessInfo) override;
 
 
         virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                                                  std::vector<array_1d<double, 6 > >& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+                                                 const ProcessInfo& rCurrentProcessInfo) override;
 
         virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                  std::vector<Vector>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+                                                 const ProcessInfo& rCurrentProcessInfo) override;
 
 
         virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                                  std::vector<Matrix>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+                                                 const ProcessInfo& rCurrentProcessInfo) override;
 
 
         ///@}
@@ -249,13 +249,13 @@ namespace Kratos
         ///@{
 
         /// Turn back information as a string.
-        virtual std::string Info() const;
+        virtual std::string Info() const override;
 
         /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const;
+        virtual void PrintInfo(std::ostream& rOStream) const override;
 
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const;
+        virtual void PrintData(std::ostream& rOStream) const override;
 
 
         ///@}
@@ -363,9 +363,9 @@ namespace Kratos
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const;
+        virtual void save(Serializer& rSerializer) const override;
 
-        virtual void load(Serializer& rSerializer);
+        virtual void load(Serializer& rSerializer) override;
 
         ///@}
         ///@name Private Operators

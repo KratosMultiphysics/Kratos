@@ -174,7 +174,7 @@ class ApplyChimeraProcessMonolithic : public Process
 	///@name Operations
 	///@{
 
-	virtual void Execute()
+	virtual void Execute() override
 	{
 	}
 
@@ -426,15 +426,19 @@ class ApplyChimeraProcessMonolithic : public Process
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
-			ModelPart::Pointer pOutsideDomainModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
-			ModelPart::Pointer pOutsideDomainBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
+			ModelPart::Pointer pModifiedPatchModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
+			ModelPart::Pointer pModifiedPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
-			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchBoundaryModelPart);
-			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance,false);
+			//bool PatchMovesOutOfDomain = false ;
 
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-			this->pHoleCuttingProcess->CreateHoleAfterDistance(rPatchModelPart, *pOutsideDomainModelPart, *pOutsideDomainBoundaryModelPart, m_overlap_distance,true);
+			this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart);
 
+			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchBoundaryModelPart);
+			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
+
+
+			//*pModifiedPatchBoundaryModelPart  rPatchBoundaryModelPart
 			//for multipatch
 			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
 				it->Set(VISITED, true);
@@ -821,19 +825,19 @@ class ApplyChimeraProcessMonolithic : public Process
 		myfile << "end elements" << std::endl;
 	}
 
-	virtual std::string Info() const
+	virtual std::string Info() const override
 	{
 		return "ApplyChimeraProcessMonolithic";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "ApplyChimeraProcessMonolithic";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	virtual void PrintData(std::ostream &rOStream) const override
 	{
 
 		std::cout << "\nNumber of slave nodes :: " << std::endl;

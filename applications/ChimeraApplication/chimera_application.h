@@ -85,7 +85,7 @@ public:
 	///@name Operations
 	///@{
 
-	virtual void Register();
+	virtual void Register() override;
 
 
 
@@ -104,18 +104,18 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const {
+	virtual std::string Info() const override{
 		return "KratosChimeraApplication";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const {
+	virtual void PrintInfo(std::ostream& rOStream) const override{
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	///// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const {
+	virtual void PrintData(std::ostream& rOStream) const override{
   		KRATOS_WATCH("in my application");
   		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 

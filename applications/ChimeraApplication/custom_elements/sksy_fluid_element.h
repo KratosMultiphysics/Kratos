@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main author:     Jordi Cotela
 //
 
-// This is an adapted version of the stabilized ASGS/OSS element described in 
+// This is an adapted version of the stabilized ASGS/OSS element described in
 // J. Cotela "Applications of Turbulence Modeling in Civil Engineering" PhD thesis, 2016
 
 #ifndef KRATOS_SKSY_FLUID_ELEMENT_H
@@ -150,7 +150,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -163,7 +163,7 @@ public:
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateLeftHandSide Return an empty matrix of appropriate size.
@@ -173,7 +173,7 @@ public:
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo);
+                                       ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateRightHandSide Return an empty matrix of appropriate size.
@@ -183,7 +183,7 @@ public:
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo);
+                                        ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief CalculateLocalVelocityContribution Calculate the local contribution in terms of velocity and pressure.
@@ -193,7 +193,7 @@ public:
      */
     virtual void CalculateLocalVelocityContribution(MatrixType &rDampMatrix,
                                                     VectorType &rRightHandSideVector,
-                                                    ProcessInfo &rCurrentProcessInfo);
+                                                    ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief MassMatrix Calculate the local mass matrix.
@@ -201,17 +201,17 @@ public:
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
     virtual void CalculateMassMatrix(MatrixType &rMassMatrix,
-                                     ProcessInfo &rCurrentProcessInfo);
+                                     ProcessInfo &rCurrentProcessInfo) override;
 
 
     virtual void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief EquationIdVector Returns the global system rows corresponding to each local row.
@@ -219,7 +219,7 @@ public:
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief GetDofList Returns a list of the element's Dofs.
@@ -227,7 +227,7 @@ public:
      * @param rCurrentProcessInfo Current ProcessInfo instance. (input)
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo);
+                            ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -235,7 +235,7 @@ public:
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0);
+    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0) override;
 
 
 
@@ -244,39 +244,39 @@ public:
      * @param Values Vector of nodal second derivatives
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
+    virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0) override;
 
 
     /**
      * @brief GetIntegrationMethod Return the integration order to be used.
      * @return Gauss Order
      */
-    virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
+    virtual GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                              std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                                              std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                                              std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                                              std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                              std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -288,18 +288,18 @@ public:
     ///@name Inquiry
     ///@{
 
-    virtual int Check(const ProcessInfo &rCurrentProcessInfo);
+    virtual int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    virtual std::string Info() const override;
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    virtual void PrintInfo(std::ostream& rOStream) const override;
 
 
     ///@}
@@ -551,9 +551,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

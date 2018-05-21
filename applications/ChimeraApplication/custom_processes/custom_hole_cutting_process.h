@@ -197,7 +197,7 @@ class CustomHoleCuttingProcess
 		KRATOS_CATCH("");
 	}
 
-	void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, double distance,bool domainboundary)
+	void CreateHoleAfterDistance(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart, double distance)
 
 	{
 		KRATOS_TRY;
@@ -219,20 +219,9 @@ class CustomHoleCuttingProcess
 			{
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
-				if(domainboundary == true)
+				if (elementDistance < distance)
 				{
-					if (elementDistance > 0)
-					{
-						numPointsOutside++;
-					}
-
-				}
-				else
-				{
-					if (elementDistance < distance)
-					{
-						numPointsOutside++;
-					}
+					numPointsOutside++;
 				}
 
 			}
@@ -244,21 +233,21 @@ class CustomHoleCuttingProcess
 				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
 				rExtractedModelPart.Elements().push_back(pElem);
 				//Adding node all the node Ids of the elements satisfying the condition
-				for (j = 0; j <numNodesPerElem; j++){
+				for (j = 0; j <numNodesPerElem; j++)
+				{
 					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
 					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
 					if(numNodesPerElem-1 > 2)
 						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
 					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
 					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(1) = 0.0;
 					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(1) = 0.0;
 					if(numNodesPerElem-1 > 2)
 						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;
 					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
-
 					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
 				}
+
 			}
 		}
 
@@ -281,6 +270,93 @@ class CustomHoleCuttingProcess
 		if (n_nodes == 3)
 		{
 
+			ExtractBoundaryMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
+		}
+
+		else if (n_nodes == 4)
+		{
+			ExtractSurfaceMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
+		}
+
+		else
+			std::cout << "Hole cutting process is only supported for tetrahedral and triangular elements" << std::endl;
+
+		KRATOS_CATCH("");
+	}
+
+
+	void RemoveOutOfDomainPatch(ModelPart &rModelPart, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart)
+	{
+		KRATOS_TRY;
+
+		std::cout << "\n:: Removing Out Of Domain Patch ::" << std::endl;
+		std::vector<std::size_t> vector_of_node_ids;
+
+		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
+		{
+
+			double elementDistance = 0.0;
+			std::size_t numPointsOutside = 0;
+			std::size_t j = 0;
+			Geometry<Node<3>> &geom = it->GetGeometry();
+
+			for (j = 0; j < geom.size(); j++)
+			{
+				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
+
+				if (elementDistance > 0)
+				{
+					numPointsOutside++;
+				}
+			}
+
+			//if (numPointsOutside == geom.size())
+			if (numPointsOutside > 0 )
+			{
+				it->Set(ACTIVE, false);
+				Element::Pointer pElem = *(it.base());
+				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
+				for (j = 0; j <numNodesPerElem; j++)
+				{
+					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
+					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
+					if(numNodesPerElem-1 > 2)
+						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
+					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(1) = 0.0;
+					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(1) = 0.0;
+					if(numNodesPerElem-1 > 2)
+						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;
+					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
+					//vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
+				}
+			}
+			else
+			{
+				Element::Pointer pElem = *(it.base());
+				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
+				rExtractedModelPart.Elements().push_back(pElem);
+				for (j = 0; j <numNodesPerElem; j++)
+					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
+			}
+		}
+
+		//sorting and making unique list of node ids
+		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+		vector_of_node_ids.assign(s.begin(), s.end());
+
+		// Add unique nodes in the ModelPart
+		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
+		{
+
+			Node<3>::Pointer pnode = rModelPart.Nodes()(*it);
+			rExtractedModelPart.AddNode(pnode);
+		}
+
+		std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
+
+		if (n_nodes == 3)
+		{
 			ExtractBoundaryMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
 		}
 
@@ -462,7 +538,7 @@ class CustomHoleCuttingProcess
 
 			for (std::size_t edge = 0; edge < edges.size(); edge++)
 			{
-				// Create vector that stores all node is of current edge
+				// Create vector that stores all node ids of current edge
 				vector<std::size_t> ids(edges[edge].size());
 
 				// Store node ids

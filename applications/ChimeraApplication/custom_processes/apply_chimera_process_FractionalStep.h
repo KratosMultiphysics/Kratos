@@ -180,7 +180,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 	///@name Operations
 	///@{
 
-	virtual void Execute()
+	virtual void Execute() override
 	{
 	}
 
@@ -778,7 +778,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchBoundaryModelPart);
-			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance,false);
+			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
 
 			//for multipatch
 			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
@@ -1172,19 +1172,19 @@ class ApplyChimeraProcessFractionalStep : public Process
 		myfile << "end elements" << std::endl;
 	}
 
-	virtual std::string Info() const
+	virtual std::string Info() const override
 	{
 		return "ApplyChimeraProcessFractionalStep";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const
+	virtual void PrintInfo(std::ostream &rOStream) const override
 	{
 		rOStream << "ApplyChimeraProcessFractionalStep";
 	}
 
 	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const
+	virtual void PrintData(std::ostream &rOStream) const override
 	{
 
 		std::cout << "\nNumber of  Velocity slave nodes :: " << std::endl;

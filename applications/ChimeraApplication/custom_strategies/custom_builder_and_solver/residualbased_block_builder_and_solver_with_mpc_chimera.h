@@ -278,6 +278,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
 
                 if (element_is_active)
                 {
+                    std::cout<<"BUilder and Solver: Getting first element contribution"<<std::endl;
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -292,6 +293,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     // clean local elemental memory
                     pScheme->CleanMemory(*(it.base()));
                 }
+
+                std::cout<<"First element finished"<<std::endl;
             }
 
 //#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId ) schedule(dynamic, 1024)
@@ -591,7 +594,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 std::vector<std::size_t> SlavesCorrespondingToMasters;
 
                 // Formulating the local slave equationId vector
-                for (int i = 0; i < EquationId.size(); ++i)
+                for (unsigned int i = 0; i < EquationId.size(); ++i)
                 {
                     localEquationIds.push_back(i);
                     if (mpcData->mEquationIdToWeightsMap.count(EquationId[i]) > 0)
@@ -812,7 +815,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 std::vector<std::size_t> SlavesCorrespondingToMasters;
 
                 // Formulating the local slave equationId vector
-                for (int i = 0; i < EquationId.size(); ++i)
+                for (unsigned int i = 0; i < EquationId.size(); ++i)
                 {
                     localEquationIds.push_back(i);
                     if (mpcData->mEquationIdToWeightsMap.count(EquationId[i]) > 0)
@@ -1090,9 +1093,9 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                 {
                     double nodalMass;
                     std::size_t slaveNodeId;
-                    std::size_t slaveNodeIdOther;
+                    //std::size_t slaveNodeIdOther;
                     std::size_t slaveDofKey;
-                    std::size_t slaveDofKeyOther;
+                    //std::size_t slaveDofKeyOther;
                     double slaveDofValueOther;
                     SlavePairType slaveDofMap;
                     SlavePairType slaveDofMapOther;
@@ -1122,8 +1125,8 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                             //#####
                             MasterDofWeightMapType &masterDofMap = slaveMasterDofMapOther.second;
                             //#####
-                            slaveNodeIdOther = slaveDofMapOther.first;
-                            slaveDofKeyOther = slaveDofMapOther.second;
+                            //slaveNodeIdOther = slaveDofMapOther.first;
+                            //slaveDofKeyOther = slaveDofMapOther.second;
                             //Node<3> &slaveNodeOther = r_model_part.Nodes()[slaveNodeIdOther];
                             //Node<3>::DofsContainerType::iterator idofOther = slaveNodeOther.GetDofs().find(slaveDofKeyOther);
                             //slaveDofValueOther = idofOther->GetSolutionStepValue();

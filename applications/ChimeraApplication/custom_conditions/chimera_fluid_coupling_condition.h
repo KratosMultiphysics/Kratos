@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Sonja Schneider
@@ -153,11 +153,11 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
     /// Allocate memory for integration point data.
-    virtual void Initialize();
+    virtual void Initialize() override;
 
     /// Return local contributions of the correct size, filled with zeros (for compatibility with time schemes).
     /** The actual local contributions are computed in the Damping functions
@@ -165,14 +165,14 @@ public:
       */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo);
+                                      ProcessInfo& rCurrentProcessInfo) override;
 
     /// Return a matrix of the correct size, filled with zeros (for compatibility with time schemes).
     /** The actual local contributions are computed in the Damping functions
       @see DampingMatrix
       */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo);
+                                       ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Return local right hand side of the correct size, filled with zeros (for compatibility with time schemes).
@@ -180,13 +180,13 @@ public:
       @see CalculateLocalVelocityContribution
       */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo);
+                                        ProcessInfo& rCurrentProcessInfo) override;
 
 
 
 
     /// Check that all data required by this condition is available and reasonable
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Provides the global indices for each one of this element's local rows.
@@ -195,7 +195,7 @@ public:
      * @param rCurrentProcessInfo the current process info object (unused)
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo);
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Returns a list of the element's Dofs
@@ -204,9 +204,9 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& ConditionDofList,
-                            ProcessInfo& CurrentProcessInfo);
+                            ProcessInfo& CurrentProcessInfo) override;
 
-    virtual GeometryData::IntegrationMethod GetIntegrationMethod();
+    virtual GeometryData::IntegrationMethod GetIntegrationMethod() override;
 
 
     /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
@@ -215,59 +215,59 @@ public:
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
     virtual void GetValuesVector(Vector& Values,
-                                 int Step = 0);
+                                 int Step = 0) override;
 
 
     virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
                            array_1d<double,3>& Output,
-                           const ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /// Used to pass interpolated tensions on the integration point (with rVariable == TENSION)
     virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                              std::vector<array_1d<double, 3 > > rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                              std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                                              std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
                                              std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
                                              std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                              std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo);
+                                             const ProcessInfo& rCurrentProcessInfo) override;
 
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                               std::vector<double>& rOutput,
-                                              const ProcessInfo& rCurrentProcessInfo);
+                                              const ProcessInfo& rCurrentProcessInfo) override;
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                                               std::vector< array_1d<double, 3 > >& Output,
-                                              const ProcessInfo& rCurrentProcessInfo);
+                                              const ProcessInfo& rCurrentProcessInfo) override;
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
                                               std::vector< Vector >& Output,
-                                              const ProcessInfo& rCurrentProcessInfo);
+                                              const ProcessInfo& rCurrentProcessInfo) override;
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
                                               std::vector< Matrix >& Output,
-                                              const ProcessInfo& rCurrentProcessInfo);
+                                              const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}
@@ -285,13 +285,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    virtual std::string Info() const override;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    virtual void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintData(std::ostream& rOStream) const override;
 
 
     ///@}
@@ -360,9 +360,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators
