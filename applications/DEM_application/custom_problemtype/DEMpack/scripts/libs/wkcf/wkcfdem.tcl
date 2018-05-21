@@ -675,7 +675,7 @@ proc ::wkcf::WriteMatTestData {fileid} {
     set cxpath "DEM//c.DEM-MaterialTest//i.DEM-ConfinementPressure"
     set ConfPress [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"ConfinementPressure\"              : $ConfPress,"
-    
+
     set basexpath "DEM//c.DEM-MaterialTest//c.DEM-TopLayerGroup"
     set topgroup [::xmlutils::setXmlContainerIds $basexpath]
     if {[llength $topgroup]} {
@@ -686,7 +686,7 @@ proc ::wkcf::WriteMatTestData {fileid} {
         set LVelt [::xmlutils::setXml $cxpath "dv"]
     }
     }
-    
+
     set basexpath "DEM//c.DEM-MaterialTest//c.DEM-BotLayerGroup"
     set botgroup [::xmlutils::setXmlContainerIds $basexpath]
     if {[llength $botgroup]} {
@@ -697,10 +697,10 @@ proc ::wkcf::WriteMatTestData {fileid} {
         set LVelb [::xmlutils::setXml $cxpath "dv"]
     }
     }
-    
+
     if {$TestTypeOn eq "No"} {set LVelt 0.0}
     if {$TestTypeOn eq "No"} {set LVelb 0.0}
-    puts $fileid "\"LoadingVelocity\"              : [expr ($LVelt-$LVelb)],"    
+    puts $fileid "\"LoadingVelocity\"              : [expr ($LVelt-$LVelb)],"
     set cxpath "DEM//c.DEM-MaterialTest//i.DEM-MeshType"
     set mt [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"MeshType\"                        : \"$mt\","
@@ -3555,7 +3555,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    }
 	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
-	    GiD_File fprintf $demfemchannel "  FREE_BODY_MOTION $FreeBodyMotion"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
