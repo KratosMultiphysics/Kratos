@@ -105,10 +105,10 @@ public:
     typedef Dof<double> DofType;
 
 //     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
-    typedef PointerVectorSet<DofType, 
-                SetIdentityFunction<DofType>, 
+    typedef PointerVectorSet<DofType,
+                SetIdentityFunction<DofType>,
                 std::less<SetIdentityFunction<DofType>::result_type>,
-                std::equal_to<SetIdentityFunction<DofType>::result_type>, 
+                std::equal_to<SetIdentityFunction<DofType>::result_type>,
                 DofType* > DofsArrayType;
 
 
@@ -212,7 +212,7 @@ public:
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -309,11 +309,11 @@ public:
     void AddNode(NodeType::Pointer pNewNode, IndexType ThisIndex = 0);
 
     /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
-     */    
+     */
     void AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIndex = 0);
-    
+
     /** Inserts a list of pointers to nodes
-     */    
+     */
     template<class TIteratorType >
     void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
     {
@@ -321,7 +321,7 @@ public:
         ModelPart::NodesContainerType  aux;
         ModelPart::NodesContainerType  aux_root; //they may not exist in the root
         ModelPart* root_model_part = &this->GetRootModelPart();
-        
+
         for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
         {
             auto it_found = root_model_part->Nodes().find(it->Id());
@@ -336,28 +336,28 @@ public:
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
-                    
+
             }
         }
-        
+
         //now add to the root model part
         for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
             root_model_part->Nodes().push_back( *(it.base()) );
         root_model_part->Nodes().Unique();
-        
+
         //add to all of the leaves
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Nodes().push_back( *(it.base()) );
-            
+
             current_part->Nodes().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -469,8 +469,15 @@ public:
     template<class TDataType>
     void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
     {
-        KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0) << "attempting to add the variable: " << ThisVariable.Name() << " to the model part with name: " << this->Name() << " which is not empty" << std::endl;
-        mpVariablesList->Add(ThisVariable);
+        if (!mpVariablesList->Has(ThisVariable))
+        {
+            // This error prevents memory leaks if variables are being added to a non-empty modelpart
+            KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
+                << "Attempting to add the variable \"" << ThisVariable.Name()
+                << "\" to the model part with name \"" << this->Name() << "\" which is not empty" << std::endl;
+
+            mpVariablesList->Add(ThisVariable);
+        }
     }
 
     VariablesList& GetNodalSolutionStepVariablesList()
@@ -587,7 +594,7 @@ public:
         {
             if(IsSubModelPart())
             {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);                
+                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
                 GetMesh(ThisIndex).AddProperties(pprop);
                 return pprop;
             }
@@ -612,7 +619,7 @@ public:
         {
             if(IsSubModelPart())
             {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);                
+                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
                 GetMesh(ThisIndex).AddProperties(pprop);
                 return *pprop;
             }
@@ -706,13 +713,13 @@ public:
     /** Inserts a element in the current mesh.
      */
     void AddElement(ElementType::Pointer pNewElement, IndexType ThisIndex = 0);
-    
+
     /** Inserts a list of elements to a submodelpart provided their Id. Does nothing if applied to the top model part
-     */    
+     */
     void AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex = 0);
-    
+
     /** Inserts a list of pointers to nodes
-     */    
+     */
     template<class TIteratorType >
     void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
     {
@@ -720,7 +727,7 @@ public:
         ModelPart::ElementsContainerType  aux;
         ModelPart::ElementsContainerType  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
-        
+
         for(TIteratorType it = elements_begin; it!=elements_end; it++)
         {
             auto it_found = root_model_part->Elements().find(it->Id());
@@ -737,24 +744,24 @@ public:
                     aux.push_back( *(it.base()) );
             }
         }
-        
+
         for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
                 root_model_part->Elements().push_back( *(it.base()) );
         root_model_part->Elements().Unique();
-        
+
         //add to all of the leaves
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Elements().push_back( *(it.base()) );
-            
+
             current_part->Elements().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -869,13 +876,13 @@ public:
     /** Inserts a condition in the current mesh.
      */
     void AddCondition(ConditionType::Pointer pNewCondition, IndexType ThisIndex = 0);
-    
+
     /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
-     */    
+     */
     void AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex = 0);
-    
+
     /** Inserts a list of pointers to nodes
-     */    
+     */
     template<class TIteratorType >
     void AddConditions(TIteratorType conditions_begin,  TIteratorType conditions_end, IndexType ThisIndex = 0)
     {
@@ -883,7 +890,7 @@ public:
         ModelPart::ConditionsContainerType  aux;
         ModelPart::ConditionsContainerType  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
-        
+
         for(TIteratorType it = conditions_begin; it!=conditions_end; it++)
         {
             auto it_found = root_model_part->Conditions().find(it->Id());
@@ -900,25 +907,25 @@ public:
                     aux.push_back( *(it.base()) );
             }
         }
-        
+
         //now add to the root model part
         for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
                 root_model_part->Conditions().push_back( *(it.base()) );
         root_model_part->Conditions().Unique();
-        
+
         //add to all of the leaves
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Conditions().push_back( *(it.base()) );
-            
+
             current_part->Conditions().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -1223,7 +1230,7 @@ public:
     ///@{
 
     std::vector<std::string> GetSubModelPartNames();
-    
+
     void SetBufferSize(IndexType NewBufferSize);
 
     IndexType GetBufferSize()
@@ -1390,6 +1397,6 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
 
 } // namespace Kratos.
 
-#endif // KRATOS_MODEL_PART_H_INCLUDED  defined 
+#endif // KRATOS_MODEL_PART_H_INCLUDED  defined
 
 

@@ -373,7 +373,6 @@ class ApplicationGenerator(TemplateRule):
             for l in src:
 
                 # Add the applciation to the list message
-                print(l.strip(), "\")", l.strip() == "\")")
                 if l.strip() == "\")" :
                     newLine = self._nameUpper + '_APPLICATION;\\\n'
 
