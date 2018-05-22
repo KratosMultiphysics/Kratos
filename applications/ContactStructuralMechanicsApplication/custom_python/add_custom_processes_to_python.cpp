@@ -38,17 +38,17 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 {
     typedef Process  ProcessBaseType;
 
-    class_<ALMFastInit, ProcessBaseType >
+    class_<ALMFastInit, ALMFastInit::Pointer, ProcessBaseType >
     (m, "ALMFastInit")
     .def(init<ModelPart&>())
     ;
     
-    class_<MasterSlaveProcess, ProcessBaseType >
+    class_<MasterSlaveProcess, MasterSlaveProcess::Pointer, ProcessBaseType >
     (m, "MasterSlaveProcess")
     .def(init<ModelPart&>())
     ;
     
-    class_<ALMVariablesCalculationProcess, ProcessBaseType >
+    class_<ALMVariablesCalculationProcess, ALMVariablesCalculationProcess::Pointer, ProcessBaseType >
     (m, "ALMVariablesCalculationProcess")
     .def(init<ModelPart&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, Variable<double>&>()) // Considering default variables
