@@ -167,22 +167,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ShipElement3D::ComputeWaterDragForce2() {
-
-        KRATOS_TRY
-        
-        array_1d<double, 3> water_drag_force;
-        const array_1d<double, 3> velocity = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-
-        water_drag_force[0] = ((velocity[0] >= 0.0) ? -mDragConstantVector[0] * velocity[0] * velocity[0] : mDragConstantVector[0] * velocity[0] * velocity[0]);
-        water_drag_force[1] = ((velocity[1] >= 0.0) ? -mDragConstantVector[1] * velocity[1] * velocity[1] : mDragConstantVector[1] * velocity[1] * velocity[1]);
-        water_drag_force[2] = ((velocity[2] >= 0.0) ? -mDragConstantVector[2] * velocity[2] * velocity[2] : mDragConstantVector[2] * velocity[2] * velocity[2]);
-        
-        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += water_drag_force;
-
-        KRATOS_CATCH("")
-    }
-
     void ShipElement3D::ComputeExternalForces(const array_1d<double,3>& gravity) {
 
         KRATOS_TRY
