@@ -66,7 +66,7 @@ namespace Kratos {
 
             for (unsigned int j = 0; j < RF_size; j++) {
                 rigid_face_z_coords_values[j] = mListOfRigidFaces[i]->GetGeometry()[j].Coordinates()[2];
-                if (rigid_face_z_coords_values[0] > water_level) number_of_RF_nodes_out_of_water++;
+                if (rigid_face_z_coords_values[j] > water_level) number_of_RF_nodes_out_of_water++;
             }
             
             if (number_of_RF_nodes_out_of_water == RF_size) continue;
