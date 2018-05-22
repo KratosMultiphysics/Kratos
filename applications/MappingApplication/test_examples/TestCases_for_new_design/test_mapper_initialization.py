@@ -20,7 +20,7 @@ model_part_destination.CreateNewNode(1,2.0,2.0,3.0)
 mapper_settings = KratosMultiphysics.Parameters(
     """
     {
-        "mapper_type" : "nearest_element",
+        "mapper_type" : "nearest_neighbor",
         "echo_level"  : 1
     }
     """

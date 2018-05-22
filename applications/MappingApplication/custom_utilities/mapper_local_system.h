@@ -55,11 +55,50 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class BaseMapperLocalSystem
+{
+    public:
+    using MapperLocalSystemUniquePointer = Kratos::unique_ptr<BaseMapperLocalSystem>;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
+
+    using MappingWeightsVector = std::vector<double>;
+    using EquationIdVectorType = std::vector<IndexType>;
+
+    using NodeType = Node<3>;
+    using NodePointerType = Node<3>::Pointer;
+    using GeometryType = Geometry<NodeType>;
+
+    virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const = 0;
+    virtual MapperLocalSystemUniquePointer Create(const GeometryType& rGeometry) const = 0;
+
+
+    virtual void EquationIdVectors(EquationIdVectorType& rOriginIds,
+                                   EquationIdVectorType& rDestinationIds) = 0;
+
+    virtual void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
+                              EquationIdVectorType& rOriginIds,
+                              EquationIdVectorType& rDestinationIds) const = 0;
+
+    // This specifies if Nodes should be used for the construction
+    // => this is the case if the Geometry on the destination is not important
+    virtual bool UseNodesAsBasis() const = 0;
+
+    template<typename TDataHolder>
+    void AddInterfaceInfo(Kratos::shared_ptr<MapperInterfaceInfo<TDataHolder>> pInterfaceInfo)
+    {
+        // pInterfaceInfo is a shared_ptr, therefore passing by value
+        // mInterfaceInfos.push_back(pInterfaceInfo);
+    }
+
+};
+
+
 /// This is the "Condition" of the Mappers.
 /** Detail class definition.
 */
 template<class TDataHolder>
-class MapperLocalSystem
+class MapperLocalSystem : public BaseMapperLocalSystem
 {
 public:
     ///@name Type Definitions
@@ -68,23 +107,26 @@ public:
     /// Pointer definition of MapperLocalSystem
     KRATOS_CLASS_POINTER_DEFINITION(MapperLocalSystem);
 
-    using MapperLocalSystemUniquePointer = Kratos::unique_ptr<MapperLocalSystem>;
-    using MapperInterfaceInfoPointer = MapperInterfaceInfo<TDataHolder>::Pointer;
+    using BaseType = BaseMapperLocalSystem;
 
-    using IndexType = std::size_t;
+    using MapperLocalSystemUniquePointer = typename BaseType::MapperLocalSystemUniquePointer;
+    using MapperInterfaceInfoPointer = typename MapperInterfaceInfo<TDataHolder>::Pointer;
 
-    using MappingWeightsVector = std::vector<double>;
-    using EquationIdVectorType     = std::vector<IndexType>;
+    using SizeType = typename BaseType::IndexType;
+    using IndexType = typename BaseType::IndexType;
 
-    using NodeType = Node<3>;
-    using GeometryType = Geometry<NodeType>;
+    using MappingWeightsVector = typename BaseType::MappingWeightsVector;
+    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
+
+    using NodePointerType = typename BaseType::NodePointerType;
+    using GeometryType = typename BaseType::GeometryType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MapperLocalSystem();
+    MapperLocalSystem() {}
 
     /// Destructor.
     virtual ~MapperLocalSystem() {}
@@ -99,12 +141,19 @@ public:
     ///@name Operations
     ///@{
 
-    // Only one of the Create functions have to be implemented, thats why they cannot be pure virtual!
-    virtual MapperLocalSystemUniquePointer Create(const NodeType& rNode) const;
-    virtual MapperLocalSystemUniquePointer Create(const GeometryType& rGeometry) const;
+    // Only one of the Create functions has to be implemented, thats why they cannot be pure virtual!
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    MapperLocalSystemUniquePointer Create(const MapperLocalSystem<TDataHolder>::GeometryType& rGeometry) const override
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
 
     void EquationIdVectors(EquationIdVectorType& rOriginIds,
-                           EquationIdVectorType& rDestinationIds)
+                           EquationIdVectorType& rDestinationIds) override
     {
         if (!mIsComputed)
         {
@@ -118,7 +167,7 @@ public:
 
     void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
                               EquationIdVectorType& rOriginIds,
-                              EquationIdVectorType& rDestinationIds) const
+                              EquationIdVectorType& rDestinationIds) const final override
     {
         if (mIsComputed)
         {
@@ -137,9 +186,9 @@ public:
     }
 
 
-    // This specifies if Nodes should be used for the construction
-    // => this is the case if the Geometry on the destination is not important
-    virtual bool UseNodesAsBasis() const = 0;
+    // // This specifies if Nodes should be used for the construction
+    // // => this is the case if the Geometry on the destination is not important
+    // virtual bool UseNodesAsBasis() const = 0;
 
 
     void AddInterfaceInfo(MapperInterfaceInfoPointer pInterfaceInfo)

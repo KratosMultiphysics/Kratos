@@ -68,11 +68,11 @@ class MappingOperationUtility
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
-    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointer = Kratos::unique_ptr<BaseMapperLocalSystem>;
     using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
     using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 
-    using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
+    using EquationIdVectorType = typename BaseMapperLocalSystem::EquationIdVectorType;
 
     using TSystemMatrixType = typename TSparseSpace::MatrixType;
     using TSystemVectorType = typename TSparseSpace::VectorType;

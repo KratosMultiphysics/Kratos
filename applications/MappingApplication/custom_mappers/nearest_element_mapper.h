@@ -183,9 +183,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const override
+    MapperLocalSystemPointer GetMapperLocalSystem() const override
     {
-        pMapperLocalSystem = Kratos::make_unique<NearestElementLocalSystem>();
+
     }
 
     ///@}

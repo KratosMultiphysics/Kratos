@@ -25,19 +25,19 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    MapperLocalSystem::MapperLocalSystem()
-    {
-    }
+    // MapperLocalSystem::MapperLocalSystem()
+    // {
+    // }
 
-    MapperLocalSystem::MapperLocalSystemUniquePointer MapperLocalSystem::Create(const MapperLocalSystem::NodeType& rNode) const
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
+    // MapperLocalSystem::MapperLocalSystemUniquePointer MapperLocalSystem::Create(const MapperLocalSystem::NodeType& rNode) const
+    // {
+    //     KRATOS_ERROR << "Base class function called!" << std::endl;
+    // }
 
-    MapperLocalSystem::MapperLocalSystemUniquePointer MapperLocalSystem::Create(const MapperLocalSystem::GeometryType& rGeometry) const
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
-    }
+    // MapperLocalSystem::MapperLocalSystemUniquePointer MapperLocalSystem::Create(const MapperLocalSystem::GeometryType& rGeometry) const
+    // {
+    //     KRATOS_ERROR << "Base class function called!" << std::endl;
+    // }
 
 
     /***********************************************************************************/

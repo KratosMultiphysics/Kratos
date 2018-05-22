@@ -69,8 +69,9 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
 
     mpMapperLocalSystems->clear();
 
-    MapperLocalSystemPointer p_ref_local_system;
-    InitializeMapperLocalSystem(p_ref_local_system);
+    const MapperLocalSystemPointer p_ref_local_system = GetMapperLocalSystem();
+    // p_ref_local_system;
+    // InitializeMapperLocalSystem(p_ref_local_system);
 
     mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
 

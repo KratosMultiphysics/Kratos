@@ -62,7 +62,7 @@ namespace Kratos
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(num_nodes); ++i)
         {
-            auto it_node = mrModelPartDestination.Nodes().begin() + i;
+            auto it_node = mrModelPartDestination.Nodes().ptr_begin() + i;
             (*mpMapperLocalSystems)[i] = rpLocalSystem->Create(*(it_node));
         }
     }

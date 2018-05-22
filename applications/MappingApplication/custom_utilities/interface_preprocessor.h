@@ -64,7 +64,7 @@ class InterfacePreprocessor
     /// Pointer definition of InterfacePreprocessor
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessor);
 
-    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointer = Kratos::unique_ptr<BaseMapperLocalSystem>;
     using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
     using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 

@@ -5,11 +5,18 @@
 
 namespace Kratos
 {
-class NearestElementLocalSystem : public MapperLocalSystem
+template<class TDataHolder>
+class NearestElementLocalSystem : public MapperLocalSystem<TDataHolder>
 {
-    Kratos::unique_ptr<MapperLocalSystem> Create(const NodeType& rNode) const override
+    using NodePointerType = typename MapperLocalSystem<TDataHolder>::NodePointerType;
+
+    using MappingWeightsVector = typename MapperLocalSystem<TDataHolder>::MappingWeightsVector;
+    using EquationIdVectorType = typename MapperLocalSystem<TDataHolder>::EquationIdVectorType;
+
+
+    Kratos::unique_ptr<MapperLocalSystem<TDataHolder>> Create(NodePointerType pNode) const override
     {
-        return Kratos::make_unique<NearestElementLocalSystem>();
+        return Kratos::make_unique<NearestElementLocalSystem<TDataHolder>>();
     }
 
     void CalculateAll(MappingWeightsVector& rMappingWeights,

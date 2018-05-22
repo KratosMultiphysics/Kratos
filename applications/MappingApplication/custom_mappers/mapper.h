@@ -29,6 +29,7 @@
 // #include "custom_utilities/mapper_interface_info.h" // TODO needed?
 #include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapper_flags.h"
+#include "mapping_application_variables.h"
 
 
 namespace Kratos
@@ -356,7 +357,7 @@ protected:
         mGeneralMapperSettings = AllMapperSettings;
     }
 
-    virtual void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const = 0;
+    virtual MapperLocalSystemPointer GetMapperLocalSystem() const = 0;
 
 
     ///@}

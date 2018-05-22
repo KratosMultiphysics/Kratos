@@ -207,30 +207,81 @@ public:
 
     };
 
-    class NearestNeigborLocalSystem : public MapperLocalSystem
+    template<class TDataHolder>
+    class NearestNeighborLocalSystem : public MapperLocalSystem<TDataHolder>
     {
-        Kratos::unique_ptr<MapperLocalSystem> Create(const NodeType& rNode) const override
+        public:
+        using BaseType = MapperLocalSystem<TDataHolder>;
+        using NodePointerType = typename BaseType::NodePointerType;
+
+        using MappingWeightsVector = typename BaseType::MappingWeightsVector;
+        using EquationIdVectorType = typename BaseType::EquationIdVectorType;
+
+        using SizeType = typename BaseType::IndexType;
+        using IndexType = typename BaseType::IndexType;
+
+        NearestNeighborLocalSystem()
         {
-            return Kratos::make_unique<NearestNeigborLocalSystem>();
+
+        }
+
+        NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode)
+        {
+
+        }
+
+        Kratos::unique_ptr<BaseMapperLocalSystem> Create(NodePointerType pNode) const override
+        {
+            return Kratos::make_unique<NearestNeighborLocalSystem<TDataHolder>>(pNode);
         }
 
         void CalculateAll(MappingWeightsVector& rMappingWeights,
                           EquationIdVectorType& rOriginIds,
                           EquationIdVectorType& rDestinationIds) const override
         {
-            std::vector<int> neighbor_ids;
-            std::vector<double> neighbor_distances;
+            if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
+            if (rOriginIds.size() != 1)      rOriginIds.resize(1);
+            if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
 
-            for (const auto& r_info : mInterfaceInfos)
+            if (this->mInterfaceInfos.size() > 0)
             {
-                r_info->GetNeighborIds(neighbor_ids);
+                IndexType nearest_neighbor_id = this->mInterfaceInfos[0]->GetInterfaceData().GetNearestNeighborId();
+                double nearest_neighbor_distance = this->mInterfaceInfos[0]->GetInterfaceData().GetNearestNeighborDistance();
+
+                for (SizeType i=1; i<this->mInterfaceInfos.size(); ++i)
+                {
+                    TDataHolder data = this->mInterfaceInfos[i]->GetInterfaceData();
+                    double distance = data.GetNearestNeighborDistance();
+
+                    if (distance < nearest_neighbor_distance)
+                    {
+                        nearest_neighbor_distance = distance;
+                        nearest_neighbor_id = data.GetNearestNeighborId();
+                    }
+                }
+
+                rMappingWeights[0] = 1.0;
+                rOriginIds[0] = nearest_neighbor_id;
+                // rDestinationIds[0] = this->mrNode.GetValue(INTERFACE_EQUATION_ID); //TODO
+            }
+            else
+            {
+                KRATOS_WARNING_IF("NearestNeighborMapper", this->mInterfaceInfos.size() == 0)
+                    << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
+
+                // TODO is this ok? => I guess it would be better to do this in a mor general way in the baseclass...
+                // TODO resize to zero, then it wont be assembled! (might be a bit slower though...)
+                rMappingWeights[0] = 0.0;
+                rOriginIds[0]      = 0;
+                rDestinationIds[0] = 0;
             }
 
-            KRATOS_WARNING_IF("NearestNeighborMapper", mInterfaceInfos.size()==0)
-                << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
         }
 
         bool UseNodesAsBasis() const override { return true; }
+
+        private:
+        NodePointerType mpNode;
 
     };
 
@@ -251,9 +302,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void InitializeMapperLocalSystem(MapperLocalSystemPointer& pMapperLocalSystem) const override
+    MapperLocalSystemPointer GetMapperLocalSystem() const override
     {
-        // pMapperLocalSystem = Kratos::make_unique<NearestNeighborLocalSystem>();
+        return Kratos::make_unique<NearestNeighborLocalSystem<NearestNeigborInterfaceData>>();
     }
 
     ///@}
