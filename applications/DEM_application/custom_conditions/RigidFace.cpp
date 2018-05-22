@@ -330,7 +330,7 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
     
 }
 
-array_1d<double, 3> RigidFace3D::GetRigidFaceVelocity() {
+array_1d<double, 3> RigidFace3D::GetVelocity() {
         
     size_t FE_size = this->GetGeometry().size();
     array_1d<double, 3> rigid_face_velocity = ZeroVector(3);
