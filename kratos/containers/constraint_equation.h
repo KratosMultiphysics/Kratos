@@ -33,8 +33,8 @@ namespace Kratos
 *   (each object of this class will store one equation in the given form)
 *
 *   slaveDOF = w_1*masterDOF_1 + w_2*masterDOF_2 + ..... + w_n*masterDOF_n
-*   
-*   each slaveDOF and each of its masterDOF have the following attributes 
+*
+*   each slaveDOF and each of its masterDOF have the following attributes
 *   a. dof ID
 *   b. dof KEY
 *   c. equation ID
@@ -193,7 +193,7 @@ class MasterSlaveRelation
     ///@name Serialization
     ///@{
     friend class Serializer;
- 
+
     virtual void save(Serializer &rSerializer) const
     {
         rSerializer.save("slave_id", mId);            // saving the vector of the slave id
