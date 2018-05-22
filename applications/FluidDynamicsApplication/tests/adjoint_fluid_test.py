@@ -21,6 +21,7 @@ except ImportError:
     have_required_applications = False
     missing_applications_message.append("HDF5Application")
 
+from fluid_dynamics_analysis import FluidDynamicsAnalysis
 from adjoint_fluid_analysis import AdjointFluidAnalysis
 
 import KratosMultiphysics.KratosUnittest as UnitTest
@@ -39,7 +40,7 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
 
-@UnitTest.skipUnless(have_required_applications," ".join(missing_application_message))
+@UnitTest.skipUnless(have_required_applications," ".join(missing_applications_message))
 class AdjointFluidTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -56,7 +57,7 @@ class AdjointFluidTest(UnitTest.TestCase):
 
             kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
 
-    def _run_test(self,primal_settings_file_name,adjoint_settings_file_name):
+    def _run_test(self,primal_parameter_file_name,adjoint_parameter_file_name):
         model = km.Model()
         settings = km.Parameters(r'''{}''')
 
@@ -84,20 +85,20 @@ class AdjointFluidTest(UnitTest.TestCase):
                     "node_output"         : false,
                     "skin_output"         : false,
                     "plane_output"        : [],
-                    "nodal_results"       : ["VELOCITY","PRESSURE"],
+                    "nodal_results"       : ["VELOCITY","PRESSURE","ADJOINT_VELOCITY","ADJOINT_PRESSURE","SHAPE_SENSITIVITY"],
                     "gauss_point_results" : []
                 },
                 "point_data_configuration"  : []
             }'''))
 
-        primal_analysis = FluidDynamicsAnalysis(model,settings)
+        primal_analysis = FluidDynamicsAnalysis(model,settings["primal settings"])
         primal_analysis.Run()
-        adjoint_analysis = AdjointFluidAnalysis(model,settings)
+        adjoint_analysis = AdjointFluidAnalysis(model,settings["adjoint settings"])
         adjoint_analysis.Run()
 
 if __name__ == '__main__':
     test_case = AdjointFluidTest()
     test_case.setUp()
-    test_case.testAdjointFluidAnalysis()
+    test_case.testCylinder()
     test_case.tearDown()
 
