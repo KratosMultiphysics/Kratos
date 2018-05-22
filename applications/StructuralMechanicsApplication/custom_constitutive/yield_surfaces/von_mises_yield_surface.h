@@ -116,6 +116,26 @@ public:
         rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_T]);
     }
 
+    static void CalculateDamageParameter(
+        const Properties& rMaterialProperties, 
+        double& AParameter, 
+        const double CharacteristicLength
+    )
+    {
+        const double Gf = rMaterialProperties[FRACTURE_ENERGY];
+        const double E  = rMaterialProperties[YOUNG_MODULUS];
+        const double sigma_c = rMaterialProperties[YIELD_STRESS_C];
+
+        if (rMaterialProperties[SOFTENING_TYPE] == Exponential)
+        {
+            AParameter = 1.00 / (Gt*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        }
+        else
+        {
+            
+        }
+    }
+
     
     static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
     {

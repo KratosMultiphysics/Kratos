@@ -209,6 +209,28 @@ public:
 		LodeAngle = std::asin(sint3) / 3.0;
     }
 
+    static void CalculateDamageParameter(
+        const Properties& rMaterialProperties, 
+        double& AParameter, 
+        const double CharacteristicLength
+    )
+    {
+        const double Gf = rMaterialProperties[FRACTURE_ENERGY];
+        const double E  = rMaterialProperties[YOUNG_MODULUS];
+        const double sigma_c = rMaterialProperties[YIELD_STRESS_C];
+        const double sigma_t = rMaterialProperties[YIELD_STRESS_T];
+        const double n = sigma_c / sigma_t;
+
+        if (rMaterialProperties[SOFTENING_TYPE] == Exponential)
+        {
+            AParameter = 1.00 / (n*n*Gt*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        }
+        else
+        {
+            
+        }
+    }
+
     /*
     This  script  calculates  the derivatives  of the Yield Surf
     according   to   NAYAK-ZIENKIEWICZ   paper International

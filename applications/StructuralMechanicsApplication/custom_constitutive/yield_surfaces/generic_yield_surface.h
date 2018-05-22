@@ -142,6 +142,14 @@ public:
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector,Deviator, J2,rg, rMaterialProperties);
     }
 
+    static void CalculateDamageParameter(
+        const Properties& rMaterialProperties, 
+        double& AParameter, 
+        const double CharacteristicLength
+    )
+    {
+    }
+
     ///@}
     ///@name Access
     ///@{

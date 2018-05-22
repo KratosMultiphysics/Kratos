@@ -79,8 +79,8 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        GenericSmallStrainIsotropicPlasticity3D<YieldSurfaceType, ConstLawIntegratorType>::Pointer p_clone
-            (new GenericSmallStrainIsotropicPlasticity3D< YieldSurfaceType,  ConstLawIntegratorType>(*this));
+        GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::Pointer p_clone
+            (new GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>(*this));
         return p_clone;
     }
 
@@ -146,6 +146,7 @@ public:
         const int VoigtSize = this->GetVoigtSize();
         Vector& IntegratedStressVector = rValues.GetStressVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+        const double CharacteristicLength = rValues.GetCharacteristicLength(); // To include
 
         // Elastic Matrix
         Matrix C;
@@ -167,7 +168,8 @@ public:
         Vector PlasticStrainIncrement = ZeroVector(VoigtSize);
 
         ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, rValues.GetStrainVector(),
-            UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, C);
+            UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation,
+            PlasticStrainIncrement, C, rMaterialProperties, CharacteristicLength);
 
         const double F = UniaxialStress - Threshold; 
 
@@ -180,13 +182,13 @@ public:
             this->SetNonConvThreshold(Threshold);
         }
         else // Plastic case
-        { 
+        {
             // while loop backward euler
             /* Inside IntegrateStressVector the PredictiveStressVector
                is updated to verify the yield criterion */
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, rValues.GetStrainVector(), 
                 UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
-                C, PlasticStrain);
+                C, PlasticStrain, rMaterialProperties, CharacteristicLength);
 
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);

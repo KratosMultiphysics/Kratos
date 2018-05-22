@@ -108,7 +108,8 @@ public:
         Vector& PlasticStrainIncrement,  
         const Matrix& C, 
         Vector& PlasticStrain, 
-        const Properties& rMaterialProperties
+        const Properties& rMaterialProperties,
+        const double CharacteristicLength
     )
     {
         bool is_converged = false; 
@@ -130,7 +131,7 @@ public:
 
             CalculatePlasticParameters(PredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
-                C, rMaterialProperties); 
+                C, rMaterialProperties, CharacteristicLength); 
 
             const double F = UniaxialStress - Threshold; 
 
@@ -154,7 +155,8 @@ public:
         double& PlasticDissipation, 
         Vector& PlasticStrainIncrement,
         const Matrix& C, 
-        const Properties& rMaterialProperties
+        const Properties& rMaterialProperties,
+        const double CharacteristicLength
     )
     {
         BoundedVector<double, TVoigtSize> Deviator = ZeroVector(TVoigtSize); 
@@ -167,7 +169,7 @@ public:
         CalculateGFluxVector(PredictiveStressVector, Deviator, J2, Gflux, rMaterialProperties);
         CalculateRFactors(PredictiveStressVector, r0, r1);
         CalculatePlasticDissipation(PredictiveStressVector, r0, r1, PlasticStrainIncrement,
-            PlasticDissipation, HCapa, rMaterialProperties);
+            PlasticDissipation, HCapa, rMaterialProperties, CharacteristicLength);
         CalculateEquivalentStressThreshold(PlasticDissipation, r0,
             r1, Threshold, Slope, rMaterialProperties);
         CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam); 
@@ -245,7 +247,8 @@ public:
         const Vector& PlasticStrainInc, 
         double& rPlasticDissipation, 
         Vector& rHCapa,
-        const Properties& rMaterialProperties
+        const Properties& rMaterialProperties,
+        const double CharacteristicLength
     )
     {
         const double Young = rMaterialProperties[YOUNG_MODULUS];
@@ -254,7 +257,6 @@ public:
         const double n = YieldCompression / YieldTension;
         const double Gf = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
         const double Gfc = rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
-        const double CharacteristicLength = 0.0; // TODO how to access????
 
         const double gf  = Gf / CharacteristicLength;
         const double gfc = Gfc / CharacteristicLength;
