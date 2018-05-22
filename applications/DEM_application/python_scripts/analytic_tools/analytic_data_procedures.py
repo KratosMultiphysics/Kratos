@@ -109,7 +109,7 @@ class FaceWatcherAnalyzer:
 
     def UpdateDataFiles(self, time):
         shape, time, n_particles, mass, vel_nr_mass = self.MakeReading()[:-1]  # initial with 1 for each surface, should be one for each condition in each surface
-        total_massa = np.sum(mass)
+        total_mass = np.sum(mass)
         if total_mass:
             avg_vel_nr = vel_nr_mass / total_mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
             #avg_vel_tg = vel_tg_mass / total_mass
