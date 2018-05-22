@@ -510,12 +510,12 @@ void  AddProcessesToPython(pybind11::module& m)
     .value("ALL", FastTransferBetweenModelPartsProcess::EntityTransfered::ALL)
     ;
 
-    class_<SkinDetectionProcess<2>, Process>(m, "SkinDetectionProcess2D")
+    class_<SkinDetectionProcess<2>, SkinDetectionProcess<2>::Pointer, Process>(m, "SkinDetectionProcess2D")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
         ;
 
-    class_<SkinDetectionProcess<3>, Process>(m, "SkinDetectionProcess3D")
+    class_<SkinDetectionProcess<3>, SkinDetectionProcess<3>::Pointer, Process>(m, "SkinDetectionProcess3D")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
         ;
