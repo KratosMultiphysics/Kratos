@@ -34,8 +34,11 @@ class AdjointFluidAnalysis(AnalysisStage):
         model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
         self.main_model_part = Kratos.ModelPart(model_part_name)
 
-        import python_solvers_wrapper_fluid
-        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
+        #import python_solvers_wrapper_fluid
+        #self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
+        #TODO: add adjoint solver to wrapper as part of the migration procedure
+        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
+        self.solver = solver_module.CreateSolver(self.main_model_part, self.project_parameters["solver_settings"])
 
     def Initialize(self):
         '''
