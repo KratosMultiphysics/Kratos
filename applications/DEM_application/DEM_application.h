@@ -97,11 +97,11 @@ private:
     const ParticleContactElement mParticleContactElement;
     const SolidFace3D  mSolidFace3D3N;
     const SolidFace3D  mSolidFace3D4N;
+    const RigidFace3D  mRigidFace3D2N;
     const RigidFace3D  mRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
-    const RigidFace3D  mRigidFace3D2N;
-    const RigidEdge3D  mRigidEdge3D2N;
     const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
+    const RigidEdge3D  mRigidEdge3D2N;
     const RigidBodyElement3D mRigidBodyElement3D;
     const ShipElement3D mShipElement3D;
     const Cluster3D  mCluster3D;

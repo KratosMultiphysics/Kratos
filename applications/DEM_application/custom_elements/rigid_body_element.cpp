@@ -161,10 +161,12 @@ namespace Kratos {
             GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[iter], global_relative_coordinates);
             array_1d<double, 3>& node_position = i->Coordinates();
             array_1d<double, 3>& delta_displacement = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+            array_1d<double, 3>& displacement = i->FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3> previous_position;
             noalias(previous_position) = node_position;
             noalias(node_position)= central_node.Coordinates() + global_relative_coordinates;
             noalias(delta_displacement) = node_position - previous_position;
+            noalias(displacement) += delta_displacement;
             noalias(i->FastGetSolutionStepValue(VELOCITY)) = rigid_body_velocity;
             iter++;
         }
