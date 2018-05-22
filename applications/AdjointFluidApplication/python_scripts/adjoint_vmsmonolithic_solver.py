@@ -34,6 +34,7 @@ class AdjointVMSMonolithicSolver:
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts"  : [""],
+            "no_skin_parts"  : [""],
             "dynamic_tau" : 0.0,
             "oss_switch"  : 0,
             "echo_level"  : 0
@@ -66,7 +67,7 @@ class AdjointVMSMonolithicSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
-        
+
         print("variables for the adjoint fluid solver added correctly")
 
     def ImportModelPart(self):
@@ -171,7 +172,7 @@ class AdjointVMSMonolithicSolver:
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.solver.Check()
-        
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
@@ -192,7 +193,7 @@ class AdjointVMSMonolithicSolver:
 
     def DivergenceClearance(self):
         pass
-        
+
     def SolverInitialize(self):
         self.solver.Initialize()
 
