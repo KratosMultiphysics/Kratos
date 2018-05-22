@@ -947,7 +947,7 @@ protected:
     virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
-        ModelPart& r_model_part)
+        ModelPart& rModelPart)
     {
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
