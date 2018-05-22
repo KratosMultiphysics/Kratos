@@ -199,11 +199,13 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             var_name = self.variable_list[i].GetString()
             variable = self._get_variable(var_name)
 
+            is_scalar = self._is_scalar(variable)
+
             # Write in result file
             self.result_file.write("Result \"")
             self.result_file.write(var_name)
             
-            if var_name == "MP_MATERIAL_ID" or var_name == "MP_PRESSURE" or var_name == "MP_EQUIVALENT_PLASTIC_STRAIN":
+            if is_scalar:
                 self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(step_label))
             else:
                 self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(step_label))
@@ -237,3 +239,11 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
     def _stop_time_measure(self, time_ip):
         time_fp = time.time()
         KratosMultiphysics.Logger.PrintInfo("ParticleMPMGidOutputUtility", "[Spent time for output = ", time_fp - time_ip, "sec]")
+
+    def _is_scalar(self,variable):
+        is_scalar = False
+        if (isinstance(variable,KratosMultiphysics.IntegerVariable) or isinstance(variable,KratosMultiphysics.DoubleVariable) or isinstance(variable,KratosMultiphysics.BoolVariable)):
+            is_scalar = True
+        elif (isinstance(variable,KratosMultiphysics.StringVariable)):
+            raise Exception("String variable cant be printed.")
+        return is_scalar
