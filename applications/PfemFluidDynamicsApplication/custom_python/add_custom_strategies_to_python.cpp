@@ -7,16 +7,13 @@
 //
 //
 
-// System includes 
 
-// External includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+// System includes
+
+// External includes
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 #include "spaces/ublas_space.h"
@@ -42,10 +39,10 @@ namespace Kratos
 {
 
   namespace Python
-  {		
-    using namespace boost::python;
+  {
+    using namespace pybind11;
 
-    void  AddCustomStrategiesToPython()
+    void  AddCustomStrategiesToPython(pybind11::module& m)
     {
       typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
       typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -62,18 +59,20 @@ namespace Kratos
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
 
-      class_< TwoStepVPStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >, bases<BaseSolvingStrategyType>, boost::noncopyable >
-      	("TwoStepVPStrategy",init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
-      	.def("CalculateAccelerations",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateAccelerations)
-      	.def("CalculateDisplacements",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateDisplacements)
+      class_< TwoStepVPStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType > >
+	      (m, "TwoStepVPStrategy")
+	      .def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
+        .def("CalculateAccelerations",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateAccelerations)
+        .def("CalculateDisplacements",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateDisplacements)
       	// .def("InitializeStressStrain",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
-	;
+	    ;
 
-      class_< GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >
-	("GaussSeidelLinearStrategy",init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool  >())
-	.def("GetResidualNorm", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
-	.def("SetBuilderAndSolver", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
-	;
+      class_< GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > >
+	      (m,"GaussSeidelLinearStrategy")
+	      .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool  >())
+        .def("GetResidualNorm", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
+        .def("SetBuilderAndSolver", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
+      ;
 
     }
 
