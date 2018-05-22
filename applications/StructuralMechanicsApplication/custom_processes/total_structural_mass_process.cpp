@@ -20,6 +20,16 @@
 namespace Kratos
 {
 
+double GetFromProperty(const Properties& rThisProperties, Variable<double>& rVariable)
+{
+    // The purpose of this function is to avoid silent allocation of memory in case
+    // the requested variable does not exist in the Properties!
+    if (rThisProperties.Has(rVariable))
+        return rThisProperties[rVariable];
+    else
+        return 0.0;
+}
+
 void TotalStructuralMassProcess::Execute()
 {
     KRATOS_TRY
@@ -44,7 +54,7 @@ void TotalStructuralMassProcess::Execute()
         // We copy the current coordinates and move the coordinates to the initial configuration
         std::vector<array_1d<double, 3>> current_coordinates(number_of_nodes);
         for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
-            current_coordinates[i_node] = r_this_geometry[i_node].Coordinates();
+            noalias(current_coordinates[i_node]) = r_this_geometry[i_node].Coordinates();
             noalias(r_this_geometry[i_node].Coordinates()) = r_this_geometry[i_node].GetInitialPosition().Coordinates();
         }
 
@@ -52,10 +62,11 @@ void TotalStructuralMassProcess::Execute()
         const Properties& this_properties = it_elem->GetProperties();
 
         if (local_space_dimension == 0) { // POINT MASSES
-            total_mass += it_elem->GetValue(NODAL_MASS);
+            if (it_elem->Has(NODAL_MASS))
+                total_mass += it_elem->GetValue(NODAL_MASS);
         } else if (local_space_dimension == 1) { // BEAM CASE
-            const double density = this_properties[DENSITY];
-            const double area = this_properties[CROSS_AREA];
+            const double density = GetFromProperty(this_properties,DENSITY);
+            const double area = GetFromProperty(this_properties,CROSS_AREA);
             total_mass += density * area * r_this_geometry.Length();
         } else if (local_space_dimension == 2 && dimension == 3) { // SHELL-MEMBRANE
             const double area = r_this_geometry.Area();
@@ -64,14 +75,14 @@ void TotalStructuralMassProcess::Execute()
                 for (std::size_t i=0; i<orthotropic_layers.size1(); ++i)
                     total_mass += orthotropic_layers(i,0) * orthotropic_layers(i,2) * area; // thickness*density*area
             } else {
-                const double thickness = this_properties[THICKNESS];
-                const double density = this_properties[DENSITY];
+                const double thickness = GetFromProperty(this_properties,THICKNESS);
+                const double density = GetFromProperty(this_properties,DENSITY);
                 total_mass += density * thickness * area;
             }
         } else { // SOLID
             const double thickness = (dimension == 2) ? (this_properties.Has(THICKNESS)) ? this_properties[THICKNESS] : 1.0 : 1.0;
             const double volume = (dimension == 2) ? r_this_geometry.Area() : r_this_geometry.Volume();
-            const double density = this_properties[DENSITY];
+            const double density = GetFromProperty(this_properties,DENSITY);
             total_mass += density * thickness * volume;
         }
 
