@@ -334,13 +334,16 @@ array_1d<double, 3> RigidFace3D::GetVelocity() {
         
     size_t FE_size = this->GetGeometry().size();
     array_1d<double, 3> rigid_face_velocity = ZeroVector(3);
+    double factor = 1.0;
     
     for (std::size_t inode = 0; inode < FE_size; inode++) {
         
         DEM_ADD_SECOND_TO_FIRST(rigid_face_velocity, this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY))
     }
     
-    DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, 0.333333333333333333333333)
+    if (FE_size) factor /= FE_size;
+    
+    DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, factor)
     
     return rigid_face_velocity;
 }
