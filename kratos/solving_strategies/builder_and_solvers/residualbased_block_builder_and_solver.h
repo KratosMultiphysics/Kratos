@@ -720,7 +720,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(pScheme, A, rElements, rConditions);
+            ConstructMatrixStructure(pScheme, A, r_model_part);
         }
         else
         {
@@ -728,7 +728,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(pScheme, A, rElements, rConditions);
+                ConstructMatrixStructure(pScheme, A, r_model_part);
             }
         }
         if (Dx.size() != BaseType::mEquationSystemSize)
@@ -956,7 +956,7 @@ protected:
         const int nelements = static_cast<int>(rModelPart.Elements().size());
 
         // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());        
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
 
         ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
         ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
