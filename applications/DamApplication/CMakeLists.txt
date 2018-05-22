@@ -77,7 +77,7 @@ if(${USE_DAM_MPI} MATCHES ON)
 
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PRIVATE KratosCore KratosTrilinosApplication KratosSolidMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosTrilinosApplication KratosSolidMechanicsCore KratosPoromechanicsCore)
 
 else()
 
@@ -93,12 +93,13 @@ else()
     
     ## DamApplication core library (C++ parts)
     add_library(KratosDamCore SHARED ${KRATOS_DAM_APPLICATION_CORE_SOURCES})
-    target_link_libraries(KratosDamCore PRIVATE KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
+    target_link_libraries(KratosDamCore PUBLIC KratosCore KratosSolidMechanicsCore KratosPoromechanicsCore)
 
 endif()
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
+set_target_properties(KratosDamCore PROPERTIES COMPILE_DEFINITIONS "DAM_APPLICATION=EXPORT,API")
 
 ###############################################################################
 ## DamApplication core library (C++ parts)

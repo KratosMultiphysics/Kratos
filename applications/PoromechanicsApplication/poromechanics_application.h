@@ -60,7 +60,7 @@
 namespace Kratos
 {
 
-class KratosPoromechanicsApplication : public KratosApplication
+class KRATOS_API(POROMECHANICS_APPLICATION) KratosPoromechanicsApplication : public KratosApplication
 {
     
 public:
