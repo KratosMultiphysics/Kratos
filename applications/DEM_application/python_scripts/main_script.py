@@ -130,13 +130,14 @@ class Solution(object):
 
     def SetAnalyticFaceWatcher(self):
         from analytic_tools import analytic_data_procedures
+        self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
         self.face_watcher_dict = dict()
-        self.face_watcher_analyser = dict()
+        self.face_watcher_analysers = dict()
         for sub_part in self.rigid_face_model_part.SubModelParts:
             if sub_part[IS_GHOST] == True:
                 name = sub_part.Name
                 self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
-                self.face_watcher_analyser[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
+                self.face_watcher_analysers[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
 
     def MakeAnalyticsMeasurements(self):
         for face_watcher in self.face_watcher_dict.values():
@@ -449,14 +450,6 @@ class Solution(object):
 
             self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
 
-            #Phantom
-            self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
-
-            '''
-            if self.analytic_data_counter.Tick():
-                self.ProcessAnalyticData()
-            '''
-
             self.BeforePrintingOperations(self.time)
 
             self.PrintResults()
@@ -467,11 +460,12 @@ class Solution(object):
     def RunAnalytics(self, time, is_time_to_print=True):
 
         self.MakeAnalyticsMeasurements()
-        if is_time_to_print:  # or IsCountStep()
-            #self.FlushFluxData()
-            for sub_part in self.rigid_face_model_part.SubModelParts:
-                if sub_part[IS_GHOST] == True:
-                    self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(time)
+        if is_time_to_print:
+            self.FaceAnalyzerClass.CreateNewFile()
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+                self.face_watcher_analysers[sp.Name].MakeTotalFluxPlot()
+            self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self, time):
         return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.dt
@@ -514,6 +508,9 @@ class Solution(object):
             if self.IsTimeToPrintPostProcess(self.time):
                 self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+
+        #Phantom
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
 
     def FinalizeTimeStep(self, time):
         pass

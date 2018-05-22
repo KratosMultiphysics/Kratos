@@ -3421,11 +3421,18 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		set AngularPeriod "0.0"
 	    }
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.fixed_wall"
-	    set fixed_wall [::xmlutils::setXml $cxpath $cproperty]
+            set fixed_wall [::xmlutils::setXml $cxpath $cproperty]
 	    if {$fixed_wall=="Yes"} {
 		set fixed_wall_value 1
 	    } else {
 		set fixed_wall_value 0
+	    }
+            set ghostpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.AnalyticProps"
+            set ghost_wall [::xmlutils::setXml $ghostpath $cproperty]
+	    if {$ghost_wall=="Yes"} {
+		set ghost_wall_value 1
+	    } else {
+		set ghost_wall_value 0
 	    }
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularStartTime"
 	    set AngularVelocityStartTime [::xmlutils::setXml $cxpath $cproperty]
@@ -3559,6 +3566,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
+            GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER $TableNumber"
 	    GiD_File fprintf $demfemchannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
 	    GiD_File fprintf $demfemchannel "  IDENTIFIER $cgroupid"
