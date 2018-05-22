@@ -794,7 +794,7 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ModelPart& r_model_part
+        ModelPart& rModelPart
     ) override
     {
         KRATOS_TRY
@@ -827,7 +827,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(pScheme, A, r_model_part);
+            ConstructMatrixStructure(pScheme, A, rModelPart);
         }
         else
         {
@@ -835,7 +835,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(pScheme, A, r_model_part);
+                ConstructMatrixStructure(pScheme, A, rModelPart);
             }
         }
         if (Dx.size() != BaseType::mEquationSystemSize)

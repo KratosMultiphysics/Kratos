@@ -407,7 +407,7 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ModelPart& r_model_part
+        ModelPart& rModelPart
     )
     {
         KRATOS_TRY
