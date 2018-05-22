@@ -135,7 +135,6 @@ public:
             node_i->pGetDof(VELOCITY_Y)->FixDof();
             node_i->pGetDof(VELOCITY_Z)->FixDof();
             array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
-            //noalias(current_node_velocity) = MathUtils<double>::CrossProduct(new_from_center_to_node, mW);
             MathUtils<double>::CrossProduct(current_node_velocity, mW, new_from_center_to_node);
         }//end of loop over nodes
         KRATOS_CATCH("");
