@@ -50,7 +50,7 @@ namespace Kratos {
         KRATOS_TRY
 
         const double water_density = 1000;
-        const double drag_coefficient = 0.5;
+        const double drag_coefficient = 0.75; //https://www.engineeringtoolbox.com/drag-coefficient-d_627.html
         const double water_level = 0.0;
 
         for (unsigned int i = 0; i != mListOfRigidFaces.size(); ++i) {
@@ -61,15 +61,16 @@ namespace Kratos {
             array_1d<double, 3> rigid_body_centroid_to_rigid_face_centroid_vector = ZeroVector(3);
             array_1d<double, 3> drag_moment = ZeroVector(3);
             array_1d<double, 3> rigid_face_z_coords_values = ZeroVector(3);
+            size_t RF_size = mListOfRigidFaces[i]->GetGeometry().size();
+            unsigned int number_of_RF_nodes_out_of_water = 0;
 
-            for (unsigned int j = 0; j < 3; j++) {
+            for (unsigned int j = 0; j < RF_size; j++) {
                 rigid_face_z_coords_values[j] = mListOfRigidFaces[i]->GetGeometry()[j].Coordinates()[2];
+                if (rigid_face_z_coords_values[0] > water_level) number_of_RF_nodes_out_of_water++;
             }
             
-            if ((rigid_face_z_coords_values[0] > water_level) && (rigid_face_z_coords_values[1] > water_level) && (rigid_face_z_coords_values[2] > water_level)) {
-                continue;
-            }
-            
+            if (number_of_RF_nodes_out_of_water == RF_size) continue;
+                        
             array_1d<double, 3> rigid_face_velocity = ZeroVector(3);
             
             rigid_face_velocity = mListOfRigidFaces[i]->GetRigidFaceVelocity();
@@ -83,14 +84,12 @@ namespace Kratos {
             rigid_face_centroid = mListOfRigidFaces[i]->GetGeometry().Center();
             rigid_face_area = mListOfRigidFaces[i]->GetGeometry().Area();
                         
-            DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, -0.5*drag_coefficient*water_density*velocity_modulus*velocity_modulus*rigid_face_area)
+            DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, -0.5 * drag_coefficient * water_density * velocity_modulus * velocity_modulus * rigid_face_area)
             DEM_COPY_SECOND_TO_FIRST_3(drag_force, rigid_face_velocity)
                                 
-            for (unsigned int i = 0; i < 3; i++) {
-                rigid_body_centroid_to_rigid_face_centroid_vector[0] = rigid_face_centroid.Coordinates()[0] - GetGeometry()[0].Coordinates()[0];
-                rigid_body_centroid_to_rigid_face_centroid_vector[1] = rigid_face_centroid.Coordinates()[1] - GetGeometry()[0].Coordinates()[1];
-                rigid_body_centroid_to_rigid_face_centroid_vector[2] = rigid_face_centroid.Coordinates()[2] - GetGeometry()[0].Coordinates()[2];
-            }
+            rigid_body_centroid_to_rigid_face_centroid_vector[0] = rigid_face_centroid.Coordinates()[0] - GetGeometry()[0].Coordinates()[0];
+            rigid_body_centroid_to_rigid_face_centroid_vector[1] = rigid_face_centroid.Coordinates()[1] - GetGeometry()[0].Coordinates()[1];
+            rigid_body_centroid_to_rigid_face_centroid_vector[2] = rigid_face_centroid.Coordinates()[2] - GetGeometry()[0].Coordinates()[2];
 
             array_1d<double, 3>& total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
             DEM_ADD_SECOND_TO_FIRST(total_forces, drag_force)
