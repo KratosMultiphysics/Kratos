@@ -60,8 +60,8 @@ namespace Kratos {
             array_1d<double, 3> drag_force = ZeroVector(3);
             array_1d<double, 3> rigid_body_centroid_to_rigid_face_centroid_vector = ZeroVector(3);
             array_1d<double, 3> drag_moment = ZeroVector(3);
-            array_1d<double, 3> rigid_face_z_coords_values = ZeroVector(3);
             size_t RF_size = mListOfRigidFaces[i]->GetGeometry().size();
+            array_1d<double, 3> rigid_face_z_coords_values = ZeroVector(RF_size);
             unsigned int number_of_RF_nodes_out_of_water = 0;
 
             for (unsigned int j = 0; j < RF_size; j++) {
