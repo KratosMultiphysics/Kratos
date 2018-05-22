@@ -68,10 +68,10 @@ class AdjointFluidAnalysis(AnalysisStage):
     def InitializeSolutionStep(self):
 
         if self.is_printing_rank:
-            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.main_model_part.ProcessInfo[Kratos.STEP])
-            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
+            Kratos.Logger.PrintInfo("Adjoint Fluid Analysis","STEP = ", self.main_model_part.ProcessInfo[Kratos.STEP])
+            Kratos.Logger.PrintInfo("Adjoint Fluid Analysis","TIME = ", self.time)
 
-        super(FluidDynamicsAnalysis,self).InitializeSolutionStep()
+        super(AdjointFluidAnalysis,self).InitializeSolutionStep()
 
     def OutputSolutionStep(self):
 
@@ -95,13 +95,11 @@ class AdjointFluidAnalysis(AnalysisStage):
         '''
         from process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
-        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
-        # Note 1: gravity is constructed first. Outlet process might need its information.
-        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
+        self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
         self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
+        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
+        if (ProjectParameters.Has("list_other_processes") == True):
+            self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["list_other_processes"] )
 
         #TODO this should be generic
         # initialize GiD  I/O
