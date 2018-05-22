@@ -133,7 +133,7 @@ class GhostsTestSolution(main_script.Solution):
         if self.IsTimeToPrintPostProcess(self.time):
             for sub_part in self.rigid_face_model_part.SubModelParts:
                 if sub_part[IS_GHOST]:
-                    self.face_watcher_analyser[sub_part.Name].UpdateDataFiles(self.time)
+                    self.face_watcher_analysers[sub_part.Name].UpdateDataFiles(self.time)
                     #times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
                     #face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
                     self.CheckTotalNumberOfCrossingParticles()
@@ -170,7 +170,7 @@ class MultiGhostsTestSolution(main_script.Solution):
         if is_time_to_print:  # or IsCountStep()
             self.FaceAnalyzerClass.CreateNewFile()
             for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                self.face_watcher_analyser[sp.Name].UpdateDataFiles(time)
+                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
 
                 if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
                     self.CheckTotalNumberOfCrossingParticles()
