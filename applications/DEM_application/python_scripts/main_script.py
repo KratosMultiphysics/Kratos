@@ -458,13 +458,15 @@ class Solution(object):
             self.FinalizeTimeStep(self.time)
 
     def RunAnalytics(self, time, is_time_to_print=True):
-
-        self.MakeAnalyticsMeasurements()
-        if is_time_to_print:
-            self.FaceAnalyzerClass.CreateNewFile()
-            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-            self.FaceAnalyzerClass.RemoveOldFile()
+        for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+            self.MakeAnalyticsMeasurements()
+            if is_time_to_print:
+                self.FaceAnalyzerClass.CreateNewFile()
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+                self.FaceAnalyzerClass.RemoveOldFile()
+        else:
+            pass
 
     def IsTimeToPrintPostProcess(self, time):
         return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.dt
@@ -508,7 +510,7 @@ class Solution(object):
                 self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 
-        #Phantom
+        #Phantom Walls
         self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
 
     def FinalizeTimeStep(self, time):

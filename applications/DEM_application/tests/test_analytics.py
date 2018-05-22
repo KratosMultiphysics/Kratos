@@ -112,40 +112,26 @@ class GhostsTestSolution(main_script.Solution):
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    ''' deprecated
-    def OldMakeAnalyticsMeasurements(self):
-        for face_watcher in self.face_watcher_dict.values():
-            face_watcher.MakeMeasurements()
-            times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
-            total_number_of_crossing_particles = 0
-            self.face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
+    def RunAnalytics(self, time, is_time_to_print=True):
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:  # or IsCountStep()
+            self.FaceAnalyzerClass.CreateNewFile()
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+                self.CheckTotalNumberOfCrossingParticles()
 
-            for n_part in n_particles:
-                total_number_of_crossing_particles = total_number_of_crossing_particles + n_part
-
-            self.CheckTotalNumberOfCrossingParticles(total_number_of_crossing_particles, times)
-    '''
-
-    def MakeAnalyticsMeasurements(self):
-        for face_watcher in self.face_watcher_dict.values():
-            face_watcher.MakeMeasurements()
-
-        if self.IsTimeToPrintPostProcess(self.time):
-            for sub_part in self.rigid_face_model_part.SubModelParts:
-                if sub_part[IS_GHOST]:
-                    self.face_watcher_analysers[sub_part.Name].UpdateDataFiles(self.time)
-                    #times, n_particles, masses, vel_nr_mass, vel_tg_mass = [], [], [], [], []
-                    #face_watcher.GetTotalFlux(times, n_particles, masses, vel_nr_mass, vel_tg_mass)
-                    self.CheckTotalNumberOfCrossingParticles()
-
+            self.FaceAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
 
-        input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
-        n_accum_h5 = input_data.get('1/n_accum')
-        if self.time > 0.145 and n_accum_h5[-1] != -4:
-            raise ValueError('The total value of crossing particles was not the expected!')
+        if self.time > 0.145:
+            input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
+            n_accum_h5 = input_data.get('1/n_accum')
+
+            if n_accum_h5[-1] != -4:
+                print(n_accum_h5[-1])
+                raise ValueError('The total value of crossing particles was not the expected!')
 
     def Finalize(self):
         super(GhostsTestSolution, self).Finalize()
@@ -202,13 +188,13 @@ class TestAnalytics(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    # @classmethod
-    # def test_Analytics_1(self):
-    #     AnalyticsTestSolution().Run()
+    @classmethod
+    def test_Analytics_1(self):
+        AnalyticsTestSolution().Run()
 
-    # @classmethod
-    # def test_Analytics_2(self):
-    #     GhostsTestSolution().Run()
+    @classmethod
+    def test_Analytics_2(self):
+        GhostsTestSolution().Run()
 
     @classmethod
     def test_Analytics_3(self):
