@@ -86,7 +86,7 @@ namespace Kratos
         const double SearchRadius);
 
     /// Destructor.
-    ~ExplicitMeshMovingUtilities() {};
+    ~ExplicitMeshMovingUtilities();
 
     ///@}
     ///@name Operators

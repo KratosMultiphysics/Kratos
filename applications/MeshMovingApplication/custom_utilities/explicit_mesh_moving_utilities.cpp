@@ -41,6 +41,10 @@ namespace Kratos
         mrStructureModelPart.SetBufferSize(2);
     }
 
+    ExplicitMeshMovingUtilities::~ExplicitMeshMovingUtilities()
+    {
+    }
+
     void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart){
 
         // Check that the origin model part has nodes and elements to be copied
@@ -235,7 +239,8 @@ namespace Kratos
 
     inline double ExplicitMeshMovingUtilities::ComputeKernelValue(const double NormalisedDistance){
         // Epanechnikov (parabolic) kernel function
-        return (std::abs(NormalisedDistance) <= 1.0) ? std::abs((3.0/4.0)*(1.0-std::pow(NormalisedDistance,2))) : 0.0;
+        return 0.0;
+        //return (std::abs(NormalisedDistance) <= 1.0) ? std::abs((3.0/4.0)*(1.0-std::pow(NormalisedDistance,2))) : 0.0;
     }
 
     /* External functions *****************************************************/
