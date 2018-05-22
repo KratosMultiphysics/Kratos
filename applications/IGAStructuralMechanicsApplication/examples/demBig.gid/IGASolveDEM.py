@@ -172,7 +172,9 @@ mapper_params = Parameters("""
 }
 """)
 
-mapper = KratosMapping.MapperFactory.CreateMapper(iga_model_part, spheres_mp, mapper_params)
+#mapper = KratosMapping.MapperFactory.CreateMapper(iga_model_part, spheres_mp, mapper_params)
+
+condition_model_part = iga_model_part.CreateSubModelPart("ConditionModelPart")
 
 # solving the problem (time integration)
 while dem_analysis.time < dem_analysis.final_time:
@@ -188,9 +190,8 @@ while dem_analysis.time < dem_analysis.final_time:
     iga_model_part.ProcessInfo[TIME_STEPS] = step
     iga_model_part.CloneTimeStep(time)
 
-    condition_model_part = ModelPart("ConditionModelPart")
-    NurbsBrepProcess.modeler.GetInterfaceConditions(dem_analysis.spheres_model_part, iga_model_part, NurbsBrepProcess.model_part_integration_domain)
-
+    NurbsBrepProcess.modeler.GetInterfaceConditions(dem_analysis.spheres_model_part, condition_model_part, NurbsBrepProcess.model_part_integration_domain)
+    print(condition_model_part)
     #mapper.UpdateInterface()
 
     dem_analysis.RunSingleTemporalLoop()
@@ -198,6 +199,7 @@ while dem_analysis.time < dem_analysis.final_time:
         process.ExecuteInitializeSolutionStep()
     nurbs_brep_time = StartTimeMeasuring()
     iga_solver.Solve()
+    print("ckeck")
     StopTimeMeasuring(nurbs_brep_time, "Solving step time", True)
 
     for process in list_of_processes:

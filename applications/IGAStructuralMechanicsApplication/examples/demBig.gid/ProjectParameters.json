@@ -4,8 +4,8 @@
     "model_part_name": "IGAModelPart",
     "domain_size": 5,
     "start_time": 0,
-    "end_time": 0,
-    "time_step": 0.01
+    "end_time": 0.5,
+    "time_step": 2e-3
   },
   "Parameters": { "materials_filename": "materials.json" },
   "solver_settings": {
@@ -16,8 +16,8 @@
     },
     "maximum_iterations": 1,
     "echo_level": 3,
-    "compute_reactions": false,
-    "reform_dofs_at_each_iteration": false,
+    "compute_reactions": true,
+    "reform_dofs_at_each_iteration": true,
     "relative_tolerance": 1E-07,
     "absolute_tolerance": 1E-07,
     "linear_solver_settings": {
