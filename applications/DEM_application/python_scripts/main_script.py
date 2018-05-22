@@ -464,7 +464,6 @@ class Solution(object):
             self.FaceAnalyzerClass.CreateNewFile()
             for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
                 self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                self.face_watcher_analysers[sp.Name].MakeTotalFluxPlot()
             self.FaceAnalyzerClass.RemoveOldFile()
 
     def IsTimeToPrintPostProcess(self, time):
