@@ -73,11 +73,19 @@ public:
     ///@name  Enum's
     ///@{
 
+    enum InterfaceObjectConstructionType
+    {
+        Node_Coords,
+        Geometry_Center,
+        Element_Center,
+        Condition_Center
+    };
+
     enum PairingStatus
     {
         NoNeighbor = 0,
         Approximation = 1,
-        NeighborFound = 2,
+        NeighborFound = 2
     };
 
     ///@}

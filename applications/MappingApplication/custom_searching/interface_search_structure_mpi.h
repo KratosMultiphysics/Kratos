@@ -69,16 +69,20 @@ public:
     /// Pointer definition of InterfaceSearchStructureMPI
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructureMPI);
 
+    using BaseType = InterfaceSearchStructure;
+
+    using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
+    using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
+    using MapperLocalSystemPointerVectorPointer = typename BaseType::MapperLocalSystemPointerVectorPointer;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    InterfaceSearchStructureMPI(/* InterfaceObjectManagerBase::Pointer pInterfaceObjectManager,
-                                InterfaceObjectManagerBase::Pointer pInterfaceObjectManagerBins,
-                                ModelPart& rModelPartBins, int CommRank, int CommSize,
-                                int EchoLevel */) :
-        InterfaceSearchStructure(/*  pInterfaceObjectManager,
-                                  pInterfaceObjectManagerBins, EchoLevel */)
+    InterfaceSearchStructureMPI(ModelPart& rModelPartOrigin,
+                                MapperLocalSystemPointerVectorPointer pMapperLocalSystems) :
+        InterfaceSearchStructure(rModelPartOrigin,
+                                 pMapperLocalSystems)
     {
         // mCommRank = CommRank;
         // mCommSize = CommSize;
@@ -161,6 +165,17 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void Initialize() override
+    {
+        BaseType::Initialize(); // this has to be done first in order to build the internal datastructure!
+        InitializeBoundingBox();
+    }
+
+    void InitializeBoundingBox()
+    {
+
+    }
 
 
     ///@}

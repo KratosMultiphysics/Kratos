@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-// #include "interface_object_manager_serial.h"
+#include "custom_utilities/mapper_local_system.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_searching/custom_configures/interface_object_configure.h"
 
@@ -39,7 +39,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-typedef matrix<int> GraphType; // GraphColoringProcess
+// typedef matrix<int> GraphType; // GraphColoringProcess
 
 ///@}
 ///@name  Enum's
@@ -69,18 +69,22 @@ public:
     /// Pointer definition of InterfaceSearchStructure
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructure);
 
+    using MapperLocalSystemPointer = Kratos::unique_ptr<BaseMapperLocalSystem>;
+    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
+    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
+
+    using BinsUniquePointerType = Kratos::unique_ptr<BinsObjectDynamic<InterfaceObjectConfigure>>;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    InterfaceSearchStructure(/* InterfaceObjectManagerBase::Pointer pInterfaceObjectManager,
-                             InterfaceObjectManagerBase::Pointer pInterfaceObjectManagerBins,
-                             int EchoLevel */)
-        // mpInterfaceObjectManager(pInterfaceObjectManager),
-        // mpInterfaceObjectManagerBins(pInterfaceObjectManagerBins)
+    InterfaceSearchStructure(ModelPart& rModelPartOrigin,
+                             MapperLocalSystemPointerVectorPointer pMapperLocalSystems)
+        : mrModelPartOrigin(rModelPartOrigin),
+          mpMapperLocalSystems(pMapperLocalSystems)
     {
         // mEchoLevel = EchoLevel;
-        Initialize();
     }
 
 
@@ -97,53 +101,70 @@ public:
     ///@name Operations
     ///@{
 
-    void Search(const double SearchRadius, const int MaxSearchIterations)
+    // this function performs the search and the exchange of the data on the interface
+    void ExchangeInterfaceData()
     {
-        // mSearchRadius = SearchRadius;
-        // mMaxSearchIterations = MaxSearchIterations;
-        // const int increase_factor = 4;
-        // int num_iteration = 1;
-        // bool last_iteration = false;
+        if (!mInitializeIsPerformed)
+            Initialize();
 
-        // if (mMaxSearchIterations == 1)   // in case only one search iteration is conducted
-        // {
-        //     last_iteration = true;
-        // }
 
-        // // First Iteration is done outside the search loop bcs it has
-        // // to be done in any case
-        // // one search iteration should be enough in most cases (if the search
-        // // radius was either computed or specified properly)
-        // // only if some points did not find a neighbor or dont have a valid
-        // // projection, more search iterations are necessary
-        // ConductSearchIteration(last_iteration);
-
-        // while (num_iteration < mMaxSearchIterations && !mpInterfaceObjectManager->AllNeighborsFound())
-        // {
-        //     mSearchRadius *= increase_factor;
-        //     ++num_iteration;
-
-        //     if (num_iteration == mMaxSearchIterations)
-        //     {
-        //         last_iteration = true;
-        //     }
-
-        //     if (mEchoLevel >= 2 && mCommRank == 0)
-        //     {
-        //         std::cout << "MAPPER WARNING, search radius was increased, "
-        //                   << "another search iteration is conducted, "
-        //                   << "search iteration " << num_iteration << " / "
-        //                   << mMaxSearchIterations << ", search radius "
-        //                   << mSearchRadius << std::endl;
-        //     }
-
-        //     ConductSearchIteration(last_iteration);
-        // }
-        // if (mEchoLevel >= 2)
-        // {
-        //     mpInterfaceObjectManager->CheckResults();
-        // }
     }
+
+    // This function resets the internal data structure => recomputes the internally used objects and the bounding boxes
+    void Reset()
+    {
+        mInitializeIsPerformed = false;
+    }
+
+
+
+    // void Search(const double SearchRadius, const int MaxSearchIterations)
+    // {
+    //     // mSearchRadius = SearchRadius;
+    //     // mMaxSearchIterations = MaxSearchIterations;
+    //     // const int increase_factor = 4;
+    //     // int num_iteration = 1;
+    //     // bool last_iteration = false;
+
+    //     // if (mMaxSearchIterations == 1)   // in case only one search iteration is conducted
+    //     // {
+    //     //     last_iteration = true;
+    //     // }
+
+    //     // // First Iteration is done outside the search loop bcs it has
+    //     // // to be done in any case
+    //     // // one search iteration should be enough in most cases (if the search
+    //     // // radius was either computed or specified properly)
+    //     // // only if some points did not find a neighbor or dont have a valid
+    //     // // projection, more search iterations are necessary
+    //     // ConductSearchIteration(last_iteration);
+
+    //     // while (num_iteration < mMaxSearchIterations && !mpInterfaceObjectManager->AllNeighborsFound())
+    //     // {
+    //     //     mSearchRadius *= increase_factor;
+    //     //     ++num_iteration;
+
+    //     //     if (num_iteration == mMaxSearchIterations)
+    //     //     {
+    //     //         last_iteration = true;
+    //     //     }
+
+    //     //     if (mEchoLevel >= 2 && mCommRank == 0)
+    //     //     {
+    //     //         std::cout << "MAPPER WARNING, search radius was increased, "
+    //     //                   << "another search iteration is conducted, "
+    //     //                   << "search iteration " << num_iteration << " / "
+    //     //                   << mMaxSearchIterations << ", search radius "
+    //     //                   << mSearchRadius << std::endl;
+    //     //     }
+
+    //     //     ConductSearchIteration(last_iteration);
+    //     // }
+    //     // if (mEchoLevel >= 2)
+    //     // {
+    //     //     mpInterfaceObjectManager->CheckResults();
+    //     // }
+    // }
 
 
     ///@}
@@ -194,10 +215,26 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+
+    ModelPart& mrModelPartOrigin;
+    MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
+
+    BinsUniquePointerType mpLocalBinStructure;
+
+    bool mInitializeIsPerformed = false;
+
+
+
+
+
+
+
+
+
+
     // InterfaceObjectManagerBase::Pointer mpInterfaceObjectManager;
     // InterfaceObjectManagerBase::Pointer mpInterfaceObjectManagerBins;
 
-    BinsObjectDynamic<InterfaceObjectConfigure>::Pointer mpLocalBinStructure;
     int mLocalBinStructureSize;
 
     double mSearchRadius;
@@ -216,6 +253,23 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    virtual void Initialize()
+    {
+        InitializeDataStructure();
+        InitializeBinsSearchStructure();
+        mInitializeIsPerformed = true;
+    }
+
+    void InitializeDataStructure()
+    {
+
+    }
+
+    void InitializeBinsSearchStructure()
+    {
+
+    }
 
     void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& rInterfaceObjects,
                             const int InterfaceObjectsSize, std::vector<InterfaceObject::Pointer>& rInterfaceObjectResults,
@@ -348,18 +402,18 @@ private:
     ///@name Private Operations
     ///@{
 
-    void Initialize()   // build the local bin-structure
-    {
-        // InterfaceObjectConfigure::ContainerType interface_objects_bins = mpInterfaceObjectManagerBins->GetInterfaceObjects();
+    // void Initialize()   // build the local bin-structure
+    // {
+    //     // InterfaceObjectConfigure::ContainerType interface_objects_bins = mpInterfaceObjectManagerBins->GetInterfaceObjects();
 
-        // mLocalBinStructureSize = interface_objects_bins.size();
+    //     // mLocalBinStructureSize = interface_objects_bins.size();
 
-        // if (mLocalBinStructureSize > 0)   // only construct the bins if the partition has a part of the interface
-        // {
-        //     mpLocalBinStructure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
-        //                               new BinsObjectDynamic<InterfaceObjectConfigure>(interface_objects_bins.begin(), interface_objects_bins.end()));
-        // }
-    }
+    //     // if (mLocalBinStructureSize > 0)   // only construct the bins if the partition has a part of the interface
+    //     // {
+    //     //     mpLocalBinStructure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
+    //     //                               new BinsObjectDynamic<InterfaceObjectConfigure>(interface_objects_bins.begin(), interface_objects_bins.end()));
+    //     // }
+    // }
 
     virtual void ConductSearchIteration(const bool LastIteration)
     {

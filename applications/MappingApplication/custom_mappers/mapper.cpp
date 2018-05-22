@@ -20,6 +20,9 @@
 // Project includes
 #include "mapper.h"
 #include "custom_utilities/mapper_typedefs.h"
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+#include "custom_searching/interface_search_structure_mpi.h"
+#endif
 
 namespace Kratos
 {
@@ -55,6 +58,8 @@ void Mapper<TSparseSpace, TDenseSpace>::Initialize()
                                                                          mpMapperLocalSystems);
     InitializeMappingOperationUtility();
 
+    InitializeSearchStructure();
+
     InitializeInterface();
 }
 
@@ -64,16 +69,15 @@ I.e. Operations that can be performed several times in the livetime of the mappe
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
 {
-    // Check if members are valid
-    KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
-
     mpMapperLocalSystems->clear();
 
     const MapperLocalSystemPointer p_ref_local_system = GetMapperLocalSystem();
-    // p_ref_local_system;
-    // InitializeMapperLocalSystem(p_ref_local_system);
 
+    KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
     mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
+
+    KRATOS_ERROR_IF_NOT(mpSearchStructure) << "mpSearchStructure is a nullptr!" << std::endl;
+    mpSearchStructure->Reset();
 
     BuildMappingMatrix();
 }
@@ -84,6 +88,10 @@ I.e. Operations that can be performed several times in the livetime of the mappe
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix()
 {
+    KRATOS_ERROR_IF_NOT(mpSearchStructure) << "mpSearchStructure is a nullptr!" << std::endl;
+
+    mpSearchStructure->ExchangeInterfaceData();
+
     KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
 
     // this function can always be called, it won't do anything if the sizes are correct
@@ -102,6 +110,26 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
     Parameters utility_settings(R"({})"); // TODO fill this
     mpMappingOperationUtility = Kratos::make_unique<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(utility_settings);
 }
+
+template<>
+void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
+{
+    // here we could return the MatrixFree variant in the future
+    // Parameters utility_settings(R"({})"); // TODO fill this
+    mpSearchStructure = Kratos::make_unique<InterfaceSearchStructure>(mrModelPartOrigin,
+                                                                      mpMapperLocalSystems);
+}
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
+template<>
+void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
+{
+    // here we could return the MatrixFree variant in the future
+    // Parameters utility_settings(R"({})"); // TODO fill this
+    mpSearchStructure = Kratos::make_unique<InterfaceSearchStructureMPI>(mrModelPartOrigin,
+                                                                         mpMapperLocalSystems);
+}
+#endif
 
 /*
 This function contains the actual Implementation Of the UpdateInterface function
