@@ -58,9 +58,9 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     MasterSlaveConstraint() : IndexedObject(0), Flags()
     {
-    }    
+    }
     /// Destructor.
-    virtual ~MasterSlaveConstraint(){};    
+    virtual ~MasterSlaveConstraint(){};
 
     /**
      * creates a new constraint pointer
@@ -74,7 +74,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         KRATOS_TRY
         return Kratos::make_shared<MasterSlaveConstraint>(NewId);
         KRATOS_CATCH("");
-    }        
+    }
 
 
     ///@}
@@ -98,6 +98,36 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     virtual void Initialize()
     {
     }
+
+    /**
+     * this is called in the beginning of each solution step
+     */
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+
+    /**
+     * this is called for non-linear analysis at the beginning of the iteration process
+     */
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * this is called at the end of each solution step
+     */
+    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
 
     /**
      * this determines the master equation IDs connected to this constraint
@@ -146,7 +176,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     virtual void AddSlave(DofType const &rSlaveDof, double Weight)
     {
 
-    }    
+    }
 
 
     /**
@@ -162,8 +192,9 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 	* Returns the string containing a detailed description of this object.
 	* @return the string with informations
 	*/
-    virtual void GetInfo() const
+    virtual std::string GetInfo() const
     {
+        return " Constraint base class !";
     }
 
     ///@
@@ -219,7 +250,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
-    
+
 
 ///@}
 
