@@ -465,8 +465,6 @@ class Solution(object):
                 for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
                     self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
                 self.FaceAnalyzerClass.RemoveOldFile()
-        else:
-            pass
 
     def IsTimeToPrintPostProcess(self, time):
         return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.dt

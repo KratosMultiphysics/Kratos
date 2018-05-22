@@ -54,7 +54,6 @@ class FaceWatcherAnalyzer:
     @staticmethod
     def RemoveOldFile():
         old_path = FaceWatcherAnalyzer.file_path_old
-        f = h5py.File(old_path)
         if os.path.exists(old_path):
             os.remove(old_path)
 
@@ -110,11 +109,13 @@ class FaceWatcherAnalyzer:
 
     def UpdateDataFiles(self, time):
         shape, time, n_particles, mass, vel_nr_mass = self.MakeReading()[:-1]  # initial with 1 for each surface, should be one for each condition in each surface
-        if np.sum(mass) != 0.0:
-            avg_vel_nr = vel_nr_mass/mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
+        total_massa = np.sum(mass)
+        if total_mass:
+            avg_vel_nr = vel_nr_mass / total_mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
+            #avg_vel_tg = vel_tg_mass / total_mass
         else:
-            avg_vel_nr = mass*0.0
-            avg_vel_tg = mass*0.0
+            avg_vel_nr = np.zeros(mass.size)
+            #avg_vel_tg = np.zeros(mass.size)
         name_n_particles = 'n_accum'
         name_mass = 'm_accum'
         name_avg_vel_nr = 'mass_avg_normal_vel'
@@ -138,7 +139,6 @@ class FaceWatcherAnalyzer:
                 shape_old = f_old['/' + self.face_watcher_name + '/time'].shape
                 current_shape = (shape_old[0] + shape[0], )
                 time_db, n_particles_db, mass_db, avg_vel_nr_db = CreateDataSets(f, current_shape)
-                current_surface = f['/' + self.face_watcher_name]
 
                 time_db[:shape_old[0]] = f_old['/' + self.face_watcher_name + '/time'][:]
                 time_db[shape_old[0]:] = time[:]
