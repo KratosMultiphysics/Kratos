@@ -25,13 +25,14 @@ void TotalStructuralMassProcess::Execute()
 
     // We initialize the total mass
     double total_mass  = 0.0;
+    double total_area  = 0.0;
 
     const std::size_t dimension = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
     // Now we iterate over the elements to calculate the total mass
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
 
-    #pragma omp parallel for reduction(+:total_mass)
+    #pragma omp parallel for reduction(+:total_mass, total_area)
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i){
         const auto it_elem = elements_array.begin() + i;
 
@@ -57,8 +58,17 @@ void TotalStructuralMassProcess::Execute()
             const double area = this_properties[CROSS_AREA];
             total_mass += density * area * r_this_geometry.Length();
         } else if (local_space_dimension == 2 && dimension == 3) { // SHELL-MEMBRANE
-            const double thickness = this_properties[THICKNESS];
-            total_mass += density * thickness * r_this_geometry.Area();
+            const double area = r_this_geometry.Area();
+            if (this_properties.Has(SHELL_ORTHOTROPIC_LAYERS)) { // composite material
+                const auto orthotropic_layers = this_properties[SHELL_ORTHOTROPIC_LAYERS];
+                std::cout << "area: " << area << std::endl;
+                for (std::size_t i=0; i<orthotropic_layers.size1(); ++i)
+                    total_mass += orthotropic_layers(i,0) * orthotropic_layers(i,2) * area; // thickness*density*area
+            } else {
+                const double thickness = this_properties[THICKNESS];
+                total_mass += density * thickness * area;
+                total_area += area;
+            }
         } else { // SOLID
             const double thickness = (dimension == 2) ? (this_properties.Has(THICKNESS)) ? this_properties[THICKNESS] : 1.0 : 1.0;
             const double volume = (dimension == 2) ? r_this_geometry.Area() : r_this_geometry.Volume();
@@ -76,6 +86,8 @@ void TotalStructuralMassProcess::Execute()
     KRATOS_INFO(info_stream.str()) << total_mass << std::endl;
     KRATOS_INFO("Hint")  << "Check variable NODAL_MASS in the process info in "
                          << "order to access to it in any moment" << std::endl;
+
+    KRATOS_INFO("total_area") << total_area << std::endl;
 
     mrThisModelPart.GetProcessInfo()[NODAL_MASS] = total_mass;
 
