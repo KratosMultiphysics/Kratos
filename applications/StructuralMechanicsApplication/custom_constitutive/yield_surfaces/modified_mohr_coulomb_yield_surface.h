@@ -221,7 +221,7 @@ public:
         const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
-        if (rMaterialProperties[SOFTENING_TYPE] == Exponential)
+        if (rMaterialProperties[SOFTENING_TYPE] == "Exponential")
         {
             AParameter = 1.00 / (n*n*Gt*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
         }

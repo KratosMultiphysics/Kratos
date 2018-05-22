@@ -142,7 +142,7 @@ public:
         const double E  = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
-        if (rMaterialProperties[SOFTENING_TYPE] == Exponential)
+        if (rMaterialProperties[SOFTENING_TYPE] == "Exponential")
         {
             AParameter = 1.00 / (Gt*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
         }
