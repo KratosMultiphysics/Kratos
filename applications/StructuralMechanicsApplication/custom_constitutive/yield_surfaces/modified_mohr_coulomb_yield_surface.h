@@ -101,15 +101,15 @@ public:
         const Properties& rMaterialProperties
     )
     {      
-		const double YieldCompression = rMaterialProperties[YIELD_STRESS_C];
-		const double YieldTension = rMaterialProperties[YIELD_STRESS_T];
+		const double YieldCompression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+		const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
 		const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 
 		// Check input variables 
         double tol = std::numeric_limits<double>::epsilon();
 		if (FrictionAngle < tol) { FrictionAngle = 32 * Globals::Pi / 180; std::cout << "Friction Angle not defined, assumed equal to 32 deg " << std::endl; }
-		if (YieldCompression < tol) { KRATOS_ERROR << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_C in .mdpa "; }
-		if (YieldTension < tol) { KRATOS_ERROR << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_T in .mdpa "; }
+		if (YieldCompression < tol) { KRATOS_ERROR << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_COMPRESSION in .mdpa "; }
+		if (YieldTension < tol) { KRATOS_ERROR << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_TENSION in .mdpa "; }
 
 		double K1, K2, K3, Rmorh, R, alpha_r, theta;
 		R = std::abs(YieldCompression / YieldTension);
@@ -140,7 +140,7 @@ public:
 
     static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
     {
-        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_C]);
+        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_COMPRESSION]);
     }
 
     static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
@@ -217,8 +217,8 @@ public:
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
         const double E  = rMaterialProperties[YOUNG_MODULUS];
-        const double sigma_c = rMaterialProperties[YIELD_STRESS_C];
-        const double sigma_t = rMaterialProperties[YIELD_STRESS_T];
+        const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
         if (rMaterialProperties[SOFTENING_TYPE] == Exponential)
@@ -269,8 +269,8 @@ public:
         const double Tan3Theta = std::tan(3.0*LodeAngle);
         const double Root3     = std::sqrt(3.0);
 
-        const double ComprYield = rMaterialProperties[YIELD_STRESS_C];
-		const double TensiYield = rMaterialProperties[YIELD_STRESS_T];
+        const double ComprYield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+		const double TensiYield = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = ComprYield / TensiYield;
 
         const double AnglePhi = (Globals::Pi * 0.25) + Dilatancy * 0.5;

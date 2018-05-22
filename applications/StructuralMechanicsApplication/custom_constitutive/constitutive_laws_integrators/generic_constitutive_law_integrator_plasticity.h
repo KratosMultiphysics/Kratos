@@ -252,8 +252,8 @@ public:
     )
     {
         const double Young = rMaterialProperties[YOUNG_MODULUS];
-        const double YieldCompression = rMaterialProperties[YIELD_STRESS_C];
-        const double YieldTension     = rMaterialProperties[YIELD_STRESS_T];
+        const double YieldCompression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double YieldTension     = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = YieldCompression / YieldTension;
         const double Gf = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
         const double Gfc = rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
@@ -296,8 +296,8 @@ public:
     {
         const int CurveType = rMaterialProperties[HARDENING_CURVE];
         // ....
-		const double YieldCompr   = rMaterialProperties[YIELD_STRESS_C];
-		const double YieldTension = rMaterialProperties[YIELD_STRESS_T];
+		const double YieldCompr   = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+		const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = YieldCompr / YieldTension;
 
         BoundedVector<double,2> Gf, Slopes, EqThrsholds;
@@ -336,7 +336,7 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_C];
+        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
         rEquivalentStressThreshold = InitialThreshold * std::sqrt(1 - PasticDissipation);
         rSlope = -0.5*(std::pow(InitialThreshold, 2) / (rEquivalentStressThreshold));
@@ -352,7 +352,7 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_C];
+        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
         rEquivalentStressThreshold = InitialThreshold * (1 - PasticDissipation);
         rSlope = -0.5*InitialThreshold;
@@ -369,7 +369,7 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_C];            // sikma
+        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];  // sikma
         const double UltimateStress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
         const double MaxStressPosition = rMaterialProperties[MAXIMUM_STRESS_POSITION];  // cappi
 

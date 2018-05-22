@@ -125,7 +125,7 @@ public:
 
     static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
     {
-        const double YieldTension = rMaterialProperties[YIELD_STRESS_T];
+        const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double SinPhi = std::sin(friction_angle);
         
@@ -140,7 +140,7 @@ public:
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
         const double E  = rMaterialProperties[YOUNG_MODULUS];
-        const double sigma_c = rMaterialProperties[YIELD_STRESS_C];
+        const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
         if (rMaterialProperties[SOFTENING_TYPE] == Exponential)
         {

@@ -105,8 +105,8 @@ public:
 		CalculatePrincipalStresses(PrincipalStressVector, StressVector);
 
 		double sigma_t, sigma_c, n;
-		sigma_t = rMaterialProperties[YIELD_STRESS_T];
-		sigma_c = rMaterialProperties[YIELD_STRESS_C];
+		sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
+		sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 		n = abs(sigma_c / sigma_t);
 
 		double SumA, SumB, SumC, ere0, ere1;
@@ -135,7 +135,7 @@ public:
 
     static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
     {
-        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_C] / std::sqrt(rMaterialProperties[YOUNG_MODULUS]));
+        rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_COMPRESSION] / std::sqrt(rMaterialProperties[YOUNG_MODULUS]));
     }
 
     static void CalculateDamageParameter(
@@ -146,8 +146,8 @@ public:
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
         const double E  = rMaterialProperties[YOUNG_MODULUS];
-        const double sigma_c = rMaterialProperties[YIELD_STRESS_C];
-        const double sigma_t = rMaterialProperties[YIELD_STRESS_T];
+        const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
         if (rMaterialProperties[SOFTENING_TYPE] == Exponential)

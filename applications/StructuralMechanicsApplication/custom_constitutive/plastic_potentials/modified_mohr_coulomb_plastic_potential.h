@@ -131,8 +131,8 @@ public:
         const double Tan3Theta = std::tan(3.0*LodeAngle);
         const double Root3     = std::sqrt(3.0);
 
-        const double ComprYield = rMaterialProperties[YIELD_STRESS_C];
-		const double TensiYield = rMaterialProperties[YIELD_STRESS_T];
+        const double ComprYield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+		const double TensiYield = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = ComprYield / TensiYield;
 
         const double AnglePhi = (Globals::Pi * 0.25) + Dilatancy * 0.5;
