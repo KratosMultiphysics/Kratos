@@ -16,7 +16,7 @@ if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
 endif(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
 
 if(NOT (${PFEM_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_APPLICATION=ON in the configure file.")
+    message(SEND_ERROR "The Pfem Application must be compiled before this one. Set PFEM_APPLICATION=ON in the configure file.")
 endif(NOT (${PFEM_APPLICATION} MATCHES "ON"))
 
 if(NOT (${CONTACT_MECHANICS_APPLICATION} MATCHES "ON"))
