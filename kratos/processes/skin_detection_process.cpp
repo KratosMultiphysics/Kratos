@@ -157,15 +157,9 @@ void SkinDetectionProcess<TDim>::Execute()
             nodes_in_the_skin.insert(index);
 
         const std::string complete_name = pre_name + name_condition + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
-        if (TDim == 2) {
-            auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop_0);
-            p_auxiliar_model_part->AddCondition(p_cond);
-            p_cond->Set(INTERFACE, true);
-        } else {
-            auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop_0);
-            p_auxiliar_model_part->AddCondition(p_cond);
-            p_cond->Set(INTERFACE, true);
-        }
+        auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop_0);
+        p_auxiliar_model_part->AddCondition(p_cond);
+        p_cond->Set(INTERFACE, true);
     }
 
     // Adding to the auxiliar model part
