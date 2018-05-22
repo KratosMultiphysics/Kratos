@@ -44,14 +44,16 @@ void TotalStructuralMassProcess::Execute()
         std::vector<array_1d<double, 3>> current_coordinates(number_of_nodes);
         for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
             current_coordinates[i_node] = r_this_geometry[i_node].Coordinates();
-            r_this_geometry[i_node].Coordinates() = r_this_geometry[i_node].GetInitialPosition().Coordinates();
+            noalias(r_this_geometry[i_node].Coordinates()) = r_this_geometry[i_node].GetInitialPosition().Coordinates();
         }
 
         // We get the values from the condition
         const Properties& this_properties = it_elem->GetProperties();
         const double density = this_properties[DENSITY];
 
-        if (local_space_dimension == 1) { // BEAM CASE
+        if (local_space_dimension == 0) { // POINT MASSES
+            total_mass += it_elem->GetValue(NODAL_MASS);
+        } else if (local_space_dimension == 1) { // BEAM CASE
             const double area = this_properties[CROSS_AREA];
             total_mass += density * area * r_this_geometry.Length();
         } else if (local_space_dimension == 2 && dimension == 3) { // SHELL-MEMBRANE
@@ -65,7 +67,7 @@ void TotalStructuralMassProcess::Execute()
 
         // We restore the current configuration
         for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
-             r_this_geometry[i_node].Coordinates() = current_coordinates[i_node];
+            noalias(r_this_geometry[i_node].Coordinates()) = current_coordinates[i_node];
     }
 
     std::stringstream info_stream;

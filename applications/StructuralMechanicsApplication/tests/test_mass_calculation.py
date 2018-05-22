@@ -90,6 +90,37 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
+    def test_nodal_mass(self):
+        dim = 3
+        nr_nodes = 4
+        mp = KratosMultiphysics.ModelPart("structural_part")
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
+        self._add_variables(mp)
+
+        #create nodes
+        dx = 1.2
+        for i in range(nr_nodes):
+            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+        #add dofs
+        self._add_dofs(mp)
+
+        #create Element
+        elem1 = mp.CreateNewElement("NodalConcentratedElement2D1N", 1, [1], mp.GetProperties()[0])
+        elem2 = mp.CreateNewElement("NodalConcentratedElement2D1N", 2, [2], mp.GetProperties()[0])
+        elem3 = mp.CreateNewElement("NodalConcentratedElement3D1N", 3, [3], mp.GetProperties()[0])
+        elem4 = mp.CreateNewElement("NodalConcentratedElement3D1N", 4, [4], mp.GetProperties()[0])
+
+        elem1.SetValue(KratosMultiphysics.NODAL_MASS,21.234)
+        elem2.SetValue(KratosMultiphysics.NODAL_MASS,5.234)
+        elem3.SetValue(KratosMultiphysics.NODAL_MASS,112.234)
+        elem4.SetValue(KratosMultiphysics.NODAL_MASS,78.234)
+
+        mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
+        mass_process.Execute()
+        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
+
+        self.assertAlmostEqual(216.936, total_mass, 5)
+
     def test_beam_mass(self):
         dim = 3
         nr_nodes = 11
