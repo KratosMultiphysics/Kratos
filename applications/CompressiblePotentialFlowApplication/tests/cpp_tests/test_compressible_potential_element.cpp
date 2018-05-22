@@ -18,7 +18,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/properties.h"
 #include "includes/model_part.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 
