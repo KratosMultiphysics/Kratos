@@ -57,22 +57,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // struct PlasticParameters
-    // {
-    //     Vector PredictiveStressVector; 
-    //     double UniaxialStress;
-    //     double PlasticDenominator; 
-    //     Vector Fflux;
-    //     Vector Gflux;
-    //     double PlasticDissipation;
-    //     Vector PlasticStrainIncrement;
-    //     Vector PlasticStrain;
-
-    //     void Initialize()
-    //     {
-
-    //     }
-	// };
 
     /// The type of yield surface
     typedef typename TYieldSurfaceType YieldSurfaceType;
@@ -138,7 +122,7 @@ public:
             PlasticConsistencyFactorIncrement = UniaxialStress * PlasticDenominator; 
             if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
 
-            noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; // check 
+            noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; 
             noalias(PlasticStrain) += PlasticStrainIncrement; 
             noalias(DS) = prod(C, PlasticStrainIncrement); 
             noalias(DSigma) -= DS; 
@@ -186,7 +170,7 @@ public:
             PlasticDissipation, HCapa, rMaterialProperties);
         CalculateEquivalentStressThreshold(PlasticDissipation, r0,
             r1, Threshold, Slope, rMaterialProperties);
-        CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam); // FFlux or GFlux????
+        CalculateHardeningParameter(Fflux, Slope, HCapa, HardParam); 
         CalculatePlasticDenominator(Fflux, C, HardParam, PlasticDenominator);
     }
 
@@ -319,7 +303,7 @@ public:
         Gf[0] = rMaterialProperties[FRACTURE_ENERGY];
         Gf[1] = std::pow(n, 2)*Gf[0];
 
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 2; i++) // i:0 Tension ; i:1 Comrpession
         {
             switch(CurveType)
             {
@@ -340,7 +324,7 @@ public:
         rSlope = rEquivalentStressThreshold*((r0*Slopes[0] / EqThrsholds[0]) + (r1*Slopes[1] / EqThrsholds[1]));
     }
 
-    // softening with straight line
+    // Softening with straight line
     static void CalculateEqStressThresholdHardCurve1(        
         const double PasticDissipation, 
         const double r0,
@@ -356,7 +340,7 @@ public:
         rSlope = -0.5*(std::pow(InitialThreshold, 2) / (rEquivalentStressThreshold));
     }
 
-    // softening with exponential function
+    // Softening with exponential function
     static void CalculateEqStressThresholdHardCurve2(        
         const double PasticDissipation, 
         const double r0,
@@ -372,7 +356,8 @@ public:
         rSlope = -0.5*InitialThreshold;
     }
 
-    // initial hardening followed by exponential softening
+    // Initial hardening up to UltimateStress
+    // followed by exponential softening
     static void CalculateEqStressThresholdHardCurve3(        
         const double PasticDissipation, 
         const double r0,
@@ -382,7 +367,21 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        // to be continued
+        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_C];            // sikma
+        const double UltimateStress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
+        const double MaxStressPosition = rMaterialProperties[MAXIMUM_STRESS_POSITION];  // cappi
+
+        if (PlasticDissipation < 1.0)
+        {
+            const double Ro = std::sqrt(1.0 - InitialThreshold / UltimateStress);
+            double Alpha = std::log((1.0 - (1.0 - Ro)*(1.0 - Ro)) / ((3.0 - Ro)*(1.0 + Ro)*MaxStressPosition));
+            Alpha = std::exp(Alpha / (1.0 - MaxStressPosition));
+            const double Phi = std::pow((1.0 - Ro), 2) + ((3.0 - Ro)*(1.0 + Ro)*PlasticDissipation*(std::pow(Alpha, (1.0 - PlasticDissipation))));
+
+            rEquivalentStressThreshold = UltimateStress*(2.0*std::sqrt(Phi) - Phi);
+            rSlope = UltimateStress*((1.0 / std::sqrt(Phi)) - 1.0)*(3.0 - Ro)*(1.0 + Ro)*(std::pow(Alpha, (1.0 - PlasticDissipation)))*
+                (1.0 - std::log(Alpha)*PlasticDissipation);
+        }
     }
 
     static void CalculateHardeningParameter(
