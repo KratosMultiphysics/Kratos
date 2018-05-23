@@ -51,7 +51,7 @@ public:
 		std::less<typename SetIdentityFunction<DofType>::result_type>,
 		std::equal_to<typename SetIdentityFunction<DofType>::result_type>,
 		DofType* >;
-        
+
     using SystemVectorType = typename TSparseSpace::VectorType;
 
     ///@}
