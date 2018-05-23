@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import h5py
 
 class ParticleWatcherAnalyzer:
@@ -61,7 +60,8 @@ class FaceWatcherAnalyzer:
         times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [], [], [], [], []
         self.face_watcher.GetTotalFlux(times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass)
         lists = [times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass]
-        times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [np.array(l) for l in lists]
+        #times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [np.array(l) for l in lists]
+        times, number_flux, mass_flux, vel_nr_mass, vel_tg_mass = [l for l in lists]
         length = len(times)
         assert length == len(number_flux) == len(mass_flux)
         shape = (length, )
@@ -82,6 +82,7 @@ class FaceWatcherAnalyzer:
         return self.GetJointData(self.mass_data_base_names)
 
     def GetJointData(self, data_base_names):
+        import numpy as np
         data_list = []
 
         with h5py.File(self.file_path, 'r') as f:
@@ -101,6 +102,7 @@ class FaceWatcherAnalyzer:
         return acc_number_flux, acc_mass_flux
 
     def CalculateAccumulated(self, original_list, old_accumulated = 0):
+        import numpy as np
         new_accumulated = np.cumsum(np.array(original_list)) + old_accumulated
         return new_accumulated
 
@@ -109,12 +111,14 @@ class FaceWatcherAnalyzer:
 
     def UpdateDataFiles(self, time):
         shape, time, n_particles, mass, vel_nr_mass = self.MakeReading()[:-1]  # initial with 1 for each surface, should be one for each condition in each surface
-        total_mass = np.sum(mass)
+        total_mass = sum(mass)
+        #total_mass = np.sum(mass)
         if total_mass:
             avg_vel_nr = vel_nr_mass / total_mass  # sum (normal vel * particle_mass) / total mass flux of that timestep
             #avg_vel_tg = vel_tg_mass / total_mass
         else:
-            avg_vel_nr = np.zeros(mass.size)
+            #avg_vel_nr = np.zeros(mass.size)
+            avg_vel_nr = [0.] * len(mass)
             #avg_vel_tg = np.zeros(mass.size)
         name_n_particles = 'n_accum'
         name_mass = 'm_accum'
@@ -127,10 +131,16 @@ class FaceWatcherAnalyzer:
         def CreateDataSets(f, current_shape):
             surface_data = f.require_group(self.face_watcher_name)
             surface_data.attrs['Surface Identifier'] = self.face_watcher_name
+            '''
             time_db = surface_data.require_dataset('time', shape = current_shape, dtype = np.float64)
             n_particles_db = surface_data.require_dataset(name_n_particles, shape = current_shape, dtype = np.int64)
             mass_db = surface_data.require_dataset(name_mass, shape = current_shape, dtype = np.float64)
             avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = np.float64)
+            '''
+            time_db = surface_data.require_dataset('time', shape = current_shape, dtype = float)
+            n_particles_db = surface_data.require_dataset(name_n_particles, shape = current_shape, dtype = int)
+            mass_db = surface_data.require_dataset(name_mass, shape = current_shape, dtype = float)
+            avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = float)
             return time_db, n_particles_db, mass_db, avg_vel_nr_db
 
         if self.OldFileExists():
