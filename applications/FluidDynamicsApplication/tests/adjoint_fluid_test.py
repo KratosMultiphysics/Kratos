@@ -93,7 +93,8 @@ class AdjointFluidTest(UnitTest.TestCase):
 
         primal_analysis = FluidDynamicsAnalysis(model,settings["primal settings"])
         primal_analysis.Run()
-        adjoint_analysis = AdjointFluidAnalysis(model,settings["adjoint settings"])
+        adjoint_model = km.Model()
+        adjoint_analysis = AdjointFluidAnalysis(adjoint_model,settings["adjoint settings"])
         adjoint_analysis.Run()
 
 if __name__ == '__main__':
