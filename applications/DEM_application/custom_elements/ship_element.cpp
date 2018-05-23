@@ -71,9 +71,8 @@ namespace Kratos {
             
             if (number_of_RF_nodes_out_of_water == RF_size) continue;
                         
-            array_1d<double, 3> rigid_face_velocity = ZeroVector(3);
-            
-            rigid_face_velocity = mListOfRigidFaces[i]->GetVelocity();
+            array_1d<double, 3> rigid_face_velocity;
+            noalias(rigid_face_velocity) = mListOfRigidFaces[i]->GetVelocity();
             
             double velocity_modulus = DEM_MODULUS_3(rigid_face_velocity);
             
