@@ -79,7 +79,16 @@ namespace Kratos
     
     /// Default Constructor.
     SimoStepMethod() : DerivedType() {}
+    
+    /// Constructor.
+    SimoStepMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
 
+    /// Constructor.
+    SimoStepMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    SimoStepMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
+    
     /// Copy Constructor.
     SimoStepMethod(SimoStepMethod& rOther) : DerivedType(rOther) {}
 
@@ -99,72 +108,7 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-
-    // assign
-    void Assign(NodeType& rNode) override
-    {
-     KRATOS_TRY
-       
-     if( this->mpInputVariable != nullptr ){ 
-
-       if( *this->mpInputVariable == *this->mpVariable ){
-	 this->PredictFromVariable(rNode);
-       }
-
-       if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->PredictFromFirstDerivative(rNode);
-       }
-       
-       if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->PredictFromSecondDerivative(rNode);	 
-       }
-       
-     }
-
-     KRATOS_CATCH( "" )
-    }
-    
-    // predict
-    void Predict(NodeType& rNode) override
-    {
-     KRATOS_TRY
-       
-     this->PredictStepVariable(rNode);
-     this->PredictFirstDerivative(rNode);
-     this->PredictSecondDerivative(rNode);
-     this->PredictVariable(rNode);
-       
-     // const TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,     0);
-     // const TValueType& CurrentStepVariable       = rNode.FastGetSolutionStepValue(*this->mpStepVariable, 0);
-     // const TValueType& CurrentFirstDerivative    = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
-     // const TValueType& CurrentSecondDerivative   = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
-
-     // std::cout<<*this->mpVariable<<" Predict Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
-     
-     KRATOS_CATCH( "" )
-    }
-
-    // update
-    void Update(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     this->UpdateStepVariable(rNode);
-     this->UpdateFirstDerivative(rNode);
-     this->UpdateSecondDerivative(rNode);
-     this->UpdateVariable(rNode);
-     
-     // const TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,     0);
-     // const TValueType& CurrentStepVariable       = rNode.FastGetSolutionStepValue(*this->mpStepVariable, 0);
-     // const TValueType& CurrentFirstDerivative    = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
-     // const TValueType& CurrentSecondDerivative   = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
-
-     // std::cout<<*this->mpVariable<<" Update Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
-     
-     KRATOS_CATCH( "" )
-    }
-
-          
+        
     ///@}
     ///@name Access
     ///@{
@@ -224,7 +168,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    void PredictFromVariable(NodeType& rNode) override
+    void AssignFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -234,7 +178,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     } 
     
-    void PredictFromFirstDerivative(NodeType& rNode) override
+    void AssignFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -249,7 +193,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    void PredictFromSecondDerivative(NodeType& rNode) override
+    void AssignFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	

@@ -33,11 +33,26 @@ namespace Kratos
 
         /// Destructor
         virtual ~ShipElement3D();
-
+        
+        void CustomInitialize(ModelPart& rigid_body_element_sub_model_part) override;
+        
         void ComputeBuoyancyEffects();
         void ComputeEngineForce();
         void ComputeWaterDragForce();
-        void ComputeAdditionalForces(const array_1d<double,3>& gravity);
+        void ComputeExternalForces(const array_1d<double,3>& gravity) override;
+        
+        // Engine characteristics        
+        double mEnginePower; //60000000; // 60MW for the Arktika-class icebreaker
+        double mMaxEngineForce; //60000000; // with 20MN the ship almost couldn't make it through the ice
+        double mThresholdVelocity; //1.0; // It was set to 3.0 m/s before, which corresponded to a maximum force of 20MN
+        double mEnginePerformance;
+        
+        // Water drag. Applied to de center of mass. We are assuming the ship is moving in the X direction (in GiD)
+        // Drag constant values in the 3 axes
+        // drag_X = 500000; // Such that the X maximum velocity is 11 m/s, which corresponds to Arktika-class icebreakers
+        // drag_Y = 240000000; // Such that the Y maximum velocity is 0.5 m/s
+        // drag_Z = 240000000; // Such that the Z maximum velocity is 0.5 m/s
+        array_1d<double,3> mDragConstantVector;
 
         virtual std::string Info() const override
         {

@@ -331,44 +331,40 @@ void BaseSolidElement::CalculateMassMatrix(
 {
     KRATOS_TRY;
 
-    // Lumped
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int number_of_nodes = GetGeometry().size();
+    const auto& r_geom = GetGeometry();
+    const auto& r_prop = GetProperties();
+    unsigned int dimension = r_geom.WorkingSpaceDimension();
+    unsigned int number_of_nodes = r_geom.size();
     unsigned int mat_size = dimension * number_of_nodes;
-
-    if ( rMassMatrix.size1() != mat_size )
-        rMassMatrix.resize( mat_size, mat_size, false );
 
     rMassMatrix = ZeroMatrix( mat_size, mat_size );
 
-    Matrix DN_DX( number_of_nodes, dimension );
-    Matrix J0(dimension,dimension), InvJ0(dimension,dimension);
+    Matrix J0(dimension,dimension);
 
-    // Reading integration points and local gradients
-    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(GetGeometry());
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( integration_method );
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(integration_method);
+    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
+    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 
-    KRATOS_ERROR_IF_NOT(GetProperties().Has( DENSITY ))
+    KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY ))
         << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
-    const double density = GetProperties()[DENSITY];
-
-    double thickness = 1.0;
-    if ( dimension == 2 && GetProperties().Has( THICKNESS ))
-        thickness = GetProperties()[THICKNESS];
+    const double density = r_prop[DENSITY];
+    const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ) {
-        const double detJ0 = CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, integration_method);
-        const double IntegrationWeight = GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
-        const Vector& N = row(Ncontainer,point_number);
+        GeometryUtils::JacobianOnInitialConfiguration(
+            r_geom, integration_points[point_number], J0);
+        const double detJ0 = MathUtils<double>::DetMat(J0);
+        const double integration_weight =
+            GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
+        const Vector& rN = row(Ncontainer,point_number);
 
         for ( unsigned int i = 0; i < number_of_nodes; ++i ) {
             const unsigned int index_i = i * dimension;
 
             for ( unsigned int j = 0; j < number_of_nodes; ++j ) {
                 const unsigned int index_j = j * dimension;
-                const double NiNj_weight = N[i] * N[j] * IntegrationWeight * density;
+                const double NiNj_weight = rN[i] * rN[j] * integration_weight * density;
 
                 for ( unsigned int k = 0; k < dimension; ++k )
                     rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
@@ -376,7 +372,7 @@ void BaseSolidElement::CalculateMassMatrix(
         }
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
@@ -1054,6 +1050,58 @@ double BaseSolidElement::GetIntegrationWeight(
     )
 {
     return rThisIntegrationPoints[point_number].Weight() * detJ;
+}
+
+void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv)
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    const auto& r_prop = GetProperties();
+    unsigned dim = r_geom.WorkingSpaceDimension();
+    rMassMatrix = ZeroMatrix(dim * r_geom.size(), dim * r_geom.size());
+
+    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY))
+        << "DENSITY has to be provided for the calculation of the MassMatrix!"
+        << std::endl;
+
+    const double density = r_prop[DENSITY];
+    const double thickness =
+        (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+
+    const IntegrationMethod integration_method =
+        IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
+    Matrix J0(dim, dim), DN_DX0_deriv;
+    const auto& integration_points = r_geom.IntegrationPoints(integration_method);
+    for (unsigned point_number = 0; point_number < integration_points.size(); ++point_number)
+    {
+        GeometryUtils::JacobianOnInitialConfiguration(
+            r_geom, integration_points[point_number], J0);
+        const Matrix& rDN_De = r_geom.ShapeFunctionsLocalGradients(integration_method)[point_number];
+        GeometricalSensitivityUtility geometrical_sensitivity(J0, rDN_De);
+        double detJ0_deriv;
+        geometrical_sensitivity.CalculateSensitivity(Deriv, detJ0_deriv, DN_DX0_deriv);
+        const double integration_weight =
+            GetIntegrationWeight(integration_points, point_number, detJ0_deriv) * thickness;
+        const Vector& rN = row(Ncontainer, point_number);
+
+        for (unsigned i = 0; i < r_geom.size(); ++i)
+        {
+            const unsigned index_i = i * dim;
+
+            for (unsigned j = 0; j < r_geom.size(); ++j)
+            {
+                const unsigned index_j = j * dim;
+                const double NiNj_weight = rN[i] * rN[j] * integration_weight * density;
+
+                for (unsigned k = 0; k < dim; ++k)
+                    rMassMatrix(index_i + k, index_j + k) += NiNj_weight;
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 /***********************************************************************************/

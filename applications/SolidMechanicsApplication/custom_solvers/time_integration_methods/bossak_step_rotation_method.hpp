@@ -80,6 +80,14 @@ namespace Kratos
     /// Default Constructor.
     BossakStepRotationMethod() : DerivedType() {}
 
+    /// Constructor.
+    BossakStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+    /// Constructor.
+    BossakStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    BossakStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
+    
     /// Copy Constructor.
     BossakStepRotationMethod(BossakStepRotationMethod& rOther)
       :DerivedType(rOther)
@@ -195,13 +203,13 @@ namespace Kratos
      KRATOS_CATCH( "" )
     } 
     
-    double& GetMethodParameter(double& rParameter) override
+    double& GetSecondDerivativeKineticParameter(double& rParameter) override
     {
       rParameter = mAlpha;
       return rParameter;
     }
     
-    double& GetSecondDerivativeParameter(double& rParameter) override
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = (1.0 - mAlpha) * this->mNewmark.c0;
       return rParameter;

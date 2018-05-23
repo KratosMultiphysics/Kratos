@@ -818,13 +818,27 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief This method directly sets the input as the LHS
-     * @param A The LHS matrix
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
      */
-    void GetDirectSystemMatrix(TSystemMatrixType& A)
+    TSystemVectorType& GetSystemVector()
     {
-        A = *mpA;
+        TSystemVectorType& mb = *mpb;
+
+        return mb;
     }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    TSystemVectorType& GetSolutionVector()
+    {
+        TSystemVectorType& mDx = *mpDx;
+
+        return mDx;
+    }
+
 
     /**
      * @brief Set method for the flag mKeepSystemConstantDuringIterations
