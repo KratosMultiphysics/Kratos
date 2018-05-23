@@ -19,6 +19,7 @@
 #include "convergence_accelerator.hpp"
 #include "includes/ublas_interface.h"
 #include "utilities/svd_utils.h"
+#include "utilities/qr_utility.h"
 
 
 namespace Kratos
@@ -163,7 +164,6 @@ public:
         } else {
             const unsigned int residual_size = this->GetResidualSize();
 
-            // **** CHECK THAT THIS IS CORRECT ****
             // Set V and trans(V)
             MatrixPointerType pV = Kratos::make_shared<MatrixType>(residual_size, data_cols);
             MatrixPointerType pVtrans = Kratos::make_shared<MatrixType>(data_cols,residual_size);
@@ -198,43 +198,13 @@ public:
             TSpace::Mult(*pV,*pLambda,*pY);
             TSpace::UnaliasedAdd(*pY, -1.0, *pWorkVector);
 
-            // **** CHECK THAT THIS IS CORRECT ****
-
-
-
-            // // Loop to store a std::vector<VectorType> type as Matrix type
-            // MatrixPointerType pAuxMatQR(new MatrixType(residual_size, data_cols));
-            // for (unsigned int i = 0; i < residual_size; ++i) {
-            //     for (unsigned int j = 0; j < data_cols; ++j) {
-            //         (*pAuxMatQR)(i,j) = mJacobianObsMatrixV[j](i);
-            //     }
-            // }
-
-            // QR decomposition to compute ((V_k.T*V_k)^-1)*V_k.T*r_k
-            // QR<double, row_major> QRUtil;
-            // QRUtil.compute(residual_size, data_cols, &(*pAuxMatQR)(0,0));
-
-            // // Computes the projection of the inverse matrix onto a vector
-            // VectorPointerType pzQR(new VectorType(data_cols));
-            // VectorPointerType pWorkVectorCopy(new VectorType(*pWorkVector));
-            // QRUtil.solve(&(*pWorkVectorCopy)(0), &(*pzQR)(0));
-
-            // Compute the inverse Jacobian vector projection
-            // VectorPointerType pY(new VectorType(residual_size));
-            // TSpace::SetToZero(*pY);
-            // for (unsigned int j = 0; j < data_cols; ++j) {
-            //     TSpace::UnaliasedAdd(*pY, (*pzQR)(j), mJacobianObsMatrixV[j]);
-            // }
-
-            // TSpace::UnaliasedAdd(*pY, -1.0, *pWorkVector);
-
+            // Project over the previous step Jacobian
             if (mpOldJacobianEmulator == nullptr) {
                 TSpace::Copy(*pY, *pProjectedVector); // Consider minus the identity as previous step Jacobian
             } else {
                 VectorPointerType pYminus(new VectorType(*pY));
                 TSpace::Assign(*pYminus, -1.0, *pY);
                 mpOldJacobianEmulator->ApplyJacobian(pYminus, pProjectedVector); // The minus comes from the fact that we want to apply r_k - V_k*zQR
-                KRATOS_WATCH(*pYminus)
             }
 
             // w = W_k*z
@@ -246,7 +216,6 @@ public:
             }
 
             TSpace::UnaliasedAdd(*pProjectedVector, 1.0, *pW);
-            KRATOS_WATCH(*pProjectedVector)
         }
     }
 
@@ -266,8 +235,8 @@ public:
     bool AppendDataColumns(
         const VectorType& rNewColV,
         const VectorType& rNewColW,
-        const double RelCutOff = 1e-8,
-        const double AbsCutOffEps = 1e-15){
+        const double RelCutOff = 1e-2,
+        const double AbsCutOffEps = 1e-8){
         
         // Add the provided iformation to the observation matrices
         mJacobianObsMatrixV.push_back(rNewColV);
@@ -275,19 +244,14 @@ public:
 
         // Loop to store a std::vector<VectorType> type as Matrix type
         const std::size_t data_cols = this->GetNumberOfDataCols();
-        const std::size_t residual_size = this->GetResidualSize();
 
-        MatrixType mat_V(residual_size, data_cols);
-        for (unsigned int i = 0; i < residual_size; ++i) {
-            for (unsigned int j = 0; j < data_cols; ++j) {
-                mat_V(i,j) = mJacobianObsMatrixV[j](i);
+        // Set trans(V)*V
+        MatrixPointerType ptransV_V = Kratos::make_shared<MatrixType>(data_cols, data_cols);
+        for (std::size_t i_row = 0; i_row < data_cols; ++i_row){
+            for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
+                (*ptransV_V)(i_row, i_col) = TSpace::Dot(mJacobianObsMatrixV[i_row],mJacobianObsMatrixV[i_col]);
             }
         }
-
-        // Compute the product trans(V)*V, which size is data_col * data_col,
-        // meaning that the SVD is much cheaper than the original matrix V)
-        // TODO: USE SPACE METHOD!!! THIS IS NOT TRILINOS COMPATIBLE!!
-        MatrixType transV_V = prod(trans(mat_V),mat_V);
 
         // Perform the Singular Value Decomposition (SVD) of matrix trans(V)*V
         // SVD decomposition of matrix A yields two orthogonal matrices "u_svd" 
@@ -296,7 +260,7 @@ public:
         MatrixType u_svd; // Orthogonal matrix (m x m)
         MatrixType w_svd; // Rectangular diagonal matrix (m x n)
         MatrixType v_svd; // Orthogonal matrix (n x n)
-        const auto svd_its = SVDUtils<double>::SingularValueDecomposition(transV_V,u_svd,w_svd,v_svd);
+        const auto svd_its = SVDUtils<double>::SingularValueDecomposition(*ptransV_V,u_svd,w_svd,v_svd);
 
         // Get the eigenvalues vector. Remember that eigenvalues 
         // of trans(A)*A are equal to the eigenvalues of A^2
@@ -331,13 +295,8 @@ public:
         // the correspondent data columns are dropped from both V and W.
         // const double abs_cut_off_tol = AbsCutOffEps * eig_norm;
         const double abs_cut_off_tol = AbsCutOffEps;
-        std::cout << std::endl;
-        KRATOS_WATCH(eig_sum)
-        KRATOS_WATCH(abs_cut_off_tol)
         for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
-            KRATOS_WATCH(eig_vector_ordered[i_eig])
             if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
-                std::cout << "Dropping i_eig: " << i_eig << std::endl;
                 mJacobianObsMatrixV.pop_back();
                 mJacobianObsMatrixW.pop_back();
                 return false;
@@ -346,30 +305,6 @@ public:
 
         return true;
     }
-
-    // /**
-    // * Appends a new column to the observation matrix V
-    // * @param newColV: new column to be appended
-    // */
-    // void AppendColToV(const VectorType& rNewColV) {
-    //     KRATOS_TRY;
-
-    //     mJacobianObsMatrixV.push_back(rNewColV);
-
-    //     KRATOS_CATCH( "" );
-    // }
-
-    // /**
-    // * Appends a new column to the observation matrix W
-    // * @param newColW: new column to be appended
-    // */
-    // void AppendColToW(const VectorType& rNewColW) {
-    //     KRATOS_TRY;
-
-    //     mJacobianObsMatrixW.push_back(rNewColW);
-
-    //     KRATOS_CATCH( "" );
-    // }
 
     /**
     * Calls the AppendDataColumns() method to add the new data columns
@@ -384,60 +319,25 @@ public:
     bool DropAndAppendDataColumns(
         const VectorType& rNewColV,
         const VectorType& rNewColW,
-        const double CutOffEps = 1e-8){
+        const double RelCutOff = 1e-2,
+        const double AbsCutOffEps = 1e-8){
         
         // std::cout << "DropAndAppendDataColumns()" << std::endl;
-        const bool info_added = this->AppendDataColumns(rNewColV,rNewColW,CutOffEps);
+        const bool info_added = this->AppendDataColumns(rNewColV, rNewColW, RelCutOff, AbsCutOffEps);
 
         // If a new column has been added, drop the oldest data
-        // if (info_added){
-        //     // Move the current data (oldest data is dropped)
-        //     for (unsigned int i = 0; i < (TSpace::Size(mJacobianObsMatrixV[0])-1); i++) {
-        //         mJacobianObsMatrixV[i] = mJacobianObsMatrixV[i+1];
-        //         mJacobianObsMatrixW[i] = mJacobianObsMatrixW[i+1];
-        //     }
-        //     // Pop the last term (keep the amount of data columns as the problem size)
-        //     mJacobianObsMatrixV.pop_back();
-        //     mJacobianObsMatrixW.pop_back();
-        // }
+        if (info_added){
+            // Move the current data (oldest data is dropped)
+            for (unsigned int i = 0; i < (this->GetResidualSize() - 1); ++i) {
+                mJacobianObsMatrixV[i] = mJacobianObsMatrixV[i+1];
+                mJacobianObsMatrixW[i] = mJacobianObsMatrixW[i+1];
+            }
+            // Pop the last term (keep the amount of data columns as the problem size)
+            mJacobianObsMatrixV.pop_back();
+            mJacobianObsMatrixW.pop_back();
+        }
 
         return info_added;
-    }
-
-    /**
-    * Drops the oldest column and appends a new column to the observation matrix V
-    * @param newColV: new column to be appended
-    */
-    void DropAndAppendColToV(const VectorType& rNewColV) {
-        KRATOS_TRY;
-
-        // Observation matrices size are close to the interface DOFs number. Old columns are to be dropped.
-        for (unsigned int i = 0; i < (TSpace::Size(mJacobianObsMatrixV[0])-1); i++) {
-            mJacobianObsMatrixV[i] = mJacobianObsMatrixV[i+1];
-        }
-
-        // Substitute the last column by the new information.
-        mJacobianObsMatrixV.back() = rNewColV;
-
-        KRATOS_CATCH( "" );
-    }
-
-    /**
-    * Drops the oldest column and appends a new column to the observation matrix W
-    * @param newColW: new column to be appended
-    */
-    void DropAndAppendColToW(const VectorType& rNewColW) {
-        KRATOS_TRY;
-
-        // Observation matrices size are close to the interface DOFs number. Old columns are to be dropped.
-        for (unsigned int i = 0; i < (TSpace::Size(mJacobianObsMatrixV[0])-1); i++) {
-            mJacobianObsMatrixW[i] = mJacobianObsMatrixW[i+1];
-        }
-
-        // Substitute the last column by the new information.
-        mJacobianObsMatrixW.back() = rNewColW;
-
-        KRATOS_CATCH( "" );
     }
 
     /**
@@ -669,19 +569,8 @@ public:
             bool info_added = false;
             const std::size_t n_data_cols = mpCurrentJacobianEmulatorPointer->GetNumberOfDataCols();
             if (n_data_cols < problem_size) {
-                if (mConvergenceAcceleratorIteration == 1) {
-                    // For the 1st iteration, always append the new information to the existent observation matrices
-                    // (mpCurrentJacobianEmulatorPointer)->AppendColToV(*pNewColV);
-                    // (mpCurrentJacobianEmulatorPointer)->AppendColToW(*pNewColW);
-                    info_added = (mpCurrentJacobianEmulatorPointer)->AppendDataColumns(*pNewColV,*pNewColW);
-                } else {
-                    // (mpCurrentJacobianEmulatorPointer)->AppendColToV(*pNewColV);
-                    // (mpCurrentJacobianEmulatorPointer)->AppendColToW(*pNewColW);
-                    info_added = (mpCurrentJacobianEmulatorPointer)->AppendDataColumns(*pNewColV,*pNewColW);
-                }
+                info_added = (mpCurrentJacobianEmulatorPointer)->AppendDataColumns(*pNewColV,*pNewColW);
             } else {
-                // (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToV(*pNewColV);
-                // (mpCurrentJacobianEmulatorPointer)->DropAndAppendColToW(*pNewColW);
                 info_added = (mpCurrentJacobianEmulatorPointer)->DropAndAppendDataColumns(*pNewColV,*pNewColW);
             }
 

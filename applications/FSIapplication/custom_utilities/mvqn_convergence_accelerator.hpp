@@ -196,57 +196,13 @@ public:
                 // Reshape the existent observation matrices
                 const std::size_t n_old_cols = mpObsMatrixV->size2();
                 if (n_old_cols < mProblemSize){
-                    // Add the current iteration observation data column to the observation matrices.
-                    MatrixPointerType pNewObsMatrixV = MatrixPointerType(new MatrixType(mProblemSize, n_old_cols + 1));
-                    MatrixPointerType pNewObsMatrixW = MatrixPointerType(new MatrixType(mProblemSize, n_old_cols + 1));
-
-                    // Recover the previous iterations information
-                    for (unsigned int i = 0; i < mProblemSize; i++){
-                        for (unsigned int j = 0; j < n_old_cols; j++){
-                            (*pNewObsMatrixV)(i,j) = (*mpObsMatrixV)(i,j);
-                            (*pNewObsMatrixW)(i,j) = (*mpObsMatrixW)(i,j);
-                        }
-                    }
-
-                    // Fill the attached column with the current iteration information
-                    for (unsigned int i = 0; i < mProblemSize; i++)
-                    {
-                        (*pNewObsMatrixV)(i, n_old_cols) = (*mpResidualVector_1)(i) - (*mpResidualVector_0)(i);
-                        (*pNewObsMatrixW)(i, n_old_cols) = (*mpIterationValue_1)(i) - (*mpIterationValue_0)(i);
-                    }
-
-                    std::swap(mpObsMatrixV,pNewObsMatrixV);
-                    std::swap(mpObsMatrixW,pNewObsMatrixW);
-                }
-                else
-                {
-                    // Observation matrices size is equal to the interface DOFs number. Oldest columns are to be dropped.
-                    MatrixPointerType pNewObsMatrixV = MatrixPointerType(new MatrixType(mProblemSize, mProblemSize));
-                    MatrixPointerType pNewObsMatrixW = MatrixPointerType(new MatrixType(mProblemSize, mProblemSize));
-
-                    // Drop the oldest column and reorder data
-                    for (unsigned int i = 0; i < mProblemSize; i++)
-                    {
-                        for (unsigned int j = 0; j < (mProblemSize-1); j++)
-                        {
-                            (*pNewObsMatrixV)(i,j) = (*mpObsMatrixV)(i,j+1);
-                            (*pNewObsMatrixW)(i,j) = (*mpObsMatrixW)(i,j+1);
-                        }
-                    }
-
-                    // Fill the last observation matrices column
-                    for (unsigned int i = 0; i < mProblemSize; i++)
-                    {
-                        (*pNewObsMatrixV)(i, mProblemSize-1) = (*mpResidualVector_1)(i) - (*mpResidualVector_0)(i);
-                        (*pNewObsMatrixW)(i, mProblemSize-1) = (*mpIterationValue_1)(i) - (*mpIterationValue_0)(i);
-                    }
-
-                    std::swap(mpObsMatrixV,pNewObsMatrixV);
-                    std::swap(mpObsMatrixW,pNewObsMatrixW);
+                    this->AppendDataColumns();
+                } else {
+                    this->DropAndAppendDataColumns();
                 }
 
             }
-            
+
             // Compute the jacobian approximation
             std::size_t data_cols = mpObsMatrixV->size2();
             MatrixType aux2(data_cols, data_cols);
@@ -259,26 +215,53 @@ public:
             MatrixType v_svd; // Orthogonal matrix (n x n)
             const auto svd_its = SVDUtils<double>::SingularValueDecomposition(aux2,u_svd,w_svd,v_svd);
 
-            // Compute the QR decomposition of matrix trans(V)*V
-            // QR<double, row_major> QRUtil;
-            // QRUtil.compute(data_cols, data_cols, &(aux2)(0,0));
+            // Get the eigenvalues vector. Remember that eigenvalues 
+            // of trans(A)*A are equal to the eigenvalues of A^2
+            double eig_sum = 0.0;
+            double eig_norm = 0.0;
+            std::vector<double> eig_vector(data_cols);
+            for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
+                const double i_col_eig = std::sqrt(w_svd(i_col,i_col));
+                eig_sum += i_col_eig;
+                eig_vector[i_col] = i_col_eig;
+                eig_norm += std::pow(i_col_eig,2);
+            }
+            std::sqrt(eig_norm);
 
-            // Set the cuf-off threshold
-            const double cut_off_tol = mCutOffEpsilon * TSpace::TwoNorm(w_svd);
-            // const double cut_off_tol = mCutOffEpsilon * QRUtil.normR();
+            // Reorder the eigenvalues vector from max to min and compute the eigenvalues norm
+            std::vector<double> eig_vector_ordered(data_cols);
+            for (std::size_t i_col = 0; i_col < data_cols; ++i_col){
+                double max_eig = 0.0;
+                std::size_t max_index;
+                for (std::size_t j_col = 0; j_col < eig_vector.size(); ++j_col){
+                    if (max_eig < eig_vector[j_col]){
+                        max_index = j_col;
+                        max_eig = eig_vector[j_col];
+                    }
+                }
+                eig_vector_ordered[i_col] = max_eig;
+                eig_vector.erase(eig_vector.begin() + max_index);
+            }
 
-            // Check if the last information columns are linear dependent
-            const std::size_t last_col = w_svd.size2() - 1;
-            if (w_svd(last_col, last_col) < cut_off_tol){
-            // if (std::abs(QRUtil.R(data_cols - 1, data_cols - 1)) < cut_off_tol){
-                // std::cout << "Dropping new info!: " << std::abs(QRUtil.R(data_cols - 1, data_cols - 1)) << " tolerance: " << cut_off_tol << std::endl;
-                // Drop the observation matrices last column
-                this->DropObservationMatricesLastColum();
-                // Update the number of columns
-                --data_cols;
-                // Recompute trans(V)*V
-                aux2.resize(data_cols, data_cols);
-                noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
+            // Check the representativity of each eigenvalue and its value.
+            // If its value is close to zero or out of the representativity
+            // the correspondent data columns are dropped from both V and W.
+            const double RelCutOff = 1e-2;
+            // const double abs_cut_off_tol = AbsCutOffEps * eig_norm;
+            const double abs_cut_off_tol = 1e-8;
+            for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
+                if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
+                    // Drop the observation matrices last column
+                    this->DropLastDataColumn();
+                    // Update the number of columns
+                    --data_cols;
+                    // Recompute trans(V)*V
+                    // ##################################
+                    // ####### NOT MPI COMPATIBLE #######
+                    // ##################################
+                    aux2.resize(data_cols, data_cols);
+                    noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
+                }
             }
 
             // Perform the matrix inversion
@@ -381,25 +364,75 @@ private:
     ///@{
 
     /**
+     * @brief This function appends the new data to both observation matrices
+     */
+    void AppendDataColumns(){
+        // Create two auxilar observation matrices to reshape the existent ones
+        const std::size_t n_old_cols = mpObsMatrixV->size2();
+        MatrixPointerType p_new_V = Kratos::make_shared<MatrixType>(mProblemSize, n_old_cols + 1);
+        MatrixPointerType p_new_W = Kratos::make_shared<MatrixType>(mProblemSize, n_old_cols + 1);
+
+        // Recover the previous iterations information
+        for (unsigned int i = 0; i < mProblemSize; i++){
+            for (unsigned int j = 0; j < n_old_cols; j++){
+                (*p_new_V)(i,j) = (*mpObsMatrixV)(i,j);
+                (*p_new_W)(i,j) = (*mpObsMatrixW)(i,j);
+            }
+        }
+
+        // Fill the attached column with the current iteration information
+        for (unsigned int i = 0; i < mProblemSize; i++){
+            (*p_new_V)(i, n_old_cols) = (*mpResidualVector_1)(i) - (*mpResidualVector_0)(i);
+            (*p_new_W)(i, n_old_cols) = (*mpIterationValue_1)(i) - (*mpIterationValue_0)(i);
+        }
+
+        std::swap(mpObsMatrixV,p_new_V);
+        std::swap(mpObsMatrixW,p_new_W);
+    }
+
+    void DropAndAppendDataColumns(){
+        // Observation matrices size is equal to the interface DOFs number. Oldest columns are to be dropped.
+        MatrixPointerType p_new_V = Kratos::make_shared<MatrixType>(mProblemSize, mProblemSize);
+        MatrixPointerType p_new_W = Kratos::make_shared<MatrixType>(mProblemSize, mProblemSize);
+
+        // Drop the oldest column and reorder data
+        for (unsigned int i = 0; i < mProblemSize; i++){
+            for (unsigned int j = 0; j < (mProblemSize-1); j++){
+                (*p_new_V)(i,j) = (*mpObsMatrixV)(i,j+1);
+                (*p_new_W)(i,j) = (*mpObsMatrixW)(i,j+1);
+            }
+        }
+
+        // Fill the last observation matrices column
+        for (unsigned int i = 0; i < mProblemSize; i++){
+            (*p_new_V)(i, mProblemSize-1) = (*mpResidualVector_1)(i) - (*mpResidualVector_0)(i);
+            (*p_new_W)(i, mProblemSize-1) = (*mpIterationValue_1)(i) - (*mpIterationValue_0)(i);
+        }
+
+        std::swap(mpObsMatrixV,p_new_V);
+        std::swap(mpObsMatrixW,p_new_W);
+    }
+
+    /**
      * @brief This function drops the last column of both observation matrices
      */
-    void DropObservationMatricesLastColum(){
+    void DropLastDataColumn(){
         // Set two auxiliar observation matrices
-        const auto cols = mpObsMatrixV->size2() - 1;
-        MatrixPointerType p_aux_v = Kratos::make_shared<MatrixType>(mProblemSize, cols);
-        MatrixPointerType p_aux_w = Kratos::make_shared<MatrixType>(mProblemSize, cols);
+        const auto n_cols = mpObsMatrixV->size2() - 1;
+        MatrixPointerType p_aux_V = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);
+        MatrixPointerType p_aux_W = Kratos::make_shared<MatrixType>(mProblemSize, n_cols);
 
         // Drop the last column
         for (std::size_t i_row = 0; i_row < mProblemSize; ++i_row){
-            for (std::size_t i_col = 0; i_col < cols; ++i_col){
-                (*p_aux_v)(i_row, i_col) = (*mpObsMatrixV)(i_row, i_col);
-                (*p_aux_w)(i_row, i_col) = (*mpObsMatrixW)(i_row, i_col);
+            for (std::size_t i_col = 0; i_col < n_cols; ++i_col){
+                (*p_aux_V)(i_row, i_col) = (*mpObsMatrixV)(i_row, i_col);
+                (*p_aux_W)(i_row, i_col) = (*mpObsMatrixW)(i_row, i_col);
             }
         }
 
         // Set the member observation matrices pointers
-        std::swap(mpObsMatrixV,p_aux_v);
-        std::swap(mpObsMatrixW,p_aux_w);
+        std::swap(mpObsMatrixV,p_aux_V);
+        std::swap(mpObsMatrixW,p_aux_W);
     }
 
     ///@}
