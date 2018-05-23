@@ -91,6 +91,19 @@ class AdjointFluidAnalysis(AnalysisStage):
         if self.save_restart:
             self.restart_utility.SaveRestart()
 
+
+    def RunSolutionLoop(self):
+        """Note that the adjoint problem is solved in reverse time
+        """
+
+        for step in range(self.number_of_steps):
+            self.time = self.solver.AdvanceInTime(self.time)
+            self.InitializeSolutionStep()
+            self.solver.Predict()
+            self.solver.SolveSolutionStep()
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
+
     def _SetUpListOfProcesses(self):
         '''
         Read the definition of initial and boundary conditions for the problem and initialize the processes that will manage them.
@@ -101,7 +114,7 @@ class AdjointFluidAnalysis(AnalysisStage):
         self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
         self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
         self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
-        if (ProjectParameters.Has("list_other_processes") == True):
+        if self.project_parameters.Has("list_other_processes"):
             self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["list_other_processes"] )
 
         #TODO this should be generic
@@ -128,12 +141,13 @@ class AdjointFluidAnalysis(AnalysisStage):
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
         ## Stepping and time settings
-        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+        self.number_of_steps = self.project_parameters["problem_data"]["nsteps"].GetInt()
 
         if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
             self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
         else:
-            self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self.time = self.project_parameters["problem_data"]["start_step"].GetDouble()
+            self.main_model_part.ProcessInfo.SetValue(Kratos.TIME,self.time)
 
 
     def _SetUpGiDOutput(self):
@@ -209,5 +223,6 @@ if __name__ == '__main__':
         primal_simulation = FluidDynamicsAnalysis(model,parameters["primal settings"])
         primal_simulation.Run()
 
-    adjoint_simulation = AdjointFluidAnalysis(model,parameters["adjoint settings"])
+    adjoint_model = Kratos.Model()
+    adjoint_simulation = AdjointFluidAnalysis(adjoint_model,parameters["adjoint settings"])
     adjoint_simulation.Run()
