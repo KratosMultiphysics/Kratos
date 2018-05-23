@@ -57,7 +57,7 @@ void TriangleModelPartForDistanceModification(
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DistanceModificationTriangle, FluidDynamicsApplicationFastSuite) {
-    ModelPart model_part("TestPart");
+    ModelPart& model_part = Kernel::GetModel().CreateModelPart("TestPart");
     TriangleModelPartForDistanceModification(true, model_part);
 
     Parameters distance_mod_params( R"(
@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(DistanceModificationTriangle, FluidDynamicsApplication
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceModificationTriangle, FluidDynamicsApplicationFastSuite) {
-    ModelPart model_part("TestPart");
+    ModelPart& model_part = Kernel::GetModel().CreateModelPart("TestPart");
     TriangleModelPartForDistanceModification(false, model_part);
 
     Parameters distance_mod_params( R"(
