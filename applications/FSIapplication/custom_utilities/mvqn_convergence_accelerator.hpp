@@ -79,24 +79,28 @@ public:
         {
             "solver_type"     : "MVQN",
             "w_0"             : 0.825,
-            "cut_off_epsilon" : 1e-8
+            "rel_cut_off_tol" : 1e-2,
+            "abs_cut_off_tol" : 1e-8
         }
         )");
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_default_parameters);
 
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
-        mCutOffEpsilon = rConvAcceleratorParameters["cut_off_epsilon"].GetDouble();
+        mRelCutOff = rConvAcceleratorParameters["rel_cut_off_tol"].GetDouble();
+        mAbsCutOff = rConvAcceleratorParameters["abs_cut_off_tol"].GetDouble();
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
     }
 
     MVQNFullJacobianConvergenceAccelerator(
         const double OmegaInitial = 0.825,
-        const double CutOffEpsilon = 1e-8){
+        const double RelCutOff = 1e-2,
+        const double AbsCutOff = 1e-8){
 
         mOmega_0 = OmegaInitial;
-        mCutOffEpsilon = CutOffEpsilon;
+        mRelCutOff = RelCutOff;
+        mAbsCutOff = AbsCutOff;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
     }
@@ -246,11 +250,10 @@ public:
             // Check the representativity of each eigenvalue and its value.
             // If its value is close to zero or out of the representativity
             // the correspondent data columns are dropped from both V and W.
-            const double RelCutOff = 1e-2;
             // const double abs_cut_off_tol = AbsCutOffEps * eig_norm;
-            const double abs_cut_off_tol = 1e-8;
+            const double abs_cut_off_tol = mAbsCutOff;
             for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
-                if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
+                if ((eig_vector_ordered[i_eig] / eig_sum) < mRelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
                     // Drop the observation matrices last column
                     this->DropLastDataColumn();
                     // Update the number of columns
@@ -340,7 +343,8 @@ private:
     ///@{
 
     double mOmega_0;                                            // Relaxation factor for the initial fixed point iteration
-    double mCutOffEpsilon;                                      // Epsilon parameter for setting the cut off tolerance
+    double mRelCutOff;                                          // Tolerance for the relative cut-off criterion
+    double mAbsCutOff;                                          // Tolerance for the absolute cut-off criterion
     unsigned int mProblemSize;                                  // Residual to minimize size
     unsigned int mConvergenceAcceleratorIteration;              // Convergence accelerator iteration counter
     bool mConvergenceAcceleratorFirstCorrectionPerformed;       // Indicates that the initial fixed point iteration has been already performed

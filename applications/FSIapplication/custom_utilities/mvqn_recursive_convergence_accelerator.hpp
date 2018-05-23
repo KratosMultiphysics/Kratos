@@ -236,7 +236,7 @@ public:
         const VectorType& rNewColV,
         const VectorType& rNewColW,
         const double RelCutOff = 1e-2,
-        const double AbsCutOffEps = 1e-8){
+        const double AbsCutOff = 1e-8){
         
         // Add the provided iformation to the observation matrices
         mJacobianObsMatrixV.push_back(rNewColV);
@@ -294,7 +294,7 @@ public:
         // If its value is close to zero or out of the representativity
         // the correspondent data columns are dropped from both V and W.
         // const double abs_cut_off_tol = AbsCutOffEps * eig_norm;
-        const double abs_cut_off_tol = AbsCutOffEps;
+        const double abs_cut_off_tol = AbsCutOff;
         for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
             if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
                 mJacobianObsMatrixV.pop_back();
@@ -454,21 +454,31 @@ public:
             "solver_type"     : "MVQN_recursive",
             "w_0"             : 0.825,
             "buffer_size"     : 10,
-            "cut_off_rel_tol" : 1e-8 
+            "rel_cut_off_tol" : 1e-2,
+            "abs_cut_off_tol" : 1e-8 
         }
         )");
 
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
 
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
+        mRelCutOff = rConvAcceleratorParameters["rel_cut_off_tol"].GetDouble();
+        mAbsCutOff = rConvAcceleratorParameters["abs_cut_off_tol"].GetDouble();
         mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt();
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
     }
 
-    MVQNRecursiveJacobianConvergenceAccelerator( double OmegaInitial = 0.825, unsigned int JacobianBufferSize = 10 ) {
+    MVQNRecursiveJacobianConvergenceAccelerator(
+        double OmegaInitial = 0.825,
+        unsigned int JacobianBufferSize = 10,
+        double RelCutOff = 1e-2,
+        double AbsCutOff = 1e-8) {
+
         mOmega_0 = OmegaInitial;
+        mRelCutOff = RelCutOff;
+        mAbsCutOff = AbsCutOff;
         mJacobianBufferSize = JacobianBufferSize;
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
@@ -569,9 +579,9 @@ public:
             bool info_added = false;
             const std::size_t n_data_cols = mpCurrentJacobianEmulatorPointer->GetNumberOfDataCols();
             if (n_data_cols < problem_size) {
-                info_added = (mpCurrentJacobianEmulatorPointer)->AppendDataColumns(*pNewColV,*pNewColW);
+                info_added = (mpCurrentJacobianEmulatorPointer)->AppendDataColumns(*pNewColV,*pNewColW,mRelCutOff,mAbsCutOff);
             } else {
-                info_added = (mpCurrentJacobianEmulatorPointer)->DropAndAppendDataColumns(*pNewColV,*pNewColW);
+                info_added = (mpCurrentJacobianEmulatorPointer)->DropAndAppendDataColumns(*pNewColV,*pNewColW,mRelCutOff,mAbsCutOff);
             }
 
             // Apply the current step inverse Jacobian emulator to the residual vector
@@ -626,6 +636,8 @@ private:
     ///@{
 
     double mOmega_0;                                                    // Relaxation factor for the initial fixed point iteration
+    double mRelCutOff;                                                  // Tolerance for the relative cut-off criterion
+    double mAbsCutOff;                                                  // Tolerance for the absolute cut-off criterion
     unsigned int mJacobianBufferSize;                                   // User-defined Jacobian buffer-size
     unsigned int mCurrentJacobianBufferSize;                            // Current Jacobian buffer-size (expected to be less or equal to the user-defined one)
     unsigned int mConvergenceAcceleratorStep;                           // Convergence accelerator steps counter
