@@ -38,14 +38,26 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
 
         # Construct the base analysis.
         self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
-        project_parameters["solver_settings"]["analysis_type"].SetString("linear")
+        if (project_parameters.Has("recursive_remeshing_process") is True):
+            self.process_remesh = False
+        else:
+            self.process_remesh = True
+            project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         super(AdaptativeContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
         """ Initializing the Analysis """
         super(AdaptativeContactStructuralMechanicsAnalysis, self).Initialize()
-        convergence_criteria = self.solver.get_convergence_criterion()
-        convergence_criteria.Initialize(self.solver.GetComputingModelPart())
+        if (self.process_remesh is False):
+            convergence_criteria = self.solver.get_convergence_criterion()
+            convergence_criteria.Initialize(self.solver.GetComputingModelPart())
+        # Ensuring to have conditions on the BC before remesh
+        computing_model_part = self.solver.GetComputingModelPart()
+        if (computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
+            detect_skin = KratosMultiphysics.SkinDetectionProcess2D(computing_model_part)
+        else:
+            detect_skin = KratosMultiphysics.SkinDetectionProcess3D(computing_model_part)
+        detect_skin.Execute()
         self.solver.SetEchoLevel(self.echo_level)
 
     def RunSolutionLoop(self):
@@ -169,9 +181,6 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["contact_process_list"])
         if (self.ProjectParameters.Has("recursive_remeshing_process") is True):
             self.list_of_processes += factory.ConstructListOfProcesses(self.ProjectParameters["recursive_remeshing_process"])
-            self.process_remesh = True
-        else:
-            self.process_remesh = False
 
         #TODO this should be generic
         # initialize GiD  I/O
