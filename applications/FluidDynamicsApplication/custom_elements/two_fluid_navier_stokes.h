@@ -37,6 +37,17 @@
 
 namespace Kratos
 {
+    /*The "TwoFluidNavierStokes" element is an element based on the Variation Multiscale Stabilization technique (VMS)
+    * which is designed for the solution of a two fluid problem.
+    *
+    * A distinctive feature of the element is the use of 4 LOCAL enrichment functions, which allows to model
+    * a discontinuity in both the pressure field and in its gradient.
+    * The enrichment functions are obtained by duplicating all of the degrees of freedom of the element.
+    * Since the enrichment is performed elementwise, a purely local static condensation
+    * step is performed.
+    *
+    * Since a jump in the pressure can be considered, the element shall be able to habdle moderate changes of the viscosity
+    * between the two fluids to be considered*/
 
 ///@name Kratos Globals
 ///@{
@@ -294,8 +305,6 @@ private:
 		MatrixType& H,
 		MatrixType& K_ee,
 		VectorType& rhs_ee);
-
-	void CalculateMaterialPropertiesAtGaussPoint(TElementData& data);
 
 	template<class T>
 	bool InvertMatrix(const T& input, T& inverse);

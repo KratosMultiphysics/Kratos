@@ -50,15 +50,16 @@ NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
 
 NodalScalarData Pressure;
-NodalScalarData Pressure_OldStep1; //BORRAR
-NodalScalarData Pressure_OldStep2;  //BORRAR
 NodalScalarData Distance;
+NodalScalarData NodalDensity;
+NodalScalarData NodalDynamicViscosity;
 
 double Density;
 double DynamicViscosity;
-double CorrectedViscosity; // Includes smagorinsky contribution
+double CorrectedViscosity; // Includes smagorinsky contribution at gauss point
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
+double SmagorinskyConstant;
 
 double bdf0;
 double bdf1;
@@ -97,12 +98,13 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
+    this->FillFromNodalData(NodalDensity, DENSITY, r_geometry);
+    this->FillFromNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
 	this->FillFromNodalData(Distance, DISTANCE, r_geometry);
     this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
-    //this->FillFromProperties(Density,DENSITY,r_properties);
-    //this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
+    this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
 
@@ -197,7 +199,7 @@ void CalculateAirMaterialResponse() {
 	if(ShearStress.size() != strain_size)
 		ShearStress.resize(strain_size,false);
 
-	ComputeStrain(strain_size);
+	ComputeStrain();
 
 	const double nu = DynamicViscosity;
 	const double c1 = 2.0*nu;
@@ -233,14 +235,14 @@ void CalculateAirMaterialResponse() {
 	}
 }
 
-void ComputeStrain(const unsigned int& strain_size)
+void ComputeStrain()
 {
     const bounded_matrix<double, NumNodes, Dim>& v = Velocity;
     const bounded_matrix<double, NumNodes, Dim>& DN = DN_DX;
     
     // Compute strain (B*v)
     // 3D strain computation
-    if (strain_size == 6)
+    if (TDim == 3)
     {
 		StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
 		StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
@@ -250,14 +252,69 @@ void ComputeStrain(const unsigned int& strain_size)
 		StrainRate[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
     }
     // 2D strain computation
-    else if (strain_size == 3)
+    else if (TDim == 2)
     {                
 		StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
 		StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
 		StrainRate[2] = DN(0,1)*v(0,0) + DN(0,0)*v(0,1) + DN(1,1)*v(1,0) + DN(1,0)*v(1,1) + DN(2,1)*v(2,0) + DN(2,0)*v(2,1);
     }
 }
+
+double ComputeStrainNorm()
+{
+    double strain_rate_norm;
+    Vector& S = StrainRate;
+    if (TDim == 3)
+    {
+        strain_rate_norm = std::sqrt(2.*S[0] * S[0] + 2.*S[1] * S[1] + 2.*S[2] * S[2] +
+            S[3] * S[3] + S[4] * S[4] + S[5] * S[5]);
+    }
+
+    else if (TDim == 2)
+    {
+        strain_rate_norm = std::sqrt(2.*S[0] * S[0] + 2.*S[1] * S[1] + S[2] * S[2]);
+    }
+    return strain_rate_norm;
+}
+
+
+
+void CalculateMaterialPropertiesAtGaussPoint()
+{
+    double dist = 0.0;
+    for (unsigned int i = 0; i < NumNodes; i++)
+        dist += N[i] * Distance[i];
+
+    double navg = 0.0;
+    double density = 0.0;
+    double viscosity = 0.0;
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        if (dist * Distance[i] > 0.0)
+        {
+            navg += 1.0;
+            density += NodalDensity[i];
+            viscosity += NodalDynamicViscosity[i];
+        }
+    }
+
+    Density = density / navg;
+    DynamicViscosity = viscosity / navg;
+
+    if (SmagorinskyConstant > 0.0)
+    {
+        ComputeStrain();
+        const double strain_rate_norm = ComputeStrainNorm();
+
+        double length_scale = SmagorinskyConstant*ElementSize;
+        length_scale *= length_scale; // square
+        CorrectedViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
+    }
+    else CorrectedViscosity = DynamicViscosity;
+}
 ///@}
+
+
 
 
 
