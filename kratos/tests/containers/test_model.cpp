@@ -15,23 +15,24 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
+#include "includes/kernel.h"
+
 
 namespace Kratos {
 	namespace Testing {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelGetModelPart, KratosCoreFastSuite)
 		{
-            auto model_part = Kratos::make_shared<ModelPart>("Main");
+                    
+            auto& model_part = Kernel::GetModel().CreateModelPart("Main");
 
-			model_part->CreateSubModelPart("Inlet1");
+            model_part.CreateSubModelPart("Inlet1");
 
-            Model model;
+            auto& model = Kernel::GetModel();
 
-            model.AddModelPart(model_part);
+            KRATOS_CHECK_EQUAL(model.GetModelPart("Main").Name(), model_part.Name());
 
-            KRATOS_CHECK_EQUAL(model.GetModelPart("Main").Name(), model_part->Name());
-
-            ModelPart& smp = model_part->GetSubModelPart("Inlet1");
+            ModelPart& smp = model_part.GetSubModelPart("Inlet1");
             KRATOS_CHECK_EQUAL(model.GetModelPart("Main.Inlet1").Name(), smp.Name());
 
             KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Main.Random"),
@@ -47,20 +48,18 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelHasModelPart, KratosCoreFastSuite)
 		{
-            auto model_part = Kratos::make_shared<ModelPart>("Main");
+            auto& model_part = Kernel::GetModel().CreateModelPart("Main");
 
-			model_part->CreateSubModelPart("Inlet1");
+			model_part.CreateSubModelPart("Inlet1");
 
-            Model model;
-
-            model.AddModelPart(model_part);
+            Model& model = Kernel::GetModel();
 
             KRATOS_CHECK(model.HasModelPart("Main"));
             KRATOS_CHECK(model.HasModelPart("Main.Inlet1"));
 
             KRATOS_CHECK_IS_FALSE(model.HasModelPart("Inlet1"));
 
-            ModelPart& smp = model_part->GetSubModelPart("Inlet1");
+            ModelPart& smp = model_part.GetSubModelPart("Inlet1");
             smp.CreateSubModelPart("SubInlet");
 
             KRATOS_CHECK(model.HasModelPart("Main.Inlet1.SubInlet"));

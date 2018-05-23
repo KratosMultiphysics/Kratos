@@ -41,7 +41,7 @@ namespace Testing {
             "element_name":     "Element3D4N"
         })");
 
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(VELOCITY);
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
@@ -49,7 +49,7 @@ namespace Testing {
 
         // Generate the cube skin
         const double cube_radious = 0.35;
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.AddNodalSolutionStepVariable(VELOCITY);
         skin_part.CreateNewNode(1, -cube_radious, -cube_radious, -cube_radious);
         skin_part.CreateNewNode(2,  cube_radious, -cube_radious, -cube_radious);
@@ -109,12 +109,12 @@ namespace Testing {
             "element_name":     "Element3D4N"
         })");
 
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
 
         // Generate the corner entities
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.AddNodalSolutionStepVariable(VELOCITY);
         skin_part.CreateNewNode(1, 2.0, 0.5, 2.0);
         skin_part.CreateNewNode(2, 2.0, 0.5, -2.0);
@@ -147,7 +147,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane, KratosCoreFastSuite)
     {
         // Generate the evil element
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         volume_part.CreateNewNode(1, 0.214286, -0.357143, 0.0714286);
         volume_part.CreateNewNode(2, 0.214286, -0.214286, 0.0714286);
@@ -158,7 +158,7 @@ namespace Testing {
 
         // Generate the cube skin
         const double plane_height = 0.0;
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.CreateNewNode(1, -1.0, -1.0, plane_height);
         skin_part.CreateNewNode(2,  1.0, -1.0, plane_height);
         skin_part.CreateNewNode(3,  1.0,  1.0, plane_height);
@@ -181,7 +181,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationSkewed, KratosCoreFastSuite)
     {
         // Generate the tetrahedron element
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         volume_part.CreateNewNode(1, 0.0, -0.5, 0.0);
         volume_part.CreateNewNode(2, 1.0, -0.5, 0.0);
@@ -191,7 +191,7 @@ namespace Testing {
         volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
 
         // Generate the skin such that one edge is cut twice
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.CreateNewNode(1, -1.0, -1.0,  0.75);
         skin_part.CreateNewNode(2,  1.0, -1.0,  0.75);
         skin_part.CreateNewNode(3, -1.0,  1.0,  0.75);
@@ -216,7 +216,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximationVertical, KratosCoreFastSuite)
     {
         // Generate the triangular element
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         volume_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         volume_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -230,7 +230,7 @@ namespace Testing {
         // approximation is used. Since the skin in here yields a 
         // uniplanar intersection, the approximated plane is the 
         // same one as the original intersection one.
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.AddNodalSolutionStepVariable(VELOCITY);
         skin_part.CreateNewNode(1, 0.5, -1.0,  1.0);
         skin_part.CreateNewNode(2, 0.5, -1.0, -1.0);
@@ -254,7 +254,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessOneEdgeIntersection, KratosCoreFastSuite)
     {
         // Generate the tetrahedron element
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         volume_part.CreateNewNode(1, 0.666963, 0.800762, 0.388769);
         volume_part.CreateNewNode(2, 0.731067, 0.821936, 0.422077);
@@ -264,7 +264,7 @@ namespace Testing {
         volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
 
         // Generate the skin such that it only intersects in one edge
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.CreateNewNode(1, 0.675, 0.803109, 0.5);
         skin_part.CreateNewNode(2, 0.663088, 0.808771, 0.476277);
         skin_part.CreateNewNode(3, 0.685008, 0.796367, 0.479053);
@@ -289,7 +289,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessMultipleIntersections, KratosCoreFastSuite)
     {
         // Generate the tetrahedron element
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         volume_part.CreateNewNode(1, 0.597905, 0.597905, 0.100929);
         volume_part.CreateNewNode(2, 0.608229, 0.490745, 0.204129);
@@ -299,7 +299,7 @@ namespace Testing {
         volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
 
         // Generate the skin such that it has multiple intersections
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.CreateNewNode(1, 0.633131, 0.539808, 0.178766);
         skin_part.CreateNewNode(2, 0.671961, 0.517362, 0.195651);
         skin_part.CreateNewNode(3, 0.66866, 0.566563, 0.200629);
@@ -337,7 +337,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessStandard, KratosCoreFastSuite)
     {
         // Generate the tetrahedron element
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         volume_part.CreateNewNode(1, -0.625, -1.625, 1.125);
         volume_part.CreateNewNode(2, -0.5, -1.75, 1.25);
@@ -347,7 +347,7 @@ namespace Testing {
         volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
 
         // Generate the skin such that it generates a standard intersection
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.CreateNewNode(2196, -0.542249, -1.7162, 1.23726);
         skin_part.CreateNewNode(2155, -0.544766, -1.71316, 1.19334);
         skin_part.CreateNewNode(2228, -0.507166, -1.69137, 1.20104);
@@ -417,7 +417,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessBoundaryIntersection, KratosCoreFastSuite)
     {
         // Generate the tetrahedron element
-        ModelPart volume_part("Volume");
+        ModelPart& volume_part = Kernel::GetModel().CreateModelPart("Volume");
         volume_part.AddNodalSolutionStepVariable(DISTANCE);
         volume_part.CreateNewNode(787, 0.3, 0.1, 0.5);
         volume_part.CreateNewNode(629, 0.3, 0.2, 0.5);
@@ -427,7 +427,7 @@ namespace Testing {
         volume_part.CreateNewElement("Element3D4N", 861, {787, 629, 700, 712}, p_properties_0);
 
         // Generate the skin such that one edge intersection is close to the boundary entity
-        ModelPart skin_part("Skin");
+        ModelPart& skin_part = Kernel::GetModel().CreateModelPart("Skin");
         skin_part.CreateNewNode(345, 0.372131, 0.174194, 0.5);
         skin_part.CreateNewNode(375, 0.396836, 0.16555, 0.5);
         skin_part.CreateNewNode(333, 0.384461, 0.170563, 0.475061);

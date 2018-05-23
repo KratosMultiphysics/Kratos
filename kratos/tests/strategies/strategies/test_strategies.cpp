@@ -137,7 +137,7 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
             
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
@@ -175,7 +175,7 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
             
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );

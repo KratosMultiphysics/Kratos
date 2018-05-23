@@ -43,7 +43,7 @@ namespace Kratos {
 
             Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
-			ModelPart model_part("Generated");
+			ModelPart& model_part = Kernel::GetModel().CreateModelPart("Generated");
 
 			Parameters mesher_parameters(R"(
             {
@@ -88,7 +88,7 @@ namespace Kratos {
 
 			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
-			ModelPart model_part("Generated");
+			ModelPart& model_part = Kernel::GetModel().CreateModelPart("Generated");
 
 			Parameters mesher_parameters(R"(
             {

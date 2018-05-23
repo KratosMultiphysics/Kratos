@@ -102,7 +102,7 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
             
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedNewmarkDisplacementSchemeType() );
@@ -165,7 +165,7 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
             
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedBossakDisplacementSchemeType() );
@@ -228,7 +228,7 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
             
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedBDFDisplacementSchemeType(2) );

@@ -21,7 +21,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(NodeAssignOperator, KratosCoreFastSuite)
 		{
-			ModelPart model_part("test");
+			ModelPart& model_part = Kernel::GetModel().CreateModelPart("test");
 			model_part.AddNodalSolutionStepVariable(DISTANCE);
 			model_part.AddNodalSolutionStepVariable(VELOCITY);
             

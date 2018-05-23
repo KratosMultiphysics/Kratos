@@ -25,7 +25,7 @@ namespace Kratos
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Horizontal, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
-			ModelPart base_model_part("Tetrahedra");
+			ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Tetrahedra");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -296,7 +296,7 @@ namespace Kratos
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Oblique, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
-			ModelPart base_model_part("Tetrahedra");
+			ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Tetrahedra");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -635,7 +635,7 @@ namespace Kratos
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4NoDivision, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
-			ModelPart base_model_part("Tetrahedra");
+			ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Tetrahedra");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data

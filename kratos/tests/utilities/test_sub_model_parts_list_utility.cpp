@@ -17,6 +17,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
+#include "includes/kernel.h"
 
 /* Utilities */
 #include "utilities/sub_model_parts_list_utility.h"
@@ -36,7 +37,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosSubModelPartsListUtilityFastSuite)
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
-            ModelPart first_model_part("Main");
+            ModelPart& first_model_part = Kernel::GetModel().CreateModelPart("Main");
             ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart::Pointer p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("ASubModelPart2");
             ModelPart::Pointer p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
@@ -103,7 +104,7 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart second_model_part("Main");
+            ModelPart& second_model_part = Kernel::GetModel().CreateModelPart("Main");
             ModelPart::Pointer p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart::Pointer p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("ASubModelPart2");
             ModelPart::Pointer p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("ZSubModelPart3");
@@ -170,7 +171,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosSubModelPartsListUtilityFastSuite)
         {
             // Creating the reference model part and the relative submodelparts
-            ModelPart first_model_part("Main");
+            ModelPart& first_model_part = Kernel::GetModel().CreateModelPart("Main");
             ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart::Pointer p_first_sub_modelpart_1a = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             ModelPart::Pointer p_first_sub_modelpart_1b = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
@@ -243,7 +244,7 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart second_model_part("Main");
+            ModelPart& second_model_part = Kernel::GetModel().CreateModelPart("Main");
             ModelPart::Pointer p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart::Pointer p_second_sub_modelpart_1a = p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             ModelPart::Pointer p_second_sub_modelpart_1b = p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
@@ -313,7 +314,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityIntersections, KratosSubModelPartsListUtilityFastSuite)
         {
             // Creating the reference model part and the relative submodelparts
-            ModelPart model_part("Main");
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
             ModelPart::Pointer p_sub_modelpart_1 = model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart::Pointer p_sub_modelpart_2 = model_part.CreateSubModelPart("ASubModelPart2");
             ModelPart::Pointer p_sub_modelpart_3 = model_part.CreateSubModelPart("ZSubModelPart3");

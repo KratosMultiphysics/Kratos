@@ -16,6 +16,7 @@
 #include "includes/checks.h"
 #include "includes/gid_io.h"
 #include "utilities/divide_triangle_2d_3.h"
+#include "includes/kernel.h"
 
 namespace Kratos
 {
@@ -25,7 +26,7 @@ namespace Kratos
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Horizontal, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -168,7 +169,7 @@ namespace Kratos
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Vertical, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -310,7 +311,7 @@ namespace Kratos
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3NoDivision, KratosCoreFastSuite)
 		{
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data

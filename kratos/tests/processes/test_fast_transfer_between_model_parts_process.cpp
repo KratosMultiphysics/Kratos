@@ -35,8 +35,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess1, KratosCoreFastTransferBetweenModelPartsProcessFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            ModelPart& origin_model_part = Kernel::GetModel().CreateModelPart("Origin");
+            ModelPart& destination_model_part = Kernel::GetModel().CreateModelPart("Destination");
 
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
 
@@ -93,8 +93,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess2, KratosCoreFastTransferBetweenModelPartsProcessFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            ModelPart& origin_model_part = Kernel::GetModel().CreateModelPart("Origin");
+            ModelPart& destination_model_part = Kernel::GetModel().CreateModelPart("Destination");
             
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
             
