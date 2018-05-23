@@ -1,9 +1,8 @@
 import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-import math
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignGravityToParticleProcess(Model, settings["Parameters"])
 
@@ -37,7 +36,7 @@ class AssignGravityToParticleProcess(KratosMultiphysics.Process):
         if(settings.Has("variable_name")):
             if(settings["variable_name"].GetString() != "MP_VOLUME_ACCELERATION"):
                 KratosMultiphysics.Logger.PrintInfo("Warning in apply gravity to particle", "Error in determining variable_name")
-                raise Exception('This assign_gravity_to_particle_process only accept \"MP_VOLUME_ACCELERATION\" as variable_name.')
+                raise Exception('The assign_gravity_to_particle_process only accepts \"MP_VOLUME_ACCELERATION\" as variable_name.')
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -48,7 +47,6 @@ class AssignGravityToParticleProcess(KratosMultiphysics.Process):
         self.gravity_acceleration = self.modulus * self.gravity_direction
 
     def ExecuteBeforeSolutionLoop(self):
-        
         # Assign gravity to MP after solver.Initialize() - only apply once at the beginning!
         for element in self.model_part.Elements:
             element.SetValue(KratosParticle.MP_VOLUME_ACCELERATION,self.gravity_acceleration) 

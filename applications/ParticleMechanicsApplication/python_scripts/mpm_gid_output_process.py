@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 # Import applications and dependencies
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Import time library
@@ -52,7 +51,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
         self.param = param
         self.base_file_name = file_name
         self.model_part = model_part
-    
+
         self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
@@ -100,9 +99,9 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             coord = mpm.GetValue(KratosParticle.GAUSS_COORD)
             self.mesh_file.write("{} {} {} {}\n".format( mpm.Id, coord[0], coord[1], coord[2]))
         self.mesh_file.write("End Coordinates\n")
-        self.mesh_file.write("Elements\n")  
+        self.mesh_file.write("Elements\n")
         for mpm in self.model_part.Elements:
-            self.mesh_file.write("{} {}\n".format(mpm.Id, mpm.Id )) 
+            self.mesh_file.write("{} {}\n".format(mpm.Id, mpm.Id))
         self.mesh_file.write("End Elements\n")
         self.mesh_file.flush()
 
@@ -153,7 +152,6 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         time = "{0:.12g}".format(time)
         time = float(time)
-
         return time 
 
 
@@ -201,11 +199,13 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             var_name = self.variable_list[i].GetString()
             variable = self._get_variable(var_name)
 
+            is_scalar = self._is_scalar(variable)
+
             # Write in result file
             self.result_file.write("Result \"")
             self.result_file.write(var_name)
             
-            if var_name == "MP_MATERIAL_ID" or var_name == "MP_PRESSURE" or var_name == "MP_EQUIVALENT_PLASTIC_STRAIN":
+            if is_scalar:
                 self.result_file.write('" "Kratos" {} Scalar OnNodes\n'.format(step_label))
             else:
                 self.result_file.write('" "Kratos" {} Vector OnNodes\n'.format(step_label))
@@ -223,10 +223,10 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
                 if print_size == 1:
                     self.result_file.write("{} {}\n".format(mpm.Id, print_variable))
                 elif print_size == 3:
-                    self.result_file.write("{} {} {} {}\n".format(mpm.Id, print_variable[0], print_variable[1], print_variable[2]))            
+                    self.result_file.write("{} {} {} {}\n".format(mpm.Id, print_variable[0], print_variable[1], print_variable[2]))
                 elif print_size == 6:
                     self.result_file.write("{} {} {} {} {} {} {}\n".format(mpm.Id, print_variable[0], print_variable[1], print_variable[2], print_variable[3], print_variable[4], print_variable[5]))
-                else:    
+                else:
                     KratosMultiphysics.Logger.PrintInfo("Warning in mpm gid output", "Printing format is not defined for variable: ", var_name, "with size: ", print_size)
 
             self.result_file.write("End Values\n")
@@ -239,3 +239,11 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
     def _stop_time_measure(self, time_ip):
         time_fp = time.time()
         KratosMultiphysics.Logger.PrintInfo("ParticleMPMGidOutputUtility", "[Spent time for output = ", time_fp - time_ip, "sec]")
+
+    def _is_scalar(self,variable):
+        is_scalar = False
+        if (isinstance(variable,KratosMultiphysics.IntegerVariable) or isinstance(variable,KratosMultiphysics.DoubleVariable) or isinstance(variable,KratosMultiphysics.BoolVariable)):
+            is_scalar = True
+        elif (isinstance(variable,KratosMultiphysics.StringVariable)):
+            raise Exception("String variable cant be printed.")
+        return is_scalar
