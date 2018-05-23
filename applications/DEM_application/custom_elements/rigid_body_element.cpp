@@ -89,7 +89,7 @@ namespace Kratos {
         Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
         Orientation.normalize();
 
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = 0.0;
+        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = 1.0;
 
         if (rigid_body_element_sub_model_part.Has(RIGID_BODY_MASS)) {
             GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = rigid_body_element_sub_model_part[RIGID_BODY_MASS];
@@ -101,6 +101,12 @@ namespace Kratos {
             mInertias[0] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][0];
             mInertias[1] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][1];
             mInertias[2] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][2];
+        }
+
+        else {
+            mInertias[0] = 1.0;
+            mInertias[1] = 1.0;
+            mInertias[2] = 1.0;
         }
 
         const array_1d<double,3>& reference_inertias = mInertias;
