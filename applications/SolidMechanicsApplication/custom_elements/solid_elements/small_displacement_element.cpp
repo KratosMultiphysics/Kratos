@@ -90,12 +90,12 @@ Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
       {
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
+
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_ERROR << " constitutive law not has the correct size small displacement element " << std::endl;
       }
-    
-       
+
+
     for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
       {
 	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
@@ -124,7 +124,7 @@ void SmallDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 						   const int & rPointNumber)
 {
     KRATOS_TRY
-      
+
     rValues.SetStrainVector(rVariables.StrainVector);
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
@@ -135,10 +135,10 @@ void SmallDisplacementElement::SetElementVariables(ElementVariables& rVariables,
       {
 	KRATOS_ERROR << " (small displacement) ELEMENT INVERTED |J|<0 : " << rVariables.detJ << std::endl;
       }
-    
+
     rValues.SetDeterminantF(rVariables.detF);
     rValues.SetDeformationGradientF(rVariables.F);
-    
+
     KRATOS_CATCH( "" )
 }
 
@@ -150,9 +150,9 @@ void SmallDisplacementElement::InitializeElementVariables (ElementVariables & rV
     KRATOS_TRY
 
     SolidElement::InitializeElementVariables(rVariables, rCurrentProcessInfo);
-      
+
     //set variables including all integration points values
-    
+
     //Calculate Delta Position
     rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
 
@@ -174,7 +174,7 @@ void SmallDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatr
   // small displacement element is linear no geometric stiffness present
 }
 
-  
+
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
@@ -190,7 +190,7 @@ void SmallDisplacementElement::CalculateKinematics(ElementVariables& rVariables,
 
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-    
+
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
@@ -226,7 +226,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     noalias(rH) = ZeroMatrix(dimension, dimension);
-    
+
     if( dimension == 2 )
     {
 
@@ -327,14 +327,14 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Ve
 void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX)
 {
     KRATOS_TRY
-      
+
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int voigt_size            = dimension * (dimension +1) * 0.5;
 
     if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
       rB.resize(voigt_size, dimension*number_of_nodes, false );
-    
+
     if( dimension == 2 )
     {
         unsigned int index = 0;
@@ -393,10 +393,10 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
     KRATOS_TRY
 
     SolidElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
-  
+
 //************************************************************************************
 //************************************************************************************
 
@@ -406,10 +406,10 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
     KRATOS_TRY
 
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    
+
     if( rOutput.size() != integration_points_number )
       rOutput.resize( integration_points_number );
-      
+
     if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
     {
         //create and initialize element variables:
@@ -446,10 +446,10 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
     KRATOS_TRY
 
     SolidElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
-  
+
 //************************************************************************************
 //************************************************************************************
 
@@ -460,7 +460,22 @@ int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = SolidElement::Check(rCurrentProcessInfo);
-      
+
+    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+      {
+	// Nodal data
+	Node<3> &rNode = this->GetGeometry()[i];
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+
+	// Nodal dofs
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
+	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3)
+	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
+      }
+
     // Check compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
@@ -502,5 +517,3 @@ void SmallDisplacementElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

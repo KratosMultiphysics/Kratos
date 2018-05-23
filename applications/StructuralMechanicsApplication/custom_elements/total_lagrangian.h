@@ -44,8 +44,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class ShapeParameter;
-
 /**
  * @class TotalLagrangian
  * @ingroup StructuralMechanicsApplication
