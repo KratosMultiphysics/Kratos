@@ -30,19 +30,19 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    class_< ApplyComponentTableProcess, Process >
+    class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
     (m, "ApplyComponentTableProcess")
     .def(init < ModelPart&, Parameters>());
-    class_< ApplyDoubleTableProcess, Process >
+    class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
     (m, "ApplyDoubleTableProcess")
     .def(init < ModelPart&, Parameters>());
-    class_< ApplyConstantHydrostaticPressureProcess, Process >
+    class_<ApplyConstantHydrostaticPressureProcess, ApplyConstantHydrostaticPressureProcess::Pointer, Process>
     (m, "ApplyConstantHydrostaticPressureProcess")
     .def(init < ModelPart&, Parameters>());
-    class_< ApplyHydrostaticPressureTableProcess, Process >
+    class_<ApplyHydrostaticPressureTableProcess, ApplyHydrostaticPressureTableProcess::Pointer, Process>
     (m, "ApplyHydrostaticPressureTableProcess")
     .def(init < ModelPart&, Parameters>());
-    class_< PeriodicInterfaceProcess, Process >
+    class_<PeriodicInterfaceProcess, PeriodicInterfaceProcess::Pointer, Process>
     (m, "PeriodicInterfaceProcess")
     .def(init < ModelPart&, Parameters>());
 }

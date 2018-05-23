@@ -298,19 +298,19 @@ class DamMechanicalSolver(object):
         echo_level = self.settings["mechanical_solver_settings"]["echo_level"].GetInt()
 
         if(convergence_criterion == "Displacement_criterion"):
-            convergence_criterion = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion == "Residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion == "And_criterion"):
-            Displacement = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
         elif(convergence_criterion == "Or_criterion"):
-            Displacement = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
