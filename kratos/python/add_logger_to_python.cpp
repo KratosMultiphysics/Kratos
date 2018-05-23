@@ -48,7 +48,7 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         if(kwargs.contains("label")) {
             label = str(kwargs["label"]);
         } else {
-            label = "undefined";
+            label = "";
         }
     } else {
         label = str(args[0]); //if the kwargs label is false, consider the first entry of the args as the label

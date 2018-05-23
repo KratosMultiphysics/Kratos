@@ -33,6 +33,7 @@
 #include "utilities/activation_utilities.h"
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/condition_number_utility.h"
+#include "utilities/mortar_utilities.h"
 
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
@@ -50,12 +51,25 @@
 #include "utilities/interval_utility.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos
 {
 
 namespace Python
 {
+
+/**
+ * @brief Sets the current table utility on the process info
+ * @param rCurrentProcessInfo The process info
+ */
+void SetOnProcessInfo(
+    typename TableStreamUtility::Pointer pTable,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    rCurrentProcessInfo[TABLE_UTILITY] = pTable;
+}
 
 
 void AddUtilitiesToPython(pybind11::module& m)
@@ -65,7 +79,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    
+
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
     class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
     .def(init<const std::string&>() )
@@ -96,7 +110,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
-    
+
     class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
     .def(init<>())
     .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
@@ -104,71 +118,82 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetConditionNumber", ThisDirectGetConditionNumber)
     ;
 
-    class_<VariableUtils > (m,"VariableUtils")
-    .def(init<>())
-    .def("SetVectorVar", &VariableUtils::SetVectorVar)
-    .def("SetScalarVar", &VariableUtils::SetScalarVar< Variable<double> >)
-    .def("SetScalarVar", &VariableUtils::SetScalarVar< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >)
-    .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVectorVar)
-    .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar< Variable<double> >)
-    .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >)
-    .def("SetVariable", &VariableUtils::SetVariable< bool >)
-    .def("SetVariable", &VariableUtils::SetVariable< double >)
-    .def("SetVariable", &VariableUtils::SetVariable< array_1d<double, 3> >)
-    .def("SetVariable", &VariableUtils::SetVariable< Vector >)
-    .def("SetVariable", &VariableUtils::SetVariable< Matrix >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< bool, ModelPart::NodesContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< double, ModelPart::NodesContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< array_1d<double, 3>, ModelPart::NodesContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Vector, ModelPart::NodesContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Matrix, ModelPart::NodesContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< bool, ModelPart::ConditionsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< double, ModelPart::ConditionsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< array_1d<double, 3>, ModelPart::ConditionsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Vector, ModelPart::ConditionsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Matrix, ModelPart::ConditionsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< bool, ModelPart::ElementsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< double, ModelPart::ElementsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< array_1d<double, 3>, ModelPart::ElementsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Vector, ModelPart::ElementsContainerType >)
-    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Matrix, ModelPart::ElementsContainerType >)
-    .def("SetFlag", &VariableUtils::SetFlag< ModelPart::NodesContainerType >)
-    .def("SetFlag", &VariableUtils::SetFlag< ModelPart::ConditionsContainerType >)
-    .def("SetFlag", &VariableUtils::SetFlag< ModelPart::ElementsContainerType >)
-    .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
-    .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
-    .def("SelectNodeList", &VariableUtils::SelectNodeList)
-    .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
-    .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
-    .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
-    .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
-    // .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
-    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<double> >)
-    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
-    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<array_1d<double, 3> > > )
-    .def("ApplyFixity", &VariableUtils::ApplyFixity< Variable<double> >)
-    .def("ApplyFixity", &VariableUtils::ApplyFixity< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
-    .def("ApplyVector", &VariableUtils::ApplyVector< Variable<double> >)
-    .def("ApplyVector", &VariableUtils::ApplyVector< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
-    .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalNodeScalarVariable< Variable<double> > )
-    .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalNodeScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
-    .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalNodeVectorVariable)
-    .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable< Variable<double> > )
-    .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
-    .def("SumNonHistoricalNodeVectorVariable", &VariableUtils::SumNonHistoricalNodeVectorVariable)
-    .def("SumConditionScalarVariable", &VariableUtils::SumConditionScalarVariable< Variable<double> > )
-    .def("SumConditionScalarVariable", &VariableUtils::SumConditionScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
-    .def("SumConditionVectorVariable", &VariableUtils::SumConditionVectorVariable)
-    .def("SumElementScalarVariable", &VariableUtils::SumElementScalarVariable< Variable<double> > )
-    .def("SumElementScalarVariable", &VariableUtils::SumElementScalarVariable< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
-    .def("SumElementVectorVariable", &VariableUtils::SumElementVectorVariable)
-    .def("AddDof", &VariableUtils::AddDof< Variable<double> > )
-    .def("AddDof", &VariableUtils::AddDof< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
-    .def("AddDof", &VariableUtils::AddDofWithReaction< Variable<double> > )
-    .def("AddDof", &VariableUtils::AddDofWithReaction< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > > )
-	.def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
-	.def("CheckDofs", &VariableUtils::CheckDofs)
-    ;
+    class_<VariableUtils>(m, "VariableUtils")
+        .def(init<>())
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<bool>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<double>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,3>>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<Vector>>)
+        .def("CopyModelPartNodalVar", &VariableUtils::CopyModelPartNodalVar<Variable<Matrix>>)
+        .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<bool>>)
+        .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<double>>)
+        .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<array_1d<double,3>>>)
+        .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Vector>>)
+        .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Matrix>>)
+        .def("SetVectorVar", &VariableUtils::SetVectorVar)
+        .def("SetScalarVar", &VariableUtils::SetScalarVar<Variable<double>>)
+        .def("SetScalarVar", &VariableUtils::SetScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVectorVar)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<Variable<double>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetVariable", &VariableUtils::SetVariable<bool>)
+        .def("SetVariable", &VariableUtils::SetVariable<double>)
+        .def("SetVariable", &VariableUtils::SetVariable<array_1d<double, 3>>)
+        .def("SetVariable", &VariableUtils::SetVariable<Vector>)
+        .def("SetVariable", &VariableUtils::SetVariable<Matrix>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Vector, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Matrix, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Vector, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Matrix, ModelPart::ConditionsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<bool, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Vector, ModelPart::ElementsContainerType>)
+        .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable<Matrix, ModelPart::ElementsContainerType>)
+        .def("SetFlag", &VariableUtils::SetFlag<ModelPart::NodesContainerType>)
+        .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ConditionsContainerType>)
+        .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ElementsContainerType>)
+        .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
+        .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
+        .def("SaveVectorNonHistoricalVar", &VariableUtils::SaveVectorNonHistoricalVar)
+        .def("SaveScalarNonHistoricalVar", &VariableUtils::SaveScalarNonHistoricalVar)
+        .def("SelectNodeList", &VariableUtils::SelectNodeList)
+        .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
+        .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
+        .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
+        .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
+        // .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
+        // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<double> >)
+        // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
+        // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<array_1d<double, 3> > > )
+        .def("ApplyFixity", &VariableUtils::ApplyFixity<Variable<double>>)
+        .def("ApplyFixity", &VariableUtils::ApplyFixity<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
+        .def("ApplyVector", &VariableUtils::ApplyVector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalNodeScalarVariable<Variable<double>>)
+        .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalNodeScalarVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalNodeVectorVariable)
+        .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable<Variable<double>>)
+        .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SumNonHistoricalNodeVectorVariable", &VariableUtils::SumNonHistoricalNodeVectorVariable)
+        .def("SumConditionScalarVariable", &VariableUtils::SumConditionScalarVariable<Variable<double>>)
+        .def("SumConditionScalarVariable", &VariableUtils::SumConditionScalarVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SumConditionVectorVariable", &VariableUtils::SumConditionVectorVariable)
+        .def("SumElementScalarVariable", &VariableUtils::SumElementScalarVariable<Variable<double>>)
+        .def("SumElementScalarVariable", &VariableUtils::SumElementScalarVariable<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SumElementVectorVariable", &VariableUtils::SumElementVectorVariable)
+        .def("AddDof", &VariableUtils::AddDof<Variable<double>>)
+        .def("AddDof", &VariableUtils::AddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("AddDof", &VariableUtils::AddDofWithReaction<Variable<double>>)
+        .def("AddDof", &VariableUtils::AddDofWithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
+        .def("CheckDofs", &VariableUtils::CheckDofs);
 
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
     typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
@@ -374,6 +399,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GenerateCut", &CuttingUtility::GenerateCut)
     .def("UpdateCutData", &CuttingUtility ::UpdateCutData)
     .def("AddSkinConditions", &CuttingUtility ::AddSkinConditions)
+    .def("AddVariablesToCutModelPart", &CuttingUtility::AddVariablesToCutModelPart )
     .def("FindSmallestEdge", &CuttingUtility ::FindSmallestEdge)
     ;
 
@@ -383,13 +409,14 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
     ;
-    
+
     // Adding table from table stream to python
     class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
     .def(init<>())
     .def(init< bool >())
+    .def("SetOnProcessInfo",SetOnProcessInfo)
     ;
-    
+
     // Exact integration (for testing)
     class_<ExactMortarIntegrationUtility<2,2>>(m,"ExactMortarIntegrationUtility2D2N")
     .def(init<>())
@@ -403,12 +430,27 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
     ;
-    
+
     class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
     .def(init<>())
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+    ;
+
+    // Sparse matrix multiplication utility
+    class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
+    .def(init<>())
+    .def("MatrixMultiplication",&SparseMatrixMultiplicationUtility::MatrixMultiplication<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
+    ;
+
+    // Mortar utilities
+    class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
+    .def(init<>())
+    .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
     ;
 }
 

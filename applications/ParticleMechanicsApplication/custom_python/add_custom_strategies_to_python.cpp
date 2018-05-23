@@ -73,17 +73,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     //custom scheme types
     typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
-    //********************************************************************
-    //********************************************************************
-// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-// 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-// 				("TestStrategy",
-// 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-// 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-// 				;
+
     // MPM Residual Based Bossak Scheme Type
     class_< MPMResidualBasedBossakSchemeType,typename MPMResidualBasedBossakSchemeType::Pointer, BaseSchemeType >(m,"MPMResidualBasedBossakScheme")
-        .def(init < ModelPart&, double, double >())
+        .def(init < ModelPart&, unsigned int, double, double>())
         .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
         .def("IterativeExtrapolation", &MPMResidualBasedBossakSchemeType::IterativeExtrapolation)
         ;

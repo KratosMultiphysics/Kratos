@@ -51,6 +51,11 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(AUX_T_ACC)
     model_part.AddNodalSolutionStepVariable(DENSITY)
     model_part.AddNodalSolutionStepVariable(NODAL_LUMPED_MASS)
+    
+    # add for slope with slips
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
+    model_part.AddNodalSolutionStepVariable(NORMAL)
+    
 
     if config is not None:
         if hasattr(config, "RotationDofs"):
@@ -102,6 +107,8 @@ class ParticleSolver:
     #
 
     def __init__(self, model_part1, model_part2, model_part3, new_element, domain_size, geometry_element, number_particle):
+        
+        Logger.PrintInfo("ParticleSolver", "This Solver is deprecated and could be removed sometime soon.")
 
         # default settings
         

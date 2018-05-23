@@ -778,7 +778,14 @@ namespace Kratos {
 
         Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(0); ////This is Properties 0 ?????
 
-        std::string ElementNameString = "RigidBodyElement3D";
+        std::string ElementNameString;
+        
+        if (!submp[FLOATING_OPTION]) {
+            ElementNameString = "RigidBodyElement3D";
+        } else {
+            ElementNameString = "ShipElement3D";
+        }
+        
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         Element::Pointer RigidBodyElement3D_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
         RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
@@ -832,7 +839,7 @@ namespace Kratos {
 
         Vector rhs_cond;
         Vector rhs_cond_elas;
-        vector<unsigned int> condition_partition;
+        DenseVector<unsigned int> condition_partition;
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
         unsigned int index;
 
@@ -845,13 +852,16 @@ namespace Kratos {
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
 
                 Condition::GeometryType& geom = it->GetGeometry();
+                
                 //double Element_Area = geom.Area();
 
                 it->CalculateRightHandSide(rhs_cond, r_process_info);
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
-                array_1d<double, 3> Normal_to_Element;
-                p_wall->CalculateNormal(Normal_to_Element);
+                array_1d<double, 3> Normal_to_Element = ZeroVector(3);
+
+                if (geom.size()>2) p_wall->CalculateNormal(Normal_to_Element);
+
                 const unsigned int& dim = geom.WorkingSpaceDimension();
 
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
@@ -1241,7 +1251,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            boost::numeric::ublas::vector<int> mTempNeighboursIds;
+            DenseVector<int> mTempNeighboursIds;
             std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
             std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
 
@@ -1538,7 +1548,7 @@ namespace Kratos {
         ProcessInfo& r_process_info = (*mpDem_model_part).GetProcessInfo();
         ElementsArrayType& pElements = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
 
-        vector<unsigned int> element_partition;
+        DenseVector<unsigned int> element_partition;
 
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), element_partition);
 

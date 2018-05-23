@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-class VelocityField : public VectorField<3>
+class KRATOS_API(SWIMMING_DEM_APPLICATION) VelocityField : public VectorField<3>
 {
 public:
 
@@ -61,9 +61,9 @@ void CalculateGradient(const double time,
 
 void CalculateGradient(const double time,
                        const array_1d<double, 3>& coor,
-                       vector< double>& gradient_x,
-                       vector< double>& gradient_y,
-                       vector< double>& gradient_z,
+                       DenseVector< double>& gradient_x,
+                       DenseVector< double>& gradient_y,
+                       DenseVector< double>& gradient_z,
                        const int i_thread);
 
 double CalculateDivergence(const double time,
@@ -105,42 +105,42 @@ virtual void LockCoordinates(const int i_thread = 0){(void)i_thread;}
 virtual void UnlockCoordinates(const int i_thread = 0){(void)i_thread;}
 
 void Evaluate(const double time,
-              const vector<double>& coor,
-              vector<double>& result,
+              const DenseVector<double>& coor,
+              DenseVector<double>& result,
               const int i_thread = 0) override;
 
 void CalculateTimeDerivative(const double time,
-                             const vector<double>& coor,
-                             vector<double>& result,
+                             const DenseVector<double>& coor,
+                             DenseVector<double>& result,
                              const int i_thread = 0) override;
 
-double CalculateDivergence(const double time, const vector<double>& coor, const int i_thread = 0) override;
+double CalculateDivergence(const double time, const DenseVector<double>& coor, const int i_thread = 0) override;
 
 void CalculateRotational(const double time,
-                         const vector<double>& coor,
-                         vector<double>& result,
+                         const DenseVector<double>& coor,
+                         DenseVector<double>& result,
                          const int i_thread = 0) override;
 
 void CalculateLaplacian(const double time,
-                        const vector<double>& coor,
-                        vector<double>& result,
+                        const DenseVector<double>& coor,
+                        DenseVector<double>& result,
                         const int i_thread = 0) override;
 
 virtual void CalculateMaterialAcceleration(const double time,
-                                           const vector<double>& coor,
-                                           vector<double>& result,
+                                           const DenseVector<double>& coor,
+                                           DenseVector<double>& result,
                                            const int i_thread = 0);
 
 virtual void CalculateConvectiveDerivative(const double time,
-                                           const vector<double>& coor,
-                                           vector<double>& result,
+                                           const DenseVector<double>& coor,
+                                           DenseVector<double>& result,
                                            const int i_thread = 0);
 
 void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed) override;
 
 virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable);
 
-virtual void UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread = 0){}
+virtual void UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread = 0){}
 //***************************************************************************************************************
 //***************************************************************************************************************
 

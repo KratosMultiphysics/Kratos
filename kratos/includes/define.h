@@ -308,14 +308,19 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 
     
     
-    
-#ifdef __GNUC__
+#if __cplusplus >= 201402L
+#define KRATOS_DEPRECATED [[deprecated]]
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
+#elif __GNUC__
 #define KRATOS_DEPRECATED __attribute__((deprecated))
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
 #elif defined(_MSC_VER)
 #define KRATOS_DEPRECATED __declspec(deprecated)
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
 #else
 #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
 #define KRATOS_DEPRECATED
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message)
 #endif
     
 

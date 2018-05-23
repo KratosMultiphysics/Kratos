@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_ALE_APPLICATION_H_INCLUDED)
-#define KRATOS_ALE_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_EXTERNAL_SOLVERS_APPLICATION_H_INCLUDED)
+#define KRATOS_EXTERNAL_SOLVERS_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>
@@ -100,7 +100,7 @@ class KratosExternalSolversApplication : public KratosApplication {
 
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override {
-        KRATOS_WATCH("in KratosALEApplication application");
+        KRATOS_WATCH("in KratosExternalSolvers application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
@@ -203,4 +203,4 @@ class KratosExternalSolversApplication : public KratosApplication {
 
 }  // namespace Kratos.
 
-#endif  // KRATOS_ALE_APPLICATION_H_INCLUDED  defined
+#endif  // KRATOS_EXTERNAL_SOLVERS_APPLICATION_H_INCLUDED  defined
