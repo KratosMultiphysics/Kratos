@@ -113,10 +113,6 @@ LargeDisplacementElement::~LargeDisplacementElement()
 {
 }
 
-
-//************************************************************************************
-//************************************************************************************
-
 //************************************************************************************
 //************************************************************************************
 
@@ -129,6 +125,9 @@ void LargeDisplacementElement::GetHistoricalVariables( ElementVariables& rVariab
     noalias(rVariables.F) = IdentityMatrix(size);
 
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 						   ConstitutiveLaw::Parameters& rValues,

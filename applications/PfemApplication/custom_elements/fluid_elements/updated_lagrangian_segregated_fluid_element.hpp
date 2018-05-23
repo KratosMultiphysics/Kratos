@@ -2,20 +2,21 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
+//   Date:                $Date:               April 2018 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED)
-#define  KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_SEGREGATED_FLUID_ELEMENT_H_INCLUDED)
+#define  KRATOS_UPDATED_LAGRANGIAN_SEGREGATED_FLUID_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/solid_elements/solid_element.hpp"
+#include "custom_elements/solid_elements/updated_lagrangian_segregated_fluid_element.hpp"
+
 
 namespace Kratos
 {
@@ -34,21 +35,20 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
+/// Large Displacement Lagrangian VP Element for 3D and 2D geometries
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D (base class)
+ * This works for linear Triangles and Tetrahedra (base class)
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) LargeDisplacementElement
-    : public SolidElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) UpdatedLagrangianSegregatedFluidElement
+    : public LargeDisplacementVElement
 {
 public:
 
     ///@name Type Definitions
     ///@{
-  
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
@@ -57,41 +57,47 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    
-    /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementElement );
 
+    /// Counted pointer of UpdatedLagrangianSegregatedFluidElement
+    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianSegregatedFluidElement );
     ///@}
+
+    enum StepType {VELOCITY_STEP = 1, PRESSURE_STEP = 2}
+    
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    LargeDisplacementElement();
+    UpdatedLagrangianSegregatedFluidElement();
 
     /// Default constructors
-    LargeDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianSegregatedFluidElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    LargeDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianSegregatedFluidElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    LargeDisplacementElement(LargeDisplacementElement const& rOther);
+    UpdatedLagrangianSegregatedFluidElement(UpdatedLagrangianSegregatedFluidElement const& rOther);
+
 
     /// Destructor.
-    virtual ~LargeDisplacementElement();
+    virtual ~UpdatedLagrangianSegregatedFluidElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    LargeDisplacementElement& operator=(LargeDisplacementElement const& rOther);
+    UpdatedLagrangianSegregatedFluidElement& operator=(UpdatedLagrangianSegregatedFluidElement const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
-
     /**
-     * creates a new element pointer
+     * Returns the currently selected integration method
+     * @return current integration method selected
+     */
+    /**
+     * creates a new total lagrangian updated element pointer
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
@@ -108,39 +114,44 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
+    //************* GETTING METHODS
+
+    /**
+    * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+    */
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     */
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Sets on rValues the nodal displacements
+     */
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
+
+    /**
+     * Sets on rValues the nodal velocities
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+
+    /**
+     * Sets on rValues the nodal accelerations
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
+    
 
     /**
      * Called at the end of eahc solution step
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-
-
-    //on integration points:
-
-    /**
-     * Calculate a double Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Calculate a Vector Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Calculate a Matrix Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
     
-
-
     //************************************************************************************
     //************************************************************************************
     /**
@@ -151,7 +162,6 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
 
     ///@}
     ///@name Access
@@ -167,14 +177,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Large Displacement Element #" << Id();
+        buffer << "Updated Lagrangian Fluid Element #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Large Displacement Element #" << Id();
+        rOStream << "Updated Lagrangian Fluid Element #" << Id();
     }
 
     /// Print object's data.
@@ -190,7 +200,6 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -199,24 +208,49 @@ protected:
      * Finalize and Initialize label
      */
     bool mFinalizedStep;
-
-	
+   
     ///@}
     ///@name Protected Operators
     ///@{
-    
     ///@}
     ///@name Protected Operations
     ///@{
 
 
     /**
+     * Calculation and addition of the matrices of the LHS
+     */
+
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                            ElementVariables& rVariables,
+                            double& rIntegrationWeight) override;
+    
+    /**
+     * Get element size from the dofs
+     */    
+    unsigned int GetDofsSize() override;
+
+    /**
+     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
+     */
+
+    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+                                     ElementVariables& rVariables,
+                                     double& rIntegrationWeight);
+
+    /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             ElementVariables& rVariables,
-                             double& rIntegrationWeight) override;
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+                                     ElementVariables& rVariables,
+                                     double& rIntegrationWeight);    
 
+    /**
+     * Calculation of the Pressure Stiffness Matrix. Kpp
+     */
+    virtual void CalculateAndAddKpp(MatrixType& rLeftHandSideMatrix,
+                                    ElementVariables& rVariables,
+                                    double& rIntegrationWeight);
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
@@ -225,23 +259,31 @@ protected:
                              const int & rPointNumber) override;
     
     /**
-     * Get the Historical Deformation Gradient to calculate after finalize the step
+     * Calculation of the velocity gradient
      */
-    virtual void GetHistoricalVariables(ElementVariables& rVariables, 
-					const double& rPointNumber );
+    void CalculateVelocityGradient(Matrix& rH,
+                                   const Matrix& rDN_DX,
+                                   unsigned int step = 0);
 
     /**
-     * Calculation of the Green Lagrange Strain Vector
+     * Calculation of the velocity gradient
      */
-    virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
-            Vector& rStrainVector);
+    void CalculateVelocityGradientVector(Vector& rH,
+                                         const Matrix& rDN_DX,
+                                         unsigned int step = 0);
+
+    
+    /**
+     * Calculation of the symmetric velocity gradient Vector
+     */
+    void CalculateSymmetricVelocityGradient(const Matrix& rH,
+                                            Vector& rStrainVector);
 
     /**
-     * Calculation of the Almansi Strain Vector
+     * Calculation of the skew symmetric velocity gradient Vector
      */
-    virtual void CalculateAlmansiStrain(const Matrix& rF,
-                                        Vector& rStrainVector);
-
+    void CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
+                                                Vector& rStrainVector);
 
     ///@}
     ///@name Protected  Access
@@ -261,23 +303,16 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-
     ///@}
     ///@name Private Operators
     ///@{
-
-
     ///@}
     ///@name Private Operations
     ///@{
-
-
     ///@}
     ///@name Private  Access
     ///@{
     ///@}
-
     ///@}
     ///@name Serialization
     ///@{
@@ -297,7 +332,7 @@ private:
     ///@{
     ///@}
 
-}; // Class LargeDisplacementElement
+}; // Class UpdatedLagrangianSegregatedFluidElement
 
 ///@}
 ///@name Type Definitions
@@ -308,4 +343,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_SEGREGATED_FLUID_ELEMENT_H_INCLUDED  defined 

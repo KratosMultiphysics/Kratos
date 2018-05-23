@@ -593,9 +593,9 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
     double IntegrationWeight = 1;
 
     //auxiliary terms
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Vector VolumeForce(dimension);
-    noalias(VolumeForce) = ZeroVector(dimension);
+    // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    // Vector VolumeForce(dimension);
+    // noalias(VolumeForce) = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -625,9 +625,9 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
-            VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
+            //VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
 
-	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
+	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
         }
 
 	//for debugging purposes
@@ -760,7 +760,7 @@ void FluidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, Eleme
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void FluidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
 {
   KRATOS_ERROR << " calling the default method CalculateAndAddRHS for a fluid element " << std::endl;  
 }
@@ -1347,34 +1347,195 @@ void FluidElement::CalculateKinematics(ElementVariables& rVariables, const doubl
 //****************************COMPUTE VELOCITY GRADIENT*******************************
 //************************************************************************************
 
-void FluidElement::CalculateVelocityGradient(const Matrix& rDN_DX, Matrix& rDF )
+void FluidElement::CalculateVelocityGradient(Matrix& rH,
+                                             const Matrix& rDN_DX,
+                                             unsigned int step)
 {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    rH = zero_matrix<double> ( dimension );
 
-
-    rDF=zero_matrix<double> ( dimension );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    if( dimension == 2 )
     {
-        //Displacement from the reference to the current configuration
-        array_1d<double, 3 > & CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        for ( unsigned int j = 0; j < dimension; j++ )
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            for ( unsigned int k = 0; k < dimension; k++ )
-            {
-                rDF ( j , k ) += CurrentVelocity[j]*rDN_DX ( i , k );
-            }
+            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+          
+            rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rH ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rH ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+        }
+
+    }
+    else if( dimension == 3)
+    {
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+            
+            rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rH ( 0 , 2 ) += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+            rH ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rH ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rH ( 1 , 2 ) += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+            rH ( 2 , 0 ) += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+            rH ( 2 , 1 ) += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+            rH ( 2 , 2 ) += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+        }
+
+    }
+    else
+    {
+      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
+    }
+    
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void FluidElement::CalculateVelocityGradientVector(Vector& rH,
+                                                   const Matrix& rDN_DX,
+                                                   unsigned int step)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    rH = ZeroVector( dimension * dimension );
+
+    if( dimension == 2 )
+    {
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+          
+            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rH[2] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rH[3] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
 
         }
 
     }
+    else if( dimension == 3)
+    {
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+            
+            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rH[2] += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+            
+            rH[3] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rH[4] += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+            rH[5] += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+
+            rH[6] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rH[7] += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+            rH[8] += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+        }
+
+    }
+    else
+    {
+      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
+    }
+    
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void FluidElement::CalculateSymmetricVelocityGradient(const Matrix& rH,
+                                                      Vector& rStrainVector)
+{
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    if( dimension == 2 )
+    {
+        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+
+        rStrainVector[0] = rH( 0, 0 );
+        rStrainVector[1] = rH( 1, 1 );
+        rStrainVector[2] = (rH( 0, 1 ) + rH( 1, 0 )); // xy
+
+    }
+    else if( dimension == 3 )
+    {
+        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
+
+        rStrainVector[0] = rH( 0, 0 );
+        rStrainVector[1] = rH( 1, 1 );
+        rStrainVector[2] = rH( 2, 2 );
+        rStrainVector[3] = ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
+        rStrainVector[4] = ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
+        rStrainVector[5] = ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
+
+    }
+    else
+    {
+        KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
+    }
 
     KRATOS_CATCH( "" )
 }
+
+
+//************************************************************************************
+//************************************************************************************
+
+void FluidElement::CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
+                                                          Vector& rStrainVector)
+{
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    if( dimension == 2 )
+    {
+        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+
+        rStrainVector[0] = 0.0;
+        rStrainVector[1] = 0.0;
+        rStrainVector[2] = (rH( 0, 1 ) - rH( 1, 0 )); // xy
+
+    }
+    else if( dimension == 3 )
+    {
+        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
+
+        rStrainVector[0] = 0.0;
+        rStrainVector[1] = 0.0;
+        rStrainVector[2] = 0.0;
+        rStrainVector[3] = ( rH( 0, 1 ) - rH( 1, 0 ) ); // xy
+        rStrainVector[4] = ( rH( 1, 2 ) - rH( 2, 1 ) ); // yz
+        rStrainVector[5] = ( rH( 0, 2 ) - rH( 2, 0 ) ); // xz
+
+    }
+    else
+    {
+        KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
 
 //*************************COMPUTE DELTA POSITION*************************************
 //************************************************************************************

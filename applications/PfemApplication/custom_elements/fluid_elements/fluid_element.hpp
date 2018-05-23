@@ -93,7 +93,8 @@ protected:
         //for axisymmetric use only
         double  CurrentRadius;
         double  ReferenceRadius;
-
+        double  IntegrationWeight;
+      
         //general variables for large displacement use
         double  detF; 
         double  detF0; 
@@ -661,7 +662,6 @@ protected:
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     ElementVariables& rVariables,
-                                    Vector& rVolumeForce,
                                     double& rIntegrationWeight);
 
 
@@ -791,11 +791,30 @@ protected:
 				       const double& rPointNumber);
 
     /**
-     * Calculation of the Velocity Gradient
+     * Calculation of the velocity gradient
      */
-    void CalculateVelocityGradient(const Matrix& rDN_DX,
-                                   Matrix& rDF );
+    void CalculateVelocityGradient(Matrix& rH,
+                                   const Matrix& rDN_DX,
+                                   unsigned int step = 0);
 
+    /**
+     * Calculation of the velocity gradient
+     */
+    void CalculateVelocityGradientVector(Vector& rH,
+                                         const Matrix& rDN_DX,
+                                         unsigned int step = 0);
+
+    /**
+     * Calculation of the symmetric velocity gradient Vector
+     */
+    void CalculateSymmetricVelocityGradient(const Matrix& rH,
+                                            Vector& rStrainVector);
+
+    /**
+     * Calculation of the skew symmetric velocity gradient Vector
+     */
+    void CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
+                                                Vector& rStrainVector);
 
     /**
      * Calculation of the Integration Weight
