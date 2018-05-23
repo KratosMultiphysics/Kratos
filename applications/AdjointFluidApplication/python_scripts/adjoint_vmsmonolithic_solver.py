@@ -208,9 +208,6 @@ class AdjointVMSMonolithicSolver:
         self.solver.Initialize()
 
     def InitializeSolutionStep(self):
-        print(self.settings["time_stepping"]["time_step"].GetDouble())
-        print(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])
-        print(self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
         self.solver.InitializeSolutionStep()
 
     def Predict(self):
