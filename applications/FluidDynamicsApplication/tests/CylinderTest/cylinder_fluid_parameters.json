@@ -144,5 +144,25 @@
             "remove_output_file"    : true,
 	        "decimal_places"      : 7
         }
+    },{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_primal_output_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+            "model_part_name" : "MainModelPart",
+            "file_settings" : {
+                "file_access_mode" : "truncate"
+            },
+            "model_part_output_settings" : {
+                "prefix" : "/ModelData"
+            },
+            "nodal_results_settings" : {
+                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+            },
+            "output_time_settings" : {
+                "output_step_frequency": 1
+            }
+        }
     }]
 }

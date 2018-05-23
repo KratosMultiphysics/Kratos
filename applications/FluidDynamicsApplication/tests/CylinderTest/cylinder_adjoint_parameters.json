@@ -1,11 +1,11 @@
 {
     "problem_data"                     : {
         "problem_name"    : "cylinder_2d",
-        "model_part_name" : "AdjointModelPart",
+        "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
-        "start_step"      : 0.11,
+        "start_step"      : 1.1,
         "nsteps"          : 10,
-        "time_step"       :-0.01,
+        "time_step"       :-0.1,
         "echo_level"      : 1,
         "parallel_type"   : "OpenMP"
     },
@@ -37,10 +37,10 @@
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
+            "sensitivity_model_part_name" : "NoSlip2D_cylinder",
             "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
-                "structure_model_part_name" : "NoSlip2D_Cylinder",
+                "structure_model_part_name" : "NoSlip2D_cylinder",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
         },
@@ -59,20 +59,14 @@
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "cylinder_2d"
+        },
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : -0.1
         }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignScalarVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet2D_Outlet",
-            "variable_name"   : "ADJOINT_PRESSURE",
-            "value"           : 0
-        }
-    },{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignVectorVariableProcess",
@@ -88,7 +82,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_wall",
+            "model_part_name" : "VelocityConstraints2D_walls",
             "variable_name"   : "ADJOINT_VELOCITY",
 	        "value"           : [0.0, 0.0, 0.0]
         }
@@ -100,6 +94,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_cylinder",
             "variable_name"   : "ADJOINT_VELOCITY",
+            "constrained"     : [false,true,true],
 	        "value"           : [0.0, 0.0, 0.0]
         }
     }],
@@ -122,7 +117,7 @@
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
-	        "model_part_name" : "AdjointModelPart",
+	        "model_part_name" : "MainModelPart",
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
@@ -136,9 +131,9 @@
         "help"            : "",
         "process_name"    : "PointOutputProcess",
         "Parameters" : {
-            "position"         : [0.020957, 0.0055272, 0.0],
+            "position"         : [4.0, 4.709493, 0.0],
             "model_part_name"  : "Parts_fluid",
-            "output_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe1.dat",
+            "output_file_name" : "cylinder_adjoint_test_probe1.dat",
             "output_variables" : ["ADJOINT_VELOCITY_X", "ADJOINT_VELOCITY_Y"]
         }
      },{
@@ -149,7 +144,7 @@
         "Parameters" : {
             "position"         : [3.150768, 4.043068, 0.0],
             "model_part_name"  : "Parts_fluid",
-            "output_file_name" : "cylinder_adjoint_test_probe1.dat",
+            "output_file_name" : "cylinder_adjoint_test_probe2.dat",
             "output_variables" : ["ADJOINT_PRESSURE"]
         }
      },{
@@ -158,9 +153,9 @@
         "help"            : "",
         "process_name"    : "PointOutputProcess",
         "Parameters" : {
-            "position"         : [4.849232,4.043068, 0.0],
+            "position"         : [4.3256862406, 3.6206209380, 0.0],
             "model_part_name"  : "Parts_fluid",
-            "output_file_name" : "cylinder_adjoint_test_probe2.dat",
+            "output_file_name" : "cylinder_adjoint_test_probe3.dat",
             "output_variables" : ["SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"]
         }
     },{
@@ -169,9 +164,10 @@
         "help"            : "",
         "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "output_file_name"    : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe1.dat",
-            "reference_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe1_ref.dat",
+            "output_file_name"    : "cylinder_adjoint_test_probe1.dat",
+            "reference_file_name" : "cylinder_adjoint_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
+            "remove_output_file"    : false,
             "decimal_places"      : 5
         }
     },{
@@ -180,9 +176,10 @@
         "help"            : "",
         "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "output_file_name"    : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe2.dat",
-            "reference_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe2_ref.dat",
+            "output_file_name"    : "cylinder_adjoint_test_probe2.dat",
+            "reference_file_name" : "cylinder_adjoint_test_probe2_ref.dat",
             "comparison_type"     : "dat_file",
+            "remove_output_file"    : false,
 	        "decimal_places"      : 5
         }
     },{
@@ -191,9 +188,10 @@
         "help"            : "",
         "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "output_file_name"    : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3.dat",
-            "reference_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3_ref.dat",
+            "output_file_name"    : "cylinder_adjoint_test_probe3.dat",
+            "reference_file_name" : "cylinder_adjoint_test_probe3.dat",
             "comparison_type"     : "dat_file",
+            "remove_output_file"    : false,
 	        "decimal_places"      : 10
         }
     }]
