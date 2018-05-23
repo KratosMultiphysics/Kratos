@@ -52,54 +52,72 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
-        computing_model_part = self.solver.GetComputingModelPart()
-        remeshing_process = self.solver.get_remeshing_process()
-        convergence_criteria = self.solver.get_convergence_criterion()
-        builder_and_solver = self.solver.get_builder_and_solver()
-        mechanical_solution_strategy = self.solver.get_mechanical_solution_strategy()
+        # If we remesh using a process
+        if (self.process_remesh is True):
+            if (self.main_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                # WE INITIALIZE THE SOLVER
+                self.solver.Initialize()
+                # WE RECOMPUTE THE PROCESSES AGAIN
+                ## Processes initialization
+                for process in self.list_of_processes:
+                    process.ExecuteInitialize()
+                ## Processes before the loop
+                for process in self.list_of_processes:
+                    process.ExecuteBeforeSolutionLoop()
+                ## Processes of initialize the solution step
+                for process in self.list_of_processes:
+                    process.ExecuteInitializeSolutionStep()
 
-        while self.time < self.end_time:
-            self.time = self.solver.AdvanceInTime(self.time)
-            non_linear_iteration = 1
-            while non_linear_iteration <= self.non_linear_iterations:
-                if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
-                    # Set again all  GiD  I/O
-                    self._SetUpGiDOutput()
-                    if self.have_output:
-                        self.list_of_processes[-1] = self.output
-                    # WE RECOMPUTE THE PROCESSES AGAIN
-                    # Processes initialization
-                    for process in self.list_of_processes:
-                        process.ExecuteInitialize()
-                    ## Processes before the loop
-                    for process in self.list_of_processes:
-                        process.ExecuteBeforeSolutionLoop()
-                    ## Processes of initialize the solution step
-                    for process in self.list_of_processes:
-                        process.ExecuteInitializeSolutionStep()
-                if (non_linear_iteration == 1 or computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
-                    self.InitializeSolutionStep()
-                    self.solver.Predict()
-                    computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
-                    self.is_printing_rank = False
-                computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
-                is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
-                self.solver.SolveSolutionStep()
-                is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
-                self.FinalizeSolutionStep()
-                if (is_converged):
-                    self.is_printing_rank = True
-                    KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
-                    break
-                elif (non_linear_iteration == self.non_linear_iterations):
-                    self.is_printing_rank = True
-                    KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
-                    break
-                else:
-                    remeshing_process.Execute()
-                    computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
-                    non_linear_iteration += 1
-            self.OutputSolutionStep()
+                super(AdaptativeContactStructuralMechanicsAnalysis, self).RunSolutionLoop()
+        else: # Remeshing adaptively
+            computing_model_part = self.solver.GetComputingModelPart()
+            remeshing_process = self.solver.get_remeshing_process()
+            convergence_criteria = self.solver.get_convergence_criterion()
+            builder_and_solver = self.solver.get_builder_and_solver()
+            mechanical_solution_strategy = self.solver.get_mechanical_solution_strategy()
+
+            while self.time < self.end_time:
+                self.time = self.solver.AdvanceInTime(self.time)
+                non_linear_iteration = 1
+                while non_linear_iteration <= self.non_linear_iterations:
+                    if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                        # Set again all  GiD  I/O
+                        self._SetUpGiDOutput()
+                        if self.have_output:
+                            self.list_of_processes[-1] = self.output
+                        # WE RECOMPUTE THE PROCESSES AGAIN
+                        # Processes initialization
+                        for process in self.list_of_processes:
+                            process.ExecuteInitialize()
+                        ## Processes before the loop
+                        for process in self.list_of_processes:
+                            process.ExecuteBeforeSolutionLoop()
+                        ## Processes of initialize the solution step
+                        for process in self.list_of_processes:
+                            process.ExecuteInitializeSolutionStep()
+                    if (non_linear_iteration == 1 or computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                        self.InitializeSolutionStep()
+                        self.solver.Predict()
+                        computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
+                        self.is_printing_rank = False
+                    computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
+                    is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
+                    self.solver.SolveSolutionStep()
+                    is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
+                    self.FinalizeSolutionStep()
+                    if (is_converged):
+                        self.is_printing_rank = True
+                        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
+                        break
+                    elif (non_linear_iteration == self.non_linear_iterations):
+                        self.is_printing_rank = True
+                        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
+                        break
+                    else:
+                        remeshing_process.Execute()
+                        computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
+                        non_linear_iteration += 1
+                self.OutputSolutionStep()
 
     #### Internal functions ####
     def _CreateSolver(self, external_model_part=None):
@@ -130,6 +148,47 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
         if not self.using_external_model_part:
             ## Read the model - note that SetBufferSize is done here
             self.solver.ReadModelPart() # TODO move to global instance
+
+    def _SetUpListOfProcesses(self):
+        """ Set up the list of processes """
+
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(self.model)
+        self.list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
+        self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
+        if (self.project_parameters.Has("list_other_processes") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
+        if (self.project_parameters.Has("json_output_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
+        # Processes for tests
+        if (self.project_parameters.Has("json_check_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
+        if (self.project_parameters.Has("check_analytic_results_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
+        if (self.project_parameters.Has("contact_process_list") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["contact_process_list"])
+        if (self.ProjectParameters.Has("recursive_remeshing_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.ProjectParameters["recursive_remeshing_process"])
+            self.process_remesh = True
+        else:
+            self.process_remesh = False
+
+        #TODO this should be generic
+        # initialize GiD  I/O
+        self._SetUpGiDOutput()
+        if self.have_output:
+            self.list_of_processes += [self.output,]
+
+        if self.is_printing_rank and self.echo_level > 1:
+            count = 0
+            for process in self.list_of_processes:
+                count += 1
+                # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
+
+        ## Add the processes to the solver
+        self.solver.AddProcessesList(self.list_of_processes)
+        if (self.have_output is True):
+            self.solver.AddPostProcess(self.output)
 
 if __name__ == "__main__":
     from sys import argv
