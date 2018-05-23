@@ -80,8 +80,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialProcess : public 
     ///@name Operations
     ///@{
 
-    void Execute() override;
-
     ///@}
     ///@name Access
     ///@{

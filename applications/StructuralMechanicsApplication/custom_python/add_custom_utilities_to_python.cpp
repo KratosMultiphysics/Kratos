@@ -33,7 +33,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     class_<ReadMaterialProcess, Process>(m, "ReadMaterialProcess")
         .def(init< ModelPart&, Parameters >())
-        .def("Execute",&ReadMaterialProcess::Execute)
         ;
 }
 
