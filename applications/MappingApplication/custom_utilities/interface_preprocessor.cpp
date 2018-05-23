@@ -55,14 +55,15 @@ namespace Kratos
 
     void InterfacePreprocessor::CreateMapperLocalSystemsFromNodes(const MapperLocalSystemPointer& rpLocalSystem)
     {
-        const std::size_t num_nodes = mrModelPartDestination.NumberOfNodes();
+        const std::size_t num_nodes = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
+        const auto nodes_ptr_begin = mrModelPartDestination.GetCommunicator().LocalMesh().Nodes().ptr_begin();
 
         mpMapperLocalSystems->resize(num_nodes);
 
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(num_nodes); ++i)
         {
-            auto it_node = mrModelPartDestination.Nodes().ptr_begin() + i;
+            auto it_node = nodes_ptr_begin + i;
             (*mpMapperLocalSystems)[i] = rpLocalSystem->Create(*(it_node));
         }
     }

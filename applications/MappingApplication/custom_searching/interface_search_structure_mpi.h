@@ -69,6 +69,8 @@ public:
     /// Pointer definition of InterfaceSearchStructureMPI
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructureMPI);
 
+    typedef matrix<int> GraphType; // GraphColoringProcess
+
     using BaseType = InterfaceSearchStructure;
 
     using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
@@ -166,9 +168,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void Initialize() override
+    void Initialize(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override
     {
-        BaseType::Initialize(); // this has to be done first in order to build the internal datastructure!
+        BaseType::Initialize(InterfaceObjectTypeOrigin); // this has to be done first in order to build the internal datastructure!
         InitializeBoundingBox();
     }
 

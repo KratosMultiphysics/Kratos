@@ -63,6 +63,8 @@ public:
     /// Pointer definition of MapperInterfaceInfo
     KRATOS_CLASS_POINTER_DEFINITION(MapperInterfaceInfo);
 
+    using IndexType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -70,7 +72,7 @@ public:
     /// Default constructor.
     MapperInterfaceInfo() {}
 
-    MapperInterfaceInfo(const Point rPoint, const int SourceLocalSystemIndex, const int SourceRank=0)
+    MapperInterfaceInfo(const Point rPoint, const IndexType SourceLocalSystemIndex, const int SourceRank=0)
         : mSourceLocalSystemIndex(SourceLocalSystemIndex),
           mSourceRank(SourceRank),
           mCoordinates(rPoint)
@@ -102,10 +104,10 @@ public:
         return mInterfaceData;
     }
 
-    bool SendBack()
-    {
-        return mInterfaceData.SendBack();
-    }
+    // bool SendBack()
+    // {
+    //     return mInterfaceData.SendBack();
+    // }
 
     MapperInterfaceInfo::Pointer Create(const Point rPoint, const int SourceLocalSystemIndex, const int SouceRank)
     {
@@ -118,6 +120,13 @@ public:
     {
         mInterfaceData.Clear();
     }
+
+    bool GetLocalSearchWasSuccessful() const
+    {
+        return mInterfaceData.GetLocalSearchWasSuccessful();
+    }
+
+    IndexType GetLocalSystemIndex() const { return mSourceLocalSystemIndex; }
 
     int GetSourceRank() const { return mSourceRank; }
 
@@ -166,11 +175,12 @@ protected:
     ///@{
 
     // These variables need serialization
-    int mSourceLocalSystemIndex;
+    IndexType mSourceLocalSystemIndex;
 
     // These variables are NOT being serialized bcs they are not needed after searching!
     int mSourceRank = 0;
     array_1d<double, 3> mCoordinates;
+    bool mLocalSearchWasSuccessful = false;
 
     ///@}
     ///@name Protected Operators

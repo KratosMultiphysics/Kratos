@@ -39,7 +39,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-// typedef matrix<int> GraphType; // GraphColoringProcess
 
 ///@}
 ///@name  Enum's
@@ -75,6 +74,9 @@ public:
 
     using BinsUniquePointerType = Kratos::unique_ptr<BinsObjectDynamic<InterfaceObjectConfigure>>;
 
+    using InterfaceObjectContainerType = InterfaceObjectConfigure::ContainerType;
+    using InterfaceObjectContainerUniquePointerType = Kratos::unique_ptr<InterfaceObjectContainerType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -102,18 +104,27 @@ public:
     ///@{
 
     // this function performs the search and the exchange of the data on the interface
-    void ExchangeInterfaceData()
+    void ExchangeInterfaceData(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
+                               InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
     {
         if (!mInitializeIsPerformed)
-            Initialize();
+            Initialize(InterfaceObjectTypeOrigin);
 
+        PrepareSearching(InterfaceObjectTypeDestination);
 
+        ConductLocalSearch();
+
+        FinalizeSearching();
     }
 
     // This function resets the internal data structure => recomputes the internally used objects and the bounding boxes
     void Reset()
     {
         mInitializeIsPerformed = false;
+
+        mpLocalBinStructure.reset(nullptr);
+        mpInterfaceObjectsOrigin.reset(nullptr);
+        mpInterfaceObjectsDestination.reset(nullptr);
     }
 
 
@@ -223,19 +234,14 @@ protected:
 
     bool mInitializeIsPerformed = false;
 
+    InterfaceObjectContainerUniquePointerType mpInterfaceObjectsOrigin;
+    InterfaceObjectContainerUniquePointerType mpInterfaceObjectsDestination;
 
 
 
 
 
 
-
-
-
-    // InterfaceObjectManagerBase::Pointer mpInterfaceObjectManager;
-    // InterfaceObjectManagerBase::Pointer mpInterfaceObjectManagerBins;
-
-    int mLocalBinStructureSize;
 
     double mSearchRadius;
     int mMaxSearchIterations;
@@ -254,22 +260,21 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void Initialize()
+    virtual void Initialize(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
-        InitializeDataStructure();
+        CreateInterfaceObjectsOrigin(InterfaceObjectTypeOrigin);
         InitializeBinsSearchStructure();
         mInitializeIsPerformed = true;
     }
 
-    void InitializeDataStructure()
-    {
+    // This function constructs the InterfaceObjects on the Destination
+    // In serial it only does it once, whereas in MPI this involves Data-Exchange!
+    // Imagine a sliding interface, there the partitions might change!
+    virtual void PrepareSearching(InterfaceObject::ConstructionType InterfaceObjectTypeDestination);
 
-    }
+    virtual void FinalizeSearching();
 
-    void InitializeBinsSearchStructure()
-    {
-
-    }
+    void ConductLocalSearch();
 
     void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& rInterfaceObjects,
                             const int InterfaceObjectsSize, std::vector<InterfaceObject::Pointer>& rInterfaceObjectResults,
@@ -281,10 +286,12 @@ protected:
         // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has
         // the max receive buffer size as size)!
 
-        if (mpLocalBinStructure)   // this partition has a bin structure
+        std::size_t num_inteface_obj_bin = mpInterfaceObjectsOrigin->size();
+
+        if (num_inteface_obj_bin > 0)   // this partition has a bin structure
         {
-            InterfaceObjectConfigure::ResultContainerType neighbor_results(mLocalBinStructureSize);
-            std::vector<double> neighbor_distances(mLocalBinStructureSize);
+            InterfaceObjectConfigure::ResultContainerType neighbor_results(num_inteface_obj_bin);
+            std::vector<double> neighbor_distances(num_inteface_obj_bin);
 
             InterfaceObjectConfigure::IteratorType interface_object_itr;
             InterfaceObjectConfigure::ResultIteratorType results_itr;
@@ -301,7 +308,7 @@ protected:
 
                 std::size_t number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
                                                     *interface_object_itr, search_radius, results_itr,
-                                                    distance_itr, mLocalBinStructureSize);
+                                                    distance_itr, num_inteface_obj_bin);
 
                 if (number_of_results > 0)   // neighbors were found
                 {
@@ -402,18 +409,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    // void Initialize()   // build the local bin-structure
-    // {
-    //     // InterfaceObjectConfigure::ContainerType interface_objects_bins = mpInterfaceObjectManagerBins->GetInterfaceObjects();
+    void CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
 
-    //     // mLocalBinStructureSize = interface_objects_bins.size();
-
-    //     // if (mLocalBinStructureSize > 0)   // only construct the bins if the partition has a part of the interface
-    //     // {
-    //     //     mpLocalBinStructure = BinsObjectDynamic<InterfaceObjectConfigure>::Pointer(
-    //     //                               new BinsObjectDynamic<InterfaceObjectConfigure>(interface_objects_bins.begin(), interface_objects_bins.end()));
-    //     // }
-    // }
+    void InitializeBinsSearchStructure();
 
     virtual void ConductSearchIteration(const bool LastIteration)
     {
@@ -435,6 +433,88 @@ private:
         //         pairing_indices);
     }
 
+
+    // void InitializeInterfaceNodeManager(ModelPart& rModelPart)
+    // {
+    //     mInterfaceObjects.resize(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes());
+
+    //     int i = 0;
+    //     for (auto &local_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
+    //     {
+    //         mInterfaceObjects[i] = InterfaceObject::Pointer( new InterfaceNode(local_node, mEchoLevel) );
+    //         ++i;
+    //     }
+    // }
+
+    // void InitializeInterfaceGeometryObjectManager(ModelPart& rModelPart,
+    //         GeometryData::IntegrationMethod IntegrationMethod,
+    //         const double ApproximationTolerance)
+    // {
+    //     bool construct_with_center;
+    //     int size_factor = 1;
+    //     if (IntegrationMethod == GeometryData::NumberOfIntegrationMethods)
+    //     {
+    //         construct_with_center = true;
+    //         size_factor = 1;
+    //     }
+    //     else
+    //     {
+    //         construct_with_center = false;
+    //         if (rModelPart.GetCommunicator().LocalMesh().NumberOfConditions() > 0)
+    //         {
+    //             size_factor = rModelPart.GetCommunicator().LocalMesh().ConditionsBegin()->GetGeometry().IntegrationPointsNumber(IntegrationMethod);
+    //         }
+    //         else if (rModelPart.GetCommunicator().LocalMesh().NumberOfElements() > 0)
+    //         {
+    //             size_factor = rModelPart.GetCommunicator().LocalMesh().ElementsBegin()->GetGeometry().IntegrationPointsNumber(IntegrationMethod);
+    //         }
+    //     }
+
+    //     mInterfaceObjects.reserve(size_factor * rModelPart.GetCommunicator().LocalMesh().NumberOfConditions());
+
+    //     if (construct_with_center)   // construct with condition center point
+    //     {
+    //         for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions())
+    //         {
+    //             mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
+    //                                         ApproximationTolerance,
+    //                                         mEchoLevel,
+    //                                         0) ));
+    //         }
+    //         for (auto& element : rModelPart.GetCommunicator().LocalMesh().Elements())
+    //         {
+    //             mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
+    //                                         ApproximationTolerance,
+    //                                         mEchoLevel,
+    //                                         0) ));
+    //         }
+    //     }
+    //     else     // construct with condition gauss points
+    //     {
+    //         KRATOS_ERROR << "This is not implemented at the moment" << std::endl;
+    //         for (auto& condition : rModelPart.GetCommunicator().LocalMesh().Conditions())
+    //         {
+    //             for (int g = 0; g < 111111; ++g) // TODO fix this, should be number of GPs
+    //             {
+    //                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(condition.GetGeometry(),
+    //                                             ApproximationTolerance,
+    //                                             mEchoLevel,
+    //                                             g, IntegrationMethod) ));
+    //             }
+    //         }
+    //         for (auto& element : rModelPart.GetCommunicator().LocalMesh().Elements())
+    //         {
+    //             for (int g = 0; g < 111111; ++g) // TODO fix this, should be number of GPs
+    //             {
+    //                 mInterfaceObjects.push_back(InterfaceObject::Pointer( new InterfaceGeometryObject(element.GetGeometry(),
+    //                                             ApproximationTolerance,
+    //                                             mEchoLevel,
+    //                                             g, IntegrationMethod) ));
+    //             }
+    //         }
+
+    //     }
+    // }
 
     ///@}
     ///@name Private  Access

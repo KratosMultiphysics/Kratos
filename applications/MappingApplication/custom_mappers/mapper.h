@@ -364,6 +364,9 @@ protected:
 
     virtual MapperLocalSystemPointer GetMapperLocalSystem() const = 0;
 
+    virtual InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const = 0;
+    virtual InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeDestination() const = 0;
+
 
     ///@}
     ///@name Protected  Access

@@ -159,14 +159,14 @@ public:
     {
     public:
 
-        bool SendBack() const
+        bool GetLocalSearchWasSuccessful() const
         {
-            return mSendingBackRequired;
+            return mLocalSearchWasSuccessful;
         }
 
         void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
         {
-            mSendingBackRequired = true; // If this function is called it means that the search was successful
+            mLocalSearchWasSuccessful = true; // If this function is called it means that the search was successful
 
             const double distance = 1.0; // TODO how to get the distance?
             if (distance < mNearestNeighborDistance)
@@ -189,7 +189,7 @@ public:
     private:
         int mNearestNeighborId = -1; // default value, indicates an unsuccessful local search
         double mNearestNeighborDistance = std::numeric_limits<double>::max();
-        bool mSendingBackRequired = false; // this is not being serialized since it is not needed after mpi-data-exchange!
+        bool mLocalSearchWasSuccessful = false; // this is not being serialized since it is not needed after mpi-data-exchange!
 
         friend class Serializer;
 
@@ -305,6 +305,16 @@ protected:
     MapperLocalSystemPointer GetMapperLocalSystem() const override
     {
         return Kratos::make_unique<NearestNeighborLocalSystem<NearestNeigborInterfaceData>>();
+    }
+
+    InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const override
+    {
+        return InterfaceObject::Node_Coords;
+    }
+
+    InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeDestination() const override
+    {
+        return InterfaceObject::Node_Coords;
     }
 
     ///@}

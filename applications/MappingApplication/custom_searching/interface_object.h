@@ -73,7 +73,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum InterfaceObjectConstructionType
+    enum ConstructionType
     {
         Node_Coords,
         Geometry_Center,

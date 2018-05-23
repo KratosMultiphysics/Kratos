@@ -90,7 +90,12 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix()
 {
     KRATOS_ERROR_IF_NOT(mpSearchStructure) << "mpSearchStructure is a nullptr!" << std::endl;
 
-    mpSearchStructure->ExchangeInterfaceData();
+    const InterfaceObject::ConstructionType interface_object_construction_type_origin =
+        GetInterfaceObjectConstructionTypeOrigin();
+    const InterfaceObject::ConstructionType interface_object_construction_type_destination =
+        GetInterfaceObjectConstructionTypeDestination();
+    mpSearchStructure->ExchangeInterfaceData(interface_object_construction_type_origin,
+                                             interface_object_construction_type_destination);
 
     KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
 

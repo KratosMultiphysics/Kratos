@@ -188,6 +188,16 @@ protected:
 
     }
 
+    InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const override
+    {
+        return InterfaceObject::Geometry_Center;
+    }
+
+    InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeDestination() const override
+    {
+        return InterfaceObject::Node_Coords;
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{

@@ -172,6 +172,8 @@ namespace Kratos
 
             for (IndexType i=0; i<mapping_weights.size(); ++i)
                 rMdo(origin_ids[i], destination_ids[i]) += mapping_weights[i];
+
+            // TODO clear the local system? => its contents should not be needed any more...
         }
     }
 
