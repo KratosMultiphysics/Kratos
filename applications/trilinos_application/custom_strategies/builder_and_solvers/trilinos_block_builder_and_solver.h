@@ -766,8 +766,8 @@ public:
             if(temp_size <1000) temp_size = 1000;
             int* temp = new int[temp_size]; //
 
-            auto rElements = rModelPart.Elements();
-            auto rConditions = rModelPart.Conditions();
+            auto& rElements = rModelPart.Elements();
+            auto& rConditions = rModelPart.Conditions();
 
             //generate map - use the "temp" array here
             for(unsigned int i=0; i!=number_of_local_dofs; i++)
