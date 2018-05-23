@@ -90,9 +90,9 @@ namespace Kratos {
                 ordered_principal_stresses[0] = ordered_principal_stresses[1];
                 ordered_principal_stresses[1] = aux;
             }
-            if(ordered_principal_stresses[1]>ordered_principal_stresses[0] || ordered_principal_stresses[2]>ordered_principal_stresses[0] || ordered_principal_stresses[2]>ordered_principal_stresses[1]) {
-                KRATOS_ERROR<<"Principal Stresses not ordered!!"<<std::endl;
-            }
+            //if(ordered_principal_stresses[1]>ordered_principal_stresses[0] || ordered_principal_stresses[2]>ordered_principal_stresses[0] || ordered_principal_stresses[2]>ordered_principal_stresses[1]) {
+            //    KRATOS_ERROR<<"Principal Stresses not ordered!!"<<std::endl;
+            //}
 
             if(ordered_principal_stresses[1] < 0.0) tension_limit -= slope * ordered_principal_stresses[1]; // negative sign because they are negative
             if(ordered_principal_stresses[2] < 0.0) tension_limit -= slope * ordered_principal_stresses[2];
