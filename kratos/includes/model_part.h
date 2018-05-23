@@ -242,13 +242,13 @@ public:
     ///@{
 
     /// Default constructor.
-    ModelPart();
+    ModelPart(VariablesList* pVariableList);
 
     /// Constructor with name
-    ModelPart(std::string const& NewName);
+    ModelPart(std::string const& NewName,VariablesList* pVariableList);
 
     /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize);
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList);
 
     /// Copy constructor.
     ModelPart(ModelPart const& rOther) = delete;
@@ -1332,6 +1332,8 @@ private:
     ///@{
 
     friend class Serializer;
+    
+    ModelPart(){};
 
     void save(Serializer& rSerializer) const override;
 

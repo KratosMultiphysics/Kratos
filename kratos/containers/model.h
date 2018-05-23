@@ -72,7 +72,11 @@ namespace Kratos
       Model(){};
 
       /// Destructor.
-      virtual ~Model(){};
+      virtual ~Model()
+      {
+        mRootModelPartMap.clear();
+        mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
+      }
       
       Model & operator=(const Model&) = delete;
       Model(const Model&) = delete;
@@ -173,6 +177,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
       std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap;
+      std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
 
 
       ///@}

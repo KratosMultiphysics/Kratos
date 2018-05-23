@@ -44,7 +44,7 @@ namespace Kratos
 	/** This class works tightly with VariablesListDataValueContainer and provides the
 	the positions of variables for that containers
 	*/
-	class VariablesList
+	class VariablesList : std::enable_shared_from_this<VariablesList>
 	{
 	public:
 		///@name Type Definitions
@@ -111,6 +111,10 @@ namespace Kratos
 		///@}
 		///@name Operators
 		///@{
+		Kratos::shared_ptr<VariablesList> CreateSharedPointer()
+                {
+                    return shared_from_this();
+                }
 
 		/// Assignment operator.
 		VariablesList& operator=(VariablesList const& rOther)

@@ -30,6 +30,7 @@ namespace Kratos
     void Model::Reset()
     {
         mRootModelPartMap.clear();
+        mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
     }
     
     ModelPart& Model::CreateModelPart( const std::string ModelPartName ) 
@@ -42,7 +43,9 @@ namespace Kratos
         if( search == mRootModelPartMap.end())
         {
             KRATOS_INFO("Model") << ModelPartName << std::endl; //TODO: remove only for debugging purposes
-            mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(new ModelPart(ModelPartName));
+            auto pvar_list = std::unique_ptr<VariablesList>(new VariablesList());
+            mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(new ModelPart(ModelPartName, pvar_list.get()));
+            mListOfVariablesLists.insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
         }
         else

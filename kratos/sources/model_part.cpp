@@ -29,13 +29,13 @@ KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
 /// Default constructor.
-ModelPart::ModelPart()
+ModelPart::ModelPart(VariablesList* pVariablesList)
     : DataValueContainer()
     , Flags()
     , mBufferSize(1)
     , mpProcessInfo(new ProcessInfo())
     , mIndices(1, 0)
-    , mpVariablesList(new VariablesList)
+    , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
@@ -47,13 +47,13 @@ ModelPart::ModelPart()
 }
 
 /// Constructor with name
-ModelPart::ModelPart(std::string const& NewName)
+ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList)
     : DataValueContainer()
     , Flags()
     , mBufferSize(1)
     , mpProcessInfo(new ProcessInfo())
     , mIndices(1, 0)
-    , mpVariablesList(new VariablesList)
+    , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
@@ -66,13 +66,13 @@ ModelPart::ModelPart(std::string const& NewName)
 }
 
 /// Constructor with name and bufferSize
-ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
+ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList)
     : DataValueContainer()
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
     , mIndices(NewBufferSize, 0)
-    , mpVariablesList(new VariablesList)
+    , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
@@ -102,8 +102,8 @@ ModelPart::~ModelPart()
       i_mesh->Clear();
     
 
-    if (!IsSubModelPart())
-      delete mpVariablesList;
+//     if (!IsSubModelPart())
+//       delete mpVariablesList;
 }
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()
@@ -1096,10 +1096,10 @@ ModelPart::Pointer  ModelPart::CreateSubModelPart(std::string const& NewSubModel
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        ModelPart::Pointer p_model_part(new ModelPart(NewSubModelPartName));
+        ModelPart::Pointer p_model_part(new ModelPart(NewSubModelPartName,mpVariablesList));
         p_model_part->SetParentModelPart(this);
-        delete p_model_part->mpVariablesList;
-        p_model_part->mpVariablesList = mpVariablesList;
+//         delete p_model_part->mpVariablesList;
+//         p_model_part->mpVariablesList = mpVariablesList;
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
         return mSubModelParts.insert(p_model_part).base()->second;
