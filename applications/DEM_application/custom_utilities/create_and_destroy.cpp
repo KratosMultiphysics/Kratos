@@ -452,6 +452,8 @@ namespace Kratos {
         array_1d<double, 3> null_vector(3, 0.0);
         pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
+        pnew_node->FastGetSolutionStepValue(PARTICLE_NO_DISPLACEMENT) = 0;
+        pnew_node->FastGetSolutionStepValue(NODAL_MASS) = 1.0;
 
         pnew_node->AddDof(VELOCITY_X, REACTION_X);
         pnew_node->AddDof(VELOCITY_Y, REACTION_Y);

@@ -4100,6 +4100,7 @@ Begin SubModelPart FEM // GUI DEM-FEM-Wall group identifier: FEM
   Begin SubModelPartData // GUI DEM-FEM-Wall group identifier: FEM
   PROPERTIES_ID 0
   FIXED_BOUNDARY 1
+  FIXED_MESH_OPTION 1
   IDENTIFIER FEM
   FORCE_INTEGRATION_GROUP 0
   End SubModelPartData

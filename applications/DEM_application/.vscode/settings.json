@@ -50,5 +50,6 @@
         "csignal": "cpp",
         "cstdarg": "cpp",
         "cstddef": "cpp"
-    }
+    },
+    "C_Cpp.dimInactiveRegions": false
 }

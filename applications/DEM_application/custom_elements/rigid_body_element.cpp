@@ -89,7 +89,9 @@ namespace Kratos {
         Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
         Orientation.normalize();
 
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = 1.0;
+        if (rigid_body_element_sub_model_part.Has(FIXED_MESH_OPTION)) {
+            GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_NO_DISPLACEMENT) = rigid_body_element_sub_model_part[FIXED_MESH_OPTION];
+        }
 
         if (rigid_body_element_sub_model_part.Has(RIGID_BODY_MASS)) {
             GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = rigid_body_element_sub_model_part[RIGID_BODY_MASS];
@@ -261,7 +263,13 @@ namespace Kratos {
 
     void RigidBodyElement3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
 
-        GetTranslationalIntegrationScheme().MoveRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+        if (GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_NO_DISPLACEMENT)) {
+            GetTranslationalIntegrationScheme().MoveFixedRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+        }
+        else {
+            GetTranslationalIntegrationScheme().MoveRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
+        }
+
         if (rotation_option) {
             GetRotationalIntegrationScheme().RotateRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         }
