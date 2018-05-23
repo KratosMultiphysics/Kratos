@@ -103,7 +103,7 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         Logger.PrintInfo("> Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def FinalizeSolutionStep(self):
-        self.primal_analysis.FinalizeTimeStep()
+        self.primal_analysis.FinalizeSolutionStep()
         self.primal_analysis.OutputSolutionStep()
 
     def Finalize(self):
@@ -160,7 +160,9 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
             print("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
             print("  Primal parameters were adjusted accordingly!\n")
 
-        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
+        model = Model()
+        model.AddModelPart(self.primal_model_part)
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
 # ==============================================================================
