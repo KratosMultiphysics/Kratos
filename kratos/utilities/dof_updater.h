@@ -51,7 +51,7 @@ public:
 		std::less<typename SetIdentityFunction<DofType>::result_type>,
 		std::equal_to<typename SetIdentityFunction<DofType>::result_type>,
 		DofType* >;
-
+        
     using SystemVectorType = typename TSparseSpace::VectorType;
 
     ///@}
@@ -80,7 +80,7 @@ public:
      *  @return a std::unique_pointer to the new instance.
      *  @see UblasSpace::CreateDofUpdater(), TrilinosSpace::CreateDofUpdater().
      */
-    virtual DofUpdater::UniquePointer Create() const
+    virtual typename DofUpdater::UniquePointer Create() const
     {
         return Kratos::make_unique<DofUpdater>();
     }
