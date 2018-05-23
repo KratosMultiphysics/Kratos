@@ -171,7 +171,7 @@ End Conditions
 Begin SubModelPart fem_fine // DEM-FEM-Wall. Group name: fem_fine
   Begin SubModelPartData // DEM-FEM-Wall. Group name: fem_fine
   PROPERTIES_ID 0
-  RIGID_BODY_MOTION 0
+  FIXED_BOUNDARY 1
   IDENTIFIER fem_fine
   FORCE_INTEGRATION_GROUP  0
   End SubModelPartData
@@ -186,7 +186,7 @@ End SubModelPart
 Begin SubModelPart fem_gross // DEM-FEM-Wall. Group name: fem_gross
   Begin SubModelPartData // DEM-FEM-Wall. Group name: fem_gross
   PROPERTIES_ID 1
-  RIGID_BODY_MOTION 0
+  FIXED_BOUNDARY 1
   IDENTIFIER fem_gross
   FORCE_INTEGRATION_GROUP  0
   End SubModelPartData
