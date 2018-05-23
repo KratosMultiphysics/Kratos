@@ -339,8 +339,8 @@ protected:
     
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
-    ModelPart::Pointer mp_distance_model_part;
-	int mMaxSubsteps;
+    ModelPart* mp_distance_model_part;
+    int mMaxSubsteps;
 
     std::vector< double > mold_dist;
     std::vector< array_1d<double,3> > mv, mvold;
@@ -357,8 +357,8 @@ protected:
         KRATOS_TRY
 
         //generate
-        ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
-        mp_distance_model_part.swap(pAuxModelPart);
+        mp_distance_model_part = &(Kernel::GetModel().CreateModelPart("DistancePart"));
+//         mp_distance_model_part.swap(pAuxModelPart);
 
         mp_distance_model_part->Nodes().clear();
         mp_distance_model_part->Conditions().clear();

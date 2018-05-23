@@ -26,6 +26,8 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kernel.h"
+#include "containers/model.h"
 #include "includes/element.h"
 #include "geometries/geometry_data.h"
 #include "utilities/geometry_utilities.h"
@@ -107,7 +109,7 @@ public:
         //| 7---8---9
         //|4   5   6
         //1---2---3
-        ModelPart model_part("aux_model_part");
+        ModelPart& model_part = Kernel::GetModel().CreateModelPart("aux_model_part");
         GenerateNodes(model_part);
 
         bool succesful = true;

@@ -425,7 +425,7 @@ protected:
     ///@{
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
-    ModelPart::Pointer mp_distance_model_part;
+    ModelPart* mp_distance_model_part;
     ModelPart& mr_base_model_part;
 
     typename SolvingStrategyType::Pointer mp_solving_strategy;
@@ -439,8 +439,9 @@ protected:
         KRATOS_TRY
 
         //generate
-        ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
-        mp_distance_model_part.swap(pAuxModelPart);
+        mp_distance_model_part = &(Kernel::GetModel().CreateModelPart("DistancePart"));
+        mp_distance_model_part->SetBufferSize(1);
+//         mp_distance_model_part.swap(pAuxModelPart);
 
         mp_distance_model_part->Nodes().clear();
         mp_distance_model_part->Conditions().clear();
