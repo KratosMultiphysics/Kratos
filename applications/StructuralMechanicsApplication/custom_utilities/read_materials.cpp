@@ -22,7 +22,6 @@
 
 namespace Kratos
 {
-
     ReadMaterialProcess::ReadMaterialProcess(ModelPart &rModelPart,
                                              Parameters parameters)
             : mrModelPart(rModelPart)
@@ -53,16 +52,11 @@ namespace Kratos
         KRATOS_INFO("::[Reading materials process DEBUG]::") << "Finished" << std::endl;
     }
 
-
-    void ReadMaterialProcess::Execute()
-    {
-    }
-
     void ReadMaterialProcess::AssignPropertyBlock(Parameters data)
     {
         /* Set constitutive law and material properties and assign to elements and conditions.
         Arguments:
-        data -- a dictionary or json object defining properties for a model part.
+        data -- Parameters object defining properties for a model part.
 
         Example:
         data = {
@@ -99,51 +93,54 @@ namespace Kratos
         // Get the properties for the specified model part.
         IndexType property_id = data["properties_id"].GetInt();
         IndexType mesh_id = 0;
-        Properties prop = mrModelPart.GetProperties(property_id, mesh_id);
+        Properties::Pointer prop = mrModelPart.pGetProperties(property_id, mesh_id);
 
         //TODO(marcelo): Complete the "keys()" part
         //if (len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables())
-        if (prop.HasVariables())
-            KRATOS_INFO("::[Reading materials process DEBUG]::") << "Property " << property_id << " already has variables." << std::endl;
+        //if (data["Material"]["Variables"].end() - data["Material"]["Variables"].begin())
+        //    KRATOS_INFO("::[Reading materials process DEBUG]::")
+        //            << "Property " << property_id << " is not empty." << std::endl;
+        if (prop->HasVariables())
+            KRATOS_INFO("::[Reading materials process DEBUG]::")
+                << "Property " << property_id << " already has variables." << std::endl;
         //if (len(data["Material"]["Tables"].keys()) > 0 && prop.HasTables())
-        if (prop.HasTables())
-            KRATOS_INFO("::[Reading materials process DEBUG]::") << "Property " << property_id << " already has tables." << std::endl;
+        if (prop->HasTables())
+            KRATOS_INFO("::[Reading materials process DEBUG]::")
+                << "Property " << property_id << " already has tables." << std::endl;
 
         // Assign the properties to the model part's elements and conditions.
-        /*
         for (auto elem = mrModelPart.ElementsBegin(); elem != mrModelPart.ElementsEnd(); elem++)
-            //elem-> Propertie = prop
-            //KRATOS_WATCH(elem->pGetProperties());
             elem->SetProperties(prop);
 
-        for cond in model_part.Conditions:
-            cond.Properties = prop
-
-        Parameters mat = data["Material"];
+        for (auto cond = mrModelPart.ConditionsBegin(); cond != mrModelPart.ConditionsEnd(); cond++)
+            cond->SetProperties(prop);
 
         //Set the CONSTITUTIVE_LAW for the current properties.
-        constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
+        auto constitutive_law_name = data["Material"]["constitutive_law"]["name"].GetString();
+        //auto p_constitutive_law = KratosComponents<ConstitutiveLaw>(constitutive_law_name).pGetComponents();
+        //prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
 
-        prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
+        // Add / override the values of material parameters in the properties
+        for(auto variable = data["Material"]["Variables"].begin();
+            variable != data["Material"]["Variables"].end(); variable++){
 
-        # Add / override the values of material parameters in the properties
-        for key, value in mat["Variables"].items():
-            var = self._GetVariable(key)
-            if value.IsDouble():
-                prop.SetValue( var, value.GetDouble() )
-            elif value.IsInt():
-                prop.SetValue( var, value.GetInt() )
-            elif value.IsBool():
-                prop.SetValue( var, value.GetBool() )
-            elif value.IsString():
-                prop.SetValue( var, value.GetString() )
-            elif value.IsMatrix():
-                prop.SetValue( var, value.GetMatrix() )
-            elif value.IsVector():
-                prop.SetValue( var, value.GetVector() )
-            else:
-                raise ValueError("Type of value is not available")
-
+            auto value = data["Material"]["Variables"].GetValue(variable);
+            if (variable.IsDouble())
+                prop->SetValue(variable, value.GetDouble());
+            else if (variable.IsInt())
+                prop->SetValue(variable, value.GetInt());
+            else if (variable.IsBool())
+                prop->SetValue(variable, value.GetBool());
+            else if (variable.IsString())
+                prop->SetValue(variable, value.GetString());
+            else if (variable.IsMatrix())
+                prop->SetValue(variable, value.GetMatrix());
+            else if (value.IsVector())
+                prop->SetValue(variable, value.GetVector());
+            else
+                KRATOS_ERROR("Type of value is not available");
+        }
+/*
         # Add / override tables in the properties
         for key, table in mat["Tables"].items():
             table_name = key
@@ -159,22 +156,4 @@ namespace Kratos
             prop.SetTable(input_var,output_var,new_table)
         */
     }
-
-    /*
-    ConstitutiveLaw ReadMaterialProces::GetConstitutiveLaw(my_string)
-    {
-        //Return the Constitutive Law object named by the string argument.
-        //
-        //Example:
-        //recommended usage:
-        //constitutive_law = self._GetConstitutiveLaw('LinearElastic3DLaw')
-        //deprecated:
-        //constitutive_law = self._GetConstitutiveLaw('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
-        //constitutive_law = self._GetConstitutiveLaw('StructuralMechanicsApplication.LinearElastic3DLaw')
-
-        //return KratosGlobals<ConstitutiveLaw>("constitutive_law_name");
-    }
-    */
-
-
 }  // namespace Kratos.
