@@ -28,6 +28,7 @@
 #include "custom_processes/dam_t_sol_air_heat_flux_process.hpp"
 #include "custom_processes/dam_noorzai_heat_source_process.hpp"
 #include "custom_processes/dam_azenha_heat_source_process.hpp"
+#include "custom_processes/dam_nodal_reference_temperature_process.hpp"
 
 
 namespace Kratos
@@ -38,7 +39,10 @@ namespace Python
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
+    
     using namespace pybind11;
+    
+    typedef Table<double,double> TableType;  
 
     // Fix Temperature
     class_<DamFixTemperatureConditionProcess, DamFixTemperatureConditionProcess::Pointer, Process>
@@ -109,6 +113,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     class_<DamAzenhaHeatFluxProcess, DamAzenhaHeatFluxProcess::Pointer, Process>
     (m, "DamAzenhaHeatFluxProcess")
     .def(init < ModelPart&, Parameters&>());
+    
+    // Nodal Reference Temperature Process     
+    class_< DamNodalReferenceTemperatureProcess, DamNodalReferenceTemperatureProcess::Pointer, Process >
+    (m, "DamNodalReferenceTemperatureProcess")
+    .def(init < ModelPart&, TableType&, Parameters&>());
     }
 
 }  // namespace Python.
