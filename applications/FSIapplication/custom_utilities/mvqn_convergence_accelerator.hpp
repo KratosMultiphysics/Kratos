@@ -254,6 +254,7 @@ public:
             const double abs_cut_off_tol = mAbsCutOff;
             for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
                 if ((eig_vector_ordered[i_eig] / eig_sum) < mRelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
+                    std::cout << "\tDROP INFO!!" << std::endl;
                     // Drop the observation matrices last column
                     this->DropLastDataColumn();
                     // Update the number of columns

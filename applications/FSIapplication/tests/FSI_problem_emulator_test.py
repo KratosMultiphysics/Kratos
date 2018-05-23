@@ -141,7 +141,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 step = step + 1
 
                 print("##################################")
-                print("###### step = ", step, "##########")
+                print("########## step = ", step, "#############")
                 print("##################################")
 
                 self.structure_solver.main_model_part.ProcessInfo.SetValue(TIME_STEPS, step)

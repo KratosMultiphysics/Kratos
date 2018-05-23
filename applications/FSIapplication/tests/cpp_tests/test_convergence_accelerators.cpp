@@ -107,8 +107,9 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(MVQNConvergenceAccelerator, FSIApplicationFastSuite)
 		{
             // Set the convergence accelerator pointer
+            const double w_0 = 0.825;
             MVQNFullJacobianConvergenceAccelerator<UblasSpace<double, Matrix, Vector > >::Pointer pMVQN = 
-                Kratos::make_shared<MVQNFullJacobianConvergenceAccelerator<UblasSpace<double, Matrix, Vector > > >();
+                Kratos::make_shared<MVQNFullJacobianConvergenceAccelerator<UblasSpace<double, Matrix, Vector > > >(w_0);
 
             // Solve the Ax = b problem
             const bool is_converged = SolveProblem<UblasSpace<double, Matrix, Vector > >(pMVQN);

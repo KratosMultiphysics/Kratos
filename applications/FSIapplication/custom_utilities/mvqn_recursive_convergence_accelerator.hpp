@@ -139,6 +139,7 @@ public:
         if (mpOldJacobianEmulator->mJacobianObsMatrixV.size() != 0) {
             mpOldJacobianEmulator->ApplyJacobian(pWorkVector, pProjectedVector);
         } else {
+            // Apply the PREVPREV STEP, IF NOT, APPLY MINUS THE IDENTITY
             TSpace::Assign(*pProjectedVector, -1.0, *pWorkVector); // Consider minus the identity matrix as inverse Jacobian
         }
     }
@@ -297,6 +298,7 @@ public:
         const double abs_cut_off_tol = AbsCutOff;
         for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
             if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
+                std::cout << "\tDROP INFO!!" << std::endl;
                 mJacobianObsMatrixV.pop_back();
                 mJacobianObsMatrixW.pop_back();
                 return false;
