@@ -85,8 +85,12 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
 
         # Set Variable list to print
-        self.variable_list = result_file_configuration["gauss_point_results"]
-        
+        self.variable_name_list = result_file_configuration["gauss_point_results"]
+        self.variable_list      = []
+        for i in range(self.variable_name_list.size()):
+            var_name = self.variable_name_list[i].GetString()
+            variable = self._get_variable(var_name)
+            self.variable_list.append(variable)
 
     def ExecuteBeforeSolutionLoop(self):
         # Initiate Output Mesh
@@ -189,9 +193,9 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
     def _write_mp_results(self, step_label=None):
         clock_time = self._start_time_measure()
 
-        for i in range(self.variable_list.size()):
-            var_name = self.variable_list[i].GetString()
-            variable = self._get_variable(var_name)
+        for i in range(self.variable_name_list.size()):
+            var_name = self.variable_name_list[i].GetString()
+            variable = self.variable_list[i]
 
             is_scalar = self._is_scalar(variable)
 
