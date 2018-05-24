@@ -33,7 +33,7 @@ namespace Kratos
         mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
     }
     
-    ModelPart& Model::CreateModelPart( const std::string ModelPartName ) 
+    ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize ) 
     {
         KRATOS_TRY
         
@@ -44,7 +44,7 @@ namespace Kratos
         {
             KRATOS_INFO("Model") << ModelPartName << std::endl; //TODO: remove only for debugging purposes
             auto pvar_list = std::unique_ptr<VariablesList>(new VariablesList());
-            mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(new ModelPart(ModelPartName, pvar_list.get()));
+            mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(new ModelPart(ModelPartName, NewBufferSize, pvar_list.get()));
             mListOfVariablesLists.insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
         }
@@ -56,6 +56,15 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    void Model::DeleteModelPart( const std::string ModelPartName  ) 
+    {
+        KRATOS_TRY
+        
+        mRootModelPartMap.erase(ModelPartName);
+        //NOTE: the corresponding variable list should NOT be removed
+
+        KRATOS_CATCH("")
+    }
     
     void Model::AddModelPart( ModelPart::Pointer pModelPart) //TODO: DEPRECATED. to be removed. this is TEMPORARY
     {

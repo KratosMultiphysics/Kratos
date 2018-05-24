@@ -87,7 +87,9 @@ namespace Kratos
       ///@{
       void Reset();
       
-      ModelPart& CreateModelPart( const std::string ModelPartName );
+      ModelPart& CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize=1 );
+      
+      void DeleteModelPart( const std::string ModelPartName );
       
       void AddModelPart(ModelPart::Pointer pModelPart); //TODO: change this conveniently
 
