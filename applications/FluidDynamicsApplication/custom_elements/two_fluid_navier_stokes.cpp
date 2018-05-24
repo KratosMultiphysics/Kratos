@@ -1841,17 +1841,10 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::CondenseEnrichment(
 	//add to LHS enrichment contributions
 	MatrixType inverse_diag;
 	inverse_diag.resize(NumNodes, NumNodes, false);
-	bool inversion_successful = InvertMatrix<>(Kee_tot, inverse_diag);
+    double det;
+    MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag, det);
 
-    if(!inversion_successful )
-    {
-        KRATOS_WATCH(rData.Distance)
-        KRATOS_WATCH(positive_volume/Vol)
-        KRATOS_WATCH(negative_volume/Vol)
-        KRATOS_WATCH(Kee_tot)
-        KRATOS_THROW_ERROR(std::logic_error,"error in the inversion of the enrichment matrix for element ",this->Id());
-    }
-
+    
     const boost::numeric::ublas::bounded_matrix<double,4,16> tmp = prod(inverse_diag,Htot);
     noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
 
@@ -1942,16 +1935,8 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CondenseEnrichment(
 	//add to LHS enrichment contributions
 	MatrixType inverse_diag;
 	inverse_diag.resize(NumNodes, NumNodes, false);
-	bool inversion_successful = InvertMatrix<>(Kee_tot, inverse_diag);
-
-	if (!inversion_successful)
-	{
-		KRATOS_WATCH(rData.Distance)
-			KRATOS_WATCH(positive_volume / Vol)
-			KRATOS_WATCH(negative_volume / Vol)
-			KRATOS_WATCH(Kee_tot)
-			KRATOS_THROW_ERROR(std::logic_error, "error in the inversion of the enrichment matrix for element ", this->Id());
-	}
+    double det;
+    MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag, det);
 
 	const boost::numeric::ublas::bounded_matrix<double, 4, 16> tmp = prod(inverse_diag, Htot);
 	noalias(rLeftHandSideMatrix) -= prod(Vtot, tmp);
@@ -1961,33 +1946,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CondenseEnrichment(
 
 }
 
-
-
-template< class TElementData>
-template< class T>
-bool TwoFluidNavierStokes<TElementData>::InvertMatrix(const T& input, T& inverse)
-{
-    typedef permutation_matrix<std::size_t> pmatrix;
-
-    // create a working copy of the input
-    T A(input);
-
-    // create a permutation matrix for the LU-factorization
-    pmatrix pm(A.size1());
-
-    // perform LU-factorization
-    int res = lu_factorize(A, pm);
-    if (res != 0)
-        return false;
-
-    // create identity matrix of "inverse"
-    inverse.assign(identity_matrix<double> (A.size1()));
-
-    // backsubstitute to get the inverse
-    lu_substitute(A, pm, inverse);
-
-    return true;
-}
 
 
 template< class TElementData >
