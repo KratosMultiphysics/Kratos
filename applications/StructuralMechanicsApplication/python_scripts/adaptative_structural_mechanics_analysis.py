@@ -38,9 +38,9 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
         # Construct the base analysis.
         self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
         if (project_parameters.Has("recursive_remeshing_process") is True):
-            self.process_remesh = False
-        else:
             self.process_remesh = True
+        else:
+            self.process_remesh = False
             project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         super(AdaptativeStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
