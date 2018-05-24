@@ -129,6 +129,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
         self.print_reference_values = False
 
     def tearDown(self):
+        KratosMultiphysics.Model().Reset()
         with WorkFolderScope(self.work_folder):
             try:
                 os.remove(self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+'.time')

@@ -35,6 +35,7 @@ class FluidElementTest(UnitTest.TestCase):
         self.oss_switch = 0
 
     def tearDown(self):
+        Model().Reset()
         import os
         with WorkFolderScope(self.work_folder):
             try:

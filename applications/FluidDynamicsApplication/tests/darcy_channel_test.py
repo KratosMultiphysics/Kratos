@@ -44,6 +44,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.print_output = False
 
     def tearDown(self):
+        Model().Reset()
         import os
         with WorkFolderScope(self.work_folder):
             try:

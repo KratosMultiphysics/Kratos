@@ -37,6 +37,7 @@ class BuoyancyTest(UnitTest.TestCase):
         self.print_reference_values = False
 
     def tearDown(self):
+        Model().Reset()
         import os
         with WorkFolderScope("BuoyancyTest"):
             try:
