@@ -588,24 +588,28 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        // Resize Output
+        const unsigned int&  write_points_number = GetGeometry()
+            .IntegrationPointsNumber(GetIntegrationMethod());
+        if (rOutput.size() != write_points_number)
+            rOutput.resize(write_points_number);
+
         if(this->Has(rVariable))
         {
             // Get result value for output
             double output_value = this->GetValue(rVariable);
 
-            // Resize Output
-            const unsigned int&  write_points_number = GetGeometry()
-                .IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
-            if (rOutput.size() != write_points_number)
-            {
-                rOutput.resize(write_points_number);
-            }
+            // Write scalar result value on all Gauss-Points
+            for(unsigned int i = 0; i < write_points_number; ++i)
+                rOutput[i] = output_value;
+        }
+        else if (rVariable == TRUSS_ELONGATION_MODE)
+        {
+            const double elongation = CalculateFirstOrderElongation();
 
             // Write scalar result value on all Gauss-Points
             for(unsigned int i = 0; i < write_points_number; ++i)
-            {
-                rOutput[i] = output_value;
-            }
+                rOutput[i] = elongation;
         }
         else
             KRATOS_ERROR << "Unsupported output variable." << std::endl;
@@ -630,7 +634,7 @@ namespace Kratos
         double length = this->CalculateReferenceLength();     
 
         // rOutput[GP 1,2,3][x,y,z]
-        if(rVariable == ROTATION_DIFFERENCE) 
+        if(rVariable == BEAM_BENDING_MODES) 
         {
             const double numerical_limit = std::numeric_limits<double>::epsilon();
             Vector rot_node_1 = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_ROTATION, 0);
@@ -671,7 +675,7 @@ namespace Kratos
             def_mode_bending_z[0] = diff_phi_node_1[2];
             def_mode_bending_z[1] = diff_phi_node_2[2];
 
-            // Hard coded correction 
+            // Hard coded correction TODO: look for a smart solution!
             if(Has(TRACED_STRESS_TYPE))
                 def_mode_bending_y[0] += 1.0;
 
@@ -696,9 +700,7 @@ namespace Kratos
                   rOutput[j][2] =  z_mode_internal[j];
             }
 
-            double elongation = CalculateFirstOrderElongation();
-            std::cout << "elongation = " << elongation << std::endl;
-
+    
             //Verify results+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   
             //Compute Sensitivities with deformation modes
             Matrix pseudo_load_I22;
@@ -987,7 +989,7 @@ namespace Kratos
         for (unsigned int i = 0; i < msDimension; ++i)
             deformed_vector[i] = current_nodal_position[msDimension + i] - current_nodal_position[i];
 
-        //project derformed vector on the undeformed one  
+        // project deformed vector on the undeformed one  
         double length_relation = inner_prod(deformed_vector, undeformed_vector) / 
                                     inner_prod(undeformed_vector, undeformed_vector);
 
