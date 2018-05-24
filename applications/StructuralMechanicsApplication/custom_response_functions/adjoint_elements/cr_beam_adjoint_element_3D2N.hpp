@@ -107,14 +107,36 @@ namespace Kratos
 
         int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+        IntegrationMethod GetIntegrationMethod() const override;
+
 
     protected:
         CrBeamAdjointElement3D2N(): CrBeamElementLinear3D2N()
         {
         }
 
+        // Deformation Modes *********************************************
+        /*BoundedVector<double,msLocalSize> CalculateDeformationModes( );
+
+        Vector CalculateSymmetricDeformationMode(const Vector &VectorDifference);
+    
+        Vector CalculateAntiSymmetricDeformationMode(const Vector &Bisectrix); 
+
+        void GetBisectrixAndVectorDiffernece(Vector &Bisectrix, Vector &VectorDifference);*/
+
+        BoundedVector<double,msLocalSize> GetCurrentNodalPosition();
+
+        double CalculateCurrentLength();
+
+        Vector CalculateBendingDeformationModesOnGP(const Vector &DiscreteBendingDefMode);
+
+        double CalculateFirstOrderElongation();
+        // ***************************************************************
+
 
     private:
+        Matrix mLocalRotationMatrix  = ZeroMatrix(msDimension); // needed to compute deformation modes
+
         friend class Serializer;
         void save(Serializer& rSerializer) const override;
         void load(Serializer& rSerializer) override;

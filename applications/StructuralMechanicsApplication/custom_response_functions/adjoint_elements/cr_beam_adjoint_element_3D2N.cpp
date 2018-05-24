@@ -623,14 +623,97 @@ namespace Kratos
         KRATOS_TRY;
         
         const unsigned int &write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+        GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         if (rOutput.size() != write_points_number) 
             rOutput.resize(write_points_number);
 
         double length = this->CalculateReferenceLength();     
 
         // rOutput[GP 1,2,3][x,y,z]
-        if (rVariable == PSEUDO_LOAD_1) 
+        if(rVariable == ROTATION_DIFFERENCE) 
+        {
+            const double numerical_limit = std::numeric_limits<double>::epsilon();
+            Vector rot_node_1 = this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_ROTATION, 0);
+            Vector rot_node_2 = this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_ROTATION, 0);
+
+            Vector delta_x = ZeroVector(msDimension);
+
+            BoundedVector<double, msLocalSize> current_nodal_position = this->GetCurrentNodalPosition();
+
+            for (unsigned int i = 0; i < msDimension; ++i)
+                delta_x[i] = current_nodal_position[msDimension + i] - current_nodal_position[i];
+
+            // Calculate slopes between deformed node 1 and 2 in x-, y- and z-direction
+            Vector slopes = ZeroVector(msDimension);
+            if (delta_x[1] > numerical_limit)
+                slopes[0] = delta_x[2]/delta_x[1]; 
+            if (delta_x[0] > numerical_limit)  
+                slopes[1]  = -delta_x[2]/delta_x[0];
+            if (delta_x[1] > numerical_limit)     
+                slopes[2]  = -delta_x[0]/delta_x[1];
+
+            // Calculate differences between rotation of nodes and slopes
+            Vector diff_phi_node_1 = ZeroVector(msDimension);
+            diff_phi_node_1 = rot_node_1 - slopes; 
+            Vector diff_phi_node_2 = ZeroVector(msDimension);
+            diff_phi_node_2 = rot_node_2 - slopes;
+
+            // Define deformation mode of bending around x-axis
+            Vector def_mode_bending_x = ZeroVector(2);
+            def_mode_bending_x[0] = diff_phi_node_1[0];
+            def_mode_bending_x[1] = diff_phi_node_2[0];
+            // Define deformation mode of bending around y-axis
+            Vector def_mode_bending_y = ZeroVector(2);
+            def_mode_bending_y[0] = diff_phi_node_1[1];
+            def_mode_bending_y[1] = diff_phi_node_2[1];
+            // Define deformation mode of bending around z-axis
+            Vector def_mode_bending_z = ZeroVector(2);
+            def_mode_bending_z[0] = diff_phi_node_1[2];
+            def_mode_bending_z[1] = diff_phi_node_2[2];
+
+            // Hard coded correction 
+            if(Has(TRACED_STRESS_TYPE))
+                def_mode_bending_y[0] += 1.0;
+
+            Vector x_mode_internal = CalculateBendingDeformationModesOnGP(def_mode_bending_x);
+            Vector y_mode_internal = CalculateBendingDeformationModesOnGP(def_mode_bending_y);
+            Vector z_mode_internal = CalculateBendingDeformationModesOnGP(def_mode_bending_z);
+
+            // Write output on GP
+            if(rOutput.size() == x_mode_internal.size())
+            {
+                for(unsigned int  j = 0; j < rOutput.size(); j++)
+                  rOutput[j][0] =  x_mode_internal[j];
+            }
+            if(rOutput.size() == y_mode_internal.size())
+            {
+                for(unsigned int  j = 0; j < rOutput.size(); j++)
+                  rOutput[j][1] =  y_mode_internal[j];
+            }
+            if(rOutput.size() == z_mode_internal.size())
+            {
+                for(unsigned int  j = 0; j < rOutput.size(); j++)
+                  rOutput[j][2] =  z_mode_internal[j];
+            }
+
+            double elongation = CalculateFirstOrderElongation();
+            std::cout << "elongation = " << elongation << std::endl;
+
+            //Verify results+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   
+            //Compute Sensitivities with deformation modes
+            Matrix pseudo_load_I22;
+            CalculateSensitivityMatrix(I22, pseudo_load_I22, rCurrentProcessInfo);
+            double sensitivity_wrt_I22 =  pseudo_load_I22(0,4)*def_mode_bending_y[0] + pseudo_load_I22(0,10)*def_mode_bending_y[1];
+
+            double reference_I22_sensitivity = this->GetValue(I22_SENSITIVITY);
+
+            // check if relative deviation < 8%
+            KRATOS_ERROR_IF(std::abs((-reference_I22_sensitivity+sensitivity_wrt_I22)/reference_I22_sensitivity) > 0.08)
+                << "Wrong sensitivity computation" << std::endl;
+            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++      
+    
+        }
+        else if (rVariable == PSEUDO_LOAD_1) 
         {
             Matrix sensitivity_matrix; 
             this->CalculateSensitivityMatrix(CROSS_AREA, sensitivity_matrix, rCurrentProcessInfo);   
@@ -690,33 +773,6 @@ namespace Kratos
                 << "Analytic scalarproduct is unequal to the corresponding discrete one!" << std::endl;
             //************************************************
 
-        }
-        else if(rVariable == PSEUDO_LOAD_2) 
-        {
-            const Matrix &Ncontainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-            const int number_of_nodes = GetGeometry().PointsNumber();
-            double area_lambda = 0.0;
-            for (int i = 0; i < number_of_nodes; ++i) 
-                area_lambda += Ncontainer(0, i) * this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) * length;
-            
-            double sensitivity_wrt_A = this->GetValue(CROSS_AREA_SENSITIVITY);
-
-            double const_pseudo_load = 0.0;
-            
-            if(std::abs(area_lambda) > std::numeric_limits<double>::epsilon())
-                const_pseudo_load = sensitivity_wrt_A / area_lambda;
-
-            rOutput[0][0] = const_pseudo_load;
-            rOutput[1][0] = const_pseudo_load;
-            rOutput[2][0] = const_pseudo_load;
-
-            rOutput[0][1] = 0.0;
-            rOutput[1][1] = 0.0;
-            rOutput[2][1] = 0.0;
-
-            rOutput[0][2] = 0.0;
-            rOutput[1][2] = 0.0;
-            rOutput[2][2] = 0.0;
         }
 
         KRATOS_CATCH("")
@@ -832,6 +888,12 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    CrBeamAdjointElement3D2N::IntegrationMethod CrBeamAdjointElement3D2N::GetIntegrationMethod() const 
+    {
+        // do this to have 5GP as an output in GID
+        return Kratos::GeometryData::GI_GAUSS_5;
+    }
+
     void CrBeamAdjointElement3D2N::save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElementLinear3D2N);
@@ -841,6 +903,329 @@ namespace Kratos
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElementLinear3D2N);
     }
+
+    BoundedVector<double, CrBeamAdjointElement3D2N::msLocalSize>
+    CrBeamAdjointElement3D2N::GetCurrentNodalPosition() 
+    {
+        BoundedVector<double, msLocalSize> current_nodal_position = ZeroVector(msLocalSize);
+        for (unsigned int i = 0; i < this->GetGeometry().PointsNumber(); ++i) 
+        {
+            int index = i * msDimension;
+            current_nodal_position[index] =
+                this->GetGeometry()[i].X0() +
+                this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X, 0);
+            current_nodal_position[index + 1] =
+                this->GetGeometry()[i].Y0() +
+                this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y, 0);
+            current_nodal_position[index + 2] =
+                this->GetGeometry()[i].Z0() +
+                this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z, 0);   
+        }
+
+        return current_nodal_position;
+    }
+
+    double CrBeamAdjointElement3D2N::CalculateCurrentLength() 
+    {
+        KRATOS_TRY;
+        const double du =
+            this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) -
+            this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X);
+        const double dv =
+            this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y) -
+            this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Y);
+        const double dw =
+            this->GetGeometry()[1].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z) -
+            this->GetGeometry()[0].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z);
+        const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
+        const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
+        const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
+        const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
+                                   (dw + dz) * (dw + dz));
+        return l;
+        KRATOS_CATCH("")
+    } 
+
+    Vector CrBeamAdjointElement3D2N::CalculateBendingDeformationModesOnGP(const Vector &DiscreteBendingDefMode)
+    {
+        KRATOS_TRY;
+
+        const unsigned int &write_points_number = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        Vector bending_mode = ZeroVector(write_points_number);
+        const double length = this->CalculateReferenceLength();     
+        const double step = 1.0 / (write_points_number + 1.0);
+        double current_position = 0.0;
+
+        for(unsigned int i = 0; i < write_points_number; i++)
+        {
+            current_position += step ;
+            bending_mode[i] = length * DiscreteBendingDefMode[0]*
+                (-current_position + 2*current_position*current_position - current_position*current_position*current_position) +
+                length * DiscreteBendingDefMode[1]*
+                (current_position*current_position - current_position*current_position*current_position);  
+        }
+
+        return bending_mode;
+
+        KRATOS_CATCH("")
+    }
+
+    double CrBeamAdjointElement3D2N::CalculateFirstOrderElongation()
+    {
+        KRATOS_TRY;
+
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        const double L = this->CalculateReferenceLength();
+     
+        Vector undeformed_vector = ZeroVector(msDimension);
+        undeformed_vector[0] = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0(); 
+        undeformed_vector[1] = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0(); 
+        undeformed_vector[2] = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0(); 
+        
+        Vector deformed_vector = ZeroVector(msDimension);
+        BoundedVector<double, msLocalSize> current_nodal_position = this->GetCurrentNodalPosition();
+        for (unsigned int i = 0; i < msDimension; ++i)
+            deformed_vector[i] = current_nodal_position[msDimension + i] - current_nodal_position[i];
+
+        //project derformed vector on the undeformed one  
+        double length_relation = inner_prod(deformed_vector, undeformed_vector) / 
+                                    inner_prod(undeformed_vector, undeformed_vector);
+
+        double elongation = 0.0;
+        if(std::abs(length_relation - 1) > numerical_limit)
+            elongation = L * (length_relation - 1.0);
+    
+        return elongation;
+
+        KRATOS_CATCH("")
+    }
+
+    //DEFORMATION MODES copied from cr beam *******************************************************************************
+    /*BoundedVector<double, CrBeamAdjointElement3D2N::msLocalSize>
+    CrBeamAdjointElement3D2N::CalculateDeformationModes() 
+    {
+        KRATOS_TRY;
+
+        Vector bisectrix;
+        Vector vector_difference;
+
+        this->GetBisectrixAndVectorDiffernece(bisectrix, vector_difference);
+
+        BoundedVector<double, msLocalSize> deformation_modes_total_v =
+            ZeroVector(msLocalSize);
+        const double L = this->CalculateReferenceLength();
+        const double l = this->CalculateCurrentLength();
+
+        Vector phi_s = CalculateSymmetricDeformationMode(vector_difference);
+        Vector phi_a = CalculateAntiSymmetricDeformationMode(bisectrix);
+
+        deformation_modes_total_v[3] = l - L;
+        for (int i = 0; i < 3; ++i)
+          deformation_modes_total_v[i] = phi_s[i];
+        for (int i = 0; i < 2; ++i)
+          deformation_modes_total_v[i + 4] = phi_a[i + 1];
+
+        return deformation_modes_total_v;
+
+        KRATOS_CATCH("")
+    }
+
+    Vector CrBeamAdjointElement3D2N::CalculateSymmetricDeformationMode(const Vector &VectorDifference) 
+    {
+        Vector phi_s = ZeroVector(msDimension);
+        phi_s = prod(Matrix(trans(this->mLocalRotationMatrix)), VectorDifference);
+        phi_s *= 4.00;
+        
+        return phi_s;
+    }
+
+    Vector CrBeamAdjointElement3D2N::CalculateAntiSymmetricDeformationMode(const Vector &Bisectrix) 
+    {
+        Vector phi_a = ZeroVector(msDimension);
+      
+        Vector rotated_nx0 = ZeroVector(msDimension);
+        
+        for (unsigned int i = 0; i < msDimension; ++i)
+            rotated_nx0[i] = this->mLocalRotationMatrix(i, 0);
+
+        Vector temp_vector = ZeroVector(msDimension);
+        MathUtils<double>::CrossProduct(temp_vector, rotated_nx0, Bisectrix);
+        phi_a = prod(Matrix(trans(this->mLocalRotationMatrix)), temp_vector);
+        phi_a *= 4.00;
+        
+        return phi_a;
+    }
+
+    void CrBeamAdjointElement3D2N::GetBisectrixAndVectorDiffernece(Vector &Bisectrix, Vector &VectorDifference) 
+    {
+        KRATOS_TRY
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        BoundedVector<double, msDimension> d_phi_a = ZeroVector(msDimension);
+        BoundedVector<double, msDimension> d_phi_b = ZeroVector(msDimension);
+        Vector increment_deformation;
+        this->GetValuesVector(increment_deformation, 0); // in the linear case the increment is equal to the state 
+
+        for (unsigned int i = 0; i < msDimension; ++i) 
+        {
+            d_phi_a[i] = increment_deformation[i + 3];
+            d_phi_b[i] = increment_deformation[i + 9];
+        }
+
+        // calculating quaternions
+        Vector drA_vec = ZeroVector(msDimension);
+        Vector drB_vec = ZeroVector(msDimension);
+        double drA_sca, drB_sca;
+
+        drA_vec = 0.50 * d_phi_a;
+        drB_vec = 0.50 * d_phi_b;
+
+        drA_sca = 0.00;
+        drB_sca = 0.00;
+        for (unsigned int i = 0; i < msDimension; ++i) 
+        {
+            drA_sca += drA_vec[i] * drA_vec[i];
+            drB_sca += drB_vec[i] * drB_vec[i];
+        }
+        drA_sca = 1.00 - drA_sca;
+        drB_sca = 1.00 - drB_sca;
+
+        drA_sca = std::sqrt(drA_sca);
+        drB_sca = std::sqrt(drB_sca);
+
+        Vector temp_vector = ZeroVector(msDimension);
+        double temp_scalar = 0.00;
+
+        Vector mQuaternionVEC_A = ZeroVector(msDimension);
+		Vector mQuaternionVEC_B = ZeroVector(msDimension);
+		double mQuaternionSCA_A = 1.00;
+		double mQuaternionSCA_B = 1.00;
+
+        // Node A
+        temp_vector = mQuaternionVEC_A;
+        temp_scalar = mQuaternionSCA_A;
+
+        mQuaternionSCA_A = drA_sca * temp_scalar;
+        for (unsigned int i = 0; i < msDimension; ++i) 
+            mQuaternionSCA_A -= drA_vec[i] * temp_vector[i];
+    
+        mQuaternionVEC_A = drA_sca * temp_vector;
+        mQuaternionVEC_A += temp_scalar * drA_vec;
+        mQuaternionVEC_A +=
+        MathUtils<double>::CrossProduct(drA_vec, temp_vector);
+
+        // Node B
+        temp_vector = mQuaternionVEC_B;
+        temp_scalar = mQuaternionSCA_B;
+
+        mQuaternionSCA_B = drB_sca * temp_scalar;
+        for (unsigned int i = 0; i < msDimension; ++i) 
+            mQuaternionSCA_B -= drB_vec[i] * temp_vector[i];
+  
+
+        mQuaternionVEC_B = drB_sca * temp_vector;
+        mQuaternionVEC_B += temp_scalar * drB_vec;
+        mQuaternionVEC_B += MathUtils<double>::CrossProduct(drB_vec, temp_vector);
+
+        // scalar part of difference quaternion
+        double scalar_diff;
+        scalar_diff = (mQuaternionSCA_A + mQuaternionSCA_B) * (mQuaternionSCA_A + mQuaternionSCA_B);
+
+        temp_vector = mQuaternionVEC_A + mQuaternionVEC_B;
+        scalar_diff += MathUtils<double>::Norm(temp_vector) *
+                       MathUtils<double>::Norm(temp_vector);
+
+        scalar_diff = 0.50 * std::sqrt(scalar_diff);
+
+        // mean rotation quaternion
+        double mean_rotation_scalar;
+        mean_rotation_scalar = (mQuaternionSCA_A + mQuaternionSCA_B) * 0.50;
+        mean_rotation_scalar = mean_rotation_scalar / scalar_diff;
+
+        BoundedVector<double, msDimension> mean_rotation_vector =
+            ZeroVector(msDimension);
+        mean_rotation_vector =
+            (mQuaternionVEC_A + mQuaternionVEC_B) * 0.50;
+        mean_rotation_vector = mean_rotation_vector / scalar_diff;
+
+        // vector part of difference quaternion
+        VectorDifference = mQuaternionSCA_A * mQuaternionVEC_B;
+        VectorDifference -= mQuaternionSCA_B * mQuaternionVEC_A;
+        VectorDifference += MathUtils<double>::CrossProduct(mQuaternionVEC_A,
+                                                      mQuaternionVEC_B);
+
+        VectorDifference = 0.50 * VectorDifference / scalar_diff;
+
+        // rotate inital element basis
+        const double r0 = mean_rotation_scalar;
+        const double r1 = mean_rotation_vector[0];
+        const double r2 = mean_rotation_vector[1];
+        const double r3 = mean_rotation_vector[2];
+
+        BoundedMatrix<double, msElementSize, msElementSize>
+            reference_transformation = this->CalculateInitialLocalCS();
+        Vector rotated_nx0 = ZeroVector(msDimension);
+        Vector rotated_ny0 = ZeroVector(msDimension);
+        Vector rotated_nz0 = ZeroVector(msDimension);
+        for (SizeType i = 0; i < msDimension; ++i) 
+        {
+            rotated_nx0[i] = reference_transformation(i, 0);
+            rotated_ny0[i] = reference_transformation(i, 1);
+            rotated_nz0[i] = reference_transformation(i, 2);
+        }
+
+        Quaternion<double> q(r0, r1, r2, r3);
+        q.RotateVector3(rotated_nx0);
+        q.RotateVector3(rotated_ny0);
+        q.RotateVector3(rotated_nz0);
+
+        BoundedMatrix<double, msDimension, msDimension> rotated_coordinate_system =
+            ZeroMatrix(msDimension, msDimension);
+        for (unsigned int i = 0; i < msDimension; ++i) 
+        {
+            rotated_coordinate_system(i, 0) = rotated_nx0[i];
+            rotated_coordinate_system(i, 1) = rotated_ny0[i];
+            rotated_coordinate_system(i, 2) = rotated_nz0[i];
+        }
+
+        // rotate basis to element axis + redefine R
+        Bisectrix = ZeroVector(msDimension);
+        Vector delta_x = ZeroVector(msDimension);
+        double vector_norm;
+
+        BoundedVector<double, msLocalSize> current_nodal_position = this->GetCurrentNodalPosition();
+
+        for (unsigned int i = 0; i < msDimension; ++i)
+            delta_x[i] = current_nodal_position[msDimension + i] - current_nodal_position[i];
+
+        vector_norm = MathUtils<double>::Norm(delta_x);
+        if (vector_norm > numerical_limit)
+            delta_x /= vector_norm;
+
+        Bisectrix = rotated_nx0 + delta_x;
+        vector_norm = MathUtils<double>::Norm(Bisectrix);
+        if (vector_norm > numerical_limit)
+            Bisectrix /= vector_norm;
+
+        BoundedMatrix<double, msDimension, msDimension> n_xyz = ZeroMatrix(msDimension);
+        for (unsigned int i = 0; i < msDimension; ++i) 
+        {
+            n_xyz(i, 0) = -rotated_coordinate_system(i, 0);
+            n_xyz(i, 1) = rotated_coordinate_system(i, 1);
+            n_xyz(i, 2) = rotated_coordinate_system(i, 2);
+        }
+
+        BoundedMatrix<double, msDimension, msDimension> Identity =
+            ZeroMatrix(msDimension);
+        for (unsigned int i = 0; i < msDimension; ++i)
+          Identity(i, i) = 1.0;
+        Identity -= 2.0 * outer_prod(Bisectrix, Bisectrix);
+        n_xyz = prod(Identity, n_xyz);
+
+        this->mLocalRotationMatrix = n_xyz;
+      
+        KRATOS_CATCH("")
+    }*/
+               
 
 } // namespace Kratos.
 
