@@ -91,21 +91,23 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
         """
         # If we remesh using a process
         if (self.process_remesh is True):
-            if (self.main_model_part.Is(KratosMultiphysics.MODIFIED) is True):
-                # WE INITIALIZE THE SOLVER
-                self.solver.Initialize()
-                # WE RECOMPUTE THE PROCESSES AGAIN
-                ## Processes initialization
-                for process in self.list_of_processes:
-                    process.ExecuteInitialize()
-                ## Processes before the loop
-                for process in self.list_of_processes:
-                    process.ExecuteBeforeSolutionLoop()
-                ## Processes of initialize the solution step
-                for process in self.list_of_processes:
-                    process.ExecuteInitializeSolutionStep()
-
-                super(AdaptativeContactStructuralMechanicsAnalysis, self).RunSolutionLoop()
+            while self.time < self.end_time:
+                self.time = self.solver.AdvanceInTime(self.time)
+                if (self.main_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    # WE INITIALIZE THE SOLVER
+                    self.solver.Initialize()
+                    # WE RECOMPUTE THE PROCESSES AGAIN
+                    ## Processes initialization
+                    for process in self.list_of_processes:
+                        process.ExecuteInitialize()
+                    ## Processes before the loop
+                    for process in self.list_of_processes:
+                        process.ExecuteBeforeSolutionLoop()
+                self.InitializeSolutionStep()
+                self.solver.Predict()
+                self.solver.SolveSolutionStep()
+                self.FinalizeSolutionStep()
+                self.OutputSolutionStep()
         else: # Remeshing adaptively
             computing_model_part = self.solver.GetComputingModelPart()
             remeshing_process = self.solver.get_remeshing_process()
