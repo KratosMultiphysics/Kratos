@@ -1136,7 +1136,7 @@ namespace Kratos {
                         }
                     }
                     if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE] * aux_ang_vel;
-                    else igid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                    else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
                     if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE] * aux_ang_vel;
                     else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
                     if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE] * aux_ang_vel;
