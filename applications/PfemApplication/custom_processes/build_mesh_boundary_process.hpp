@@ -225,8 +225,8 @@ namespace Kratos
 	    //
 	    //********************************************************************
 
-	    boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	    DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+	    DenseVector<unsigned int> lnofa; //number of points defining faces
 	 
 	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 	    
@@ -536,7 +536,7 @@ namespace Kratos
     //**************************************************************************
 
 
-    bool FindNodeInCondition(Geometry< Node<3> >& rConditionGeometry,Geometry< Node<3> >& rElementGeometry , boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
+    bool FindNodeInCondition(Geometry< Node<3> >& rConditionGeometry,Geometry< Node<3> >& rElementGeometry , DenseMatrix<unsigned int>& lpofa, DenseVector<unsigned int>& lnofa, unsigned int& iface)
     {
       KRATOS_TRY
       

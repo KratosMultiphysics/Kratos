@@ -33,6 +33,7 @@
 #include "utilities/activation_utilities.h"
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/condition_number_utility.h"
+#include "utilities/mortar_utilities.h"
 
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
@@ -50,6 +51,7 @@
 #include "utilities/interval_utility.h"
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos
 {
@@ -159,6 +161,8 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ElementsContainerType>)
         .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
         .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
+        .def("SaveVectorNonHistoricalVar", &VariableUtils::SaveVectorNonHistoricalVar)
+        .def("SaveScalarNonHistoricalVar", &VariableUtils::SaveScalarNonHistoricalVar)
         .def("SelectNodeList", &VariableUtils::SelectNodeList)
         .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
         .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
@@ -432,6 +436,21 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+    ;
+
+    // Sparse matrix multiplication utility
+    class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
+    .def(init<>())
+    .def("MatrixMultiplication",&SparseMatrixMultiplicationUtility::MatrixMultiplication<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
+    ;
+
+    // Mortar utilities
+    class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
+    .def(init<>())
+    .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
     ;
 }
 
