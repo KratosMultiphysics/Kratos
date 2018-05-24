@@ -194,13 +194,11 @@ class TestAnalytics(KratosUnittest.TestCase):
 
     @classmethod
     def test_Analytics_2(self):
-        #GhostsTestSolution().Run()
-        pass
+        GhostsTestSolution().Run()
 
     @classmethod
     def test_Analytics_3(self):
-        #MultiGhostsTestSolution().Run()
-        pass
+        MultiGhostsTestSolution().Run()
 
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
