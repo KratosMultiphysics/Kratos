@@ -191,7 +191,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
     TestPropertiesData properties_data;
     TestProcessInfoData process_info_data;
 
-    ModelPart full_model_part("Test Full");
+    ModelPart& full_model_part  = Kernel::GetModel().CreateModelPart("Test Full");
 
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestCompleteModelPart(full_model_part,DeltaTime,2);
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
 
 KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSuite) {
 
-    ModelPart empty_model_part("Test Empty");
+    ModelPart& empty_model_part  = Kernel::GetModel().CreateModelPart("Test Empty");
 
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestEmptyModelPart(empty_model_part,DeltaTime,1);
@@ -269,7 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
 
 KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite)
 {
-    ModelPart model_part("Main");
+    ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
     model_part.SetBufferSize(3);
 
     // Variables addition
@@ -500,7 +500,7 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
 
 KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 {
-    ModelPart model_part("Main");
+    ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
     unsigned int buffer_size = 2;
     model_part.SetBufferSize(buffer_size);
 

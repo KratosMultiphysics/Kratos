@@ -38,7 +38,7 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(EmbeddedAusasNavierStokesWallCondition2D3N, FluidDynamicsApplicationFastSuite)
 		{
 
-			ModelPart modelPart("Main");
+			ModelPart& modelPart  = Kernel::GetModel().CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -145,7 +145,7 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedAusasNavierStokesWallCondition3D4N, FluidDynamicsApplicationFastSuite)
 		{
 
-			ModelPart modelPart("Main");
+			ModelPart& modelPart  = Kernel::GetModel().CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
