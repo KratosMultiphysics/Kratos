@@ -31,6 +31,8 @@ class PythonSolver(object):
         self.main_model_part = model_part
         self.settings = settings
 
+        self.echo_level = self.settings["echo_level"].GetInt()
+
     def AddVariables(self):
         """This function add the Variables needed by this PythonSolver to the the ModelPart
         It has to be called BEFORE the ModelPart is read!
@@ -142,6 +144,11 @@ class PythonSolver(object):
         """
         pass
 
+    def Clear(self):
+        """This function clears the PythonSolver
+        """
+        pass
+
     def Solve(self):
         warning_msg  = 'Using "Solve" is deprecated and will be removed in the future!\n'
         warning_msg += 'Use the separate calls to "Initialize", "InitializeSolutionStep", "Predict", '
@@ -153,13 +160,8 @@ class PythonSolver(object):
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
 
-    def Clear(self):
-        """This function clears the PythonSolver
-        """
-        pass
-
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        raise Exception("This function has to be implemented in the derived class")
 
 
     def _GetRestartSettings(self):
