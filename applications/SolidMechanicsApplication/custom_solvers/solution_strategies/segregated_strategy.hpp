@@ -338,7 +338,6 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
 
   StrategiesContainerType  mStrategies;
  
-
   ///@}
   ///@name Protected Operators
   ///@{

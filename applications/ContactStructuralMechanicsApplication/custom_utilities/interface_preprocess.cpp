@@ -330,7 +330,7 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
             if (FaceGeometry[it_node].Is(INTERFACE) == true) ++count;
     }
     
-    const std::string condition_name = (number_of_points == 3 || SimplestGeometry) ? "Condition3D" : (number_of_points == 4) ? "Condition3D4N" : (number_of_points == 6) ? "Condition3D6N" : (number_of_points == 8) ? "Condition3D8N" : "Condition3D9N";
+    const std::string condition_name = (number_of_points == 3 || SimplestGeometry) ? "SurfaceCondition3D3N" : (number_of_points == 4) ? "SurfaceCondition3D4N" : (number_of_points == 6) ? "SurfaceCondition3D6N" : (number_of_points == 8) ? "SurfaceCondition3D8N" : "SurfaceCondition3D9N";
  
     Condition const& r_condition =  KratosComponents<Condition>::Get(condition_name);
     

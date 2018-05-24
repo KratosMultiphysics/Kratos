@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os.path
 import sys
 import KratosMultiphysics
+from KratosMultiphysics import Logger
 
 
 def ImportApplication(application, application_name, application_folder, caller):
@@ -14,12 +15,12 @@ def ImportApplication(application, application_name, application_folder, caller)
     # Note that position [0] (a frame instance) could also be used for the check,
     # but can return false if both calls are made from the python interpreter
     if main_caller[1] != caller[1]:
-        msg = "\n***\n*    Python file " + str(caller[1]) + "\n*    requires " + str(application_name) + "\n*    Please import it from your main Python script, " +str(main_caller[1]+'\n***')
+        msg = "\n***\n*    Python file " + str(caller[1]) + "\n*    requires " + str(application_name) + "\n*    Please import it from your main Python script, " +str(main_caller[1]+"\n*    If your main Python script is already importing it, you may need to re-order the imports"+'\n***')
         # print caller
         # print main_caller
         raise RuntimeError(msg)
     elif application_name not in Globals.RequestedApplications:  # This check is possibly redundant, as Python won't import the same module twice
-        print("Importing    " + application_name)
+        Logger.PrintInfo("", "Importing    " + application_name)
         # Add application to dictionary of registered applications
         Globals.RequestedApplications[application_name] = application
         # Add python scrips folder to path
