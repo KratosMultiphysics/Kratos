@@ -8,10 +8,11 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
+//                   Ignasi de Pouplana
 //
 
-#ifndef KRATOS_QS_VMS_H
-#define KRATOS_QS_VMS_H
+#ifndef KRATOS_FIC_FLUID_ELEMENT_H
+#define KRATOS_FIC_FLUID_ELEMENT_H
 
 #include "includes/define.h"
 #include "includes/element.h"
@@ -47,15 +48,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/// A detailed description of the formulation can be found in:
+/// A FIC-based stabilized finite element formulation for turbulent flows, 2017
+/// https://www.sciencedirect.com/science/article/pii/S004578251630799X
+
 template< class TElementData >
-class QSVMS : public FluidElement<TElementData>
+class FIC : public FluidElement<TElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of QSVMS
-    KRATOS_CLASS_POINTER_DEFINITION(QSVMS);
+    /// Pointer definition of FIC
+    KRATOS_CLASS_POINTER_DEFINITION(FIC);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -107,21 +112,21 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    QSVMS(IndexType NewId = 0);
+    FIC(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    QSVMS(IndexType NewId, const NodesArrayType& ThisNodes);
+    FIC(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    QSVMS(IndexType NewId, GeometryType::Pointer pGeometry);
+    FIC(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -129,10 +134,10 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    QSVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    FIC(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~QSVMS() override;
+    ~FIC() override;
 
     ///@}
     ///@name Operators
@@ -146,7 +151,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new QSVMS element, created using given input
+     * Returns a pointer to a new FIC element, created using given input
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -167,7 +172,6 @@ public:
     Element::Pointer Create(IndexType NewId,
                             GeometryType::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
-
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -260,8 +264,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // Protected interface of FluidElement ////////////////////////////////////
-
     void AddTimeIntegratedSystem(
         TElementData& rData,
         MatrixType& rLHS,
@@ -291,7 +293,7 @@ protected:
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
-    // Implementation details of QSVMS ////////////////////////////////////////
+    // Implementation details of FIC ////////////////////////////////////////
 
     void AddMassStabilization(
         TElementData& rData,
@@ -302,59 +304,21 @@ protected:
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS);
 
-    /**
-     * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
-     * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
-     * @param rData TElementData instance with information about nodal values
-     * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
-     * @return Kinematic viscosity at the integration point.
-     */
-    KRATOS_DEPRECATED virtual double EffectiveViscosity(
-        TElementData& rData,
-        double ElementSize);
-
     virtual void CalculateTau(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo) const;
+        double &TauIncompr,
+        double &TauMomentum,
+        array_1d<double,3> &TauGrad) const;
 
-    virtual void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
-
-    virtual void MomentumProjTerm(
+    virtual void CalculateTauGrad(
         const TElementData& rData,
-        const array_1d<double,3>& rConvectionVelocity,
-        array_1d<double,3>& rMomentumRHS) const;
-
-    virtual void MassProjTerm(
-        const TElementData& rData,
-        double& rMassRHS) const;
-
-    virtual void SubscaleVelocity(
-        const TElementData& rData,
-        array_1d<double,3>& rVelocitySubscale) const;
-
-    virtual void SubscalePressure(
-        const TElementData& rData,
-        double &rPressureSubscale) const;
+        array_1d<double,3> &TauGrad) const;
 
     virtual void AlgebraicMomentumResidual(
         const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
+        const Vector& rConvection,
         array_1d<double,3>& rResidual) const;
-
-    virtual void AlgebraicMassResidual(
-        const TElementData& rData,
-        double& rMomentumRes) const;
-
-    virtual void OrthogonalMomentumResidual(
-        const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
-        array_1d<double,3>& rResidual) const;
-
-    virtual void OrthogonalMassResidual(
-        const TElementData& rData,
-        double& rMassRes) const;
 
     ///@}
     ///@name Protected  Access
@@ -416,15 +380,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    QSVMS& operator=(QSVMS const& rOther);
+    FIC& operator=(FIC const& rOther);
 
     /// Copy constructor.
-    QSVMS(QSVMS const& rOther);
+    FIC(FIC const& rOther);
 
     ///@}
 
 
-}; // Class QSVMS
+}; // Class FIC
 
 ///@}
 
@@ -440,7 +404,7 @@ private:
 /// input stream function
 template< class TElementData >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 QSVMS<TElementData>& rThis)
+                                 FIC<TElementData>& rThis)
 {
     return rIStream;
 }
@@ -448,7 +412,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const QSVMS<TElementData>& rThis)
+                                 const FIC<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -458,8 +422,34 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 }
 ///@}
 
+
+namespace Internals {
+
+template <class TElementData, bool TDataKnowsAboutTimeIntegration>
+class FICSpecializedAddTimeIntegratedSystem {
+   public:
+    static void AddSystem(FIC<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+
+template <class TElementData>
+class FICSpecializedAddTimeIntegratedSystem<TElementData, true> {
+   public:
+    static void AddSystem(FIC<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+
+template <class TElementData>
+class FICSpecializedAddTimeIntegratedSystem<TElementData, false> {
+   public:
+    static void AddSystem(FIC<TElementData>* pElement,
+        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+};
+
 ///@} // Fluid Dynamics Application group
+
+} // namespace Internals
 
 } // namespace Kratos.
 
-#endif // KRATOS_QS_VMS_H
+#endif // KRATOS_FIC_FLUID_ELEMENT_H
