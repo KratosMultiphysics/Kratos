@@ -35,6 +35,7 @@ before_script:
 
 script:
 - python3 -m pip install --user h5py
+- python3 -m pip install --user numpy
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
