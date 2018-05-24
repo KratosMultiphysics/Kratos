@@ -82,7 +82,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "VelocityConstraints2D_walls",
+            "model_part_name" : "NoSlip2D_cylinder",
             "variable_name"   : "ADJOINT_VELOCITY",
 	        "value"           : [0.0, 0.0, 0.0]
         }
@@ -92,7 +92,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_cylinder",
+            "model_part_name" : "VelocityConstraints2D_walls",
             "variable_name"   : "ADJOINT_VELOCITY",
             "constrained"     : [false,true,true],
 	        "value"           : [0.0, 0.0, 0.0]
@@ -167,7 +167,7 @@
             "output_file_name"    : "cylinder_adjoint_test_probe1.dat",
             "reference_file_name" : "cylinder_adjoint_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : false,
+            "remove_output_file"    : true,
             "decimal_places"      : 5
         }
     },{
@@ -179,7 +179,7 @@
             "output_file_name"    : "cylinder_adjoint_test_probe2.dat",
             "reference_file_name" : "cylinder_adjoint_test_probe2_ref.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : false,
+            "remove_output_file"    : true,
 	        "decimal_places"      : 5
         }
     },{
@@ -191,7 +191,7 @@
             "output_file_name"    : "cylinder_adjoint_test_probe3.dat",
             "reference_file_name" : "cylinder_adjoint_test_probe3.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : false,
+            "remove_output_file"    : true,
 	        "decimal_places"      : 10
         }
     }]
