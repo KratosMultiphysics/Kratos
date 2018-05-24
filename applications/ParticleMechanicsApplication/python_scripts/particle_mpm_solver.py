@@ -244,7 +244,6 @@ class ParticleMPMSolver(object):
         
         # Add specific variables for the problem conditions
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-        model_part.AddNodalSolutionStepVariable(KratosSolid.POINT_LOAD)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
