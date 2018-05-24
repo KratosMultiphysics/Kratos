@@ -18,7 +18,6 @@
 
 // Project includes
 #include "custom_utilities/read_materials.hpp"
-//#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -54,49 +53,12 @@ namespace Kratos
 
     void ReadMaterialProcess::AssignPropertyBlock(Parameters data)
     {
-        /* Set constitutive law and material properties and assign to elements and conditions.
-        Arguments:
-        data -- Parameters object defining properties for a model part.
-
-        Example:
-        data = {
-            "model_part_name" : "Plate",
-            "properties_id" : 1,
-            "Material" : {
-                "constitutive_law" : {
-                    "name" : "LinearElasticPlaneStress2DLaw"
-                },
-                "Variables" : {
-                    "YOUNG_MODULUS" : 200e9,
-                    "POISSON_RATIO" : 0.3,
-                    "RESIDUAL_VECTOR" : [1.5,0.3,-2.58],
-                    "LOCAL_INERTIA_TENSOR" : [[0.27,0.0],[0.0,0.27]]
-                },
-                "Tables" : {
-                    "Table1" : {
-                        "input_variable" : "TEMPERATURE",
-                        "output_variable" : "YOUNG_MODULUS",
-                        "data" : [
-                            [0.0,  100.0],
-                            [20.0, 90.0],
-                            [30.0, 85.0],
-                            [35.0, 80.0]
-                        ]
-                    }
-                }
-            }
-        }
-        */
-
-        //KRATOS_WATCH(data);
-
         // Get the properties for the specified model part.
         IndexType property_id = data["properties_id"].GetInt();
         IndexType mesh_id = 0;
         Properties::Pointer prop = mrModelPart.pGetProperties(property_id, mesh_id);
 
-        //TODO(marcelo): Complete the "keys()" part
-        //if (len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables())
+        //TODO(marcelo): Implement the "keys()" part
         //if (data["Material"]["Variables"].end() - data["Material"]["Variables"].begin())
         //    KRATOS_INFO("::[Reading materials process DEBUG]::")
         //            << "Property " << property_id << " is not empty." << std::endl;
@@ -116,29 +78,33 @@ namespace Kratos
             cond->SetProperties(prop);
 
         //Set the CONSTITUTIVE_LAW for the current properties.
-        auto constitutive_law_name = data["Material"]["constitutive_law"]["name"].GetString();
-        //auto p_constitutive_law = KratosComponents<ConstitutiveLaw>(constitutive_law_name).pGetComponents();
-        //prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+        std::string constitutive_law_name = data["Material"]["constitutive_law"]["name"].GetString();
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
+        prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
 
         // Add / override the values of material parameters in the properties
-        for(auto variable = data["Material"]["Variables"].begin();
-            variable != data["Material"]["Variables"].end(); variable++){
-
-            auto value = data["Material"]["Variables"].GetValue(variable);
-            if (variable.IsDouble())
-                prop->SetValue(variable, value.GetDouble());
-            else if (variable.IsInt())
-                prop->SetValue(variable, value.GetInt());
-            else if (variable.IsBool())
-                prop->SetValue(variable, value.GetBool());
-            else if (variable.IsString())
-                prop->SetValue(variable, value.GetString());
-            else if (variable.IsMatrix())
-                prop->SetValue(variable, value.GetMatrix());
+        for(auto iter = data["Material"]["Variables"].begin();
+            iter != data["Material"]["Variables"].end(); iter++){
+            auto value = data["Material"]["Variables"].GetValue(iter.name());
+            auto variable = KratosComponents<VariableData>().Get(iter.name());
+            if (value.IsDouble()){
+                //prop->SetValue(variable, value.GetDouble());
+            }
+            /*
+            else if (value.IsInt())
+                prop->SetValue(iter, value.GetInt());
+            else if (value.IsBool())
+                prop->SetValue(iter, value.GetBool());
+            else if (value.IsString())
+                prop->SetValue(iter, value.GetString());
+            else if (value.IsMatrix())
+                prop->SetValue(iter, value.GetMatrix());
             else if (value.IsVector())
-                prop->SetValue(variable, value.GetVector());
-            else
-                KRATOS_ERROR("Type of value is not available");
+                prop->SetValue(iter, value.GetVector());
+            else{
+                KRATOS_INFO("Type of value is not available");
+            }
+                */
         }
 /*
         # Add / override tables in the properties
