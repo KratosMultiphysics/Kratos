@@ -54,8 +54,6 @@ namespace Kratos
         virtual void CreateContinuumConstitutiveLaws();
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 
-        virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
-
         virtual double SlowGetDensity();
         virtual int SlowGetParticleMaterial();
 

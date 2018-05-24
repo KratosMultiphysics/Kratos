@@ -300,9 +300,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
     class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")
         .def(init<>())
-//        .def("ChangeMeshVelocity", &DEMFEMUtilities::ChangeMeshVelocity)
-//        .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
-//        .def("MoveAllMeshesUsingATable", &DEMFEMUtilities::MoveAllMeshesUsingATable)
+        .def("ChangeMeshVelocity", &DEMFEMUtilities::ChangeMeshVelocity)
+        .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
+        .def("MoveAllMeshesUsingATable", &DEMFEMUtilities::MoveAllMeshesUsingATable)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)
         ;
 
