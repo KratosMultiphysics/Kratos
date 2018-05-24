@@ -339,7 +339,7 @@ class GiDOutputProcess(Process):
     def __get_pretty_time(self,time):
         pretty_time = "{0:.12g}".format(time)
         pretty_time = float(pretty_time)
-        return pretty_time 
+        return pretty_time
 
     def __get_gidpost_flag(self, param, label, dictionary):
         '''Parse gidpost settings using an auxiliary dictionary of acceptable values.'''
