@@ -281,7 +281,7 @@ public:
         if (DPlasticdissipation > 0.0 | DPlasticdissipation > 1.0) DPlasticdissipation = 0.0;
 
         rPlasticDissipation += DPlasticdissipation;
-        if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999;
+        if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999; // warning vicente
     }
 
     // Calculates the stress threshold 

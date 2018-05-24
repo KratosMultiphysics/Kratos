@@ -146,7 +146,7 @@ public:
         const int VoigtSize = this->GetVoigtSize();
         Vector& IntegratedStressVector = rValues.GetStressVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-        const double CharacteristicLength = rValues.GetCharacteristicLength(); // To include
+        const double CharacteristicLength = rValues.GetGeometry().Length(); // To include
 
         // Elastic Matrix
         Matrix C;
@@ -199,7 +199,7 @@ public:
         }
     } // End CalculateMaterialResponseCauchy
 
-    void CalculateTangentTensor(Matrix& C) // todo
+    void CalculateTangentTensor(Matrix& C) //TODO: 
     {
 
     }

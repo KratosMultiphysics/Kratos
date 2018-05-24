@@ -172,7 +172,7 @@ public:
             IntegratedStressVector = PredictiveStressVector;
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
-            TangentTensor = (1 - Damage)*C;
+            noalias(TangentTensor) = (1 - Damage)*C;
         }
         else // Damage case
         {
@@ -183,10 +183,10 @@ public:
                 Damage, Threshold, rMaterialProperties, CharacteristicLength);
 
             // Updated Values
-            IntegratedStressVector = PredictiveStressVector; 
+            noalias(IntegratedStressVector) = PredictiveStressVector; 
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
-            TangentTensor = (1 - Damage)*C; // Secant Tensor
+            noalias(TangentTensor) = (1 - Damage)*C; // Secant Tensor
         }
         
     } // End CalculateMaterialResponseCauchy

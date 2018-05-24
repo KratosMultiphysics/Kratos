@@ -114,10 +114,13 @@ public:
             case "Linear":
                 CalculateLinearDamage(UniaxialStress, Threshold, DamageParameter,
                     CharacteristicLength, rMaterialProperties, Damage);
+                break;
 
             case "Exponential":
                 CalculateExponentialDamage(UniaxialStress, Threshold, DamageParameter,
                     CharacteristicLength, rMaterialProperties, Damage);
+                break;
+            
 
             // Add more...
         }
