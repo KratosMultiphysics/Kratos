@@ -1,7 +1,6 @@
 import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import Logger
-Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import main_script

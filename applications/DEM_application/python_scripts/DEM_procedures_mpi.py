@@ -2,15 +2,12 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-if not "DO_NOT_PARTITION_DOMAIN" in os.environ:
-    from KratosMultiphysics.MetisApplication import *
-    from KratosMultiphysics.MPISearchApplication import *
-    import DEM_material_test_script_mpi as DEM_material_test_script
-else:
-    import DEM_material_test_script
-
+from KratosMultiphysics.MetisApplication import *
+from KratosMultiphysics.MPISearchApplication import *
 from KratosMultiphysics.mpi import *
+
 import DEM_procedures
+import DEM_material_test_script_mpi as DEM_material_test_script
 
 from glob import glob
 
@@ -31,22 +28,19 @@ class PostUtils(DEM_procedures.PostUtils):
     def __init__(self, DEM_parameters, balls_model_part):
         super(PostUtils,self).__init__(DEM_parameters, balls_model_part)
 
-
+        
 class Procedures(DEM_procedures.Procedures):
 
     def __init__(self, DEM_parameters):
         super(Procedures,self).__init__(DEM_parameters)
-
-    def Barrier(self):
-        mpi.world.barrier()
 
     def AddMpiVariables(self, model_part):
         model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
         model_part.AddNodalSolutionStepVariable(PARTITION_MASK)
 
     def CreateDirectories(self, main_path, problem_name):
-
         root             = main_path + '/' + problem_name
+
         post_path        = root + '_Post_Files'
         data_and_results = root + '_Results_and_Data'
         graphs_path      = root + '_Graphs'
@@ -57,7 +51,7 @@ class Procedures(DEM_procedures.Procedures):
                 if not os.path.isdir(directory):
                     os.makedirs(str(directory))
 
-        self.Barrier()
+        mpi.world.barrier()
 
         return [post_path, data_and_results, graphs_path, MPI_results]
 
@@ -66,21 +60,21 @@ class Procedures(DEM_procedures.Procedures):
             print("Creating MPIer...")
             #MPIClassObject = MPIer.MPIerClass(str(DEM_parameters["problem_name"].GetString()) + "DEM.mdpa")
             print("done.")
-        self.Barrier() #TODO: maybe not necessary (debugging)
-
+        mpi.world.barrier() #TODO: maybe not necessary (debugging)
+            
     def FindMaxNodeIdInModelPart(self, model_part):
 
         node_max = super(Procedures,self).FindMaxNodeIdInModelPart(model_part)
         node_max_gath = mpi.allgather(mpi.world,node_max)
         total_max = reduce(lambda x,y: max(x,y), node_max_gath)
         return total_max
-
+        
     def DeleteFiles(self):
         if (mpi.rank == 0):
             files_to_delete_list = glob('*.time')
             for to_erase_file in files_to_delete_list:
                 os.remove(to_erase_file)
-
+        
     def KRATOSprint(self, message):
         if (mpi.rank == 0):
             print(message)
@@ -88,6 +82,9 @@ class Procedures(DEM_procedures.Procedures):
 
 
 class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
+    def __init__(self, DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part):
+        super(DEMFEMProcedures,self).__init__(DEM_parameters,graphs_path,balls_model_part,RigidFace_model_part)
+
     def PrintGraph(self, time):
         if (mpi.rank == 0):
             super(DEMFEMProcedures,self).PrintGraph(time)
@@ -95,7 +92,7 @@ class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
     def FinalizeGraphs(self,RigidFace_model_part):
         if (mpi.rank == 0):
             super(DEMFEMProcedures,self).FinalizeGraphs(RigidFace_model_part)
-
+            
     def FinalizeBallsGraphs(self,spheres_model_part):
         if (mpi.rank == 0):
             super(DEMFEMProcedures,self).FinalizeBallsGraphs(spheres_model_part)
@@ -128,15 +125,8 @@ class MultifileList(object):
         self.index = 0
         self.step = step
         self.name = name
-        self.which_folder = which_folder
-        if which_folder == "inner":
-            absolute_path_to_file = os.path.join(post_path, "_list_" + self.name + "_" + str(mpi.rank) + "_" + str(step) + ".post.lst")
-        else:
-            absolute_path_to_file = os.path.join(post_path, self.name + "_" + str(mpi.rank) + ".post.lst")
-        #THIS BREAKS THE AUTOMATIC OPENING OF POSTPROCESS FILES IN GID WHEN SWITCHING TO POST
-
-        self.file = open(absolute_path_to_file, "w")
-
+        self.file = open("_list_"+self.name+"_"+str(mpi.rank)+"_"+str(step)+".post.lst","w")
+        
 
 class DEMIo(DEM_procedures.DEMIo):
 
@@ -150,7 +140,7 @@ class DEMIo(DEM_procedures.DEMIo):
         self.gid_io.ChangeOutputName(name + "_" + str(mpi.rank))
 
     def GetMultiFileListName(self, name):
-        return name + "_" + str(mpi.rank)
+        return name + "_" + str(mpi.rank)            
 
 
 class ParallelUtils(DEM_procedures.ParallelUtils):
@@ -170,18 +160,18 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
 
         #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "before performing the division")
         number_of_partitions = mpi.size
-
+        
         if mpi.rank == 0:
             #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "start partition process")
             partitioner = MetisDivideNodalInputToPartitionsProcess(model_part_io_spheres, number_of_partitions, domain_size);
-            partitioner.Execute()
+            partitioner.Execute() 
 
         #print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "division performed")
         mpi.world.barrier()
         #return model_part_io_spheres
 
     def SetCommunicator(self, spheres_model_part, model_part_io_spheres, spheres_mp_filename):
-
+        
         MPICommSetup = SetMPICommunicatorProcess(spheres_model_part)
         MPICommSetup.Execute()
 
@@ -195,9 +185,3 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
 
     def GetSearchStrategy(self, solver, model_part):
         return MPI_DEMSearch(model_part.GetCommunicator())
-
-class SetOfModelParts(DEM_procedures.SetOfModelParts):
-    pass
-
-class DEMEnergyCalculator(DEM_procedures.DEMEnergyCalculator):
-    pass

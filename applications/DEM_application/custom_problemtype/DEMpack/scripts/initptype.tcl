@@ -74,8 +74,8 @@ proc kipt::Splash {} {
 	set imagename splash_C.png
     } elseif { $KPriv(what_dempack_package) eq "G-DEMPack"} {
 	set imagename splash_D.png
-    } elseif { $KPriv(what_dempack_package) eq "S-DEMPack"} {
-	set imagename splash_S.png
+    } elseif { $KPriv(what_dempack_package) eq "S-DEMPack"} { 
+	set imagename splash_S.png 
     } else {
 	set imagename splash_D.png
     }
@@ -125,7 +125,7 @@ proc kipt::BeforeMeshGeneration {elementsize} {
     set ndime 3D
     # Get the spatial dimension
     catch {set ndime [::xmlutils::setXml {GeneralApplicationData//c.Domain//i.SpatialDimension} dv]}
-
+    
     # Reset Automatic Conditions from previous executions
     #GiD_Process Mescape Meshing MeshCriteria DefaultMesh Lines 1:end
     #GiD_Process Mescape Meshing MeshCriteria DefaultMesh Surfaces 1:end escape
@@ -160,8 +160,7 @@ proc kipt::BeforeMeshGeneration {elementsize} {
 	set groupid "-AKGSkinMesh3D"
 	::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid
 	# Find boundaries
-	set bsurfacelist [::wkcf::FindBoundariesOfNonSphericElements $entitytype]
-	set allsurfacelist [::wkcf::FindAllSurfacesOfNonSphericElements $entitytype]
+	set bsurfacelist [::wkcf::FindBoundaries_no_spheric_elems $entitytype]
 	#
 	::wkcf::AssignGeometricalEntitiesToSkinSphere3D
 	# Get the surface type list
@@ -183,14 +182,13 @@ proc kipt::BeforeMeshGeneration {elementsize} {
 	::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid
 
 	# Special case of DEM
-	::wkcf::AssignSpecialBoundaries $ndime $allsurfacelist
+	::wkcf::AssignSpecialBoundaries $ndime $bsurfacelist
 	::wkcf::ForceTheMeshingOfDEMFEMWallGroups
-	::wkcf::ForceTheMeshingOfDEMInletGroups
     }
 }
 
 proc kipt::InitGIDProject {dir scripts_dir} {
-
+    
     global KPriv
     global GidPriv
     # Set dir to a global variable
@@ -242,12 +240,12 @@ proc kipt::InitGIDProject {dir scripts_dir} {
     } else {
 	set KPriv(imagesdir) [file join images Classic]
     }
-
+    
     # Change system menu
     # Preprocess
     # scripts/menus.tcl
     ::kmtb::ChangePreprocessMenu $dir
-
+    
     if {$GidPriv(Language) == "es"} {
 	WarnWin [= "You are currently working with the Spanish version of GiD. The DEMPack Problem\
 	Types need the GiD English version in order to fully work. GiD will now automatically shift\
@@ -366,16 +364,16 @@ proc kipt::LoadSourceFiles {dir scripts_dir} {
     # Load some packages
     set lib_paths [list]
     set lib_filenames [list]
-
+	
     # For scripts directory
     lappend lib_paths [file join $scripts_dir scripts]
     lappend lib_filenames {files.tcl winutils.tcl menus.tcl utils.tcl stringutils.tcl \
 	modelvalidation.tcl projectSettings.tcl}
-
+	
     # For xml libs
     lappend lib_paths [file join $scripts_dir scripts libs xml]
     lappend lib_filenames {xmlutils.tcl xpathq.tcl}
-
+	
     if { [kipt::CurvesModule] } {
 
 		# For Curves, graphics and tables
@@ -384,10 +382,10 @@ proc kipt::LoadSourceFiles {dir scripts_dir} {
 		lappend lib_paths [file join $scripts_dir scripts libs graphics]
 		lappend lib_filenames {plotgraph.tcl}
     }
-
+	
     lappend lib_paths [file join $scripts_dir scripts libs graphics]
     lappend lib_filenames {plotgraph.tcl}
-
+	
     # For Wizard library
     lappend lib_paths [file join $scripts_dir scripts libs wizard]
     lappend lib_filenames {snitwiz.tcl}
@@ -420,7 +418,7 @@ proc kipt::LoadSourceFiles {dir scripts_dir} {
 			}
 		}
     }
-
+	
     # For Wizards
     set lib_paths [list ]
     set lib_filenames [list ]
@@ -441,7 +439,7 @@ proc kipt::LoadSourceFiles {dir scripts_dir} {
 			}
 		}
     }
-
+	
     package require snitwiz
     package require wcb
     package require KEGroups
