@@ -44,7 +44,7 @@ VALUE: 0.05
 HELP: Length defining the domain of influence of the crack tip. It is also the first dimension of the propagation.
 QUESTION: Propagation_Width
 VALUE: 0.01
-HELP: Second dimension of the propagation. 
+HELP: Second dimension of the propagation.
 QUESTION: Propagation_Height
 VALUE: 0.01
 HELP: Third dimension of the propagation. Only for 3D cases.
@@ -100,7 +100,7 @@ HELP: Times the initial radius. In order to use a constant radius, choose the sa
 QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
 VALUE: false
 QUESTION: Move_Mesh#CB#(true,false)
-VALUE: true
+VALUE: false
 QUESTION: Block_Builder#CB#(true,false)
 VALUE: true
 QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
@@ -155,6 +155,8 @@ VALUE: false
 QUESTION: Write_Local_Fluid_Flux#CB#(true,false)
 VALUE: false
 QUESTION: Write_Local_Permeability#CB#(true,false)
+VALUE: false
+QUESTION: Nodal_Smoothing#CB#(true,false)
 VALUE: false
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)

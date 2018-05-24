@@ -71,7 +71,9 @@ namespace Kratos {
             const double sinphi = std::sin(mohr_coulomb_phi_in_radians);
             const double cosphi = std::cos(mohr_coulomb_phi_in_radians);
 
-            const double function_value = (principal_stresses[0] - principal_stresses[2]) + (principal_stresses[0] + principal_stresses[2]) * sinphi - 2.0 * mohr_coulomb_c * cosphi;
+            const double max_stress = *std::max_element(principal_stresses.begin(), principal_stresses.end());
+            const double min_stress = *std::min_element(principal_stresses.begin(), principal_stresses.end());
+            const double function_value = (max_stress - min_stress) + (max_stress + min_stress) * sinphi - 2.0 * mohr_coulomb_c * cosphi;
 
             if(function_value > 0) {
                 failure_type = 4;

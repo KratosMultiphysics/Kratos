@@ -75,6 +75,7 @@
 #include "custom_models/elasticity_models/borja_model.hpp"
 #include "custom_models/elasticity_models/ogden_model.hpp"
 #include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
+#include "custom_models/elasticity_models/incompressible_hypo_elastic_model.hpp"
 
 //plasticity models
 #include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
@@ -287,7 +288,10 @@ namespace Kratos {
     const BorjaModel                               mBorjaModel;
     const OgdenModel                               mOgdenModel;
     const OgdenModel                               mIsochoricOgdenModel;
-
+    const HypoElasticModel                         mHypoElasticModel;
+    const IsochoricHypoElasticModel                mIsochoricHypoElasticModel;
+    const IncompressibleHypoElasticModel           mIncompressibleHypoElasticModel;
+    
     //plasticity models
     const VonMisesLinearElasticPlasticityModel     mVonMisesLinearElasticPlasticityModel;
     const VonMisesNeoHookeanPlasticityModel        mVonMisesNeoHookeanPlasticityModel;

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hencky_hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/hencky_hyper_elastic_model.hpp"
 
 namespace Kratos
 {
