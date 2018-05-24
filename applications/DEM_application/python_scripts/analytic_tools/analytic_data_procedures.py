@@ -1,5 +1,5 @@
 import os
-import h5py
+#import h5py
 
 class ParticleWatcherAnalyzer:
     def __init__(self, analytic_particle_watcher, path, do_clear_data = True):
