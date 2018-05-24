@@ -68,7 +68,7 @@ public:
     /// Pointer definition of InterfaceSearchStructure
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructure);
 
-    using MapperLocalSystemPointer = Kratos::unique_ptr<BaseMapperLocalSystem>;
+    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
     using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
     using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
 

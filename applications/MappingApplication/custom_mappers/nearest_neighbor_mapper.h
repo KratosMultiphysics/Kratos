@@ -46,6 +46,98 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class NearestNeigborInterfaceInfo : public MapperInterfaceInfo
+{
+public:
+
+    NearestNeigborInterfaceInfo(const Point rPoint,
+                                const IndexType SourceLocalSystemIndex,
+                                const IndexType SourceRank=0)
+        : MapperInterfaceInfo(rPoint, SourceLocalSystemIndex, SourceRank)
+    {
+
+    }
+
+    MapperInterfaceInfo::Pointer Create(const Point rPoint,
+                                        const IndexType SourceLocalSystemIndex,
+                                        const IndexType SouceRank) const override
+    {
+        return Kratos::make_shared<NearestNeigborInterfaceInfo>(rPoint,
+                                                                SourceLocalSystemIndex,
+                                                                SouceRank);
+    }
+
+    void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) override;
+
+    void GetValue(std::size_t& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    {
+        rValue = mNearestNeighborId;
+    }
+
+    void GetValue(double& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    {
+        rValue = mNearestNeighborDistance;
+    }
+
+private:
+
+    std::size_t mNearestNeighborId;
+    double mNearestNeighborDistance = std::numeric_limits<double>::max();
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.save("NearestNeighborId", mNearestNeighborId);
+        rSerializer.save("NearestNeighborDistance", mNearestNeighborDistance);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.load("NearestNeighborId", mNearestNeighborId);
+        rSerializer.load("NearestNeighborDistance", mNearestNeighborDistance);
+    }
+
+};
+
+class NearestNeighborLocalSystem : public MapperLocalSystem
+{
+public:
+    using BaseType = MapperLocalSystem;
+    using MapperLocalSystemUniquePointer = typename BaseType::MapperLocalSystemUniquePointer;
+    using NodePointerType = typename BaseType::NodePointerType;
+
+    using MappingWeightsVector = typename BaseType::MappingWeightsVector;
+    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
+
+    using SizeType = typename BaseType::IndexType;
+    using IndexType = typename BaseType::IndexType;
+
+    NearestNeighborLocalSystem() { }
+
+    NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode)
+    {
+
+    }
+
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+        return Kratos::make_unique<NearestNeighborLocalSystem>(pNode);
+    }
+
+    void CalculateAll(MappingWeightsVector& rMappingWeights,
+                        EquationIdVectorType& rOriginIds,
+                        EquationIdVectorType& rDestinationIds) const override;
+
+    bool UseNodesAsBasis() const override { return true; }
+
+private:
+    NodePointerType mpNode;
+
+};
+
 /// Nearest Neighbor Mapper
 /** This class implements the Nearest Neighbor Mapping technique.
 * Each node on the destination side gets assigned is's closest neighbor on the other side of the interface.
@@ -155,135 +247,6 @@ public:
 
     ///@}
 
-    class NearestNeigborInterfaceData
-    {
-    public:
-
-        bool GetLocalSearchWasSuccessful() const
-        {
-            return mLocalSearchWasSuccessful;
-        }
-
-        void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
-        {
-            mLocalSearchWasSuccessful = true; // If this function is called it means that the search was successful
-
-            const double distance = 1.0; // TODO how to get the distance?
-            if (distance < mNearestNeighborDistance)
-            {
-                mNearestNeighborDistance = distance;
-                mNearestNeighborId = pInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
-            }
-        };
-
-        std::size_t GetNearestNeighborId() const
-        {
-            return mNearestNeighborId;
-        }
-
-        double GetNearestNeighborDistance() const
-        {
-            return mNearestNeighborDistance;
-        }
-
-    private:
-        int mNearestNeighborId = -1; // default value, indicates an unsuccessful local search
-        double mNearestNeighborDistance = std::numeric_limits<double>::max();
-        bool mLocalSearchWasSuccessful = false; // this is not being serialized since it is not needed after mpi-data-exchange!
-
-        friend class Serializer;
-
-        virtual void save(Serializer& rSerializer) const
-        {
-            rSerializer.save("NearestNeighborId", mNearestNeighborId);
-            rSerializer.save("NearestNeighborDistance", mNearestNeighborDistance);
-        }
-
-        virtual void load(Serializer& rSerializer)
-        {
-            rSerializer.load("NearestNeighborId", mNearestNeighborId);
-            rSerializer.load("NearestNeighborDistance", mNearestNeighborDistance);
-        }
-
-    };
-
-    template<class TDataHolder>
-    class NearestNeighborLocalSystem : public MapperLocalSystem<TDataHolder>
-    {
-        public:
-        using BaseType = MapperLocalSystem<TDataHolder>;
-        using NodePointerType = typename BaseType::NodePointerType;
-
-        using MappingWeightsVector = typename BaseType::MappingWeightsVector;
-        using EquationIdVectorType = typename BaseType::EquationIdVectorType;
-
-        using SizeType = typename BaseType::IndexType;
-        using IndexType = typename BaseType::IndexType;
-
-        NearestNeighborLocalSystem()
-        {
-
-        }
-
-        NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode)
-        {
-
-        }
-
-        Kratos::unique_ptr<BaseMapperLocalSystem> Create(NodePointerType pNode) const override
-        {
-            return Kratos::make_unique<NearestNeighborLocalSystem<TDataHolder>>(pNode);
-        }
-
-        void CalculateAll(MappingWeightsVector& rMappingWeights,
-                          EquationIdVectorType& rOriginIds,
-                          EquationIdVectorType& rDestinationIds) const override
-        {
-            if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
-            if (rOriginIds.size() != 1)      rOriginIds.resize(1);
-            if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
-
-            if (this->mInterfaceInfos.size() > 0)
-            {
-                IndexType nearest_neighbor_id = this->mInterfaceInfos[0]->GetInterfaceData().GetNearestNeighborId();
-                double nearest_neighbor_distance = this->mInterfaceInfos[0]->GetInterfaceData().GetNearestNeighborDistance();
-
-                for (SizeType i=1; i<this->mInterfaceInfos.size(); ++i)
-                {
-                    TDataHolder data = this->mInterfaceInfos[i]->GetInterfaceData();
-                    double distance = data.GetNearestNeighborDistance();
-
-                    if (distance < nearest_neighbor_distance)
-                    {
-                        nearest_neighbor_distance = distance;
-                        nearest_neighbor_id = data.GetNearestNeighborId();
-                    }
-                }
-
-                rMappingWeights[0] = 1.0;
-                rOriginIds[0] = nearest_neighbor_id;
-                // rDestinationIds[0] = this->mrNode.GetValue(INTERFACE_EQUATION_ID); //TODO
-            }
-            else
-            {
-                KRATOS_WARNING_IF("NearestNeighborMapper", this->mInterfaceInfos.size() == 0)
-                    << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
-
-                // TODO is this ok? => I guess it would be better to do this in a mor general way in the baseclass...
-                // TODO resize to zero, then it wont be assembled! (might be a bit slower though...)
-                rMappingWeights[0] = 0.0;
-                rOriginIds[0]      = 0;
-                rDestinationIds[0] = 0;
-            }
-
-        }
-
-        bool UseNodesAsBasis() const override { return true; }
-
-        private:
-        NodePointerType mpNode;
-
-    };
 
 protected:
 
@@ -304,7 +267,7 @@ protected:
 
     MapperLocalSystemPointer GetMapperLocalSystem() const override
     {
-        return Kratos::make_unique<NearestNeighborLocalSystem<NearestNeigborInterfaceData>>();
+        return Kratos::make_unique<NearestNeighborLocalSystem>();
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const override

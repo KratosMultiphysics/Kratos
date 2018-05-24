@@ -28,8 +28,8 @@ namespace Kratos
 
     using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
 
-    using EquationIdVectorType = typename BaseMapperLocalSystem::EquationIdVectorType;
-    using MappingWeightsVector = typename BaseMapperLocalSystem::MappingWeightsVector;
+    using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
+    using MappingWeightsVector = typename MapperLocalSystem::MappingWeightsVector;
 
     using SizeType = std::size_t;
     using IndexType = std::size_t;

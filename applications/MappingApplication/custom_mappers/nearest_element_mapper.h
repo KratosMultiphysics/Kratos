@@ -22,7 +22,6 @@
 
 // Project includes
 #include "mapper.h"
-#include "nearest_element_local_system.h"
 
 
 namespace Kratos
@@ -48,6 +47,106 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+class NearestElementInterfaceInfo : public MapperInterfaceInfo
+{
+public:
+
+    NearestElementInterfaceInfo(const Point rPoint,
+                                const IndexType SourceLocalSystemIndex,
+                                const IndexType SourceRank=0)
+        : MapperInterfaceInfo(rPoint, SourceLocalSystemIndex, SourceRank)
+    {
+
+    }
+
+    MapperInterfaceInfo::Pointer Create(const Point rPoint,
+                                        const IndexType SourceLocalSystemIndex,
+                                        const IndexType SouceRank) const override
+    {
+        return Kratos::make_shared<NearestElementInterfaceInfo>(rPoint,
+                                                                SourceLocalSystemIndex,
+                                                                SouceRank);
+    }
+
+    void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) override;
+
+    void GetValue(std::vector<std::size_t>& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    {
+        rValue = mNodeIds;
+    }
+
+    void GetValue(std::vector<double>& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    {
+        rValue = mShapeFunctionValues;
+    }
+
+    void GetValue(double& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    {
+        rValue = mClosestProjectionDistance;
+    }
+
+private:
+
+    std::vector<std::size_t> mNodeIds;
+    std::vector<double> mShapeFunctionValues;
+    double mClosestProjectionDistance = std::numeric_limits<double>::max();
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.save("NodeIds", mNodeIds);
+        rSerializer.save("SFValues", mShapeFunctionValues);
+        rSerializer.save("ClosestProjectionDistance", mClosestProjectionDistance);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
+        rSerializer.load("NodeIds", mNodeIds);
+        rSerializer.load("SFValues", mShapeFunctionValues);
+        rSerializer.load("ClosestProjectionDistance", mClosestProjectionDistance);
+    }
+
+};
+
+class NearestElementLocalSystem : public MapperLocalSystem
+{
+public:
+    using BaseType = MapperLocalSystem;
+    using MapperLocalSystemUniquePointer = typename BaseType::MapperLocalSystemUniquePointer;
+    using NodePointerType = typename BaseType::NodePointerType;
+
+    using MappingWeightsVector = typename BaseType::MappingWeightsVector;
+    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
+
+    using SizeType = typename BaseType::IndexType;
+    using IndexType = typename BaseType::IndexType;
+
+    NearestElementLocalSystem() { }
+
+    NearestElementLocalSystem(NodePointerType pNode) : mpNode(pNode)
+    {
+
+    }
+
+    MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
+    {
+        return Kratos::make_unique<NearestElementLocalSystem>(pNode);
+    }
+
+    void CalculateAll(MappingWeightsVector& rMappingWeights,
+                        EquationIdVectorType& rOriginIds,
+                        EquationIdVectorType& rDestinationIds) const override;
+
+    bool UseNodesAsBasis() const override { return true; }
+
+private:
+    NodePointerType mpNode;
+
+};
 
 /// Interpolative Mapper
 /** This class implements the Nearest Element Mapping technique.
@@ -185,7 +284,7 @@ protected:
 
     MapperLocalSystemPointer GetMapperLocalSystem() const override
     {
-
+        return Kratos::make_unique<NearestElementLocalSystem>();
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const override

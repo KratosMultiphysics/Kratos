@@ -26,7 +26,62 @@ namespace Kratos
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
+void NearestNeigborInterfaceInfo::ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
+{
+    SetLocalSearchWasSuccessful();
 
+    const double distance = 1.0; // TODO how to get the distance?
+    if (distance < mNearestNeighborDistance)
+    {
+        mNearestNeighborDistance = distance;
+        mNearestNeighborId = pInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
+    }
+}
+
+void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeights,
+                    EquationIdVectorType& rOriginIds,
+                    EquationIdVectorType& rDestinationIds) const
+{
+    if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
+    if (rOriginIds.size() != 1)      rOriginIds.resize(1);
+    if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
+
+    if (mInterfaceInfos.size() > 0)
+    {
+        std::size_t nearest_neighbor_id;
+        double nearest_neighbor_distance;
+        mInterfaceInfos[0]->GetValue(nearest_neighbor_id);
+        mInterfaceInfos[0]->GetValue(nearest_neighbor_distance);
+
+        for (SizeType i=1; i<mInterfaceInfos.size(); ++i)
+        {
+            double distance;
+            mInterfaceInfos[i]->GetValue(distance);
+
+            if (distance < nearest_neighbor_distance)
+            {
+                nearest_neighbor_distance = distance;
+                mInterfaceInfos[i]->GetValue(nearest_neighbor_id);
+            }
+        }
+
+        rMappingWeights[0] = 1.0;
+        rOriginIds[0] = nearest_neighbor_id;
+        rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
+    }
+    else
+    {
+        KRATOS_WARNING("NearestNeighborMapper")
+            << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
+
+        // TODO is this ok? => I guess it would be better to do this in a more general way in the baseclass...
+        // TODO resize to zero, then it wont be assembled! (might be a bit slower though...)
+        rMappingWeights[0] = 0.0;
+        rOriginIds[0]      = 0;
+        rDestinationIds[0] = 0;
+    }
+
+}
 
 /***********************************************************************************/
 /* PROTECTED Methods */

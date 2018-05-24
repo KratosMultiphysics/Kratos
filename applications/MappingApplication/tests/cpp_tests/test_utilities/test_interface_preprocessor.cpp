@@ -15,7 +15,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "custom_utilities/interface_preprocessor.h"
-#include "custom_mappers/nearest_element_local_system.h"
+// #include "custom_mappers/nearest_element_local_system.h"
 
 namespace Kratos {
 namespace Testing {

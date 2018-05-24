@@ -22,7 +22,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "geometries/point.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 #include "custom_searching/interface_object.h"
 
 
@@ -53,7 +54,6 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-template<class TDataHolder>
 class MapperInterfaceInfo
 {
 public:
@@ -65,6 +65,18 @@ public:
 
     using IndexType = std::size_t;
 
+    using NodeType = Node<3>;
+    using GeometryType = Geometry<NodeType>;
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    enum InfoType
+    {
+        Dummy
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -72,7 +84,7 @@ public:
     /// Default constructor.
     MapperInterfaceInfo() {}
 
-    MapperInterfaceInfo(const Point rPoint, const IndexType SourceLocalSystemIndex, const int SourceRank=0)
+    MapperInterfaceInfo(const Point rPoint, const IndexType SourceLocalSystemIndex, const IndexType SourceRank=0)
         : mSourceLocalSystemIndex(SourceLocalSystemIndex),
           mSourceRank(SourceRank),
           mCoordinates(rPoint)
@@ -94,46 +106,42 @@ public:
     ///@name Operations
     ///@{
 
-    void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject)
-    {
-        mInterfaceData.ProcessSearchResult(pInterfaceObject);
-    }
+    virtual void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) = 0;
 
-    TDataHolder& GetInterfaceData()
-    {
-        return mInterfaceData;
-    }
+    virtual MapperInterfaceInfo::Pointer Create(const Point rPoint,
+                                                const IndexType SourceLocalSystemIndex,
+                                                const IndexType SouceRank) const = 0;
 
-    // bool SendBack()
-    // {
-    //     return mInterfaceData.SendBack();
-    // }
-
-    MapperInterfaceInfo::Pointer Create(const Point rPoint, const int SourceLocalSystemIndex, const int SouceRank)
+    virtual void Clear()
     {
-        return Kratos::make_shared<MapperInterfaceInfo<TDataHolder>>(rPoint,
-                                                                     SourceLocalSystemIndex,
-                                                                     SouceRank);
-    }
-
-    void Clear()
-    {
-        mInterfaceData.Clear();
-    }
-
-    bool GetLocalSearchWasSuccessful() const
-    {
-        return mInterfaceData.GetLocalSearchWasSuccessful();
+        mLocalSearchWasSuccessful = false;
     }
 
     IndexType GetLocalSystemIndex() const { return mSourceLocalSystemIndex; }
 
-    int GetSourceRank() const { return mSourceRank; }
+    IndexType GetSourceRank() const { return mSourceRank; }
+
+    void SetLocalSearchWasSuccessful()
+    {
+        mLocalSearchWasSuccessful = true;
+    }
 
 
     ///@}
     ///@name Access
     ///@{
+
+    virtual void GetValue(int& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::size_t& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(double& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(bool& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(GeometryType& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+
+    virtual void GetValue(std::vector<int>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<std::size_t>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<double>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<bool>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(std::vector<GeometryType>& rValue, const InfoType ValueType=InfoType::Dummy) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
 
 
     ///@}
@@ -178,9 +186,8 @@ protected:
     IndexType mSourceLocalSystemIndex;
 
     // These variables are NOT being serialized bcs they are not needed after searching!
-    int mSourceRank = 0;
+    IndexType mSourceRank = 0;
     array_1d<double, 3> mCoordinates;
-    bool mLocalSearchWasSuccessful = false;
 
     ///@}
     ///@name Protected Operators
@@ -218,7 +225,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    TDataHolder mInterfaceData;
+    bool mLocalSearchWasSuccessful = false; // this is not being serialized since it is not needed after mpi-data-exchange!
 
 
     ///@}
@@ -240,13 +247,11 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         rSerializer.save("LocalSysIdx", mSourceLocalSystemIndex);
-        rSerializer.save("InterfaceData", mInterfaceData);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         rSerializer.load("LocalSysIdx", mSourceLocalSystemIndex);
-        rSerializer.load("InterfaceData", mInterfaceData);
     }
 
     ///@}
