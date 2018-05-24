@@ -7,7 +7,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/mpm_line_load_condition_2d.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
 

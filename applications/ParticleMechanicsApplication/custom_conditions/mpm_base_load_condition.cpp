@@ -6,7 +6,7 @@
 
 
 // Project includes
-#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/mpm_base_load_condition.h"
 
 namespace Kratos
 {

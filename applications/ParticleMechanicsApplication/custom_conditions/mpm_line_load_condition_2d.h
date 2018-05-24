@@ -1,7 +1,6 @@
-
 // System includes
-#if !defined(KRATOS_POINT_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED )
+#define  KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED
 
 // System includes
 
@@ -9,7 +8,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/mpm_base_load_condition.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -38,34 +37,26 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  PointLoadCondition
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION)  LineLoadCondition2D
     : public BaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointLoadCondition );
+    /// Counted pointer of LineLoadCondition2D
+    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition2D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLoadCondition( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry 
-        );
-    
-    PointLoadCondition( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry,  
-        PropertiesType::Pointer pProperties 
-        );
+    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
+    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    ~PointLoadCondition() override;
+    ~LineLoadCondition2D() override;
 
     ///@}
     ///@name Operators
@@ -81,10 +72,10 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-    
+        
     Condition::Pointer Create( 
         IndexType NewId, 
-        NodesArrayType const& ThisNodes,  
+        NodesArrayType const& ThisNodes, 
         PropertiesType::Pointer pProperties 
         ) const override;
 
@@ -153,12 +144,23 @@ protected:
         bool CalculateStiffnessMatrixFlag,
         bool CalculateResidualVectorFlag 
         ) override;
-        
-    /**
-     * It calcules the integration load for the point load 
-     */
-    virtual double GetPointLoadIntegrationWeight();
-        
+
+    void CalculateAndSubKp(
+        Matrix& K,
+        const Matrix& DN_De,
+        const Vector& N,
+        const double Pressure,
+        const double IntegrationWeight
+        );
+
+    void CalculateAndAddPressureForce(
+        VectorType& rRightHandSideVector,
+        const Vector& N,
+        const array_1d<double, 3>& Normal,
+        const double Pressure,
+        const double IntegrationWeight 
+        );
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -172,9 +174,9 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     // A protected default constructor necessary for serialization
-    PointLoadCondition() {};
+    LineLoadCondition2D() {};
 
     ///@}
 
@@ -182,17 +184,14 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-
-
     ///@}
     ///@name Private Operators
     ///@{
-
+    
     ///@}
     ///@name Private Operations
     ///@{
@@ -223,20 +222,21 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
     }
 
+
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    //PointLoadCondition& operator=(const PointLoadCondition& rOther);
+    //LineLoadCondition2D& operator=(const LineLoadCondition2D& rOther);
 
     /// Copy constructor.
-    //PointLoadCondition(const PointLoadCondition& rOther);
+    //LineLoadCondition2D(const LineLoadCondition2D& rOther);
 
 
     ///@}
 
-}; // Class PointLoadCondition
+}; // Class LineLoadCondition2D
 
 ///@}
 ///@name Type Definitions
@@ -250,11 +250,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-        PointLoadCondition& rThis);
+        LineLoadCondition2D& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-        const PointLoadCondition& rThis)
+        const LineLoadCondition2D& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -266,6 +266,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_LOAD_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined 
 
 

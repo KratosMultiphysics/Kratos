@@ -1,6 +1,5 @@
-// System includes
-#if !defined(KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED
+#if !defined(KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED )
+#define  KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -8,8 +7,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/base_load_condition.h"
-#include "includes/variables.h"
+#include "custom_conditions/mpm_base_load_condition.h"
 
 namespace Kratos
 {
@@ -33,30 +31,39 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  LineLoadCondition2D
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION)  SurfaceLoadCondition3D
     : public BaseLoadCondition
 {
 public:
+
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of LineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition2D );
+    // Counted pointer of SurfaceLoadCondition3D
+    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition3D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
-    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    // Constructor void
+    SurfaceLoadCondition3D();
 
-    /// Destructor.
-    ~LineLoadCondition2D() override;
+    // Constructor using an array of nodes
+    SurfaceLoadCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
+        );
+
+    // Constructor using an array of nodes with properties
+    SurfaceLoadCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
+        );
+
+    // Destructor
+    ~SurfaceLoadCondition3D() override;
 
     ///@}
     ///@name Operators
@@ -66,17 +73,18 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
+    // Name Operations
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-        
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const override;
 
     ///@}
@@ -93,37 +101,22 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
     ///@}
     ///@name Friends
     ///@{
 
-
-    ///@}
-
 protected:
+
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
@@ -137,73 +130,79 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    void CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         ) override;
 
     void CalculateAndSubKp(
         Matrix& K,
+        const array_1d<double, 3>& ge,
+        const array_1d<double, 3>& gn,
         const Matrix& DN_De,
         const Vector& N,
         const double Pressure,
-        const double IntegrationWeight
+        const double Weight );
+
+    void MakeCrossMatrix(
+        BoundedMatrix<double, 3, 3>& M,
+        const array_1d<double, 3>& U
         );
 
     void CalculateAndAddPressureForce(
-        VectorType& rRightHandSideVector,
+        VectorType& rResidualVector,
         const Vector& N,
-        const array_1d<double, 3>& Normal,
+        const array_1d<double, 3 >& Normal,
         const double Pressure,
-        const double IntegrationWeight 
+        const double Weight,
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-    // A protected default constructor necessary for serialization
-    LineLoadCondition2D() {};
-
-    ///@}
-
 private:
-    ///@name Static Member Variables
+    ///@name Private static Member Variables
     ///@{
 
     ///@}
-    ///@name Member Variables
+    ///@name Private member Variables
     ///@{
 
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+
+    ///@}
+    ///@name Unaccessible methods
     ///@{
 
     ///@}
@@ -223,49 +222,15 @@ private:
     }
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+}; // class SurfaceLoadCondition3D.
 
-    /// Assignment operator.
-    //LineLoadCondition2D& operator=(const LineLoadCondition2D& rOther);
-
-    /// Copy constructor.
-    //LineLoadCondition2D(const LineLoadCondition2D& rOther);
-
-
-    ///@}
-
-}; // Class LineLoadCondition2D
-
-///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
+} // namespace Kratos.
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-        LineLoadCondition2D& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoadCondition2D& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined 
-
-
+#endif // KRATOS_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined

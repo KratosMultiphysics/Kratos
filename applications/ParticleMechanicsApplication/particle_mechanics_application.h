@@ -39,7 +39,11 @@
 
 #include "containers/flags.h"
 
-//condition
+/* CONDITIONS */
+#include "custom_conditions/mpm_base_load_condition.h"
+#include "custom_conditions/mpm_point_load_condition.h"
+#include "custom_conditions/mpm_line_load_condition_2d.h"
+#include "custom_conditions/mpm_surface_load_condition_3d.h"
 //#include "custom_conditions/mpm_line_load_2D_condition.hpp"
 //#include "custom_conditions/mpm_line_load_3D_condition.hpp"
 

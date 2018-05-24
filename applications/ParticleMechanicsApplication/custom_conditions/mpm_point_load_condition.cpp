@@ -6,7 +6,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/mpm_point_load_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
 

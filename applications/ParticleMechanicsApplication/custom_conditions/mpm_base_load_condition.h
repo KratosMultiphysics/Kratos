@@ -8,7 +8,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/condition.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -32,7 +31,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
     
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseLoadCondition
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION)  BaseLoadCondition
     : public Condition
 {
 public:
