@@ -41,6 +41,7 @@
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+#include "custom_constitutive/viscous_generalized_kelvin_3d.h"
 
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"

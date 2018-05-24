@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Main authors:    Alejandro Cornejo & Lucia Barbu 
 //
 
 #if !defined (KRATOS_VISCOUS_GENERALIZED_MAXWELL_H_INCLUDED)
@@ -50,7 +50,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @author Alejandro Cornejo
+ * @author Alejandro Cornejo & Lucia Barbu
  */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
@@ -160,12 +160,12 @@ public:
 
         noalias(IntegratedStressVector) = PreviousStress*std::exp(-TimeStep/DelayTime) + prod(C, Aux);
 
-        this->GetNonConvPreviousStressVector(IntegratedStressVector);
-        this->GetNonConvPreviousStrainVector(StrainVector);
+        this->SetNonConvPreviousStressVector(IntegratedStressVector);
+        this->SetNonConvPreviousStrainVector(StrainVector);
 
     } // End CalculateMaterialResponseCauchy
 
-    // void CalculateTangentTensor(Matrix& C) // todo
+    // void CalculateTangentTensor(Matrix& C) 
     // {
 
     // }
@@ -180,7 +180,6 @@ public:
         // Update the required vectors
         this->SetPreviousStrainVector(this->GetNonConvPreviousStrainVector());
         this->SetPreviousStressVector(this->GetNonConvPreviousStressVector());
-       
     }
 
     void CalculateElasticMatrix(Matrix &rElasticityTensor,

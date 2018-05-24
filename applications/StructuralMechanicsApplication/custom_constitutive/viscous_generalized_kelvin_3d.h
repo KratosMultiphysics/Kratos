@@ -6,11 +6,11 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Main authors:    Alejandro Cornejo & Lucia Barbu 
 //
 
-#if !defined (KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_H_INCLUDED)
-#define  KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_H_INCLUDED
+#if !defined (KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED)
+#define  KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED
 
 // System includes
 #include <string>
@@ -52,8 +52,8 @@ namespace Kratos
  * @details
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class ConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicDamage3D
+
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
     : public ConstitutiveLaw
 {
 public:
@@ -61,7 +61,7 @@ public:
     ///@{
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage3D);
+    KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedKelvin3D);
 
     ///@}
     ///@name Life Cycle
@@ -70,7 +70,7 @@ public:
     /**
     * Default constructor.
     */
-    GenericSmallStrainIsotropicDamage3D()
+    ViscousGeneralizedKelvin3D()
     {
     }
 
@@ -79,22 +79,22 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::Pointer p_clone
-            (new GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>(*this));
+        ViscousGeneralizedKelvin3D::Pointer p_clone
+            (new ViscousGeneralizedKelvin3D(*this));
         return p_clone;
     }
 
     /**
     * Copy constructor.
     */
-    GenericSmallStrainIsotropicDamage3D (const GenericSmallStrainIsotropicDamage3D& rOther)
+    ViscousGeneralizedKelvin3D (const ViscousGeneralizedKelvin3D& rOther)
     : ConstitutiveLaw(rOther)
     {
     }
     /**
     * Destructor.
     */
-    ~GenericSmallStrainIsotropicDamage3D() override
+    ~ViscousGeneralizedKelvin3D() override
     {
     }
 
@@ -109,15 +109,15 @@ public:
     int GetVoigtSize(){return 6;}
     int GetWorkingSpaceDimension() {return 3;}
 
-    double GetThreshold() {return mThreshold;}
-    double GetDamage() {return mDamage;}
-    double GetNonConvThreshold() {return mNonConvThreshold;}
-    double GetNonConvDamage() {return mNonConvDamage;}
+	Vector GetPreviousStressVector() { return mPrevStressVector; }
+	void SetPreviousStressVector(Vector toStress) { mPrevStressVector = toStress; }
+	Vector GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
+	void SetNonConvPreviousStressVector(Vector toStress) { mNonConvPrevStressVector = toStress; }
 
-    void SetThreshold(const double& toThreshold) {mThreshold = toThreshold;}
-    void SetDamage(const double& toDamage) {mDamage = toDamage;}
-    void SetNonConvThreshold(const double& toThreshold) {mNonConvThreshold = toThreshold;}
-    void SetNonConvDamage(const double& toDamage) {mNonConvDamage = toDamage;}
+	Vector GetPreviousInelasticStrainVector() { return mPrevInelasticStrainVector; }
+	void SetPreviousInelasticStrainVector(Vector toStrain) { mPrevInelasticStrainVector = toStrain; }
+	Vector GetNonConvPreviousInelasticStrainVector() { return mNonConvPrevInelasticStrainVector; }
+	void SetNonConvPreviousInelasticStrainVector(Vector toStrain) { mNonConvPrevInelasticStrainVector = toStrain; }
 
 
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
@@ -138,63 +138,47 @@ public:
         // Integrate Stress Damage
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
         const int VoigtSize = this->GetVoigtSize();
-        Vector& IntegratedStressVector = rValues.GetStressVector();
+        Vector& IntegratedStressVector = rValues.GetStressVector(); // To be updated
+        const Vector& StrainVector = rValues.GetStrainVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+        const ProcessInfo& ProcessInfo = rValues.GetProcessInfo();
+        const double TimeStep = ProcessInfo[DELTA_TIME];
+
+        const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; // C1/Cinf
+        const double DelayTime = rMaterialProperties[DELAY_TIME];
 
         // Elastic Matrix
         Matrix C;
         this->CalculateElasticMatrix(C, rMaterialProperties);
 
-        double Threshold, Damage;
-        // In the 1st step must be set
-        if (this->GetThreshold() == 0.0) 
+        Vector InelasticStrainVector = this->GetPreviousInelasticStrainVector();
+        const Vector& PreviousStress  = this->GetPreviousStressVector();
+
+        const int NumberOfSubIncrements = 10;
+        const double dt = TimeStep / NumberOfSubIncrements;
+
+        Vector AuxStressVector;
+        noalias(AuxStressVector) = PreviousStress;
+        BoundedVector<double, 6> Aux = ZeroVector(6);
+
+        for (int i = 0; i < NumberOfSubIncrements; i++)
         {
-            ConstLawIntegratorType::YieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, Threshold);
-            this->SetThreshold(Threshold);
+            noalias(Aux) = std::exp(-dt/DelayTime)*prod(C, AuxStressVector) / DelayTime;
+            InelasticStrainVector = std::exp(-dt/DelayTime)*InelasticStrainVector + Aux;
+            noalias(AuxStressVector) = prod(C, StrainVector - InelasticStrainVector);
         }
 
-        // Converged values
-        Threshold = this->GetThreshold();
-        Damage    = this->GetDamage();
-
-        // S0 = C:(E-Ep)
-        Vector PredictiveStressVector = prod(C, rValues.GetStrainVector());
-
-        // Initialize Plastic Parameters
-        double UniaxialStress;
-        ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, 
-            rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
-
-        const double F = UniaxialStress - Threshold; 
-
-        if (F <= 0.0) 
-        {   // Elastic case
-            IntegratedStressVector = PredictiveStressVector;
-            this->SetNonConvDamage(Damage);
-            this->SetNonConvThreshold(Threshold);
-            noalias(TangentTensor) = (1 - Damage)*C;
-        }
-        else // Damage case
-        {
-            const double CharacteristicLength = rValues.GetGeometry().Length();
-
-            // This routine updates the PredictiveStress to verify the yield surf
-            ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
-                Damage, Threshold, rMaterialProperties, CharacteristicLength);
-
-            // Updated Values
-            noalias(IntegratedStressVector) = PredictiveStressVector; 
-            this->SetNonConvDamage(Damage);
-            this->SetNonConvThreshold(Threshold);
-            noalias(TangentTensor) = (1 - Damage)*C; // Secant Tensor
-        }
+        noalias(IntegratedStressVector) = AuxStressVector;
         
+        this->SetNonConvPreviousStressVector(IntegratedStressVector);
+        this->SetNonConvPreviousInelasticStrainVector(InelasticStrainVector);
+
     } // End CalculateMaterialResponseCauchy
 
-    void CalculateTangentTensor(Matrix& C) // todo
-    {
+    // void CalculateTangentTensor(Matrix& C) 
+    // {
 
-    }
+    // }
 
     void FinalizeSolutionStep(
         const Properties& rMaterialProperties,
@@ -203,8 +187,9 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override
     {
-        this->SetDamage(this->GetNonConvDamage());
-        this->SetThreshold(this->GetNonConvThreshold());
+        // Update the required vectors
+        this->SetPreviousInelasticStrainVector(this->GetNonConvPreviousInelasticStrainVector());
+        this->SetPreviousStressVector(this->GetNonConvPreviousStressVector());
     }
 
     void CalculateElasticMatrix(Matrix &rElasticityTensor,
@@ -291,12 +276,13 @@ private:
     ///@{
 
     // Converged values
-    double mDamage = 0.0;
-    double mThreshold = 0.0;
-
+    Vector mPrevStressVector = ZeroVector(6);
+    Vector mPrevInelasticStrainVector = ZeroVector(6);
+    
     // Non Converged values
-    double mNonConvDamage = 0.0;
-    double mNonConvThreshold = 0.0;
+    Vector mNonConvPrevStressVector = ZeroVector(6);
+    Vector mNonConvPrevInelasticStrainVector = ZeroVector(6);
+
 
     ///@}
     ///@name Private Operators
@@ -325,20 +311,20 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-        rSerializer.save("Damage", mDamage);
-        rSerializer.save("Threshold", mThreshold);
-        rSerializer.save("NonConvDamage", mNonConvDamage);
-        rSerializer.save("mNonConvThreshold", mNonConvThreshold);
+        rSerializer.save("PrevStressVector", mPrevStressVector);
+        rSerializer.save("PrevInelasticStrainVector", mPrevInelasticStrainVector);
+        rSerializer.save("NonConvPrevStressVector", mNonConvPrevStressVector);
+        rSerializer.save("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
 
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
-        rSerializer.load("Damage", mDamage);
-        rSerializer.load("Threshold", mThreshold);
-        rSerializer.load("NonConvDamage", mDamage);
-        rSerializer.load("mNonConvThreshold", mNonConvThreshold);
+        rSerializer.load("PrevStressVector", mPrevStressVector);
+        rSerializer.load("PrevInelasticStrainVector", mPrevInelasticStrainVector);
+        rSerializer.load("NonConvPrevStressVector", mNonConvPrevStressVector);
+        rSerializer.load("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
     }
 
     ///@}

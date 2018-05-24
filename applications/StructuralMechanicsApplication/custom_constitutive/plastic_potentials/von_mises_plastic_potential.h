@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
 
@@ -48,7 +48,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @author Alejandro Cornejo
+ * @author Alejandro Cornejo & Lucia Barbu
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VonMisesPlasticPotential
 {

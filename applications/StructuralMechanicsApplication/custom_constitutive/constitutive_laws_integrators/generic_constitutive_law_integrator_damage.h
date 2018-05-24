@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
 #if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED)
@@ -48,7 +48,7 @@ namespace Kratos
  * @brief
  * @details
  * @tparam TYieldSurfaceType
- * @author Alejandro Cornejo
+ * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TYieldSurfaceType, class TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorDamage

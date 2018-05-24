@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
 #if !defined (KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED)
@@ -50,7 +50,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @author Alejandro Cornejo
+ * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class ConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity3D
