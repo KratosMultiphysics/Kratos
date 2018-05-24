@@ -151,7 +151,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
     def _get_pretty_time(self,time):
         pretty_time = "{0:.12g}".format(time)
         pretty_time = float(pretty_time)
-        return pretty_time 
+        return pretty_time
 
     def _get_attribute(self, my_string, function_pointer, attribute_type):
         """Return the python object named by the string argument.
