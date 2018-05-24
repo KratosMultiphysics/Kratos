@@ -250,11 +250,9 @@ public:
             // Check the representativity of each eigenvalue and its value.
             // If its value is close to zero or out of the representativity
             // the correspondent data columns are dropped from both V and W.
-            // const double abs_cut_off_tol = AbsCutOffEps * eig_norm;
-            const double abs_cut_off_tol = mAbsCutOff;
+            const double abs_cut_off_tol = mAbsCutOff * eig_norm;
             for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
                 if ((eig_vector_ordered[i_eig] / eig_sum) < mRelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
-                    std::cout << "\tDROP INFO!!" << std::endl;
                     // Drop the observation matrices last column
                     this->DropLastDataColumn();
                     // Update the number of columns

@@ -129,22 +129,6 @@ public:
     ///@{
 
     /**
-     * Projects the previous step approximated inverse Jacobian onto a vector
-     * @param rWorkVector: Vector in where the inverse Jacobian is to be projected
-     * @param rProjectedVector: Projected vector output
-     */
-    void ApplyPrevStepJacobian(const VectorPointerType pWorkVector,
-                               VectorPointerType pProjectedVector) {
-        // Security check for the empty observation matrices case (when no correction has been done in the previous step)
-        if (mpOldJacobianEmulator->mJacobianObsMatrixV.size() != 0) {
-            mpOldJacobianEmulator->ApplyJacobian(pWorkVector, pProjectedVector);
-        } else {
-            // Apply the PREVPREV STEP, IF NOT, APPLY MINUS THE IDENTITY
-            TSpace::Assign(*pProjectedVector, -1.0, *pWorkVector); // Consider minus the identity matrix as inverse Jacobian
-        }
-    }
-
-    /**
      * Projects the approximated inverse Jacobian onto a vector
      * @param rWorkVector: Vector in where the inverse Jacobian is to be projected
      * @param rProjectedVector: Projected vector output
@@ -294,11 +278,9 @@ public:
         // Check the representativity of each eigenvalue and its value.
         // If its value is close to zero or out of the representativity
         // the correspondent data columns are dropped from both V and W.
-        // const double abs_cut_off_tol = AbsCutOffEps * eig_norm;
-        const double abs_cut_off_tol = AbsCutOff;
+        const double abs_cut_off_tol = AbsCutOff * eig_norm;
         for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
             if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
-                std::cout << "\tDROP INFO!!" << std::endl;
                 mJacobianObsMatrixV.pop_back();
                 mJacobianObsMatrixW.pop_back();
                 return false;
@@ -565,7 +547,7 @@ public:
                 VectorPointerType pInitialCorrection(new VectorType(rResidualVector));
 
                 // The first correction of the current step is done with the previous step inverse Jacobian approximation
-                mpCurrentJacobianEmulatorPointer->ApplyPrevStepJacobian(mpResidualVector_1, pInitialCorrection);
+                mpCurrentJacobianEmulatorPointer->ApplyJacobian(mpResidualVector_1, pInitialCorrection);
 
                 TSpace::UnaliasedAdd(rIterationGuess, -1.0, *pInitialCorrection); // Recall the minus sign coming from the Taylor expansion of the residual (Newton-Raphson)
             }
