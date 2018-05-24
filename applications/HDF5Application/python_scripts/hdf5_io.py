@@ -5,6 +5,7 @@ BSD license: HDF5Application/license.txt
 from abc import ABCMeta, abstractmethod
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
+import hdf5_defaults
 
 
 class FileFactory(metaclass=ABCMeta):
@@ -61,28 +62,31 @@ class ModelPartOutput(IOObject):
     """Provides the interface for writing a model part to a file."""
 
     def __init__(self, settings):
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "prefix" : "/ModelData"
-            }
-            """)
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.model_part_output_default_settings)
+
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5ModelPartIO(hdf5_file, self.settings["prefix"].GetString()).WriteModelPart(model_part)
 
+class ElementResultsOutput(IOObject):
+    """Provides the interface for writing element results to a file."""
+
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+    def Execute(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements)
+
 
 class NodalResultsOutput(IOObject):
     """Provides the interface for writing nodal results to a file."""
 
     def __init__(self, settings):
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "prefix" : "/ResultsData",
-                "list_of_variables": []
-            }
-            """)
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
 
@@ -94,12 +98,7 @@ class PrimalBossakOutput(IOObject):
     """Provides the interface for writing a transient primal solution to a file."""
 
     def __init__(self, settings, alpha_bossak):
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "prefix" : "/PrimalData",
-                "list_of_variables": []
-            }
-            """)
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.alpha_bossak = alpha_bossak
@@ -114,12 +113,7 @@ class PrimalBossakInput(IOObject):
     """Provides the interface for reading a transient primal solution from a file."""
 
     def __init__(self, settings):
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "prefix" : "/PrimalData",
-                "list_of_variables": []
-            }
-            """)
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
 
@@ -132,11 +126,7 @@ class PartitionedModelPartOutput(IOObject):
     """Provides the interface for writing a partitioned model part to a file."""
 
     def __init__(self, settings):
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "prefix" : "/ModelData"
-            }
-            """)
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.model_part_output_default_settings)
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
 

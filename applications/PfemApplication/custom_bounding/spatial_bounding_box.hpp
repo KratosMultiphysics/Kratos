@@ -53,7 +53,7 @@ class KRATOS_API(PFEM_APPLICATION) SpatialBoundingBox
 {
 public:
 
-  //typedef bounded_vector<double, 3>                     PointType;
+  //typedef BoundedVector<double, 3>                     PointType;
   typedef array_1d<double, 3>                             PointType;
   typedef ModelPart::NodeType                              NodeType;
   typedef ModelPart::NodesContainerType          NodesContainerType;
@@ -953,7 +953,7 @@ public:
     //************************************************************************************
     //************************************************************************************
 
-    void GetTriangularFaces(boost::numeric::ublas::matrix<unsigned int>& rFaces, const unsigned int& rDimension)
+    void GetTriangularFaces(DenseMatrix<unsigned int>& rFaces, const unsigned int& rDimension)
     {
       KRATOS_TRY
 	
@@ -1034,7 +1034,7 @@ public:
     }
 
 
-    void GetQuadrilateralFaces(boost::numeric::ublas::matrix<unsigned int>& rFaces, const unsigned int& rDimension)
+    void GetQuadrilateralFaces(DenseMatrix<unsigned int>& rFaces, const unsigned int& rDimension)
     {
       KRATOS_TRY
 	

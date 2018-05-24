@@ -65,8 +65,7 @@ namespace Kratos
 */
 
 template <std::size_t TDim>
-
-class DerivativeRecovery
+class KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery
 {
 public:
 ///@name Type Definitions
@@ -189,12 +188,12 @@ virtual void PrintData(std::ostream& rOStream) const {}
 ///@}
 ///@name Friends
 ///@{
-vector<unsigned int>& GetElementPartition()
+DenseVector<unsigned int>& GetElementPartition()
 {
   return (mElementsPartition);
 }
 
-vector<unsigned int>& GetNodePartition()
+DenseVector<unsigned int>& GetNodePartition()
 {
   return (mNodesPartition);
 }
@@ -226,8 +225,8 @@ NodesArrayType::iterator GetNodePartitionEnd(ModelPart& r_model_part, unsigned i
 
 protected:
 
-vector<unsigned int> mElementsPartition;
-vector<unsigned int> mNodesPartition;
+DenseVector<unsigned int> mElementsPartition;
+DenseVector<unsigned int> mNodesPartition;
 
 private:
 
@@ -245,7 +244,7 @@ double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;
 std::vector<double> mPressures;
-std::vector<vector<double> > mFirstRowsOfB;
+std::vector<DenseVector<double> > mFirstRowsOfB;
 bool mMustCalculateMaxNodalArea;
 double mMinFluidFraction;
 double mMaxNodalAreaInv;
@@ -276,7 +275,7 @@ void OrderByDistance(Node<3>::Pointer &p_node, WeakPointerVector<Node<3> >& neig
 bool SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p_node);
 bool SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node);
 double SecondDegreeTestPolynomial(const array_1d <double, 3>& coordinates);
-double SecondDegreeGenericPolynomial(boost::numeric::ublas::matrix<double> C, const array_1d <double, 3>& coordinates);
+double SecondDegreeGenericPolynomial(DenseMatrix<double> C, const array_1d <double, 3>& coordinates);
 inline int Factorial(const unsigned int n);
 bool SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer& p_node);
 unsigned int GetNumberOfUniqueNeighbours(const int my_id, const WeakPointerVector<Element>& my_neighbour_elements);

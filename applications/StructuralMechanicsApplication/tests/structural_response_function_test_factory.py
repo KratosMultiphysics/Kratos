@@ -10,6 +10,9 @@ import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
@@ -49,9 +52,12 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
     def _calculate_response_and_gradient(self):
         # Within this location context:
         with controlledExecutionScope(self.path):
-            self.value = self.response_function.CalculateValue()
+            self.response_function.InitializeSolutionStep()
+            self.response_function.CalculateValue()
+            self.value = self.response_function.GetValue()
             self.response_function.CalculateGradient()
             self.gradient = self.response_function.GetShapeGradient()
+            self.response_function.FinalizeSolutionStep()
 
     def tearDown(self):
         # Within this location context:
@@ -63,7 +69,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             kratos_utils.DeleteFileIfExisting("response_function_tests.post.lst")
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
-    path = "response_function_tests"
+    path = GetFilePath("response_function_tests")
     file_name = "mass_response"
 
     def test_execution(self):
@@ -74,7 +80,7 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertNotEqual(self.gradient[1][0], 0.0)
 
 class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
-    path = "response_function_tests"
+    path = GetFilePath("response_function_tests")
     file_name = "strain_energy_response"
 
     def test_execution(self):

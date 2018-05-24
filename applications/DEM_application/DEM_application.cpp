@@ -83,7 +83,7 @@ KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_OPTION)
 KRATOS_CREATE_VARIABLE(int, SEARCH_CONTROL)
 KRATOS_CREATE_VARIABLE(double, COORDINATION_NUMBER)
 KRATOS_CREATE_VARIABLE(double, MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS)
-KRATOS_CREATE_VARIABLE(vector<int>, SEARCH_CONTROL_VECTOR)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, SEARCH_CONTROL_VECTOR)
 KRATOS_CREATE_VARIABLE(int, CLEAN_INDENT_OPTION)
 KRATOS_CREATE_VARIABLE(int, TRIHEDRON_OPTION)
 KRATOS_CREATE_VARIABLE(int, ROLLING_FRICTION_OPTION)
@@ -104,6 +104,14 @@ KRATOS_CREATE_VARIABLE(ClusterInformation, CLUSTER_INFORMATION)
 KRATOS_CREATE_VARIABLE(std::string, CLUSTER_FILE_NAME)
 KRATOS_CREATE_VARIABLE(std::string, INJECTOR_ELEMENT_TYPE)
 KRATOS_CREATE_VARIABLE(int, CONTINUUM_OPTION)
+KRATOS_CREATE_VARIABLE(int, FLOATING_OPTION)
+KRATOS_CREATE_VARIABLE(double, DEM_ENGINE_POWER)
+KRATOS_CREATE_VARIABLE(double, DEM_MAX_ENGINE_FORCE)
+KRATOS_CREATE_VARIABLE(double, DEM_THRESHOLD_VELOCITY)
+KRATOS_CREATE_VARIABLE(double, DEM_ENGINE_PERFORMANCE)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_X)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_Y)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_Z)
 
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_X_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_Y_VALUE)
@@ -125,7 +133,7 @@ KRATOS_CREATE_VARIABLE(double, PARTICLE_TENSION)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_COHESION)
 KRATOS_CREATE_VARIABLE(int, IF_BOUNDARY_ELEMENT)
 KRATOS_CREATE_VARIABLE(Vector, IF_BOUNDARY_FACE)
-KRATOS_CREATE_VARIABLE(vector<int>, PARTICLE_CONTACT_FAILURE_ID)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, PARTICLE_CONTACT_FAILURE_ID)
 
 // *************** Continuum only END ***************
 
@@ -184,6 +192,7 @@ KRATOS_CREATE_VARIABLE(double, FAILURE_CRITERION_STATE)
 KRATOS_CREATE_VARIABLE(double, UNIDIMENSIONAL_DAMAGE)
 KRATOS_CREATE_VARIABLE(double, CONTACT_ORIENTATION)
 KRATOS_CREATE_VARIABLE(double, CONTACT_SIGMA_MIN)
+KRATOS_CREATE_VARIABLE(double, TENSION_LIMIT_INCREASE_SLOPE)
 KRATOS_CREATE_VARIABLE(double, CONTACT_TAU_ZERO)
 KRATOS_CREATE_VARIABLE(double, CONTACT_INTERNAL_FRICC)
 
@@ -195,9 +204,8 @@ KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_HIGH)
 KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_LOW)
 KRATOS_CREATE_VARIABLE(double, MEAN_CONTACT_AREA)
 KRATOS_CREATE_VARIABLE(double, REPRESENTATIVE_VOLUME)
-KRATOS_CREATE_VARIABLE(boost::numeric::ublas::vector<int>, NEIGHBOUR_IDS)
-KRATOS_CREATE_VARIABLE(
-    boost::numeric::ublas::vector<double>, NEIGHBOURS_CONTACT_AREAS)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, NEIGHBOUR_IDS)
+KRATOS_CREATE_VARIABLE(DenseVector<double>, NEIGHBOURS_CONTACT_AREAS)
 // *************** Continuum only END ***************
 
 //INLET PARAMETERS
@@ -413,6 +421,7 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mRigidFace3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
@@ -433,24 +442,18 @@ void KratosDEMApplication::Register() {
 
     KratosApplication::Register();
 
-    std::cout << std::endl;
-    std::cout
-        << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "
-        << std::endl;
-    std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "
-              << std::endl;
-    std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "
-              << std::endl;
-    std::cout
-        << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      "
-        << std::endl
-        << std::endl;
-    std::cout << "Importing DEMApplication... ";
+    KRATOS_INFO("DEM") << std::endl;
+    KRATOS_INFO("DEM") << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
+    KRATOS_INFO("DEM") << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
+    KRATOS_INFO("DEM") << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
+    KRATOS_INFO("DEM") << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      " << std::endl;
+    KRATOS_INFO("DEM") << std::endl;
+    KRATOS_INFO("DEM") << "Importing DEMApplication... ";
 
 #ifdef KRATOS_BUILD_TYPE
 #define ____CONVERT_INNER_VALUE_TO_STRING(S) ____CONVERT_TO_STRING(S)
 #define ____CONVERT_TO_STRING(S) #S
-    std::cout << "( compiled in mode \""
+    KRATOS_INFO("DEM") << "( compiled in mode \""
               << ____CONVERT_INNER_VALUE_TO_STRING(KRATOS_BUILD_TYPE) << "\" )";
 #undef ____CONVERT_INNER_VALUE_TO_STRING
 #undef ____CONVERT_TO_STRING
@@ -479,7 +482,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(BOTTOM)
     KRATOS_REGISTER_VARIABLE(FORCE_INTEGRATION_GROUP)
     KRATOS_REGISTER_VARIABLE(TABLE_NUMBER)
-    KRATOS_REGISTER_VARIABLE(TABLE_VELOCITY_COMPONENT)        
+    KRATOS_REGISTER_VARIABLE(TABLE_VELOCITY_COMPONENT)
     KRATOS_REGISTER_VARIABLE(SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION)
     KRATOS_REGISTER_VARIABLE(POISSON_EFFECT_OPTION)
     KRATOS_REGISTER_VARIABLE(ROLLING_FRICTION_OPTION)
@@ -507,6 +510,14 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(CLUSTER_FILE_NAME)
     KRATOS_REGISTER_VARIABLE(INJECTOR_ELEMENT_TYPE)
     KRATOS_REGISTER_VARIABLE(CONTINUUM_OPTION)
+    KRATOS_REGISTER_VARIABLE(FLOATING_OPTION)
+    KRATOS_REGISTER_VARIABLE(DEM_ENGINE_POWER)
+    KRATOS_REGISTER_VARIABLE(DEM_MAX_ENGINE_FORCE)
+    KRATOS_REGISTER_VARIABLE(DEM_THRESHOLD_VELOCITY)
+    KRATOS_REGISTER_VARIABLE(DEM_ENGINE_PERFORMANCE)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_X)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_Y)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_Z)
 
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_Y_VALUE)
@@ -581,6 +592,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(FAILURE_CRITERION_STATE)
     KRATOS_REGISTER_VARIABLE(UNIDIMENSIONAL_DAMAGE)
     KRATOS_REGISTER_VARIABLE(CONTACT_SIGMA_MIN)
+    KRATOS_REGISTER_VARIABLE(TENSION_LIMIT_INCREASE_SLOPE)
     KRATOS_REGISTER_VARIABLE(CONTACT_TAU_ZERO)
     KRATOS_REGISTER_VARIABLE(CONTACT_INTERNAL_FRICC)
     // *************** Continuum only END *************
@@ -792,12 +804,13 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
-    
+
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("RigidFace3D2N", mRigidFace3D2N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
@@ -844,6 +857,6 @@ void KratosDEMApplication::Register() {
     Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
 
-    std::cout << " done." << std::endl;
+    KRATOS_INFO("DEM") << " done." << std::endl;
 }
 }  // namespace Kratos.

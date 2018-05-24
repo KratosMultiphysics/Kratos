@@ -38,7 +38,7 @@
                 "matrix_free_filtering"      : true
             },
             "mesh_motion" : {
-                "apply_ale_mesh_solver" : false
+                "apply_mesh_solver" : false
             },
             "damping" : {
                 "perform_damping" : false

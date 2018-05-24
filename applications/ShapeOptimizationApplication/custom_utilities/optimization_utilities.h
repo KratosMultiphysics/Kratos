@@ -22,12 +22,7 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
-#include "utilities/timer.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 
