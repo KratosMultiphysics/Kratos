@@ -28,6 +28,7 @@ addons:
       - libboost-dev
       - libblas-dev
       - liblapack-dev
+      - python3-pip
 
 before_script:
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
