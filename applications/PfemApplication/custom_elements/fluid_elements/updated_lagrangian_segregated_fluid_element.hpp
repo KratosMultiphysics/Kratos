@@ -231,17 +231,17 @@ protected:
     unsigned int GetDofsSize() override;
 
     /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
+     * Calculation of the Material Stiffness Matrix. Kvvm = BT * C * B
      */
 
-    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
                                      ElementVariables& rVariables,
                                      double& rIntegrationWeight);
 
     /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
+     * Calculation of the Geometric Stiffness Matrix. Kvvg = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    virtual void CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
                                      ElementVariables& rVariables,
                                      double& rIntegrationWeight);    
 

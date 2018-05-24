@@ -1151,7 +1151,6 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 }
 
 
-
 //************************************************************************************
 //************************************************************************************
 
@@ -1163,7 +1162,7 @@ void FluidElement::FinalizeStepVariables( ElementVariables & rVariables, const d
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+void FluidElement::CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
 				       ElementVariables& rVariables,
 				       double& rIntegrationWeight)
 {
@@ -1180,7 +1179,7 @@ void FluidElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+void FluidElement::CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
 				       ElementVariables& rVariables,
 				       double& rIntegrationWeight)
 
@@ -1219,9 +1218,8 @@ void FluidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVecto
 //************************************************************************************
 
 void FluidElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-        ElementVariables & rVariables,
-        double& rIntegrationWeight
-                                                            )
+                                                 ElementVariables & rVariables,
+                                                 double& rIntegrationWeight)
 {
     KRATOS_TRY
 

@@ -500,7 +500,7 @@ unsigned int UpdatedLagrangianSegregatedFluidElement::GetDofsSize()
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
                                                                   ElementVariables& rVariables,
                                                                   double& rIntegrationWeight)
 
