@@ -96,6 +96,8 @@ class AdjointFluidAnalysis(AnalysisStage):
         """Note that the adjoint problem is solved in reverse time
         """
 
+        #self.output.PrintOutput()
+
         for step in range(self.number_of_steps):
             self.time = self.solver.AdvanceInTime(self.time)
             self.InitializeSolutionStep()
@@ -134,6 +136,7 @@ class AdjointFluidAnalysis(AnalysisStage):
             process.ExecuteInitialize()
 
         self.solver.Initialize()
+        self.solver.SolverInitialize() # this initializes the strategy
 
         ## If the echo level is high enough, print the complete list of settings used to run the simualtion
         if self.is_printing_rank and self.echo_level > 1:
