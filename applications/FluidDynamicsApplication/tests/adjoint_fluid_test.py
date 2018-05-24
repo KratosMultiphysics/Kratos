@@ -72,9 +72,9 @@ class AdjointFluidTest(UnitTest.TestCase):
         if self.print_output:
             settings["adjoint settings"].AddValue("output_configuration", km.Parameters(r'''{
                 "result_file_configuration" : {
-                    "gidpost_flags"       : {
+                    "gidpost_flags" : {
                         "GiDPostMode"           : "GiD_PostBinary",
-                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                        "WriteDeformedMeshFlag" : "WriteUndeformed",
                         "WriteConditionsFlag"   : "WriteConditions",
                         "MultiFileFlag"         : "SingleFile"
                     },
