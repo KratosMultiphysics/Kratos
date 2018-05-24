@@ -118,7 +118,7 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
 
     def PrintOutput(self):
         # Print the output
-        time = self._get_gid_output_time()
+        time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
         self.printed_step_count += 1
         self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
@@ -127,12 +127,12 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
             label = self.printed_step_count
         
         # Write results to the initiated result file
-        self._write_mp_results(label)
+        self._write_mp_results(time)
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
-                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.TIME]:
+                while self._get_pretty_time(self.next_output) <= time:
                     self.next_output += self.output_frequency
             else:
                 while self.next_output <= self.step_count:
@@ -141,19 +141,17 @@ class ParticleMPMGiDOutputProcess(KratosMultiphysics.Process):
 
     def IsOutputStep(self):
         if self.output_control_is_time:
-            return ( self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output )
+            time = self._get_pretty_time(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
+            return (time >= self._get_pretty_time(self.next_output))
         else:
             return ( self.step_count >= self.next_output )
     
 
     # Private Functions
-    def _get_gid_output_time(self):
-        # get pretty gid output time
-        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        time = "{0:.12g}".format(time)
-        time = float(time)
-        return time 
-
+    def _get_pretty_time(self,time):
+        pretty_time = "{0:.12g}".format(time)
+        pretty_time = float(pretty_time)
+        return pretty_time 
 
     def _get_attribute(self, my_string, function_pointer, attribute_type):
         """Return the python object named by the string argument.
