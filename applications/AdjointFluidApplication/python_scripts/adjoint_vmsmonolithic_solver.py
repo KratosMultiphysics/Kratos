@@ -112,7 +112,11 @@ class AdjointVMSMonolithicSolver:
             #here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:
                 rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-                kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+                if el.Properties.Has(KratosMultiphysics.DYNAMIC_VISCOSITY):
+                    dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+                    kin_viscosity = dyn_viscosity/rho
+                else:
+                    kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
                 break
 
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
