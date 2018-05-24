@@ -316,6 +316,7 @@ class CustomHoleCuttingProcess
 				it->Set(ACTIVE, false);
 				Element::Pointer pElem = *(it.base());
 				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
+				rExtractedModelPart.Elements().push_back(pElem);
 				for (j = 0; j <numNodesPerElem; j++)
 				{
 					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
@@ -328,17 +329,17 @@ class CustomHoleCuttingProcess
 					if(numNodesPerElem-1 > 2)
 						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;
 					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
-					//vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
+					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
 				}
 			}
-			else
+			/* else
 			{
 				Element::Pointer pElem = *(it.base());
 				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
 				rExtractedModelPart.Elements().push_back(pElem);
 				for (j = 0; j <numNodesPerElem; j++)
 					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
-			}
+			} */
 		}
 
 		//sorting and making unique list of node ids

@@ -278,7 +278,6 @@ public:
     ) override
     {
         KRATOS_TRY
-        std::cout<<"Scheme::Getting first element contribution  2 "<<std::endl;
 
         (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 

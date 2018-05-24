@@ -77,6 +77,40 @@ template <std::size_t TDim>
 class ApplyChimeraProcessMonolithic : public Process
 {
   public:
+
+	struct KeyComparor
+	{
+		bool operator()(const vector<std::size_t> &lhs, const vector<std::size_t> &rhs) const
+		{
+			if (lhs.size() != rhs.size())
+				return false;
+
+			for (std::size_t i = 0; i < lhs.size(); i++)
+			{
+				if (lhs[i] != rhs[i])
+					return false;
+			}
+
+			return true;
+		}
+	};
+
+	struct KeyHasher
+	{
+		std::size_t operator()(const vector<int> &k) const
+		{
+			std::size_t seed = 0.0;
+			std::hash<int> hasher;
+
+			for (std::size_t i = 0; i < k.size(); i++)
+			{
+				seed ^= hasher(k[i]) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+			}
+
+			return seed;
+		}
+
+	};
 	///@name Type Definitions
 	///@{
 
@@ -142,7 +176,6 @@ class ApplyChimeraProcessMonolithic : public Process
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
-
 		this->pMpc = MpcDataPointerType(new MpcData(m_type));
 		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
 		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
@@ -152,7 +185,6 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		MpcDataPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
 		(*mpcDataVector).push_back(pMpc);
-
 	}
 
 	/// Destructor.
@@ -426,24 +458,24 @@ class ApplyChimeraProcessMonolithic : public Process
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
-			ModelPart::Pointer pModifiedPatchModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
+			ModelPart::Pointer pOutOfDomainPatchModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
+			ModelPart::Pointer pOutOfDomainPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 			ModelPart::Pointer pModifiedPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
-			//bool PatchMovesOutOfDomain = false ;
-
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-			this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart);
+			this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pOutOfDomainPatchModelPart, *pOutOfDomainPatchBoundaryModelPart);
 
-			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchBoundaryModelPart);
+			CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
+
+			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
 			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
 
-
-			//*pModifiedPatchBoundaryModelPart  rPatchBoundaryModelPart
+			//*pOutOfDomainPatchBoundaryModelPart  rPatchBoundaryModelPart
 			//for multipatch
 			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
 				it->Set(VISITED, true);
 
-			CalculateNodalAreaAndNodalMass(rPatchBoundaryModelPart, 1);
+			CalculateNodalAreaAndNodalMass(*pModifiedPatchBoundaryModelPart, 1);
 			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
 
 			pMpc->SetIsWeak(m_parameters["IsWeak"].GetBool());
@@ -453,14 +485,14 @@ class ApplyChimeraProcessMonolithic : public Process
 
 			if (m_type == "nearest_element")
 			{
-				ApplyMpcConstraint(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
+				ApplyMpcConstraint(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
 				ApplyMpcConstraint(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
 				std::cout << "Patch boundary coupled with background & HoleBoundary  coupled with patch" << std::endl;
 			}
 
 			else if (m_type == "conservative")
 			{
-				ApplyMpcConstraintConservative(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
+				ApplyMpcConstraintConservative(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
 				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
 				std::cout << "Patch boundary coupled with background & HoleBoundary  coupled with patch  using conservative approach" << std::endl;
 			}
@@ -469,252 +501,346 @@ class ApplyChimeraProcessMonolithic : public Process
 		//pMpc->GetInfo();
 	}
 
-	void SetOverlapDistance(double distance)
+	// This function removes all the boundaries common to first and second but retain rest of the boundaries
+	void CalculateModifiedPatchBoundary(ModelPart &FirstBoundary, ModelPart &SecondBoundary, ModelPart &FirstMinusSecondBoundary)
 	{
+		std::vector<std::size_t> vector_of_node_ids;
+		Properties::Pointer properties = FirstMinusSecondBoundary.rProperties()(0);
+		Condition const &rReferenceLineCondition = KratosComponents<Condition>::Get("Condition2D");
 
-		this->m_overlap_distance = distance;
-	}
+		typedef std::unordered_map<std::size_t, std::size_t > hashmap;
+		hashmap NodeToDomainMap;
+		/*
+		Node<3>::Pointer pnode1 = rSurfaceModelPart.Nodes()(original_nodes_order[0]);
+		Node<3>::Pointer pnode2 = rSurfaceModelPart.Nodes()(original_nodes_order[1]);
 
-	void SetType( std::string type)
-	{
-		KRATOS_TRY
+		vector_of_node_ids.push_back(original_nodes_order[0]);
+		vector_of_node_ids.push_back(original_nodes_order[1]);
+
+		// Skin edges are added as conditions
+         */
+		//iterate through all Geometries of first and second and compare for the common edges
+		std::size_t id_condition = 1;
+
+		for (ModelPart::ConditionIterator itCondF = FirstBoundary.ConditionsBegin(); itCondF != FirstBoundary.ConditionsEnd(); ++itCondF)
 		{
-			if ((type != "nearest_element") && (type != "conservative"))
-				KRATOS_THROW_ERROR("", "Second argument should be either nearest_element or conservative \n", "");
+			//Element::GeometryType::GeometriesArrayType edgesF = itCondF->GetGeometry().Edges();
 
-			this->m_type = type;
-			pMpc->SetType(this->m_type);
+			bool CommonEdgeDetected = false ;
 
+				vector<std::size_t> idsFirst(2);
+				// Store node ids
+				for (std::size_t i = 0; i < itCondF->GetGeometry().size();i++)
+					idsFirst[i] = itCondF->GetGeometry()[i].Id();
+
+				for (ModelPart::ConditionIterator itCondS = SecondBoundary.ConditionsBegin(); itCondS != SecondBoundary.ConditionsEnd(); ++itCondS)
+				{
+					vector<std::size_t> idsSecond(2);
+					for (std::size_t i = 0; i < itCondS->GetGeometry().size();i++)
+						idsSecond[i] = itCondS->GetGeometry()[i].Id();
+
+
+					if ((idsFirst[0] != idsSecond[0]) || (idsFirst[1] != idsSecond[1]))
+					{
+						Node<3>::Pointer pnodeS1 = SecondBoundary.Nodes()(idsSecond[0]);
+						Node<3>::Pointer pnodeS2 = SecondBoundary.Nodes()(idsSecond[1]);
+
+						vector_of_node_ids.push_back(idsSecond[0]);
+						vector_of_node_ids.push_back(idsSecond[1]);
+						NodeToDomainMap[idsSecond[0]] = 2;
+						NodeToDomainMap[idsSecond[1]] = 2;
+
+						Line2D2<Node<3>> lineS(pnodeS1, pnodeS2);
+						Condition::Pointer p_conditionS = rReferenceLineCondition.Create(id_condition++, lineS, properties);
+						FirstMinusSecondBoundary.Conditions().push_back(p_conditionS);
+
+					}
+					else
+						CommonEdgeDetected = true;
+
+				}
+
+			if (!CommonEdgeDetected)
+			{
+				Node<3>::Pointer pnodeF1 = FirstBoundary.Nodes()(idsFirst[0]);
+				Node<3>::Pointer pnodeF2 = FirstBoundary.Nodes()(idsFirst[1]);
+
+				vector_of_node_ids.push_back(idsFirst[0]);
+				vector_of_node_ids.push_back(idsFirst[1]);
+
+				NodeToDomainMap[idsFirst[0]] = 1;
+				NodeToDomainMap[idsFirst[1]] = 1;
+
+				Line2D2<Node<3>> lineF(pnodeF1, pnodeF2);
+				Condition::Pointer p_conditionF = rReferenceLineCondition.Create(id_condition++, lineF, properties);
+				FirstMinusSecondBoundary.Conditions().push_back(p_conditionF);
+			}
 		}
 
-		KRATOS_CATCH("")
+
+		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+		vector_of_node_ids.assign(s.begin(), s.end());
+
+		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
+		{
+			if (NodeToDomainMap[*it] == 1)
+			{
+				Node<3>::Pointer pnode = FirstBoundary.Nodes()(*it);
+				FirstMinusSecondBoundary.AddNode(pnode);
+			}
+			else
+			{
+				Node<3>::Pointer pnode2 = SecondBoundary.Nodes()(*it);
+				FirstMinusSecondBoundary.AddNode(pnode2);
+			}
+		}
+		std::cout << "First minus Second .........Rishith " << FirstMinusSecondBoundary.GetMesh() << std::endl;
 	}
 
-	void CalculateNodalAreaAndNodalMass(ModelPart &rBoundaryModelPart, int sign)
+void SetOverlapDistance(double distance)
+{
+	this->m_overlap_distance = distance;
+}
+
+void SetType(std::string type)
+{
+	KRATOS_TRY
 	{
-		KRATOS_TRY
-		ConditionsArrayType &rConditions = rBoundaryModelPart.Conditions();
-		//resetting the normals and calculating centre point
+		if ((type != "nearest_element") && (type != "conservative"))
+			KRATOS_THROW_ERROR("", "Second argument should be either nearest_element or conservative \n", "");
 
-		array_1d<double, 3> zero;
-		array_1d<double, 3> centre;
-		std::size_t n_nodes = rBoundaryModelPart.Nodes().size();
+		this->m_type = type;
+		pMpc->SetType(this->m_type);
+	}
 
-		zero[0] = 0.0;
-		zero[1] = 0.0;
-		zero[2] = 0.0;
+	KRATOS_CATCH("")
+}
 
-		centre[0] = 0.0;
-		centre[1] = 0.0;
-		centre[2] = 0.0;
+void CalculateNodalAreaAndNodalMass(ModelPart &rBoundaryModelPart, int sign)
+{
+	KRATOS_TRY
+	ConditionsArrayType &rConditions = rBoundaryModelPart.Conditions();
+	//resetting the normals and calculating centre point
 
+	array_1d<double, 3> zero;
+	array_1d<double, 3> centre;
+	std::size_t n_nodes = rBoundaryModelPart.Nodes().size();
+
+	zero[0] = 0.0;
+	zero[1] = 0.0;
+	zero[2] = 0.0;
+
+	centre[0] = 0.0;
+	centre[1] = 0.0;
+	centre[2] = 0.0;
+
+	for (ConditionsArrayType::iterator it = rConditions.begin();
+		 it != rConditions.end(); it++)
+	{
+		Element::GeometryType &rNodes = it->GetGeometry();
+		for (std::size_t in = 0; in < rNodes.size(); in++)
+		{
+			noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
+		}
+	}
+
+	for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
+	{
+
+		centre += inode->Coordinates();
+	}
+
+	centre = centre / n_nodes;
+
+	//calculating the normals and storing on the conditions
+	array_1d<double, 3> An;
+	if (TDim == 2)
+	{
 		for (ConditionsArrayType::iterator it = rConditions.begin();
 			 it != rConditions.end(); it++)
 		{
-			Element::GeometryType &rNodes = it->GetGeometry();
-			for (std::size_t in = 0; in < rNodes.size(); in++)
-			{
-				noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
-			}
+			if (it->GetGeometry().PointsNumber() == 2)
+				CalculateNormal2D(it, An, centre, sign);
 		}
-
-		for (ModelPart::NodesContainerType::iterator inode = rBoundaryModelPart.NodesBegin(); inode != rBoundaryModelPart.NodesEnd(); ++inode)
-		{
-
-			centre += inode->Coordinates();
-		}
-
-		centre = centre / n_nodes;
-
-		//calculating the normals and storing on the conditions
-		array_1d<double, 3> An;
-		if (TDim == 2)
-		{
-			for (ConditionsArrayType::iterator it = rConditions.begin();
-				 it != rConditions.end(); it++)
-			{
-				if (it->GetGeometry().PointsNumber() == 2)
-					CalculateNormal2D(it, An, centre, sign);
-			}
-		}
-		else if (TDim == 3)
-		{
-			array_1d<double, 3> v1;
-			array_1d<double, 3> v2;
-			for (ConditionsArrayType::iterator it = rConditions.begin();
-				 it != rConditions.end(); it++)
-			{
-				//calculate the normal on the given condition
-				if (it->GetGeometry().PointsNumber() == 3)
-					CalculateNormal3D(it, An, v1, v2, centre, sign);
-			}
-		}
-
-		//adding the normals to the nodes
+	}
+	else if (TDim == 3)
+	{
+		array_1d<double, 3> v1;
+		array_1d<double, 3> v2;
 		for (ConditionsArrayType::iterator it = rConditions.begin();
 			 it != rConditions.end(); it++)
 		{
-			Geometry<Node<3>> &pGeometry = (it)->GetGeometry();
-			double coeff = 1.00 / pGeometry.size();
-			const array_1d<double, 3> &normal = it->GetValue(NORMAL);
-			double nodal_mass = MathUtils<double>::Norm3(normal);
-
-			for (std::size_t i = 0; i < pGeometry.size(); i++)
-			{
-				noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
-				pGeometry[i].FastGetSolutionStepValue(NODAL_MASS) += coeff * nodal_mass;
-			}
+			//calculate the normal on the given condition
+			if (it->GetGeometry().PointsNumber() == 3)
+				CalculateNormal3D(it, An, v1, v2, centre, sign);
 		}
-
-		KRATOS_CATCH("")
 	}
 
-	void CalculateNormal2D(ConditionsArrayType::iterator it, array_1d<double, 3> &An, array_1d<double, 3> &centre, int sign)
+	//adding the normals to the nodes
+	for (ConditionsArrayType::iterator it = rConditions.begin();
+		 it != rConditions.end(); it++)
 	{
 		Geometry<Node<3>> &pGeometry = (it)->GetGeometry();
-		array_1d<double, 3> rVector;
+		double coeff = 1.00 / pGeometry.size();
+		const array_1d<double, 3> &normal = it->GetValue(NORMAL);
+		double nodal_mass = MathUtils<double>::Norm3(normal);
 
-		An[0] = pGeometry[1].Y() - pGeometry[0].Y();
-		An[1] = -(pGeometry[1].X() - pGeometry[0].X());
-		An[2] = 0.00;
-
-		rVector[0] = centre[0] - pGeometry[0].X();
-		rVector[1] = centre[1] - pGeometry[0].Y();
-		rVector[2] = 0.00;
-
-		array_1d<double, 3> &normal = (it)->GetValue(NORMAL);
-		noalias(normal) = An;
-
-		if ((MathUtils<double>::Dot(An, rVector) > 0))
-			normal = -1 * normal;
-
-		normal = normal * sign;
-
-		// 				(it)->SetValue(NORMAL,An);
-	}
-
-	void CalculateNormal3D(ConditionsArrayType::iterator it, array_1d<double, 3> &An,
-						   array_1d<double, 3> &v1, array_1d<double, 3> &v2, array_1d<double, 3> &centre, int sign)
-	{
-		Geometry<Node<3>> &pGeometry = (it)->GetGeometry();
-		array_1d<double, 3> rVector;
-
-		v1[0] = pGeometry[1].X() - pGeometry[0].X();
-		v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-		v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
-
-		v2[0] = pGeometry[2].X() - pGeometry[0].X();
-		v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-		v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
-
-		rVector[0] = centre[0] - pGeometry[0].X();
-		rVector[1] = centre[1] - pGeometry[0].Y();
-		rVector[2] = centre[2] - pGeometry[0].Z();
-
-		MathUtils<double>::CrossProduct(An, v1, v2);
-		An *= 0.5;
-
-		array_1d<double, 3> &normal = (it)->GetValue(NORMAL);
-		noalias(normal) = An;
-
-		if ((MathUtils<double>::Dot(An, rVector) > 0))
-			normal = -1 * normal;
-
-		normal = normal * sign;
-		// 				noalias((it)->GetValue(NORMAL)) = An;
-	}
-
-	void CalculateConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
-	{
-
-		double nodalMass;
-		std::size_t slaveNodeId;
-		std::size_t slaveNodeIdOther;
-		std::size_t slaveDofKey;
-		std::size_t slaveDofKeyOther;
-		double slaveDofValueOther;
-		SlavePairType slaveDofMap;
-		SlavePairType slaveDofMapOther;
-		double RtMinvR = pMpc->RtMinvR;
-		double NodalNormalComponent;
-		double NodalNormalComponentOther;
-		//std::cout << " RtMinvR " << RtMinvR << std::endl;
-		std::vector<double> VectorOfconstants;
-		std::size_t slaveIndex = 0;
-
-		for (auto slaveMasterDofMap : pMpc->mDofConstraints)
+		for (std::size_t i = 0; i < pGeometry.size(); i++)
 		{
-			slaveDofMap = slaveMasterDofMap.first;
-			slaveNodeId = slaveDofMap.first;
-			slaveDofKey = slaveDofMap.second;
-			Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
-			Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
-			nodalMass = slaveNode.FastGetSolutionStepValue(NODAL_MASS);
-			NodalNormalComponent = pMpc->mSlaveDofToNodalNormalMap[slaveDofMap];
-			VectorOfconstants.push_back(0.0);
-			for (auto slaveMasterDofMapOther : pMpc->mDofConstraints)
-			{
-
-				slaveDofMapOther = slaveMasterDofMapOther.first;
-				slaveNodeIdOther = slaveDofMapOther.first;
-				slaveDofKeyOther = slaveDofMapOther.second;
-				Node<3> &slaveNodeOther = r_model_part.Nodes()[slaveNodeIdOther];
-				Node<3>::DofsContainerType::iterator idofOther = slaveNodeOther.GetDofs().find(slaveDofKeyOther);
-				slaveDofValueOther = idofOther->GetSolutionStepValue();
-				NodalNormalComponentOther = pMpc->mSlaveDofToNodalNormalMap[slaveDofMapOther];
-				VectorOfconstants[slaveIndex] -= ((NodalNormalComponent * NodalNormalComponentOther) / (nodalMass * RtMinvR)) * slaveDofValueOther; // correction for zero flux
-
-			} // slaveMasterDofMapOher loop
-
-			slaveIndex++;
-
-		} // slaveMasterDofMap loop
-
-		slaveIndex = 0;
-
-		//Applying correction in the slaveDofValue
-		for (auto slaveMasterDofMap : pMpc->mDofConstraints)
-		{
-
-			slaveDofMap = slaveMasterDofMap.first;
-			slaveNodeId = slaveDofMap.first;
-			slaveDofKey = slaveDofMap.second;
-			Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
-			Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
-			std::size_t slaveEquationId = idof->EquationId();
-
-			pMpc->mSlaveEquationIdConstantsMap[slaveEquationId] = VectorOfconstants[slaveIndex];
-
-			slaveIndex++;
-
-		} // slaveMasterDofMap loop
-
-		//std::cout << "Conservative correction to the velocity field applied" << std::endl;
-		std::cout << "Conservative Correction of " << pMpc->mName << " is calculated" << std::endl;
-	}
-
-	void ApplyConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
-	{
-
-		for (auto slaveMasterDofMap : pMpc->mDofConstraints)
-		{
-			SlavePairType slaveDofMap = slaveMasterDofMap.first;
-			std::size_t slaveNodeId = slaveDofMap.first;
-			std::size_t slaveDofKey = slaveDofMap.second;
-			NodeType &node = r_model_part.Nodes()[slaveNodeId];
-			Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-			std::size_t slaveEquationId = it->EquationId();
-
-			it->GetSolutionStepValue(0) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
-			it->GetSolutionStepValue(1) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
+			noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+			pGeometry[i].FastGetSolutionStepValue(NODAL_MASS) += coeff * nodal_mass;
 		}
-
-		std::cout << "Conservative Correction of " << pMpc->mName << " is applied" << std::endl;
 	}
 
-	// Functions which use two variable components
+	KRATOS_CATCH("")
+}
 
-	/**
+void CalculateNormal2D(ConditionsArrayType::iterator it, array_1d<double, 3> &An, array_1d<double, 3> &centre, int sign)
+{
+	Geometry<Node<3>> &pGeometry = (it)->GetGeometry();
+	array_1d<double, 3> rVector;
+
+	An[0] = pGeometry[1].Y() - pGeometry[0].Y();
+	An[1] = -(pGeometry[1].X() - pGeometry[0].X());
+	An[2] = 0.00;
+
+	rVector[0] = centre[0] - pGeometry[0].X();
+	rVector[1] = centre[1] - pGeometry[0].Y();
+	rVector[2] = 0.00;
+
+	array_1d<double, 3> &normal = (it)->GetValue(NORMAL);
+	noalias(normal) = An;
+
+	if ((MathUtils<double>::Dot(An, rVector) > 0))
+		normal = -1 * normal;
+
+	normal = normal * sign;
+
+	// 				(it)->SetValue(NORMAL,An);
+}
+
+void CalculateNormal3D(ConditionsArrayType::iterator it, array_1d<double, 3> &An,
+					   array_1d<double, 3> &v1, array_1d<double, 3> &v2, array_1d<double, 3> &centre, int sign)
+{
+	Geometry<Node<3>> &pGeometry = (it)->GetGeometry();
+	array_1d<double, 3> rVector;
+
+	v1[0] = pGeometry[1].X() - pGeometry[0].X();
+	v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+	v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+	v2[0] = pGeometry[2].X() - pGeometry[0].X();
+	v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+	v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+	rVector[0] = centre[0] - pGeometry[0].X();
+	rVector[1] = centre[1] - pGeometry[0].Y();
+	rVector[2] = centre[2] - pGeometry[0].Z();
+
+	MathUtils<double>::CrossProduct(An, v1, v2);
+	An *= 0.5;
+
+	array_1d<double, 3> &normal = (it)->GetValue(NORMAL);
+	noalias(normal) = An;
+
+	if ((MathUtils<double>::Dot(An, rVector) > 0))
+		normal = -1 * normal;
+
+	normal = normal * sign;
+	// 				noalias((it)->GetValue(NORMAL)) = An;
+}
+
+void CalculateConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
+{
+
+	double nodalMass;
+	std::size_t slaveNodeId;
+	std::size_t slaveNodeIdOther;
+	std::size_t slaveDofKey;
+	std::size_t slaveDofKeyOther;
+	double slaveDofValueOther;
+	SlavePairType slaveDofMap;
+	SlavePairType slaveDofMapOther;
+	double RtMinvR = pMpc->RtMinvR;
+	double NodalNormalComponent;
+	double NodalNormalComponentOther;
+	//std::cout << " RtMinvR " << RtMinvR << std::endl;
+	std::vector<double> VectorOfconstants;
+	std::size_t slaveIndex = 0;
+
+	for (auto slaveMasterDofMap : pMpc->mDofConstraints)
+	{
+		slaveDofMap = slaveMasterDofMap.first;
+		slaveNodeId = slaveDofMap.first;
+		slaveDofKey = slaveDofMap.second;
+		Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
+		Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
+		nodalMass = slaveNode.FastGetSolutionStepValue(NODAL_MASS);
+		NodalNormalComponent = pMpc->mSlaveDofToNodalNormalMap[slaveDofMap];
+		VectorOfconstants.push_back(0.0);
+		for (auto slaveMasterDofMapOther : pMpc->mDofConstraints)
+		{
+
+			slaveDofMapOther = slaveMasterDofMapOther.first;
+			slaveNodeIdOther = slaveDofMapOther.first;
+			slaveDofKeyOther = slaveDofMapOther.second;
+			Node<3> &slaveNodeOther = r_model_part.Nodes()[slaveNodeIdOther];
+			Node<3>::DofsContainerType::iterator idofOther = slaveNodeOther.GetDofs().find(slaveDofKeyOther);
+			slaveDofValueOther = idofOther->GetSolutionStepValue();
+			NodalNormalComponentOther = pMpc->mSlaveDofToNodalNormalMap[slaveDofMapOther];
+			VectorOfconstants[slaveIndex] -= ((NodalNormalComponent * NodalNormalComponentOther) / (nodalMass * RtMinvR)) * slaveDofValueOther; // correction for zero flux
+
+		} // slaveMasterDofMapOher loop
+
+		slaveIndex++;
+
+	} // slaveMasterDofMap loop
+
+	slaveIndex = 0;
+
+	//Applying correction in the slaveDofValue
+	for (auto slaveMasterDofMap : pMpc->mDofConstraints)
+	{
+
+		slaveDofMap = slaveMasterDofMap.first;
+		slaveNodeId = slaveDofMap.first;
+		slaveDofKey = slaveDofMap.second;
+		Node<3> &slaveNode = r_model_part.Nodes()[slaveNodeId];
+		Node<3>::DofsContainerType::iterator idof = slaveNode.GetDofs().find(slaveDofKey);
+		std::size_t slaveEquationId = idof->EquationId();
+
+		pMpc->mSlaveEquationIdConstantsMap[slaveEquationId] = VectorOfconstants[slaveIndex];
+
+		slaveIndex++;
+
+	} // slaveMasterDofMap loop
+
+	//std::cout << "Conservative correction to the velocity field applied" << std::endl;
+	std::cout << "Conservative Correction of " << pMpc->mName << " is calculated" << std::endl;
+}
+
+void ApplyConservativeCorrections(ModelPart &r_model_part, MpcDataPointerType pMpc)
+{
+
+	for (auto slaveMasterDofMap : pMpc->mDofConstraints)
+	{
+		SlavePairType slaveDofMap = slaveMasterDofMap.first;
+		std::size_t slaveNodeId = slaveDofMap.first;
+		std::size_t slaveDofKey = slaveDofMap.second;
+		NodeType &node = r_model_part.Nodes()[slaveNodeId];
+		Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
+		std::size_t slaveEquationId = it->EquationId();
+
+		it->GetSolutionStepValue(0) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
+		it->GetSolutionStepValue(1) += pMpc->mSlaveEquationIdConstantsMap[slaveEquationId];
+	}
+
+	std::cout << "Conservative Correction of " << pMpc->mName << " is applied" << std::endl;
+}
+
+// Functions which use two variable components
+
+/**
 		Applies the MPC condition using two nodes, one as master and other as slave, and with the given weight
 		@arg MasterNode
         @arg MasterVariable
@@ -722,222 +848,222 @@ class ApplyChimeraProcessMonolithic : public Process
         @arg SlaveVariable
         @arg weight
 		*/
-	void AddMasterSlaveRelationWithNodesAndVariableComponents(MpcDataPointerType pMpc, Node<3> &MasterNode, VariableComponentType &MasterVariable, Node<3> &SlaveNode, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
-	{
-		SlaveNode.Set(SLAVE);
-		DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
-		DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
-		AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
-	}
+void AddMasterSlaveRelationWithNodesAndVariableComponents(MpcDataPointerType pMpc, Node<3> &MasterNode, VariableComponentType &MasterVariable, Node<3> &SlaveNode, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
+{
+	SlaveNode.Set(SLAVE);
+	DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
+	AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
+}
 
-	void AddMasterSlaveRelationWithNodeIdsAndVariableComponents(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableComponentType &MasterVariable, IndexType SlaveNodeId, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
-	{
-		Node<3> &SlaveNode = mrMainModelPart.Nodes()[SlaveNodeId];
-		Node<3> &MasterNode = mrMainModelPart.Nodes()[MasterNodeId];
-		SlaveNode.Set(SLAVE);
-		DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
-		DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
-		AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
-	}
+void AddMasterSlaveRelationWithNodeIdsAndVariableComponents(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableComponentType &MasterVariable, IndexType SlaveNodeId, VariableComponentType &SlaveVariable, double weight, double constant = 0.0)
+{
+	Node<3> &SlaveNode = mrMainModelPart.Nodes()[SlaveNodeId];
+	Node<3> &MasterNode = mrMainModelPart.Nodes()[MasterNodeId];
+	SlaveNode.Set(SLAVE);
+	DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
+	AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
+}
 
-	// Functions with use two variables
-	void AddMasterSlaveRelationWithNodesAndVariable(MpcDataPointerType pMpc, Node<3> &MasterNode, VariableType &MasterVariable, Node<3> &SlaveNode, VariableType &SlaveVariable, double weight, double constant = 0.0)
-	{
-		SlaveNode.Set(SLAVE);
-		DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
-		DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
-		AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
-	}
+// Functions with use two variables
+void AddMasterSlaveRelationWithNodesAndVariable(MpcDataPointerType pMpc, Node<3> &MasterNode, VariableType &MasterVariable, Node<3> &SlaveNode, VariableType &SlaveVariable, double weight, double constant = 0.0)
+{
+	SlaveNode.Set(SLAVE);
+	DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
+	AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
+}
 
-	void AddMasterSlaveRelationWithNodeIdsAndVariable(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableType &MasterVariable, IndexType SlaveNodeId, VariableType &SlaveVariable, double weight, double constant = 0.0)
-	{
-		Node<3> &SlaveNode = mrMainModelPart.Nodes()[SlaveNodeId];
-		Node<3> &MasterNode = mrMainModelPart.Nodes()[MasterNodeId];
-		SlaveNode.Set(SLAVE);
-		DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
-		DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
-		AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
-	}
+void AddMasterSlaveRelationWithNodeIdsAndVariable(MpcDataPointerType pMpc, IndexType MasterNodeId, VariableType &MasterVariable, IndexType SlaveNodeId, VariableType &SlaveVariable, double weight, double constant = 0.0)
+{
+	Node<3> &SlaveNode = mrMainModelPart.Nodes()[SlaveNodeId];
+	Node<3> &MasterNode = mrMainModelPart.Nodes()[MasterNodeId];
+	SlaveNode.Set(SLAVE);
+	DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+	DofType &pointerMasterDOF = MasterNode.GetDof(MasterVariable);
+	AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
+}
 
-	// Default functions
-	/**
+// Default functions
+/**
 		Applies the MPC condition using DOFs, one as master and other as slave, and with the given weight
 		@arg slaveDOF
         @arg masterDOF
         @arg weight
 		*/
-	void AddMasterSlaveRelationWithDofs(MpcDataPointerType pMpc, DofType slaveDOF, DofType masterDOF, double masterWeight, double constant = 0.0)
-	{
-		pMpc->AddConstraint(slaveDOF, masterDOF, masterWeight, constant);
-	}
+void AddMasterSlaveRelationWithDofs(MpcDataPointerType pMpc, DofType slaveDOF, DofType masterDOF, double masterWeight, double constant = 0.0)
+{
+	pMpc->AddConstraint(slaveDOF, masterDOF, masterWeight, constant);
+}
 
-	void AddNodalNormalSlaveRelationWithDofs(MpcDataPointerType pMpc, DofType slaveDOF, double nodalNormalComponent = 0.0)
-	{
-		pMpc->AddNodalNormalToSlaveDof(slaveDOF, nodalNormalComponent);
-	}
+void AddNodalNormalSlaveRelationWithDofs(MpcDataPointerType pMpc, DofType slaveDOF, double nodalNormalComponent = 0.0)
+{
+	pMpc->AddNodalNormalToSlaveDof(slaveDOF, nodalNormalComponent);
+}
 
-	/**
+/**
 		Activates the constraint set or deactivates
 		@arg isActive true/false
 		*/
-	void SetActive(bool isActive = true)
+void SetActive(bool isActive = true)
+{
+	pMpc->SetActive(isActive);
+}
+
+void SetRtMinvR(MpcDataPointerType pMpc, double value)
+{
+
+	pMpc->RtMinvR = value;
+}
+
+void PrintGIDMesh(ModelPart &rmodel_part)
+{
+	std::ofstream myfile;
+	myfile.open(rmodel_part.Name() + ".post.msh");
+	myfile << "MESH \"leaves\" dimension 2 ElemType Line Nnode 2" << std::endl;
+	myfile << "# color 96 96 96" << std::endl;
+	myfile << "Coordinates" << std::endl;
+	myfile << "# node number coordinate_x coordinate_y coordinate_z  " << std::endl;
+
+	for (std::size_t i = 0; i < rmodel_part.Nodes().size(); i++)
 	{
-		pMpc->SetActive(isActive);
+		ModelPart::NodesContainerType::iterator iparticle = rmodel_part.NodesBegin() + i;
+		Node<3>::Pointer p_node = *(iparticle.base());
+		myfile << p_node->Id() << "  " << p_node->Coordinates()[0] << "  " << p_node->Coordinates()[1] << "  " << p_node->Coordinates()[2] << std::endl;
 	}
 
-	void SetRtMinvR(MpcDataPointerType pMpc, double value)
+	myfile << "end coordinates" << std::endl;
+	myfile << "elements" << std::endl;
+	myfile << "# element node_1 node_2 material_number" << std::endl;
+
+	for (ConditionsArrayType::iterator it = rmodel_part.Conditions().begin();
+		 it != rmodel_part.Conditions().end(); it++)
 	{
 
-		pMpc->RtMinvR = value;
+		myfile << it->Id() << "  ";
+		for (std::size_t i = 0; i < it->GetGeometry().PointsNumber(); i++)
+			myfile << (it->GetGeometry()[i]).Id() << "  ";
+
+		myfile << std::endl;
 	}
 
-	void PrintGIDMesh(ModelPart &rmodel_part)
-	{
-		std::ofstream myfile;
-		myfile.open(rmodel_part.Name() + ".post.msh");
-		myfile << "MESH \"leaves\" dimension 2 ElemType Line Nnode 2" << std::endl;
-		myfile << "# color 96 96 96" << std::endl;
-		myfile << "Coordinates" << std::endl;
-		myfile << "# node number coordinate_x coordinate_y coordinate_z  " << std::endl;
+	myfile << "end elements" << std::endl;
+}
 
-		for (std::size_t i = 0; i < rmodel_part.Nodes().size(); i++)
-		{
-			ModelPart::NodesContainerType::iterator iparticle = rmodel_part.NodesBegin() + i;
-			Node<3>::Pointer p_node = *(iparticle.base());
-			myfile << p_node->Id() << "  " << p_node->Coordinates()[0] << "  " << p_node->Coordinates()[1] << "  " << p_node->Coordinates()[2] << std::endl;
-		}
+virtual std::string Info() const override
+{
+	return "ApplyChimeraProcessMonolithic";
+}
 
-		myfile << "end coordinates" << std::endl;
-		myfile << "elements" << std::endl;
-		myfile << "# element node_1 node_2 material_number" << std::endl;
+/// Print information about this object.
+virtual void PrintInfo(std::ostream &rOStream) const override
+{
+	rOStream << "ApplyChimeraProcessMonolithic";
+}
 
-		for (ConditionsArrayType::iterator it = rmodel_part.Conditions().begin();
-			 it != rmodel_part.Conditions().end(); it++)
-		{
+/// Print object's data.
+virtual void PrintData(std::ostream &rOStream) const override
+{
 
-			myfile << it->Id() << "  ";
-			for (std::size_t i = 0; i < it->GetGeometry().PointsNumber(); i++)
-				myfile << (it->GetGeometry()[i]).Id() << "  ";
+	std::cout << "\nNumber of slave nodes :: " << std::endl;
+	pMpc->GetInfo();
+}
 
-			myfile << std::endl;
-		}
+///@}
+///@name Friends
+///@{
 
-		myfile << "end elements" << std::endl;
-	}
+///@}
 
-	virtual std::string Info() const override
-	{
-		return "ApplyChimeraProcessMonolithic";
-	}
+protected:
+///@name Protected static Member Variables
+///@{
 
-	/// Print information about this object.
-	virtual void PrintInfo(std::ostream &rOStream) const override
-	{
-		rOStream << "ApplyChimeraProcessMonolithic";
-	}
+///@}
+///@name Protected member Variables
+///@{
 
-	/// Print object's data.
-	virtual void PrintData(std::ostream &rOStream) const override
-	{
+///@}
+///@name Protected Operators
+///@{
 
-		std::cout << "\nNumber of slave nodes :: " << std::endl;
-		pMpc->GetInfo();
-	}
+///@}
+///@name Protected Operations
+///@{
 
-	///@}
-	///@name Friends
-	///@{
+///@}
+///@name Protected  Access
+///@{
 
-	///@}
+///@}
+///@name Protected Inquiry
+///@{
 
-  protected:
-	///@name Protected static Member Variables
-	///@{
+///@}
+///@name Protected LifeCycle
+///@{
 
-	///@}
-	///@name Protected member Variables
-	///@{
+///@}
 
-	///@}
-	///@name Protected Operators
-	///@{
+private:
+///@name Static Member Variables
+///@{
 
-	///@}
-	///@name Protected Operations
-	///@{
+///@}
+///@name Member Variables
+///@{
 
-	///@}
-	///@name Protected  Access
-	///@{
+//ModelPart &mrBackGroundModelPart;
+//ModelPart &mrPatchSurfaceModelPart;
+BinBasedPointLocatorPointerType pBinLocatorForBackground; // Template argument 3 stands for 3D case
+BinBasedPointLocatorPointerType pBinLocatorForPatch;
 
-	///@}
-	///@name Protected Inquiry
-	///@{
+//for monolithic
+MpcDataPointerType pMpc;
 
-	///@}
-	///@name Protected LifeCycle
-	///@{
+CustomHoleCuttingProcess::Pointer pHoleCuttingProcess;
+typename CustomCalculateSignedDistanceProcess<TDim>::Pointer pCalculateDistanceProcess;
+ModelPart &mrMainModelPart;
+double m_overlap_distance;
 
-	///@}
+Parameters m_parameters;
+std::string m_background_model_part_name;
+std::string m_patch_boundary_model_part_name;
+std::string m_domain_boundary_model_part_name;
+std::string m_patch_model_part_name;
+std::string m_type;
 
-  private:
-	///@name Static Member Variables
-	///@{
+// epsilon
+//static const double epsilon;
 
-	///@}
-	///@name Member Variables
-	///@{
+///@}
+///@name Private Operators
+///@{
 
-	//ModelPart &mrBackGroundModelPart;
-	//ModelPart &mrPatchSurfaceModelPart;
-	BinBasedPointLocatorPointerType pBinLocatorForBackground; // Template argument 3 stands for 3D case
-	BinBasedPointLocatorPointerType pBinLocatorForPatch;
+///@}
+///@name Private Operations
+///@{
 
-	//for monolithic
-	MpcDataPointerType pMpc;
+///@}
+///@name Private  Access
+///@{
 
-	CustomHoleCuttingProcess::Pointer pHoleCuttingProcess;
-	typename CustomCalculateSignedDistanceProcess<TDim>::Pointer pCalculateDistanceProcess;
-	ModelPart &mrMainModelPart;
-	double m_overlap_distance;
+///@}
+///@name Private Inquiry
+///@{
 
-	Parameters m_parameters;
-	std::string m_background_model_part_name;
-	std::string m_patch_boundary_model_part_name;
-	std::string m_domain_boundary_model_part_name;
-	std::string m_patch_model_part_name;
-	std::string m_type;
+///@}
+///@name Un accessible methods
+///@{
 
-	// epsilon
-	//static const double epsilon;
+/// Assignment operator.
+ApplyChimeraProcessMonolithic &operator=(ApplyChimeraProcessMonolithic const &rOther);
 
-	///@}
-	///@name Private Operators
-	///@{
+/// Copy constructor.
+//CustomExtractVariablesProcess(CustomExtractVariablesProcess const& rOther);
 
-	///@}
-	///@name Private Operations
-	///@{
-
-	///@}
-	///@name Private  Access
-	///@{
-
-	///@}
-	///@name Private Inquiry
-	///@{
-
-	///@}
-	///@name Un accessible methods
-	///@{
-
-	/// Assignment operator.
-	ApplyChimeraProcessMonolithic &operator=(ApplyChimeraProcessMonolithic const &rOther);
-
-	/// Copy constructor.
-	//CustomExtractVariablesProcess(CustomExtractVariablesProcess const& rOther);
-
-	///@}
+///@}
 }; // Class CustomExtractVariablesProcess
 
 } // namespace Kratos.

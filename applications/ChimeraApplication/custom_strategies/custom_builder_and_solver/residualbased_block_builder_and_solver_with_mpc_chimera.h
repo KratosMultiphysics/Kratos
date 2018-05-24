@@ -186,7 +186,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         KRATOS_TRY
 
         Timer::Start("Build");
-        std::cout<<" Build and solver inside Res based BandS for chimera "<<std::endl;
+        std::cout<<" Build and solver inside Res based B and S for chimera "<<std::endl;
 
         CalculateConservativeCorrections(r_model_part);
         UpdateConstraintEquationsAfterIteration(r_model_part, A, Dx, b);
@@ -278,7 +278,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
 
                 if (element_is_active)
                 {
-                    std::cout<<"BUilder and Solver: Getting first element contribution"<<std::endl;
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -294,7 +293,6 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
                     pScheme->CleanMemory(*(it.base()));
                 }
 
-                std::cout<<"First element finished"<<std::endl;
             }
 
 //#pragma omp parallel for firstprivate(nconditions, LHS_Contribution, RHS_Contribution, EquationId ) schedule(dynamic, 1024)
