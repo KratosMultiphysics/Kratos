@@ -25,6 +25,7 @@
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
+#include "custom_processes/tangent_operator_calculator_process.h"
 
 namespace Kratos
 {

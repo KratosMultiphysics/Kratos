@@ -182,7 +182,8 @@ public:
         this->SetPreviousStressVector(this->GetNonConvPreviousStressVector());
     }
 
-    void CalculateElasticMatrix(Matrix &rElasticityTensor,
+    void CalculateElasticMatrix(
+        Matrix &rElasticityTensor,
         const Properties &rMaterialProperties
     )
     {
