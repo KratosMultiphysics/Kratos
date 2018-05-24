@@ -1089,7 +1089,6 @@ namespace Kratos {
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = 0.0;
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = 0.0;
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = 0.0;
-                continue;
             }
 
             if (submp[MOVING_BODY]) {
@@ -1107,6 +1106,7 @@ namespace Kratos {
                             aux_vel = std::cos(linear_omega * (time - vel_start));
                         }
                     }
+
                     if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE] * aux_vel;
                     else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
                     if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE] * aux_vel;
@@ -1148,8 +1148,8 @@ namespace Kratos {
                     rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = 0.0;
                     rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = 0.0;
                 }
-                rigid_body_elements_counter++;
             }
+            rigid_body_elements_counter++;
         }
         KRATOS_CATCH("")
     }
