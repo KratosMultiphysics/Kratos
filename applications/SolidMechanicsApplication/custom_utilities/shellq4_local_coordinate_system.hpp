@@ -300,14 +300,14 @@ class ShellQ4_LocalCoordinateSystem
 
   template<int Tid>
   inline const Vector3Type & P()const {
-    BOOST_STATIC_ASSERT_MSG(Tid > 0 && Tid < 5, "The index should be 1-based, from 1 to 4");
+    KRATOS_ERROR_IF_NOT(Tid > 0 && Tid < 5) << "The index should be 1-based, from 1 to 4" << std::endl;
     return mP[Tid - 1];
   }
 
   template<int TComponent>
   inline const double Coord_ij(int Tid1, int Tid2)const {
-    BOOST_STATIC_ASSERT_MSG(TComponent >= 0 && TComponent < 3, 
-                            "The component index should be 0-based, from 0 to 2");
+    KRATOS_ERROR_IF_NOT(TComponent >= 0 && TComponent < 3) <<
+        "The component index should be 0-based, from 0 to 2" <<std::endl;
     double ci, cj;
     if(Tid1 < 5) {
       int i = Tid1 - 1;

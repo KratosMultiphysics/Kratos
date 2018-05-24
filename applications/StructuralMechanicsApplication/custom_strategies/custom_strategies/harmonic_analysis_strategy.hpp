@@ -343,9 +343,7 @@ public:
                             temp_stiffness_matrix,
                             pDx,
                             pb,
-                            r_model_part.Elements(),
-                            r_model_part.Conditions(),
-                            r_model_part.GetProcessInfo());
+                            r_model_part);
 
                         //build stiffness matrix for submodelpart material
                         p_builder_and_solver->BuildLHS(p_scheme, sub_model_part, *temp_stiffness_matrix);

@@ -325,14 +325,22 @@ protected:
 
     void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
-        TSystemMatrixType &A,
-        ElementsContainerType &rElements,
-        ConditionsArrayType &rConditions,
-        ProcessInfo &CurrentProcessInfo
+        TSystemMatrixType& A,
+        ModelPart& rModelPart
         ) override
     {
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
+
+        // Getting the elements from the model
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
+
+        // Getting the array of the conditions
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
         const std::size_t equation_size = BaseType::mDofSet.size();
 
@@ -354,11 +362,10 @@ protected:
         }
         EquationIdVectorType ids(3, 0);
 
-        const int nelements = static_cast<int>(rElements.size());
 #pragma omp parallel for firstprivate(nelements, ids)
         for (int iii = 0; iii < nelements; iii++)
         {
-            typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
+            typename ElementsContainerType::iterator i_element = el_begin + iii;
             (i_element)->EquationIdVector(ids, CurrentProcessInfo);
 
             // Modifying the equation IDs of this element to suit MPCs
@@ -377,11 +384,11 @@ protected:
 #endif
             }
         }
-        const int nconditions = static_cast<int>(rConditions.size());
+
 #pragma omp parallel for firstprivate(nconditions, ids)
         for (int iii = 0; iii < nconditions; iii++)
         {
-            typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
+            typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
             (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
             // Modifying the equation IDs of this element to suit MPCs
             this->Condition_ModifyEquationIdsForMPC(*(i_condition.base()), ids, CurrentProcessInfo);

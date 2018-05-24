@@ -1086,9 +1086,7 @@ public:
       TSystemMatrixPointerType& pA,
       TSystemVectorPointerType& pDx,
       TSystemVectorPointerType& pb,
-      ElementsArrayType& rElements,
-      ConditionsArrayType& rConditions,
-      ProcessInfo& CurrentProcessInfo
+      ModelPart& rModelPart
     ) override
     {
         KRATOS_TRY
@@ -1112,6 +1110,8 @@ public:
                 temp[i] = mFirstMyId+i;
             Epetra_Map my_map(-1, number_of_local_dofs, temp, 0, mrComm);
 
+            auto& rElements = rModelPart.Elements();
+            auto& rConditions = rModelPart.Conditions();
 
             //create and fill the graph of the matrix --> the temp array is reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mguess_row_size);

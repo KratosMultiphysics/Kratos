@@ -407,9 +407,7 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     )
     {
         KRATOS_TRY

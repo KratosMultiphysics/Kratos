@@ -76,19 +76,19 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     using namespace pybind11;
 
 
-    class_<DuplicateInterfaceNodesCreateConditionsProcess, Process >
+    class_<DuplicateInterfaceNodesCreateConditionsProcess, DuplicateInterfaceNodesCreateConditionsProcess::Pointer, Process>
     (m,"DuplicateInterfaceNodesCreateConditionsProcess")
     .def( init<ModelPart&, char* ,int, const Matrix >())
     .def("Execute", &DuplicateInterfaceNodesCreateConditionsProcess::Execute)
     .def("PairToId", &DuplicateInterfaceNodesCreateConditionsProcess::PairToId)
     .def("IdToPair", &DuplicateInterfaceNodesCreateConditionsProcess::IdToPair)
     ;
-    class_<ActivationDeactivationConditionsProcess, Process >
+    class_<ActivationDeactivationConditionsProcess, ActivationDeactivationConditionsProcess::Pointer, Process>
     (m, "ActivationDeactivationConditionsProcess")
     .def( init<ModelPart& ,int, const Matrix >())
     .def("Execute", &ActivationDeactivationConditionsProcess::Execute)
     ;
-    class_<SolidificationProcess, Process >
+    class_<SolidificationProcess, SolidificationProcess::Pointer, Process>
     (m, "SolidificationProcess")
     .def(init<ModelPart& ,const double  >())
     .def("Execute", &SolidificationProcess::Execute)

@@ -370,9 +370,7 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     ) override
     {
 #ifndef __SUNPRO_CC

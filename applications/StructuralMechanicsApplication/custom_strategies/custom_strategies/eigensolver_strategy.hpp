@@ -339,13 +339,11 @@ public:
 
             // Mass matrix
             pBuilderAndSolver->ResizeAndInitializeVectors(
-                pScheme, pMassMatrix, pDx, pb, rModelPart.Elements(),
-                rModelPart.Conditions(), rModelPart.GetProcessInfo());
+                pScheme, pMassMatrix, pDx, pb, rModelPart);
 
             // Stiffness matrix
             pBuilderAndSolver->ResizeAndInitializeVectors(
-                pScheme, pStiffnessMatrix, pDx, pb, rModelPart.Elements(),
-                rModelPart.Conditions(), rModelPart.GetProcessInfo());
+                pScheme, pStiffnessMatrix, pDx, pb, rModelPart);
 
             KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                 << system_matrix_resize_time.ElapsedSeconds() << std::endl;
