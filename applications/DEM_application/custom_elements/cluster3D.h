@@ -26,7 +26,7 @@
 namespace Kratos
 {
     class Element;
-    class Cluster3D : public RigidBodyElement3D {
+    class KRATOS_API(DEM_APPLICATION) Cluster3D : public RigidBodyElement3D {
 
     public:
         /// Pointer definition of Cluster3D

@@ -27,11 +27,9 @@ else:
 
 class Solution(object):
 
-    @classmethod
     def GetParametersFileName(self):
         return "ProjectParametersDEM.json"
 
-    @classmethod
     def GetInputParameters(self):
         parameters_file_name = self.GetParametersFileName()
         parameters_file = open(parameters_file_name, 'r')
@@ -57,6 +55,7 @@ class Solution(object):
 
     def __init__(self):
 
+        self.main_path = self.GetMainPath()
         self.LoadParametersFile()
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
@@ -64,12 +63,13 @@ class Solution(object):
         self.procedures = self.SetProcedures()
         self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
+        self.aux = AuxiliaryUtilities()
+
 
         # Set the print function TO_DO: do this better...
         self.KRATOSprint = self.procedures.KRATOSprint
 
         # Creating necessary directories:
-        self.main_path = self.GetMainPath()
         self.problem_name = self.GetProblemTypeFilename()
         [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name))
 
@@ -121,10 +121,27 @@ class Solution(object):
         return False
 
     def SetAnalyticParticleWatcher(self):
-        self.main_path = os.getcwd()  #revisar
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
+
+        # is this being used? TODO
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
+
+
+    def SetAnalyticFaceWatcher(self):
+        from analytic_tools import analytic_data_procedures
+        self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
+        self.face_watcher_dict = dict()
+        self.face_watcher_analysers = dict()
+        for sub_part in self.rigid_face_model_part.SubModelParts:
+            if sub_part[IS_GHOST] == True:
+                name = sub_part.Name
+                self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
+                self.face_watcher_analysers[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
+
+    def MakeAnalyticsMeasurements(self):
+        for face_watcher in self.face_watcher_dict.values():
+            face_watcher.MakeMeasurements()
 
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
@@ -247,6 +264,8 @@ class Solution(object):
         self.AddVariables()
 
         self.ReadModelParts()
+
+        self.SetAnalyticFaceWatcher()  # TODO check order
 
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
@@ -387,6 +406,8 @@ class Solution(object):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
 
+
+
     def RunMainTemporalLoop(self):
 
         self.step = 0
@@ -431,15 +452,29 @@ class Solution(object):
 
             self.BeforePrintingOperations(self.time)
 
-            #### GiD IO ##########################################
-            if self.IsTimeToPrintPostProcess():
-                self.PrintResultsForGid(self.time)
-                self.time_old_print = self.time
+            self.PrintResults()
+
 
             self.FinalizeTimeStep(self.time)
 
-    def IsTimeToPrintPostProcess(self):
-        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.dt
+    def RunAnalytics(self, time, is_time_to_print=True):
+        for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+            self.MakeAnalyticsMeasurements()
+            if is_time_to_print:
+                self.FaceAnalyzerClass.CreateNewFile()
+                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+                self.FaceAnalyzerClass.RemoveOldFile()
+
+    def IsTimeToPrintPostProcess(self, time):
+        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.dt
+
+    def PrintResults(self):
+        #### GiD IO ##########################################
+        if self.IsTimeToPrintPostProcess(self.time):
+            self.PrintResultsForGid(self.time)
+            self.time_old_print = self.time
+
 
     def SolverSolve(self):
         self.solver.Solve()
@@ -469,9 +504,12 @@ class Solution(object):
     def AfterSolveOperations(self):
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess():
+            if self.IsTimeToPrintPostProcess(self.time):
                 self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+
+        #Phantom Walls
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
 
     def FinalizeTimeStep(self, time):
         pass

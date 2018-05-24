@@ -712,7 +712,7 @@ namespace Kratos {
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
         }
-		//KRATOS_WATCH(total_mass)
+
 
         KRATOS_CATCH("")
     }
