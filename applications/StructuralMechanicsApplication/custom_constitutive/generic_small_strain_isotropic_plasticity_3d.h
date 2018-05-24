@@ -146,7 +146,7 @@ public:
         const int VoigtSize = this->GetVoigtSize();
         Vector& IntegratedStressVector = rValues.GetStressVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-        const double CharacteristicLength = rValues.GetGeometry().Length(); // To include
+        const double CharacteristicLength = rValues.GetGeometry().Length(); 
 
         // Elastic Matrix
         Matrix C;
@@ -203,6 +203,19 @@ public:
     {
 
     }
+
+    void FinalizeSolutionStep(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override
+    {
+        this->SetPlasticDissipation(this->GetNonConvPlasticDissipation());
+        this->SetThreshold(this->GetNonConvThreshold());
+        this->SetPlasticStrain(this->GetNonConvPlasticStrain());
+    }
+
 
     void CalculateElasticMatrix(Matrix &rElasticityTensor,
         const Properties &rMaterialProperties
