@@ -491,8 +491,11 @@ namespace Kratos
 				Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0,0,0,0); // ::Pointer(new Node<3>(0));
 				Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0,0,0,0));
 
-				//if (point_conditions.size() > 0)
-				//{
+				for (auto condition = element->GetValue(WALL_POINT_CONDITION_POINTERS).begin(); condition != element->GetValue(WALL_POINT_CONDITION_POINTERS).end(); condition++)
+				{
+					//int id = (*condition)->Id();
+					//rConditionModelPart.RemoveConditionFromAllLevels(id);
+				}
 				//	Condition closestElement = point_conditions[0];
 				//	//friction = closestElement->GetValue(FRICTION);
 				//	Vector location;
@@ -554,9 +557,15 @@ namespace Kratos
 						for (int i = 0; i < node_ids.size(); i++)
 						{
 							node_ids_int[i] = static_cast<std::size_t>(node_ids[i]);
+							ModelPart& mp = rConditionModelPart.GetRootModelPart();
+							Node<3>::Pointer this_node = mp.pGetNode(node_ids_int[i]);
+							rConditionModelPart.AddNode(this_node);
 						}
 						std::string condition_name = "MeshlessForceInterfaceCondition";
-						std::size_t id = 1;
+						int id = 1;
+						std::cout << "number of conditions: " << rConditionModelPart.Conditions().size() << std::endl;
+						if (rConditionModelPart.Conditions().size()>0)
+							id = rConditionModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
 						Condition::Pointer cond = rConditionModelPart.CreateNewCondition(condition_name, id, node_ids_int, element->pGetProperties());
 						Vector external_force_vector = ZeroVector(3);
@@ -564,11 +573,14 @@ namespace Kratos
 						cond->SetValue(FACE_BREP_ID, node_on_geometry->GetValue(FACE_BREP_ID));
 						cond->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
 						cond->SetValue(EXTERNAL_FORCES_VECTOR, external_force_vector);
+						
+						//element->GetValue(WALL_POINT_CONDITION_POINTERS).clear();
+						//element->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES).clear();
+						//element->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES).clear();
 
 						element->GetValue(WALL_POINT_CONDITION_POINTERS).push_back(&*cond);
 						element->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES).push_back(ZeroVector(3));
 						element->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES).push_back(ZeroVector(3));
-
 					}
 				}
 			}

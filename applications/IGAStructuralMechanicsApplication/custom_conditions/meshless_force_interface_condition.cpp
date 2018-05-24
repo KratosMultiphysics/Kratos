@@ -75,6 +75,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 			std::cout << "start MeshlessForceInterfaceCondition" << std::endl;
+		Check(rCurrentProcessInfo);
 		const unsigned int number_of_points = GetGeometry().size();
 
 		if (rLeftHandSideMatrix.size1() != number_of_points * 3)

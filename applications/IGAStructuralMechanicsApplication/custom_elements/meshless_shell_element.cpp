@@ -117,6 +117,7 @@ void MeshlessShellElement::Initialize()
 
 {
 	KRATOS_TRY
+		KRATOS_WATCH("check here...")
 	// Get values of shape functions and derivatives. Derivatives are first and sevon column: first dreivatives. Third, fourth and fith are second derivatives
 	double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 	Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);

@@ -194,7 +194,9 @@ while dem_analysis.time < dem_analysis.final_time:
     print(condition_model_part)
     #mapper.UpdateInterface()
 
+	
     dem_analysis.RunSingleTemporalLoop()
+	
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
     nurbs_brep_time = StartTimeMeasuring()
@@ -202,6 +204,8 @@ while dem_analysis.time < dem_analysis.final_time:
     print("ckeck")
     StopTimeMeasuring(nurbs_brep_time, "Solving step time", True)
 
+	
+	
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
 

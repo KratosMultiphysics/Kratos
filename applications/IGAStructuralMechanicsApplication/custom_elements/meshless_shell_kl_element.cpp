@@ -123,7 +123,7 @@ namespace Kratos
 	)
 	{
 		KRATOS_TRY
-
+		KRATOS_WATCH("Something in calculate all")
 		std::cout << "here something..." << std::endl;
 		// definition of problem size
 		const unsigned int number_of_nodes = GetGeometry().size();
@@ -156,6 +156,8 @@ namespace Kratos
 		Vector   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
 		Matrix  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 		Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
+
+		KRATOS_WATCH(N)
 
 		MetricVariables actual_metric(3);
 		CalculateMetric(actual_metric);
