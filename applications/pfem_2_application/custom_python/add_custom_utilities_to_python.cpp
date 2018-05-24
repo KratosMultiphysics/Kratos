@@ -201,7 +201,7 @@ using namespace pybind11;
    .def("TransferToEulerianMesh_2", &ParticleUtils < 3 > ::TransferToEulerianMesh_2)	
    ;
  
- class_<Pfem2ApplyBCProcess,Process >(m,"Pfem2ApplyBCProcess").def(init<ModelPart&>());
+ class_<Pfem2ApplyBCProcess, Pfem2ApplyBCProcess::Pointer, Process>(m,"Pfem2ApplyBCProcess").def(init<ModelPart&>());
  
  class_<Pfem2Utils>(m,"Pfem2Utils").def(init<>())
    .def("ApplyBoundaryConditions",&Pfem2Utils::ApplyBoundaryConditions)
@@ -215,16 +215,14 @@ using namespace pybind11;
    .def ("MarkLonelyNodesForErasing", &Pfem2Utils::MarkLonelyNodesForErasing)
    .def ("SaveReducedPart", &Pfem2Utils::SaveReducedPart)
    ;
- class_<MarkOuterNodesProcess, Process >(m,"MarkOuterNodesProcess").def(init<ModelPart&>())
+ class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process>(m,"MarkOuterNodesProcess").def(init<ModelPart&>())
    .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
-   
    ;
  
- class_<MarkFluidProcess, Process >(m,"MarkFluidProcess").def(init<ModelPart&>());
+ class_<MarkFluidProcess, MarkFluidProcess::Pointer, Process>(m,"MarkFluidProcess").def(init<ModelPart&>());
  
  
- 
- class_<SaveLagrangianSurfaceProcess_p, Process >(m,"SaveLagrangianSurfaceProcess_p").def(init<> ())
+ class_<SaveLagrangianSurfaceProcess_p, SaveLagrangianSurfaceProcess_p::Pointer, Process>(m,"SaveLagrangianSurfaceProcess_p").def(init<> ())
    .def("SaveSurfaceConditions_p", &SaveLagrangianSurfaceProcess_p::SaveSurfaceConditions_p)
    ;
  

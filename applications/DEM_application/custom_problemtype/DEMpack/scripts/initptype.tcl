@@ -161,6 +161,7 @@ proc kipt::BeforeMeshGeneration {elementsize} {
 	::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid
 	# Find boundaries
 	set bsurfacelist [::wkcf::FindBoundariesOfNonSphericElements $entitytype]
+	set allsurfacelist [::wkcf::FindAllSurfacesOfNonSphericElements $entitytype]
 	#
 	::wkcf::AssignGeometricalEntitiesToSkinSphere3D
 	# Get the surface type list
@@ -182,7 +183,7 @@ proc kipt::BeforeMeshGeneration {elementsize} {
 	::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid
 
 	# Special case of DEM
-	::wkcf::AssignSpecialBoundaries $ndime $bsurfacelist
+	::wkcf::AssignSpecialBoundaries $ndime $allsurfacelist
 	::wkcf::ForceTheMeshingOfDEMFEMWallGroups
 	::wkcf::ForceTheMeshingOfDEMInletGroups
     }

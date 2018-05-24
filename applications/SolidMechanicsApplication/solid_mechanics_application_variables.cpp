@@ -15,8 +15,21 @@ namespace Kratos
   ///@{
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
-  typedef TimeIntegrationMethodsContainer                                TimeIntegrationContainerType;      
-  typedef TimeIntegrationContainerType::Pointer                   TimeIntegrationContainerPointerType;
+
+  typedef array_1d<double, 3>                                                                      VectorType;
+  typedef Variable<VectorType>                                                             VariableVectorType;
+  typedef Variable<double>                                                                 VariableScalarType;
+  typedef VariableComponent<VectorComponentAdaptor<VectorType>>                         VariableComponentType;
+
+  typedef TimeIntegrationMethodsContainer<VariableVectorType, double>      VectorTimeIntegrationContainerType;
+  typedef VectorTimeIntegrationContainerType::Pointer               VectorTimeIntegrationContainerPointerType;
+
+  typedef TimeIntegrationMethodsContainer<VariableScalarType, double>      ScalarTimeIntegrationContainerType;
+  typedef ScalarTimeIntegrationContainerType::Pointer               ScalarTimeIntegrationContainerPointerType;
+
+  typedef TimeIntegrationMethodsContainer<VariableComponentType, double> ComponentTimeIntegrationContainerType;
+  typedef ComponentTimeIntegrationContainerType::Pointer          ComponentTimeIntegrationContainerPointerType;
+
   ///@}
 
   ///@name Kratos Globals
@@ -30,9 +43,12 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix , EIGENVECTOR_MATRIX )
   
   //integration methods
-  KRATOS_CREATE_VARIABLE( TimeIntegrationContainerPointerType, TIME_INTEGRATION_METHODS )  
+  KRATOS_CREATE_VARIABLE( VectorTimeIntegrationContainerPointerType, VECTOR_TIME_INTEGRATION_METHODS )  
+  KRATOS_CREATE_VARIABLE( ScalarTimeIntegrationContainerPointerType, SCALAR_TIME_INTEGRATION_METHODS )  
+  KRATOS_CREATE_VARIABLE( ComponentTimeIntegrationContainerPointerType, COMPONENT_TIME_INTEGRATION_METHODS )  
 
   //explicit schemes
+  KRATOS_CREATE_VARIABLE(bool, COMPUTE_CONSISTENT_MASS_MATRIX)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
   //solution
@@ -99,6 +115,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, VON_MISES_STRESS )
 
   //nodal dofs
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_REACTION )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ROTATION_REACTION )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_REACTION )
   KRATOS_CREATE_VARIABLE( double, PRESSURE_REACTION )
   
   //explicit beam
