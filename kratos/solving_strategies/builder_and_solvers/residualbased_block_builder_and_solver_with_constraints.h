@@ -498,7 +498,8 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ApplyConstraints(  Element::Pointer pCurrentElement,
+    void ApplyConstraints(  ModelPart& rModelPart,
+                            Element::Pointer pCurrentElement,
                             Element::EquationIdVectorType& EquationIds,
                             ProcessInfo& CurrentProcessInfo
                         )
@@ -506,7 +507,8 @@ private:
 
     }
 
-    void ApplyConstraints(  Condition::Pointer pCurrentCondition,
+    void ApplyConstraints(  ModelPart& rModelPart,
+                            Condition::Pointer pCurrentCondition,
                             Condition::EquationIdVectorType& EquationIds,
                             ProcessInfo& CurrentProcessInfo
                         )
@@ -514,7 +516,8 @@ private:
 
     }
 
-    void ApplyConstraints( Element::Pointer pElement,
+    void ApplyConstraints( ModelPart& rModelPart,
+                           Element::Pointer pElement,
                            LocalSystemMatrixType& LHS_Contribution,
                            LocalSystemVectorType& RHS_Contribution,
                            Element::EquationIdVectorType& EquationId,
@@ -524,7 +527,8 @@ private:
 
     }
 
-    void ApplyConstraints( Condition::Pointer pCondition,
+    void ApplyConstraints( ModelPart& rModelPart,
+                           Condition::Pointer pCondition,
                            LocalSystemMatrixType& LHS_Contribution,
                            LocalSystemVectorType& RHS_Contribution,
                            Condition::EquationIdVectorType& EquationId,
@@ -536,7 +540,7 @@ private:
 
     void ModifyEquationIdsForConstraints()
     {
-        
+
     }
     ///@}
     ///@name Private  Access
