@@ -37,7 +37,32 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
     def __init__(self, model, project_parameters):
 
         # Construct the base analysis.
-        self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
+        default_params = KM.Parameters("""
+        {
+            "max_iteration" : 1,
+            "analysis_type" : "linear",
+            "contact_settings" :
+            {
+                "fancy_convergence_criterion" : false
+            }
+        }
+        """)
+        if (project_parameters["solver_settings"].Has("max_iteration") is True):
+            self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
+        else:
+            self.non_linear_iterations = 10
+            project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
+        if (project_parameters["solver_settings"].Has("analysis_type") is True):
+            project_parameters["solver_settings"]["analysis_type"].SetString("linear")
+        else:
+            project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
+        if (project_parameters["solver_settings"].Has("contact_settings") is True):
+            if (project_parameters["solver_settings"]["contact_settings"].Has("fancy_convergence_criterion") is True):
+                project_parameters["solver_settings"]["contact_settings"]["fancy_convergence_criterion"].SetBool(False)
+            else:
+                project_parameters["solver_settings"]["contact_settings"].AddValue("fancy_convergence_criterion", default_params["contact_settings"]["fancy_convergence_criterion"])
+        else:
+            project_parameters["solver_settings"].AddValue("contact_settings", default_params["contact_settings"])
         if (project_parameters.Has("recursive_remeshing_process") is True):
             self.process_remesh = True
         else:

@@ -36,12 +36,25 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
     def __init__(self, model, project_parameters):
 
         # Construct the base analysis.
-        self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
+        default_params = KM.Parameters("""
+        {
+            "max_iteration" : 1,
+            "analysis_type" : "linear"
+        }
+        """)
+        if (project_parameters["solver_settings"].Has("max_iteration") is True):
+            self.non_linear_iterations = project_parameters["solver_settings"]["max_iteration"].GetInt()
+        else:
+            self.non_linear_iterations = 10
+            project_parameters["solver_settings"].AddValue("max_iteration", default_params["max_iteration"])
+        if (project_parameters["solver_settings"].Has("analysis_type") is True):
+            project_parameters["solver_settings"]["analysis_type"].SetString("linear")
+        else:
+            project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
         if (project_parameters.Has("recursive_remeshing_process") is True):
             self.process_remesh = True
         else:
             self.process_remesh = False
-            project_parameters["solver_settings"]["analysis_type"].SetString("linear")
         super(AdaptativeStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     def Initialize(self):
