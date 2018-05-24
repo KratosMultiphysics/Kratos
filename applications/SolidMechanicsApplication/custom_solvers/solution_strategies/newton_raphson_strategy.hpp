@@ -17,10 +17,8 @@
 // Project includes
 #include "custom_solvers/solution_strategies/linear_strategy.hpp"
 
-//default builder and solver
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 //default convergence criterion
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_solvers/convergence_criteria/convergence_criterion.hpp"
 
 #include "solid_mechanics_application_variables.h"
 
@@ -66,10 +64,10 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   KRATOS_CLASS_POINTER_DEFINITION(NewtonRaphsonStrategy);
 
   typedef LinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              BaseType;
-
+  
   typedef typename BaseType::LocalFlagType                                 LocalFlagType;
   
-  typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>        ConvergenceCriterionType;
+  typedef ConvergenceCriterion<TSparseSpace, TDenseSpace>       ConvergenceCriterionType;
 
   typedef typename BaseType::BuilderAndSolverType                   BuilderAndSolverType;
 
@@ -285,7 +283,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
         mpConvergenceCriteria->InitializeSolutionStep(this->GetModelPart(), this->mpBuilderAndSolver->GetDofSet(), (*this->mpA), (*this->mpDx), (*this->mpb));
       }
       
-      if(mpConvergenceCriteria->GetActualizeRHSflag() == true)
+      if(mpConvergenceCriteria->Is(CriterionLocalFlags::UPDATE_RHS))
       {
         TSparseSpace::SetToZero((*this->mpb));
 
@@ -406,10 +404,6 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   void Initialize() override
   {
     KRATOS_TRY
-        
-    //initialisation of the convergence criterion
-    if (mpConvergenceCriteria->IsInitialized() == false)
-      mpConvergenceCriteria->Initialize(this->GetModelPart());
         
     BaseType::Initialize();
 

@@ -110,6 +110,7 @@ namespace Kratos
             Vector error_vector_slave(NumberIterations, 0.0);
             Vector error_vector_master(NumberIterations, 0.0);
             for (IndexType iter = 0; iter < NumberIterations; ++iter) {
+                ThisModelPart.GetProcessInfo()[STEP] = iter + 1;
                 for (IndexType i_per = 0; i_per < NodesPerturbation.size(); ++i_per) {
                     // We add displacement to the corresponding node
                     array_1d<double, 3> aux_delta_disp = ZeroVector(3);
@@ -182,8 +183,8 @@ namespace Kratos
                     rVariables.Initialize();
 
                     // Update slave element info
-                    rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry());
-                    rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry());
+                    rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry(), ThisModelPart.GetProcessInfo());
+                    rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry(), ThisModelPart.GetProcessInfo());
                     
                     if (conditions_points_slave.size() == conditions_points_slave0.size()) {// Just in case we have the "same configuration"
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_1, normal_slave_1, MasterCondition1->GetGeometry(), rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
@@ -411,8 +412,7 @@ namespace Kratos
                         }
                     } else
                         KRATOS_ERROR << "YOUR INITIAL SPLITTING DOES NOT COINCIDE WITH THE CURRENT ONE" << std::endl;
-                }
-                else
+                } else
                     KRATOS_ERROR << "WRONG, YOU ARE SUPPOSED TO HAVE AN INTERSECTION" << std::endl;
             }
 

@@ -75,6 +75,7 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
+    // Hyperelastic Viscoplastic
     class_< HyperElasticViscoplastic3DLaw, typename HyperElasticViscoplastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "HyperElasticViscoplastic3DLaw")
     .def(init<>() )
@@ -87,6 +88,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
+    // Hencky Mohr Coulomb
     class_< HenckyMCPlasticPlaneStrain2DLaw, typename HenckyMCPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlasticPlaneStrain2DLaw")
     .def(init<>() )

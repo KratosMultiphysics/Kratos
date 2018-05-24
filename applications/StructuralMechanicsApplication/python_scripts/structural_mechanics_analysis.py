@@ -210,7 +210,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                     var_name = nodal_res[i].GetString()
                     if var_name == "TORQUE":
                         err_msg  = 'Requesting output for "TORQUE" which is not available any more\n'
-                        err_msg += 'It was renamed to "MOMENT_REACTION"'
+                        err_msg += 'It was renamed to "REACTION_MOMENT"'
                         raise Exception(err_msg)
 
 if __name__ == "__main__":

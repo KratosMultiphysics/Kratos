@@ -89,7 +89,7 @@ function(_pybind11_add_lto_flags target_name prefer_thin_lto)
       # converts /LTCG to \LTCG as if it was a Windows path).  Luckily MSVC supports passing flags
       # with - instead of /, even if it is a bit non-standard:
       _pybind11_return_if_cxx_and_linker_flags_work(HAS_MSVC_GL_LTCG
-        "/GL" "-LTCG" PYBIND11_LTO_CXX_FLAGS PYBIND11_LTO_LINKER_FLAGS)
+        "/GL-" "-LTCG:OFF" PYBIND11_LTO_CXX_FLAGS PYBIND11_LTO_LINKER_FLAGS)
     endif()
 
     if (PYBIND11_LTO_CXX_FLAGS)
