@@ -1019,15 +1019,15 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
-<<<<<<< HEAD
+
     
     //--------------- ULF Application (surface_tension) -------------------//
     KRATOS_REGISTER_VARIABLE(TRIPLE_POINT)
     KRATOS_REGISTER_VARIABLE(CONTACT_ANGLE)
 
-=======
+
     KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
->>>>>>> 627b65f28a2643165bf85c4ae03da5cb11eb7f3a
+
 
     //Register objects with general definition
     Serializer::Register("Node", Node<3>());
