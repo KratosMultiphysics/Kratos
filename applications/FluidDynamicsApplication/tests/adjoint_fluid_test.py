@@ -97,6 +97,16 @@ class AdjointFluidTest(UnitTest.TestCase):
         adjoint_analysis = AdjointFluidAnalysis(adjoint_model,settings["adjoint settings"])
         adjoint_analysis.Run()
 
+
+        kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
+        self._remove_h5_files("MainModelPart")
+
+
+    def _remove_h5_files(self, model_part_name):
+        for name in os.listdir():
+            if name.find(model_part_name) == 0:
+                kratos_utilities.DeleteFileIfExisting(name)
+
 if __name__ == '__main__':
     test_case = AdjointFluidTest()
     test_case.setUp()
