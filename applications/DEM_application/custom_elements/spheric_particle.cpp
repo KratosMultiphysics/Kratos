@@ -268,6 +268,7 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     array_1d<double,3>& total_forces = this_node.FastGetSolutionStepValue(TOTAL_FORCES);
     array_1d<double,3>& total_moment = this_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
+    int cohesive_group = this_node.FastGetSolutionStepValue(COHESIVE_GROUP);
 
     total_forces[0] = contact_force[0] + additional_forces[0];
     total_forces[1] = contact_force[1] + additional_forces[1];
@@ -277,7 +278,7 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
 
-    ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
+    if (cohesive_group) ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
 
     #ifdef KRATOS_DEBUG
     DemDebugFunctions::CheckIfNan(total_forces, "NAN in Total Forces in RHS of Ball");
@@ -629,14 +630,14 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
         DeltDisp[2] += (new_axes1[2] - new_axes2[2]) + (e2[2] - e1[2]);
 }
 
-void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(double RelDeltDisp[3], 
-                                                double RelVel[3], 
-                                                const double OldLocalCoordSystem[3][3], 
-                                                const double& other_radius, 
-                                                const double& dt, 
-                                                const array_1d<double, 3>& my_ang_vel, 
-                                                SphericParticle* p_neighbour) 
-{ 
+void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotationQuat(double RelDeltDisp[3],
+                                                double RelVel[3],
+                                                const double OldLocalCoordSystem[3][3],
+                                                const double& other_radius,
+                                                const double& dt,
+                                                const array_1d<double, 3>& my_ang_vel,
+                                                SphericParticle* p_neighbour)
+{
     const array_1d<double, 3>& other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     const array_1d<double, 3>& my_delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
     const array_1d<double, 3>& other_delta_rotation = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
@@ -648,43 +649,43 @@ void SphericParticle::RelativeDisplacementAndVelocityOfContactPointDueToRotation
     array_1d<double, 3> other_vel_at_contact_point_due_to_rotation;
     const double other_young = p_neighbour->GetYoung();
     const double my_young = GetYoung();
-    
+
     const array_1d<double, 3>& coors = this->GetGeometry()[0].Coordinates();
     array_1d<double, 3> neigh_coors = p_neighbour->GetGeometry()[0].Coordinates();
-    
+
     const array_1d<double, 3> other_to_me_vect = coors - neigh_coors;
     const double distance            = DEM_MODULUS_3(other_to_me_vect);
     const double radius_sum          = GetInteractionRadius() + other_radius;
     const double indentation         = radius_sum - distance;
- 
+
     const double my_arm_length = GetInteractionRadius() - indentation * other_young / (other_young + my_young);
     const double other_arm_length  = other_radius - indentation * my_young / (other_young + my_young);
- 
+
     my_arm_vector[0] = -OldLocalCoordSystem[2][0] * my_arm_length;
     my_arm_vector[1] = -OldLocalCoordSystem[2][1] * my_arm_length;
     my_arm_vector[2] = -OldLocalCoordSystem[2][2] * my_arm_length;
- 
+
     GeometryFunctions::CrossProduct(my_ang_vel, my_arm_vector, my_vel_at_contact_point_due_to_rotation);
- 
+
     other_arm_vector[0] = OldLocalCoordSystem[2][0] * other_arm_length;
     other_arm_vector[1] = OldLocalCoordSystem[2][1] * other_arm_length;
     other_arm_vector[2] = OldLocalCoordSystem[2][2] * other_arm_length;
- 
+
     GeometryFunctions::CrossProduct(other_ang_vel, other_arm_vector, other_vel_at_contact_point_due_to_rotation);
- 
+
     RelVel[0] += my_vel_at_contact_point_due_to_rotation[0] - other_vel_at_contact_point_due_to_rotation[0];
     RelVel[1] += my_vel_at_contact_point_due_to_rotation[1] - other_vel_at_contact_point_due_to_rotation[1];
     RelVel[2] += my_vel_at_contact_point_due_to_rotation[2] - other_vel_at_contact_point_due_to_rotation[2];
-     
+
     Quaternion<double> MyDeltaOrientation = Quaternion<double>::Identity();
     Quaternion<double> OtherDeltaOrientation = Quaternion<double>::Identity();
-     
+
     GeometryFunctions::OrientationFromRotationAngle(MyDeltaOrientation, my_delta_rotation);
     GeometryFunctions::OrientationFromRotationAngle(OtherDeltaOrientation, other_delta_rotation);
-     
+
     MyDeltaOrientation.RotateVector3(my_arm_vector, my_new_arm_vector);
     OtherDeltaOrientation.RotateVector3(other_arm_vector, other_new_arm_vector);
-     
+
     // Contribution of the rotation
     RelDeltDisp[0] += (my_new_arm_vector[0] - other_new_arm_vector[0]) + (other_arm_vector[0] - my_arm_vector[0]);
     RelDeltDisp[1] += (my_new_arm_vector[1] - other_new_arm_vector[1]) + (other_arm_vector[1] - my_arm_vector[1]);
@@ -954,24 +955,24 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 const array_1d<double,3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
 
-                array_1d<double, 3> actual_arm_vector, new_arm_vector; 
-                actual_arm_vector[0] = -LocalCoordSystem[2][0] * actual_distance_to_contact_point; // Here it should be OldLocalCoordSystem but it can be calculated from the available 
-                actual_arm_vector[1] = -LocalCoordSystem[2][1] * actual_distance_to_contact_point; // data because the contact could have changed from plane to edge...: JIG 
+                array_1d<double, 3> actual_arm_vector, new_arm_vector;
+                actual_arm_vector[0] = -LocalCoordSystem[2][0] * actual_distance_to_contact_point; // Here it should be OldLocalCoordSystem but it can be calculated from the available
+                actual_arm_vector[1] = -LocalCoordSystem[2][1] * actual_distance_to_contact_point; // data because the contact could have changed from plane to edge...: JIG
                 actual_arm_vector[2] = -LocalCoordSystem[2][2] * actual_distance_to_contact_point;
 
                 double tangential_vel[3]           = {0.0};
                 double tangential_displacement_due_to_rotation[3]  = {0.0};
                 GeometryFunctions::CrossProduct(AngularVel, actual_arm_vector, tangential_vel);
-                 
-                Quaternion<double> DeltaOrientation = Quaternion<double>::Identity(); 
-                GeometryFunctions::OrientationFromRotationAngle(DeltaOrientation, delta_rotation); 
-     
-                DeltaOrientation.RotateVector3(actual_arm_vector, new_arm_vector); 
-     
-                // Contribution of the rotation    
-                tangential_displacement_due_to_rotation[0] = (new_arm_vector[0] - actual_arm_vector[0]); 
-                tangential_displacement_due_to_rotation[1] = (new_arm_vector[1] - actual_arm_vector[1]); 
-                tangential_displacement_due_to_rotation[2] = (new_arm_vector[2] - actual_arm_vector[2]); 
+
+                Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();
+                GeometryFunctions::OrientationFromRotationAngle(DeltaOrientation, delta_rotation);
+
+                DeltaOrientation.RotateVector3(actual_arm_vector, new_arm_vector);
+
+                // Contribution of the rotation
+                tangential_displacement_due_to_rotation[0] = (new_arm_vector[0] - actual_arm_vector[0]);
+                tangential_displacement_due_to_rotation[1] = (new_arm_vector[1] - actual_arm_vector[1]);
+                tangential_displacement_due_to_rotation[2] = (new_arm_vector[2] - actual_arm_vector[2]);
 
                 DEM_ADD_SECOND_TO_FIRST(DeltVel, tangential_vel)
                 DEM_ADD_SECOND_TO_FIRST(DeltDisp, tangential_displacement_due_to_rotation)
@@ -1828,7 +1829,35 @@ void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Outp
 
 void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info){}
 
-void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {}
+void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment) {
+
+        KRATOS_TRY
+
+        const array_1d<double, 3> velocity =         this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3> angular_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_X)) {
+            total_forces[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[0] * velocity[0]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Y)) {
+            total_forces[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[1] * velocity[1]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Z)) {
+            total_forces[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_forces[2] * velocity[2]));
+        }
+
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_X)) {
+            total_moment[0] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[0] * angular_velocity[0]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_Y)) {
+            total_moment[1] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[1] * angular_velocity[1]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_Z)) {
+            total_moment[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[2] * angular_velocity[2]));
+        }
+
+        KRATOS_CATCH("")
+    }
 
 int    SphericParticle::GetClusterId()                                                           { return mClusterId;      }
 void   SphericParticle::SetClusterId(int givenId)                                                { mClusterId = givenId;   }
