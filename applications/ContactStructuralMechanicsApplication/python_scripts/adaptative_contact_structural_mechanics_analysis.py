@@ -179,8 +179,8 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
         if (self.project_parameters.Has("contact_process_list") is True):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["contact_process_list"])
-        if (self.ProjectParameters.Has("recursive_remeshing_process") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.ProjectParameters["recursive_remeshing_process"])
+        if (self.project_parameters.Has("recursive_remeshing_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["recursive_remeshing_process"])
 
         #TODO this should be generic
         # initialize GiD  I/O

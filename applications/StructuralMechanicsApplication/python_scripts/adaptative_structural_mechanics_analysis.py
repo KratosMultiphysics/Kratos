@@ -175,8 +175,8 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
         if (self.project_parameters.Has("check_analytic_results_process") is True):
             self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
-        if (self.ProjectParameters.Has("recursive_remeshing_process") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.ProjectParameters["recursive_remeshing_process"])
+        if (self.project_parameters.Has("recursive_remeshing_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["recursive_remeshing_process"])
 
         #TODO this should be generic
         # initialize GiD  I/O
