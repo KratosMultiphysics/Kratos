@@ -258,9 +258,6 @@ public:
                     // Update the number of columns
                     --data_cols;
                     // Recompute trans(V)*V
-                    // ##################################
-                    // ####### NOT MPI COMPATIBLE #######
-                    // ##################################
                     aux2.resize(data_cols, data_cols);
                     noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
                 }
