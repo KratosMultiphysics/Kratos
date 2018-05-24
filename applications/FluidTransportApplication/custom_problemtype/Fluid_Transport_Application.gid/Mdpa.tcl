@@ -1,19 +1,19 @@
 proc WriteMdpa { basename dir problemtypedir } {
-    
+
     ## Source auxiliar procedures
     source [file join $problemtypedir MdpaAuxProcs.tcl]
-    
+
     ## Start MDPA file
     set filename [file join $dir ${basename}.mdpa]
     set FileVar [open $filename w]
-    
+
     ## ModelPart Data
     #puts $FileVar "Begin ModelPartData"
     #puts $FileVar "  // VARIABLE_NAME value"
     #puts $FileVar "End ModelPartData"
     #puts $FileVar ""
     #puts $FileVar ""
-    
+
     ## Tables
     set TableId 0
     set TableDict [dict create]
@@ -23,8 +23,11 @@ proc WriteMdpa { basename dir problemtypedir } {
     PressureTable FileVar TableId TableDict Phi_Value TEMPERATURE
     # Face_Heat_Flux
     ScalarTable FileVar TableId TableDict Face_Heat_Flux FACE_HEAT_FLUX
+    # Q_Source
+    ScalarTable FileVar TableId TableDict Q_Source HEAT_FLUX
+
     puts $FileVar ""
-    
+
     ## Properties
     set PropertyId 0
     set PropertyDict [dict create]
@@ -39,11 +42,12 @@ proc WriteMdpa { basename dir problemtypedir } {
         puts $FileVar "  CONDUCTIVITY [lindex [lindex $Groups $i] 3]"
         puts $FileVar "  SPECIFIC_HEAT [lindex [lindex $Groups $i] 4]"
         puts $FileVar "  DENSITY [lindex [lindex $Groups $i] 5]"
+        puts $FileVar "  ABSORPTION_COEFFICIENT [lindex [lindex $Groups $i] 6]"
         puts $FileVar "End Properties"
         puts $FileVar ""
     }
     puts $FileVar ""
-    
+
 
     ## Nodes
     set Nodes [GiD_Info Mesh Nodes]
@@ -60,7 +64,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar "End Nodes"
     puts $FileVar ""
     puts $FileVar ""
-    
+
     ## Elements
     #set IsQuadratic [GiD_Info Project Quadratic]
     # Body_Part
@@ -68,7 +72,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         # Elements Property
         set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-        
+
         # SteadyConvectionDiffusionFICElement2D3N
         WriteElements FileVar [lindex $Groups $i] triangle SteadyConvectionDiffusionFICElement2D3N $BodyElemsProp Triangle2D3Connectivities
         # SteadyConvectionDiffusionFICElement2D4N
@@ -111,8 +115,10 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteConstraintSubmodelPart FileVar Phi_Value $TableDict
     # Face_Heat_Flux
     WriteLoadSubmodelPart FileVar Face_Heat_Flux $TableDict $ConditionDict
-    
+    # Q_Source
+    WriteConstraintSubmodelPart FileVar Q_Source $TableDict
+
     close $FileVar
-    
+
     return $TableDict
 }

@@ -2,13 +2,13 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## Source auxiliar procedures
     source [file join $problemtypedir ProjectParametersAuxProcs.tcl]
-        
+
     ## Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
     set FileVar [open $filename w]
-    
+
     puts $FileVar "\{"
-        
+
     ## problem_data
     puts $FileVar "    \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
@@ -20,7 +20,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
     puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads]"
     puts $FileVar "    \},"
-    
+
     ## solver_settings
     puts $FileVar "    \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
@@ -108,12 +108,14 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Phi_Value
     # Face_Heat_Flux
     AppendGroupNames PutStrings Face_Heat_Flux
+    # Q_Source
+    AppendGroupNames PutStrings Q_Source
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $FileVar "        \"processes_sub_model_part_list\":      $PutStrings"
 
     puts $FileVar "    \},"
-    
+
     ## output_configuration
     puts $FileVar "    \"output_configuration\": \{"
     puts $FileVar "        \"result_file_configuration\": \{"
@@ -140,6 +142,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         append PutStrings \" REACTION_FLUX \" ,
     }
     AppendOutputVariables PutStrings iGroup Write_Face_Heat_Flux FACE_HEAT_FLUX
+    AppendOutputVariables PutStrings iGroup Write_Q_Source HEAT_FLUX
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         incr iGroup
         append PutStrings \" PARTITION_INDEX \" ,
@@ -163,7 +166,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \}"
 
     puts $FileVar "    \},"
-    
+
     ## constraints_process_list
     set Groups [GiD_Info conditions Velocity groups]
     set NumGroups [llength $Groups]
@@ -187,6 +190,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## loads_process_list
     set Groups [GiD_Info conditions Face_Heat_Flux groups]
+    incr NumGroups [llength $Groups]
+    set Groups [GiD_Info conditions Q_Source groups]
     set NumGroups [llength $Groups]
 
     if {$NumGroups > 0} {
@@ -195,11 +200,14 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         # Face_Heat_Flux
         set Groups [GiD_Info conditions Face_Heat_Flux groups]
         WriteLoadScalarProcess FileVar iGroup $Groups FACE_HEAT_FLUX $TableDict $NumGroups
+        # Q_Source
+        set Groups [GiD_Info conditions Q_Source groups]
+        WriteLoadScalarProcess FileVar iGroup $Groups HEAT_FLUX $TableDict $NumGroups
     } else {
         puts $FileVar "    \"loads_process_list\":       \[\]"
     }
 
     puts $FileVar "\}"
-    
+
     close $FileVar
 }

@@ -99,11 +99,36 @@ protected:
         ///Properties variables
         double rho_dot_c;
         double Peclet;
+        double AlphaVBar;
         double AlphaV;
+        double AlphaR;
         double lv;
+        double OmegaV;
+        double SigmaV;
+        double LambdaV;
+        double XiV;
+        double Residual;
+        double Beta;
+        double NormGradPhi;
+        double absorption;
+        double DifSC;
+        double AuxDiffusion;
 
         array_1d<double,TDim> HVector;
+        array_1d<double,TDim> HvVector;
+        array_1d<double,TDim> HrVector;
+        array_1d<double,TDim> HscVector;
+        array_1d<double,TDim> GradPhi;
+        array_1d<double,TDim> FICVectorAuxOne;
+
+        BoundedMatrix<double,TDim,TDim> DifMatrix;
         BoundedMatrix<double,TDim,TDim> DifMatrixK;
+        BoundedMatrix<double,TDim,TDim> DifMatrixV;
+        BoundedMatrix<double,TDim,TDim> DifMatrixS;
+        BoundedMatrix<double,TDim,TDim> DifMatrixR;
+        BoundedMatrix<double,TDim,TDim> DifMatrixSC;
+
+        BoundedMatrix<double,TDim,TDim> IdentityMatrix;
 
         ///ProcessInfo variables
 
@@ -117,16 +142,18 @@ protected:
         double QSource;
         array_1d<double,TNumNodes> N;
         array_1d<double,TDim> VelInter;
+        array_1d<double,TDim> VelInterHat;
         BoundedMatrix<double,TNumNodes,TDim> GradNT;
 
         //Auxiliary
         BoundedMatrix<double,TNumNodes,TDim> AdvMatrixAux;
+        BoundedMatrix<double,TNumNodes,TDim> AbpMatrixAux;
         BoundedMatrix<double,TNumNodes,TDim> DifMatrixAux;
-        BoundedMatrix<double,TDim,TDim> FICMatrixAuxOne;
-        BoundedMatrix<double,TDim,TNumNodes> FICMatrixAuxTwo;
+        BoundedMatrix<double,TNumNodes,TDim> MatrixAux;
+        BoundedMatrix<double,TDim,TNumNodes> FICMatrixAuxOne;
         BoundedMatrix<double,TNumNodes,TNumNodes> AdvMatrixAuxTwo;
         BoundedMatrix<double,TNumNodes,TNumNodes> DifMatrixAuxTwo;
-        BoundedMatrix<double,TNumNodes,TNumNodes> FICMatrixAuxThree;
+        BoundedMatrix<double,TNumNodes,TNumNodes> FICMatrixAuxTwo;
 
 
     };
@@ -140,6 +167,8 @@ protected:
     void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
     void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+
+    void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
 
     double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity);
@@ -156,6 +185,8 @@ protected:
 
     void CalculateAndAddDiffusiveMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
+    void CalculateAndAddAbsorptionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+
     void CalculateAndAddFICMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
 
@@ -165,6 +196,8 @@ protected:
     void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+
+    void CalculateAndAddRHSAbsorption(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 

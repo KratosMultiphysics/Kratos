@@ -78,6 +78,7 @@ class FluidTransportSteadySolver(object):
 
         ## ConvectionDiffusionSettings
         thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
+        thermal_settings.SetReactionVariable(KratosMultiphysics.ABSORPTION_COEFFICIENT)
         thermal_settings.SetDiffusionVariable(KratosMultiphysics.CONDUCTIVITY)
         thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
         thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
@@ -90,16 +91,11 @@ class FluidTransportSteadySolver(object):
 
         ## Convection Variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
 
         # Add thermal variables
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
 

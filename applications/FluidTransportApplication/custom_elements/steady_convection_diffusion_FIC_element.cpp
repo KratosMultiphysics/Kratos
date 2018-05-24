@@ -103,6 +103,12 @@ int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInf
         KRATOS_ERROR << "DiffusionVariable is not defined" << std::endl;
     }
 
+    const bool IsDefinedReactionVariable = my_settings->IsDefinedReactionVariable();
+    if (IsDefinedReactionVariable == false)
+    {
+        KRATOS_ERROR << "ReactionVariable is not defined" << std::endl;
+    }
+
     // If this is a 2D problem, check that nodes are in XY plane
     if ( TDim == 2 )
     {
@@ -253,6 +259,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
     this->InitializeElementVariables(Variables,Geom,Prop,CurrentProcessInfo);
 
     noalias(Variables.VelInter) = ZeroVector(TDim);
+    noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -263,14 +270,25 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
         //Compute N and Interpolated velocity
         noalias(Variables.N) = row(NContainer,GPoint);
 
-        // TODO: This will be moved to an utility
-        InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
-        this->CalculateHVector(Variables,Prop,CurrentProcessInfo);
-
         Variables.QSource = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
             Variables.QSource += Variables.N[i]*Variables.NodalQSource[i];
+        }
+
+        // TODO: This will be moved to an utility
+        InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+        this->CalculateDiffusivityVariables(Variables,Prop,CurrentProcessInfo);
+        this->CalculateHVector(Variables,Prop,CurrentProcessInfo);
+
+        // Compute DifMatrixK
+        for (unsigned int i = 0; i < TDim; i++)
+        {
+            Variables.DifMatrix(i,i) = Variables.DifMatrixK(i,i)
+                                       + Variables.DifMatrixV(i,i)
+                                       + Variables.DifMatrixS(i,i)
+                                       + Variables.DifMatrixR(i,i)
+                                       + Variables.DifMatrixSC(i,i);
         }
 
         //Compute weighting coefficient for integration
@@ -281,6 +299,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+
     }
 
 
@@ -312,6 +331,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
     this->InitializeElementVariables(Variables,Geom,Prop,CurrentProcessInfo);
 
     noalias(Variables.VelInter) = ZeroVector(TDim);
+    noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -322,14 +342,25 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
         //Compute N and Interpolated velocity
         noalias(Variables.N) = row(NContainer,GPoint);
 
-        // TODO: This will be moved to an utility
-        InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
-        this->CalculateHVector(Variables,Prop,CurrentProcessInfo);
-
         Variables.QSource = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
             Variables.QSource += Variables.N[i]*Variables.NodalQSource[i];
+        }
+
+        // TODO: This will be moved to an utility
+        InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+        this->CalculateDiffusivityVariables(Variables,Prop,CurrentProcessInfo);
+        this->CalculateHVector(Variables,Prop,CurrentProcessInfo);
+
+        // Compute DifMatrixK
+        for (unsigned int i = 0; i < TDim; i++)
+        {
+            Variables.DifMatrix(i,i) = Variables.DifMatrixK(i,i)
+                                       + Variables.DifMatrixV(i,i)
+                                       + Variables.DifMatrixS(i,i)
+                                       + Variables.DifMatrixR(i,i)
+                                       + Variables.DifMatrixSC(i,i);
         }
 
         //Compute weighting coefficient for integration
@@ -337,6 +368,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+
     }
 
 
@@ -387,7 +419,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
 		const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
 
         rVariables.NodalVel[i] = Geom[i].FastGetSolutionStepValue(rVelocityVar) - Geom[i].FastGetSolutionStepValue(rMeshVelocityVar);
-;
 
         const Variable<double>& rVolumeSourceVar = my_settings->GetVolumeSourceVariable();
         rVariables.NodalQSource[i] = Geom[i].FastGetSolutionStepValue(rVolumeSourceVar);
@@ -396,9 +427,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
     KRATOS_CATCH( "" )
 }
 
-// TODO: This will be moved to an utility
+//----------------------------------------------------------------------------------------
+
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
 
@@ -408,10 +440,30 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
     const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
     double conductivity = Prop[rDiffusionVar];
 
+    const Variable<double>& rReactionVar = my_settings->GetReactionVariable();
+    rVariables.absorption = Prop[rReactionVar];
+
+    BoundedMatrix<double,TDim,TDim> BaricenterMatrix;
+
     double NormVel = rVariables.VelInter[0]*rVariables.VelInter[0];
     for (unsigned int d = 1; d < TDim; d++)
         NormVel += rVariables.VelInter[d]*rVariables.VelInter[d];
     NormVel = std::sqrt(NormVel);
+
+    rVariables.GradPhi = prod(trans(rVariables.GradNT), rVariables.NodalPhi);
+
+    rVariables.NormGradPhi = rVariables.GradPhi[0]*rVariables.GradPhi[0];
+    for (unsigned int d = 1; d < TDim; d++)
+        rVariables.NormGradPhi += rVariables.GradPhi[d]*rVariables.GradPhi[d];
+    rVariables.NormGradPhi = std::sqrt(rVariables.NormGradPhi);
+
+    // Unitary velocity vector
+    for (unsigned int i = 0; i < TDim; i++)
+    {
+        rVariables.VelInterHat[i] = rVariables.VelInter[i]/NormVel;
+    }
+
+    rVariables.AuxDiffusion = inner_prod(prod(trans(rVariables.VelInterHat), rVariables.DifMatrixK), rVariables.VelInterHat);
 
     double Domain = rGeom.DomainSize();
 
@@ -424,149 +476,211 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
         rVariables.lv = pow( (6.0*Domain/Globals::Pi) , (1.0/3.0) );
     }
 
-    double Hu;
-    if (NormVel > 1.0e-6)
-    {
-        // TODO: This will be moved to an utility
-        Hu = this->ProjectedElementSize(rGeom,rVariables.VelInter);
-        rVariables.Peclet = NormVel * Hu / (2.0 * conductivity );
-        rVariables.AlphaV = (1.0/tanh(rVariables.Peclet)-1.0/rVariables.Peclet);
+    rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion );
 
-        // Compute HVector
-        for (unsigned int i = 0; i < TDim; i++)
+    rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv * rVariables.rho_dot_c / rVariables.AuxDiffusion;
+
+    rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
+
+    rVariables.LambdaV = std::sqrt(rVariables.Peclet * rVariables.Peclet + rVariables.SigmaV);
+
+    rVariables.XiV = (cosh(rVariables.LambdaV) / cosh(rVariables.Peclet));
+
+    rVariables.AlphaVBar = (1.0/tanh(rVariables.Peclet)-1.0/rVariables.Peclet);
+
+    if(rVariables.SigmaV < 0.00024414) // 2^-12
+    {
+        rVariables.AlphaV = rVariables.SigmaV / 3.0 + rVariables.AlphaVBar * (1.0 - rVariables.SigmaV / rVariables.Peclet);
+    }
+    else
+    {
+       rVariables.AlphaV = 2.0 / rVariables.SigmaV * (1.0 - (rVariables.SigmaV * tanh (rVariables.Peclet)) / (rVariables.XiV - 1.0));
+    }
+
+    noalias(rVariables.DifMatrixV) = 0.5 * rVariables.lv * rVariables.AlphaV * outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+
+    noalias(BaricenterMatrix) = ZeroMatrix(TDim,TDim);
+
+    for(unsigned int i=0; i<TNumNodes; i++)
+    {
+        noalias(BaricenterMatrix) += outer_prod((this->GetGeometry()[i] - this->GetGeometry().Center()) , (this->GetGeometry()[i] - this->GetGeometry().Center()));
+    }
+
+    noalias(rVariables.DifMatrixS) = rVariables.absorption / (TNumNodes + 1) * BaricenterMatrix;
+
+    // phi = 2 in 2D and 3D
+
+    if (rVariables.OmegaV == 0.0)
+    {
+        rVariables.AlphaR = 0.0;
+    }
+    else
+    {
+        rVariables.AlphaR = rVariables.Peclet * (0.5 * rVariables.SigmaV * ((rVariables.XiV + 1.0) / (rVariables.XiV - 1.0)) - rVariables.AlphaV)
+                                    - 1.0 - (1 / conductivity) * inner_prod(rVariables.VelInterHat, prod(rVariables.DifMatrixS, rVariables.VelInterHat));
+    }
+
+    noalias(rVariables.DifMatrixR) = rVariables.AlphaR * conductivity * outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+
+    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.DifMatrixK);
+    noalias(rVariables.MatrixAux) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT));
+
+    double NormAux1 = 0.0;
+
+    for (unsigned int i = 0 ; i < TDim ; i++ )
+    {
+        NormAux1 += rVariables.MatrixAux (i,i) * rVariables.NodalPhi [i];
+    }
+
+    rVariables.Residual = (rVariables.rho_dot_c * inner_prod (rVariables.VelInter , rVariables.GradPhi)
+                            - NormAux1
+                            + rVariables.absorption * inner_prod(rVariables.N, rVariables.NodalPhi)
+                            - rVariables.QSource) * Domain;
+
+    // Identity matrix
+    noalias(rVariables.IdentityMatrix) = ZeroMatrix(TDim,TDim);
+    for(unsigned int i = 0; i < TDim; i++)
+    {
+        rVariables.IdentityMatrix(i,i) = 1;
+    }
+
+    if(rVariables.NormGradPhi == 0)
+    {
+        rVariables.Beta = 1.0;
+    }
+    else
+    {
+        rVariables.Beta = inner_prod(rVariables.VelInterHat, rVariables.GradPhi / rVariables.NormGradPhi);
+    }
+
+    BoundedMatrix<double,TDim,TDim> AuxMatrix;
+    BoundedMatrix<double,TDim,TDim> AuxMatrix2;
+    BoundedMatrix<double,TDim,TDim> AuxMatrix3;
+    BoundedMatrix<double,TDim,TDim> AuxMatrix4;
+
+    noalias(AuxMatrix2) = outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+
+    for (unsigned int i = 0 ; i < TDim ; i++ )
+    {
+        for (unsigned int j = 0 ; j < TDim ; j++ )
         {
-            rVariables.HVector[i] = rVariables.AlphaV * rVariables.lv * rVariables.VelInter[i]/NormVel;
+            AuxMatrix(i,j) = rVariables.IdentityMatrix(i,j) - AuxMatrix2(i,j);
+        }
+    }
+
+    // Double dot product
+    AuxMatrix4 = prod((rVariables.DifMatrixK + rVariables.DifMatrixS), AuxMatrix);
+    double DoubleDotScalar = 0.0;
+
+    for (unsigned int i = 0 ; i < TDim ; i++ )
+    {
+        DoubleDotScalar += AuxMatrix4 (i,i);
+    }
+
+    rVariables.DifSC = (0.5 * rVariables.lv * std::abs (rVariables.Residual) / rVariables.NormGradPhi
+                                        - DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
+
+    if (rVariables.NormGradPhi < 0.0000001)
+    {
+        rVariables.DifSC = - DoubleDotScalar * (1.0 - rVariables.Beta * rVariables.Beta);
+    }
+
+    noalias(rVariables.DifMatrixSC) = rVariables.DifSC * rVariables.IdentityMatrix;
+
+        KRATOS_WATCH (rVariables.DifMatrixSC)
+
+        KRATOS_WATCH ("________________________________________________________")
+
+}
+
+//----------------------------------------------------------------------------------------
+
+// TODO: This will be moved to an utility
+template< unsigned int TDim, unsigned int TNumNodes >
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
+{
+    ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+
+    //Properties variables
+    double NormVel = rVariables.VelInter[0]*rVariables.VelInter[0];
+    for (unsigned int d = 1; d < TDim; d++)
+        NormVel += rVariables.VelInter[d]*rVariables.VelInter[d];
+    NormVel = std::sqrt(NormVel);
+
+    // Compute HvVector
+    for (unsigned int i = 0; i < TDim; i++)
+    {
+        rVariables.HvVector[i] = rVariables.AlphaVBar * rVariables.lv * rVariables.VelInterHat[i];
+    }
+
+    // Compute HrVector
+    BoundedMatrix<double,TDim,TDim> AuxMatrix;
+    BoundedMatrix<double,TDim,TDim> AuxMatrix2;
+    BoundedMatrix<double,TDim,TDim> AuxMatrix3;
+    BoundedMatrix<double,TDim,TDim> AuxMatrix4;
+
+    if (rVariables.Residual < 0.0000001)
+    {
+        for (unsigned int i = 0 ; i < TDim ; i++ )
+        {
+            rVariables.HrVector [i] = 0.0;
         }
     }
     else
     {
-        // TODO: This will be moved to an utility
-        Hu = this->AverageElementSize(rGeom);
+        AuxMatrix3 = (2.0 / rVariables.Residual ) * (rVariables.DifMatrixS
+                        + rVariables.AlphaR * rVariables.AuxDiffusion * outer_prod(rVariables.VelInterHat, rVariables.VelInterHat));
 
-        NormVel = 1.0e-6;
+        rVariables.HrVector = prod(AuxMatrix3, rVariables.GradPhi);
+    }
 
-        rVariables.Peclet = NormVel * Hu / (2.0 * conductivity );
-        rVariables.AlphaV = (1.0/tanh(rVariables.Peclet)-1.0/rVariables.Peclet);
-
-        // Compute HVector
-        for (unsigned int i = 0; i < TDim; i++)
+    // Compute HscVector
+    if (rVariables.NormGradPhi < 0.0000001)
+    {
+        for (unsigned int i = 0 ; i < TDim ; i++ )
         {
-            rVariables.HVector[i] = rVariables.AlphaV * rVariables.lv * rVariables.VelInter[i]/NormVel;
+            rVariables.HscVector [i] = 0.0;
         }
     }
-
-}
-
-//----------------------------------------------------------------------------------------
-
-// Triangle2D3 version. TODO: The rest of geometries will be in a utility
-template< unsigned int TDim, unsigned int TNumNodes >
-double SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity)
-{
-    double Hu = 0.0;
-
-    // Loop over edges looking for maximum 'projected' length
-    array_1d<double,3> Edge(3,0.0);
-
-    for(unsigned int i = 0; i < TNumNodes; ++i)
+    else
     {
-        double lu = 0.0;
-        unsigned int j = (i+1) % TNumNodes;
-        Edge = rGeometry[j] - rGeometry[i];
-        lu = rVelocity[0] * Edge[0];
-        for (unsigned int d = 1; d < TDim; ++d)
-            lu += rVelocity[d] * Edge[d];
-        lu = fabs(lu);
-        if(Hu < lu) Hu = lu;
+        noalias(AuxMatrix2) = outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+
+        for (unsigned int i = 0 ; i < TDim ; i++ )
+        {
+            for (unsigned int j = 0 ; j < TDim ; j++ )
+            {
+                AuxMatrix(i,j) = rVariables.IdentityMatrix(i,j) - AuxMatrix2(i,j);
+            }
+        }
+
+        // Double dot product
+        AuxMatrix4 = prod((rVariables.DifMatrixK + rVariables.DifMatrixS), AuxMatrix);
+        double DoubleDotScalar = 0.0;
+
+        for (unsigned int i = 0 ; i < TDim ; i++ )
+        {
+            DoubleDotScalar += AuxMatrix4 (i,i);
+        }
+
+
+        double AuxScalar = (rVariables.lv * (rVariables.Residual / abs(rVariables.Residual)) - 2.0 * rVariables.NormGradPhi / rVariables.Residual
+                            * DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
+
+        rVariables.HscVector = AuxScalar * rVariables.GradPhi / rVariables.NormGradPhi;
     }
 
-    if (Hu > 0.0)
-    {
-        double NormVel = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
-        Hu /= NormVel;
-    }
+    // Compute HVector
+    rVariables.HVector = rVariables.HvVector + rVariables.HrVector + rVariables.HscVector;
 
-    return Hu;
-}
+        KRATOS_WATCH (rVariables.Residual)
+        KRATOS_WATCH (rVariables.NormGradPhi)
+        KRATOS_WATCH (rVariables.Beta)
 
-//----------------------------------------------------------------------------------------
-
-// TODO: AverageElementSize will be in a utility
-// Triangle2D3 version.
-template< >
-double SteadyConvectionDiffusionFICElement<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
-{
-
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-
-    double x20 = rGeometry[2].X() - rGeometry[0].X();
-    double y20 = rGeometry[2].Y() - rGeometry[0].Y();
-
-    return std::sqrt(0.5 * (x10*y20-x20*y10) );
-}
-
-//----------------------------------------------------------------------------------------
-
-// Quadrilateral2D4 version.
-template< >
-double SteadyConvectionDiffusionFICElement<2,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
-{
-
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-
-    double x30 = rGeometry[3].X() - rGeometry[0].X();
-    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-
-    return std::sqrt(x10*y30-x30*y10);
-}
-
-//----------------------------------------------------------------------------------------
+        KRATOS_WATCH ("________________________________________________________")
+        KRATOS_WATCH ("________________________________________________________")
 
 
-// Tetrahedra3D4 version.
-template<>
-double SteadyConvectionDiffusionFICElement<3,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
-
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-    double z10 = rGeometry[1].Z() - rGeometry[0].Z();
-
-    double x20 = rGeometry[2].X() - rGeometry[0].X();
-    double y20 = rGeometry[2].Y() - rGeometry[0].Y();
-    double z20 = rGeometry[2].Z() - rGeometry[0].Z();
-
-    double x30 = rGeometry[3].X() - rGeometry[0].X();
-    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-    double z30 = rGeometry[3].Z() - rGeometry[0].Z();
-
-    double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-
-    return pow(detJ/6.0,1./3.);
-}
-
-//----------------------------------------------------------------------------------------
-
-// Hexahedra3D8 version.
-template<>
-double SteadyConvectionDiffusionFICElement<3,8>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
-
-    double x10 = rGeometry[1].X() - rGeometry[0].X();
-    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-    double z10 = rGeometry[1].Z() - rGeometry[0].Z();
-
-    double x30 = rGeometry[3].X() - rGeometry[0].X();
-    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-    double z30 = rGeometry[3].Z() - rGeometry[0].Z();
-
-    double x40 = rGeometry[4].X() - rGeometry[0].X();
-    double y40 = rGeometry[4].Y() - rGeometry[0].Y();
-    double z40 = rGeometry[4].Z() - rGeometry[0].Z();
-
-    double detJ = x10 * y30 * z40 - x10 * y40 * z30 + y10 * z30 * x40 - y10 * x30 * z40 + z10 * x30 * y40 - z10 * y30 * x40;
-    return pow(detJ,1./3.);
 }
 
 //----------------------------------------------------------------------------------------
@@ -602,7 +716,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddLHS(Mat
 
     this->CalculateAndAddDiffusiveMatrix(rLeftHandSideMatrix,rVariables);
 
+    this->CalculateAndAddAbsorptionMatrix(rLeftHandSideMatrix, rVariables);
+
     this->CalculateAndAddFICMatrix(rLeftHandSideMatrix,rVariables);
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -611,7 +728,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
 
-    noalias(rVariables.AdvMatrixAux) = rVariables.rho_dot_c*outer_prod(rVariables.N,rVariables.VelInter);
+    noalias(rVariables.AdvMatrixAux) = rVariables.rho_dot_c * outer_prod(rVariables.N,rVariables.VelInter);
 
     noalias(rLeftHandSideMatrix) += prod(rVariables.AdvMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
@@ -623,9 +740,19 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddDiffusiveMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
 
-    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.DifMatrixK);
+    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.DifMatrix);
 
     noalias(rLeftHandSideMatrix) += prod(rVariables.DifMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
+
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddAbsorptionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+{
+
+    noalias(rLeftHandSideMatrix) += rVariables.absorption * outer_prod(rVariables.N,rVariables.N);
 
 }
 
@@ -635,10 +762,10 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddFICMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
 
-    noalias(rVariables.FICMatrixAuxOne) = rVariables.rho_dot_c*outer_prod(rVariables.HVector,rVariables.VelInter);
-    noalias(rVariables.FICMatrixAuxTwo) = prod(rVariables.FICMatrixAuxOne,trans(rVariables.GradNT));
+    noalias(rVariables.FICVectorAuxOne) = rVariables.HvVector * rVariables.absorption * 0.5;
+    noalias(rVariables.FICMatrixAuxOne) = outer_prod(rVariables.FICVectorAuxOne,rVariables.N);
 
-    noalias(rLeftHandSideMatrix) += 1.0/2.0*prod(rVariables.GradNT,rVariables.FICMatrixAuxTwo)*rVariables.IntegrationCoefficient;
+    noalias(rLeftHandSideMatrix) -= prod(rVariables.GradNT,rVariables.FICMatrixAuxOne)*rVariables.IntegrationCoefficient;
 
 }
 
@@ -647,13 +774,14 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddFICMatr
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-
     //Calculates -r = -K*phi+f
 
     //-K*Phi
     this->CalculateAndAddRHSAdvection(rRightHandSideVector, rVariables);
 
     this->CalculateAndAddRHSDiffusive(rRightHandSideVector, rVariables);
+
+    this->CalculateAndAddRHSAbsorption(rRightHandSideVector, rVariables);
 
     this->CalculateAndAddRHSFIC(rRightHandSideVector, rVariables);
 
@@ -667,10 +795,10 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
 
-    noalias(rVariables.AdvMatrixAux) = outer_prod(rVariables.N,rVariables.VelInter);
-    noalias(rVariables.AdvMatrixAuxTwo) = prod(rVariables.AdvMatrixAux,trans(rVariables.GradNT));
+    noalias(rVariables.AdvMatrixAux) = rVariables.rho_dot_c * outer_prod(rVariables.N,rVariables.VelInter);
+    noalias(rVariables.AdvMatrixAuxTwo) = prod(rVariables.AdvMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
-    noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
+    noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 //----------------------------------------------------------------------------------------
@@ -679,10 +807,22 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
 
-    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.DifMatrixK);
-    noalias(rVariables.DifMatrixAuxTwo) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT));
+    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.DifMatrix);
+    noalias(rVariables.DifMatrixAuxTwo) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
-    noalias(rRightHandSideVector) -= prod(rVariables.DifMatrixAuxTwo*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
+    noalias(rRightHandSideVector) -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
+
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAbsorption(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+{
+
+    noalias(rVariables.AbpMatrixAux) = rVariables.absorption * outer_prod(rVariables.N,rVariables.N);
+
+    noalias(rRightHandSideVector) -= prod(rVariables.AbpMatrixAux, rVariables.NodalPhi);
 
 }
 
@@ -692,11 +832,11 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
 
-    noalias(rVariables.FICMatrixAuxOne) = outer_prod(rVariables.HVector,rVariables.VelInter);
-    noalias(rVariables.FICMatrixAuxTwo) = prod(rVariables.FICMatrixAuxOne,trans(rVariables.GradNT));
-    noalias(rVariables.FICMatrixAuxThree) = prod(rVariables.GradNT,rVariables.FICMatrixAuxTwo);
+    noalias(rVariables.FICVectorAuxOne) = rVariables.HvVector * rVariables.absorption * 0.5;
+    noalias(rVariables.FICMatrixAuxOne) = outer_prod(rVariables.FICVectorAuxOne,rVariables.N);
+    noalias(rVariables.FICMatrixAuxTwo) = prod(rVariables.GradNT,rVariables.FICMatrixAuxOne)*rVariables.IntegrationCoefficient;
 
-    noalias(rRightHandSideVector) -= prod(1.0/2.0*rVariables.FICMatrixAuxThree*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
+    noalias(rRightHandSideVector) += prod(rVariables.FICMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 //----------------------------------------------------------------------------------------
@@ -705,7 +845,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
 
-    noalias(rRightHandSideVector) += rVariables.N*rVariables.QSource*rVariables.IntegrationCoefficient;
+    noalias(rRightHandSideVector) += (rVariables.N + 0.5 * prod(rVariables.GradNT,rVariables.HVector))*rVariables.QSource*rVariables.IntegrationCoefficient;
 
 }
 
