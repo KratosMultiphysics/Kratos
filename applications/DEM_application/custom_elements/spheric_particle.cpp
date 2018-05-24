@@ -1057,7 +1057,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 		KRATOS_WATCH(data_buffer.mLocalCoordSystem)
 		KRATOS_WATCH(OldLocalElasticContactForce)
 
-        GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, coordinates[0], OldLocalElasticContactForce);
+        GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, neighbour_point_faces_elastic_contact_force[i], OldLocalElasticContactForce);
         const double previous_indentation = indentation + LocalDeltDisp[2];
         data_buffer.mLocalRelVel[0] = 0.0;
         data_buffer.mLocalRelVel[1] = 0.0;
