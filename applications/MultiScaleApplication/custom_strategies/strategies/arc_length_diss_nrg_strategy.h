@@ -775,11 +775,11 @@ protected:
 
     void InitializeSolutionStep()
     {
-		ModelPart & model = BaseType::GetModelPart();
+		ModelPart & model_part = BaseType::GetModelPart();
 
         mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, 
 					mpA, mpDx, mpb, 
-					model);
+					model_part);
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
