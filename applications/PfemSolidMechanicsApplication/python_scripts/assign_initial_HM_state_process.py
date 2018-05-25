@@ -28,7 +28,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
          "top_water_pressure": 0.0
         }
         """)
-       
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -75,5 +75,3 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
     def GetVariables(self):
         nodal_variables = ['VOLUME_ACCELERATION']
         return nodal_variables
-
-
