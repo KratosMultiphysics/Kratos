@@ -17,6 +17,7 @@
 
 
 // Project includes
+#include "includes/properties.h"
 #include "custom_utilities/read_materials.hpp"
 
 namespace Kratos
@@ -83,43 +84,56 @@ namespace Kratos
         prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
 
         // Add / override the values of material parameters in the properties
-        for(auto iter = data["Material"]["Variables"].begin();
-            iter != data["Material"]["Variables"].end(); iter++){
-            auto value = data["Material"]["Variables"].GetValue(iter.name());
-            auto variable = KratosComponents<VariableData>().Get(iter.name());
+        auto variables = data["Material"]["Variables"];
+        for(auto iter = variables.begin(); iter != variables.end(); iter++)
+        {
+            auto value = variables.GetValue(iter.name());
             if (value.IsDouble()){
-                //prop->SetValue(variable, value.GetDouble());
+                auto variable = KratosComponents<Variable<double>>().Get(iter.name());
+                prop->SetValue(variable, value.GetDouble());
             }
-            /*
-            else if (value.IsInt())
-                prop->SetValue(iter, value.GetInt());
-            else if (value.IsBool())
-                prop->SetValue(iter, value.GetBool());
-            else if (value.IsString())
-                prop->SetValue(iter, value.GetString());
-            else if (value.IsMatrix())
-                prop->SetValue(iter, value.GetMatrix());
-            else if (value.IsVector())
-                prop->SetValue(iter, value.GetVector());
-            else{
-                KRATOS_INFO("Type of value is not available");
+            else if (value.IsInt()){
+                auto variable = KratosComponents<Variable<int>>().Get(iter.name());
+                prop->SetValue(variable, value.GetInt());
             }
-                */
+            else if (value.IsBool()){
+                auto variable = KratosComponents<Variable<bool>>().Get(iter.name());
+                prop->SetValue(variable, value.GetBool());
+            }
+            else if (value.IsString()){
+                auto variable = KratosComponents<Variable<std::string>>().Get(iter.name());
+                prop->SetValue(variable, value.GetString());
+            }
+            else if (value.IsVector()){
+                auto variable = KratosComponents<Variable<Vector>>().Get(iter.name());
+                prop->SetValue(variable, value.GetVector());
+            }
+            else if (value.IsMatrix()){
+                auto variable = KratosComponents<Variable<Matrix>>().Get(iter.name());
+                prop->SetValue(variable, value.GetMatrix());
+            }
+            else {
+                KRATOS_INFO("Type of value is not available")<< std::endl;
+            }
         }
-/*
-        # Add / override tables in the properties
-        for key, table in mat["Tables"].items():
-            table_name = key
 
-            input_var = self._GetVariable(table["input_variable"].GetString())
-            output_var = self._GetVariable(table["output_variable"].GetString())
-
-            new_table = KratosMultiphysics.PiecewiseLinearTable()
-
-            for i in range(table["data"].size()):
-                new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
-
-            prop.SetTable(input_var,output_var,new_table)
-        */
+        // Add / override tables in the properties
+        auto tables = data["Material"]["Tables"];
+        for(auto iter = tables.begin(); iter != tables.end(); iter++)
+        {
+            auto table_param = tables.GetValue(iter.name());
+            // Case table is double, double. How is it defined? How to check?
+                Table<double> table;
+                auto input_var = KratosComponents<Variable<double>>().Get(
+                    table_param["input_variable"].GetString());
+                auto output_var = KratosComponents<Variable<double>>().Get(
+                    table_param["output_variable"].GetString());
+                for (auto i = 0; i < table_param["data"].size(); i++) {
+                    table.insert(table_param["data"][i][0].GetDouble(),
+                                 table_param["data"][i][1].GetDouble());
+                }
+                prop->SetTable(input_var, output_var, table);
+                KRATOS_WATCH(table);
+        }
     }
 }  // namespace Kratos.
