@@ -251,7 +251,7 @@ protected:
     ///@{
 
     /// Protected constructor to be used by derived classes
-    StokesInitializationProcess(const ModelPart& rModelPart,
+    StokesInitializationProcess(ModelPart& rModelPart,
                                 typename TLinearSolver::Pointer pLinearSolver,
                                 unsigned int DomainSize,
                                 const StokesInitializationProcess* pThis):
