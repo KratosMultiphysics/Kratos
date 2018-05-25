@@ -99,13 +99,7 @@
 *if(strcmp(GenData(Time_Integration_Method),"Explicit")==0)
         "solver_type" : "solid_mechanics_explicit_dynamic_solver",
 *elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
-*if(strcmp(GenData(DOFS),"U-W")==0)
-        "solver_type" : "pfem_solid_mechanics_implicit_dynamic_solver",
-*elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
-        "solver_type" : "pfem_solid_mechanics_implicit_dynamic_solver",
-*else
         "solver_type" : "solid_mechanics_implicit_dynamic_solver",
-*endif
 *endif
 *else
         "solver_type" : "solid_mechanics_static_solver",
@@ -120,20 +114,27 @@
 *elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
 *if(strcmp(GenData(DOFS),"U-W")==0)
                    "time_integration"      : "Implicit",
-                   "integration_method"    : "Bossak"
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
 *elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
                    "time_integration"      : "Implicit",
-                   "integration_method"    : "Bossak"
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
 *else
                    "time_integration"      : "Implicit",
-                   "integration_method"    : "Bossak"
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
 *endif
 *endif
 *else
-                   "solution_type"         : "Static",
 *if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
+                   "solution_type"         : "Static",
                    "integration_method"    : "Static"
 *elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
+                   "solution_type"         : "Quasi-static",
                    "integration_method"    : "Static"
 *endif
 *endif
@@ -143,9 +144,6 @@
                    "implex"                      : *tcl(string tolower *GenData(Implex)),
                    "compute_reactions"           : *tcl(string tolower *GenData(Write_Reactions)),
 	           "compute_contact_forces"      : *tcl(string tolower *GenData(Write_Contact_Forces)),
-*if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
-                   "stabilization_factor"        : *GenData(Stabilization_Factor),
-*endif
                    "max_iteration"               : *GenData(Max_Iter,INT)
               },
               "convergence_criterion_settings":{
@@ -193,6 +191,12 @@
 *endif
 *if(strcmp(GenData(DOFS),"U-W-wP")==0)
                                                 "DISPLACEMENT",
+						"WATER_DISPLACEMENT",
+                                                "WATER_PRESSURE"
+*endif
+*if(strcmp(GenData(DOFS),"U-J-W-wP")==0)
+                                                "DISPLACEMENT",
+						"JACOBIAN",
 						"WATER_DISPLACEMENT",
                                                 "WATER_PRESSURE"
 *endif
@@ -471,9 +475,16 @@
 		    },		    
 		    "contact_search_settings":{
 			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			"contact_search_type": "HMParametricWallContactSearch",
+*else
 			"contact_search_type": "ParametricWallContactSearch",
+*endif
 			"contact_parameters":{
 			    "contact_condition_type": "*cond(Contact_Condition)",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			    "hydraulic_condition_type": "*cond(Hydraulic_Contact_Condition)",
+*endif
 			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",			    
 			    "friction_law_type": "HardeningCoulombFrictionLaw",
 			    "variables_of_properties":{
@@ -867,10 +878,18 @@
 				      "WATER_PRESSURE",
 				      "WATER_PRESSURE_VELOCITY",
 				      "WATER_PRESSURE_ACCELERATION",
+*elseif(strcmp(GenData(DOFS),"U-J-W-wP")==0)
+                                      "JACOBIAN",
+                                      "WATER_DISPLACEMENT",
+                                      "WATER_VELOCITY",
+				      "WATER_ACCELERATION",
+				      "WATER_PRESSURE",
+				      "WATER_PRESSURE_VELOCITY",
+				      "WATER_PRESSURE_ACCELERATION",
 *endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)
-				      "REACTION",
+				      "DISPLACEMENT_REACTION",
 *endif
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 				      "NORMAL",

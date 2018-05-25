@@ -28,7 +28,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
          "top_water_pressure": 0.0
         }
         """)
-
+       
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -62,11 +62,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
         params.AddValue("top_water_pressure",self.settings["top_water_pressure"])
         initial_state_process = KratosPFEMSolid.SetMechanicalInitialStateProcess(self.model_part, self.settings)
         initial_state_process.Execute()
-
-        for node in self.model_part.Nodes:
-            GG = node.GetSolutionStepValue( KratosMultiphysics.VOLUME_ACCELERATION)
-            GG[1] = -10;
-            node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION, GG)
+        self.the_process_has_been_executed = True
 
     def ExecuteInitializeSolutionStep(self):
 
@@ -79,3 +75,5 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
     def GetVariables(self):
         nodal_variables = ['VOLUME_ACCELERATION']
         return nodal_variables
+
+
