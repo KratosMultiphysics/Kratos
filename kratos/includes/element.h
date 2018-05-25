@@ -904,95 +904,229 @@ public:
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<bool>& rVariable,
-					     std::vector<bool>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the element. Version for boolean variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
+     *  They are empty on the base class, since each derived element should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the element. Version for integer variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
+     *  They are empty on the base class, since each derived element should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the element. Version for double variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
+     *  They are empty on the base class, since each derived element should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > > rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the element. Version for 3-component array variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
+     *  They are empty on the base class, since each derived element should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > > rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the element. Version for 6-component array variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
+     *  They are empty on the base class, since each derived element should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the element. Version for Vector variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
+     *  They are empty on the base class, since each derived element should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the element. Version for Matrix variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
+     *  They are empty on the base class, since each derived element should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-					     std::vector<ConstitutiveLaw::Pointer>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the element. Version for Constitutive Law variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
+     *  They are empty on the base class, since each derived element should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    //GET ON INTEGRATION POINTS METHODS
+    /// Get data on the integration points of the element. Version for boolean variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the element.
+     *  They are empty on the base class, since each derived element should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<bool>& rVariable,
-					     std::vector<bool>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the element. Version for integer variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the element.
+     *  They are empty on the base class, since each derived element should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the element. Version for double variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the element.
+     *  They are empty on the base class, since each derived element should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the element. Version for 3-component array variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the element.
+     *  They are empty on the base class, since each derived element should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the element. Version for 6-component array variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the element.
+     *  They are empty on the base class, since each derived element should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the element. Version for Vector variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the element.
+     *  They are empty on the base class, since each derived element should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the element. Version for Matrix variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the element.
+     *  They are empty on the base class, since each derived element should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void GetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-					     std::vector<ConstitutiveLaw::Pointer>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the element. Version for Constitutive Law variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the element.
+     *  They are empty on the base class, since each derived element should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the element.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
     /**
      * This method provides the place to perform checks on the completeness of the input

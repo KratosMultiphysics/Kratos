@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -726,7 +726,7 @@ public:
     {
     }
 
-    /**
+    /*
      * Calculate variables on Integration points.
      * This gives access to variables computed in the constitutive law on each integration point.
      * Specialisations of condition must specify the actual interface to the integration points!
@@ -742,21 +742,21 @@ public:
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& Output,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& Output,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& Output,
@@ -764,7 +764,7 @@ public:
     {
     }
 
-    /**
+    /*
      * Access for variables on Integration points.
      * This gives access to variables stored in the constitutive law on each integration point.
      * Specializations of condition must specify the actual interface to the integration points!
@@ -813,28 +813,28 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					     std::vector<array_1d<double, 3 > >& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					     std::vector<array_1d<double, 6 > >& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
 					     std::vector<Vector>& rValues,
@@ -849,74 +849,201 @@ public:
     {
     }
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {}
-    
-    virtual void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {}
-
-    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > > rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {}
-
-    virtual void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > > rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the condition. Version for boolean variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
+     *  They are empty on the base class, since each derived condition should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the condition. Version for integer variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
+     *  They are empty on the base class, since each derived condition should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    /// Set data on the integration points of the condition. Version for double variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
+     *  They are empty on the base class, since each derived condition should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    //GET ON INTEGRATION POINTS METHODS
+    /// Set data on the integration points of the condition. Version for 3-component array variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
+     *  They are empty on the base class, since each derived condition should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Set data on the integration points of the condition. Version for 6-component array variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
+     *  They are empty on the base class, since each derived condition should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > > rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Set data on the integration points of the condition. Version for Vector variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
+     *  They are empty on the base class, since each derived condition should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
+    /// Set data on the integration points of the condition. Version for Matrix variables.
+    /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
+     *  They are empty on the base class, since each derived condition should know what to
+     *  do with the received data.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[in] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void SetValuesOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the condition. Version for boolean variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the condition.
+     *  They are empty on the base class, since each derived condition should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the condition. Version for integer variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the condition.
+     *  They are empty on the base class, since each derived condition should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
+        std::vector<int>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the condition. Version for double variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the condition.
+     *  They are empty on the base class, since each derived condition should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
-    virtual void GetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+    /// Get data on the integration points of the condition. Version for 3-component array variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the condition.
+     *  They are empty on the base class, since each derived condition should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    /// Get data on the integration points of the condition. Version for 6-component array variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the condition.
+     *  They are empty on the base class, since each derived condition should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    /// Get data on the integration points of the condition. Version for Vector variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the condition.
+     *  They are empty on the base class, since each derived condition should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
+
+    /// Get data on the integration points of the condition. Version for Matrix variables.
+    /** GetValuesOnIntegrationPoints methods can be used to obtain data from the condition.
+     *  They are empty on the base class, since each derived condition should know what
+     *  is expected as an output.
+     *  @param[in] rVariable The Kratos variable the data refers to.
+     *  @param[out] rValues A vector containing the value of the variable at each integration point.
+     *  @param[in] rCurrentProcessInfo ProcessInfo instance. Use it to pass global information to the condition.
+     */
+    virtual void GetValuesOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {}
 
 
     /**
