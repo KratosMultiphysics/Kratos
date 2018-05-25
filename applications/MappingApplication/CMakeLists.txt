@@ -19,9 +19,6 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mapper_bounding_box.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mapper_axis_aligned_bounding_box.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_object.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_node.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_geometry_object.cpp
     # # Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocessor.cpp

@@ -281,100 +281,100 @@ protected:
 
     void ConductLocalSearch();
 
-    void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& rInterfaceObjects,
-                            const int InterfaceObjectsSize, std::vector<InterfaceObject::Pointer>& rInterfaceObjectResults,
-                            std::vector<double>& rMinDistances, std::vector<std::vector<double>>& rShapeFunctionValues,
-                            std::vector<int>& rPairingIndices)
-    {
-        // This function finds neighbors of the InterfaceObjects in rInterfaceObjects in bin_structure
-        // It must be executable by serial and parallel version!
-        // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has
-        // the max receive buffer size as size)!
+    // void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& rInterfaceObjects,
+    //                         const int InterfaceObjectsSize, std::vector<InterfaceObject::Pointer>& rInterfaceObjectResults,
+    //                         std::vector<double>& rMinDistances, std::vector<std::vector<double>>& rShapeFunctionValues,
+    //                         std::vector<int>& rPairingIndices)
+    // {
+    //     // This function finds neighbors of the InterfaceObjects in rInterfaceObjects in bin_structure
+    //     // It must be executable by serial and parallel version!
+    //     // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has
+    //     // the max receive buffer size as size)!
 
-        std::size_t num_inteface_obj_bin = mpInterfaceObjectsOrigin->size();
+    //     std::size_t num_inteface_obj_bin = mpInterfaceObjectsOrigin->size();
 
-        if (num_inteface_obj_bin > 0)   // this partition has a bin structure
-        {
-            InterfaceObjectConfigure::ResultContainerType neighbor_results(num_inteface_obj_bin);
-            std::vector<double> neighbor_distances(num_inteface_obj_bin);
+    //     if (num_inteface_obj_bin > 0)   // this partition has a bin structure
+    //     {
+    //         InterfaceObjectConfigure::ResultContainerType neighbor_results(num_inteface_obj_bin);
+    //         std::vector<double> neighbor_distances(num_inteface_obj_bin);
 
-            InterfaceObjectConfigure::IteratorType interface_object_itr;
-            InterfaceObjectConfigure::ResultIteratorType results_itr;
-            std::vector<double>::iterator distance_itr;
+    //         InterfaceObjectConfigure::IteratorType interface_object_itr;
+    //         InterfaceObjectConfigure::ResultIteratorType results_itr;
+    //         std::vector<double>::iterator distance_itr;
 
-            //   Searching the neighbors
-            for (int i = 0; i < InterfaceObjectsSize; ++i)
-            {
-                interface_object_itr = rInterfaceObjects.begin() + i;
-                double search_radius = mSearchRadius; // reset search radius
+    //         //   Searching the neighbors
+    //         for (int i = 0; i < InterfaceObjectsSize; ++i)
+    //         {
+    //             interface_object_itr = rInterfaceObjects.begin() + i;
+    //             double search_radius = mSearchRadius; // reset search radius
 
-                results_itr = neighbor_results.begin();
-                distance_itr = neighbor_distances.begin();
+    //             results_itr = neighbor_results.begin();
+    //             distance_itr = neighbor_distances.begin();
 
-                std::size_t number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
-                                                    *interface_object_itr, search_radius, results_itr,
-                                                    distance_itr, num_inteface_obj_bin);
+    //             std::size_t number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
+    //                                                 *interface_object_itr, search_radius, results_itr,
+    //                                                 distance_itr, num_inteface_obj_bin);
 
-                if (number_of_results > 0)   // neighbors were found
-                {
-                    SelectBestResult(interface_object_itr, neighbor_results,
-                                     neighbor_distances, number_of_results,
-                                     rInterfaceObjectResults[i], rMinDistances[i],
-                                     rShapeFunctionValues[i], rPairingIndices[i]);
-                }
-                else
-                {
-                    rMinDistances[i] = -1.0f; // indicates that the search was not succesful
-                    rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
-                }
-            }
-        }
-        else     // this partition has no part of the point receiving interface, i.e. the origin of the mapped values
-        {
-            for (int i = 0; i < InterfaceObjectsSize; ++i)   // no results in this partition
-            {
-                rMinDistances[i] = -1.0f; // indicates that the search was not succesful
-                rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
-            }
-        }
-    }
+    //             if (number_of_results > 0)   // neighbors were found
+    //             {
+    //                 SelectBestResult(interface_object_itr, neighbor_results,
+    //                                  neighbor_distances, number_of_results,
+    //                                  rInterfaceObjectResults[i], rMinDistances[i],
+    //                                  rShapeFunctionValues[i], rPairingIndices[i]);
+    //             }
+    //             else
+    //             {
+    //                 rMinDistances[i] = -1.0f; // indicates that the search was not succesful
+    //                 rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
+    //             }
+    //         }
+    //     }
+    //     else     // this partition has no part of the point receiving interface, i.e. the origin of the mapped values
+    //     {
+    //         for (int i = 0; i < InterfaceObjectsSize; ++i)   // no results in this partition
+    //         {
+    //             rMinDistances[i] = -1.0f; // indicates that the search was not succesful
+    //             rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
+    //         }
+    //     }
+    // }
 
-    void SelectBestResult(const InterfaceObjectConfigure::IteratorType& rPoint,
-                          const InterfaceObjectConfigure::ResultContainerType& rResultList,
-                          const std::vector<double>& rDistances, const std::size_t NumResults,
-                          InterfaceObject::Pointer& rVecClosestResults, double& rClosestDistance,
-                          std::vector<double>& rShapeFunctionsValues, int& rPairingStatus)
-    {
+    // void SelectBestResult(const InterfaceObjectConfigure::IteratorType& rPoint,
+    //                       const InterfaceObjectConfigure::ResultContainerType& rResultList,
+    //                       const std::vector<double>& rDistances, const std::size_t NumResults,
+    //                       InterfaceObject::Pointer& rVecClosestResults, double& rClosestDistance,
+    //                       std::vector<double>& rShapeFunctionsValues, int& rPairingStatus)
+    // {
 
-        double min_distance = std::numeric_limits<double>::max();
-        rClosestDistance = -1.0f; // indicate a failed search in case no result is good
-        rPairingStatus = InterfaceObject::PairingStatus::NoNeighbor;
+    //     double min_distance = std::numeric_limits<double>::max();
+    //     rClosestDistance = -1.0f; // indicate a failed search in case no result is good
+    //     rPairingStatus = InterfaceObject::PairingStatus::NoNeighbor;
 
-        for (int i = 0; i < static_cast<int>(NumResults); ++i)   // find index of best result
-        {
-            if (rResultList[i]->EvaluateResult((*rPoint)->Coordinates(), min_distance,
-                                               rDistances[i], rShapeFunctionsValues))
-            {
-                rClosestDistance = min_distance;
-                rVecClosestResults = rResultList[i];
-                rPairingStatus = InterfaceObject::PairingStatus::NeighborFound;
-            }
-        }
+    //     for (int i = 0; i < static_cast<int>(NumResults); ++i)   // find index of best result
+    //     {
+    //         if (rResultList[i]->EvaluateResult((*rPoint)->Coordinates(), min_distance,
+    //                                            rDistances[i], rShapeFunctionsValues))
+    //         {
+    //             rClosestDistance = min_distance;
+    //             rVecClosestResults = rResultList[i];
+    //             rPairingStatus = InterfaceObject::PairingStatus::NeighborFound;
+    //         }
+    //     }
 
-        if (rPairingStatus != InterfaceObject::PairingStatus::NeighborFound)
-        {
-            for (int i = 0; i < static_cast<int>(NumResults); ++i)   // find index of best result
-            {
-                if (rResultList[i]->ComputeApproximation((*rPoint)->Coordinates(), min_distance,
-                        rShapeFunctionsValues))
-                {
-                    rClosestDistance = min_distance;
-                    rVecClosestResults = rResultList[i];
-                    rPairingStatus = InterfaceObject::PairingStatus::Approximation;
-                }
-            }
-        }
-    }
+    //     if (rPairingStatus != InterfaceObject::PairingStatus::NeighborFound)
+    //     {
+    //         for (int i = 0; i < static_cast<int>(NumResults); ++i)   // find index of best result
+    //         {
+    //             if (rResultList[i]->ComputeApproximation((*rPoint)->Coordinates(), min_distance,
+    //                     rShapeFunctionsValues))
+    //             {
+    //                 rClosestDistance = min_distance;
+    //                 rVecClosestResults = rResultList[i];
+    //                 rPairingStatus = InterfaceObject::PairingStatus::Approximation;
+    //             }
+    //         }
+    //     }
+    // }
 
 
     ///@}

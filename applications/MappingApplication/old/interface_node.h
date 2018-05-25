@@ -72,10 +72,9 @@ public:
     {
     }
 
-    InterfaceNode(Node<3>& rNode, const int EchoLevel) : mpNode(&rNode)
+    InterfaceNode(Node<3>& rNode) : mpNode(&rNode)
     {
         SetCoordinates();
-        mEchoLevel = EchoLevel;
     }
 
     /// Destructor.
@@ -96,44 +95,44 @@ public:
         return mpNode;
     }
 
-    bool EvaluateResult(const array_1d<double, 3>& GlobalCooords,
-                        double& rMinDistance, const double Distance,
-                        std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
-    {
-        bool is_closer = false;
+    // bool EvaluateResult(const array_1d<double, 3>& GlobalCooords,
+    //                     double& rMinDistance, const double Distance,
+    //                     std::vector<double>& rShapeFunctionValues) override   // I am an object in the bins
+    // {
+    //     bool is_closer = false;
 
-        if (Distance < rMinDistance)
-        {
-            rMinDistance = Distance;
-            is_closer = true;
-        }
+    //     if (Distance < rMinDistance)
+    //     {
+    //         rMinDistance = Distance;
+    //         is_closer = true;
+    //     }
 
-        return is_closer;
-    }
+    //     return is_closer;
+    // }
 
-    // Functions used for Debugging
-    void PrintNeighbors(const int CommRank) override
-    {
-        array_1d<double, 3> neighbor_coordinates = mpNode->GetValue(NEIGHBOR_COORDINATES);
-        double neighbor_comm_rank = mpNode->GetValue(NEIGHBOR_RANK);
+    // // Functions used for Debugging
+    // void PrintNeighbors(const int CommRank) override
+    // {
+    //     array_1d<double, 3> neighbor_coordinates = mpNode->GetValue(NEIGHBOR_COORDINATES);
+    //     double neighbor_comm_rank = mpNode->GetValue(NEIGHBOR_RANK);
 
-        PrintMatchInfo("InterfaceNode", CommRank,
-                       neighbor_comm_rank, neighbor_coordinates);
-    }
+    //     PrintMatchInfo("InterfaceNode", CommRank,
+    //                    neighbor_comm_rank, neighbor_coordinates);
+    // }
 
-    void WriteRankAndCoordinatesToVariable(const int CommRank) override
-    {
-        // This function writes the coordinates and the rank of the
-        // InterfaceObject to the variables "NEIGHBOR_COORDINATES"
-        // and "NEIGHBOR_RANK", for debugging
-        array_1d<double, 3> neighbor_coordinates;
-        // TODO exchange with "Coordinates()"
-        neighbor_coordinates[0] = this->X();
-        neighbor_coordinates[1] = this->Y();
-        neighbor_coordinates[2] = this->Z();
-        mpNode->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
-        mpNode->SetValue(NEIGHBOR_RANK, CommRank);
-    }
+    // void WriteRankAndCoordinatesToVariable(const int CommRank) override
+    // {
+    //     // This function writes the coordinates and the rank of the
+    //     // InterfaceObject to the variables "NEIGHBOR_COORDINATES"
+    //     // and "NEIGHBOR_RANK", for debugging
+    //     array_1d<double, 3> neighbor_coordinates;
+    //     // TODO exchange with "Coordinates()"
+    //     neighbor_coordinates[0] = this->X();
+    //     neighbor_coordinates[1] = this->Y();
+    //     neighbor_coordinates[2] = this->Z();
+    //     mpNode->SetValue(NEIGHBOR_COORDINATES, neighbor_coordinates);
+    //     mpNode->SetValue(NEIGHBOR_RANK, CommRank);
+    // }
 
     ///@}
     ///@name Access

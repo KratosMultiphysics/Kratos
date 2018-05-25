@@ -29,8 +29,6 @@
 #include "includes/kratos_application.h"
 
 #include "custom_searching/interface_object.h"
-#include "custom_searching/interface_node.h"
-#include "custom_searching/interface_geometry_object.h"
 
 
 namespace Kratos

@@ -18,9 +18,8 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "interface_search_structure.h"
-#include "custom_searching/interface_node.h"
-#include "custom_searching/interface_geometry_object.h"
 
 namespace Kratos
 {
@@ -74,7 +73,7 @@ namespace Kratos
         if (InterfaceObjectTypeOrigin == InterfaceObject::Node_Coords)
         {
             const SizeType num_nodes = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
-            const auto nodes_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Nodes().begin();
+            const auto nodes_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Nodes().ptr_begin();
 
             mpInterfaceObjectsOrigin->resize(num_nodes);
 
@@ -82,7 +81,7 @@ namespace Kratos
             for (int i = 0; i< static_cast<int>(num_nodes); ++i)
             {
                 auto it_node = nodes_begin + i;
-                (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceNode>(*(it_node), 0);
+                (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceNode>(*(it_node));
             }
         }
         else if (InterfaceObjectTypeOrigin == InterfaceObject::Geometry_Center)
@@ -90,8 +89,8 @@ namespace Kratos
             const SizeType num_elements = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfElements();
             const SizeType num_conditions = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
 
-            const auto elements_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Elements().begin();
-            const auto conditions_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Conditions().begin();
+            const auto elements_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Elements().ptr_begin();
+            const auto conditions_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Conditions().ptr_begin();
 
             mpInterfaceObjectsOrigin->resize(num_elements+num_conditions); // one of them has to be zero!!!
 
@@ -99,15 +98,13 @@ namespace Kratos
             for (int i = 0; i< static_cast<int>(num_elements); ++i)
             {
                 auto it_elem = elements_begin + i;
-                (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>(it_elem->GetGeometry(),
-                    0.0,0,0);
+                (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>((*it_elem)->pGetGeometry());
             }
             #pragma omp parallel for
             for (int i = 0; i< static_cast<int>(num_conditions); ++i)
             {
                 auto it_cond = conditions_begin + i;
-                (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>(it_cond->GetGeometry(),
-                    0.0,0,0);
+                (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceGeometryObject>((*it_cond)->pGetGeometry());
             }
         }
         else
