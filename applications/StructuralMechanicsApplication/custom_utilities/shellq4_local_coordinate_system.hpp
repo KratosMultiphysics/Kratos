@@ -308,7 +308,7 @@ namespace Kratos
 		}
 
 		template<int TComponent>
-		double Coord_ij(int Tid1, int Tid2)const {
+		inline double Coord_ij(int Tid1, int Tid2)const {
             KRATOS_ERROR_IF_NOT(TComponent >= 0 && TComponent < 3)
                 << "The component index should be 0-based, from 0 to 2" << std::endl;
 			double ci, cj;
