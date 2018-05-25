@@ -38,6 +38,8 @@ public:
 
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, true>::NodalScalarData;
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVectorData;
+using ShapeFunctionsType = typename FluidElementData<TDim, TNumNodes, true>::ShapeFunctionsType;
+using ShapeDerivativesType = typename FluidElementData<TDim, TNumNodes, true>::ShapeDerivativesType;
 
 ///@}
 ///@name Public Members
@@ -194,10 +196,10 @@ void CalculateAirMaterialResponse() {
 	else if (TDim == 3)
 		strain_size = 6;
 
-	if(C.size1() != strain_size)
-		C.resize(strain_size,strain_size,false);
-	if(ShearStress.size() != strain_size)
-		ShearStress.resize(strain_size,false);
+	if(this->C.size1() != strain_size)
+		this->C.resize(strain_size,strain_size,false);
+	if(this->ShearStress.size() != strain_size)
+		this->ShearStress.resize(strain_size,false);
 
 	ComputeStrain();
 
@@ -205,65 +207,65 @@ void CalculateAirMaterialResponse() {
 	const double c1 = 2.0*nu;
 	const double c2 = nu;
 
-	C.clear();
+	this->C.clear();
 
 	if (TDim == 2) 
 	{
-		C(0, 0) = 2.0*nu;
-		C(1, 1) = 2.0*nu;
-		C(2, 2) = nu;
+		this->C(0, 0) = 2.0*nu;
+		this->C(1, 1) = 2.0*nu;
+		this->C(2, 2) = nu;
 
-		ShearStress[0] = StrainRate[0];
-		ShearStress[1] = StrainRate[1];
-		ShearStress[2] = StrainRate[2];
+		this->ShearStress[0] = this->StrainRate[0];
+		this->ShearStress[1] = this->StrainRate[1];
+		this->ShearStress[2] = this->StrainRate[2];
 	}
 
 	else if (TDim == 3)
 	{
-		C(0, 0) = 2.0*nu;
-		C(1, 1) = 2.0*nu;
-		C(2, 2) = 2.0*nu;
-		C(3, 3) = nu;
-		C(4, 4) = nu;
-		C(5, 5) = nu;
-		ShearStress[0] = c1*StrainRate[0];
-		ShearStress[1] = c1*StrainRate[1];
-		ShearStress[2] = c1*StrainRate[2];
-		ShearStress[3] = c2*StrainRate[3];
-		ShearStress[4] = c2*StrainRate[4];
-		ShearStress[5] = c2*StrainRate[5];
+		this->C(0, 0) = 2.0*nu;
+		this->C(1, 1) = 2.0*nu;
+		this->C(2, 2) = 2.0*nu;
+		this->C(3, 3) = nu;
+		this->C(4, 4) = nu;
+		this->C(5, 5) = nu;
+		this->ShearStress[0] = c1*this->StrainRate[0];
+		this->ShearStress[1] = c1*this->StrainRate[1];
+		this->ShearStress[2] = c1*this->StrainRate[2];
+		this->ShearStress[3] = c2*this->StrainRate[3];
+		this->ShearStress[4] = c2*this->StrainRate[4];
+		this->ShearStress[5] = c2*this->StrainRate[5];
 	}
 }
 
 void ComputeStrain()
 {
-    const bounded_matrix<double, NumNodes, Dim>& v = Velocity;
-    const bounded_matrix<double, NumNodes, Dim>& DN = DN_DX;
+    const bounded_matrix<double, TNumNodes, TDim>& v = Velocity;
+    const bounded_matrix<double, TNumNodes, TDim>& DN = this->DN_DX;
     
     // Compute strain (B*v)
     // 3D strain computation
     if (TDim == 3)
     {
-		StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
-		StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
-		StrainRate[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
-		StrainRate[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
-		StrainRate[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
-		StrainRate[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
+		this->StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
+		this->StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
+		this->StrainRate[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
+		this->StrainRate[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
+		this->StrainRate[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
+		this->StrainRate[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
     }
     // 2D strain computation
     else if (TDim == 2)
     {                
-		StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
-		StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
-		StrainRate[2] = DN(0,1)*v(0,0) + DN(0,0)*v(0,1) + DN(1,1)*v(1,0) + DN(1,0)*v(1,1) + DN(2,1)*v(2,0) + DN(2,0)*v(2,1);
+		this->StrainRate[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
+		this->StrainRate[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
+		this->StrainRate[2] = DN(0,1)*v(0,0) + DN(0,0)*v(0,1) + DN(1,1)*v(1,0) + DN(1,0)*v(1,1) + DN(2,1)*v(2,0) + DN(2,0)*v(2,1);
     }
 }
 
 double ComputeStrainNorm()
 {
     double strain_rate_norm;
-    Vector& S = StrainRate;
+    Vector& S = this->StrainRate;
     if (TDim == 3)
     {
         strain_rate_norm = std::sqrt(2.*S[0] * S[0] + 2.*S[1] * S[1] + 2.*S[2] * S[2] +
@@ -280,13 +282,13 @@ double ComputeStrainNorm()
 void CalculateMaterialPropertiesAtGaussPoint()
 {
     double dist = 0.0;
-    for (unsigned int i = 0; i < NumNodes; i++)
-        dist += N[i] * Distance[i];
+    for (unsigned int i = 0; i < TNumNodes; i++)
+        dist += this->N[i] * Distance[i];
 
     double navg = 0.0;
     double density = 0.0;
     double viscosity = 0.0;
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < TNumNodes; i++)
     {
         if (dist * Distance[i] > 0.0)
         {
