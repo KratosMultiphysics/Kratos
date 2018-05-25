@@ -376,7 +376,7 @@ template <typename TExpressionType, std::size_t TCategory>
 
 	template <typename TDataType>
 	class scalar_matrix
-		: public AMatrix::MatrixExpression<scalar_matrix<TDataType>, row_major_access> {
+		: public AMatrix::MatrixExpression<scalar_matrix<TDataType>, AMatrix::row_major_access> {
 		std::size_t _size1;
 		std::size_t _size2;
 		const TDataType _value;
