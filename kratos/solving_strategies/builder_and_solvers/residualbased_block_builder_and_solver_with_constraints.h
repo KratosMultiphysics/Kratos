@@ -196,6 +196,7 @@ public:
                 {
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    ApplyConstraints(rModelPart, *(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
     #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -226,6 +227,7 @@ public:
                 {
                     //calculate elemental contribution
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    ApplyConstraints(rModelPart, *(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
     #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -307,7 +309,15 @@ public:
     {
         KRATOS_TRY
 
-        
+        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        #pragma omp for  schedule(guided, 512)
+        for (int k = 0; k < nconditions; k++)
+        {
+            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + k;
+            it->InitializeSolutionStep(); //TODO: Here each constraint constructs and stores its T and C matrices. Also its equation ids.
+        }
+
+
         KRATOS_CATCH("")
     }
 
@@ -320,6 +330,15 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b) override
     {
+        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        #pragma omp for  schedule(guided, 512)
+        for (int k = 0; k < nconditions; k++)
+        {
+            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + k;
+            it->FinalizeSolutionStep();
+        }
+
+        // TODO: Here the solution to the slaves is reconstructed.
     }
 
 
@@ -391,6 +410,7 @@ protected:
         {
             typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
             pScheme->EquationId( *(i_element.base()) , ids, rModelPart.GetProcessInfo());
+            ApplyConstraints(rModelPart, *(i_element.base()) , ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -412,6 +432,7 @@ protected:
         {
             typename ConditionsArrayType::iterator i_condition = rModelPart.Conditions().begin() + iii;
             pScheme->Condition_EquationId( *(i_condition.base()), ids, rModelPart.GetProcessInfo());
+            ApplyConstraints(rModelPart, *(i_condition.base()), ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -500,8 +521,8 @@ private:
 
     void ApplyConstraints(  ModelPart& rModelPart,
                             Element::Pointer pCurrentElement,
-                            Element::EquationIdVectorType& EquationIds,
-                            ProcessInfo& CurrentProcessInfo
+                            Element::EquationIdVectorType& rEquationIds,
+                            ProcessInfo& rCurrentProcessInfo
                         )
     {
         // This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
@@ -509,8 +530,8 @@ private:
 
     void ApplyConstraints(  ModelPart& rModelPart,
                             Condition::Pointer pCurrentCondition,
-                            Condition::EquationIdVectorType& EquationIds,
-                            ProcessInfo& CurrentProcessInfo
+                            Condition::EquationIdVectorType& rEquationIds,
+                            ProcessInfo& rCurrentProcessInfo
                         )
     {
         // This adds the equation IDs of masters of all the slaves correspoining to pCurrentCondition to EquationIds
@@ -518,9 +539,9 @@ private:
 
     void ApplyConstraints( ModelPart& rModelPart,
                            Element::Pointer pElement,
-                           LocalSystemMatrixType& LHS_Contribution,
-                           LocalSystemVectorType& RHS_Contribution,
-                           Element::EquationIdVectorType& EquationId,
+                           LocalSystemMatrixType& rLHS_Contribution,
+                           LocalSystemVectorType& rRHS_Contribution,
+                           Element::EquationIdVectorType& rEquationId,
                            ProcessInfo& rCurrentProcessInfo
                         )
     {
@@ -529,9 +550,9 @@ private:
 
     void ApplyConstraints( ModelPart& rModelPart,
                            Condition::Pointer pCondition,
-                           LocalSystemMatrixType& LHS_Contribution,
-                           LocalSystemVectorType& RHS_Contribution,
-                           Condition::EquationIdVectorType& EquationId,
+                           LocalSystemMatrixType& rLHS_Contribution,
+                           LocalSystemVectorType& rRHS_Contribution,
+                           Condition::EquationIdVectorType& rEquationId,
                            ProcessInfo& rCurrentProcessInfo
                         )
     {
