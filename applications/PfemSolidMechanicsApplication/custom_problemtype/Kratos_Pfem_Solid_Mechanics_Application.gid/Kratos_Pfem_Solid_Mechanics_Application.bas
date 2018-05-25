@@ -84,6 +84,8 @@ Begin Properties *MatNum
 *format "%10.5e"
  PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
+ INITIAL_POROSITY *MatProp(POROSITY,real)
+*format "%10.5e"
  STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
 *format "%10.5e"
  CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
