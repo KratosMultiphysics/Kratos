@@ -90,7 +90,7 @@ namespace Kratos {
         Orientation.normalize();
 
         if (rigid_body_element_sub_model_part.Has(FIXED_MESH_OPTION)) {
-            GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_NO_DISPLACEMENT) = rigid_body_element_sub_model_part[FIXED_MESH_OPTION];
+            GetGeometry()[0].FastGetSolutionStepValue(FIXED_MESH) = rigid_body_element_sub_model_part[FIXED_MESH_OPTION];
         }
 
         if (rigid_body_element_sub_model_part.Has(RIGID_BODY_MASS)) {
@@ -263,7 +263,7 @@ namespace Kratos {
 
     void RigidBodyElement3D::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag ) {
 
-        if (GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_NO_DISPLACEMENT)) {
+        if (GetGeometry()[0].FastGetSolutionStepValue(FIXED_MESH)) {
             GetTranslationalIntegrationScheme().MoveFixedRigidBodyElement(this, GetGeometry()[0], delta_t, force_reduction_factor, StepFlag);
         }
         else {

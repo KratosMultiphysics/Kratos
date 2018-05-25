@@ -36,7 +36,7 @@ End Conditions
 Begin SubModelPart Floor // DEM-FEM-Wall. Group name: Floor
   Begin SubModelPartData // DEM-FEM-Wall. Group name: Floor
   PROPERTIES_ID 0
-  FIXED_BOUNDARY 1
+  RIGID_BODY_MOTION 0
   IDENTIFIER Floor
   FORCE_INTEGRATION_GROUP 0
   End SubModelPartData

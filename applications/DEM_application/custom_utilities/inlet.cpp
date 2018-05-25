@@ -80,10 +80,9 @@ namespace Kratos {
         CheckIfSubModelPartHasVariable(smp, INJECTOR_ELEMENT_TYPE);
         CheckIfSubModelPartHasVariable(smp, INLET_NUMBER_OF_PARTICLES);
         CheckIfSubModelPartHasVariable(smp, CONTAINS_CLUSTERS);
-        CheckIfSubModelPartHasVariable(smp, FIXED_BOUNDARY);
-        CheckIfSubModelPartHasVariable(smp, MOVING_BODY);
+        CheckIfSubModelPartHasVariable(smp, RIGID_BODY_MOTION);
 
-        if(smp[MOVING_BODY]){
+        if(smp[RIGID_BODY_MOTION]){
             CheckIfSubModelPartHasVariable(smp, LINEAR_VELOCITY);
             CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY);
             CheckIfSubModelPartHasVariable(smp, ANGULAR_VELOCITY_START_TIME);
