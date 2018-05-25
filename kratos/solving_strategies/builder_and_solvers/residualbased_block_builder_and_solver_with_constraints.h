@@ -306,6 +306,8 @@ public:
         TSystemVectorType& b) override
     {
         KRATOS_TRY
+
+        
         KRATOS_CATCH("")
     }
 
@@ -357,9 +359,7 @@ protected:
     virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType& A,
-        ElementsContainerType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo) override
+        ModelPart& rModelPart) override
     {
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
@@ -385,12 +385,12 @@ protected:
 
         Element::EquationIdVectorType ids(3, 0);
 
-        const int nelements = static_cast<int>(rElements.size());
+        const int nelements = static_cast<int>(rModelPart.Elements().size());
         #pragma omp parallel for firstprivate(nelements, ids)
         for(int iii=0; iii<nelements; iii++)
         {
-            typename ElementsContainerType::iterator i_element = rElements.begin() + iii;
-            pScheme->EquationId( *(i_element.base()) , ids, CurrentProcessInfo);
+            typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
+            pScheme->EquationId( *(i_element.base()) , ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -406,12 +406,12 @@ protected:
 
         }
 
-        const int nconditions = static_cast<int>(rConditions.size());
+        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
         #pragma omp parallel for firstprivate(nconditions, ids)
         for (int iii = 0; iii<nconditions; iii++)
         {
-            typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
-            pScheme->Condition_EquationId( *(i_condition.base()), ids, CurrentProcessInfo);
+            typename ConditionsArrayType::iterator i_condition = rModelPart.Conditions().begin() + iii;
+            pScheme->Condition_EquationId( *(i_condition.base()), ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
@@ -504,7 +504,7 @@ private:
                             ProcessInfo& CurrentProcessInfo
                         )
     {
-
+        // This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
     }
 
     void ApplyConstraints(  ModelPart& rModelPart,
@@ -513,7 +513,7 @@ private:
                             ProcessInfo& CurrentProcessInfo
                         )
     {
-
+        // This adds the equation IDs of masters of all the slaves correspoining to pCurrentCondition to EquationIds
     }
 
     void ApplyConstraints( ModelPart& rModelPart,
@@ -524,7 +524,7 @@ private:
                            ProcessInfo& rCurrentProcessInfo
                         )
     {
-
+        // This function modifies LHS and RHS contributions with T and C matrices of the constraints present in this current pElement
     }
 
     void ApplyConstraints( ModelPart& rModelPart,
@@ -535,13 +535,9 @@ private:
                            ProcessInfo& rCurrentProcessInfo
                         )
     {
-
+        // This function modifies LHS and RHS contributions with T and C matrices of the constraints present in this current pCondition
     }
 
-    void ModifyEquationIdsForConstraints()
-    {
-
-    }
     ///@}
     ///@name Private  Access
     ///@{
