@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash -i
 # OutputFile: $2/$1.info
 # ErrorFile: $2/$1.err
 
