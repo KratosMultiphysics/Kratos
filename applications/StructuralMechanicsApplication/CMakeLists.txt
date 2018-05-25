@@ -19,7 +19,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/read_materials.cpp
 
   ## PROCESSES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/postprocess_eigenvalues_process.cpp

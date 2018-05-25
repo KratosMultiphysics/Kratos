@@ -18,11 +18,11 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_utilities/read_materials.hpp"
+#include "utilities/read_materials_utility.hpp"
 
 namespace Kratos
 {
-    ReadMaterialProcess::ReadMaterialProcess(ModelPart &rModelPart,
+    ReadMaterialsUtility::ReadMaterialsUtility(ModelPart &rModelPart,
                                              Parameters parameters)
             : mrModelPart(rModelPart)
     {
@@ -34,7 +34,7 @@ namespace Kratos
 
         parameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-        KRATOS_INFO("::[Reading materials process DEBUG]::") << "Started" << std::endl;
+        KRATOS_INFO("Read materials") << "Started" << std::endl;
 
         // read json string in materials file, create Parameters
         std::string materials_filename = parameters["materials_filename"].GetString();
@@ -49,10 +49,10 @@ namespace Kratos
             AssignPropertyBlock(material);
         }
 
-        KRATOS_INFO("::[Reading materials process DEBUG]::") << "Finished" << std::endl;
+        KRATOS_INFO("Read materials") << "Finished" << std::endl;
     }
 
-    void ReadMaterialProcess::AssignPropertyBlock(Parameters data)
+    void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     {
         // Get the properties for the specified model part.
         IndexType property_id = data["properties_id"].GetInt();
@@ -64,11 +64,11 @@ namespace Kratos
         //    KRATOS_INFO("::[Reading materials process DEBUG]::")
         //            << "Property " << property_id << " is not empty." << std::endl;
         if (prop->HasVariables())
-            KRATOS_INFO("::[Reading materials process DEBUG]::")
+            KRATOS_INFO("Read materials")
                 << "Property " << property_id << " already has variables." << std::endl;
         //if (len(data["Material"]["Tables"].keys()) > 0 && prop.HasTables())
         if (prop->HasTables())
-            KRATOS_INFO("::[Reading materials process DEBUG]::")
+            KRATOS_INFO("Read materials")
                 << "Property " << property_id << " already has tables." << std::endl;
 
         // Assign the properties to the model part's elements and conditions.
@@ -113,7 +113,8 @@ namespace Kratos
                 prop->SetValue(variable, value.GetMatrix());
             }
             else {
-                KRATOS_INFO("Type of value is not available")<< std::endl;
+                KRATOS_INFO("Read materials")
+                        << "Type of value is not available" << std::endl;
             }
         }
 

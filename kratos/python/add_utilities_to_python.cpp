@@ -34,6 +34,7 @@
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
+#include "utilities/read_materials_utility.hpp"
 
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
@@ -451,6 +452,11 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
     .def(init<>())
     .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
+    ;
+
+    // Read materials utility
+    class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
+    .def(init<ModelPart&, Parameters>())
     ;
 }
 

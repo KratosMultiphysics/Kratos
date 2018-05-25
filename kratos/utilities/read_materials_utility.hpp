@@ -48,17 +48,19 @@ namespace Kratos {
 /** This process reads constitutive law and material properties from a json file
  * and assign them to elements and conditions.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialProcess : public Process
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
 {
   public:
 
     ///@name Type Definitions
     ///@{
 
+    typedef std::size_t IndexType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ReadMaterialProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);
 
     //typedef std::size_t SizeType;
 
@@ -68,7 +70,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialProcess : public 
     ///@name Life Cycle
     ///@{
 
-    ReadMaterialProcess(ModelPart &rModelPart,
+    ReadMaterialsUtility(ModelPart &rModelPart,
                         Parameters parameters);
 
     ///@}
@@ -93,17 +95,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialProcess : public 
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override {
-        return "ReadMaterialProcess";
+    virtual std::string Info() const  {
+        return "ReadMaterialsUtility";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {
-        rOStream << "ReadMaterialProcess";
+    void PrintInfo(std::ostream& rOStream) const  {
+        rOStream << "ReadMaterialsUtility";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {
+    void PrintData(std::ostream& rOStream) const  {
     }
 
     ///@}
@@ -179,7 +181,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialProcess : public 
 
     ///@}
 
-}; // Class ReadMaterialProcess
+}; // Class ReadMaterialsUtility
 
 ///@}
 
