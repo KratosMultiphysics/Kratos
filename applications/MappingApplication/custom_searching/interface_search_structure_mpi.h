@@ -22,9 +22,8 @@
 
 // Project includes
 #include "interface_search_structure.h"
-// #include "interface_object_manager_parallel.h"
-#include "custom_utilities/mapper_utilities.h"
-#include "custom_utilities/mapper_utilities_mpi.h"
+// #include "custom_utilities/mapper_utilities.h"
+// #include "custom_utilities/mapper_utilities_mpi.h"
 
 
 namespace Kratos

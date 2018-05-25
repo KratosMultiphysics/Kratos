@@ -139,22 +139,23 @@ namespace Kratos
             InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
             std::vector<double> neighbor_distances(num_interface_obj_bin);
 
+            // This fails bcs the internal things are not properly initialized!
             //   Searching the neighbors
-            for (SizeType i = 0; i < mpInterfaceObjectsDestination->size(); ++i)
-            {
-                const auto interface_object_itr = mpInterfaceObjectsDestination->begin() + i;
-                double search_radius = mSearchRadius; // reset search radius
+            // for (SizeType i = 0; i < mpInterfaceObjectsDestination->size(); ++i)
+            // {
+            //     const auto interface_object_itr = mpInterfaceObjectsDestination->begin() + i;
+            //     double search_radius = mSearchRadius; // reset search radius
 
-                auto results_itr = neighbor_results.begin();
-                auto distance_itr = neighbor_distances.begin();
+            //     auto results_itr = neighbor_results.begin();
+            //     auto distance_itr = neighbor_distances.begin();
 
-                SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
-                                                    *interface_object_itr, search_radius, results_itr,
-                                                    distance_itr, num_interface_obj_bin);
+            //     SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
+            //                                         *interface_object_itr, search_radius, results_itr,
+            //                                         distance_itr, num_interface_obj_bin);
 
-                    for (SizeType j=0; j<number_of_results; ++j)
-                        (*mpMapperInterfaceInfos)[i]->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
-            }
+            //         for (SizeType j=0; j<number_of_results; ++j)
+            //             (*mpMapperInterfaceInfos)[i]->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
+            // }
         }
     }
 
