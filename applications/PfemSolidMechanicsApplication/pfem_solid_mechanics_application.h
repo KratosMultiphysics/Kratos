@@ -73,6 +73,7 @@
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/new_tresca_yield_criterion.hpp"
 
 //flow rule
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
@@ -91,7 +92,9 @@
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_3D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
+#include "custom_constitutive/new_hencky_tresca_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
+#include "custom_constitutive/new_hencky_tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
@@ -315,7 +318,9 @@ namespace Kratos
     const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
     const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
+    const NewHenckyTrescaPlasticAxisym2DLaw                              mNewHenckyTrescaPlasticAxisym2DLaw;
     const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
+    const NewHenckyTrescaPlasticPlaneStrain2DLaw                    mNewHenckyTrescaPlasticPlaneStrain2DLaw;
     const HenckyTresca3DLaw                                                              mHenckyTresca3DLaw;
 
     const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
@@ -332,6 +337,7 @@ namespace Kratos
 
     const J2YieldCriterion                   mJ2YieldCriterion;
     const TrescaYieldCriterion               mTrescaYieldCriterion;
+    const NewTrescaYieldCriterion            mNewTrescaYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
     const CamClayHardeningLaw       mCamClayHardeningLaw;

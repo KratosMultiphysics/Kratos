@@ -89,7 +89,9 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_axisym_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/new_hencky_tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/new_hencky_tresca_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.cpp
 
@@ -100,6 +102,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE
 	##yield criteria
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/J2_yield_criterion.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/new_tresca_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/tresca_yield_criterion.cpp
 
 	##flow rules
