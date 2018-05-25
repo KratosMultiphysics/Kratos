@@ -58,10 +58,55 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void MeshlessForceInterfaceCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	//void MeshlessForceInterfaceCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	//{
+	//	MatrixType temp(0, 0);
+	//	CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
+	//}
+
+	void MeshlessForceInterfaceCondition::CalculateRightHandSide(VectorType& rRightHandSideVector,
+		ProcessInfo& rCurrentProcessInfo)
 	{
-		MatrixType temp(0, 0);
-		CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
+		KRATOS_TRY
+			std::cout << "start MeshlessForceInterfaceCondition" << std::endl;
+		//Check(rCurrentProcessInfo);
+		const unsigned int number_of_points = GetGeometry().size();
+
+
+		if (rRightHandSideVector.size() != number_of_points * 3)
+			rRightHandSideVector.resize(number_of_points * 3, false);
+		rRightHandSideVector = ZeroVector(number_of_points * 3); //resetting RHS
+
+		std::cout << "here note" << std::endl;
+		const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
+		//Vector& force_vector = this->GetValue(EXTERNAL_FORCES_VECTOR);
+		Vector force_vector = ZeroVector(3);
+		force_vector(2) = 1000;
+		KRATOS_WATCH(N)
+		KRATOS_WATCH(force_vector)
+		Vector fLoads = ZeroVector(number_of_points * 3);
+
+		for (unsigned int i = 0; i < number_of_points; i++)
+		{
+			int index = 3 * i;
+			fLoads[index] -= force_vector[0] * N[i];
+			fLoads[index + 1] -= force_vector[1] * N[i];
+			fLoads[index + 2] -= force_vector[2] * N[i];
+		}
+		noalias(rRightHandSideVector) -= fLoads;
+		//force_vector(0) = 0;
+		//force_vector(1) = 0;
+		//force_vector(2) = 0;
+		//this->SetValue(EXTERNAL_FORCES_VECTOR, force_vector);
+		std::vector<Vector> coordinates;
+		GetValueOnIntegrationPoints(COORDINATES, coordinates, rCurrentProcessInfo);
+		KRATOS_WATCH(coordinates[0])
+			KRATOS_WATCH(rRightHandSideVector)
+			for (unsigned int i = 0; i < GetGeometry().size(); i++)
+			{
+				std::cout << GetGeometry()[i].Id() << std::endl;
+			}
+		KRATOS_CATCH("")
 	}
 
 	//************************************************************************************
@@ -74,8 +119,8 @@ namespace Kratos
 	void MeshlessForceInterfaceCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
-			std::cout << "start MeshlessForceInterfaceCondition" << std::endl;
-		Check(rCurrentProcessInfo);
+		std::cout << "start MeshlessForceInterfaceCondition" << std::endl;
+		//Check(rCurrentProcessInfo);
 		const unsigned int number_of_points = GetGeometry().size();
 
 		if (rLeftHandSideMatrix.size1() != number_of_points * 3)
@@ -86,8 +131,11 @@ namespace Kratos
 			rRightHandSideVector.resize(number_of_points * 3, false);
 		rRightHandSideVector = ZeroVector(number_of_points * 3); //resetting RHS
 
+		std::cout << "here note" << std::endl;
 		const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
-		const Vector& force_vector = this->GetValue(EXTERNAL_FORCES_VECTOR);
+		//Vector& force_vector = this->GetValue(EXTERNAL_FORCES_VECTOR);
+		Vector force_vector = ZeroVector(3);
+		force_vector(2) = 1000;
 		KRATOS_WATCH(N)
 		KRATOS_WATCH(force_vector)
 		Vector fLoads = ZeroVector(number_of_points * 3);
@@ -95,13 +143,23 @@ namespace Kratos
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{
 			int index = 3 * i;
-			fLoads[index]	  = - force_vector[0] * N[i];
-			fLoads[index + 1] = - force_vector[1] * N[i];
-			fLoads[index + 2] = - force_vector[2] * N[i];
+			fLoads[index]     -= force_vector[0] * N[i];
+			fLoads[index + 1] -= force_vector[1] * N[i];
+			fLoads[index + 2] -= force_vector[2] * N[i];
 		}
 		noalias(rRightHandSideVector) -= fLoads;
-
+		//force_vector(0) = 0;
+		//force_vector(1) = 0;
+		//force_vector(2) = 0;
+		//this->SetValue(EXTERNAL_FORCES_VECTOR, force_vector);
+		std::vector<Vector> coordinates;
+		GetValueOnIntegrationPoints(COORDINATES, coordinates, rCurrentProcessInfo);
+		KRATOS_WATCH(coordinates[0])
 		KRATOS_WATCH(rRightHandSideVector)
+		for (unsigned int i = 0; i < GetGeometry().size(); i++)
+		{
+			std::cout << GetGeometry()[i].Id() << std::endl;
+		}
 		KRATOS_CATCH("")
 	}
 	/***********************************************************************************/

@@ -9,11 +9,11 @@
         "material_id": 1,
         "constitutive_law": { "name": "LinearElasticPlaneStress2DLaw" },
         "Variables": {
-          "YOUNG_MODULUS": 200000,
+          "YOUNG_MODULUS": 200000000,
           "POISSON_RATIO": 0,
-          "YIELD_STRESS": 150000,
-          "DENSITY": 1,
-          "THICKNESS": 1
+          "YIELD_STRESS": 150000.0,
+          "DENSITY": 1000.0,
+          "THICKNESS": 1000.0
         },
         "Tables": { }
       }

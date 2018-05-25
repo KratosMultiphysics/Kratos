@@ -509,8 +509,8 @@ namespace Kratos
 		{
 			if (m_embedded_points[i].trim_index == rTrimIndex)
 			{
-				int u = m_embedded_points[i].local_coordinates[0];
-				int v = m_embedded_points[i].local_coordinates[1];
+				double u = m_embedded_points[i].local_coordinates[0];
+				double v = m_embedded_points[i].local_coordinates[1];
 
 				EvaluateIntegrationNode(u, v, rShapefunctionOrder, node);
 			}

@@ -566,6 +566,7 @@ namespace Kratos
 						std::cout << "number of conditions: " << rConditionModelPart.Conditions().size() << std::endl;
 						if (rConditionModelPart.Conditions().size()>0)
 							id = rConditionModelPart.GetRootModelPart().Conditions().back().Id() + 1;
+						rConditionModelPart.AddProperties(element->pGetProperties());
 
 						Condition::Pointer cond = rConditionModelPart.CreateNewCondition(condition_name, id, node_ids_int, element->pGetProperties());
 						Vector external_force_vector = ZeroVector(3);
@@ -574,6 +575,8 @@ namespace Kratos
 						cond->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
 						cond->SetValue(EXTERNAL_FORCES_VECTOR, external_force_vector);
 						
+						KRATOS_WATCH(cond->pGetProperties())
+
 						//element->GetValue(WALL_POINT_CONDITION_POINTERS).clear();
 						//element->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES).clear();
 						//element->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES).clear();

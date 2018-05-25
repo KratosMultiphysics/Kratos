@@ -118,6 +118,7 @@ void MeshlessShellElement::Initialize()
 {
 	KRATOS_TRY
 		KRATOS_WATCH("check here...")
+		KRATOS_ERROR << "ende gelande" << std::endl;
 	// Get values of shape functions and derivatives. Derivatives are first and sevon column: first dreivatives. Third, fourth and fith are second derivatives
 	double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 	Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
@@ -1066,52 +1067,49 @@ void MeshlessShellElement::CalculateMassMatrix(
 {
 	KRATOS_TRY;
 
-	//double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-	//Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
-	//Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+	double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+	Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+	Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
-	//double density = this->GetProperties().GetValue(DENSITY);
+	double density = this->GetProperties().GetValue(DENSITY);
 
-	//KRATOS_WATCH(DN_De)
 
-	//Vector g1, g2, g3;
+	Vector g1, g2, g3;
 
-	//Matrix J;
-	//Jacobian(DN_De, J);
-	//KRATOS_WATCH(J)
+	Matrix J;
+	Jacobian(DN_De, J);
 
-	//g1[0] = J(0, 0);
-	//g2[0] = J(0, 1);
-	//g1[1] = J(1, 0);
-	//g2[1] = J(1, 1);
-	//g1[2] = J(2, 0);
-	//g2[2] = J(2, 1);
+	g1[0] = J(0, 0);
+	g2[0] = J(0, 1);
+	g1[1] = J(1, 0);
+	g2[1] = J(1, 1);
+	g1[2] = J(2, 0);
+	g2[2] = J(2, 1);
 
-	//CrossProduct2(g3, g1, g2);
-	////differential area dA
-	//double dA = norm_2(g3);
-	//KRATOS_WATCH(dA)
+	CrossProduct2(g3, g1, g2);
+	//differential area dA
+	double dA = norm_2(g3);
+	KRATOS_WATCH(dA)
 
-	//unsigned int dimension = 3;
-	//unsigned int number_of_nodes = ShapeFunctionsN.size();
-	//unsigned int mat_size = dimension * number_of_nodes;
-	//
-	//if (rMassMatrix.size1() != mat_size)
-	//{
-	//	rMassMatrix.resize(mat_size, mat_size, false);
-	//}
-	//rMassMatrix = ZeroMatrix(mat_size, mat_size);
-	//KRATOS_WATCH(rMassMatrix)
-	//for (int r = 0; r<number_of_nodes; r++)
-	//{
-	//	for (int s = 0; s<number_of_nodes; s++)
-	//	{
-	//		rMassMatrix(3 * s, 3 * r) = ShapeFunctionsN(s)*ShapeFunctionsN(r) * density * dA * integration_weight;
-	//		rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
-	//		rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
-	//	}
-	//}
-	//KRATOS_WATCH(rMassMatrix)
+	unsigned int dimension = 3;
+	unsigned int number_of_nodes = ShapeFunctionsN.size();
+	unsigned int mat_size = dimension * number_of_nodes;
+	
+	if (rMassMatrix.size1() != mat_size)
+	{
+		rMassMatrix.resize(mat_size, mat_size, false);
+	}
+	rMassMatrix = ZeroMatrix(mat_size, mat_size);
+
+	for (int r = 0; r<number_of_nodes; r++)
+	{
+		for (int s = 0; s<number_of_nodes; s++)
+		{
+			rMassMatrix(3 * s, 3 * r) = ShapeFunctionsN(s)*ShapeFunctionsN(r) * density * dA * integration_weight;
+			rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
+			rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
+		}
+	}
 
 	KRATOS_CATCH("")
 }

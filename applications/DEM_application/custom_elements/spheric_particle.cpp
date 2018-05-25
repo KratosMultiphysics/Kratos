@@ -983,7 +983,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
     for (unsigned int i=0; i<list_of_point_condition_pointers.size(); i++) {
         Condition* wall = list_of_point_condition_pointers[i];
         /*Node<3>& cond_node = wall->GetGeometry()[0];*/
-
+		KRATOS_WATCH(wall->pGetProperties()->GetValue(FRICTION))
         double RelVel[3]                         = {0.0};
         double LocalElasticContactForce[3]       = {0.0};
         double GlobalElasticContactForce[3]      = {0.0};

@@ -123,6 +123,7 @@ namespace Kratos
 	)
 	{
 		KRATOS_TRY
+			KRATOS_ERROR << "end here." << std::endl;
 		KRATOS_WATCH("Something in calculate all")
 		std::cout << "here something..." << std::endl;
 		// definition of problem size

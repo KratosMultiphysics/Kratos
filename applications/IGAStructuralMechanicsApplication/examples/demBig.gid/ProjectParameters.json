@@ -4,7 +4,7 @@
     "model_part_name": "IGAModelPart",
     "domain_size": 5,
     "start_time": 0,
-    "end_time": 0.5,
+    "end_time": 2,
     "time_step": 2e-3
   },
   "Parameters": { "materials_filename": "materials.json" },
@@ -92,7 +92,7 @@
         "variables": [
           {
             "variable_name": "PENALTY_FACTOR",
-            "variable": 10000000000
+            "variable": 1000000000
           },
           {
             "variable_name": "DISPLACEMENT_ROTATION_FIX",
@@ -103,7 +103,7 @@
                 "z": true
               },
               "C1-Continuity": {
-                "t1": false,
+                "t1": true,
                 "t2": false
               }
             }
@@ -181,7 +181,7 @@
   ],
   "element_list": [
     {
-      "element_name": "MeshlessShellKLElement",
+      "element_name": "MeshlessShellElement",
       "cad_model_part": [ "IntegrationDomain.FACES.FACE_2" ],
       "iga_model_part": "STRUCTURAL_ANALYSIS_2",
       "parameters": {
