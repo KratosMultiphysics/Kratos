@@ -247,27 +247,26 @@ public:
                 eig_vector.erase(eig_vector.begin() + max_index);
             }
 
-            // Check the representativity of each eigenvalue and its value.
-            // If its value is close to zero or out of the representativity
-            // the correspondent data columns are dropped from both V and W.
-            const double abs_cut_off_tol = mAbsCutOff * eig_norm;
-            for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
-                if ((eig_vector_ordered[i_eig] / eig_sum) < mRelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
-                    // Drop the observation matrices last column
-                    this->DropLastDataColumn();
-                    // Update the number of columns
-                    --data_cols;
-                    // Recompute trans(V)*V
-                    aux2.resize(data_cols, data_cols);
-                    noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
-                }
+            const double max_eig_V = eig_vector_ordered[0];
+            const double min_eig_V = eig_vector_ordered[data_cols - 1];
+            if (min_eig_V < mAbsCutOff * max_eig_V){
+                KRATOS_WARNING("MVQNFullJacobianConvergenceAccelerator") 
+                    << "Dropping info for eigenvalue " << eig_vector_ordered[data_cols - 1] << " (tolerance " << mAbsCutOff * max_eig_V << " )" << std::endl;            
+                // Drop the observation matrices last column
+                this->DropLastDataColumn();
+                // Update the number of columns
+                --data_cols;
+                // Recompute trans(V)*V
+                aux2.resize(data_cols, data_cols);
+                noalias(aux2) = prod(trans(*mpObsMatrixV),*mpObsMatrixV);
             }
 
             // Perform the matrix inversion
             double det_aux2;
             MatrixType aux2inv(data_cols, data_cols);
             MathUtils<double>::InvertMatrix(aux2, aux2inv, det_aux2);
-            KRATOS_WARNING_IF("MVQNFullJacobianConvergenceAccelerator",det_aux2 < 1e-12) << "Inverted matrix determinant is close to be singular" << std::endl;
+            KRATOS_WARNING_IF("MVQNFullJacobianConvergenceAccelerator", std::pow(max_eig_V,2) / std::pow(min_eig_V,2) < std::pow(mAbsCutOff,2)) 
+                << "Inverted matrix determinant is close to be singular" << std::endl;
 
             // Compute the current inverse Jacobian approximation
             MatrixType aux1(mProblemSize, data_cols);

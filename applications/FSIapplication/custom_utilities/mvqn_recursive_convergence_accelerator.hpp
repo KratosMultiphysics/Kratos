@@ -278,14 +278,19 @@ public:
         // Check the representativity of each eigenvalue and its value.
         // If its value is close to zero or out of the representativity
         // the correspondent data columns are dropped from both V and W.
-        const double abs_cut_off_tol = AbsCutOff * eig_norm;
-        for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
-            if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
-                mJacobianObsMatrixV.pop_back();
-                mJacobianObsMatrixW.pop_back();
-                return false;
-            }
+        const double max_eig_V = eig_vector_ordered[0];
+        const double min_eig_V = eig_vector_ordered[data_cols - 1];
+        // const double abs_cut_off_tol = AbsCutOff * eig_norm;
+        // for (std::size_t i_eig = 0; i_eig < data_cols; ++i_eig){
+            // if ((eig_vector_ordered[i_eig] / eig_sum) < RelCutOff || eig_vector_ordered[i_eig] < abs_cut_off_tol){
+        if (min_eig_V < AbsCutOff * max_eig_V){
+            KRATOS_WARNING("MVQNRecursiveJacobianConvergenceAccelerator") 
+                << "Dropping info for eigenvalue " << eig_vector_ordered[data_cols - 1] << " (tolerance " << AbsCutOff * max_eig_V << " )" << std::endl;
+            mJacobianObsMatrixV.pop_back();
+            mJacobianObsMatrixW.pop_back();
+            return false;
         }
+        // }
 
         return true;
     }
