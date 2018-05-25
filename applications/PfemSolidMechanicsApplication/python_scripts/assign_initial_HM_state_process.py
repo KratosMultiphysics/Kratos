@@ -66,8 +66,6 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
 
-    def ExecuteInitializeSolutionStep(self):
-
         if ( self.executed == False ):
             self.ExecuteThisProcess()
             self.executed = True

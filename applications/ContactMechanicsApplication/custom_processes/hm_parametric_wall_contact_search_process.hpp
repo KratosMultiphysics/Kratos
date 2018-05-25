@@ -357,7 +357,7 @@ namespace Kratos
          {
             KRATOS_TRY
       
-            for(ModelPart::ConditionsContainerType::iterator i_cond =rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
+            for(ModelPart::ConditionsContainerType::iterator i_cond =rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); ++i_cond)
             {
                if( i_cond->Is(CONTACT) && i_cond->GetGeometry().size() == 1 ){
                   if( i_cond->GetGeometry()[0].Id() == pPoint->Id() ){

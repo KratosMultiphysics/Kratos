@@ -256,7 +256,7 @@ namespace Kratos
 
          Matrix Q = ZeroMatrix( number_of_nodes, dimension*number_of_nodes);
          unsigned int voigtSize = 3;
-         if ( dimension == 3) voigtSize = 6;
+
          Matrix m = ZeroMatrix( 1, voigtSize);
          for ( unsigned int i = 0; i < dimension; i++)
             m(0,i) = 1.0;

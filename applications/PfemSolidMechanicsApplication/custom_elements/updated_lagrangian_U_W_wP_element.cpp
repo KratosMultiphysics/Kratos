@@ -402,7 +402,7 @@ namespace Kratos
          initial_porosity = GetProperties()[INITIAL_POROSITY];
       }
       else if( rCurrentProcessInfo.Has(INITIAL_POROSITY) ){
-         KozenyCarman = rCurrentProcessInfo[INITIAL_POROSITY];
+         initial_porosity = rCurrentProcessInfo[INITIAL_POROSITY];
       }
       GetProperties().SetValue(INITIAL_POROSITY, initial_porosity);
 
