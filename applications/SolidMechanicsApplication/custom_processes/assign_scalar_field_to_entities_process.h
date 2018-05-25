@@ -138,11 +138,7 @@ public:
           {
             KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
           }
-          else
-          {
-            KRATOS_ERROR << "Not able to set the variable type/name. Attempting to set variable:" << mvariable_name << std::endl;
-          }
-
+        
         }
         else{
           KRATOS_ERROR << " Assignment to " << mEntity << " not implemented "<< std::endl;
