@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
-import KratosMultiphysics.ContactStructuralMechanicsApplication as CSM
+import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Importing the solvers (if available)
 try:
@@ -106,6 +106,7 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
                 self.InitializeSolutionStep()
                 self.solver.Predict()
                 self.solver.SolveSolutionStep()
+                self._transfer_slave_to_master()
                 self.FinalizeSolutionStep()
                 self.OutputSolutionStep()
         else: # Remeshing adaptively
@@ -143,6 +144,7 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
                     is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self.solver.SolveSolutionStep()
                     is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
+                    self._transfer_slave_to_master()
                     self.FinalizeSolutionStep()
                     if (is_converged):
                         self.is_printing_rank = True
@@ -225,6 +227,54 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
         self.solver.AddProcessesList(self.list_of_processes)
         if (self.have_output is True):
             self.solver.AddPostProcess(self.output)
+
+    def _transfer_slave_to_master(self):
+        """ This method to transfer information from the slave side to the master side
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        computing_model_part = self.solver.GetComputingModelPart()
+        map_parameters = KM.Parameters("""
+        {
+            "echo_level"                       : 0,
+            "absolute_convergence_tolerance"   : 1.0e-9,
+            "relative_convergence_tolerance"   : 1.0e-4,
+            "max_number_iterations"            : 10,
+            "integration_order"                : 2
+        }
+        """)
+
+        interface_model_part = computing_model_part.GetSubModelPart("Contact")
+        self.main_model_part.RemoveSubModelPart("ComputingContact")
+
+        if (interface_model_part.HasSubModelPart("SlaveSubModelPart")):
+            slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
+        else:
+            slave_interface_model_part = interface_model_part.CreateSubModelPart("SlaveSubModelPart")
+            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.SLAVE)
+            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.SLAVE)
+        if (interface_model_part.HasSubModelPart("MasterSubModelPart")):
+            master_interface_model_part = interface_model_part.GetSubModelPart("MasterSubModelPart")
+        else:
+            master_interface_model_part = interface_model_part.CreateSubModelPart("MasterSubModelPart")
+            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.MASTER)
+            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.MASTER)
+
+        if (computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
+            mortar_mapping = KM.SimpleMortarMapperProcess2D2NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+        else:
+            number_nodes = len(computing_model_part["Contact"].Conditions[1].GetNodes())
+            if (number_nodes == 3):
+                mortar_mapping = KM.SimpleMortarMapperProcess3D3NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+            else:
+                mortar_mapping = KM.SimpleMortarMapperProcess3D4NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+
+        mortar_mapping.Execute()
+
+        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to CONTACT_PRESSURE
+        KM.VariableUtils().SaveScalarNonHistoricalVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, KM.CONTACT_PRESSURE, interface_model_part.Nodes)
 
 if __name__ == "__main__":
     from sys import argv

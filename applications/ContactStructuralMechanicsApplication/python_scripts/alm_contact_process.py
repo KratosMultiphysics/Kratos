@@ -67,7 +67,6 @@ class ALMContactProcess(python_process.PythonProcess):
             "frictional_law"              : "Coulomb",
             "tangent_factor"              : 0.1,
             "integration_order"           : 2,
-            "remeshing_with_contact_bc"   : false,
             "search_parameters" : {
                 "type_search"                 : "in_radius",
                 "search_factor"               : 3.5,
@@ -254,9 +253,9 @@ class ALMContactProcess(python_process.PythonProcess):
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
         if(self.interval.IsInInterval(current_time)):
             self.database_step += 1
-            self.global_step = self.main_model_part.ProcessInfo[KM.STEP]
+            global_step = self.main_model_part.ProcessInfo[KM.STEP]
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (self.database_step >= database_step_update or self.global_step == 1):
+            if (self.database_step >= database_step_update or global_step == 1):
                 # We solve one linear step with a linear strategy if needed
                 # Clear current pairs
                 self.contact_search.ClearMortarConditions()
@@ -266,7 +265,7 @@ class ALMContactProcess(python_process.PythonProcess):
 
                 # Debug
                 if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
-                    self._debug_output(self.global_step, "")
+                    self._debug_output(global_step, "")
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -274,10 +273,7 @@ class ALMContactProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        current_time = self.main_model_part.ProcessInfo[KM.TIME]
-        if(self.interval.IsInInterval(current_time)):
-            if (self.settings["remeshing_with_contact_bc"].GetBool() is True):
-                self._transfer_slave_to_master()
+        pass
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -294,12 +290,14 @@ class ALMContactProcess(python_process.PythonProcess):
         self -- It signifies an instance of a class.
         """
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
+        global_step = self.main_model_part.ProcessInfo[KM.STEP]
         if(self.interval.IsInInterval(current_time)):
             modified = self.main_model_part.Is(KM.MODIFIED)
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (modified is False and (self.database_step >= database_step_update or self.global_step == 1)):
+            if (modified is False and (self.database_step >= database_step_update or global_step == 1)):
                 self.contact_search.ClearMortarConditions()
                 self.database_step = 0
+
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -475,72 +473,6 @@ class ALMContactProcess(python_process.PythonProcess):
                 self.contact_search = CSMA.TreeContactSearch3D3N(computing_model_part, search_parameters)
             else:
                 self.contact_search = CSMA.TreeContactSearch3D4N(computing_model_part, search_parameters)
-
-    def _transfer_slave_to_master(self):
-        """ This method to transfer information from the slave side to the master side
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        # We compute the number of nodes of the geometry
-        num_nodes = len(self.contact_model_part.Conditions[1].GetNodes())
-
-        # We use the search utility
-        self._reset_search()
-        self.contact_search.UpdateMortarConditions()
-        #self.contact_search.CheckMortarConditions()
-
-        map_parameters = KM.Parameters("""
-        {
-            "echo_level"                       : 0,
-            "absolute_convergence_tolerance"   : 1.0e-9,
-            "relative_convergence_tolerance"   : 1.0e-4,
-            "max_number_iterations"            : 10,
-            "integration_order"                : 2
-        }
-        """)
-
-        computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-        interface_model_part = computing_model_part.GetSubModelPart("Contact")
-        if (interface_model_part.HasSubModelPart("SlaveSubModelPart")):
-            slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
-        else:
-            slave_interface_model_part = interface_model_part.CreateSubModelPart("SlaveSubModelPart")
-            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.SLAVE)
-            KM.FastTransferBetweenModelPartsProcess(slave_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.SLAVE)
-        if (interface_model_part.HasSubModelPart("MasterSubModelPart")):
-            master_interface_model_part = interface_model_part.GetSubModelPart("MasterSubModelPart")
-        else:
-            master_interface_model_part = interface_model_part.CreateSubModelPart("MasterSubModelPart")
-            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODES, KM.MASTER)
-            KM.FastTransferBetweenModelPartsProcess(master_interface_model_part, interface_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS, KM.MASTER)
-        if (self.dimension == 2):
-            mortar_mapping = KM.SimpleMortarMapperProcess2D2NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
-        else:
-            if (num_nodes == 3):
-                mortar_mapping = KM.SimpleMortarMapperProcess3D3NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
-            else:
-                mortar_mapping = KM.SimpleMortarMapperProcess3D4NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
-
-        mortar_mapping.Execute()
-
-        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to CONTACT_PRESSURE
-        KM.VariableUtils().SaveScalarNonHistoricalVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, KM.CONTACT_PRESSURE, interface_model_part.Nodes)
-
-        self._reset_search()
-
-    def _reset_search(self):
-        """ It resets the search process.
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-
-        self.contact_search.InvertSearch()
-        self.contact_search.ResetContactOperators()
-        self.contact_search.CreatePointListMortar()
-        self.contact_search.InitializeMortarConditions()
 
     def __get_enum_flag(self, param, label, dictionary):
         """ Parse enums settings using an auxiliary dictionary of acceptable values.
