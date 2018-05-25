@@ -328,12 +328,12 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 
 #define KRATOS_VERSION_AS_INT (KRATOS_MAJOR_VERSION*100+KRATOS_MINOR_VERSION*10+KRATOS_PATCH_VERSION)
-#if (major_version*100+minor_version*10+patch_version) < KRATOS_VERSION_AS_INT
-    #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) "This method will be deprecated in version: "##minor_version##"."##minor_version##"."##patch_version## KRATOS_DEPRECATED_MESSAGE(message)
-    #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE("")
+#if (major_version*100+minor_version*10+patch_version) > KRATOS_VERSION_AS_INT
+#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) "This method will be deprecated in version: " major_version "."  minor_version "." patch_version KRATOS_DEPRECATED_MESSAGE(message);
+#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE("", major_version, minor_version, patch_version)
 #else
-    #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) message KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version)
-    #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) "This method is deprecated since version: "##minor_version##"."##minor_version##"."##patch_version## static_assert(false, "Please remove");
+#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) message "This method is deprecated since version: " major_version "." minor_version "." patch_version static_assert(false, "Please remove");
+#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE("", major_version, minor_version, patch_version)
 #endif
 
 namespace Kratos
