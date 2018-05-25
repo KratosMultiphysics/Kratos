@@ -422,7 +422,7 @@ public:
      */
     double DomainSize() const override
     {
-        return std::abs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
     
     /**
@@ -965,7 +965,7 @@ public:
         //getting the inverse jacobian matrices
         JacobiansType temp( integration_points_number );
 
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
+        JacobiansType invJ = this->InverseOfJacobian( temp, ThisMethod );
 
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
