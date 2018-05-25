@@ -29,7 +29,6 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "includes/constitutive_law.h"
 #include "utilities/indexed_object.h"
 #include "containers/flags.h"
 
@@ -880,11 +879,6 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {}
 
-    virtual void SetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-					     std::vector<ConstitutiveLaw::Pointer>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {}
-
     //GET ON INTEGRATION POINTS METHODS
 
     virtual void GetValuesOnIntegrationPoints(const Variable<int>& rVariable,
@@ -905,7 +899,6 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
 
     virtual void GetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					     std::vector<array_1d<double, 6 > >& rValues,
@@ -913,13 +906,11 @@ public:
     {
     }
 
-
     virtual void GetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
 					     std::vector<Vector>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
 
     virtual void GetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable,
 					     std::vector<Matrix>& rValues,
@@ -927,12 +918,6 @@ public:
     {
     }
 
-
-    virtual void GetValuesOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-					     std::vector<ConstitutiveLaw::Pointer>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
 
     /**
      * This method provides the place to perform checks on the completeness of the input
