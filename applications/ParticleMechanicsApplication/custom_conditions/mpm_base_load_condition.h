@@ -8,6 +8,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/condition.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
