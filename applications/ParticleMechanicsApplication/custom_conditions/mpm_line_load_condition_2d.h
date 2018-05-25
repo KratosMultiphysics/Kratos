@@ -37,7 +37,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION)  LineLoadCondition2D
+class LineLoadCondition2D
     : public BaseLoadCondition
 {
 public:

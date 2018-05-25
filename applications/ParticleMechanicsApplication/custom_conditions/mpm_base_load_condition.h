@@ -32,7 +32,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
     
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION)  BaseLoadCondition
+class BaseLoadCondition
     : public Condition
 {
 public:

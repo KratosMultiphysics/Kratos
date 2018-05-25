@@ -31,7 +31,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(PARTICLE_MECHANICS_APPLICATION)  SurfaceLoadCondition3D
+class SurfaceLoadCondition3D
     : public BaseLoadCondition
 {
 public:
