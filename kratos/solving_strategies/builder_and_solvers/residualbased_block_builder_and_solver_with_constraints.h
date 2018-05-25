@@ -310,8 +310,9 @@ public:
         KRATOS_TRY
 
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         #pragma omp for  schedule(guided, 512)
-        for (int k = 0; k < nconditions; k++)
+        for (int k = 0; k < n_constraints; k++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + k;
             it->InitializeSolutionStep(); //TODO: Here each constraint constructs and stores its T and C matrices. Also its equation ids.
@@ -331,8 +332,9 @@ public:
         TSystemVectorType& b) override
     {
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         #pragma omp for  schedule(guided, 512)
-        for (int k = 0; k < nconditions; k++)
+        for (int k = 0; k < n_constraints; k++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + k;
             it->FinalizeSolutionStep();

@@ -102,7 +102,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     /**
      * this is called in the beginning of each solution step
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    virtual void InitializeSolutionStep()
     {
     }
 
@@ -110,21 +110,21 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    virtual void InitializeNonLinearIteration()
     {
     }
 
     /**
      * this is called for non-linear analysis at the end of the iteration process
      */
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    virtual void FinalizeNonLinearIteration()
     {
     }
 
     /**
      * this is called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    virtual void FinalizeSolutionStep()
     {
     }
 

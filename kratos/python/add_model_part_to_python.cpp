@@ -436,6 +436,56 @@ void ModelPartRemoveConditionFromAllLevels4(ModelPart& rModelPart, ModelPart::Co
 	rModelPart.RemoveConditionFromAllLevels(pThisCondition, ThisIndex);
 }
 
+// Master slave constraints
+
+ModelPart::MasterSlaveConstraintContainerType::Pointer ModelPartGetMasterSlaveConstraints1(ModelPart& rModelPart)
+{
+    return rModelPart.pGetMasterSlaveConstraints();
+}
+
+void ModelPartSetMasterSlaveConstraints1(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
+{
+    rModelPart.SetMasterSlaveConstraints(pOtherMasterSlaveConstraints);
+}
+
+ModelPart::SizeType ModelPartNumberOfMasterSlaveConstraints1(ModelPart& rModelPart)
+{
+	return rModelPart.NumberOfMasterSlaveConstraints();
+}
+
+ModelPart::MasterSlaveConstraintType::Pointer ModelPartGetMasterSlaveConstraint1(ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId)
+{
+    return rModelPart.pGetMasterSlaveConstraint(MasterSlaveConstraintId);
+}
+
+void ModelPartRemoveMasterSlaveConstraint1(ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId)
+{
+	rModelPart.RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
+}
+
+void ModelPartRemoveMasterSlaveConstraint2(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType::Pointer pOtherMasterSlaveConstraint)
+{
+	rModelPart.RemoveMasterSlaveConstraint(pOtherMasterSlaveConstraint);
+}
+
+void ModelPartRemoveMasterSlaveConstraintFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId)
+{
+	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintId);
+}
+
+void ModelPartRemoveMasterSlaveConstraintFromAllLevels2(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType::Pointer pOtherMasterSlaveConstraint)
+{
+	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(pOtherMasterSlaveConstraint);
+}
+
+void ModelPartRemoveMasterSlaveConstraintFromAllLevels2(ModelPart& rModelPart, Flags identifier_flag)
+{
+	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(identifier_flag);
+}
+
+
+// Communicator
+
 ModelPart::MeshType& CommunicatorGetLocalMesh(Communicator& rCommunicator)
 {
     return rCommunicator.LocalMesh();
@@ -555,6 +605,8 @@ TDataType CommunicatorScanSum(Communicator& rCommunicator, const TDataType rSend
     rCommunicator.ScanSum(SendPartial, ReceiveAccumulated);
     return ReceiveAccumulated;
 }
+
+
 
 
 void AddModelPartToPython(pybind11::module& m)
@@ -741,6 +793,24 @@ void AddModelPartToPython(pybind11::module& m)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },  
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; }) 
  		.def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
+
+		.def_property("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1, ModelPartSetMasterSlaveConstraints1)
+		.def("GetMasterSlaveConstraint", ModelPartGetElement1)
+		.def("GetMasterSlaveConstraint", ModelPartGetElement2)
+		.def("GetMasterSlaveConstraints", ModelPartGetElements1)
+		.def("SetMasterSlaveConstraints", ModelPartSetElements1)
+		.def("GetMasterSlaveConstraints", ModelPartGetElements2)
+		.def("SetMasterSlaveConstraints", ModelPartSetElements2)
+		.def("RemoveMasterSlaveConstraint", ModelPartRemoveElement1)
+		.def("RemoveMasterSlaveConstraint", ModelPartRemoveElement2)
+		.def("RemoveMasterSlaveConstraint", ModelPartRemoveElement3)
+		.def("RemoveMasterSlaveConstraint", ModelPartRemoveElement4)
+        .def("RemoveMasterSlaveConstraints", &ModelPart::RemoveElements)
+		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveElementFromAllLevels1)
+		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveElementFromAllLevels2)
+		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveElementFromAllLevels3)
+		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveElementFromAllLevels4)
+        .def("RemoveRemoveMasterSlaveConstraintsFromAllLevels", ModelPartRemoveElementsFromAllLevels)
 		;
 }
 
