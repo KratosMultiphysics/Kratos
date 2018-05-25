@@ -24,9 +24,6 @@ namespace Kratos
    */
   KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_RHS_VECTOR,                 0 );
   KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_LHS_MATRIX,                 1 );
-  KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-  KRATOS_CREATE_LOCAL_FLAG( BoundaryCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
-
 
   //***********************************************************************************
   //***********************************************************************************
@@ -96,18 +93,39 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   
-  bool BoundaryCondition::HasRotationDofs()
+  bool BoundaryCondition::HasVariableDof(VariableVectorType& rVariable)
   {
     KRATOS_TRY
+     
+    typedef VectorComponentAdaptor<array_1d<double,3> >  VectorComponentType;
+    const VariableComponent<VectorComponentType>& var_x  = KratosComponents<VariableComponent<VectorComponentType> >::Get(rVariable.Name()+"_X");
 
     //usually if the dofs do not exist condition adds them, standard conditions do not work like this  
-    if( GetGeometry()[0].HasDofFor(ROTATION_Z) == true )
+    if( GetGeometry()[0].HasDofFor(var_x) == true )
       return true;
 
     return false;      
     
     KRATOS_CATCH( "" )
   }
+
+
+  //************************************************************************************
+  //************************************************************************************
+  
+  bool BoundaryCondition::HasVariableDof(VariableScalarType& rVariable)
+  {
+    KRATOS_TRY
+        
+    //usually if the dofs do not exist condition adds them, standard conditions do not work like this  
+    if( GetGeometry()[0].HasDofFor(rVariable) == true )
+      return true;
+
+    return false;      
+    
+    KRATOS_CATCH( "" )
+  }
+  
   
   //************************************************************************************
   //************************************************************************************
@@ -121,7 +139,7 @@ namespace Kratos
 
     unsigned int size = number_of_nodes * dimension;
 	
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
       if(dimension == 2){
 	size += number_of_nodes;
       }
@@ -149,13 +167,20 @@ namespace Kratos
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	if( dimension == 3 )
-	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-
-
-	if( HasRotationDofs() ){
+        if( HasVariableDof(DISPLACEMENT) ){
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+          if( dimension == 3 )
+            rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        }
+        else if( HasVariableDof(VELOCITY) ){
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
+          if( dimension == 3 )
+            rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
+        }
+        
+	if( HasVariableDof(ROTATION) ){
 	  if( dimension == 2 ){
 	    rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	  }
@@ -189,7 +214,7 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) && HasVariableDof(DISPLACEMENT) ){
       if( dimension == 2 ){
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {	
@@ -213,7 +238,7 @@ namespace Kratos
 	  }
       }
     }
-    else{
+    else if( HasVariableDof(DISPLACEMENT) ){
 
       for (unsigned int i = 0; i < number_of_nodes; i++)
 	{
@@ -224,7 +249,18 @@ namespace Kratos
 	    rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
 	}
     }
+    else if( HasVariableDof(VELOCITY) ){
 
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
+	  index = i * dimension;
+	  rResult[index]     = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+	  rResult[index + 1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+	  if( dimension == 3)
+	    rResult[index + 2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
+	}
+    }
+    
     KRATOS_CATCH( "" )
   }
 
@@ -245,7 +281,7 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -304,7 +340,7 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -364,7 +400,7 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
       
@@ -429,7 +465,7 @@ namespace Kratos
 	  GetGeometry()[i].UnSetLock();
 	}
 	
-	if( HasRotationDofs() ){
+	if( HasVariableDof(ROTATION) ){
 
 	  if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_MOMENT) && GetGeometry()[i].SolutionStepsDataHas(MOMENT_RESIDUAL) ){
 	  
@@ -502,7 +538,7 @@ namespace Kratos
       }
 
 
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_MOMENT )
 	{
@@ -710,39 +746,14 @@ namespace Kratos
   void BoundaryCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
 
-    //contributions of the stiffness matrix calculated on the reference configuration
-    if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
-      {
-	std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
-	const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
+    //contributions of the stiffness matrix calculated on the reference configuration   
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
 
-	for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
-	  {
-	    bool calculated = false;
-	  
-	    if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
-	      // operation performed: add Kg to the rLefsHandSideMatrix
-	      this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
-	      calculated = true;
-	    }
-
-	    if(calculated == false)
-	      {
-		KRATOS_ERROR << "CONDITION can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
-	      }
-
-	  }
-      } 
-    else{
+    // operation performed: add Kg to the rLefsHandSideMatrix
+    this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
     
-      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
-
-      // operation performed: add Kg to the rLefsHandSideMatrix
-      this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-      //KRATOS_WATCH( rLeftHandSideMatrix )
-    }
-
+    //KRATOS_WATCH( rLeftHandSideMatrix )
+    
   }
 
 
@@ -752,44 +763,13 @@ namespace Kratos
   void BoundaryCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     //contribution of the internal and external forces
-    if( rLocalSystem.CalculationFlags.Is( BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
-      {
+       
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
 
-	std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
-	const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
-	for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
-	  {
-	    bool calculated = false;
-	    if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ){
-	      // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-	      this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
-	      calculated = true;
-	    }
-
-	    if( rRightHandSideVariables[i] == CONTACT_FORCES_VECTOR ){
-	      // operation performed: rRightHandSideVector += ContactForce*IntToReferenceWeight
-	      rRightHandSideVectors[i] += ZeroVector( rRightHandSideVectors[i].size() );
-	      calculated = true;
-	    }
-	  
-	    if(calculated == false)
-	      {
-		KRATOS_ERROR << "CONDITION can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
-	      }
-
-	  }
-      }
-    else{
-      
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
-
-      // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
-
-      //std::cout<<" rRightHandSideVectorPart "<<rRightHandSideVector<<std::endl;
-
-    }
+    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
     
+    //std::cout<<" rRightHandSideVectorPart "<<rRightHandSideVector<<std::endl;   
 
   }
 
@@ -846,42 +826,6 @@ namespace Kratos
 
   }
 
-  //************************************************************************************
-  //************************************************************************************
-
-  void BoundaryCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
-  {
-    //create local system components
-    LocalSystemComponents LocalSystem;
-
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType LeftHandSideMatrix = Matrix();
-
-    //Initialize sizes for the system components:
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-      rRightHandSideVectors.resize(rRHSVariables.size());
-    
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-      {
-	this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
-      }
-
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
-
-    //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
-
-
-  }
-
-
 
   //************************************************************************************
   //************************************************************************************
@@ -901,61 +845,6 @@ namespace Kratos
     //Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-    //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
-
-  }
-
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void BoundaryCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
-						const std::vector< Variable< MatrixType > >& rLHSVariables,
-						std::vector< VectorType >& rRightHandSideVectors,
-						const std::vector< Variable< VectorType > >& rRHSVariables,
-						ProcessInfo& rCurrentProcessInfo )
-  {
-    //create local system components
-    LocalSystemComponents LocalSystem;
-
-    //calculation flags
-    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
-    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-
-    //Initialize sizes for the system components:
-    if( rLHSVariables.size() != rLeftHandSideMatrices.size() )
-      rLeftHandSideMatrices.resize(rLHSVariables.size());
-
-    if( rRHSVariables.size() != rRightHandSideVectors.size() )
-      rRightHandSideVectors.resize(rRHSVariables.size());
-    
-    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX);
-    for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
-      {
-	//Note: rRightHandSideVectors.size() > 0
-	this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
-      }
-
-    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_RHS_VECTOR);
-    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX,false);
-
-    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
-      {
-	//Note: rLeftHandSideMatrices.size() > 0
-    	this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
-      }
-    LocalSystem.CalculationFlags.Set(BoundaryCondition::COMPUTE_LHS_MATRIX,true);
-
-
-    //Set Variables to Local system components
-    LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
-    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
-
-    LocalSystem.SetLeftHandSideVariables(rLHSVariables);
-    LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
     //Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );

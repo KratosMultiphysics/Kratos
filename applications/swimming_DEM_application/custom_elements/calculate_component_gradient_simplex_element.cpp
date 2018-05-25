@@ -36,17 +36,17 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::EquationIdVector(Equation
 
     const unsigned int LocalSize(TDim * TNumNodes);
     unsigned int LocalIndex = 0;
-    unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_Z_GRADIENT_X);
+    unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_COMPONENT_GRADIENT_X);
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
     {
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z_GRADIENT_X,pos).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z_GRADIENT_Y,pos+1).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_X,pos).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Y,pos+1).EquationId();
         if (TDim == 3){
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z_GRADIENT_Z,pos+2).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Z,pos+2).EquationId();
         }
     }
 }
@@ -64,10 +64,10 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType
 
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
     {
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z_GRADIENT_X);
-        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z_GRADIENT_Y);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_X);
+        rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_Y);
         if (TDim == 3){
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z_GRADIENT_Z);
+            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_Z);
         }
     }
 }
@@ -84,17 +84,17 @@ int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& r
     if(this->GetGeometry().size() != TDim+1)
         KRATOS_THROW_ERROR(std::invalid_argument,"wrong number of nodes for element",this->Id());
 
-    if(VELOCITY_Z_GRADIENT.Key() == 0)
+    if(VELOCITY_COMPONENT_GRADIENT.Key() == 0)
 
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_Z_GRADIENT Key is 0. Check if the application was correctly registered.","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY_COMPONENT_GRADIENT Key is 0. Check if the application was correctly registered.","");
 
     // Checks on nodes
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i < this->GetGeometry().size(); ++i)
     {
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_Z_GRADIENT) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_Z_GRADIENT variable on solution step data for node ",this->GetGeometry()[i].Id());
+        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_COMPONENT_GRADIENT) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY_COMPONENT_GRADIENT variable on solution step data for node ",this->GetGeometry()[i].Id());
     }
     return 0;
 
@@ -104,7 +104,7 @@ int ComputeComponentGradientSimplex<TDim, TNumNodes>::Check(const ProcessInfo& r
 template <unsigned int TDim, unsigned int TNumNodes>
 void ComputeComponentGradientSimplex<TDim, TNumNodes>::AddIntegrationPointRHSContribution(VectorType& F,
                              const array_1d<double, TNumNodes>& rShapeFunc,
-                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
+                             const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                              const double Weight)
 {
     double Coef = Weight;

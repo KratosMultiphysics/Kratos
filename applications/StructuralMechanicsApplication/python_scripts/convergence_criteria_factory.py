@@ -24,7 +24,7 @@ class convergence_criterion:
         convergence_crit = convergence_criterion_parameters["convergence_criterion"].GetString()
         
         if(echo_level >= 1):
-            print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", 
+            KratosMultiphysics.Logger.PrintInfo("::[Mechanical Solver]:: ", "CONVERGENCE CRITERION : " + 
                   convergence_criterion_parameters["convergence_criterion"].GetString())
 
         rotation_dofs = False

@@ -18,7 +18,7 @@
 #include <algorithm>
 
 // External includes
-#include <boost/smart_ptr.hpp>
+#include <memory>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/zero_copy.hpp>
 #include <amgcl/value_type/complex.hpp>
@@ -52,9 +52,9 @@ public:
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
     typedef typename TSparseSpaceType::DataType DataType;
-    
+
     typedef typename amgcl::backend::builtin<DataType>::matrix BuiltinMatrixType;
-    
+
     typedef amgcl::solver::skyline_lu<DataType> SolverType;
 
     SkylineLUCustomScalarSolver()
@@ -82,10 +82,10 @@ public:
                 rA.index2_data().begin(),
                 rA.value_data().begin());
 
-        pSolver = boost::make_shared<SolverType>(*pBuiltinMatrix);
+        pSolver = Kratos::make_shared<SolverType>(*pBuiltinMatrix);
     }
 
-    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         std::vector<DataType> x(rX.size());
         std::vector<DataType> b(rB.size());
@@ -95,6 +95,13 @@ public:
         (*pSolver)(b, x);
 
         std::copy(std::begin(x), std::end(x), std::begin(rX));
+    }
+
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    {
+        InitializeSolutionStep(rA, rX, rB);
+        PerformSolutionStep(rA, rX, rB);
+        FinalizeSolutionStep(rA, rX, rB);
 
         return true;
     }
@@ -117,9 +124,9 @@ public:
 
 private:
 
-    boost::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
+    Kratos::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
 
-    boost::shared_ptr<SolverType> pSolver;
+    Kratos::shared_ptr<SolverType> pSolver;
 };
 
 ///@}

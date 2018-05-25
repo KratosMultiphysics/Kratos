@@ -170,8 +170,6 @@ if ProjectParameters.SolverType == "FractionalStep":
         velocity_linear_solver = SkylineLUFactorizationSolver()
     elif ProjectParameters.Velocity_Linear_Solver == "Super LU":
         velocity_linear_solver = SuperLUSolver()
-    elif ProjectParameters.Velocity_Linear_Solver == "Parallel MKL Pardiso":
-        velocity_linear_solver = ParallelMKLPardisoSolver()
 
     # Pressure preconditioner
     try:
@@ -204,8 +202,6 @@ if ProjectParameters.SolverType == "FractionalStep":
         pressure_linear_solver = SkylineLUFactorizationSolver()
     elif ProjectParameters.Pressure_Linear_Solver == "Super LU":
         pressure_linear_solver = SuperLUSolver()
-    elif ProjectParameters.Pressure_Linear_Solver == "Parallel MKL Pardiso":
-        pressure_linear_solver = ParallelMKLPardisoSolver()
         
 elif ProjectParameters.SolverType == "monolithic_solver_eulerian":  # single coupled solver
     # preconditioner
@@ -239,8 +235,6 @@ elif ProjectParameters.SolverType == "monolithic_solver_eulerian":  # single cou
         monolithic_linear_solver = SkylineLUFactorizationSolver()
     elif ProjectParameters.Monolithic_Linear_Solver == "Super LU":
         monolithic_linear_solver = SuperLUSolver()
-    elif ProjectParameters.Monolithic_Linear_Solver == "Parallel MKL Pardiso":
-        monolithic_linear_solver = ParallelMKLPardisoSolver()
 
 dynamic_tau = ProjectParameters.use_dt_in_stabilization
 oss_switch = ProjectParameters.use_orthogonal_subscales

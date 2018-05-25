@@ -1,14 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-## Import kratos core and applications
-import KratosMultiphysics
 
-## MPI
+# Importing the Kratos Library
+import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("MetisApplication","TrilinosApplication")
+
+# Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
-## Check that KratosMultiphysics was imported
-KratosMultiphysics.CheckForPreviousImport()
 
 class TrilinosImportModelPartUtility():
 
@@ -37,16 +39,16 @@ class TrilinosImportModelPartUtility():
                 # Partition of the original .mdpa file
                 number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
                 domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-                verbosity = 1
+                verbosity = self.settings["echo_level"].GetInt()
                 sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of
                 partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                 partitioner.Execute()
 
-                print("Metis divide finished.")
+                KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
 
             else:
                 if (KratosMPI.mpi.rank == 0):
-                    print("Metis partitioning not executed.")
+                    KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis partitioning not executed.")
 
             KratosMPI.mpi.world.barrier()
 
@@ -69,4 +71,4 @@ class TrilinosImportModelPartUtility():
         ParallelFillCommunicator.Execute()
 
         if KratosMPI.mpi.rank == 0 :
-            print("MPI communicators constructed.")
+            KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "MPI communicators constructed.")

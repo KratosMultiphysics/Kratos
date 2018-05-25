@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_SOLID_MECHANICS_MATH_UTILITIES)
-#define KRATOS_SOLID_MECHANICS_MATH_UTILITIES
+#if !defined(KRATOS_SOLID_MECHANICS_MATH_UTILITIES_H_INCLUDED)
+#define KRATOS_SOLID_MECHANICS_MATH_UTILITIES_H_INCLUDED
 
 
 #ifdef FIND_MAX
@@ -29,7 +29,8 @@
 
 namespace Kratos
 {
-template<class TDataType> class SolidMechanicsMathUtilities
+template<class TDataType>
+class SolidMechanicsMathUtilities
 {
 public:
     /**
@@ -46,11 +47,11 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
-    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor;
+    typedef DenseVector<Vector> Second_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
+    typedef DenseVector<Second_Order_Tensor> Third_Order_Tensor;
 
-    typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
+    typedef DenseVector<DenseVector<Matrix> > Fourth_Order_Tensor;
 
     typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; 
 
@@ -607,7 +608,6 @@ public:
         for(unsigned int i=0; i<Help.size1(); i++)
             lambda(i)= Help(i,i);
 
-        return;
     }
 
 
@@ -1218,7 +1218,7 @@ public:
             Tensor(1,0)= Stress(2);
             Tensor(1,1)= Stress(1);
         }
-        return;
+
     }
 
     /**
@@ -1247,7 +1247,7 @@ public:
             Vector(1)= Tensor(1,1);
             Vector(2)= Tensor(0,1);
         }
-        return;
+
     }
 
     static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
@@ -1320,7 +1320,7 @@ public:
             Matrix(2,2) = Tensor[0][1](0,1);
 
         }
-        return;
+
     }
 
     /**
@@ -1371,7 +1371,7 @@ public:
             }
         }
 
-        return;
+
     }
     /**
     * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
@@ -1416,7 +1416,7 @@ public:
             }
         }
 
-        return;
+
     }
     /**
     * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
@@ -1490,7 +1490,6 @@ public:
                 Matrix(i,j)= Tensor[help1][help2](help3,help4)*coeff;
             }
 
-        return;
     }
 
     /**
@@ -1545,7 +1544,6 @@ public:
         Matrix(5,4) = 2.0*Tensor[59];
         Matrix(5,5) = 2.0*Tensor[60];
 
-        return;
     }
     /**
     * Generates the fourth order deviatoric unity tensor
@@ -1711,4 +1709,4 @@ public:
 private:
 };// class SolidMechanicsMathUtilities
 }
-#endif /* KRATOS_SOLID_MECHANICS_MATH_UTILITIESS defined */
+#endif /* KRATOS_SOLID_MECHANICS_MATH_UTILITIESS_H_INCLUDED defined */

@@ -7,17 +7,11 @@
 //
 //
 
-// System includes 
-#include <boost/python.hpp>
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
-#include "includes/node.h"
-#include "includes/define.h"
-#include "processes/process.h"
-
-//Application includes
 #include "custom_python/add_custom_processes_to_python.h"
 
 //Processes
@@ -26,43 +20,30 @@
 
 namespace Kratos
 {
-	
-  namespace Python
-  {
- 	
-    void  AddCustomProcessesToPython()
-    {
 
-      using namespace boost::python;
-      typedef Process                                         ProcessBaseType;
-      typedef RefineMeshBoundaryProcess             RefineMeshProcessBaseType;
-      typedef std::vector<SpatialBoundingBox::Pointer>   BoundingBoxContainer;
+namespace Python
+{
 
-      
-      //**********MESH MODELLER PROCESS*********//
+void  AddCustomProcessesToPython(pybind11::module& m)
+{
 
-      class_<ContactRefineMeshBoundaryProcess, bases<RefineMeshProcessBaseType>, boost::noncopyable >
-	(
-	 "ContactRefineMeshBoundary", init<ModelPart&, BoundingBoxContainer&, ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  using namespace pybind11;
 
-      
-         // **** SET INITIAL MECHANICAL STATE **** //
-         class_<SetMechanicalInitialStateProcess, bases<ProcessBaseType>, boost::noncopyable >
-            (
-             "SetMechanicalInitialStateProcess", init<ModelPart&, Parameters>()
-            )
-            .def(init< ModelPart&, Parameters >())
-            .def("Execute", &SetMechanicalInitialStateProcess::Execute)
-         ;
+  typedef std::vector<SpatialBoundingBox::Pointer>   BoundingBoxContainer;
 
+  // Mesh modeler process
+  class_<ContactRefineMeshBoundaryProcess, ContactRefineMeshBoundaryProcess::Pointer, RefineMeshBoundaryProcess>(m,"ContactRefineMeshBoundary")
+      .def(init<ModelPart&, BoundingBoxContainer&, ModelerUtilities::MeshingParameters&, int>())
+      ;
 
- 
+  // Set initial mechanical state
+  class_<SetMechanicalInitialStateProcess, SetMechanicalInitialStateProcess::Pointer, Process>(m,"SetMechanicalInitialStateProcess")
+      .def(init<ModelPart&, Parameters>())
+      .def(init< ModelPart&, Parameters >())
+      .def("Execute", &SetMechanicalInitialStateProcess::Execute)
+      ;
+}
 
-    }
- 
-  }  // namespace Python.
+}  // namespace Python.
 
 } // Namespace Kratos
-

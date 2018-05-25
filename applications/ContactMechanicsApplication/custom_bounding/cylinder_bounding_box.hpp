@@ -61,7 +61,7 @@ public:
     /// Pointer definition of CylinderBoundingBox
     KRATOS_CLASS_POINTER_DEFINITION( CylinderBoundingBox );
 
-    //typedef bounded_vector<double, 3>                     PointType;
+    //typedef BoundedVector<double, 3>                     PointType;
     typedef array_1d<double, 3>                             PointType;
     typedef ModelPart::NodeType                              NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;
@@ -240,7 +240,7 @@ public:
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0)
+    bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0) override
     {
       
       KRATOS_TRY
@@ -268,7 +268,7 @@ public:
     //************************************************************************************
     //************************************************************************************
     
-    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
+    bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
@@ -289,7 +289,7 @@ public:
     //************************************************************************************
 
     //Cylinder
-    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 )
+    void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 ) override
     {
       KRATOS_TRY
 
@@ -428,19 +428,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "CylinderBoundingBox";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << this->mBox.UpperPoint << " , " << this->mBox.LowerPoint;
     }

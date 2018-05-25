@@ -3,7 +3,7 @@ import KratosMultiphysics
 KratosMultiphysics.CheckForPreviousImport()
 
 def GetDefaultInputParameters():
-    
+
     default_settings = KratosMultiphysics.Parameters("""
         {
             "Dimension"                        : 3,
@@ -26,7 +26,17 @@ def GetDefaultInputParameters():
             "GravityZ"                         : -9.81,
 
             "EnergyCalculationOption"          : false,
+            "PotentialEnergyReferencePointX"   : 0.0,
+            "PotentialEnergyReferencePointY"   : 0.0,
+            "PotentialEnergyReferencePointZ"   : 0.0,
+
             "VelocityTrapOption"               : false,
+            "VelocityTrapMaxX"                 : 0.0,
+            "VelocityTrapMaxY"                 : 0.0,
+            "VelocityTrapMaxZ"                 : 0.0,
+            "VelocityTrapMinX"                 : 0.0,
+            "VelocityTrapMinY"                 : 0.0,
+            "VelocityTrapMinZ"                 : 0.0,
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
@@ -39,6 +49,7 @@ def GetDefaultInputParameters():
             "ModelDataInfo"                    : false,
             "VirtualMassCoefficient"           : 1.0,
             "RollingFrictionOption"            : false,
+            "ComputeStressTensorOption"        : false,
             "GlobalDamping"                    : 0.0,
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
@@ -56,7 +67,27 @@ def GetDefaultInputParameters():
             "MaxTimeStep"                      : 5e-5,
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
-            "NeighbourSearchFrequency"         : 50,                        
+            "NeighbourSearchFrequency"         : 50,
+            "virtual_sea_surface_settings"     : {
+                "print_sea_surface"            : false,
+                "PostVirtualSeaSurfaceX1"      : 0.0,
+                "PostVirtualSeaSurfaceY1"      : 0.0,
+                "PostVirtualSeaSurfaceX2"      : 0.0,
+                "PostVirtualSeaSurfaceY2"      : 0.0,
+                "PostVirtualSeaSurfaceX3"      : 0.0,
+                "PostVirtualSeaSurfaceY3"      : 0.0,
+                "PostVirtualSeaSurfaceX4"      : 0.0,
+                "PostVirtualSeaSurfaceY4"      : 0.0
+            },
+
+            "TestType"                         : false,
+            "ConfinementPressure"              : 0.0,
+            "LoadingVelocity"                  : -0.10,
+            "MeshType"                         : "1",
+            "MeshPath"                         : "0",
+            "SpecimenLength"                   : 0.3,
+            "SpecimenDiameter"                 : 0.15,
+            "MeasuringSurface"                 : 0.01767145867644375,
 
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
@@ -73,13 +104,14 @@ def GetDefaultInputParameters():
             "PostParticleMoment"               : false,
             "PostEulerAngles"                  : false,
             "PostRollingResistanceMoment"      : false,
+            "PostCharacteristicLength"         : false,
             "PostElasticForces"                : false,
             "PostContactForces"                : false,
             "PostTangentialElasticForces"      : false,
             "PostShearStress"                  : false,
             "PostReactions"                    : false,
             "PostPressure"                     : false,
-            "PostNonDimensionalVolumeWear"     : false,            
+            "PostNonDimensionalVolumeWear"     : false,
             "PostNodalArea"                    : false,
             "PostStressStrainOption"           : false,
             "PostContactSigma"                 : false,
@@ -93,10 +125,16 @@ def GetDefaultInputParameters():
             "PostAppliedForces"                : false,
             "PostGroupId"                      : false,
             "PostExportId"                     : false,
-            
+            "PostNormalImpactVelocity"         : false,
+            "PostTangentialImpactVelocity"     : false,
+            "PostFaceNormalImpactVelocity"     : false,
+            "PostFaceTangentialImpactVelocity" : false,
+
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
+            "LoadingVelocityTop"               : 0.0,
+            "LoadingVelocityBot"               : 0.0,
 
             "problem_name" : "dummy_name.Provide_a_real_one"
             }""")
-            
+
     return default_settings

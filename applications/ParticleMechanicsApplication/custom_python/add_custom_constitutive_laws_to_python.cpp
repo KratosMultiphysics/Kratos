@@ -1,14 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:            Duan Wenjie $
-//   Date:                $Date:                March 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ilaria Iaconeta
 //
 //
 
 // System includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // External includes
 
@@ -22,10 +25,6 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/properties.h"
-
-#include "python/pointer_vector_set_python_interface.h"
-#include "python/variable_indexing_python.h"
-#include "python/add_mesh_to_python.h"
 
 
 //Application includes
@@ -53,10 +52,10 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
 typedef FlowRule::Pointer                        FlowRulePointer;
-typedef MPMFlowRule::Pointer                        MPMFlowRulePointer;
+typedef MPMFlowRule::Pointer                  MPMFlowRulePointer;
 typedef YieldCriterion::Pointer            YieldCriterionPointer;
 typedef HardeningLaw::Pointer                HardeningLawPointer;
 typedef Properties::Pointer                    PropertiesPointer;
@@ -74,36 +73,43 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
     ThisMaterialsContainer.push_back( ThisConstitutiveLaw );
 }
 
-void  AddCustomConstitutiveLawsToPython()
+void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-    class_<HyperElasticViscoplastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticViscoplastic3DLaw",
-      init<>() )
+    // Hyperelastic Viscoplastic
+    class_< HyperElasticViscoplastic3DLaw, typename HyperElasticViscoplastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticViscoplastic3DLaw")
+    .def(init<>() )
     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-    class_<HyperElasticViscoplasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticViscoplasticPlaneStrain2DLaw",
-      init<>() )
+
+    class_< HyperElasticViscoplasticPlaneStrain2DLaw, typename HyperElasticViscoplasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticViscoplasticPlaneStrain2DLaw")
+    .def(init<>() )
     .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-    class_<HenckyMCPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMCPlasticPlaneStrain2DLaw",
-      init<>() )
+
+    // Hencky Mohr Coulomb
+    class_< HenckyMCPlasticPlaneStrain2DLaw, typename HenckyMCPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HenckyMCPlasticPlaneStrain2DLaw")
+    .def(init<>() )
     .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-    class_<HenckyMCPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMCPlastic3DLaw",
-      init<>() )
+
+    class_< HenckyMCPlastic3DLaw, typename HenckyMCPlastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HenckyMCPlastic3DLaw")
+    .def(init<>() )
     .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-    class_<HenckyMCPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMCPlasticUP3DLaw",
-      init<>() )
+
+    class_< HenckyMCPlasticUP3DLaw, typename HenckyMCPlasticUP3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HenckyMCPlasticUP3DLaw")
+    .def(init<>() )
     .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-    class_<HenckyMCPlasticPlaneStrainUP2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMCPlasticPlaneStrainUP2DLaw",
-      init<>() )
+
+    class_< HenckyMCPlasticPlaneStrainUP2DLaw, typename HenckyMCPlasticPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HenckyMCPlasticPlaneStrainUP2DLaw")
+    .def(init<>() )
     .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 }

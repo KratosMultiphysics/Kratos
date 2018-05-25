@@ -26,8 +26,6 @@ namespace Kratos
  */
 KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBeamElement3D2N, COMPUTE_RHS_VECTOR,                 0 );
 KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBeamElement3D2N, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBeamElement3D2N, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBeamElement3D2N, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
 //******************************CONSTRUCTOR*******************************************
@@ -406,7 +404,7 @@ void SmallDisplacementBeamElement3D2N::CalculateElementalSystem( LocalSystemComp
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
 
-	Vector N = row( Ncontainer, PointNumber);
+	Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 	if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBeamElement3D2N::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
@@ -493,7 +491,8 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
     //std::cout<<" LocalVector "<<LocalVector<<std::endl;
 
     //Stiffness Matrix
-    Matrix GlobalMatrix = ZeroMatrix(MatSize);
+    Matrix GlobalMatrix(MatSize,MatSize);
+    noalias(GlobalMatrix) = ZeroMatrix(MatSize,MatSize);
     if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBeamElement3D2N::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
 	GlobalMatrix = rLocalSystem.GetLeftHandSideMatrix();
@@ -1271,7 +1270,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
 	
-	Vector N = row( Ncontainer, PointNumber);
+	Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
 	
 	//contribution to external forces
 	Vector VolumeForce;

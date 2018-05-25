@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class TaylorScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) TaylorScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
@@ -73,7 +73,7 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
     
-        void CalculateNewRotationalVariablesOfClusters(
+        void CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
                 const array_1d<double, 3 > moments_of_inertia,

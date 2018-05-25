@@ -1,6 +1,7 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication         as MeshingApplication
+import run_cpp_unit_tests
 try:
   import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
   missing_external_solver_dependencies = False
@@ -27,13 +28,12 @@ from test_remesh_sphere import TestRemeshMMG                as TTestRemeshMMG
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
 from SmallTests  import TwoDDynamicBeamLineLoadTest         as TTwoDDynamicBeamLineLoadTest
 from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBeamTest
-from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlasticBeamTest
 
 ## NIGHTLY TESTS
 
 ## VALIDATION TESTS 
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -56,13 +56,12 @@ def AssambleTestSuites():
     else:
         print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        if (missing_external_fluid_dependencies == False):
+        if (missing_external_fluid_dependencies is False):
             smallSuite.addTest(TTestRemeshMMG('test_remesh_sphere'))
-        if (missing_external_solid_dependencies == False):
+        if (missing_external_solid_dependencies is False):
             smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
             smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
             smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
-            smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 
@@ -70,7 +69,7 @@ def AssambleTestSuites():
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     #if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        #if (missing_external_fluid_dependencies == False):
+        #if (missing_external_fluid_dependencies is False):
             #nightSuite.addTest()
     #else:
         #print("MMG process is not compiled and the corresponding tests will not be executed")
@@ -78,7 +77,7 @@ def AssambleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
     #if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        #if (missing_external_fluid_dependencies == False):
+        #if (missing_external_fluid_dependencies is False):
             #validationSuite.addTest()
     #else:
         #print("MMG process is not compiled and the corresponding tests will not be executed")
@@ -95,19 +94,18 @@ def AssambleTestSuites():
         print("TetrahedraReconnectUtility process is not compiled and the corresponding tests will not be executed")
         
     if( hasattr(MeshingApplication,  "MmgProcess2D") ):
-        if (missing_external_fluid_dependencies == False):
+        if (missing_external_fluid_dependencies is False):
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
                     TTestRemeshMMG,
                 ])
             )
-        if (missing_external_solid_dependencies == False):
+        if (missing_external_solid_dependencies is False):
             allSuite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
                     TTwoDDynamicBeamTest,
                     TTwoDDynamicBeamLineLoadTest,
                     TThreeDDynamicBeamTest,
-                    #TTwoDDynamicPlasticBeamTest,
                 ])
             )
     else:
@@ -116,4 +114,10 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

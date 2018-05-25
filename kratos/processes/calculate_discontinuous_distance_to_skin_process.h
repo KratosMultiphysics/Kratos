@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
 //
 
 #if !defined(KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED )
@@ -24,9 +24,9 @@
 
 
 // Project includes
+#include "includes/checks.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
-#include "includes/checks.h"
 
 
 namespace Kratos
@@ -99,7 +99,6 @@ namespace Kratos
       ///@name Access
       ///@{
 
-	  ModelPart& GetSkinRepresentation() { return mSkinRepresentation; }
 
       ///@}
       ///@name Input and output
@@ -118,41 +117,11 @@ namespace Kratos
 
     private:
 
-		// TODO: I should move this class to a separate file but is out of scope of this branch
-		class Plane3D {
-		public:
-			using VectorType = array_1d<double, 3>;
-			using PointType = Point;
-
-			Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
-			Plane3D() = delete;
-			Plane3D(PointType const& Point1, PointType const& Point2, PointType const& Point3) {
-				VectorType v1 = Point2 - Point1;
-				VectorType v2 = Point3 - Point1;
-				MathUtils<double>::CrossProduct(mNormal, v1, v2);
-				auto normal_length = norm_2(mNormal);
-				KRATOS_DEBUG_CHECK_GREATER(normal_length, std::numeric_limits<double>::epsilon());
-				mNormal /= normal_length;
-				mD = -inner_prod(mNormal, Point1);
-			}
-			VectorType const& GetNormal() { return mNormal; }
-			double GetDistance() { return mD; }
-			double CalculateSignedDistance(PointType const& ThePoint) {
-				return inner_prod(mNormal, ThePoint) + mD;
-			}
-
-		private:
-			VectorType mNormal;
-			double mD;
-		};
-
       ///@name Member Variables
       ///@{
 
         ModelPart& mrSkinPart;
         ModelPart& mrVolumePart;
-
-		ModelPart mSkinRepresentation;
 
       ///@}
       ///@name Private Operations
@@ -161,6 +130,35 @@ namespace Kratos
 		void CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects);
 
 		double CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon);
+
+    unsigned int ComputeEdgesIntersections(
+      Element& rElement1, 
+      const PointerVector<GeometricalObject>& rIntersectedObjects,
+      std::vector<unsigned int> &rCutEdgesVector,
+      std::vector<array_1d <double,3> > &rIntersectionPointsArray);
+
+    int ComputeEdgeIntersection(
+      const Element::GeometryType& rIntObjGeometry,
+      const Element::NodeType& rEdgePoint1,
+      const Element::NodeType& rEdgePoint2, 
+      Point& rIntersectionPoint);
+
+    void ComputeIntersectionNormal(
+      Element::GeometryType& rGeometry,
+      const Vector& rElementalDistances,
+      array_1d<double,3> &rNormal);
+
+    void ComputePlaneApproximation(
+      const Element& rElement1,
+      const std::vector< array_1d<double,3> >& rPointsCoord,
+      array_1d<double,3>& rPlaneBasePointCoords,
+      array_1d<double,3>& rPlaneNormal);
+
+    void CorrectDistanceOrientation(
+      Element::GeometryType& rGeometry,
+      const PointerVector<GeometricalObject>& rIntersectedObjects,
+      Vector& rElementalDistances
+    );
 
       ///@}
 

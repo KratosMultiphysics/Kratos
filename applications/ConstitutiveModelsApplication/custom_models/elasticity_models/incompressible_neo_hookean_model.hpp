@@ -127,8 +127,8 @@ namespace Kratos
      * @param rScalarVariables : list of scalar dofs
      * @param rComponentVariables :  list of vector dofs
      */
-    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
-					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
+    void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+                                std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
     {
       KRATOS_TRY
 
@@ -201,14 +201,14 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      return IsochoricHyperElasticModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+      return IsochoricMooneyRivlinModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
            
       KRATOS_CATCH(" ")
     }
     
     //************// dW
         
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
+    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 
@@ -216,7 +216,7 @@ namespace Kratos
 	
       rDerivative = rValues.GetPressure();
       
-      return rDerivative;
+      return rDerivative;      
 
       KRATOS_CATCH(" ")
     };

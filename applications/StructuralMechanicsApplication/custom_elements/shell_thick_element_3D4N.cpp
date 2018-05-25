@@ -11,7 +11,6 @@
 
 #include "shell_thick_element_3D4N.hpp"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
-#include "structural_mechanics_application_variables.h"
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/quadrilateral_3d_4.h"
 
@@ -29,7 +28,7 @@ namespace Kratos
 
 // namespace Utilities
 // {
-// 
+//
 // template<class TVec>
 // inline void ShapeFunc(double xi, double eta, TVec & N)
 // {
@@ -38,7 +37,7 @@ namespace Kratos
 //     N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
 //     N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
 // }
-// 
+//
 // template<class TVec>
 // inline void ShapeFuncSerendipity(double xi, double eta, TVec & N)
 // {
@@ -47,7 +46,7 @@ namespace Kratos
 //     N(2) = 0.5 * (1.0 - xi * xi) * (1.0 + eta);  // node 7
 //     N(3) = 0.5 * (1.0 - xi) * (1.0 - eta * eta); // node 8
 // }
-// 
+//
 // template<class TMat>
 // inline void ShapeFunc_NaturalDerivatives(double xi, double eta, TMat & dN)
 // {
@@ -55,13 +54,13 @@ namespace Kratos
 //     dN(1, 0) =  (1.0 - eta) * 0.25;
 //     dN(2, 0) =  (1.0 + eta) * 0.25;
 //     dN(3, 0) = -(1.0 + eta) * 0.25;
-// 
+//
 //     dN(0, 1) = -(1.0 - xi)  * 0.25;
 //     dN(1, 1) = -(1.0 + xi)  * 0.25;
 //     dN(2, 1) =  (1.0 + xi)  * 0.25;
 //     dN(3, 1) =  (1.0 - xi)  * 0.25;
 // }
-// 
+//
 // template<class TMat>
 // inline void ShapeFuncSerendipity_NaturalDerivatives(double xi, double eta, TMat & dN)
 // {
@@ -69,13 +68,13 @@ namespace Kratos
 //     dN(1, 0) =  0.5 * (1.0 - eta * eta);
 //     dN(2, 0) = -xi * (1.0 - eta);
 //     dN(3, 0) = -0.5 * (1.0 - eta * eta);
-// 
+//
 //     dN(0, 1) = -0.5 * (1.0 - xi * xi);
 //     dN(1, 1) = -eta * (1.0 + xi);
 //     dN(2, 1) =  0.5 * (1.0 - xi * xi);
 //     dN(3, 1) = -eta * (1.0 + xi);
 // }
-// 
+//
 // }
 
 // =====================================================================================
@@ -251,6 +250,9 @@ void ShellThickElement3D4N::EASOperatorStorage::save(Serializer& rSerializer) co
     rSerializer.save("A1", alpha_converged);
     rSerializer.save("U0", displ);
     rSerializer.save("U1", displ_converged);
+    rSerializer.save("res", residual);
+    rSerializer.save("Hinv", Hinv);
+    rSerializer.save("mL", L);
     rSerializer.save("init", mInitialized);
 }
 
@@ -260,6 +262,9 @@ void ShellThickElement3D4N::EASOperatorStorage::load(Serializer& rSerializer)
     rSerializer.load("A1", alpha_converged);
     rSerializer.load("U0", displ);
     rSerializer.load("U1", displ_converged);
+    rSerializer.load("res", residual);
+    rSerializer.load("Hinv", Hinv);
+    rSerializer.load("mL", L);
     rSerializer.load("init", mInitialized);
 }
 
@@ -398,7 +403,7 @@ void ShellThickElement3D4N::EASOperator::ComputeModfiedTangentAndResidual(Matrix
 ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         bool NLGeom)
-    : Element(NewId, pGeometry)
+    : BaseShellElement(NewId, pGeometry)
     , mpCoordinateTransformation( NLGeom ?
                                   new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellQ4_CoordinateTransformation(pGeometry))
@@ -409,7 +414,7 @@ ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         bool NLGeom)
-    : Element(NewId, pGeometry, pProperties)
+    : BaseShellElement(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation( NLGeom ?
                                   new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellQ4_CoordinateTransformation(pGeometry))
@@ -420,7 +425,7 @@ ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         CoordinateTransformationBasePointerType pCoordinateTransformation)
-    : Element(NewId, pGeometry, pProperties)
+    : BaseShellElement(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(pCoordinateTransformation)
 {
 }
@@ -429,12 +434,13 @@ ShellThickElement3D4N::~ShellThickElement3D4N()
 {
 }
 
+// TODO are the GetIntegrationMethod methods needed (implemented in the other 3 shells)
+
 Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-    
-    return boost::make_shared< ShellThickElement3D4N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
-//     return Element::Pointer( new ShellThickElement3D4N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom)) );
+
+    return Kratos::make_shared< ShellThickElement3D4N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
 }
 
 void ShellThickElement3D4N::Initialize()
@@ -481,7 +487,7 @@ void ShellThickElement3D4N::Initialize()
         for(int i = 0; i < 4; i++)
         {
             ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(ShellCrossSection::Thick);
+            sectionClone->SetSectionBehavior(GetSectionBehavior());
             sectionClone->InitializeCrossSection(props, geom, row( shapeFunctionsValues, i ));
             mSections.push_back(sectionClone);
         }
@@ -496,204 +502,43 @@ void ShellThickElement3D4N::Initialize()
     KRATOS_CATCH("")
 }
 
-void ShellThickElement3D4N::ResetConstitutiveLaw()
+void ShellThickElement3D4N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+    mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
 
-    const GeometryType & geom = GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-    const Properties& props = GetProperties();
-    for(std::size_t i = 0; i < mSections.size(); i++)
-        mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
-
-    KRATOS_CATCH("")
+    BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D4N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    if(rResult.size() != 24)
-        rResult.resize(24, false);
-
-    GeometryType & geom = this->GetGeometry();
-
-    for(int i = 0; i < 4; i++)
-    {
-        int index = i * 6;
-        NodeType & iNode = geom[i];
-
-        rResult[index]     = iNode.GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = iNode.GetDof(DISPLACEMENT_Z).EquationId();
-
-        rResult[index + 3] = iNode.GetDof(ROTATION_X).EquationId();
-        rResult[index + 4] = iNode.GetDof(ROTATION_Y).EquationId();
-        rResult[index + 5] = iNode.GetDof(ROTATION_Z).EquationId();
-    }
-}
-
-void ShellThickElement3D4N::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
-{
-    ElementalDofList.resize(0);
-    ElementalDofList.reserve(24);
-
-    GeometryType & geom = this->GetGeometry();
-
-    for (int i = 0; i < 4; i++)
-    {
-        NodeType & iNode = geom[i];
-
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_X));
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Y));
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Z));
-
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_X));
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_Y));
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_Z));
-    }
-}
-
-int ShellThickElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    GeometryType& r_geom = GetGeometry();
-    const bool is_thick_shell = true;
-
-    ShellUtilities::CheckVariables();
-    ShellUtilities::CheckDofs(r_geom);
-    ShellUtilities::CheckProperties(this, rCurrentProcessInfo, is_thick_shell);
-
-    return 0;
-
-    KRATOS_CATCH("")
-}
-
-void ShellThickElement3D4N::CleanMemory()
-{
-}
-
-void ShellThickElement3D4N::GetValuesVector(Vector& values, int Step)
-{
-    if(values.size() != 24)
-        values.resize(24, false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (int i = 0; i < 4; i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
-        const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ROTATION, Step);
-
-        int index = i*6;
-        values[index]     = disp[0];
-        values[index + 1] = disp[1];
-        values[index + 2] = disp[2];
-
-        values[index + 3] = rot[0];
-        values[index + 4] = rot[1];
-        values[index + 5] = rot[2];
-    }
-}
-
-void ShellThickElement3D4N::GetFirstDerivativesVector(Vector& values, int Step)
-{
-    if(values.size() != 24)
-        values.resize(24,false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (int i = 0; i < 4; i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
-
-        int index = i * 6;
-        values[index]        = vel[0];
-        values[index + 1]    = vel[1];
-        values[index + 2]    = vel[2];
-        values[index + 3]    = 0.0;
-        values[index + 4]    = 0.0;
-        values[index + 5]    = 0.0;
-    }
-}
-
-void ShellThickElement3D4N::GetSecondDerivativesVector(Vector& values, int Step)
-{
-    if(values.size() != 24)
-        values.resize(24,false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (int i = 0; i < 4; i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& acc = iNode.FastGetSolutionStepValue(ACCELERATION, Step);
-
-        int index = i * 6;
-        values[index]        = acc[0];
-        values[index + 1]    = acc[1];
-        values[index + 2]    = acc[2];
-        values[index + 3]    = 0.0;
-        values[index + 4]    = 0.0;
-        values[index + 5]    = 0.0;
-    }
-}
-
-void ShellThickElement3D4N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-{
-    mpCoordinateTransformation->InitializeNonLinearIteration(CurrentProcessInfo);
-
-    const GeometryType & geom = this->GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for(int i = 0; i < 4; i++)
-        mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
-}
-
-void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-{
-    mpCoordinateTransformation->FinalizeNonLinearIteration(CurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
 
     ShellQ4_LocalCoordinateSystem LCS( mpCoordinateTransformation->CreateLocalCoordinateSystem() );
     Vector globalDisplacementVector(24);
     GetValuesVector(globalDisplacementVector);
     Vector localDisplacementVector( mpCoordinateTransformation->CalculateLocalDisplacements( LCS, globalDisplacementVector ) );
 
-    mEASStorage.FinalizeNonLinearIteration(localDisplacementVector, CurrentProcessInfo);
+    mEASStorage.FinalizeNonLinearIteration(localDisplacementVector, rCurrentProcessInfo);
 
-    const GeometryType & geom = this->GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for(int i = 0; i < 4; i++)
-        mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+    BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-    const PropertiesType& props = GetProperties();
-    const GeometryType & geom = GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    for(int i = 0; i < 4; i++)
-        mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+    mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
-
-    mEASStorage.InitializeSolutionStep(CurrentProcessInfo);
+    mEASStorage.InitializeSolutionStep(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D4N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-    const PropertiesType& props = GetProperties();
-    const GeometryType& geom = GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
-    for(int i = 0; i < 4; i++)
-        mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
-
-    mEASStorage.FinalizeSolutionStep(CurrentProcessInfo);
+    mEASStorage.FinalizeSolutionStep(rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -734,28 +579,6 @@ void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
     }
 }
 
-void ShellThickElement3D4N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    if((rDampingMatrix.size1() != 24) || (rDampingMatrix.size2() != 24))
-        rDampingMatrix.resize(24, 24, false);
-
-    noalias( rDampingMatrix ) = ZeroMatrix(24, 24);
-}
-
-void ShellThickElement3D4N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
-}
-
-void ShellThickElement3D4N::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
-{
-    Matrix dummy;
-    CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true, true);
-}
-
 // =====================================================================================
 //
 // Class ShellThickElement3D4N - Results on Gauss Points
@@ -767,13 +590,13 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
         const ProcessInfo& rCurrentProcessInfo)
 {
     SizeType size = GetGeometry().size();
-    if (rValues.size() != size) 
+    if (rValues.size() != size)
         rValues.resize(size);
 
-	// The membrane formulation needs to iterate to find the correct 
+	// The membrane formulation needs to iterate to find the correct
 	// mid-surface strain values.
 	//
-	// Check if we are doing a non-linear analysis type. If not, print warning 
+	// Check if we are doing a non-linear analysis type. If not, print warning
 	// for just the first element.
 
     if (this->Id() == 1)
@@ -1074,9 +897,9 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 
         // Resize output
 		if (rValues.size() != 4) rValues.resize(4);
-        
+
         for (int i = 0; i < 4; ++i) rValues[i] = ZeroVector(3);
-        
+
 		// Initialize common calculation variables
 		// Compute the local coordinate system.
 		ShellQ4_LocalCoordinateSystem localCoordinateSystem(
@@ -1089,8 +912,8 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 	}
 	else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 	{
-		// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
-		// section orientation, which rotates the entrire element section 
+		// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of
+		// section orientation, which rotates the entrire element section
 		// in-plane and is used in element stiffness calculation.
 
 		// Resize output
@@ -1119,7 +942,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 		localToFiberRotation(2, 2) = 1.0;
 
         Vector3 temp = prod(localToFiberRotation, localAxis1);
-        
+
         // Transform result back to global cartesian coords
 		// Includes warpage correction
 		/*
@@ -1152,21 +975,21 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Matrix>& 
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-	// The membrane formulation needs to iterate to find the correct 
+	// The membrane formulation needs to iterate to find the correct
 	// mid-surface strain values.
 	//
-	// Check if we are doing a non-linear analysis type. If not, print warning 
+	// Check if we are doing a non-linear analysis type. If not, print warning
 	// for just the first element.
 
 	if (this->Id() == 1)
 	{
 		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
 		{
-			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis." 
-				<< "\nThe membrane formulation used in the specified shell element" 
+			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis."
+				<< "\nThe membrane formulation used in the specified shell element"
 				<< "(ShellThickElement3D4N) requires iteration to accurately determine "
-				<< "recovered quantities (strain, stress, etc...).\n" 
-				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities." 
+				<< "recovered quantities (strain, stress, etc...).\n"
+				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities."
 				<< std::endl;
 		}
 	}
@@ -1232,18 +1055,6 @@ void ShellThickElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix 
 			mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 		Output = localCoordinateSystem.Orientation();
 	}
-}
-
-void ShellThickElement3D4N::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
-{
-    KRATOS_TRY
-    if(crossSections.size() != 4)
-        KRATOS_THROW_ERROR(std::logic_error, "Cannot set a number of cross section different from 4", "");
-    mSections.clear();
-    for(SizeType i = 0; i <crossSections.size(); i++)
-        mSections.push_back(crossSections[i]);
-    this->SetupOrientationAngles();
-    KRATOS_CATCH("")
 }
 
 // =====================================================================================
@@ -1617,13 +1428,13 @@ void ShellThickElement3D4N::DecimalCorrection(Vector& a)
 
 void ShellThickElement3D4N::SetupOrientationAngles()
 {
-    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) 
-    { 
-        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
-        (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE)); 
-    } 
-    else 
-    { 
+    if (this->Has(MATERIAL_ORIENTATION_ANGLE))
+    {
+        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+        (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
+    }
+    else
+    {
         ShellQ4_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
 
         Vector3Type normal;
@@ -1781,10 +1592,10 @@ void ShellThickElement3D4N::CalculateBMatrix(double xi, double eta,
 }
 
 void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        const bool LHSrequired,
-        const bool RHSrequired)
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag)
 {
     // Resize the Left Hand Side if necessary,
     // and initialize it to Zero
@@ -1871,8 +1682,8 @@ void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     parameters.SetGeneralizedStressVector( generalizedStresses );
     parameters.SetConstitutiveMatrix( D );
     Flags& options = parameters.GetOptions();
-    options.Set(ConstitutiveLaw::COMPUTE_STRESS, RHSrequired);
-    options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, LHSrequired);
+    options.Set(ConstitutiveLaw::COMPUTE_STRESS, CalculateResidualVectorFlag);
+    options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, CalculateStiffnessMatrixFlag);
 
     // Gauss Loop.
     for(int i = 0; i < 4; i++)
@@ -1959,8 +1770,8 @@ void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
             localDisplacements,
             rLeftHandSideMatrix,
             rRightHandSideVector,
-            RHSrequired,
-            LHSrequired);
+            CalculateResidualVectorFlag,
+            CalculateStiffnessMatrixFlag);
 
     // Add body forces contributions. This doesn't depend on the coordinate system
     AddBodyForces(dArea, rRightHandSideVector);
@@ -2366,6 +2177,11 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
     return true;
 }
 
+ShellCrossSection::SectionBehaviorType ShellThickElement3D4N::GetSectionBehavior()
+{
+    return ShellCrossSection::Thick;
+}
+
 
 // =====================================================================================
 //
@@ -2375,17 +2191,15 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 
 void ShellThickElement3D4N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.save("CTr", mpCoordinateTransformation);
-    rSerializer.save("Sec", mSections);
     rSerializer.save("EAS", mEASStorage);
 }
 
 void ShellThickElement3D4N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.load("CTr", mpCoordinateTransformation);
-    rSerializer.load("Sec", mSections);
     rSerializer.load("EAS", mEASStorage);
 }
 

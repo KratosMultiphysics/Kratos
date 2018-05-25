@@ -17,8 +17,8 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 
-#include <boost/python.hpp>
-
+#include <pybind11/pybind11.h>
+#include <pybind11/eval.h>
 
 namespace Kratos
 {
@@ -52,12 +52,13 @@ public:
         //compile the function starting from the string function body
         try
         {
-            main_module = boost::python::import("__main__");
+            main_module = pybind11::module::import("__main__");
             main_namespace = main_module.attr("__dict__");
-            boost::python::exec("from math import *", main_namespace);
-            mbytecode = boost::python::object( boost::python::handle<>( (PyObject*) Py_CompileString(function_body.c_str(), "pyscript", Py_eval_input) ) );
+            pybind11::exec("from math import *", main_namespace);
+            mfunction_body = function_body;
+            //mbytecode = pybind11::object( pybind11::handle<>( (PyObject*) Py_CompileString(function_body.c_str(), "pyscript", Py_eval_input) ) );
         }
-        catch(boost::python::error_already_set const&)
+        catch(pybind11::error_already_set const&)
         {
             PyErr_Print();
         }
@@ -92,7 +93,7 @@ public:
 
     }
 
-//         PythonGenericFunctionUtility(  boost::python::object obj, const Matrix& R, const Vector& xc): mpy_obj(obj), muse_local_system(true), mR(R), mxc(xc)
+//         PythonGenericFunctionUtility(  pybind11::object obj, const Matrix& R, const Vector& xc): mpy_obj(obj), muse_local_system(true), mR(R), mxc(xc)
 //         {
 //             if(mR.size1() != 3 or mR.size2() != 3)
 //                 KRATOS_ERROR << "rotation matrix is expected to have size 3. The matrix given is " << mR;
@@ -128,24 +129,27 @@ public:
         main_namespace["y"] = y;
         main_namespace["z"] = z;
         main_namespace["t"] = t;
+        
+        
 
-        #if PY_MAJOR_VERSION >= 3
-        PyObject* res = PyEval_EvalCode(mbytecode.ptr(),main_namespace.ptr(),main_namespace.ptr());
-        #else
-        PyObject* res = PyEval_EvalCode((PyCodeObject*)(mbytecode.ptr()),main_namespace.ptr(),main_namespace.ptr());
-        #endif
-        return boost::python::extract<double>(res);
+//         #if PY_MAJOR_VERSION >= 3
+//         PyObject* res = PyEval_EvalCode(mbytecode.ptr(),main_namespace.ptr(),main_namespace.ptr());
+//         #else
+//         PyObject* res = PyEval_EvalCode((PyCodeObject*)(mbytecode.ptr()),main_namespace.ptr(),main_namespace.ptr());
+//         #endif
+        return pybind11::eval(mfunction_body, main_namespace).cast<double>();
     }
 
 
 private:
-    boost::python::object main_module;
-    boost::python::object main_namespace;
-    boost::python::object mbytecode;
+    pybind11::object main_module;
+    pybind11::object main_namespace;
+    std::string mfunction_body;
+    pybind11::object mbytecode;
 
     bool mdepends_on_space = true;
     bool muse_local_system = false;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3> mR;
+    BoundedMatrix<double, 3, 3> mR;
     array_1d<double, 3> mxc;
 };
 

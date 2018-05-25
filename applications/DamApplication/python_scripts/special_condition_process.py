@@ -2,7 +2,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
 
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return SpecialConditionProcess(Model, settings["Parameters"])
 

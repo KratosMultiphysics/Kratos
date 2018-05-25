@@ -1,10 +1,11 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMetisApplication ****")
- 
+
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-#find mkl solver package -- this is our own find package!!
 if(${USE_METIS_5} MATCHES ON)
     message("using metis (and not Parmetis) version 5")
     add_definitions(-DKRATOS_USE_METIS_5)
@@ -19,28 +20,25 @@ else(${USE_METIS_5} MATCHES ON)
     link_directories(${PARMETIS_LIBRARIES})
 endif(${USE_METIS_5} MATCHES ON)
 
-##add definitions needed
-add_definitions(-DMKL_ILP64)
-
 ## generate variables with the sources
-set( KRATOS_METIS_APPLICATION_SOURCES    
-	${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_metis_python_application.cpp 
+set( KRATOS_METIS_APPLICATION_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/metis_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_metis_python_application.cpp
 )
 
 
 # ###############################################################
-add_library(KratosMetisApplication SHARED ${KRATOS_METIS_APPLICATION_SOURCES})
-target_link_libraries(KratosMetisApplication KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES} )
+pybind11_add_module(KratosMetisApplication MODULE THIN_LTO ${KRATOS_METIS_APPLICATION_SOURCES})
+target_link_libraries(KratosMetisApplication PRIVATE KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES} )
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

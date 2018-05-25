@@ -7,6 +7,7 @@
 #include <limits>
 #include <iostream>
 #include <iomanip>
+#include <list>
 
 // Project includes
 #include "includes/define.h"
@@ -17,11 +18,10 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include "boost/python/list.hpp"
 
 namespace Kratos
 {
-class ParticlesHistoryWatcher: public AnalyticWatcher {
+class KRATOS_API(DEM_APPLICATION) ParticlesHistoryWatcher: public AnalyticWatcher {
 
 public:
 
@@ -35,29 +35,27 @@ ParticlesHistoryWatcher(){}
 
 virtual ~ParticlesHistoryWatcher(){}
 
-static void ClearList(boost::python::list& my_list); // its best to pass empty lists in the first place to avoid this operation
+void ClearData() override;
 
-void ClearData();
+void GetNewParticlesData(std::list<int> ids,
+                         std::list<double> X0s,
+                         std::list<double> Y0s,
+                         std::list<double> Z0s,
+                         std::list<double> radii,
+                         std::list<double> times_of_creation);
 
-void GetNewParticlesData(boost::python::list ids,
-                         boost::python::list X0s,
-                         boost::python::list Y0s,
-                         boost::python::list Z0s,
-                         boost::python::list radii,
-                         boost::python::list times_of_creation);
+void MakeMeasurements(ModelPart& analytic_model_part) override;
 
-void MakeMeasurements(ModelPart& analytic_model_part);
-
-void Record(SphericParticle* p_particle, ModelPart& r_model_part);
+void Record(SphericParticle* p_particle, ModelPart& r_model_part) override;
 
 /// Turn back information as a string
-std::string Info() const;
+std::string Info() const override;
 
 /// Print information about this object
-void PrintInfo(std::ostream& rOStream) const;
+void PrintInfo(std::ostream& rOStream) const override;
 
 /// Print object's data
-void PrintData(std::ostream& rOStream) const;
+void PrintData(std::ostream& rOStream) const override;
 
 
 private:

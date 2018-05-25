@@ -69,7 +69,7 @@ class EPPointRigidContactPenalty3DCondition
    ///@name Type Definitions
 
     ///Tensor order 1 definition
-    typedef bounded_vector<double, 3>     PointType;
+    typedef BoundedVector<double, 3>     PointType;
 
     ///@{
     // Counted pointer of PointRigidContactCondition
@@ -115,7 +115,7 @@ class EPPointRigidContactPenalty3DCondition
      * @return a Pointer to the new condition
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
-                              ThisNodes,  PropertiesType::Pointer pProperties) const;
+                              ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected condition variables, creating a new one
@@ -125,7 +125,7 @@ class EPPointRigidContactPenalty3DCondition
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
     /**
      * Called at the end of each solution step
@@ -179,9 +179,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-				     ConditionVariables& rVariables,
-				     double& rIntegrationWeight) override;
+    void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
+                                    ConditionVariables& rVariables,
+                                    double& rIntegrationWeight) override;
 
 
 
@@ -245,12 +245,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactPenalty3DCondition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactPenalty3DCondition )
     }

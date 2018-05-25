@@ -227,8 +227,8 @@ CONDITION: group_POINT_LOAD
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: points nodes
-QUESTION: Variable#CB#(POINT_LOAD)
-VALUE: POINT_LOAD
+QUESTION: Variable#CB#(FORCE_LOAD)
+VALUE: FORCE_LOAD
 QUESTION: ConditionType#CB#(PointLoadCondition2D1N,AxisymPointLoadCondition2D1N,PointLoadCondition3D1N)
 VALUE: PointLoadCondition2D1N
 QUESTION: by_function#CB#(True,False)
@@ -261,8 +261,8 @@ CONDITION: group_LINE_LOAD
 CONDTYPE: over groups
 CONDMESHTYPE: over elements faces 
 GROUPALLOW: lines nodes elements faces
-QUESTION: Variable#CB#(LINE_LOAD)
-VALUE: LINE_LOAD
+QUESTION: Variable#CB#(FORCE_LOAD)
+VALUE: FORCE_LOAD
 QUESTION: ConditionType#CB#(LineLoadCondition2D2N,AxisymLineLoadCondition2D2N)
 VALUE: LineLoadCondition2D2N
 QUESTION: by_function#CB#(True,False)
@@ -379,8 +379,8 @@ CONDITION: group_POINT_MOMENT
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: points nodes
-QUESTION: Variable#CB#(POINT_MOMENT)
-VALUE: POINT_MOMENT
+QUESTION: Variable#CB#(MOMENT_LOAD)
+VALUE: MOMENT_LOAD
 QUESTION: ConditionType#CB#(PointMomentCondition3D1N)
 VALUE: PointMomentCondition3D1N
 QUESTION: by_function#CB#(True,False)
@@ -661,7 +661,7 @@ QUESTION: Parametric_Wall#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#,HIDE,Body_Surface,True)
 DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#,RESTORE,Body_Surface,#CURRENT#)
-QUESTION: Contact_Condition#CB#(PointContactPenaltyCondition2D1N,AxisymPointContactPenaltyCondition2D1N,AxisymPointWaterContactPenaltyCondition2D1N,PointContactPenaltyCondition3D1N)
+QUESTION: Contact_Condition#CB#(PointContactPenaltyCondition2D1N,AxisymPointContactPenaltyCondition2D1N,PointContactPenaltyCondition3D1N,EPPointContactPenaltyCondition2D1N,EPAxisymPointContactPenaltyCondition2D1N,EPPointContactPenaltyCondition3D1N)
 VALUE: PointContactPenaltyCondition2D1N
 QUESTION: Penalty_Parameter
 VALUE: 1000

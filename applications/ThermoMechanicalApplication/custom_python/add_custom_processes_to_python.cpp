@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 
 // Project includes
@@ -71,23 +71,29 @@ namespace Kratos
 
 namespace Python
 {
-void  AddCustomProcessesToPython()
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
 
-    class_<DuplicateInterfaceNodesCreateConditionsProcess, bases<Process> >("DuplicateInterfaceNodesCreateConditionsProcess", init<ModelPart&, char* ,int, const Matrix >())
+    class_<DuplicateInterfaceNodesCreateConditionsProcess, DuplicateInterfaceNodesCreateConditionsProcess::Pointer, Process>
+    (m,"DuplicateInterfaceNodesCreateConditionsProcess")
+    .def( init<ModelPart&, char* ,int, const Matrix >())
     .def("Execute", &DuplicateInterfaceNodesCreateConditionsProcess::Execute)
     .def("PairToId", &DuplicateInterfaceNodesCreateConditionsProcess::PairToId)
     .def("IdToPair", &DuplicateInterfaceNodesCreateConditionsProcess::IdToPair)
     ;
-    class_<ActivationDeactivationConditionsProcess, bases<Process> >("ActivationDeactivationConditionsProcess", init<ModelPart& ,int, const Matrix >())
+    class_<ActivationDeactivationConditionsProcess, ActivationDeactivationConditionsProcess::Pointer, Process>
+    (m, "ActivationDeactivationConditionsProcess")
+    .def( init<ModelPart& ,int, const Matrix >())
     .def("Execute", &ActivationDeactivationConditionsProcess::Execute)
     ;
-    class_<SolidificationProcess, bases<Process> >("SolidificationProcess", init<ModelPart& ,const double  >())
+    class_<SolidificationProcess, SolidificationProcess::Pointer, Process>
+    (m, "SolidificationProcess")
+    .def(init<ModelPart& ,const double  >())
     .def("Execute", &SolidificationProcess::Execute)
     ;
-    
+
 }
 
 }  // namespace Python.

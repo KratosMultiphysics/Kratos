@@ -6,6 +6,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3 )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
+################### PYBIND11
+include(pybind11Tools)
+
 # ##add subdirectories for compilation of dependent libraries
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3)
 
@@ -53,32 +56,33 @@ set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES
 # 
 # ###############################################################
 # ## define library Kratos which defines the basic python interface
-add_library(KratosExternalSolversApplication SHARED ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
+# add_library(KratosExternalSolversApplication SHARED ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
+pybind11_add_module(KratosExternalSolversApplication MODULE THIN_LTO ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
 
 
 if(${INCLUDE_PASTIX} MATCHES ON)
-        target_link_libraries(KratosExternalSolversApplication KratosCore superlu  kratos_pastix rt)
+        target_link_libraries(KratosExternalSolversApplication PRIVATE KratosCore superlu  kratos_pastix rt)
 else(${INCLUDE_PASTIX} MATCHES ON)
-        target_link_libraries(KratosExternalSolversApplication KratosCore superlu  )
+        target_link_libraries(KratosExternalSolversApplication PRIVATE KratosCore superlu  )
 endif(${INCLUDE_PASTIX} MATCHES ON)
 
 
 if(${INCLUDE_FEAST} MATCHES ON)
   set(FEAST_LINK_LIBS feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
-  target_link_libraries(KratosExternalSolversApplication ${FEAST_LINK_LIBS})
+  target_link_libraries(KratosExternalSolversApplication PRIVATE ${FEAST_LINK_LIBS})
 endif(${INCLUDE_FEAST} MATCHES ON)
 
 set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .pyd)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-# changing the .dylib suffix to .so 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .so)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+# if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+# 	set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .pyd)
+# endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+# 
+# # changing the .dylib suffix to .so 
+# if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+# 	set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .so)
+# endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

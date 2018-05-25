@@ -165,7 +165,7 @@ inline std::ostream& operator<<(
             TestName, TestSuiteName)
 
 #define KRATOS_TESTING_TEST_CASE_IN_SUITE_CLASS(TestCaseName, ParentName)      \
-    class KRATOS_API(KRATOS_TESTS) KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public ParentName { \
+    class KRATOS_TESTING_CREATE_CLASS_NAME(TestCaseName) : public ParentName { \
         KRATOS_TESTING_TEST_CASE_CLASS_BODY(TestCaseName, ParentName)          \
         static const Kratos::Testing::Internals::AddThisTestToTestSuite        \
             mAnotherDummy;                                                     \

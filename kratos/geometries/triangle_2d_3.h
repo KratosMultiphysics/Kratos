@@ -323,7 +323,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -584,7 +584,7 @@ public:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * @formulae $$ \frac{r_K}{\ro_K} $$
+     * @formulae $$ \frac{r_K}{\rho_K} $$
      *
      * @return The inradius to circumradius quality metric.
      */
@@ -677,9 +677,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     bool IsInside( 
@@ -710,8 +710,8 @@ public:
      * given by the linear transformation:
      * x = (1-xi-eta)*x1 + xi*x2 + eta*x3
      * y = (1-xi-eta)*y1 + xi*y2 + eta*y3
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates(
@@ -724,7 +724,7 @@ public:
         const TPointType& point_0 = this->GetPoint(0);
 
         // Compute the Jacobian matrix and its determinant
-        bounded_matrix<double, 2, 2> J;
+        BoundedMatrix<double, 2, 2> J;
         J(0,0) = this->GetPoint(1).X() - this->GetPoint(0).X();
         J(0,1) = this->GetPoint(2).X() - this->GetPoint(0).X();
         J(1,0) = this->GetPoint(1).Y() - this->GetPoint(0).Y();
@@ -782,16 +782,16 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 
 
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 3 )
             NumberNodesInFaces.resize(3,false);
@@ -802,7 +802,7 @@ public:
 
     }
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(3,3,false);
@@ -827,9 +827,6 @@ public:
     ///@name Shape Function
     ///@{
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -901,7 +898,7 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        BoundedMatrix<double,3,2> DN_DX;
         double x10 = this->Points()[1].X() - this->Points()[0].X();
         double y10 = this->Points()[1].Y() - this->Points()[0].Y();
 
@@ -944,7 +941,7 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        BoundedMatrix<double,3,2> DN_DX;
         double x10 = this->Points()[1].X() - this->Points()[0].X();
         double y10 = this->Points()[1].Y() - this->Points()[0].Y();
 
@@ -1257,7 +1254,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1334,9 +1331,6 @@ private:
     ///@{
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
      * @param ThisMethod the current integration method
@@ -1370,9 +1364,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the local gradients of all shape functions
      * in all integration points.
@@ -1979,11 +1970,11 @@ private:
     /** AxisTestZ
      * This method returns true if there is a separating axis
      * 
-     * @param rEdgeX, rEdgeY: i-edge corrdinates
-     * @param rAbsEdgeX, rAbsEdgeY: i-edge abs coordinates
-     * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
-     * @param rVertC: i+2 vertex
+     * @param rEdgeX, rEdgeY i-edge corrdinates
+     * @param rAbsEdgeX, rAbsEdgeY i-edge abs coordinates
+     * @param rVertA i   vertex
+     * @param rVertB i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC i+2 vertex
      * @param rBoxHalfSize
      */
     bool AxisTestZ(double& rEdgeX, double& rEdgeY, 

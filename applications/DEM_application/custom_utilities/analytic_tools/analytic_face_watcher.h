@@ -2,23 +2,24 @@
 #ifndef ANALYTIC_FACE_WATCHER_H
 #define ANALYTIC_FACE_WATCHER_H
 
+#include <pybind11/pybind11.h>
+
 // System includes
 
 #include <limits>
 #include <iostream>
 #include <iomanip>
+#include <list>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "../../custom_conditions/RigidFace.h"
 
-
 /* External includes */
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include "boost/python/list.hpp"
 
 namespace Kratos
 {
@@ -30,7 +31,7 @@ KRATOS_CLASS_POINTER_DEFINITION(AnalyticFaceWatcher);
 
 /// Default constructor
 
-AnalyticFaceWatcher(){}
+AnalyticFaceWatcher(ModelPart& model_part):mrModelPart(model_part){}
 
 /// Destructor
 
@@ -58,13 +59,15 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
     {
         ++mNCrossings;
         mNSignedCrossings += Sign(id2);
-        mMass += mass;
+        mMass += mass*Sign(id2);
+        mRelVelNormalxMass += mass*normal_vel;
+        mRelVelTangentialxMass += mass*tang_vel;
         mMasses.push_back(mass);
         mId1.push_back(id1);
         mId2.push_back(std::abs(id2));
         mRelVelNormal.push_back(normal_vel);
         mRelVelTangential.push_back(tang_vel);
-    }    
+    }
 
     int GetTotalThroughput()
     {
@@ -81,19 +84,31 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         return mTime;
     }
 
-    void FillUpPythonLists(boost::python::list& ids,
-                           boost::python::list& neighbour_ids,
-                           boost::python::list& masses,
-                           boost::python::list& normal_relative_vel,
-                           boost::python::list& tangential_relative_vel)
+    double GetRelVelNormalxMass()
     {
-        AnalyticFaceWatcher::ClearList(ids);
-        AnalyticFaceWatcher::ClearList(neighbour_ids);
-        AnalyticFaceWatcher::ClearList(masses);
-        AnalyticFaceWatcher::ClearList(normal_relative_vel);
-        AnalyticFaceWatcher::ClearList(tangential_relative_vel);
+        return mRelVelNormalxMass;
+    }
+
+    double GetRelVelTangentialxMass()
+    {
+        return mRelVelTangentialxMass;
+    }
+
+
+    void FillUpPythonLists(pybind11::list& ids,
+                           pybind11::list& neighbour_ids,
+                           pybind11::list& masses,
+                           pybind11::list& normal_relative_vel,
+                           pybind11::list& tangential_relative_vel)
+    {
+        ids.attr("clear")();
+        neighbour_ids.attr("clear")();
+        masses.attr("clear")();
+        normal_relative_vel.attr("clear")();
+        tangential_relative_vel.attr("clear")();
 
         for (int i = 0; i < mNCrossings; ++i){
+            //ids.push_back(mId1[i]);
             ids.append(mId1[i]);
             neighbour_ids.append(mId2[i]);
             masses.append(mMasses[i]);
@@ -113,6 +128,9 @@ class CrossingsTimeStepDataBase  // It holds the historical information gathered
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
+        double mRelVelNormalxMass;
+        double mRelVelTangentialxMass;
+
     };
 
 class FaceHistoryDatabase // It holds the historical information gathered for a single face
@@ -145,19 +163,21 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
         return mMass;
     }
 
-    void FillUpPythonLists(boost::python::list& times,
-                           boost::python::list& neighbour_ids,
-                           boost::python::list& masses,
-                           boost::python::list& normal_relative_vel,
-                           boost::python::list& tangential_relative_vel)
+    void FillUpPythonLists(pybind11::list& times,
+                           pybind11::list& neighbour_ids,
+                           pybind11::list& masses,
+                           pybind11::list& normal_relative_vel,
+                           pybind11::list& tangential_relative_vel)
     {
-        AnalyticFaceWatcher::ClearList(times);
-        AnalyticFaceWatcher::ClearList(neighbour_ids);
-        AnalyticFaceWatcher::ClearList(masses);
-        AnalyticFaceWatcher::ClearList(normal_relative_vel);
-        AnalyticFaceWatcher::ClearList(tangential_relative_vel);
+
+        times.attr("clear")();
+        neighbour_ids.attr("clear")();
+        masses.attr("clear")();
+        normal_relative_vel.attr("clear")();
+        tangential_relative_vel.attr("clear")();
 
         for (int i = 0; i < mNCrossings; ++i){
+            //times.push_back(mTimes[i]);
             times.append(mTimes[i]);
             neighbour_ids.append(mId2[i]);
             masses.append(mMasses[i]);
@@ -170,42 +190,46 @@ class FaceHistoryDatabase // It holds the historical information gathered for a 
 
         int mNCrossings;
         int mNSignedCrossings;
-        //int mId;        
+        //int mId;
         double mMass;
         std::vector<double> mTimes;
         std::vector<double> mMasses;
         std::vector<int> mId2;
         std::vector<double> mRelVelNormal;
         std::vector<double> mRelVelTangential;
+        double mRelVelNormalxMass;
+        double mRelVelTangentialxMass;
 };
-
-static void ClearList(boost::python::list& my_list); // its best to pass empty lists in the first place to avoid this operation
 
 void ClearData();
 
 void GetFaceData(int id,
-                 boost::python::list times,
-                 boost::python::list neighbour_ids,
-                 boost::python::list masses,
-                 boost::python::list normal_relative_vel,
-                 boost::python::list tangential_relative_vel);
+                 pybind11::list times,
+                 pybind11::list neighbour_ids,
+                 pybind11::list masses,
+                 pybind11::list normal_relative_vel,
+                 pybind11::list tangential_relative_vel);
 
 void GetAllFacesData(ModelPart& analytic_model_part,
-                     boost::python::list times,
-                     boost::python::list neighbour_ids,
-                     boost::python::list masses,
-                     boost::python::list normal_relative_vel,
-                     boost::python::list tangential_relative_vel);
+                     pybind11::list& times,
+                     pybind11::list& neighbour_ids,
+                     pybind11::list& masses,
+                     pybind11::list& normal_relative_vel,
+                     pybind11::list& tangential_relative_vel);
 
-void GetTimeStepsData(boost::python::list ids,
-                      boost::python::list neighbour_ids,
-                      boost::python::list masses,
-                      boost::python::list normal_relative_vel,
-                      boost::python::list tangential_relative_vel);
+void GetTimeStepsData(pybind11::list& ids,
+                      pybind11::list& neighbour_ids,
+                      pybind11::list& masses,
+                      pybind11::list& normal_relative_vel,
+                      pybind11::list& tangential_relative_vel);
 
-void GetTotalFlux(boost::python::list &times, boost::python::list &n_particles, boost::python::list &mass);
+void GetTotalFlux(pybind11::list &times,
+                  pybind11::list &n_particles,
+                  pybind11::list &mass,
+                  pybind11::list &normal_relative_vel,
+                  pybind11::list &tangential_relative_vel);
 
-virtual void MakeMeasurements(ModelPart& analytic_model_part);
+virtual void MakeMeasurements();
 
 virtual FaceHistoryDatabase& GetFaceDataBase(int id);
 
@@ -221,6 +245,7 @@ virtual void PrintData(std::ostream& rOStream) const;
 
 private:
 
+ModelPart& mrModelPart;
 std::set<int> mSetOfIds;
 std::vector<CrossingsTimeStepDataBase> mVectorOfTimeStepDatabases;
 std::map<int, FaceHistoryDatabase> mMapOfFaceHistoryDatabases;

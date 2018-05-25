@@ -323,8 +323,8 @@ private:
     {
       KRATOS_TRY
 
-	boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-        boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+        DenseVector<unsigned int> lnofa; //number of points defining faces
 
 	for(ModelPart::ConditionsContainerType::iterator i_cond = rBoundaryEdgedConditions.begin();
 	    i_cond != rBoundaryEdgedConditions.end(); i_cond++)
@@ -459,7 +459,7 @@ private:
 
 	      
 	  //create a new node
-	  pNode = boost::make_shared< Node<3> >( id, xc, yc, zc );
+	  pNode = Kratos::make_shared< Node<3> >( id, xc, yc, zc );
 
 	  //giving model part variables list to the node
 	  pNode->SetSolutionStepVariablesList(&VariablesList);

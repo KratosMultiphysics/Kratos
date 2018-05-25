@@ -45,10 +45,18 @@ namespace Kratos
         rOStream << "Modified shape functions computation base class:\n";
         rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
         std::stringstream distances_buffer;
+        std::stringstream stm;
         for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
-            distances_buffer << std::to_string(nodal_distances(i)) << " ";
+            stm << nodal_distances(i);
+            distances_buffer << stm.str() << " ";
         }
         rOStream << "\tDistance values: " << distances_buffer.str();
+    };
+
+    // Returns a pointer to the splitting utility
+    const DivideGeometry::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
+        KRATOS_ERROR << "Trying to retrieve the splitting utility from the modified shape functions base class. \n" <<
+                         "Implement the pGetSplittingUtil according to the input geometry in the proper modified shape functions derived class.";
     };
 
     // Returns the input original geometry.
@@ -332,4 +340,27 @@ namespace Kratos
             }
         }
     };
+
+    // Computes the edge intersection shape function values for either the positive or negative sides
+    void ModifiedShapeFunctions::ComputeEdgeIntersectionValuesOnOneSide(
+        const Matrix &rPmatrix,
+        Matrix &rEdgeShapeFunctionValues){
+
+        // Get geometry information
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();
+        const unsigned int n_edges = p_input_geometry->EdgesNumber();
+        const unsigned int n_nodes = p_input_geometry->PointsNumber();
+
+        // Initialize the output matrix. Note that the non-split edges values must be equal to zero
+        rEdgeShapeFunctionValues = ZeroMatrix(n_edges, n_nodes);
+        
+        // Take the shape function values from the condensation matrix
+        for (unsigned int i_edge = 0; i_edge < n_edges; ++i_edge){
+            const unsigned int p_mat_row = n_nodes + i_edge;
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+                rEdgeShapeFunctionValues(i_edge, i_node) = rPmatrix(p_mat_row, i_node);
+            }
+        }
+    };
+
 }; // namespace Kratos

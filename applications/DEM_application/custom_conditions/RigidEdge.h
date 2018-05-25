@@ -8,7 +8,6 @@
 // System includes
 
 // External includes
-//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -20,19 +19,19 @@
 namespace Kratos
 {
 
-class RigidEdge3D : public DEMWall
+class KRATOS_API(DEM_APPLICATION) RigidEdge3D : public DEMWall
 {
 public:
     // Counted pointer of RigidEdge3D
     KRATOS_CLASS_POINTER_DEFINITION(RigidEdge3D);
-	
-	typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+
+	typedef WeakPointerVector<Element> ParticleWeakVectorType;
 	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-	
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
+
+	typedef WeakPointerVector<Condition> ConditionWeakVectorType;
 	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
-	
+
 
     /**
      * Default constructor.
@@ -61,7 +60,7 @@ public:
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     void Initialize() override;
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;    
+    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override;
     void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
@@ -90,8 +89,8 @@ protected:
 
 
 private:
-    
-	
+
+
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -112,4 +111,4 @@ private:
 }; // Class ContactLink3DExplicit
 }  // namespace Kratos.
 
-#endif // KRATOS_RIGIDEDGE_H_INCLUDED  defined 
+#endif // KRATOS_RIGIDEDGE_H_INCLUDED  defined

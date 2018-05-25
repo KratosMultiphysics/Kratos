@@ -7,16 +7,11 @@
 //
 //
 
-
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_modelers_to_python.h"
 
 // Meshers
@@ -32,17 +27,13 @@ namespace Kratos
 namespace Python
 {
 
-  typedef MeshModeler                        MeshModelerBaseType;
-  typedef MeshModeler::Pointer                MeshModelerPointer;
-
-
-  void  AddCustomModelersToPython()
-  {
-    using namespace boost::python;
+void  AddCustomModelersToPython(pybind11::module& m)
+{
+  using namespace pybind11;
   
-    //class that allos remeshing and adaptive refining (inserting and erasing nodes)
-    class_<MeshModeler, MeshModeler::Pointer, boost::noncopyable >
-      ("MeshModeler", init< >())
+  //class that allows remeshing and adaptive refining (inserting and erasing nodes)
+  class_<MeshModeler, typename MeshModeler::Pointer>(m,"MeshModeler")
+      .def(init< >())
       .def("Initialize",&MeshModeler::Initialize)
       .def("InitializeMeshModeler",&MeshModeler::InitializeMeshModeler)
       .def("FinalizeMeshModeler",&MeshModeler::FinalizeMeshModeler)
@@ -57,19 +48,19 @@ namespace Python
       .def("ExecuteMeshing",&MeshModeler::ExecuteMeshing)
       ;
 
-    //class that allows 3D adaptive remeshing (inserting and erasing nodes)
-    class_<TetrahedralMesh3DModeler, bases<MeshModelerBaseType>, boost::noncopyable >
-      ("TetrahedralMesh3DModeler",init< >())
+  //class that allows 3D adaptive remeshing (inserting and erasing nodes)
+  class_<TetrahedralMesh3DModeler, typename TetrahedralMesh3DModeler::Pointer, MeshModeler>
+      (m,"TetrahedralMesh3DModeler")
+      .def(init< >())
       ;
     
-    //class that allows 2D adaptive remeshing (inserting and erasing nodes)
-    class_<TriangularMesh2DModeler, bases<MeshModelerBaseType>, boost::noncopyable >
-      ("TriangularMesh2DModeler",init< >())
+  //class that allows 2D adaptive remeshing (inserting and erasing nodes)
+  class_<TriangularMesh2DModeler, typename TriangularMesh2DModeler::Pointer, MeshModeler>
+      (m,"TriangularMesh2DModeler")
+      .def(init< >())
       ;
 
-
-
-  }
+}
 
 }  // namespace Python.
 

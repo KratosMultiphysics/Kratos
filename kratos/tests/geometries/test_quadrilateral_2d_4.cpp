@@ -19,6 +19,8 @@
 #include "testing/testing.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "tests/geometries/test_geometry.h"
+#include "tests/geometries/test_shape_function_derivatives.h"
+#include "tests/geometries/cross_check_shape_functions_values.h"
 
 // Utility includes
 #include "utilities/geometry_utilities.h"
@@ -60,8 +62,8 @@ namespace Testing
       return typename Quadrilateral2D4<TPointType>::Pointer(new Quadrilateral2D4<TPointType>(
         GeneratePoint<TPointType>( 0.0, 0.0, 0.0),
         GeneratePoint<TPointType>( 1.0, 0.0, 0.0),
-        GeneratePoint<TPointType>( 1.1, 1.1, 0.0),
-        GeneratePoint<TPointType>( 0.0, 1.1, 0.0)
+        GeneratePoint<TPointType>( 1.0, 1.0, 0.0),
+        GeneratePoint<TPointType>( 0.0, 1.0, 0.0)
       ));
     }
 
@@ -126,6 +128,49 @@ namespace Testing
         Point point_1 ( 0.7, 0.4, 0.0 );
         Point point_2 ( 1.0, 1.2, 0.0 );
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
+    }
+
+    /** Tests the PointLocalCoordinates for Quadrilateral2D4.
+     * Tests the PointLocalCoordinates for Quadrilateral2D4.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+
+        Point TestPointA(1.0, 1.0, 0.0);
+        Point TestPointB(0.5, 0.5, 0.0);
+        Point TestResultA(0.0, 0.0, 0.0);
+        Point TestResultB(0.0, 0.0, 0.0);
+
+        geom->PointLocalCoordinates(TestResultA, TestPointA);
+        geom->PointLocalCoordinates(TestResultB, TestPointB);
+
+        // Test transformation in the edge
+        KRATOS_CHECK_NEAR(TestResultA[0], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[1], 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultA[2], 0.0, TOLERANCE);
+
+        // Test transformation in the center
+        KRATOS_CHECK_NEAR(TestResultB[0], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultB[1], 0.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(TestResultB[2], 0.0, TOLERANCE);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+      auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+      array_1d<double, 3> coord(3);
+      coord[0] = 1.0 / 2.0;
+      coord[1] = 1.0 / 4.0;
+      coord[2] = 0.0;
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 0.09375, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.28125, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), 0.46875, TOLERANCE);
+      KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), 0.15625, TOLERANCE);
+      CrossCheckShapeFunctionsValues(*geom);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        TestAllShapeFunctionsLocalGradients(*geom);
     }
 
 } // namespace Testing

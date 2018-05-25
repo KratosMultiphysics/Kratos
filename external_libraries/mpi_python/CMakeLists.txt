@@ -1,16 +1,18 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include(pybind11Tools)
+
 ## generate variables with the sources
-set( MPI_PYTHON_SOURCES     
+set( MPI_PYTHON_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/python_interface.cpp
      )
 
 add_definitions( -w )
 
 ###############################################################
-add_library(mpipython SHARED ${MPI_PYTHON_SOURCES})
+pybind11_add_module(mpipython MODULE THIN_LTO ${MPI_PYTHON_SOURCES})
 
-target_link_libraries(mpipython ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ${MPI_LIBRARIES})
+target_link_libraries(mpipython PRIVATE ${MPI_LIBRARIES})
 
 set_target_properties(mpipython PROPERTIES PREFIX "")
 
@@ -18,7 +20,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(mpipython PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(mpipython PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

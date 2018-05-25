@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hencky_hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/hencky_hyper_elastic_model.hpp"
 
 namespace Kratos
 {
@@ -250,6 +250,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPERELASTIC_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_BORJA_MODEL_H_INCLUDED  defined 
 
 

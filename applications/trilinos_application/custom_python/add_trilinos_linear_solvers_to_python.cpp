@@ -1,16 +1,23 @@
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-12-09 20:20:55 $
-//   Revision:            $Revision: 1.5 $
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+
+// Project includes
+#include "includes/define_python.h"
 
 #include "custom_python/add_trilinos_strategies_to_python.h"
 
@@ -28,7 +35,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
@@ -37,9 +43,6 @@
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
-
-//utilities
-#include "python/pointer_vector_set_python_interface.h"
 
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
@@ -58,7 +61,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
@@ -74,56 +77,59 @@ void Solve(TrilinosLinearSolverType& solver,
     solver.Solve(rA,rX,rB);
 }
 
-void  AddLinearSolvers()
+void  AddLinearSolvers(pybind11::module& m)
 {
     
-    class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer, boost::noncopyable > ("TrilinosLinearSolver", init<>())
+    class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer > (m,"TrilinosLinearSolver")
+    .def(init<>())
     .def("Solve", Solve);
 
-    class_<EpetraDefaultSetter, boost::noncopyable>("EpetraDefaultSetter",init<>())
+    class_<EpetraDefaultSetter>(m,"EpetraDefaultSetter").def( init<>())
     .def("SetDefaults", &EpetraDefaultSetter::SetDefaults);
 
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
-    class_<AztecSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AztecSolver", init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
+    class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AztecSolver")
+    .def( init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
     .def(init<Parameters>())
     .def("SetScalingType", &AztecSolverType::SetScalingType)
     ;
 
     typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
-    class_<AmesosSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AmesosSolver", init<const std::string&, Teuchos::ParameterList& >())
+    class_<AmesosSolverType, typename AmesosSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AmesosSolver").def( init<const std::string&, Teuchos::ParameterList& >())
     .def(init<Parameters>())
     .def(init<Parameters>())
+    .def_static("HasSolver", &AmesosSolverType::HasSolver)
     ;
 
     typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
-    class_<MLSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("MultiLevelSolver", init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
+    class_<MLSolverType, typename MLSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"MultiLevelSolver").def( init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >())
     .def(init<Parameters>())
     .def("SetScalingType", &MLSolverType::SetScalingType)
     .def("SetReformPrecAtEachStep", &MLSolverType::SetReformPrecAtEachStep)
     ;
 
     typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
-    class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AmgclMPISolver",init<Parameters>()) //init<double, int,int,bool >())
+    class_<AmgclMPISolverType, typename AmgclMPISolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AmgclMPISolver").def( init<Parameters>()) //init<double, int,int,bool >())
     .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
     .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
     ;
     
     typedef AmgclMPISchurComplementSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISchurComplementSolverType;
-    class_<AmgclMPISchurComplementSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-    ("AmgclMPISchurComplementSolver",init<Parameters>()) 
+    class_<AmgclMPISchurComplementSolverType, typename AmgclMPISchurComplementSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AmgclMPISchurComplementSolver").def( init<Parameters>()) 
     ;
     
-    enum_<AztecScalingType>("AztecScalingType")
+    enum_<AztecScalingType>(m,"AztecScalingType")
     .value("NoScaling", NoScaling)
     .value("LeftScaling", LeftScaling)
     .value("SymmetricScaling", SymmetricScaling)
     ;
 
-    enum_<MLSolverType::ScalingType>("MLSolverScalingType")
+    enum_<MLSolverType::ScalingType>(m,"MLSolverScalingType")
     .value("NoScaling", MLSolverType::NoScaling)
     .value("LeftScaling", MLSolverType::LeftScaling)
     ;

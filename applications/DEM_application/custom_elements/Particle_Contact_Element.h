@@ -11,7 +11,6 @@
 
 
 // External includes
-//#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -24,8 +23,8 @@
 
 namespace Kratos
 {
-    
-class ParticleContactElement: public Element
+
+class KRATOS_API(DEM_APPLICATION) ParticleContactElement: public Element
 {
 
 public:
@@ -49,7 +48,7 @@ public:
 
     Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize() override;   
+    void Initialize() override;
 
     void InitializeSolutionStep(ProcessInfo& r_process_info ) override;
 
@@ -58,11 +57,11 @@ public:
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& r_process_info) override;
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& r_process_info) override;
-  
+
     void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info ) override;
-    
+
     void PrepareForPrinting();
-    
+
     void CalculateMeanContactArea(const bool has_mpi);
 
     ///@}
@@ -78,8 +77,8 @@ protected:
 
 
 private:
-  
-    
+
+
     std::string Info() const override;
 
     friend class Serializer;
@@ -100,4 +99,4 @@ private:
 }; // Class ParticleContactElement
 
 }  // namespace Kratos.
-#endif // KRATOS_PARTICLE_CONTACT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_PARTICLE_CONTACT_ELEMENT_H_INCLUDED  defined

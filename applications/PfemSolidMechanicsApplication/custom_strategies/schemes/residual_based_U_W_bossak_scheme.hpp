@@ -112,7 +112,7 @@ namespace Kratos
          /**
           * Clone 
           */
-         virtual BaseTypePointer Clone()
+         BaseTypePointer Clone() override
          {
             return BaseTypePointer( new ResidualBasedUWBossakScheme(*this) );
          }
@@ -136,7 +136,7 @@ namespace Kratos
                DofsArrayType& rDofSet,
                TSystemMatrixType& A,
                TSystemVectorType& Dx,
-               TSystemVectorType& b )
+               TSystemVectorType& b ) override
          {
             KRATOS_TRY
 
@@ -185,10 +185,10 @@ namespace Kratos
                if ( i->HasDofFor(WATER_PRESSURE) ) {
                   const double& PreviousWaterPressure    = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
                   const double& PreviousWaterPressureVelocity    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY, 1);
-                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATIONN, 1);
+                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION, 1);
                   double& CurrentWaterPressure     = (i)->FastGetSolutionStepValue(WATER_PRESSURE);
                   double& CurrentWaterPressureVelocity     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY);
-                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATIONN);
+                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
 
                   double DeltaWaterPressure = CurrentWaterPressure - PreviousWaterPressure;
                   UpdateVelocityScalar     ( CurrentWaterPressureVelocity, DeltaWaterPressure, PreviousWaterPressureVelocity, PreviousWaterPressureAcceleration);
@@ -212,7 +212,7 @@ namespace Kratos
                TSystemMatrixType& A,
                TSystemVectorType& Dx,
                TSystemVectorType& b
-               )
+               ) override
          {
 
             KRATOS_TRY
@@ -382,10 +382,10 @@ namespace Kratos
                {
                   const double& PreviousWaterPressure    = (i)->FastGetSolutionStepValue(WATER_PRESSURE, 1);
                   const double& PreviousWaterPressureVelocity    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY, 1);
-                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATIONN, 1);
+                  const double& PreviousWaterPressureAcceleration    = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION, 1);
                   double& CurrentWaterPressure     = (i)->FastGetSolutionStepValue(WATER_PRESSURE);
                   double& CurrentWaterPressureVelocity     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_VELOCITY);
-                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATIONN);
+                  double& CurrentWaterPressureAcceleration     = (i)->FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
 
                   double DeltaWaterPressure = CurrentWaterPressure - PreviousWaterPressure;
 
@@ -423,7 +423,7 @@ namespace Kratos
           * @param r_model_part
           * @return 0 all ok
           */
-         virtual int Check(ModelPart& r_model_part)
+         int Check(ModelPart& r_model_part) override
          {
             KRATOS_TRY
 

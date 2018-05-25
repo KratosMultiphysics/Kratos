@@ -63,10 +63,10 @@ public:
     ///@{
  
     /**
-     * This function converts tensors to vector and viceversa
+     * This function converts tensors to vector
      */
     
-    static inline Vector TensorToVector(const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Tensor)
+    static inline Vector TensorToVector(const bounded_matrix<double, TDim, TDim> Tensor)
     {
         Vector TensorCond;
         TensorCond.resize(3 * (TDim - 1), false);
@@ -75,12 +75,9 @@ public:
         TensorCond[0] = Tensor(0, 0);
         TensorCond[1] = Tensor(0, 1);
             
-        if (TDim == 2)
-        {
+        if (TDim == 2) {
             TensorCond[2] = Tensor(1, 1);
-        }
-        else
-        {
+        } else  {
             TensorCond[2] = Tensor(0, 2);
             TensorCond[3] = Tensor(1, 1);
             TensorCond[4] = Tensor(1, 2);
@@ -90,20 +87,21 @@ public:
         return TensorCond;
     }
     
-    static inline boost::numeric::ublas::bounded_matrix<double, TDim, TDim>  VectorToTensor(const Vector TensorCond)
+    /**
+     * This function converts vector to tensors
+     */
+    
+    static inline bounded_matrix<double, TDim, TDim>  VectorToTensor(const Vector TensorCond)
     {
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Tensor;
+        bounded_matrix<double, TDim, TDim> Tensor;
         
         // Common part
         Tensor(0, 0) = TensorCond[0];
         Tensor(0, 1) = TensorCond[1];
         Tensor(1, 0) = TensorCond[1];
-        if (TDim == 2)
-        {
+        if (TDim == 2) {
             Tensor(1, 1) = TensorCond[2];
-        }
-        else
-        {
+        } else {
             Tensor(0, 2) = TensorCond[2];
             Tensor(2, 0) = TensorCond[2];
             Tensor(1, 1) = TensorCond[3];
@@ -115,46 +113,40 @@ public:
         return Tensor;
     }
     
-    /***********************************************************************************/
-    /***********************************************************************************/
-    
     /**
      * It computes the intersection between two metrics 
-     * @param Metric1: The first metric
-     * @param Metric2: The second metric
+     * @param Metric1 The first metric
+     * @param Metric2 The second metric
      */
         
     static inline Vector IntersectMetrics(
-        const Vector Metric1,
-        const Vector Metric2
+        const Vector& Metric1,
+        const Vector& Metric2
     )
     {
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Metric1Matrix = VectorToTensor(Metric1);
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Metric2Matrix = VectorToTensor(Metric2);
+        const bounded_matrix<double, TDim, TDim>& metric1_matrix = VectorToTensor(Metric1);
+        const bounded_matrix<double, TDim, TDim>& metric2_matrix = VectorToTensor(Metric2);
         
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> auxmat;
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> emat;
+        bounded_matrix<double, TDim, TDim> auxmat, emat;
         
         double auxdet;
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> invMetric1Matrix = MathUtils<double>::InvertMatrix<TDim>(Metric1Matrix, auxdet);
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> NMatrix = prod(invMetric1Matrix, Metric2Matrix);
+        const bounded_matrix<double, TDim, TDim>& inv_metric1_matrix = MathUtils<double>::InvertMatrix<TDim>(metric1_matrix, auxdet);
+        const bounded_matrix<double, TDim, TDim> n_matrix = prod(inv_metric1_matrix, metric2_matrix);
         
-        MathUtils<double>::EigenSystem<TDim>(NMatrix, emat, auxmat, 1e-18, 20);
+        MathUtils<double>::EigenSystem<TDim>(n_matrix, emat, auxmat, 1e-18, 20);
         
-        typedef boost::numeric::ublas::bounded_matrix<double, TDim, TDim> temp_type;
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> lambdamat =  prod(trans(emat), prod<temp_type>(Metric1Matrix, emat));
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> mumat =  prod(trans(emat), prod<temp_type>(Metric2Matrix, emat));
+        typedef bounded_matrix<double, TDim, TDim> temp_type;
+        const bounded_matrix<double, TDim, TDim> lambdamat =  prod(trans(emat), prod<temp_type>(metric1_matrix, emat));
+        const bounded_matrix<double, TDim, TDim> mumat =  prod(trans(emat), prod<temp_type>(metric2_matrix, emat));
         
-        for (unsigned int i = 0; i < TDim; i++)
-        {
+        for (unsigned int i = 0; i < TDim; ++i)
             auxmat(i, i) = MathUtils<double>::Max(lambdamat(i, i), mumat(i, i));
-        }
         
-        const boost::numeric::ublas::bounded_matrix<double, TDim, TDim> invemat = MathUtils<double>::InvertMatrix<TDim>(emat, auxdet);
+        const bounded_matrix<double, TDim, TDim>& invemat = MathUtils<double>::InvertMatrix<TDim>(emat, auxdet);
         
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> IntersectionMatrix =  prod(trans(invemat), prod<temp_type>(auxmat, invemat));
+        bounded_matrix<double, TDim, TDim> IntersectionMatrix =  prod(trans(invemat), prod<temp_type>(auxmat, invemat));
         
-        const Vector Intersection = TensorToVector(IntersectionMatrix);
+        const Vector& Intersection = TensorToVector(IntersectionMatrix);
         
         return Intersection;
     }

@@ -48,7 +48,8 @@ namespace Kratos
 /** @brief Custom convergence criteria for the mortar condition 
  */
 template<class TSparseSpace, class TDenseSpace>
-class MeshTyingMortarConvergenceCriteria : public virtual  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
+class MeshTyingMortarConvergenceCriteria 
+    : public  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -74,16 +75,15 @@ public:
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
-    typedef boost::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
+    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
     
     /// Default constructors
-    MeshTyingMortarConvergenceCriteria(TablePrinterPointerType pTable = nullptr)
-        : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-        mpTable(pTable)
+    MeshTyingMortarConvergenceCriteria()
+        : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
     }
 
@@ -118,8 +118,9 @@ public:
         const TSystemVectorType& b
         ) override
     {        
-        if (mpTable != nullptr)
-        {
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        if (r_process_info.Has(TABLE_UTILITY)) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             // TODO: Add somethig if necessary
         }
         
@@ -135,8 +136,9 @@ public:
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
         
-        if (mpTable != nullptr)
-        {
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        if (r_process_info.Has(TABLE_UTILITY)) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
             // TODO: Add somethig if necessary
         }
     }
@@ -194,8 +196,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    TablePrinterPointerType mpTable;
     
     ///@}
     ///@name Private Operators

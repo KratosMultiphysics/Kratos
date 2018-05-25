@@ -14,12 +14,12 @@
 #if !defined(KRATOS_GLOBAL_JOINT_STRESS_UTILITIES)
 #define KRATOS_GLOBAL_JOINT_STRESS_UTILITIES
 
+// System includes
 #include <cmath>
 
 // Project includes
-#include "includes/kratos_flags.h"
+#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "processes/process.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
 #include "includes/element.h"
@@ -80,7 +80,7 @@ class GlobalJointStressUtility
         ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
         GeometryData::IntegrationMethod MyIntegrationMethod;
         const ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
-        boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationPlane;
+        BoundedMatrix<double, 3, 3> RotationPlane;
 
         //Definition of the plane
         array_1d<double, 3> point_mid0;
@@ -108,7 +108,7 @@ class GlobalJointStressUtility
         {
             ModelPart::ElementsContainerType::iterator it = el_begin + k;
             Element::GeometryType &rGeom = it->GetGeometry();
-            boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
+            BoundedMatrix<double, 3, 3> RotationMatrix;
 
             //Define mid-plane points for prism_interface_3d_6
             noalias(point_mid0) = 0.5 * (rGeom.GetPoint(0) + rGeom.GetPoint(3));
@@ -158,7 +158,7 @@ class GlobalJointStressUtility
 
     //Currently is just working for prism element
 
-    void CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3> &rRotationMatrix, array_1d<double, 3> &point_mid0, array_1d<double, 3> &point_mid1, array_1d<double, 3> &point_mid2)
+    void CalculateRotationMatrix(BoundedMatrix<double, 3, 3> &rRotationMatrix, array_1d<double, 3> &point_mid0, array_1d<double, 3> &point_mid1, array_1d<double, 3> &point_mid2)
     {
         KRATOS_TRY
 

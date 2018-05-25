@@ -3,9 +3,10 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 import math
+import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestProcesses(KratosUnittest.TestCase):
@@ -481,7 +482,7 @@ class TestProcesses(KratosUnittest.TestCase):
             for node in cond.GetNodes():
                 self.assertEqual(v[i],node.X+node.Y*t+node.Z)
                 i=i+1
-                
+
     def test_assign_scalar_field_component_to_conditions(self):
         model_part = ModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
@@ -642,5 +643,74 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
+            
+    def test_assign_vector_variable_to_conditions(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        
+        model_part.CreateNewNode(1,0.5,0.5,0.5)
+        model_part.CreateNewNode(2,1.0,1.0,1.0)
+        
+        model_part.CreateNewCondition("LineCondition2D2N",1,[1,2], model_part.GetProperties()[1])
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module" : "assign_vector_by_direction_to_condition_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+                        "Parameters"            : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "DISPLACEMENT",
+                            "modulus"         : "2.0*t-y",
+                            "direction"       : [1.0,0.0,0.0],
+                            "interval"        : [0.0,"End"]
+                            }
+                    }
+                ]
+            }
+            """)    
+            
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        ################### here we are within the interval
+        model_part.CloneTimeStep(3.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+            
+        for cond in model_part.Conditions:
+            tmp = cond.GetValue(DISPLACEMENT)
+            self.assertEqual(tmp[0], 2.0*3.0-0.75)
+            self.assertEqual(tmp[1], 0.0)
+            self.assertEqual(tmp[2], 0.0)
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+
+        ################### here we are outside of the interval - values do not change but everything is free
+        model_part.CloneTimeStep(8.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for cond in model_part.Conditions:
+            tmp = cond.GetValue(DISPLACEMENT)
+            self.assertEqual(tmp[0], 2.0*8.0-0.75)
+            self.assertEqual(tmp[1], 0.0)
+            self.assertEqual(tmp[2], 0.0)
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+
+
+            
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -12,16 +12,13 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_solvers_to_python.h"
-
-#include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/eigensystem_solver.h"
 
 namespace Kratos
 {
@@ -29,36 +26,70 @@ namespace Kratos
 namespace Python
 {
 
-void AddCustomSolversToPython()
+template <typename SolverType>
+void register_solver(pybind11::module& m, const std::string& name)
 {
-	using namespace boost::python;
+	using namespace pybind11;
 
-	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-	typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-	typedef DirectSolver<SparseSpaceType, LocalSpaceType> DirectSolverType;
+	using Base = DirectSolver<typename SolverType::TGlobalSpace, typename SolverType::TLocalSpace>;
 
-	using SparseLUSolver = EigenDirectSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
-	class_<SparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
-		("SparseLUSolver", init<>())
-		.def(init<Parameters>());
+	using EigenDirectSolverType = EigenDirectSolver<SolverType>;
 
-	#if defined EIGEN_USE_MKL_ALL
-	using PardisoLLTSolver = EigenDirectSolver<PardisoLLT, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLLTSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLLTSolver", init<>())
-		.def(init<Parameters>());
+	class_<EigenDirectSolverType, typename EigenDirectSolverType::Pointer, Base >
+		(m, name.c_str())
+		.def(init<>())
+		.def(init<Parameters>())
+	;
+}
 
-	using PardisoLDLTSolver = EigenDirectSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLDLTSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLDLTSolver", init<>())
-		.def(init<Parameters>());
+template <typename SolverType>
+void register_eigensystem_solver(pybind11::module& m, const std::string& name = SolverType::Name)
+{
+	using namespace pybind11;
 
-	using PardisoLUSolver = EigenDirectSolver<PardisoLU, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLUSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLUSolver", init<>())
-		.def(init<Parameters>());
-	#endif
+	using Base = LinearSolver<typename SolverType::TGlobalSpace, typename SolverType::TLocalSpace>;
+
+	using EigenSystemSolverType = EigensystemSolver<SolverType>;
+
+	class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
+		(m, name.c_str())
+		.def(init<Parameters>())
+	;
+}
+
+void AddCustomSolversToPython(pybind11::module& m)
+{
+	using namespace pybind11;
+
+	using complex = std::complex<double>;
+
+	// --- direct solvers
+
+	register_solver<SparseLU<double>>(m, "SparseLUSolver");
+	register_solver<SparseLU<complex>>(m, "ComplexSparseLUSolver");
+
+	register_solver<SparseQR<double>>(m, "SparseQRSolver");
+	register_solver<SparseQR<complex>>(m, "ComplexSparseQRSolver");
+
+	#if defined USE_EIGEN_MKL
+	// The commented complex solvers need to be tested first
+	register_solver<PardisoLLT<double>>(m, "PardisoLLTSolver");
+	// register_solver<PardisoLLT<complex>>(m, "ComplexPardisoLLTSolver");
+
+	register_solver<PardisoLDLT<double>>(m, "PardisoLDLTSolver");
+	// register_solver<PardisoLDLT<complex>>(m, "ComplexPardisoLDLTSolver");
+
+	register_solver<PardisoLU<double>>(m, "PardisoLUSolver");
+	register_solver<PardisoLU<complex>>(m, "ComplexPardisoLUSolver");
+	#endif // defined USE_EIGEN_MKL
+
+	// --- eigensystem solver
+
+	#if !defined USE_EIGEN_MKL
+	register_eigensystem_solver<SparseLU<double>>(m, "EigensystemSolver");
+	#else  // !defined USE_EIGEN_MKL
+	register_eigensystem_solver<PardisoLDLT<double>>(m, "EigensystemSolver");
+	#endif // !defined USE_EIGEN_MKL
 }
 
 } // namespace Python
