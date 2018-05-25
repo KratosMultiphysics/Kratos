@@ -610,6 +610,11 @@ public:
         return mMasterSlaveConstraints;
     }
 
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin() const
+    {
+        return mMasterSlaveConstraints.begin();
+    }
+
     MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsEnd() const
     {
         return mMasterSlaveConstraints.end();
