@@ -741,6 +741,15 @@ public:
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
      * these methods are: OPTIONAL
      */
+
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
@@ -750,6 +759,13 @@ public:
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+					      std::vector< array_1d<double, 6 > >& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -845,7 +861,7 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
@@ -859,7 +875,7 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					     std::vector<array_1d<double, 6 > >& rValues,
@@ -873,7 +889,7 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
-    
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
 					     std::vector<Matrix>& rValues,
@@ -888,11 +904,16 @@ public:
     {
     }
 
+    virtual void SetValuesOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {}
+
     virtual void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {}
-    
+
     virtual void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
@@ -925,6 +946,12 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
+    virtual void GetValuesOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void GetValuesOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
@@ -941,7 +968,7 @@ public:
 					     std::vector<array_1d<double, 3 > >& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
     {
-    }   
+    }
 
     virtual void GetValuesOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					     std::vector<array_1d<double, 6 > >& rValues,
