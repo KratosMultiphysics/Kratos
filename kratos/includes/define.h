@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -231,22 +231,22 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_DEFINE_LOCAL_FLAG
 #undef KRATOS_DEFINE_LOCAL_FLAG
 #endif
-#define KRATOS_DEFINE_LOCAL_FLAG(name)		\
-  static const Kratos::Flags name;			\
+#define KRATOS_DEFINE_LOCAL_FLAG(name)        \
+  static const Kratos::Flags name;            \
   static const Kratos::Flags NOT_##name
 
 #ifdef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
 #undef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
 #endif
-#define KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(application, name)		\
-  static KRATOS_API(DEM_APPLICATION) const Kratos::Flags name;			\
+#define KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(application, name)        \
+  static KRATOS_API(DEM_APPLICATION) const Kratos::Flags name;            \
   static KRATOS_API(DEM_APPLICATION) const Kratos::Flags NOT_##name
 
 #ifdef KRATOS_CREATE_LOCAL_FLAG
 #undef KRATOS_CREATE_LOCAL_FLAG
 #endif
-#define KRATOS_CREATE_LOCAL_FLAG(class_name, name, position)		\
-  const Kratos::Flags class_name::name(Kratos::Flags::Create(position));		\
+#define KRATOS_CREATE_LOCAL_FLAG(class_name, name, position)        \
+  const Kratos::Flags class_name::name(Kratos::Flags::Create(position));        \
   const Kratos::Flags class_name::NOT_##name(Kratos::Flags::Create(position, false))
 
 
@@ -282,7 +282,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_VARIABLE(variable) \
-	scope().attr(#variable) = boost::ref(variable);
+    scope().attr(#variable) = boost::ref(variable);
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
@@ -328,16 +328,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 
 #define KRATOS_VERSION_AS_INT (KRATOS_MAJOR_VERSION*100+KRATOS_MINOR_VERSION*10+KRATOS_PATCH_VERSION)
-#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) \
-	#if (major_version*100+minor_version*10+patch_version) < KRATOS_VERSION_AS_INT \
-		std::cout << "This method will be deprecated for the version: " << major_version << "." << minor_version << "." << patch_version <<std::endl; KRATOS_DEPRECATED \
-	#else std::cout << "This method is deprecated since version: " << major_version << "." << minor_version << "." << patch_version <<std::endl; #error "Please remove"
-	#endif
-#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) \
-	#if (major_version*100+minor_version*10+patch_version) < KRATOS_VERSION_AS_INT \
-		std::cout << "This method will be deprecated for the version: " << major_version << "." << minor_version << "." << patch_version <<std::endl; KRATOS_DEPRECATED_MESSAGE(message) \
-	#else std::cout << "This method is deprecated since version: " << major_version << "." << minor_version << "." << patch_version <<std::endl; #error "Please remove"
-    	#endif
+#if (major_version*100+minor_version*10+patch_version) < KRATOS_VERSION_AS_INT
+    #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) "This method will be deprecated in version: "##minor_version##"."##minor_version##"."##patch_version## KRATOS_DEPRECATED_MESSAGE(message)
+    #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE("")
+#else
+    #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) message KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version)
+    #define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) "This method is deprecated since version: "##minor_version##"."##minor_version##"."##patch_version## static_assert(false, "Please remove");
+#endif
+
 namespace Kratos
 {
 
@@ -379,10 +377,10 @@ namespace Kratos
 }  /* namespace Kratos.*/
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
-	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
+    Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
 
 #define KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType) \
-	Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
+    Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
 
 
 #endif /* KRATOS_DEFINE_H_INCLUDED  defined */
