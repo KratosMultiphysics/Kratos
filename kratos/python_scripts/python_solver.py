@@ -10,7 +10,7 @@ class PythonSolver(object):
     """The base class for the Python Solvers in the applications
     Changes to this BaseClass have to be discussed first!
     """
-    def __init__(self, model_part, settings):
+    def __init__(self, model, settings):
         """The constructor of the PythonSolver-Object.
 
         It is intended to be called from the constructor
@@ -19,16 +19,16 @@ class PythonSolver(object):
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model_part -- The ModelPart to be used
+        model -- The Model to be used
         settings -- The solver settings used
         """
-        if (type(model_part) != KratosMultiphysics.ModelPart):
+        if (type(model) != KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
         if (type(settings) != KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
-        self.main_model_part = model_part
+        self.model = model
         self.settings = settings
 
         self.echo_level = self.settings["echo_level"].GetInt()
@@ -48,29 +48,7 @@ class PythonSolver(object):
     def ReadModelPart(self):
         """This function reads the ModelPart
         """
-        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
-        problem_path = os.getcwd()
-        model_import_settings = self.settings["model_import_settings"]
-        input_filename = model_import_settings["input_filename"].GetString()
-        input_type = model_import_settings["input_type"].GetString()
-
-        if (input_type == "mdpa"):
-            # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            if (model_import_settings.Has("reorder") and model_import_settings["reorder"].GetBool()):
-                tmp = KratosMultiphysics.Parameters("{}")
-                KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part, tmp).Execute()
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
-        elif (input_type == "rest"):
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
-            from restart_utility import RestartUtility
-            RestartUtility(self.main_model_part, self._GetRestartSettings()).LoadRestart()
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
-        else:
-            raise Exception("Other model part input options are not yet implemented.")
-        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
+        raise Exception("This function has to be implemented in the derived class")
 
     def PrepareModelPart(self):
         """This function prepares the ModelPart for being used by the PythonSolver
@@ -92,10 +70,7 @@ class PythonSolver(object):
     def ExportModelPart(self):
         """This function exports the ModelPart to and mdpa-file
         """
-        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
-        file = open(name_out_file + ".mdpa","w")
-        file.close()
-        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
+        raise Exception("This function has to be implemented in the derived class")
 
     def AdvanceInTime(self, current_time):
         """This function advances the PythonSolver in time
@@ -140,7 +115,7 @@ class PythonSolver(object):
         pass
 
     def Check(self):
-        """This function checks the PythonSolver
+        """This function checks the PythonSolver. It usually calls the "Check" function of a solving strategy
         """
         pass
 
@@ -163,13 +138,38 @@ class PythonSolver(object):
     def GetComputingModelPart(self):
         raise Exception("This function has to be implemented in the derived class")
 
+    def _ImportModelPart(self, model_part, model_part_import_settings):
+        """This function imports the ModelPart
+        """
+        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
+        problem_path = os.getcwd()
+        input_filename = model_part_import_settings["input_filename"].GetString()
+        input_type = model_part_import_settings["input_type"].GetString()
 
-    def _GetRestartSettings(self):
-        restart_settings = self.settings["model_import_settings"].Clone()
+        if (input_type == "mdpa"):
+            # Import model part from mdpa file.
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
+            if (model_part_import_settings.Has("reorder") and model_part_import_settings["reorder"].GetBool()):
+                tmp = KratosMultiphysics.Parameters("{}")
+                KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
+        elif (input_type == "rest"):
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
+            from restart_utility import RestartUtility
+            RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
+        KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
+
+    def _GetRestartSettings(self, model_part_import_settings):
+        restart_settings = model_part_import_settings.Clone()
         restart_settings.RemoveValue("input_type")
         if not restart_settings.Has("restart_load_file_label"):
             raise Exception('"restart_load_file_label" must be specified when starting from a restart-file!')
-        if self.settings.Has("echo_level"):
-            restart_settings.AddValue("echo_level", self.settings["echo_level"])
+        if model_part_import_settings.Has("echo_level"):
+            restart_settings.AddValue("echo_level", model_part_import_settings["echo_level"])
 
         return restart_settings

@@ -104,7 +104,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         ## Solver construction
         import python_solvers_wrapper_structural
-        self.solver = python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.project_parameters)
+        self.solver = python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
 
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
@@ -138,12 +138,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         ## Add the Modelpart to the Model if it is not already there
         if not self.using_external_model_part:
             self.model.AddModelPart(self.main_model_part)
-
-        ## Print model_part and properties
-        if self.is_printing_rank and self.echo_level > 1:
-            KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
-            for properties in self.main_model_part.Properties:
-                KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
 
     def _SetUpListOfProcesses(self):
         from process_factory import KratosProcessFactory
@@ -189,11 +183,10 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] is True:
-            self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        if self.solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED] is True:
+            self.time = self.solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = start_time
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")

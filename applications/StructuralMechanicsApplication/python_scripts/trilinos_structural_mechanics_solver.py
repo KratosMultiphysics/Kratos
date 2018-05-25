@@ -15,8 +15,8 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import structural_mechanics_solver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return TrilinosMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return TrilinosMechanicalSolver(model, custom_settings)
 
 
 class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
@@ -24,7 +24,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         if not custom_settings.Has("linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
                 "solver_type" : "AmesosSolver",
@@ -33,7 +33,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             custom_settings.AddValue("linear_solver_settings", linear_solver_settings)
 
         # Construct the base solver.
-        super(TrilinosMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(TrilinosMechanicalSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
