@@ -19,8 +19,6 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 
 // External includes
@@ -29,9 +27,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-
-// #include "custom_mapper_conditions/nearest_neighbor_condition.h"
-// #include "custom_mapper_conditions/nearest_element_condition.h"
 
 #include "custom_searching/interface_object.h"
 #include "custom_searching/interface_node.h"
@@ -199,9 +194,6 @@ private:
     const InterfaceGeometryObject   mInterfaceGeometryObject;
 
     // TODO maybe the mapper_local_infos have to be registered too bcs of the serializer
-
-    // const NearestNeighborCondition mNearestNeighborCondition;
-    // const NearestElementCondition  mNearestElementCondition;
 
     ///@}
     ///@name Private Operators

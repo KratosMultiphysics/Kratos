@@ -67,7 +67,7 @@ public:
                                                                 SouceRank);
     }
 
-    void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) override;
+    void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject, const double NeighborDistance) override;
 
     void GetValue(std::size_t& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {

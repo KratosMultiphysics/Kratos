@@ -106,7 +106,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject) = 0;
+    virtual void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject, const double NeighborDistance) = 0;
 
     virtual MapperInterfaceInfo::Pointer Create(const Point rPoint,
                                                 const IndexType SourceLocalSystemIndex,

@@ -68,6 +68,10 @@ public:
     /// Pointer definition of InterfaceSearchStructure
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructure);
 
+    using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
+    using MapperInterfaceInfoPointerVectorType = std::vector<MapperInterfaceInfoPointerType>;
+    using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
+
     using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
     using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
     using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
@@ -229,6 +233,7 @@ protected:
 
     ModelPart& mrModelPartOrigin;
     MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
+    MapperInterfaceInfoPointerVectorPointerType mpMapperInterfaceInfos;
 
     BinsUniquePointerType mpLocalBinStructure;
 

@@ -135,64 +135,30 @@ namespace Kratos
 
     void InterfaceSearchStructure::ConductLocalSearch()
     {
-        // This function finds neighbors of the InterfaceObjects in rInterfaceObjects in bin_structure
-        // It must be executable by serial and parallel version!
-        // InterfaceObjectsSize must be passed bcs rInterfaceObjects might contain old entries (it has
-        // the max receive buffer size as size)!
-
         SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
         if (num_interface_obj_bin > 0)   // this partition has a bin structure
         {
-            // InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
-            // std::vector<double> neighbor_distances(num_interface_obj_bin);
+            InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
+            std::vector<double> neighbor_distances(num_interface_obj_bin);
 
-            // InterfaceObjectConfigure::IteratorType interface_object_itr;
-            // InterfaceObjectConfigure::ResultIteratorType results_itr;
-            // std::vector<double>::iterator distance_itr;
+            //   Searching the neighbors
+            for (SizeType i = 0; i < mpInterfaceObjectsDestination->size(); ++i)
+            {
+                const auto interface_object_itr = mpInterfaceObjectsDestination->begin() + i;
+                double search_radius = mSearchRadius; // reset search radius
 
-            // //   Searching the neighbors
-            // for (int i = 0; i < InterfaceObjectsSize; ++i)
-            // {
-            //     interface_object_itr = rInterfaceObjects.begin() + i;
-            //     double search_radius = mSearchRadius; // reset search radius
+                auto results_itr = neighbor_results.begin();
+                auto distance_itr = neighbor_distances.begin();
 
-            //     results_itr = neighbor_results.begin();
-            //     distance_itr = neighbor_distances.begin();
+                SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
+                                                    *interface_object_itr, search_radius, results_itr,
+                                                    distance_itr, num_interface_obj_bin);
 
-            //     SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
-            //                                         *interface_object_itr, search_radius, results_itr,
-            //                                         distance_itr, num_interface_obj_bin);
-
-            //     if (number_of_results > 0)   // neighbors were found
-            //     {
-            //         SelectBestResult(interface_object_itr, neighbor_results,
-            //                          neighbor_distances, number_of_results,
-            //                          rInterfaceObjectResults[i], rMinDistances[i],
-            //                          rShapeFunctionValues[i], rPairingIndices[i]);
-            //     }
-            //     else
-            //     {
-            //         rMinDistances[i] = -1.0f; // indicates that the search was not succesful
-            //         rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
-            //     }
-            // }
-        }
-        else     // this partition has no part of the point receiving interface, i.e. the origin of the mapped values
-        {
-            // Actually this should never happen, since the bounding box shouldn't allow sending to this partition if it doesn't
-            // have a part of the Interface
-
-
-
-            // for (int i = 0; i < InterfaceObjectsSize; ++i)   // no results in this partition
-            // {
-            //     rMinDistances[i] = -1.0f; // indicates that the search was not succesful
-            //     rInterfaceObjectResults[i].reset(); // Release an old pointer, that is probably existing from a previous search
-            // }
+                    for (SizeType j=0; j<number_of_results; ++j)
+                        (*mpMapperInterfaceInfos)[i]->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
+            }
         }
     }
-
-
 
 }  // namespace Kratos.
