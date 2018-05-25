@@ -21,7 +21,7 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
 		{
 			ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
-
+ 
 			model_part.CreateSubModelPart("Inlet1");
 			model_part.CreateSubModelPart("Inlet2");
 			model_part.CreateSubModelPart("Outlet");
