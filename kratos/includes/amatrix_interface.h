@@ -374,6 +374,32 @@ template <typename TExpressionType, std::size_t TCategory>
     return std::sqrt(result);
 }
 
+	template <typename TDataType>
+	class scalar_matrix
+		: public AMatrix::MatrixExpression<scalar_matrix<TDataType>, row_major_access> {
+		std::size_t _size1;
+		std::size_t _size2;
+		const TDataType _value;
+
+	public:
+		using data_type = TDataType;
+
+		scalar_matrix() = delete;
+
+		scalar_matrix(std::size_t Size1, std::size_t Size2, TDataType const& Value)
+			: _size1(Size1), _size2(Size2), _value(Value); {}
+
+		inline TDataType operator()(std::size_t i, std::size_t j) const {
+			return _value;
+		}
+
+		inline TDataType operator[](std::size_t i) const { return TDataType(); }
+
+		inline std::size_t size1() const { return _size1; }
+		inline std::size_t size2() const { return _size2; }
+	};
+
+	using ScalarMatrix = scalar_matrix<double>;
 
 ///@}
 ///@name  Enum's
