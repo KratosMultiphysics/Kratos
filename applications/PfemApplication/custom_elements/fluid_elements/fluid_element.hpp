@@ -90,6 +90,7 @@ protected:
 
         StressMeasureType StressMeasure;
 
+        double  TimeStep;
         //for axisymmetric use only
         double  CurrentRadius;
         double  ReferenceRadius;
@@ -160,6 +161,8 @@ protected:
         {
 	  StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 	  //doubles
+          //time step
+          TimeStep = 0;
 	  //radius
 	  CurrentRadius = 0;
 	  ReferenceRadius = 0;

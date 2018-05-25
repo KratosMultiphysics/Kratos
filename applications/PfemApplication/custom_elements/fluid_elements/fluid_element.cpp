@@ -481,7 +481,8 @@ void FluidElement::InitializeElementVariables (ElementVariables& rVariables, con
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
     //set variables including all integration points values
-
+    rVariables.TimeStep = rCurrentProcessInfo[DELTA_TIME];
+        
     //reading shape functions
     rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
 
@@ -1193,7 +1194,6 @@ void FluidElement::CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
 
 void FluidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
 						 ElementVariables& rVariables,
-						 Vector& rVolumeForce,
 						 double& rIntegrationWeight)
 
 {
@@ -1201,6 +1201,10 @@ void FluidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVecto
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    Vector VolumeForce(dimension);
+    noalias(VolumeForce) = ZeroVector(dimension);
+    VolumeForce  = this->CalculateVolumeForce( VolumeForce, rVariables );
+    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
