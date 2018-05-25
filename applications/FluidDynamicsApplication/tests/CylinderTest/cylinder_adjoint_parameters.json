@@ -5,7 +5,6 @@
         "domain_size"     : 2,
         "start_step"      : 1.1,
         "nsteps"          : 10,
-        "time_step"       :-0.1,
         "echo_level"      : 1,
         "parallel_type"   : "OpenMP"
     },

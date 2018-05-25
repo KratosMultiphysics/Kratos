@@ -1,7 +1,7 @@
 import KratosMultiphysics as km
 import KratosMultiphysics.FluidDynamicsApplication as kfd
 have_required_applications = True
-missing_applications_message = ["Missing required application(s): ",]
+missing_applications_message = ["Missing required application(s):",]
 try:
     import KratosMultiphysics.ExternalSolversApplication
 except ImportError:
@@ -22,7 +22,9 @@ except ImportError:
     missing_applications_message.append("HDF5Application")
 
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
-from adjoint_fluid_analysis import AdjointFluidAnalysis
+
+if have_required_applications:
+    from adjoint_fluid_analysis import AdjointFluidAnalysis
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -62,15 +64,36 @@ class AdjointFluidTest(UnitTest.TestCase):
         settings = km.Parameters(r'''{}''')
 
         with open(primal_parameter_file_name,'r') as primal_parameter_file:
-            settings.AddValue("primal settings", km.Parameters(primal_parameter_file.read()))
+            settings.AddValue("primal_settings", km.Parameters(primal_parameter_file.read()))
 
         with open(adjoint_parameter_file_name,'r') as adjoint_parameter_file:
-            settings.AddValue("adjoint settings", km.Parameters(adjoint_parameter_file.read()))
+            settings.AddValue("adjoint_settings", km.Parameters(adjoint_parameter_file.read()))
+
+        # Add hdf5 output to the primal problem
+        settings["primal_settings"]["auxiliar_process_list"].Append(km.Parameters(r'''{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_primal_output_process",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "model_part_output_settings" : {
+                    "prefix" : "/ModelData"
+                },
+                "nodal_results_settings" : {
+                    "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+                },
+                "output_time_settings" : {
+                    "output_step_frequency": 1
+                }
+            }
+        }'''))
 
 
         # to check the results: add output settings block if needed
         if self.print_output:
-            settings["adjoint settings"].AddValue("output_configuration", km.Parameters(r'''{
+            settings["adjoint_settings"].AddValue("output_configuration", km.Parameters(r'''{
                 "result_file_configuration" : {
                     "gidpost_flags" : {
                         "GiDPostMode"           : "GiD_PostBinary",
@@ -91,10 +114,10 @@ class AdjointFluidTest(UnitTest.TestCase):
                 "point_data_configuration"  : []
             }'''))
 
-        primal_analysis = FluidDynamicsAnalysis(model,settings["primal settings"])
+        primal_analysis = FluidDynamicsAnalysis(model,settings["primal_settings"])
         primal_analysis.Run()
         adjoint_model = km.Model()
-        adjoint_analysis = AdjointFluidAnalysis(adjoint_model,settings["adjoint settings"])
+        adjoint_analysis = AdjointFluidAnalysis(adjoint_model,settings["adjoint_settings"])
         adjoint_analysis.Run()
 
 

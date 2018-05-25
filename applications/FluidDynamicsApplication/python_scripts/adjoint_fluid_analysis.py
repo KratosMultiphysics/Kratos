@@ -213,19 +213,19 @@ if __name__ == '__main__':
 
     if primal_parameter_file_name is not None:
         with open(primal_parameter_file_name,'r') as primal_parameter_file:
-            parameters.AddValue("primal settings",Kratos.Parameters(primal_parameter_file.read()))
+            parameters.AddValue("primal_settings",Kratos.Parameters(primal_parameter_file.read()))
     else:
-        parameters.AddEmptyValue("primal settings")
+        parameters.AddEmptyValue("primal_settings")
 
     with open(adjoint_parameter_file_name,'r') as adjoint_parameter_file:
-        parameters.AddValue("adjoint settings", Kratos.Parameters(adjoint_parameter_file.read()))
+        parameters.AddValue("adjoint_settings", Kratos.Parameters(adjoint_parameter_file.read()))
 
     model = Kratos.Model()
 
     if primal_parameter_file_name is not None:
-        primal_simulation = FluidDynamicsAnalysis(model,parameters["primal settings"])
+        primal_simulation = FluidDynamicsAnalysis(model,parameters["primal_settings"])
         primal_simulation.Run()
 
     adjoint_model = Kratos.Model()
-    adjoint_simulation = AdjointFluidAnalysis(adjoint_model,parameters["adjoint settings"])
+    adjoint_simulation = AdjointFluidAnalysis(adjoint_model,parameters["adjoint_settings"])
     adjoint_simulation.Run()
