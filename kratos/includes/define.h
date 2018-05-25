@@ -328,8 +328,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #endif
 
 #define VERSION_AS_INT (KRATOS_MAJOR_VERSION*100+KRATOS_MINOR_VERSION*10+KRATOS_PATCH_VERSION)
-#define KRATOS_DEPRECATED_VERSION(major_version, minor_version, patch_version) if (major_version*100+minor_version*10+patch_version) < VERSION_AS_INT KRATOS_DEPRECATED_MESSAGE("This method will expire eventually, please remove") else error "This method is deprecated, please remove"
-#define KRATOS_DEPRECATED_VERSION_MESSAGE(message, major_version, minor_version, patch_version) if (major_version*100+minor_version*10+patch_version) < VERSION_AS_INT KRATOS_DEPRECATED_MESSAGE(message) else error "This method is deprecated, please remove"
+#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION(major_version, minor_version, patch_version) \
+	if (major_version*100+minor_version*10+patch_version) < VERSION_AS_INT \
+		std::cout << "This method will be deprecated for the version: " << major_version << "." << minor_version << "." << patch_version <<std::endl; KRATOS_DEPRECATED \
+	else error "This method is deprecated, please remove"
+#define KRATOS_DEPRECATED_TO_BE_REMOVED_IN_VERSION_MESSAGE(message, major_version, minor_version, patch_version) \
+	if (major_version*100+minor_version*10+patch_version) < VERSION_AS_INT \
+		std::cout << "This method will be deprecated for the version: " << major_version << "." << minor_version << "." << patch_version <<std::endl; KRATOS_DEPRECATED_MESSAGE(message) \
+	else error "This method is deprecated, please remove"
     
 namespace Kratos
 {
