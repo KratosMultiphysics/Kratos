@@ -432,11 +432,11 @@ proc ::wkcf::WriteProperties {AppId} {
 		        set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
 		        GiD_File fprintf $filechannel "ROLLING_FRICTION_WITH_WALLS $propvalue"
 
-                        if {$KPriv(what_dempack_package) eq "F-DEMPack"} {
-                            set cxpath "DEMMaterial//m.$material//p.ParticleSphericity"
+		        if {$KPriv(what_dempack_package) eq "F-DEMPack"} {
+		            set cxpath "DEMMaterial//m.$material//p.ParticleSphericity"
 		            set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
 		            GiD_File fprintf $filechannel "PARTICLE_SPHERICITY $propvalue"
-                        }
+		        }
 
 		        #Constitutive Law names
 		        if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
@@ -1325,7 +1325,14 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
     # Get the group node list
     set nlist [GiD_EntitiesGroups get $cgroupid elements]
     if {[llength $nlist]} {
-		set elemname [::wkcf::GetDEMFEMElementName [lindex $nlist 0] ]
+		set elemname [::wkcf::GetDEMFEMElementName [lindex $nlist 0]]
+		#
+		set cxpath "$rootid//c.DEM-Conditions//c.DEM-FEM-Wall//c.[list ${cgroupid}]//c.Options//i.AnalyticProps"
+	    set compute_analytic_data [::xmlutils::setXml $cxpath dv]
+	    if {$compute_analytic_data == "Yes"} {
+	    set elemname AnalyticRigidFace3D3N
+	    }
+		#
 		GiD_File fprintf $demfemchannel "Begin Conditions $elemname // GUI DEM-FEM-Wall group identifier: $cgroupid"
 		foreach elemid $nlist {
 		    GiD_File fprintf $demfemchannel "$elemid $demwall_element_props($cgroupid) [lrange [GiD_Mesh get element $elemid] 3 end]"
@@ -2143,17 +2150,17 @@ proc ::wkcf::Cleaning_Up_Skin_And_Removing_Isolated_Nodes {final_list_of_isolate
 
 proc ::wkcf::NormalDistribution {mean standard_deviation min_rad max_rad} {
     if {$standard_deviation} {
-        set max_iterations 1000 ; #set a maximun number of iterations to avoid an infinite loop
-        for {set i 0} {$i < $max_iterations} {incr i} {
-            set u1 [::tcl::mathfunc::rand]
-            set u2 [::tcl::mathfunc::rand]
-            #set distribution [expr {$mean + $standard_deviation * sqrt(-2.0 * log($u1)) * cos(6.28318530717958647692 * $u2)}]
-            set distribution [math::statistics::random-normal $mean $standard_deviation 1] ; # We use the math::statistics library instead
-            if {$distribution > $min_rad && $distribution < $max_rad} {
-                return $distribution
-            }
-        }
-        error "wkcf::NormalDistribution failed after $max_iterations iterations. mean=$mean std_dev=$standard_deviation min_rad=$min_rad max_rad=$max_rad"
+	set max_iterations 1000 ; #set a maximun number of iterations to avoid an infinite loop
+	for {set i 0} {$i < $max_iterations} {incr i} {
+	    set u1 [::tcl::mathfunc::rand]
+	    set u2 [::tcl::mathfunc::rand]
+	    #set distribution [expr {$mean + $standard_deviation * sqrt(-2.0 * log($u1)) * cos(6.28318530717958647692 * $u2)}]
+	    set distribution [math::statistics::random-normal $mean $standard_deviation 1] ; # We use the math::statistics library instead
+	    if {$distribution > $min_rad && $distribution < $max_rad} {
+		return $distribution
+	    }
+	}
+	error "wkcf::NormalDistribution failed after $max_iterations iterations. mean=$mean std_dev=$standard_deviation min_rad=$min_rad max_rad=$max_rad"
     }
     return $mean
 }
