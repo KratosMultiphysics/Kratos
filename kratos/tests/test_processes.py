@@ -10,8 +10,6 @@ def GetFilePath(fileName):
 
 
 class TestProcesses(KratosUnittest.TestCase):
-    def tearDown(self):
-        Model().Reset()
 
     def test_assign_processes(self):
         model_part = ModelPart("Main")

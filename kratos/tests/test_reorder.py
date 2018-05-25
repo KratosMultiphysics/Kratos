@@ -12,8 +12,6 @@ def GetFilePath(fileName):
 
 
 class TestReorder(KratosUnittest.TestCase):
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
 
     def setUp(self):
         if (sys.version_info < (3, 2)):

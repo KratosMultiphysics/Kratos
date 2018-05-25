@@ -10,8 +10,6 @@ def GetFilePath(fileName):
 
 
 class TestImporting(KratosUnittest.TestCase):
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
 
     def test_importing(self):
         #import KratosMultiphysics.FluidDynamicsApplication

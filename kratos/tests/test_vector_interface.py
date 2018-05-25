@@ -7,8 +7,6 @@ import math
 
 class TestVectorInterface(KratosUnittest.TestCase):
     
-    def tearDown(self):
-        Model().Reset()
 
     def test_range(self):
         a = Vector(4)

@@ -8,8 +8,6 @@ def GetFilePath(fileName):
 
 
 class TestLinearSolvers(KratosUnittest.TestCase):
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
 
     def _RunParametrized(self, my_params_string ):
         all_settings = KratosMultiphysics.Parameters( my_params_string )

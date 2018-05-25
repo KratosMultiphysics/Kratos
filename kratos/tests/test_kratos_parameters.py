@@ -191,8 +191,6 @@ four_levels_defaults = """{
 }"""
 
 class TestParameters(KratosUnittest.TestCase):    
-    def tearDown(self):
-        Model().Reset()
 
     def setUp(self):
         self.kp = Parameters(json_string)

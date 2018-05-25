@@ -4,8 +4,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics 
 
 class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
-    def setUp(self):
-        KratosMultiphysics.Model().Reset()
         
     def tearDown(self):
         print("in tearDown - entering")

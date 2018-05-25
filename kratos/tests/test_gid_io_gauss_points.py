@@ -39,8 +39,6 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
             for suffix in ['_0.post.res', '_0.post.msh']:
                 kratos_utils.DeleteFileIfExisting(self.output_file_name+suffix)
                 
-        KratosMultiphysics.Model().Reset()
-
 
     def setModelPart(self):
         modelPart = ModelPart("Test ModelPart")

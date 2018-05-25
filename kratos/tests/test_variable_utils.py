@@ -10,8 +10,6 @@ def GetFilePath(fileName):
 
 
 class TestVariableUtils(KratosUnittest.TestCase):
-    def tearDown(self):
-        Model().Reset()
 
     def test_set_variable(self):
         ##set the model part

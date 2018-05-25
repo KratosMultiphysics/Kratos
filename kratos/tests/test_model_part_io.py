@@ -24,8 +24,6 @@ class TestModelPartIO(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
         kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
         kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
-        
-        KratosMultiphysics.Model().Reset()
 
     def test_model_part_io_read_model_part(self):
         model_part = KratosMultiphysics.ModelPart("Main")

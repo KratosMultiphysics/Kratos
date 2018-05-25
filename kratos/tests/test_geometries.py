@@ -6,10 +6,6 @@ from KratosMultiphysics import *
 class TestGeometry(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
-    def tearDown(self):
-        Model().Reset()
-
 
     def test_tetrahedra_3D4N(self):
         model_part = ModelPart("Main")

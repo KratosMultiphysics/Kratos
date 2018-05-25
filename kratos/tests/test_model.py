@@ -6,8 +6,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import sys
 
 class TestModel(KratosUnittest.TestCase):
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
 
     def test_model(self):
         model_part = KratosMultiphysics.ModelPart("Main")

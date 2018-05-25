@@ -9,9 +9,6 @@ def GetFilePath(fileName):
 
 class TestConditionNumber(KratosUnittest.TestCase):
     
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
-
 
     def test_condition_number(self):
         try:

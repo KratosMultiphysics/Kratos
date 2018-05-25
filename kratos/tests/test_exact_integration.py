@@ -9,9 +9,6 @@ class TestExactIntegration(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
-
 
     # Test exact integration in 2D
     # LINE
