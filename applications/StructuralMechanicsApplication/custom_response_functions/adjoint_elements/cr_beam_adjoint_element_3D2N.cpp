@@ -611,6 +611,23 @@ namespace Kratos
             for(unsigned int i = 0; i < write_points_number; ++i)
                 rOutput[i] = elongation;
         }
+        else if (rVariable == CROSS_AREA_PSEUDO_LOAD) 
+        {
+            // Get pseudo-load in global direction
+            Matrix sensitivity_matrix; 
+            this->CalculateSensitivityMatrix(CROSS_AREA, sensitivity_matrix, rCurrentProcessInfo);  
+            Vector pseudo_force_vector = row(sensitivity_matrix, 0); 
+            
+            // Transform pseudo load in local direction
+            BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix = this->CalculateInitialLocalCS();
+            pseudo_force_vector = prod(Matrix(trans(transformation_matrix)), pseudo_force_vector);
+
+            const double continuous_pseudo_force = pseudo_force_vector[6] / this->CalculateReferenceLength(); // TODO: stimmt das Konzept auch, wenn das System gedreht ist?
+
+            // Write scalar result value on all Gauss-Points
+            for(unsigned int i = 0; i < write_points_number; ++i)
+                rOutput[i] =  continuous_pseudo_force;
+        }
         else
             KRATOS_ERROR << "Unsupported output variable." << std::endl;
 
@@ -629,9 +646,7 @@ namespace Kratos
         const unsigned int &write_points_number =
         GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         if (rOutput.size() != write_points_number) 
-            rOutput.resize(write_points_number);
-
-        double length = this->CalculateReferenceLength();     
+            rOutput.resize(write_points_number);  
 
         // rOutput[GP 1,2,3][x,y,z]
         if(rVariable == BEAM_BENDING_MODES) 
@@ -714,67 +729,6 @@ namespace Kratos
                 << "Wrong sensitivity computation" << std::endl;
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++      
     
-        }
-        else if (rVariable == PSEUDO_LOAD_1) 
-        {
-            Matrix sensitivity_matrix; 
-            this->CalculateSensitivityMatrix(CROSS_AREA, sensitivity_matrix, rCurrentProcessInfo);   
-            double value_left = sensitivity_matrix(0,0);
-            double function_prefactor = 6 * value_left / length;
-
-            rOutput[0][0] = function_prefactor * 0.75 - function_prefactor * 0.25;
-            rOutput[1][0] = function_prefactor * 0.50 - function_prefactor * 0.50;
-            rOutput[2][0] = function_prefactor * 0.25 - function_prefactor * 0.75;
-
-            rOutput[0][1] = 0.0;
-            rOutput[1][1] = 0.0;
-            rOutput[2][1] = 0.0;
-
-            rOutput[0][2] = 0.0;
-            rOutput[1][2] = 0.0;
-            rOutput[2][2] = 0.0;
-            
-            // Check continuous pseudo-load by computing the the L_2-product between the influence function and pseudo-load******
-            Vector boundary_values_pseudo_load;
-            boundary_values_pseudo_load.resize(2);
-            boundary_values_pseudo_load[0] = function_prefactor;
-            boundary_values_pseudo_load[1] = -1.0 * function_prefactor;
-
-            unsigned int NumNodes = this->GetGeometry().PointsNumber();
-
-            unsigned int num_gauss_points = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
-            Vector DetJ = ZeroVector(num_gauss_points);
-            Vector integration_weigths;
-            integration_weigths.resize(num_gauss_points);
-
-            this->GetGeometry().DeterminantOfJacobian(DetJ,GeometryData::GI_GAUSS_2); 
-
-            const Matrix NContainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-            const auto& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
-
-            double analytic_sensitivity = 0.0;
-
-            for (unsigned int g = 0; g < num_gauss_points; ++g)
-            {
-                const Kratos::Vector& N = row(NContainer,g);
-                const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
-
-                for (unsigned int i=0; i<NumNodes; ++i)
-                {
-                    for (unsigned int j=0; j<NumNodes; ++j)
-                    {
-                        analytic_sensitivity += GaussWeight * N[i] * N[j] *
-                        this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) * boundary_values_pseudo_load[j];
-                    }
-
-                }
-            }
-
-            KRATOS_ERROR_IF(std::abs(analytic_sensitivity - this->GetValue(CROSS_AREA_SENSITIVITY) > 1e-12 ))
-                << "Analytic scalarproduct is unequal to the corresponding discrete one!" << std::endl;
-            //************************************************
-
         }
 
         KRATOS_CATCH("")
@@ -1227,6 +1181,49 @@ namespace Kratos
       
         KRATOS_CATCH("")
     }*/
+
+    //##############################################################################################################################
+    //##############################################################################################################################
+    
+    // Check continuous pseudo-load by computing the the L_2-product between the influence function and pseudo-load******
+    /*Vector boundary_values_pseudo_load;
+    boundary_values_pseudo_load.resize(2);
+    boundary_values_pseudo_load[0] = function_prefactor;
+    boundary_values_pseudo_load[1] = -1.0 * function_prefactor;
+
+    unsigned int NumNodes = this->GetGeometry().PointsNumber();
+
+    unsigned int num_gauss_points = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+    Vector DetJ = ZeroVector(num_gauss_points);
+    Vector integration_weigths;
+    integration_weigths.resize(num_gauss_points);
+
+    this->GetGeometry().DeterminantOfJacobian(DetJ,GeometryData::GI_GAUSS_2); 
+
+    const Matrix NContainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+    const auto& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
+
+    double analytic_sensitivity = 0.0;
+
+    for (unsigned int g = 0; g < num_gauss_points; ++g)
+    {
+        const Kratos::Vector& N = row(NContainer,g);
+        const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
+
+        for (unsigned int i=0; i<NumNodes; ++i)
+        {
+            for (unsigned int j=0; j<NumNodes; ++j)
+            {
+                analytic_sensitivity += GaussWeight * N[i] * N[j] *
+                this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X) * boundary_values_pseudo_load[j];
+            }
+
+        }
+    }
+
+    KRATOS_ERROR_IF(std::abs(analytic_sensitivity - this->GetValue(CROSS_AREA_SENSITIVITY) > 1e-12 ))
+    << "Analytic scalarproduct is unequal to the corresponding discrete one!" << std::endl;*/
                
 
 } // namespace Kratos.
