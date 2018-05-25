@@ -28,6 +28,7 @@
 #include "custom_processes/dam_t_sol_air_heat_flux_process.hpp"
 #include "custom_processes/dam_noorzai_heat_source_process.hpp"
 #include "custom_processes/dam_azenha_heat_source_process.hpp"
+#include "custom_processes/dam_nodal_reference_temperature_process.hpp"
 
 
 namespace Kratos
@@ -38,77 +39,85 @@ namespace Python
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
+    
     using namespace pybind11;
+    
+    typedef Table<double,double> TableType;  
 
     // Fix Temperature
-    class_< DamFixTemperatureConditionProcess, Process >
+    class_<DamFixTemperatureConditionProcess, DamFixTemperatureConditionProcess::Pointer, Process>
     (m, "DamFixTemperatureConditionProcess")
     .def(init < ModelPart&, Parameters&>());
     
     // Bofang Process
-    class_< DamBofangConditionTemperatureProcess, Process >
+    class_<DamBofangConditionTemperatureProcess, DamBofangConditionTemperatureProcess::Pointer, Process>
     (m, "DamBofangConditionTemperatureProcess")
     .def(init < ModelPart&, Parameters&>());
 
     // Uniform Reservoir Temperature Process
-    class_< DamReservoirConstantTemperatureProcess, Process >
+    class_<DamReservoirConstantTemperatureProcess, DamReservoirConstantTemperatureProcess::Pointer, Process>
     (m, "DamReservoirConstantTemperatureProcess")
     .def(init < ModelPart&, Parameters&>());
         
     // Hydrostatic condition
-    class_< DamHydroConditionLoadProcess, Process >
+    class_<DamHydroConditionLoadProcess, DamHydroConditionLoadProcess::Pointer, Process>
     (m, "DamHydroConditionLoadProcess")
     .def(init < ModelPart&, Parameters&>());
         
     // Uplift Condition
-    class_< DamUpliftConditionLoadProcess, Process >
+    class_<DamUpliftConditionLoadProcess, DamUpliftConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftConditionLoadProcess")
     .def(init < ModelPart&, Parameters&>());
     
     // Uplift Condition for arch dams   
-    class_< DamUpliftCircularConditionLoadProcess, Process >
+    class_<DamUpliftCircularConditionLoadProcess, DamUpliftCircularConditionLoadProcess::Pointer, Process>
     (m, "DamUpliftCircularConditionLoadProcess")
     .def(init < ModelPart&, Parameters&>());
    
    // Westergaard Condition (for hydrostatic + hydrodynamic pressure)     
-    class_< DamWestergaardConditionLoadProcess, Process >
+    class_<DamWestergaardConditionLoadProcess, DamWestergaardConditionLoadProcess::Pointer, Process>
     (m, "DamWestergaardConditionLoadProcess")
     .def(init < ModelPart&, Parameters&>());
 
     // Nodal Young Modulus Process     
-    class_< DamNodalYoungModulusProcess, Process >
+    class_<DamNodalYoungModulusProcess, DamNodalYoungModulusProcess::Pointer, Process>
     (m, "DamNodalYoungModulusProcess")
     .def(init < ModelPart&, Parameters&>());
 
     // Chemo Mechanical Aging Young Modulus Process     
-    class_< DamChemoMechanicalAgingYoungProcess, Process >
+    class_<DamChemoMechanicalAgingYoungProcess, DamChemoMechanicalAgingYoungProcess::Pointer, Process>
     (m, "DamChemoMechanicalAgingYoungProcess")
     .def(init < ModelPart&, Parameters&>());
 
     // Added Mass Distribution     
-    class_< DamAddedMassConditionProcess, Process >
+    class_<DamAddedMassConditionProcess, DamAddedMassConditionProcess::Pointer, Process>
     (m, "DamAddedMassConditionProcess")
     .def(init < ModelPart&, Parameters&>());
 
     //Temperature by device     
-    class_< DamTemperaturebyDeviceProcess, Process >
+    class_<DamTemperaturebyDeviceProcess, DamTemperaturebyDeviceProcess::Pointer, Process>
     (m, "DamTemperaturebyDeviceProcess")
     .def(init < ModelPart&, Parameters&>());
 
     // Heat Flux by t_sol_air      
-    class_< DamTSolAirHeatFluxProcess, Process >
+    class_<DamTSolAirHeatFluxProcess, DamTSolAirHeatFluxProcess::Pointer, Process>
     (m, "DamTSolAirHeatFluxProcess")
     .def(init < ModelPart&, Parameters&>());
 
     // Heat Source According Noorzai (Adiabatic Hidratation)      
-    class_< DamNoorzaiHeatFluxProcess, Process >
+    class_<DamNoorzaiHeatFluxProcess, DamNoorzaiHeatFluxProcess::Pointer, Process>
     (m, "DamNoorzaiHeatFluxProcess")
     .def(init < ModelPart&, Parameters&>());
     
     // Heat Source according Azenha (Arrhenius formulation NonAdiabatic Hidratation)
-    class_< DamAzenhaHeatFluxProcess, Process >
+    class_<DamAzenhaHeatFluxProcess, DamAzenhaHeatFluxProcess::Pointer, Process>
     (m, "DamAzenhaHeatFluxProcess")
     .def(init < ModelPart&, Parameters&>());
+    
+    // Nodal Reference Temperature Process     
+    class_< DamNodalReferenceTemperatureProcess, DamNodalReferenceTemperatureProcess::Pointer, Process >
+    (m, "DamNodalReferenceTemperatureProcess")
+    .def(init < ModelPart&, TableType&, Parameters&>());
     }
 
 }  // namespace Python.

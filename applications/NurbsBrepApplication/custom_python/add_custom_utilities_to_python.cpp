@@ -44,7 +44,7 @@ namespace Python
 
 
 		class_<NurbsBrepModeler, typename NurbsBrepModeler::Pointer>(m, "NurbsBrepModeler")
-			.def(init<ModelPart&>())
+			.def(init<ModelPart::Pointer>())
 			.def("LoadGeometry", &NurbsBrepModeler::LoadGeometry)
 			.def("CreateIntegrationDomain", &NurbsBrepModeler::CreateIntegrationDomain)
 			.def("ApplyGeometryRefinement", &NurbsBrepModeler::ApplyGeometryRefinement)

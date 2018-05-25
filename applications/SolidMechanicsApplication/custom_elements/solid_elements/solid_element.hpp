@@ -84,6 +84,7 @@ protected:
         //variables including all integration points
         const GeometryType::ShapeFunctionsGradientsType* pDN_De;
         const Matrix* pNcontainer;
+        const ProcessInfo* pProcessInfo;
 
       public:
 
@@ -102,7 +103,7 @@ protected:
         Vector  StressVector;
         Vector  N;
         Matrix  B;
-        Matrix  H;    //Wildcard ( Displacement Gradient, F(0 to n+1), B-bar ...) 
+        Matrix  H;    //Wildcard ( Displacement Gradient, F(0 to n+1), B-bar, Velocity Gradient...) 
         Matrix  F;    //Incremental Deformation Gradient (n to n+1)
         Matrix  F0;   //Historical Deformation Gradient  (0 to n)
         Matrix  DN_DX;
@@ -127,6 +128,12 @@ protected:
             pNcontainer=&rNcontainer;
         };
 
+        void SetProcessInfo(const ProcessInfo& rProcessInfo)
+        {
+            pProcessInfo=&rProcessInfo;
+        };
+
+
 
         /**
          * returns the value of a specified pointer variable
@@ -141,6 +148,11 @@ protected:
             return *pNcontainer;
         };
 
+        const ProcessInfo& GetProcessInfo()
+        {
+            return *pProcessInfo;
+        };
+      
         void Initialize( const unsigned int& voigt_size, 
 			 const unsigned int& dimension, 
 			 const unsigned int& number_of_nodes )
@@ -715,7 +727,12 @@ protected:
                                      const int & rPointNumber);
 
 
+    /**
+     * Get element size from the dofs
+     */    
+    virtual unsigned int GetDofsSize();
 
+    
     /**
      * Initialize System Matrices
      */

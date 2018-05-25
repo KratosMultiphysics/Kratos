@@ -194,8 +194,8 @@ namespace Kratos
     //MOMENT CONDITION:
     
     //defined on condition
-    if( this->Has( SURFACE_MOMENT ) ){
-      array_1d<double, 3 > & SurfaceMoment = this->GetValue( SURFACE_MOMENT );
+    if( this->Has( MOMENT_LOAD ) ){
+      array_1d<double, 3 > & SurfaceMoment = this->GetValue( MOMENT_LOAD );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
@@ -204,8 +204,8 @@ namespace Kratos
     }
 
     //defined on condition nodes
-    if( this->Has( SURFACE_MOMENT_VECTOR ) ){
-      Vector& SurfaceMoments = this->GetValue( SURFACE_MOMENT_VECTOR );
+    if( this->Has( MOMENT_LOAD_VECTOR ) ){
+      Vector& SurfaceMoments = this->GetValue( MOMENT_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
@@ -220,8 +220,8 @@ namespace Kratos
     //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_MOMENT ) ){
-	  array_1d<double, 3 > & SurfaceMoment = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_MOMENT );
+	if( GetGeometry()[i].SolutionStepsDataHas( MOMENT_LOAD ) ){
+	  array_1d<double, 3 > & SurfaceMoment = GetGeometry()[i].FastGetSolutionStepValue( MOMENT_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceMoment[k];
 	}
@@ -252,9 +252,9 @@ namespace Kratos
 	}
       else
 	{
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+	  BoundedMatrix<double, 3, 3 > Kij;
+	  BoundedMatrix<double, 3, 3 > Cross_ge;
+	  BoundedMatrix<double, 3, 3 > Cross_gn;
 
 	  double coeff;
 	  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -303,8 +303,8 @@ namespace Kratos
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
     
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_MOMENT);
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_MOMENT_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
 
     return ErrorCode;
     

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:   
-//                    
+//  Main authors:
+//
 //
 
 
@@ -507,6 +507,85 @@ protected:
 		}
 	}
 
+	//to be used when there is only velocity (no additional pressure or other var block)
+	template<unsigned int TDim>
+	void RotateAuxPure(TLocalMatrixType& rLocalMatrix,
+			TLocalVectorType& rLocalVector,
+			GeometryType& rGeometry) const
+	{
+		const unsigned int LocalSize = rLocalVector.size();
+
+		unsigned int Index = 0;
+		int rotations_needed = 0;
+		const unsigned int NumBlocks = LocalSize / mBlockSize;
+		DenseVector<bool> NeedRotation( NumBlocks, false);
+
+		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
+		for(unsigned int j = 0; j < NumBlocks; ++j)
+		{
+			if( this->IsSlip(rGeometry[j]) )
+			{
+				NeedRotation[j] = true;
+				rotations_needed++;
+
+				LocalRotationOperatorPure(rRot[j],rGeometry[j]);
+			}
+
+			Index += mBlockSize;
+		}
+
+		if(rotations_needed > 0)
+		{
+			BoundedMatrix<double,TDim,TDim> mat_block, tmp;
+			array_1d<double,TDim> aux, aux1;
+
+			for(unsigned int i=0; i<NumBlocks; i++)
+			{
+				if(NeedRotation[i] == true)
+				{
+					for(unsigned int j=0; j<NumBlocks; j++)
+					{
+						if(NeedRotation[j] == true)
+						{
+							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+							noalias(tmp) = prod(mat_block,trans(rRot[j]));
+							noalias(mat_block) = prod(rRot[i],tmp);
+							WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+						}
+						else
+						{
+							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+							noalias(tmp) = prod(rRot[i],mat_block);
+							WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+						}
+					}
+
+					for(unsigned int k=0; k<TDim; k++)
+					aux[k] = rLocalVector[i*mBlockSize+k];
+
+					noalias(aux1) = prod(rRot[i],aux);
+
+					for(unsigned int k=0; k<TDim; k++)
+					rLocalVector[i*mBlockSize+k] = aux1[k];
+
+				}
+				else
+				{
+					for(unsigned int j=0; j<NumBlocks; j++)
+					{
+						if(NeedRotation[j] == true)
+						{
+							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+							noalias(tmp) = prod(mat_block,trans(rRot[j]));
+							WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+						}
+					}
+				}
+
+			}
+		}
+	}
+
 	template<unsigned int TBlockSize, unsigned int TSkip = 0>
 	void LocalRotationOperator2D(
 		BoundedMatrix<double,TBlockSize,TBlockSize>& rRot,
@@ -536,7 +615,7 @@ protected:
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
 
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
+		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
 		aux = sqrt(aux);
 		rRot(TSkip,TSkip  ) = rNormal[0]/aux;
 		rRot(TSkip,TSkip+1) = rNormal[1]/aux;
@@ -548,7 +627,7 @@ protected:
 		rT1(0) = 1.0;
 		rT1(1) = 0.0;
 		rT1(2) = 0.0;
-		double dot = rRot(0,0);//this->Dot(rN,rT1);
+		double dot = rRot(TSkip,TSkip);//this->Dot(rN,rT1);
 
 		// It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
 		// If this is the case, repeat the procedure using (0,1,0)
@@ -558,13 +637,13 @@ protected:
 			rT1(1) = 1.0;
 			rT1(2) = 0.0;
 
-			dot = rRot(0,1); //this->Dot(rN,rT1);
+			dot = rRot(TSkip,TSkip+1); //this->Dot(rN,rT1);
 		}
 
 		// calculate projection and normalize
-		rT1[0] -= dot*rRot(0,0);
-		rT1[1] -= dot*rRot(0,1);
-		rT1[2] -= dot*rRot(0,2);
+		rT1[0] -= dot*rRot(TSkip,TSkip);
+		rT1[1] -= dot*rRot(TSkip,TSkip+1);
+		rT1[2] -= dot*rRot(TSkip,TSkip+2);
 		this->Normalize(rT1);
 		rRot(TSkip+1,TSkip  ) = rT1[0];
 		rRot(TSkip+1,TSkip+1) = rT1[1];
@@ -645,6 +724,23 @@ protected:
 		return rNode.FastGetSolutionStepValue(mrFlagVariable) != mZero;
 	}
 
+	/// Normalize a vector.
+	/**
+	 * @param rThis the vector
+	 * @return Original norm of the input vector
+	 */
+	template< class TVectorType >
+	double Normalize(TVectorType& rThis) const
+	{
+		double Norm = 0;
+		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+		Norm += (*iComponent)*(*iComponent);
+		Norm = sqrt(Norm);
+		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+		*iComponent /= Norm;
+		return Norm;
+	}
+
 	///@}
 	///@name Protected  Access
 	///@{
@@ -696,23 +792,6 @@ private:
 	///@}
 	///@name Private Operations
 	///@{
-
-	/// Normalize a vector.
-	/**
-	 * @param rThis the vector
-	 * @return Original norm of the input vector
-	 */
-	template< class TVectorType >
-	double Normalize(TVectorType& rThis) const
-	{
-		double Norm = 0;
-		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-		Norm += (*iComponent)*(*iComponent);
-		Norm = sqrt(Norm);
-		for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
-		*iComponent /= Norm;
-		return Norm;
-	}
 
 //     /// Compute a rotation matrix to transform values from the cartesian base to one oriented with the node's normal
 //     /**
@@ -854,85 +933,6 @@ private:
 			for(unsigned int j=0; j<TBlockSize; j++)
 			{
 				destination(Ibegin+i, Jbegin+j) = block(i,j);
-			}
-		}
-	}
-
-	//to be used when there is only velocity (no additional pressure or other var block)
-	template<unsigned int TDim>
-	void RotateAuxPure(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
-	{
-		const unsigned int LocalSize = rLocalVector.size();
-
-		unsigned int Index = 0;
-		int rotations_needed = 0;
-		const unsigned int NumBlocks = LocalSize / mBlockSize;
-		DenseVector<bool> NeedRotation( NumBlocks, false);
-
-		std::vector< BoundedMatrix<double,TDim,TDim> > rRot(NumBlocks);
-		for(unsigned int j = 0; j < NumBlocks; ++j)
-		{
-			if( this->IsSlip(rGeometry[j]) )
-			{
-				NeedRotation[j] = true;
-				rotations_needed++;
-
-				LocalRotationOperatorPure(rRot[j],rGeometry[j]);
-			}
-
-			Index += mBlockSize;
-		}
-
-		if(rotations_needed > 0)
-		{
-			BoundedMatrix<double,TDim,TDim> mat_block, tmp;
-			array_1d<double,TDim> aux, aux1;
-
-			for(unsigned int i=0; i<NumBlocks; i++)
-			{
-				if(NeedRotation[i] == true)
-				{
-					for(unsigned int j=0; j<NumBlocks; j++)
-					{
-						if(NeedRotation[j] == true)
-						{
-							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-							noalias(tmp) = prod(mat_block,trans(rRot[j]));
-							noalias(mat_block) = prod(rRot[i],tmp);
-							WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-						}
-						else
-						{
-							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-							noalias(tmp) = prod(rRot[i],mat_block);
-							WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-						}
-					}
-
-					for(unsigned int k=0; k<TDim; k++)
-					aux[k] = rLocalVector[i*mBlockSize+k];
-
-					noalias(aux1) = prod(rRot[i],aux);
-
-					for(unsigned int k=0; k<TDim; k++)
-					rLocalVector[i*mBlockSize+k] = aux1[k];
-
-				}
-				else
-				{
-					for(unsigned int j=0; j<NumBlocks; j++)
-					{
-						if(NeedRotation[j] == true)
-						{
-							ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-							noalias(tmp) = prod(mat_block,trans(rRot[j]));
-							WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
-						}
-					}
-				}
-
 			}
 		}
 	}

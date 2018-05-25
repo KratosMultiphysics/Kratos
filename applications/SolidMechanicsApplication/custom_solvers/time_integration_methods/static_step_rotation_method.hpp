@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_STATIC_STEP_ROTATION_METHOD )
-#define  KRATOS_STATIC_STEP_ROTATION_METHOD
+#if !defined(KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED)
+#define  KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED
 
 // System includes
 
@@ -80,6 +80,16 @@ namespace Kratos
     /// Default Constructor.
     StaticStepRotationMethod() : DerivedType() {}
 
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+
+    
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
+    
     /// Copy Constructor.
     StaticStepRotationMethod(StaticStepRotationMethod& rOther) : DerivedType(rOther) {}
 
@@ -101,7 +111,7 @@ namespace Kratos
     ///@{
 
     // update
-    virtual void Update(NodeType& rNode) override;
+    void Update(NodeType& rNode) override;
      
     ///@}
     ///@name Access
@@ -117,7 +127,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "StaticStepRotationMethod";
@@ -125,13 +135,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "StaticStepRotationMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "StaticStepRotationMethod Data";     
     }
@@ -161,7 +171,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual void PredictStepVariable(NodeType& rNode) override
+    void PredictStepVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -217,12 +227,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     };
@@ -269,4 +279,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_STATIC_STEP_ROTATION_METHOD defined
+#endif // KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED defined

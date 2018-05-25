@@ -142,6 +142,15 @@ namespace Kratos
     
     /// Default Constructor.
     NewmarkMethod() : BaseType() {}
+    
+    /// Constructor.
+    NewmarkMethod(const TVariableType& rVariable) : BaseType(rVariable) {}
+
+    /// Constructor.
+    NewmarkMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    NewmarkMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
 
     /// Copy Constructor.
     NewmarkMethod(NewmarkMethod& rOther)
@@ -166,9 +175,34 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
+
+    //calculate parameters (to call it once with the original input parameters)
+    void CalculateParameters(ProcessInfo& rCurrentProcessInfo) override
+    {
+     KRATOS_TRY
+            
+     double beta = 0.25;
+     if (rCurrentProcessInfo.Has(NEWMARK_BETA))
+       {
+	 beta = rCurrentProcessInfo[NEWMARK_BETA];
+       }
+
+     double gamma = 0.5;
+     if (rCurrentProcessInfo.Has(NEWMARK_GAMMA))
+       {
+	 gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
+       }
+
+     rCurrentProcessInfo[NEWMARK_BETA]  = beta;      
+     rCurrentProcessInfo[NEWMARK_GAMMA] = gamma;
+
+     this->SetParameters(rCurrentProcessInfo);
+     
+     KRATOS_CATCH( "" )
+    }
     
     // set parameters (do not calculate parameters here, only read them)
-    virtual void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
+    void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
        
@@ -196,7 +230,7 @@ namespace Kratos
     }     
 
     // set parameters to process info
-    virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
+    void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
        
@@ -208,63 +242,50 @@ namespace Kratos
 
     
     // get parameters
-    virtual double& GetFirstDerivativeParameter(double& rParameter) override
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = mNewmark.c1;
       return rParameter;
     }
 
-    virtual double& GetSecondDerivativeParameter(double& rParameter) override
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = mNewmark.c0;
       return rParameter;
     }
-    
-    // predict
-    virtual void Predict(NodeType& rNode) override
+
+
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * @return 0 all ok
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override
     {
-     KRATOS_TRY
-     
-     if( this->mpInputVariable != nullptr ){ 
+      KRATOS_TRY
 
-       if( *this->mpInputVariable == *this->mpVariable ){
-	 this->PredictFromVariable(rNode);
-       }
+      // Perform base integration method checks
+      int ErrorCode = 0;
+      ErrorCode = BaseType::Check(rCurrentProcessInfo);
 
-       if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->PredictFromFirstDerivative(rNode);
-       }
-       
-       if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->PredictFromSecondDerivative(rNode);
-       }
+      // Check that all required variables have been registered               
+      if( this->mpFirstDerivative == nullptr ){
+        KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpFirstDerivative));
+      }
 
-     }
-     else{
-
-       this->PredictVariable(rNode);
-       this->PredictFirstDerivative(rNode);
-       this->PredictSecondDerivative(rNode);
-       
-     }
-	
-     KRATOS_CATCH( "" )
+      if( this->mpSecondDerivative == nullptr ){
+        KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpSecondDerivative));
+      }
+      
+      return ErrorCode;
+      
+      KRATOS_CATCH("")
     }
-
-    
-    // update
-    virtual void Update(NodeType& rNode) override
-    {
-     KRATOS_TRY
-       
-     this->UpdateVariable(rNode);
-     this->UpdateFirstDerivative(rNode);
-     this->UpdateSecondDerivative(rNode);
-
-     KRATOS_CATCH( "" )
-    }
-   
-
     
     ///@}
     ///@name Access
@@ -280,7 +301,7 @@ namespace Kratos
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NewmarkMethod";
@@ -288,13 +309,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NewmarkMethod";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "NewmarkMethod Data";     
     }
@@ -322,7 +343,7 @@ namespace Kratos
     ///@name Protected Operators
     ///@{
 
-    virtual void PredictFromVariable(NodeType& rNode) override
+    void AssignFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -337,7 +358,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    virtual void PredictFromFirstDerivative(NodeType& rNode) override
+    void AssignFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -365,7 +386,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictFromSecondDerivative(NodeType& rNode) override
+    void AssignFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -388,8 +409,30 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
+    void PredictFromVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
 
-    virtual void PredictVariable(NodeType& rNode) override
+      this->PredictVariable(rNode);
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+
+
+    void PredictFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+      this->PredictVariable(rNode);
+     
+      KRATOS_CATCH( "" )
+    }
+    
+    void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -403,7 +446,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    virtual void PredictFirstDerivative(NodeType& rNode) override
+    void PredictFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -423,7 +466,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void PredictSecondDerivative(NodeType& rNode) override
+    void PredictSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
       
@@ -435,8 +478,49 @@ namespace Kratos
       
       KRATOS_CATCH( "" )              
     }
+
+
+    void UpdateFromVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
+
+      this->UpdateVariable(rNode);
+      this->UpdateFirstDerivative(rNode);
+      this->UpdateSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+
+    void UpdateFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+          
+      TValueType& CurrentVariable                = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
+      const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+      	          
+      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+      const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
+      const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
+ 
+      CurrentSecondDerivative = (this->mNewmark.c0/this->mNewmark.c1) * (CurrentFirstDerivative + this->mNewmark.c4 * PreviousFirstDerivative + this->mNewmark.c5 * PreviousSecondDerivative) - this->mNewmark.c2 * PreviousFirstDerivative - this->mNewmark.c3 * PreviousSecondDerivative;
+      
+      CurrentVariable = PreviousVariable + (1.0/this->mNewmark.c1) * (CurrentFirstDerivative + this->mNewmark.c4 * PreviousFirstDerivative + this->mNewmark.c5 * PreviousSecondDerivative);
+      
+      KRATOS_CATCH( "" )
+    }
+
     
-    virtual void UpdateVariable(NodeType& rNode) override
+    void UpdateFromSecondDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+          
+      KRATOS_ERROR << " Calling UpdateFromSecondDerivative for Newmark time integration method : NOT IMPLEMENTED " <<std::endl;
+      
+      KRATOS_CATCH( "" )
+    }
+    
+    void UpdateVariable(NodeType& rNode) override
     {
       KRATOS_TRY
       
@@ -444,12 +528,12 @@ namespace Kratos
     }
     
 
-    virtual void UpdateFirstDerivative(NodeType& rNode) override
+    void UpdateFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
       const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+      TValueType& CurrentFirstDerivative         = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
  	          
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
@@ -460,7 +544,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    virtual void UpdateSecondDerivative(NodeType& rNode) override
+    void UpdateSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -475,7 +559,10 @@ namespace Kratos
     
       KRATOS_CATCH( "" )              
     }
+    
 
+
+    
     ///@}
     ///@name Protected Operations
     ///@{
@@ -520,13 +607,13 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
       rSerializer.save("NewmarkParameters", mNewmark);
     };
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
       rSerializer.load("NewmarkParameters", mNewmark);

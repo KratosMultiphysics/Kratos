@@ -102,7 +102,7 @@ class InputManager(object):
 
                 if( parameters.Has("problem_data") ):
                     if( self.project_parameters.Has("problem_data") ):
-                        parameters["problem_data"].ValidateAndAssignDefaults(self.project_parameters["problem_data"])
+                        parameters["problem_data"].RecursivelyValidateAndAssignDefaults(self.project_parameters["problem_data"])
                         self.project_parameters["problem_data"] = parameters["problem_data"]
 
 
@@ -170,6 +170,11 @@ class InputManager(object):
             "material":{
                 "material_ids"   : [],
                 "material_parts" : []
+            },
+            "time_settings"      : {
+                "time_step"  : 1.0,
+                "start_time" : 0.0,
+                "end_time"   : 1.0
             }
         }
         """)
@@ -191,6 +196,13 @@ class InputManager(object):
             # processes
             self._set_processes_parts()
 
+            # time settings
+            self._set_time_settings()
+
+    #
+    def _set_time_settings(self):
+        if( self.project_parameters.Has("time_settings") == False ):
+            self.project_parameters.AddValue("time_settings", self.settings["time_settings"])
 
     #
     def _set_model_parts(self):

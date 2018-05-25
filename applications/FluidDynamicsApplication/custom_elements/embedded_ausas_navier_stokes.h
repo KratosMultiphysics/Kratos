@@ -75,11 +75,11 @@ public:
 
     struct EmbeddedAusasElementDataStruct {
 
-        bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
+        BoundedMatrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
         array_1d<double,TNumNodes> p, pn, pnn, rho, mu;
 
         array_1d<double, TNumNodes>                 N;        // Shape functions values on Gauss pt. container
-        bounded_matrix<double, TNumNodes, TDim>     DN_DX;    // Shape functions gradients values on Gauss pt. container
+        BoundedMatrix<double, TNumNodes, TDim>     DN_DX;    // Shape functions gradients values on Gauss pt. container
 
         Matrix C;             // Matrix to store the constitutive matrix in Voigt notation
         Vector stress;        // Vector to store the stress values in Voigt notation
@@ -319,9 +319,9 @@ public:
                     this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
                     // Get the Voigt notation normal projection matrix
-                    bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
+                    BoundedMatrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
                     this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
-                
+
                     // Add the shear and pressure drag contributions
                     const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
                     for (unsigned int i = 0; i < TDim ; ++i){
@@ -348,9 +348,9 @@ public:
                     this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
                     // Get the Voigt notation normal projection matrix
-                    bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
+                    BoundedMatrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
                     this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
-                
+
                     // Add the shear and pressure drag contributions
                     const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
                     for (unsigned int i = 0; i < TDim ; ++i){
@@ -416,7 +416,7 @@ protected:
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const EmbeddedAusasElementDataStruct& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const EmbeddedAusasElementDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const EmbeddedAusasElementDataStruct& data);
 
     ///@}
@@ -604,7 +604,7 @@ protected:
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_local;
-        bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double, MatrixSize, MatrixSize> lhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
         if (rData.n_pos != 0 && rData.n_neg != 0){
@@ -742,9 +742,9 @@ protected:
     }
 
     /**
-    * This function adds the local system contribution of the interface pressure boundary 
-    * terms. Bear in mind that the shear stress boundary term contribution is not added 
-    * since it is weakly imposed to be zero using a Neumann BC. The addition of such 
+    * This function adds the local system contribution of the interface pressure boundary
+    * terms. Bear in mind that the shear stress boundary term contribution is not added
+    * since it is weakly imposed to be zero using a Neumann BC. The addition of such
     * Neumann BC and the integration by parts boundary term yields what is added in here.
     * @param rLeftHandSideMatrix reference to the LHS matrix
     * @param rRightHandSideVector reference to the RHS vector
@@ -763,7 +763,7 @@ protected:
         GetPreviousSolutionVector(rData, prev_sol);
 
         // Declare auxiliar arrays
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Contribution coming from the positive side boundary term
         const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
@@ -775,7 +775,7 @@ protected:
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
 
             // Get the positive side shape functions gradients Gauss pt. values
-            const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss];
+            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss];
 
             // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
@@ -800,7 +800,7 @@ protected:
             const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
 
             // Get the negative side shape functions gradients Gauss pt. values
-            const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_neg_int[i_gauss];
+            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_neg_int[i_gauss];
 
             // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
@@ -823,9 +823,9 @@ protected:
     }
 
     /**
-    * This function adds the local system contribution of the interface pressure boundary 
-    * terms. Bear in mind that the shear stress boundary term contribution is not added 
-    * since it is weakly imposed to be zero using a Neumann BC. The addition of such 
+    * This function adds the local system contribution of the interface pressure boundary
+    * terms. Bear in mind that the shear stress boundary term contribution is not added
+    * since it is weakly imposed to be zero using a Neumann BC. The addition of such
     * Neumann BC and the integration by parts boundary term yields what is added in here.
     * @param rRightHandSideVector reference to the RHS vector
     * @param rData reference to element data structure
@@ -854,7 +854,7 @@ protected:
             const array_1d<double, TNumNodes> aux_N = row(rData.N_pos_int, i_gauss);
 
             // Get the positive side shape functions gradients Gauss pt. values
-            const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss];
+            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_pos_int[i_gauss];
 
             // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
@@ -879,7 +879,7 @@ protected:
             const array_1d<double, TNumNodes> aux_N = row(rData.N_neg_int, i_gauss);
 
             // Get the negative side shape functions gradients Gauss pt. values
-            const bounded_matrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_neg_int[i_gauss];
+            const BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX = rData.DN_DX_neg_int[i_gauss];
 
             // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
@@ -935,7 +935,7 @@ protected:
         const double pen_coef = ComputePenaltyCoefficient(rData);
 
         // Compute the LHS and RHS penalty contributions
-        bounded_matrix<double, MatrixSize, MatrixSize> P_gamma = ZeroMatrix(MatrixSize, MatrixSize);
+        BoundedMatrix<double, MatrixSize, MatrixSize> P_gamma = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Contribution coming from the positive side penalty term
         const unsigned int n_int_pos_gauss = (rData.w_gauss_pos_int).size();
@@ -1126,7 +1126,7 @@ protected:
         }
 
         // Compute the LHS and RHS penalty contributions
-        bounded_matrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
+        BoundedMatrix<double, MatrixSize, MatrixSize> auxLeftHandSideMatrix = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Drop the pressure rows and columns
         for (unsigned int i=0; i<TNumNodes; ++i) {
@@ -1204,7 +1204,7 @@ protected:
 
         double aux_volume;
         array_1d<double, TNumNodes> aux_N;
-        bounded_matrix<double, TNumNodes, TDim> aux_DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> aux_DN_DX;
 
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), aux_DN_DX, aux_N, aux_volume);
 
@@ -1291,8 +1291,8 @@ protected:
         EmbeddedAusasElementDataStruct& rData,
         const unsigned int StrainSize) {
 
-        const bounded_matrix<double, TNumNodes, TDim>& v = rData.v;
-        const bounded_matrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
+        const BoundedMatrix<double, TNumNodes, TDim>& v = rData.v;
+        const BoundedMatrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
 
         // Compute strain (B*v)
         if (StrainSize == 6) {
@@ -1379,7 +1379,7 @@ protected:
     */
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
-        bounded_matrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
+        BoundedMatrix<double, TDim, (TDim-1)*3>& rVoigtNormProjMatrix) {
 
         rVoigtNormProjMatrix.clear();
 

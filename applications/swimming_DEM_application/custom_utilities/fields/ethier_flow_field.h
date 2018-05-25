@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-class EthierFlowField : public VelocityField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) EthierFlowField : public VelocityField
 {
 public:
 
@@ -60,7 +60,7 @@ void ResizeVectorsForParallelism(const int n_threads) override;
 
 void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread = 0) override;
 
-void UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread = 0) override;
+void UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread = 0) override;
 
 void LockCoordinates(const int i_thread = 0) override;
 

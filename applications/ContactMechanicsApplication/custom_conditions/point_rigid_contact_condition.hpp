@@ -56,7 +56,7 @@ public:
     ///@name Type Definitions
 
     ///Tensor order 1 definition
-    //typedef bounded_vector<double, 3>     PointType;
+    //typedef BoundedVector<double, 3>     PointType;
     typedef array_1d<double, 3>             PointType;
 
     ///@{
@@ -258,7 +258,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties ) const;
+			      PropertiesType::Pointer pProperties ) const override;
 
 
     /**
@@ -269,7 +269,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId,
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
 
     //************* STARTING - ENDING  METHODS
@@ -277,27 +277,27 @@ public:
     /**
      * Called at the beginning of each iteration
      */
-    virtual void Initialize();
+    void Initialize() override;
 
     /**
      * Called at the end of each solution step
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each iteration
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each iteration
      */
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* GETTING METHODS
@@ -306,31 +306,31 @@ public:
      * Sets on rConditionDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rConditionDofList,
-		    ProcessInfo& rCurrentProcessInfo );
+		    ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-			  ProcessInfo& rCurrentProcessInfo );
+			  ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
     void GetValuesVector(Vector& rValues,
-			 int Step = 0 );
+			 int Step = 0 ) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
     void GetFirstDerivativesVector(Vector& rValues,
-				   int Step = 0 );
+				   int Step = 0 ) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues,
-				    int Step = 0 );
+				    int Step = 0 ) override;
 
 
     //************* COMPUTING  METHODS
@@ -345,7 +345,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			      VectorType& rRightHandSideVector,
-			      ProcessInfo& rCurrentProcessInfo );
+			      ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -361,7 +361,7 @@ public:
 			      const std::vector< Variable< MatrixType > >& rLHSVariables,
 			      std::vector< VectorType >& rRightHandSideVectors,
 			      const std::vector< Variable< VectorType > >& rRHSVariables,
-			      ProcessInfo& rCurrentProcessInfo);
+			      ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -370,7 +370,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo );
+				ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -382,7 +382,7 @@ public:
      */
     void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
 				const std::vector< Variable< VectorType > >& rRHSVariables,
-				ProcessInfo& rCurrentProcessInfo);
+				ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -392,7 +392,7 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo );
+        ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
       * this is called during the assembling process in order
@@ -402,7 +402,7 @@ public:
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo );
+        ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -414,10 +414,10 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void AddExplicitContribution(const VectorType& rRHSVector,
+    void AddExplicitContribution(const VectorType& rRHSVector,
 					 const Variable<VectorType>& rRHSVariable,
 					 Variable<array_1d<double,3> >& rDestinationVariable,
-					 const ProcessInfo& rCurrentProcessInfo);
+					 const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
     //************************************************************************************
@@ -428,7 +428,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -609,7 +609,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
 	  //rSerializer.save("mpRigidWall",mpRigidWall); //rebuild in contact search and in restart
@@ -617,7 +617,7 @@ private:
 	rSerializer.save("mContactStressVector",mContactStressVector);
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
 	  //rSerializer.load("mpRigidWall",mpRigidWall);

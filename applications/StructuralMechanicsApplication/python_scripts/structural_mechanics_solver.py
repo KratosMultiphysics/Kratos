@@ -139,7 +139,7 @@ class MechanicalSolver(object):
         if self.settings["rotation_dofs"].GetBool():
             # Add specific variables for the problem (rotation dofs).
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         if self.settings["pressure_dofs"].GetBool(): # TODO: The creation of UP and USigma elements is pending
             # Add specific variables for the problem (pressure dofs).
@@ -161,9 +161,9 @@ class MechanicalSolver(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         if self.settings["rotation_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
@@ -241,9 +241,6 @@ class MechanicalSolver(object):
     def GetOutputVariables(self):
         pass
 
-    def ComputeDeltaTime(self):
-        pass
-
     def SaveRestart(self):
         # Check could be integrated in the utility
         # It is here intentionally, this way the utility is only created if it is actually needed!
@@ -270,6 +267,21 @@ class MechanicalSolver(object):
 
     def FinalizeSolutionStep(self):
         self.get_mechanical_solution_strategy().FinalizeSolutionStep()
+
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.main_model_part.CloneTimeStep(new_time)
+
+        return new_time
+
+    def ComputeDeltaTime(self):
+        return self.delta_time
+
+    def SetDeltaTime(self, dt):
+        # This is a TEMPORARY function until the solver can compute dt!
+        self.delta_time = dt
 
     def SetEchoLevel(self, level):
         self.get_mechanical_solution_strategy().SetEchoLevel(level)

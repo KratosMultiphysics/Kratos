@@ -112,7 +112,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     //************* GETTING METHODS
 
@@ -146,13 +146,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    //      String Info() const override;
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    //      void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    //      void PrintData(std::ostream& rOStream) const override;
     ///@}
     ///@name Friends
     ///@{
@@ -172,14 +172,14 @@ protected:
      * Initialize Variables
      */
     void InitializeConditionVariables (ConditionVariables& rVariables, 
-				     const ProcessInfo& rCurrentProcessInfo);
+				     const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(ConditionVariables& rVariables, 
 			     ProcessInfo& rCurrentProcessInfo, 
-			     const unsigned int& rPointNumber);
+			     const unsigned int& rPointNumber) override;
 
     /**
      * Calculate Radius:
@@ -193,14 +193,14 @@ protected:
      */
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
 			    ConditionVariables& rVariables, 
-			    double& rIntegrationWeight);
+			    double& rIntegrationWeight) override;
 
     /**
      * Calculate RHS
      */
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 			    ConditionVariables& rVariables, 
-			    double& rIntegrationWeight);
+			    double& rIntegrationWeight) override;
 
 
     ///@}
@@ -214,9 +214,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry

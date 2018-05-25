@@ -247,7 +247,6 @@ namespace Kratos
 				{
 					if (edges)
 					{
-						std::cout << "check edges" << std::endl;
 						ModelPart::Pointer model_part_edge_id = model_part_edges->CreateSubModelPart("EDGE_" + std::to_string(edge.Id()));
 						BrepEdge::Topology edge_topology = edge.GetEdgeInformation(0);
 
@@ -270,7 +269,7 @@ namespace Kratos
 				if (!rIntegrationDomainModelPart.HasSubModelPart("POINTS"))
 					model_part_points = rIntegrationDomainModelPart.CreateSubModelPart("POINTS");
 				else
-					*model_part_points = rIntegrationDomainModelPart.GetSubModelPart("POINTS");
+					model_part_points = rIntegrationDomainModelPart.pGetSubModelPart("POINTS");
 
 				BrepVertex& vertex = m_brep_model_vector[brep_itr].GetVertexVector()[vertex_itr];
 				BrepVertex::Topology vertex_topology = vertex.GetVertexInformation(0);
@@ -608,7 +607,7 @@ namespace Kratos
 
 	void NurbsBrepModeler::LoadGeometry(BrepModelGeometryReader& rBrepModelGeometryReader)
 	{
-		BrepModelVector brep_model_vector = rBrepModelGeometryReader.ReadGeometry(m_model_part);
+		BrepModelVector brep_model_vector = rBrepModelGeometryReader.ReadGeometry(*mp_model_part);
 		for (auto brep_model = brep_model_vector.begin(); brep_model != brep_model_vector.end(); brep_model++)
 		{
 			m_brep_model_vector.push_back(*brep_model);
@@ -617,8 +616,8 @@ namespace Kratos
 		m_model_tolerance = rBrepModelGeometryReader.ReadModelTolerance();
 	}
 
-	NurbsBrepModeler::NurbsBrepModeler(ModelPart& rModelPart)
-		: m_model_part(rModelPart)
+	NurbsBrepModeler::NurbsBrepModeler(ModelPart::Pointer rpModelPart)
+		: mp_model_part(rpModelPart)
 	{
 	}
 

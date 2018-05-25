@@ -126,7 +126,9 @@ class GiDOutputProcess(Process):
 
         # Generate the cuts and store them in self.cut_model_part
         if self.skin_output or self.num_planes > 0:
-            self.__initialize_cut_output(plane_output_configuration)
+            self.cut_model_part = ModelPart("CutPart")
+            self.cut_manager = CuttingUtility()
+            self._initialize_cut_output(plane_output_configuration)
 
         # Retrieve gidpost flags and setup GiD output tool
         gidpost_flags = result_file_configuration["gidpost_flags"]
@@ -238,8 +240,8 @@ class GiDOutputProcess(Process):
     def IsOutputStep(self):
 
         if self.output_control_is_time:
-            #print( str(self.model_part.ProcessInfo[TIME])+">"+ str(self.next_output) )
-            return ( self.model_part.ProcessInfo[TIME] > self.next_output )
+            time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
+            return (time >= self.__get_pretty_time(self.next_output))
         else:
             return ( self.step_count >= self.next_output )
 
@@ -249,7 +251,7 @@ class GiDOutputProcess(Process):
             self.point_output_process.ExecuteBeforeOutputStep()
 
         # Print the output
-        time = self.model_part.ProcessInfo[TIME]
+        time = self.__get_pretty_time(self.model_part.ProcessInfo[TIME])
         self.printed_step_count += 1
         self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
@@ -273,7 +275,7 @@ class GiDOutputProcess(Process):
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
-                while self.next_output <= time:
+                while self.__get_pretty_time(self.next_output) <= time:
                     self.next_output += self.output_frequency
             else:
                 while self.next_output <= self.step_count:
@@ -282,6 +284,11 @@ class GiDOutputProcess(Process):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
 
+    def ExecuteBeforeOutputStep(self):
+        pass
+
+    def ExecuteAfterOutputStep(self):
+        pass
 
     def ExecuteFinalize(self):
         '''Finalize files and free resources.'''
@@ -329,6 +336,11 @@ class GiDOutputProcess(Process):
                                 self.write_deformed_mesh,
                                 WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
 
+    def __get_pretty_time(self,time):
+        pretty_time = "{0:.12g}".format(time)
+        pretty_time = float(pretty_time)
+        return pretty_time
+
     def __get_gidpost_flag(self, param, label, dictionary):
         '''Parse gidpost settings using an auxiliary dictionary of acceptable values.'''
 
@@ -342,12 +354,11 @@ class GiDOutputProcess(Process):
         return value
 
 
-    def __initialize_cut_output(self,plane_output_configuration):
+    def _initialize_cut_output(self,plane_output_configuration):
         '''Set up tools used to produce output in skin and cut planes.'''
 
-        self.cut_model_part = ModelPart("CutPart")
-        self.cut_manager = CuttingUtility()
         self.cut_manager.FindSmallestEdge(self.model_part)
+        self.cut_manager.AddVariablesToCutModelPart(self.model_part,self.cut_model_part)
         if self.skin_output:
             self.cut_manager.AddSkinConditions(self.model_part,self.cut_model_part,self.output_surface_index)
             self.output_surface_index += 1
@@ -504,7 +515,7 @@ class GiDOutputProcess(Process):
         if self.cut_io is not None:
             self.cut_manager.UpdateCutData(self.cut_model_part, self.model_part)
             for variable in self.nodal_variables:
-                self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)      
+                self.cut_io.WriteNodalResults(variable, self.cut_model_part.GetCommunicator().LocalMesh().Nodes, label, 0)
 
     def __write_gp_results(self, label):
 
