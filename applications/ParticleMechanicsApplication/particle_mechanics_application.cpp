@@ -67,7 +67,7 @@ namespace Kratos
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         //mUpdatedLagrangianUP3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4) ) ) )
+        mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4) ) ) ),
         //mUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
         //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
         //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
@@ -75,6 +75,8 @@ namespace Kratos
         //mMPMLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         //mMPMLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
         //mMPMLineLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
+        mMPMPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
+        mMPMPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1))))
 
     {}
 
@@ -88,13 +90,17 @@ namespace Kratos
                         << "          |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____| MECHANICS " << std::endl
                         << "Initializing KratosParticleMechanicsApplication...              " << std::endl;
 
-        //Registering elements and conditions here
+        //Registering elements
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
         //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP3D4N", mUpdatedLagrangianUP3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D4N", mUpdatedLagrangian2D4N )
         //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D4N", mUpdatedLagrangianUP2D4N )
+
+        //Registering conditions
+        KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition2D1N", mMPMPointLoadCondition2D1N )
+        KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition3D1N", mMPMPointLoadCondition3D1N )
 
         //element
         KRATOS_REGISTER_VARIABLE( COUNTER )

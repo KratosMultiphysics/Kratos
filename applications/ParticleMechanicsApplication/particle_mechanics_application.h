@@ -39,8 +39,8 @@
 /* CONDITIONS */
 #include "custom_conditions/mpm_base_load_condition.h"
 #include "custom_conditions/mpm_point_load_condition.h"
-#include "custom_conditions/mpm_line_load_condition_2d.h"
-#include "custom_conditions/mpm_surface_load_condition_3d.h"
+// #include "custom_conditions/mpm_line_load_condition_2d.h"
+// #include "custom_conditions/mpm_surface_load_condition_3d.h"
 
 //element
 #include "custom_elements/updated_lagrangian.hpp"
@@ -215,6 +215,8 @@ private:
     //const TotalLagrangian mTotalLagrangian3D4N;
     
     //conditions
+    const MPMPointLoadCondition mMPMPointLoadCondition2D1N;
+    const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
     //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D2N;
     //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D3N;
     //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D2N;

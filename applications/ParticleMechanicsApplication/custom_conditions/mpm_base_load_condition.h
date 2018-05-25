@@ -1,6 +1,6 @@
 
-#if !defined(KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED
+#if !defined(KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED )
+#define  KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -32,7 +32,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
     
-class BaseLoadCondition
+class MPMBaseLoadCondition
     : public Condition
 {
 public:
@@ -41,27 +41,27 @@ public:
     typedef std::size_t SizeType;
     ///@{
     
-    // Counted pointer of BaseLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( BaseLoadCondition );
+    // Counted pointer of MPMBaseLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MPMBaseLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    BaseLoadCondition()
+    MPMBaseLoadCondition()
     {};
 
     // Constructor using an array of nodes
-    BaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    MPMBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    BaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    MPMBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
     {};
 
     // Destructor
-    ~BaseLoadCondition() override
+    ~MPMBaseLoadCondition() override
     {};
 
     ///@}
@@ -364,7 +364,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
 
-}; // class BaseLoadCondition.
+}; // class MPMBaseLoadCondition.
 
 ///@}
 ///@name Type Definitions
@@ -377,4 +377,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined 
+#endif // KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined 

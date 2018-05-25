@@ -10,7 +10,7 @@
 
 namespace Kratos
 {
-    void BaseLoadCondition::Initialize()
+    void MPMBaseLoadCondition::Initialize()
     {
         // TODO: Add somethig if necessary
     }
@@ -18,7 +18,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    void MPMBaseLoadCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -26,7 +26,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    void MPMBaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -34,7 +34,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    void MPMBaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -42,7 +42,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    void MPMBaseLoadCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -50,7 +50,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::EquationIdVector(
+    void MPMBaseLoadCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo )
     {
@@ -89,7 +89,7 @@ namespace Kratos
     
     //***********************************************************************
     //***********************************************************************
-    void BaseLoadCondition::GetDofList(
+    void MPMBaseLoadCondition::GetDofList(
         DofsVectorType& ElementalDofList,
         ProcessInfo& rCurrentProcessInfo
         )
@@ -124,7 +124,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::GetValuesVector(
+    void MPMBaseLoadCondition::GetValuesVector(
         Vector& rValues,
         int Step
         )
@@ -152,7 +152,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::GetFirstDerivativesVector(
+    void MPMBaseLoadCondition::GetFirstDerivativesVector(
         Vector& rValues,
         int Step 
         )
@@ -180,7 +180,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::GetSecondDerivativesVector(
+    void MPMBaseLoadCondition::GetSecondDerivativesVector(
         Vector& rValues,
         int Step 
         )
@@ -208,7 +208,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void MPMBaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
     {
         // Calculation flags
         const bool CalculateStiffnessMatrixFlag = false;
@@ -220,7 +220,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    void BaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void MPMBaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags
         const bool CalculateStiffnessMatrixFlag = true;
@@ -232,7 +232,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::CalculateMassMatrix(
+    void MPMBaseLoadCondition::CalculateMassMatrix(
         MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo 
         )
@@ -246,7 +246,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::CalculateDampingMatrix(
+    void MPMBaseLoadCondition::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo 
         )
@@ -260,7 +260,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void BaseLoadCondition::CalculateAll( 
+    void MPMBaseLoadCondition::CalculateAll( 
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
@@ -273,7 +273,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+    int MPMBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         if ( DISPLACEMENT.Key() == 0 )
         {
@@ -302,7 +302,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    double BaseLoadCondition::GetIntegrationWeight(
+    double MPMBaseLoadCondition::GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber,
         const double detJ
@@ -314,7 +314,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void BaseLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
+    void MPMBaseLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
         const Variable<VectorType>& rRHSVariable,
         Variable<array_1d<double,3> >& rDestinationVariable, 
         const ProcessInfo& rCurrentProcessInfo)
