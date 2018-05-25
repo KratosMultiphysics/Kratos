@@ -387,7 +387,7 @@ template <typename TExpressionType, std::size_t TCategory>
 		scalar_matrix() = delete;
 
 		scalar_matrix(std::size_t Size1, std::size_t Size2, TDataType const& Value)
-			: _size1(Size1), _size2(Size2), _value(Value); {}
+			: _size1(Size1), _size2(Size2), _value(Value) {}
 
 		inline TDataType operator()(std::size_t i, std::size_t j) const {
 			return _value;
