@@ -348,39 +348,6 @@ private:
 
 ///@name Private Operations
 ///@{
-    //virtual void ComputeConstitutiveResponse_AIR(element_data<4,3>& data, const double rho, const double nu,  ProcessInfo& rCurrentProcessInfo)
-    //{
-    //    //const unsigned int nnodes = 4;
-    //    //const unsigned int dim = 3;
-    //    const unsigned int strain_size = 6;
-
-    //    if(data.C.size1() != strain_size)
-    //        data.C.resize(strain_size,strain_size,false);
-    //    if(data.stress.size() != strain_size)
-    //        data.stress.resize(strain_size,false);
-
-    //    //compute strain
-    //    Vector strain(strain_size);
-    //    ComputeStrain(data, strain_size, strain);
-
-    //    //here we shall call the constitutive law
-    //    data.C.clear();
-    //    data.C(0,0) = 2.0*nu;
-    //    data.C(1,1) = 2.0*nu;
-    //    data.C(2,2) = 2.0*nu;
-    //    data.C(3,3) = nu;
-    //    data.C(4,4) = nu;
-    //    data.C(5,5) = nu;
-
-    //    const double c2 = nu;
-    //    const double c1 = 2.0*c2;
-    //    data.stress[0] =  c1*strain[0];
-    //    data.stress[1] =  c1*strain[1];
-    //    data.stress[2] =  c1*strain[2];
-    //    data.stress[3] =  c2*strain[3];
-    //    data.stress[4] =  c2*strain[4];
-    //    data.stress[5] =  c2*strain[5];
-    //}
 
 
 ///@}

@@ -82,7 +82,8 @@ size_t NumPositiveNodes;
 size_t NumNegativeNodes;
 unsigned int NumberOfDivisions;
 Vector PartitionsVolumes;
-Vector PartitionsSigns; //ATTENTION: this shall be initialized of size 6 ---> Mentira
+Vector PartitionsSigns; //ATTENTION: this shall be initialized of size 6
+
 
 ///@}
 ///@name Public Operations
@@ -170,7 +171,6 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(SOUND_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
     KRATOS_CHECK_VARIABLE_KEY(BDF_COEFFICIENTS);
@@ -276,8 +276,6 @@ double ComputeStrainNorm()
     }
     return strain_rate_norm;
 }
-
-
 
 void CalculateMaterialPropertiesAtGaussPoint()
 {

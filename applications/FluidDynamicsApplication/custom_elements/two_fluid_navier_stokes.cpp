@@ -103,7 +103,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 			data.NumberOfDivisions = ComputeSplitting(data, shape_functions, shape_derivatives, enriched_shape_derivatives, enriched_shape_functions);
 
 			if (data.NumberOfDivisions == 1) {
-				//cases exist when the element is like not subdivided due to the characteristics of the provided distance
+				//cases exist when the element is not subdivided due to the characteristics of the provided distance
 				//in this cases the element is treated as AIR or FLUID depending on the side
 				array_1d<double,NumNodes> Ncenter;
 				for(unsigned int i=0; i<NumNodes; i++) Ncenter[i]=0.25;
@@ -143,7 +143,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 				for (unsigned int g = 0; g < data.PartitionsSigns.size(); g++) {
 					data.UpdateGeometryValues(data.PartitionsVolumes[g],
 						row(shape_functions, g),
-						shape_derivatives[0], //is constant
+						shape_derivatives[0],
 						row(enriched_shape_functions, g),
 						enriched_shape_derivatives[g]);
 					const double dgauss = inner_prod(data.Distance, data.N);
