@@ -50,7 +50,6 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                             #"manufactured_solution_ref4"]
 
     def tearDown(self):
-        KratosMultiphysics.Model().Reset()
         with WorkFolderScope(self.work_folder):
             for filename in self.meshes_list:
                 try:
