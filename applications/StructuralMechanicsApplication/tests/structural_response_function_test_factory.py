@@ -57,6 +57,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             self.gradient = self.response_function.GetShapeGradient()
 
     def tearDown(self):
+        KratosMultiphysics.Model().Reset()
         # Within this location context:
         with controlledExecutionScope(self.path):
             self.response_function.Finalize()

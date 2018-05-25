@@ -45,6 +45,7 @@ def GetEigenVectorMatrix(num_eigenvalues, node_id):
 
 class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
     def tearDown(self):
+        KratosMultiphysics.Model().Reset()
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.msh")
         kratos_utils.DeleteFileIfExisting("Structure_EigenResults_0.post.res") # usually this is deleted by the check process but not if it fails
 
@@ -67,7 +68,6 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,model_part)
 
-        test_model.AddModelPart(model_part)
 
         # set EigenValues and -Vectors
         num_eigenvalues = 4

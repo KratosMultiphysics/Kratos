@@ -9,6 +9,9 @@ from math import sqrt, sin, cos, pi, exp, atan
 class TestMassCalculation(KratosUnittest.TestCase):
     def setUp(self):
         pass
+    
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
 
     def _add_dofs(self,mp):
         # Adding dofs AND their corresponding reactions

@@ -2,6 +2,7 @@ import os
 
 # Import Kratos
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -79,6 +80,7 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             structural_mechanics_analysis.StructuralMechanicsAnalysis(self.project_parameters_load).Run()
 
     def tearDown(self):
+        KratosMultiphysics.Model().Reset()
         # remove the created restart files
         raw_path, raw_file_name = os.path.split(self.file_name)
         folder_name = os.path.join(raw_path, raw_file_name + "__restart_files")

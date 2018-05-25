@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -27,7 +28,10 @@ class controlledExecutionScope:
 
 
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
+     
     def setUp(self):
+        print("setUp ---> ", self.file_name)
+        KratosMultiphysics.Model().Reset()
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
 
@@ -53,6 +57,8 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             self.test.RunMainTemporalLoop()
 
     def tearDown(self):
+        print("tearDown ---> ", self.file_name)
+        KratosMultiphysics.Model().Reset()
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
@@ -291,3 +297,6 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
+
+if __name__ == '__main__':
+    KratosUnittest.main()

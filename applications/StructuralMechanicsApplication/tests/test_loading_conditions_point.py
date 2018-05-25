@@ -6,6 +6,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
 class TestLoadingConditionsPoint(KratosUnittest.TestCase):
+    
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
+        
     def _execute_point_load_condition_test(self, Dimension):
         mp = KratosMultiphysics.ModelPart("solid_part")
         mp.SetBufferSize(2)

@@ -10,6 +10,9 @@ class TestTruss3D2N(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
+        
     def _add_dofs(self,mp):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
