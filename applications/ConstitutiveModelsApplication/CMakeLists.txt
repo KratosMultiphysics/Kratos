@@ -34,7 +34,8 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 
 	#elasticity models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/linear_elastic_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyperelastic_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyper_elastic_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hypo_elastic_model.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/ogden_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/mooney_rivlin_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/borja_model.cpp

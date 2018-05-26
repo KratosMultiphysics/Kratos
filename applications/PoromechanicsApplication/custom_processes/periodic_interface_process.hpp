@@ -11,7 +11,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "custom_utilities/comparison_utilities.hpp"//from SolidMechanics
+#include "custom_utilities/solid_mechanics_math_utilities.hpp" //from SolidMechanics
 #include "utilities/math_utils.h"
 
 #include "poromechanics_application_variables.h"
@@ -25,7 +25,7 @@ class PeriodicInterfaceProcess : public Process
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PeriodicInterfaceProcess);
-        
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
@@ -34,34 +34,30 @@ public:
                                 ) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
-			 
+
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "dimension": 2,
-                "von_mises_limit": 100.0e6
+                "stress_limit": 100.0e6
             }  )" );
-        
+
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["model_part_name"];
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
-        
+
         mDimension = rParameters["dimension"].GetInt();
-        if(mDimension == 2)
-            mVoigtSize = 3;
-        else
-            mVoigtSize = 6;
-        mVonMisesLimit = rParameters["von_mises_limit"].GetDouble();
+        mStressLimit = rParameters["stress_limit"].GetDouble();
 
         KRATOS_CATCH("");
     }
 
     ///------------------------------------------------------------------------------------
-    
+
     /// Destructor
     ~PeriodicInterfaceProcess() override {}
 
@@ -71,13 +67,13 @@ public:
     void Execute() override
     {
     }
-    
+
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
         KRATOS_TRY;
-        
+
         int NCons = static_cast<int>(mr_model_part.Conditions().size());
         ModelPart::ConditionsContainerType::iterator con_begin = mr_model_part.ConditionsBegin();
 
@@ -110,28 +106,36 @@ public:
     void ExecuteFinalizeSolutionStep() override
     {
         KRATOS_TRY;
-        
+
         int NCons = static_cast<int>(mr_model_part.Conditions().size());
         ModelPart::ConditionsContainerType::iterator con_begin = mr_model_part.ConditionsBegin();
-        
+
         #pragma omp parallel for
         for(int i = 0; i < NCons; i++)
         {
             ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
             Condition::GeometryType& rGeom = itCond->GetGeometry();
-            
+
             Matrix NodalStressMatrix(mDimension,mDimension);
-            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
-            Vector NodalStressVector(mVoigtSize);
-            noalias(NodalStressVector) = MathUtils<double>::StressTensorToVector( NodalStressMatrix, mVoigtSize );
-            ComparisonUtilities EquivalentStress;
-            double VonMisesStress = EquivalentStress.CalculateVonMises(NodalStressVector);
-            
-            rGeom[0].FastGetSolutionStepValue(NODAL_VON_MISES_STRESS) = VonMisesStress;
-            rGeom[1].FastGetSolutionStepValue(NODAL_VON_MISES_STRESS) = VonMisesStress;
-            
-            // Check whether the Von Mises stress at the node is higher than the prescribed limit to activate the joints
-            if (VonMisesStress >= mVonMisesLimit)
+            noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)
+                                                + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
+            Vector PrincipalStresses(mDimension);
+            if(mDimension == 2)
+            {
+                PrincipalStresses[0] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) +
+                                    sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
+                                            NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
+                PrincipalStresses[1] = 0.5*(NodalStressMatrix(0,0)+NodalStressMatrix(1,1)) -
+                                    sqrt(0.25*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1))*(NodalStressMatrix(0,0)-NodalStressMatrix(1,1)) +
+                                            NodalStressMatrix(0,1)*NodalStressMatrix(0,1));
+            }
+            else
+            {
+                noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValuesDirectMethod(NodalStressMatrix);
+            }
+
+            // Check whether the principal stress S1 at the node is higher than the prescribed limit to activate the joints
+            if (PrincipalStresses[0] >= mStressLimit)
             {
                 itCond->Set(PERIODIC,false);
                 rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = 0;
@@ -147,7 +151,7 @@ public:
                 }
             }
         }
-        
+
         KRATOS_CATCH("");
     }
 
@@ -176,11 +180,10 @@ protected:
 
     ModelPart& mr_model_part;
     int mDimension;
-    int mVoigtSize;
-    double mVonMisesLimit;
+    double mStressLimit;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
 private:
 
     /// Assignment operator.
@@ -188,7 +191,7 @@ private:
 
     /// Copy constructor.
     //PeriodicInterfaceProcess(PeriodicInterfaceProcess const& rOther);
-    
+
 }; // Class PeriodicInterfaceProcess
 
 /// input stream function

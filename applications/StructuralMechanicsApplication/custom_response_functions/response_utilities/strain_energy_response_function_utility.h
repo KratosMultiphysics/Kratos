@@ -435,7 +435,7 @@ protected:
 			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
 
 			double scaling_factor = 0.0;
-			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Kratos::Element& ng_elem_i = ng_elem[i];
 				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
