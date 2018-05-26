@@ -317,7 +317,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityPointers, KratosSubModelPartsListUtilityFastSuite)
         {
             // Creating the reference model part and the relative submodelparts
-            ModelPart model_part("ModelPart");
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("ModelPart");
             ModelPart::Pointer p_sub_modelpart_1 = model_part.CreateSubModelPart("First");
             ModelPart::Pointer p_sub_modelpart_2 = model_part.CreateSubModelPart("Second");
             ModelPart::Pointer p_sub_modelpart_3 = p_sub_modelpart_2->CreateSubModelPart("Third");

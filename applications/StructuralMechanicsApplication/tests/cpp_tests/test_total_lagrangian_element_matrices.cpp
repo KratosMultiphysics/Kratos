@@ -480,7 +480,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_DampingMatrix, KratosStructuralMech
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMechanicsFastSuite)
 {
-    ModelPart test_model_part("test");
+    ModelPart& test_model_part = Kernel::GetModel().CreateModelPart("test");
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement3D10N", test_model_part);
     KRATOS_CHECK(test_model_part.NumberOfNodes() == 10);
     std::vector<double> dx = {0.00946, 0.00662, 0.00659, 0.00618, 0.00530, 0.00851, 0.00445, -0.00237, 0.00322, 0.00202};
@@ -531,7 +531,7 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D10_StrainEnergy, KratosStructuralMech
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian3D4_SensitivityMatrix, KratosStructuralMechanicsFastSuite)
 {
-    ModelPart test_model_part("test");
+    ModelPart& test_model_part = Kernel::GetModel().CreateModelPart("test");
     CreateTotalLagrangianTestModelPart("TotalLagrangianElement3D4N", test_model_part);
     AssignRandomNodalData(DISPLACEMENT, test_model_part, -1.0e-2, 1.0e-2);
     AssignRandomNodalData(ACCELERATION, test_model_part, -10.0, 10.0);
