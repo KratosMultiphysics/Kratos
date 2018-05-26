@@ -70,7 +70,7 @@ public:
     ///@{
 
     TrilinosStokesInitializationProcess(Epetra_MpiComm& rComm,
-                                        const ModelPart::Pointer pModelPart,
+                                        const ModelPart* pModelPart,
                                         typename TLinearSolver::Pointer pLinearSolver,
                                         unsigned int DomainSize,
                                         const Variable<int>& PeriodicPairIndicesVar):
@@ -80,10 +80,10 @@ public:
     {
         KRATOS_TRY;
 
-        const ModelPart::Pointer& pReferenceModelPart = BaseType::mpReferenceModelPart;
+        const ModelPart*& pReferenceModelPart = BaseType::mpReferenceModelPart;
         typename TLinearSolver::Pointer& pLinearSolver = BaseType::mpLinearSolver;
         unsigned int DomainSize = BaseType::mDomainSize;
-        ModelPart::Pointer& pStokesModelPart = BaseType::mpStokesModelPart;
+        ModelPart*& pStokesModelPart = BaseType::mpStokesModelPart;
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
