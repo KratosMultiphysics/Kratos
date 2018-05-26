@@ -17,23 +17,9 @@
 #define  KRATOS_INTERFACE_OBJECT_CONFIGURE_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <limits>
-#include <cmath>
-
-
-#include "spatial_containers/tree.h"
-#include "spatial_containers/cell.h"
 
 // Kratos includes
-#include "includes/define.h"
-#include "geometries/point.h"
-#include "containers/pointer_vector_set.h"
-#include "utilities/indexed_object.h"
 #include "utilities/contact_pair.h"
-// TODO check which includes are necessary!
-
 #include "custom_searching/interface_object.h"
 
 namespace Kratos
