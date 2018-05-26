@@ -225,7 +225,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(init<double, unsigned int,bool,int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer,bool,int>())
     .def(init<Parameters>())
-// 		  .def(init<double, unsigned int,  PreconditionerType::Pointer, ModelPart::Pointer>())
+// 		  .def(init<double, unsigned int,  PreconditionerType::Pointer, ModelPart*>())
     //.def("",&LinearSolverType::)
     .def("__repr__", &DeflatedCGSolverType::Info )
     ;
