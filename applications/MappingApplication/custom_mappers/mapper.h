@@ -90,6 +90,8 @@ public:
 
     using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
 
+    using MapperInterfaceInfoUniquePointerType = typename InterfaceSearchStructure::MapperInterfaceInfoUniquePointerType;
+
     using MapperLocalSystemPointer = typename MappingOperationUtilityType::MapperLocalSystemPointer;
     using MapperLocalSystemPointerVector = typename MappingOperationUtilityType::MapperLocalSystemPointerVector;
     using MapperLocalSystemPointerVectorPointer = typename MappingOperationUtilityType::MapperLocalSystemPointerVectorPointer;
@@ -362,6 +364,7 @@ protected:
         mGeneralMapperSettings = AllMapperSettings;
     }
 
+    virtual MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const = 0;
     virtual MapperLocalSystemPointer GetMapperLocalSystem() const = 0;
 
     virtual InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const = 0;

@@ -68,6 +68,8 @@ public:
     /// Pointer definition of InterfaceSearchStructure
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructure);
 
+    using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
+
     using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
     using MapperInterfaceInfoPointerVectorType = std::vector<MapperInterfaceInfoPointerType>;
     using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
@@ -108,13 +110,14 @@ public:
     ///@{
 
     // this function performs the search and the exchange of the data on the interface
-    void ExchangeInterfaceData(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
+    void ExchangeInterfaceData(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
                                InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
     {
         if (!mInitializeIsPerformed)
             Initialize(InterfaceObjectTypeOrigin);
 
-        PrepareSearching(InterfaceObjectTypeDestination);
+        PrepareSearching(rpInterfaceInfo, InterfaceObjectTypeDestination);
 
         ConductLocalSearch();
 
@@ -275,7 +278,8 @@ protected:
     // This function constructs the InterfaceObjects on the Destination
     // In serial it only does it once, whereas in MPI this involves Data-Exchange!
     // Imagine a sliding interface, there the partitions might change!
-    virtual void PrepareSearching(InterfaceObject::ConstructionType InterfaceObjectTypeDestination);
+    virtual void PrepareSearching(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                                  InterfaceObject::ConstructionType InterfaceObjectTypeDestination);
 
     virtual void FinalizeSearching();
 

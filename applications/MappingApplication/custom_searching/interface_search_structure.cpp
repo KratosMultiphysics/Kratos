@@ -32,7 +32,8 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructure::PrepareSearching(InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
+    void InterfaceSearchStructure::PrepareSearching(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                                                    InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
     {
         if (mpInterfaceObjectsDestination != nullptr)
         {

@@ -50,6 +50,9 @@ class NearestNeigborInterfaceInfo : public MapperInterfaceInfo
 {
 public:
 
+    /// Default constructor.
+    NearestNeigborInterfaceInfo() {}
+
     NearestNeigborInterfaceInfo(const Point rPoint,
                                 const IndexType SourceLocalSystemIndex,
                                 const IndexType SourceRank=0)
@@ -160,9 +163,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapper);
 
     using BaseType = Mapper<TSparseSpace, TDenseSpace>;
-    using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
-
     using MapperUniquePointerType = typename BaseType::MapperUniquePointerType;
+
+    using MapperInterfaceInfoUniquePointerType = typename BaseType::MapperInterfaceInfoUniquePointerType;
+    using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
 
     ///@}
     ///@name Life Cycle
@@ -264,6 +268,11 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
+    {
+        return Kratos::make_unique<NearestNeigborInterfaceInfo>();
+    }
 
     MapperLocalSystemPointer GetMapperLocalSystem() const override
     {
