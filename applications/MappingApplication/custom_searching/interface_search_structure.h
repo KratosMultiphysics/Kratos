@@ -112,27 +112,10 @@ public:
     // this function performs the search and the exchange of the data on the interface
     void ExchangeInterfaceData(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
-                               InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
-    {
-        if (!mInitializeIsPerformed)
-            Initialize(InterfaceObjectTypeOrigin);
-
-        PrepareSearching(rpInterfaceInfo, InterfaceObjectTypeDestination);
-
-        ConductLocalSearch();
-
-        FinalizeSearching();
-    }
+                               InterfaceObject::ConstructionType InterfaceObjectTypeDestination);
 
     // This function resets the internal data structure => recomputes the internally used objects and the bounding boxes
-    void Reset()
-    {
-        mInitializeIsPerformed = false;
-
-        mpLocalBinStructure.reset(nullptr);
-        mpInterfaceObjectsOrigin.reset(nullptr);
-        mpInterfaceObjectsDestination.reset(nullptr);
-    }
+    void Reset();
 
 
 

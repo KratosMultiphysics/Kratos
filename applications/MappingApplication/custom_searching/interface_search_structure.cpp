@@ -27,7 +27,29 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
+    void InterfaceSearchStructure::ExchangeInterfaceData(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
+                               InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
+    {
+        if (!mInitializeIsPerformed)
+            Initialize(InterfaceObjectTypeOrigin);
 
+        PrepareSearching(rpInterfaceInfo, InterfaceObjectTypeDestination);
+
+        ConductLocalSearch();
+
+        FinalizeSearching();
+    }
+
+    // This function resets the internal data structure => recomputes the internally used objects and the bounding boxes
+    void InterfaceSearchStructure::Reset()
+    {
+        mInitializeIsPerformed = false;
+
+        mpLocalBinStructure.reset(nullptr);
+        mpInterfaceObjectsOrigin.reset(nullptr);
+        mpInterfaceObjectsDestination.reset(nullptr);
+    }
 
     /***********************************************************************************/
     /* PROTECTED Methods */
