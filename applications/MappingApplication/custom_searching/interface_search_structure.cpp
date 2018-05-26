@@ -33,7 +33,7 @@ namespace Kratos
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
                                InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
     {
-        if (rOptions.Is(MapperFlags::REMESHED) || rOptions.Is(MapperFlags::ORIGIN_ONLY))
+        if (!mInitializeIsPerformed || rOptions.Is(MapperFlags::REMESHED) || rOptions.Is(MapperFlags::ORIGIN_ONLY))
             Initialize(InterfaceObjectTypeOrigin);
 
         PrepareSearching(rpInterfaceInfo, InterfaceObjectTypeDestination);
