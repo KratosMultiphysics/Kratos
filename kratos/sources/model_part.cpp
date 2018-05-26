@@ -1092,17 +1092,17 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags identifier_flag)
 }
 
 
-ModelPart::Pointer  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart*  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        ModelPart::Pointer p_model_part(new ModelPart(NewSubModelPartName,mpVariablesList));
+        ModelPart::Pointer p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName,mpVariablesList);
         p_model_part->SetParentModelPart(this);
-//         delete p_model_part->mpVariablesList;
-//         p_model_part->mpVariablesList = mpVariablesList;
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
-        return mSubModelParts.insert(p_model_part).base()->second;
+        ModelPart* raw_pointer = p_model_part.get();
+        mSubModelParts.insert(p_model_part);
+        return raw_pointer;
     }
     else
         KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
@@ -1110,19 +1110,20 @@ ModelPart::Pointer  ModelPart::CreateSubModelPart(std::string const& NewSubModel
         //KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
     }
 
-void ModelPart::AddSubModelPart(ModelPart::Pointer pThisSubModelPart)
+KRATOS_DEPRECATED void ModelPart::AddSubModelPart(ModelPart& rThisSubModelPart)
 {
-    if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
-        // Here a warning would be enough. To be disscussed. Pooyan.
-        KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
-
-    if (IsSubModelPart())
-    {
-        mpParentModelPart->AddSubModelPart(pThisSubModelPart);
-        return;
-    }
-
-    pThisSubModelPart->SetParentModelPart(this);
+    KRATOS_ERROR << "cannot add a submodelpart, since submodelparts are univocally owned by their father " << std::endl;
+//     if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
+//         // Here a warning would be enough. To be disscussed. Pooyan.
+//         KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
+// 
+//     if (IsSubModelPart())
+//     {
+//         mpParentModelPart->AddSubModelPart(pThisSubModelPart);
+//         return;
+//     }
+// 
+//     pThisSubModelPart->SetParentModelPart(this);
 }
 /** Remove a sub modelpart with given name.
 */
@@ -1285,7 +1286,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Tables", mTables);
     //const VariablesList* p_list = &mVariablesList;
     // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
-    rSerializer.save("Variables List", mpVariablesList);
+    rSerializer.save("Variables List", mpVariablesList); //TODO: i believe that this one should not be serialized
     rSerializer.save("Meshes", mMeshes);
     rSerializer.save("SubModelParts", mSubModelParts);
 }
@@ -1294,12 +1295,12 @@ void ModelPart::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer);
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-    rSerializer.load("Name", mName);
+    rSerializer.load("Name", mName); //TODO: the serializer object on which load is called should have already a name assigned. WE CAN NOT override this here since we would need to change the Model too...serializing the name however may be useful for error checking
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);
     rSerializer.load("Tables", mTables);
     //VariablesList* p_list = &mVariablesList;
-    rSerializer.load("Variables List", mpVariablesList);
+    rSerializer.load("Variables List", mpVariablesList); //TODO: i believe that this one should not be serialized but rather assigned by the Model.
     rSerializer.load("Meshes", mMeshes);
     rSerializer.load("SubModelParts", mSubModelParts);
 
