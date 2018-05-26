@@ -28,4 +28,6 @@ KRATOS_CREATE_LOCAL_FLAG( MapperFlags, ADD_VALUES,               1 );
 KRATOS_CREATE_LOCAL_FLAG( MapperFlags, CONSERVATIVE,             2 );
 KRATOS_CREATE_LOCAL_FLAG( MapperFlags, REMESHED,                 3 );
 KRATOS_CREATE_LOCAL_FLAG( MapperFlags, USE_TRANSPOSE,            4 );  // This flag is used internally for conservative mapping
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, ORIGIN_ONLY,              5 );
+KRATOS_CREATE_LOCAL_FLAG( MapperFlags, DESTINATION_ONLY,         6 );
 }  // namespace Kratos.

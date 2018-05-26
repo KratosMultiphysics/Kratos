@@ -76,9 +76,6 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
     KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
     mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
 
-    KRATOS_ERROR_IF_NOT(mpSearchStructure) << "mpSearchStructure is a nullptr!" << std::endl;
-    mpSearchStructure->Reset();
-
     BuildMappingMatrix();
 }
 
@@ -86,7 +83,7 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
 I.e. Operations that can be performed several times in the livetime of the mapper
 */
 template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix()
+void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags MappingOptions)
 {
     KRATOS_ERROR_IF_NOT(mpSearchStructure) << "mpSearchStructure is a nullptr!" << std::endl;
 
@@ -96,7 +93,8 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix()
     const InterfaceObject::ConstructionType interface_object_construction_type_destination =
         GetInterfaceObjectConstructionTypeDestination();
 
-    mpSearchStructure->ExchangeInterfaceData(p_ref_interface_info,
+    mpSearchStructure->ExchangeInterfaceData(MappingOptions,
+                                             p_ref_interface_info,
                                              interface_object_construction_type_origin,
                                              interface_object_construction_type_destination);
 
@@ -146,10 +144,24 @@ It is done like this bcs in this way the same operation can be called on the Inv
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags MappingOptions, double SearchRadius)
 {
+    // Set the Flags according to the type of remeshing
     if (MappingOptions.Is(MapperFlags::REMESHED))
-        InitializeInterface();
-    else
-        BuildMappingMatrix();
+    {
+        if (MappingOptions.IsDefined(MapperFlags::ORIGIN_ONLY))
+        {
+            KRATOS_INFO("Mapper-UpdateInterface") << "If the domain is remeshed then "
+                << "setting \"ORIGIN_ONLY\" has no effect" << std::endl;
+            MappingOptions.Reset(MapperFlags::ORIGIN_ONLY);
+        }
+        if (MappingOptions.IsDefined(MapperFlags::DESTINATION_ONLY))
+        {
+            KRATOS_INFO("Mapper-UpdateInterface") << "If the domain is remeshed then "
+                << "setting \"DESTINATION_ONLY\" has no effect" << std::endl;
+            MappingOptions.Reset(MapperFlags::DESTINATION_ONLY);
+        }
+    }
+
+    BuildMappingMatrix(MappingOptions);
 }
 
 

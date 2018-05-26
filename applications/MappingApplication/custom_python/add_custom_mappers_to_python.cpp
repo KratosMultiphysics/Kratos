@@ -123,7 +123,7 @@ template<class TSparseSpace, class TDenseSpace>
 void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
 {
 // Exposing the base class of the Mappers to Python, but without constructor
-    class_< Mapper<TSparseSpace, TDenseSpace>, typename Mapper<TSparseSpace, TDenseSpace>::Pointer > mapper
+    const auto mapper
         = class_< Mapper<TSparseSpace, TDenseSpace>, typename Mapper<TSparseSpace, TDenseSpace>::Pointer >(m, rName.c_str())
             .def("UpdateInterface",  UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",  UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)

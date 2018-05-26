@@ -35,3 +35,6 @@ mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_
 print(mapper)
 
 mapper.Map(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE)
+
+mapper.UpdateInterface(KratosMapping.Mapper.REMESHED)
+mapper.UpdateInterface()

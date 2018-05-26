@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "interface_search_structure.h"
+#include "custom_utilities/mapper_flags.h"
 
 namespace Kratos
 {
@@ -27,11 +28,12 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructure::ExchangeInterfaceData(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+    void InterfaceSearchStructure::ExchangeInterfaceData(const Kratos::Flags& rOptions,
+                               const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
                                InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
     {
-        if (!mInitializeIsPerformed)
+        if (rOptions.Is(MapperFlags::REMESHED) || rOptions.Is(MapperFlags::ORIGIN_ONLY))
             Initialize(InterfaceObjectTypeOrigin);
 
         PrepareSearching(rpInterfaceInfo, InterfaceObjectTypeDestination);
@@ -39,16 +41,6 @@ namespace Kratos
         ConductLocalSearch();
 
         FinalizeSearching();
-    }
-
-    // This function resets the internal data structure => recomputes the internally used objects and the bounding boxes
-    void InterfaceSearchStructure::Reset()
-    {
-        mInitializeIsPerformed = false;
-
-        mpLocalBinStructure.reset(nullptr);
-        mpInterfaceObjectsOrigin.reset(nullptr);
-        mpInterfaceObjectsDestination.reset(nullptr);
     }
 
     /***********************************************************************************/

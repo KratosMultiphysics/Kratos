@@ -127,6 +127,46 @@ public:
 
     void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
     {
+        std::cout << "\n\n";
+        if (MappingOptions.IsDefined(MapperFlags::REMESHED))
+        {
+            KRATOS_INFO("\tFlagsCheck") << "IsDefined" << std::endl;
+            if (MappingOptions.Is(MapperFlags::REMESHED))
+            {
+                KRATOS_INFO("\t\tFlagsCheck") << "IsDefined AND Is" << std::endl;
+            }
+            else
+            {
+                KRATOS_INFO("\t\tFlagsCheck") << "IsDefined AND NOT Is" << std::endl;
+            }
+        }
+        else
+        {
+            KRATOS_INFO("\tFlagsCheck") << "NOT IsDefined" << std::endl;
+                        KRATOS_INFO("\tFlagsCheck") << "IsDefined" << std::endl;
+            if (MappingOptions.Is(MapperFlags::REMESHED))
+            {
+                KRATOS_INFO("\t\tFlagsCheck") << "NOT IsDefined AND Is" << std::endl;
+            }
+            else
+            {
+                KRATOS_INFO("\t\tFlagsCheck") << "NOT IsDefined AND NOT Is" << std::endl;
+            }
+        }
+
+        std::cout << "\n";
+
+        if (MappingOptions.Is(MapperFlags::REMESHED))
+        {
+            KRATOS_INFO("\tFlagsCheck") << "Is" << std::endl;
+        }
+        else
+        {
+            KRATOS_INFO("\tFlagsCheck") << "NOT Is" << std::endl;
+        }
+
+        std::cout << "\n\n";
+
         UpdateInterfaceInternal(MappingOptions, SearchRadius);
         if (mInverseMapperIsInitialized)
             mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
@@ -272,7 +312,7 @@ protected:
 
     virtual void InitializeSearchStructure();
 
-    virtual void BuildMappingMatrix();
+    virtual void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags());
 
     virtual void InitializeMappingOperationUtility();
 

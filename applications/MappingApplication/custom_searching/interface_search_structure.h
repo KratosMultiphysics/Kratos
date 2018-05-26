@@ -110,12 +110,10 @@ public:
     ///@{
 
     // this function performs the search and the exchange of the data on the interface
-    void ExchangeInterfaceData(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+    void ExchangeInterfaceData(const Kratos::Flags& rOptions,
+                               const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
                                InterfaceObject::ConstructionType InterfaceObjectTypeDestination);
-
-    // This function resets the internal data structure => recomputes the internally used objects and the bounding boxes
-    void Reset();
 
 
 
