@@ -147,7 +147,7 @@ public:
     typedef std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType> > IndexVectorMapType;
 
     /// Colors map
-    typedef std::unordered_map<IndexType,int> ColorsMapType;
+    typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
 
     ///@}
     ///@name  Enum's
@@ -593,8 +593,8 @@ private:
         const double X,
         const double Y,
         const double Z,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -606,8 +606,8 @@ private:
     
     void SetConditions(
         GeometryType& Geom,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -619,8 +619,8 @@ private:
     
     void SetElements(
         GeometryType& Geom,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -629,8 +629,8 @@ private:
      */
 
     void SetMetricScalar(
-        const double& Metric,
-        const int NodeId 
+        const double Metric,
+        const IndexType NodeId 
         );
     
     /**
@@ -640,7 +640,7 @@ private:
 
     void SetMetricVector(
         const array_1d<double, 3>& Metric,
-        const int NodeId 
+        const IndexType NodeId 
         );
     
     /**
@@ -650,7 +650,7 @@ private:
 
     void SetMetricTensor(
         const Vector& Metric,
-        const int NodeId 
+        const IndexType NodeId 
         );
 
     /**
