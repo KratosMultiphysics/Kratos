@@ -208,14 +208,14 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     double& rIntegrationWeight) override;
 
     /**
      * Calculation of the water Material Stiffness Matrix. 
      */
     virtual void CalculateAndAddKWwP(MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     );
 
@@ -223,14 +223,14 @@ protected:
      * Calculation of the water pressure contrib to the internal forces 
      */
     virtual void CalculateAndAddKUwP(MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     );
     /**
      * Calculation of the stabilization at the matrix
      */
     virtual void CalculateAndAddKPPStab(MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                      );
     /**
@@ -238,7 +238,7 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight) override;
 
@@ -246,7 +246,7 @@ protected:
      * Calculation of the Internal Forces due to sigma. Fi = B * (-pW * I)
      */
     virtual void CalculateAndAddInternalWaterForces(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
@@ -254,7 +254,7 @@ protected:
      * Volumetric loads
      */
     void CalculateAndAddExternalForcesUJWwP(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           Vector & rVolumeForces,
           double& rIntegrationWeight
           );
@@ -262,14 +262,14 @@ protected:
      * Fluid Linear Momentum balance equation
      */
     void CalculateAndAddFluidLinearMomentum(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
     /**
      * Mass balance for the mixture
      */
     void CalculateAndAddMassBalanceEquation(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
@@ -277,14 +277,14 @@ protected:
      * Calculation of the Internal Forces due to stabilization
      */
     virtual void CalculateAndAddStabilizationRHS(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
     /**
      * Part of the mass matrix due to the stabilization
      */
     virtual void CalculateAndAddMassStabilizationMatrix(MatrixType& rMassMatrix,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
@@ -292,7 +292,7 @@ protected:
      * Part of the damping matrix due to the stabilization
      */
     virtual void CalculateAndAddDampingStabilizationMatrix(MatrixType& rDampingMatrix,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
@@ -300,7 +300,7 @@ protected:
      * Part of the damping matrix due to the high order terms
      */
     virtual void CalculateAndAddHighOrderDampingMatrix(MatrixType& rDampingMatrix,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
@@ -308,7 +308,7 @@ protected:
      * Calculation and addition of the KPP due to high order terms
      */
     virtual void CalculateAndAddHighOrderKPP(MatrixType& rK,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
@@ -316,7 +316,7 @@ protected:
      * Calculation of the Internal Forces due to high order terms
      */
     virtual void CalculateAndAddHighOrderRHS(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
@@ -324,7 +324,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -339,7 +339,7 @@ protected:
     /**
       * Calculate an estimate of the stabilization factor
       */
-    double & CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabilizationFactor);
+    double & CalculateStabilizationFactor( ElementDataType & rVariables, double & rStabilizationFactor);
 
     ///@}
     ///@name Protected  Access

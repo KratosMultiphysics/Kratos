@@ -131,7 +131,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Damping matrix part due to the high order terms
-   void UpdatedLagrangianUJWwPHOElement::CalculateAndAddHighOrderDampingMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUJWwPHOElement::CalculateAndAddHighOrderDampingMatrix( MatrixType & rDampingMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -187,7 +187,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Matrix due to the the water pressure stabilization contribution to the internal forces   
-   void UpdatedLagrangianUJWwPHOElement::CalculateAndAddHighOrderKPP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUJWwPHOElement::CalculateAndAddHighOrderKPP( MatrixType & rLeftHandSide, ElementDataType & rVariables, double & rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -236,7 +236,7 @@ namespace Kratos
    // ****************************************************************************
    //     Right hand side part due to the stabilization technique
    void UpdatedLagrangianUJWwPHOElement::CalculateAndAddHighOrderRHS(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY

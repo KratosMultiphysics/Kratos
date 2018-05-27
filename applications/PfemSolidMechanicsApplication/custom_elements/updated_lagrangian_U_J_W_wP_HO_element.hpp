@@ -142,7 +142,7 @@ protected:
      * Calculation and addition of the KPP due to high order terms
      */
     virtual void CalculateAndAddHighOrderKPP(MatrixType& rK,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override;
 
@@ -150,7 +150,7 @@ protected:
      * Calculation of the Internal Forces due to high order terms
      */
     virtual void CalculateAndAddHighOrderRHS(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override;
 
@@ -159,7 +159,7 @@ protected:
      * Part of the mass matrix due to the stabilization
      */
     virtual void CalculateAndAddHighOrderDampingMatrix(MatrixType& rDampingMatrix,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override; 
 
