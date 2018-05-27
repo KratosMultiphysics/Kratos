@@ -178,8 +178,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-    static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+    static BoundedMatrix<double,3,3> msMassFactors;
+    static BoundedMatrix<double,3,2> msDN_DX;
     static array_1d<double,3> msN; //dimension = number of nodes
     //static Matrix msDN_DX;
     //static Matrix msMassFactors;

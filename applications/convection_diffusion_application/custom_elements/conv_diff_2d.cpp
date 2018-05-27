@@ -73,17 +73,17 @@ namespace Kratos
     if (rRightHandSideVector.size() != number_of_points)
       rRightHandSideVector.resize(number_of_points, false);
     
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
-    boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
+    BoundedMatrix<double, 3, 3 > msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+    BoundedMatrix<double, 3, 2 > msDN_DX;
     array_1d<double, 3 > msN;
     array_1d<double, 2 > ms_vel_gauss;
     array_1d<double, 3 > ms_temp_vec_np;
     array_1d<double, 3 > ms_u_DN;
     array_1d<double, 2 > grad_g;
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Identity = IdentityMatrix(2, 2);
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > First;
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Second;
-    boost::numeric::ublas::bounded_matrix<double, 2, 3 > Third;
+    BoundedMatrix<double, 2, 2 > Identity = IdentityMatrix(2, 2);
+    BoundedMatrix<double, 2, 2 > First;
+    BoundedMatrix<double, 2, 2 > Second;
+    BoundedMatrix<double, 2, 3 > Third;
     
     
     //getting data for the given geometry
@@ -239,7 +239,7 @@ namespace Kratos
         KRATOS_TRY
                 int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
+        BoundedMatrix<double, 3, 2 > msDN_DX;
         array_1d<double, 3 > msN;
         array_1d<double, 2 > ms_vel_gauss;
         array_1d<double, 3 > ms_temp_vec_np;
@@ -329,9 +329,9 @@ namespace Kratos
  
     //************************************************************************************
     //************************************************************************************
-	/*double ConvDiff2D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double& h, const double& C, const double nu )
+	/*double ConvDiff2D::ComputeSmagorinskyViscosity(const BoundedMatrix<double, 3, 2 > & DN_DX, const double& h, const double& C, const double nu )
   {
-    boost::numeric::ublas::bounded_matrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
+    BoundedMatrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
     
     // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
     for (unsigned int k = 0; k < 3; ++k)

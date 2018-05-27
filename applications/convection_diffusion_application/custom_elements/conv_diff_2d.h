@@ -106,7 +106,7 @@ public:
     /// Calculates the temperature convective projection
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-   /* double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,const double& h,const double& C,const double nu);*/
+   /* double ComputeSmagorinskyViscosity(const BoundedMatrix<double, 3, 2 > & DN_DX,const double& h,const double& C,const double nu);*/
 
     ///@}
     ///@name Access

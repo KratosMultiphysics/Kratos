@@ -127,7 +127,7 @@ public:
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
         //getting data for the given geometry
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
         double Volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
@@ -190,7 +190,7 @@ public:
         specific_heat *= lumping_factor;
         //heat_flux *= lumping_factor;
 
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
 
         bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
@@ -333,7 +333,7 @@ protected:
     ///@{
 
     //gauss points for the 3D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4, 4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
@@ -342,7 +342,7 @@ protected:
     }
 
     //gauss points for the 2D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
