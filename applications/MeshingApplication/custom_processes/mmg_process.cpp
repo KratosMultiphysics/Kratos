@@ -326,7 +326,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     }
     // Now we iterate over the model parts
     for (auto & color_list : mColors) {
-        const int key = color_list.first;
+        const IndexType key = color_list.first;
         
         if (((to_check_cond == false) && (to_check_elem == false))) break;
         
@@ -677,7 +677,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* We do some operations related with the Lagrangian framework */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
         // If we remesh during non linear iteration we just move to the previous displacement, to the last displacement otherwise
-        const int step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
+        const IndexType step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
         
         /* We move the mesh */
         nodes_array = mrThisModelPart.Nodes();
@@ -1454,7 +1454,7 @@ void MmgProcess<3>::SetMeshSize(
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<2>::SetSolSizeScalar(const int NumNodes)
+void MmgProcess<2>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1464,7 +1464,7 @@ void MmgProcess<2>::SetSolSizeScalar(const int NumNodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<3>::SetSolSizeScalar(const int NumNodes)
+void MmgProcess<3>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1474,7 +1474,7 @@ void MmgProcess<3>::SetSolSizeScalar(const int NumNodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<2>::SetSolSizeVector(const int NumNodes)
+void MmgProcess<2>::SetSolSizeVector(const SizeType NumNodes)
 {
     KRATOS_ERROR << "WARNING:: Vector metric not avalaible in 2D" << std::endl;
 }
@@ -1483,7 +1483,7 @@ void MmgProcess<2>::SetSolSizeVector(const int NumNodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<3>::SetSolSizeVector(const int NumNodes)
+void MmgProcess<3>::SetSolSizeVector(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
         exit(EXIT_FAILURE);
@@ -1493,7 +1493,7 @@ void MmgProcess<3>::SetSolSizeVector(const int NumNodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<2>::SetSolSizeTensor(const int NumNodes)
+void MmgProcess<2>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
@@ -1503,7 +1503,7 @@ void MmgProcess<2>::SetSolSizeTensor(const int NumNodes)
 /***********************************************************************************/
 
 template<>  
-void MmgProcess<3>::SetSolSizeTensor(const int NumNodes)
+void MmgProcess<3>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
