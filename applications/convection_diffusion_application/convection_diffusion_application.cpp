@@ -1,10 +1,14 @@
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-12-15 15:41:36 $
-//   Revision:            $Revision: 1.6 $
+//  License: BSD License
+//   license: convection_diffusion_application/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
+
 
 // System includes
 
