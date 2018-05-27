@@ -7,8 +7,8 @@ import run_cpp_unit_tests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suites
-from source_term_test import SourceTermTest
-from thermal_coupling_test import ThermalCouplingTest
+from deprecated_source_term_test import SourceTermTest
+from deprecated_thermal_coupling_test import ThermalCouplingTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
