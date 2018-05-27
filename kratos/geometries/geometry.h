@@ -428,7 +428,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
-    constexpr const SizeType& Dimension() const
+    inline SizeType Dimension() const
     {
         return mpGeometryData->Dimension();
     }
@@ -440,7 +440,7 @@ public:
     @see Dimension()
     @see LocalSpaceDimension()
     */
-    constexpr const SizeType& WorkingSpaceDimension() const
+    inline SizeType WorkingSpaceDimension() const
     {
         return mpGeometryData->WorkingSpaceDimension();
     }
@@ -453,7 +453,7 @@ public:
     @see Dimension()
     @see WorkingSpaceDimension()
     */
-    constexpr const SizeType& LocalSpaceDimension() const
+    inline SizeType LocalSpaceDimension() const
     {
         return mpGeometryData->LocalSpaceDimension();
     }

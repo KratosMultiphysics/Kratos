@@ -321,7 +321,7 @@ public:
     @see WorkingSpaceDimension()
     @see LocalSpaceDimension()
     */
-    constexpr const SizeType& Dimension() const
+    SizeType Dimension() const
     {
         return mDimension;
     }
@@ -333,7 +333,7 @@ public:
     @see Dimension()
     @see LocalSpaceDimension()
     */
-    constexpr const SizeType& WorkingSpaceDimension() const
+    SizeType WorkingSpaceDimension() const
     {
         return mWorkingSpaceDimension;
     }
@@ -346,7 +346,7 @@ public:
     @see Dimension()
     @see WorkingSpaceDimension()
     */
-    constexpr const SizeType& LocalSpaceDimension() const
+    SizeType LocalSpaceDimension() const
     {
         return mLocalSpaceDimension;
     }
