@@ -72,7 +72,7 @@ LargeDisplacementVElement&  LargeDisplacementVElement::operator=(LargeDisplaceme
 
 Element::Pointer LargeDisplacementVElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new LargeDisplacementVElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+  return Kratos::make_shared< LargeDisplacementVElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -101,8 +101,8 @@ Element::Pointer LargeDisplacementVElement::Clone( IndexType NewId, NodesArrayTy
     
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-       
-    return Element::Pointer( new LargeDisplacementVElement(NewElement) );
+    
+    return Kratos::make_shared< LargeDisplacementVElement >(NewElement);
 }
 
 

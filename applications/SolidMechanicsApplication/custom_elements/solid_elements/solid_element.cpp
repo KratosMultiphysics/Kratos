@@ -91,8 +91,7 @@ SolidElement&  SolidElement::operator=(SolidElement const& rOther)
 Element::Pointer SolidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a solid element " << std::endl;
-
-    return Element::Pointer( new SolidElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< SolidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -120,8 +119,8 @@ Element::Pointer SolidElement::Clone( IndexType NewId, NodesArrayType const& rTh
 
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-
-    return Element::Pointer( new SolidElement(NewElement) );
+    
+    return Kratos::make_shared< SolidElement >(NewElement);
 }
 
 

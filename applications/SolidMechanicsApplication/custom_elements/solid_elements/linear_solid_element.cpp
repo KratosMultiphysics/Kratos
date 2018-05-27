@@ -83,8 +83,7 @@ LinearSolidElement&  LinearSolidElement::operator=(LinearSolidElement const& rOt
 
 Element::Pointer LinearSolidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    //NEEDED TO CREATE AN ELEMENT   
-    return Element::Pointer( new LinearSolidElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< LinearSolidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);    
 }
 
 
@@ -122,7 +121,7 @@ Element::Pointer LinearSolidElement::Clone( IndexType NewId, NodesArrayType cons
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new LinearSolidElement(NewElement) );
+    return Kratos::make_shared< LinearSolidElement >(NewElement);
 }
 
 

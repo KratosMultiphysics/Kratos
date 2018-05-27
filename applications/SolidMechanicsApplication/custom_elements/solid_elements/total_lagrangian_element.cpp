@@ -79,7 +79,7 @@ TotalLagrangianElement&  TotalLagrangianElement::operator=(TotalLagrangianElemen
 
 Element::Pointer TotalLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new TotalLagrangianElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< TotalLagrangianElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -125,7 +125,7 @@ Element::Pointer TotalLagrangianElement::Clone( IndexType NewId, NodesArrayType 
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new TotalLagrangianElement(NewElement) );
+    return Kratos::make_shared< TotalLagrangianElement >(NewElement);
 }
 
 

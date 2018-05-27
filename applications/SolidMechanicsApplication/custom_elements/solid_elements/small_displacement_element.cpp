@@ -73,7 +73,7 @@ SmallDisplacementElement&  SmallDisplacementElement::operator=(SmallDisplacement
 
 Element::Pointer SmallDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new SmallDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+  return Kratos::make_shared< SmallDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -103,8 +103,8 @@ Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
 
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-
-    return Element::Pointer( new SmallDisplacementElement(NewElement) );
+    
+    return Kratos::make_shared< SmallDisplacementElement >(NewElement);
 }
 
 

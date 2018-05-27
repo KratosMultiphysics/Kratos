@@ -75,7 +75,7 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
 Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a large displacement element " << std::endl;
-    return Element::Pointer( new LargeDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< LargeDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -102,7 +102,7 @@ Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new LargeDisplacementElement(NewElement) );
+    return Kratos::make_shared< LargeDisplacementElement >(NewElement);    
 }
 
 
