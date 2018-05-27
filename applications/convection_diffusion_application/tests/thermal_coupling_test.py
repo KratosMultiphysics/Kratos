@@ -282,9 +282,12 @@ class ThermalCouplingTest(UnitTest.TestCase):
             gid_io.WriteNodalResults(REACTION_FLUX,model_part.Nodes,label,0)
 
 if __name__ == '__main__':
-    test = ThermalCouplingTest()
-    test.setUp()
-    #test.print_reference_values = True
-    test.print_output = True
-    test.testDirichletNeumann()
-    test.tearDown()
+    if have_fsi:
+        test = ThermalCouplingTest()
+        test.setUp()
+        #test.print_reference_values = True
+        test.print_output = True
+        test.testDirichletNeumann()
+        test.tearDown()
+    else:
+        UnitTest.skip("Missing required application: FSIApplication")
