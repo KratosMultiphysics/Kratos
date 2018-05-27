@@ -54,8 +54,11 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
 void KratosConvectionDiffusionApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing KratosConvectionDiffusionApplication... "
-              << std::endl;
+    KRATOS_INFO("") << 
+    " KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ " << std::endl <<
+    "       / __/ _ || || | | / /__|   |_ _| __| __|" << std::endl <<
+    "      | (_| (_) | .` || V /___| |) | || _|| _| " << std::endl <<
+    "       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION" << std::endl;
 
     // Registering variables
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_1)
