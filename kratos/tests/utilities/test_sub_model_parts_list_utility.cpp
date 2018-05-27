@@ -107,11 +107,11 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart& second_model_part = Kernel::GetModel().CreateModelPart("Main");
-            ModelPart* p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart* p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart* p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("ZSubModelPart3");
-            ModelPart* p_second_sub_modelpart_4 = second_model_part.CreateSubModelPart("YSubModelPart4");
+            ModelPart& second_model_part = Kernel::GetModel().CreateModelPart("OtherMain");
+            second_model_part.CreateSubModelPart("BSubModelPart1");
+            second_model_part.CreateSubModelPart("ASubModelPart2");
+            second_model_part.CreateSubModelPart("ZSubModelPart3");
+            second_model_part.CreateSubModelPart("YSubModelPart4");
 
             // We add the nodes and elements from the first model part
             second_model_part.AddNodes(first_model_part.Nodes().begin(), first_model_part.Nodes().end());
@@ -247,13 +247,14 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart& second_model_part = Kernel::GetModel().CreateModelPart("Main");
+            ModelPart& second_model_part = Kernel::GetModel().CreateModelPart("OtherMain");
             ModelPart* p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart* p_second_sub_modelpart_1a = p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
-            ModelPart* p_second_sub_modelpart_1b = p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
-            ModelPart* p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart* p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("ZSubModelPart3");
-            ModelPart* p_second_sub_modelpart_4 = second_model_part.CreateSubModelPart("YSubModelPart4");
+
+            p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
+            p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
+            second_model_part.CreateSubModelPart("ASubModelPart2");
+            second_model_part.CreateSubModelPart("ZSubModelPart3");
+            second_model_part.CreateSubModelPart("YSubModelPart4");
 
             // We add the nodes and elements from the first model part
             second_model_part.AddNodes(first_model_part.Nodes().begin(), first_model_part.Nodes().end());

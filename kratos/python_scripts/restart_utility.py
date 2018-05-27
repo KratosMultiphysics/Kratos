@@ -37,6 +37,7 @@ class RestartUtility(object):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model_part
+        self.model_part_name = model_part.Name
 
         # the path is splitted in case it already contains a path (neeeded if files are moved to a folder)
         self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
@@ -93,8 +94,11 @@ class RestartUtility(object):
         self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
+        KratosMultiphysics.Model().Reset()
+        self.model_part = KratosMultiphysics.ModelPart(self.model_part_name)
+               
         serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
-        serializer.Load(self.model_part.Name, self.model_part)
+        serializer.Load(self.model_part_name, self.model_part)
 
         self._ExecuteAfterLoad()
 

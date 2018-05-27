@@ -37,7 +37,7 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        KRATOS_INFO("Model") << "within CreateModelPart address of Model is " <<  &(*this) << std::endl; //TODO: remove - debugging purposes
+//         KRATOS_INFO("Model") << "within CreateModelPart address of Model is " <<  &(*this) << std::endl; //TODO: remove - debugging purposes
         
         auto search = mRootModelPartMap.find(ModelPartName);
         if( search == mRootModelPartMap.end())
@@ -65,6 +65,28 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+    
+    void Model::RenameModelPart( const std::string OldName, const std::string NewName )
+    {
+        KRATOS_TRY
+
+        if(!this->HasModelPart(OldName))
+            KRATOS_ERROR << "The Old Name is not in model (as a root model part). Required old name was : " << OldName << std::endl;
+
+        if(this->HasModelPart(NewName))
+            KRATOS_ERROR << "The New Name is already existing in model. Proposed name was : " << NewName << std::endl;
+        
+        mRootModelPartMap[OldName]->Name() = NewName; //change the name of the existing modelpart
+        
+        CreateModelPart(NewName);
+        
+        mRootModelPartMap[NewName].swap(mRootModelPartMap[OldName]);
+        
+        mRootModelPartMap.erase(OldName);
+
+        KRATOS_CATCH("")
+    }
+    
     
     void Model::AddModelPart( ModelPart::Pointer pModelPart) //TODO: DEPRECATED. to be removed. this is TEMPORARY
     {

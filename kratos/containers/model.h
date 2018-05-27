@@ -91,6 +91,8 @@ namespace Kratos
       
       void DeleteModelPart( const std::string ModelPartName );
       
+      void RenameModelPart( const std::string OldName, const std::string NewName );
+      
       void AddModelPart(ModelPart::Pointer pModelPart); //TODO: change this conveniently
 
       ModelPart& GetModelPart(const std::string& rFullModelPartName);

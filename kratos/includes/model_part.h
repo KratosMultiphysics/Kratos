@@ -1125,7 +1125,6 @@ public:
         return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
     }
 
-
     ///@}
     ///@name Access
     ///@{
@@ -1339,8 +1338,6 @@ private:
     ///@{
 
     friend class Serializer;
-    
-    ModelPart(){}; //TODO: this one should not be allowed here. We should provide a already constructed object to the load function
 
     void save(Serializer& rSerializer) const override;
 

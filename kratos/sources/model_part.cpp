@@ -1284,28 +1284,50 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Buffer Size", mBufferSize);
     rSerializer.save("ProcessInfo", mpProcessInfo);
     rSerializer.save("Tables", mTables);
-    //const VariablesList* p_list = &mVariablesList;
-    // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
-    rSerializer.save("Variables List", mpVariablesList); //TODO: i believe that this one should not be serialized
     rSerializer.save("Meshes", mMeshes);
-    rSerializer.save("SubModelParts", mSubModelParts);
+    
+    rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
+            
+    for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+         rSerializer.save("SubModelPartName", i_sub_model_part->Name());
+    
+    for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+        rSerializer.save("SubModelPart", *(i_sub_model_part));
 }
 
 void ModelPart::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer);
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-    rSerializer.load("Name", mName); //TODO: the serializer object on which load is called should have already a name assigned. WE CAN NOT override this here since we would need to change the Model too...serializing the name however may be useful for error checking
+    std::string ModelPartName;
+    rSerializer.load("Name", ModelPartName); 
+    
+    if(ModelPartName != mName) //checking if the name is correct
+    {
+        KRATOS_ERROR << "trying to load a modelpart called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
+    }
+    
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);
     rSerializer.load("Tables", mTables);
-    //VariablesList* p_list = &mVariablesList;
-    rSerializer.load("Variables List", mpVariablesList); //TODO: i believe that this one should not be serialized but rather assigned by the Model.
     rSerializer.load("Meshes", mMeshes);
-    rSerializer.load("SubModelParts", mSubModelParts);
+    
+    SizeType number_of_submodelparts;
+    rSerializer.load("NumberOfSubModelParts", number_of_submodelparts);
 
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-    i_sub_model_part->SetParentModelPart(this);
+    std::vector< std::string > submodel_part_names;
+    for(SizeType i=0; i<number_of_submodelparts; ++i)
+    {
+        std::string name;
+        rSerializer.load("SubModelPartName",name);
+        submodel_part_names.push_back(name);
+    }
+    
+    for(const auto& name : submodel_part_names)
+    {
+        CreateSubModelPart(name);
+        rSerializer.load("SubModelPart",*(mSubModelParts.find(name)));
+    }
 
 }
 
