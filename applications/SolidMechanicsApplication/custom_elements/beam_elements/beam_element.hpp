@@ -316,7 +316,8 @@ protected:
 public:
     
     ///Type for element variables
-    typedef ElementData                                 ElementDataType;
+    typedef ElementData                          ElementDataType;
+    typedef unique_ptr<ElementData>       ElementDataPointerType;
 
     ///@name Life Cycle
     ///@{
@@ -659,12 +660,12 @@ protected:
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementDataType& rVariables, Matrix& rVariable);
+    virtual void MapLocalToGlobal(ElementDataPointerType& pVariables, Matrix& rVariable);
 
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector);
+    virtual void MapLocalToGlobal(ElementDataPointerType& pVariables, VectorType& rVector);
      
 
     /**
@@ -700,7 +701,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementData(ElementDataPointerType & pVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -712,7 +713,7 @@ protected:
     /**   
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataType& rVariables,
+    virtual void CalculateKinematics(ElementDataPointerType& pVariables,
                                      const unsigned int& rPointNumber);
 
 
@@ -730,29 +731,29 @@ protected:
     /**   
      * Calculate Element Constitutive Matrix
      */ 
-    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables);
+    virtual void CalculateConstitutiveMatrix(ElementDataPointerType& pVariables);
 
 
     /**   
      * Calculate Element Material Constitutive Matrix
      */ 
-    void CalculateMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementDataType& rVariables);
+    void CalculateMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementDataPointerType& pVariables);
 
 
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber);
+    virtual void CalculateStressResultants(ElementDataPointerType& pVariables, const unsigned int& rPointNumber);
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight);
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& VolumeForce, double& rIntegrationWeight);
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, Vector& VolumeForce, double& rIntegrationWeight);
 
    /**
      * Calculation of the Integration Weight
@@ -764,7 +765,7 @@ protected:
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     ElementDataType& rVariables,
+                                     ElementDataPointerType& pVariables,
                                      double& rIntegrationWeight);
 
 
@@ -773,14 +774,14 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     ElementDataType& rVariables,
+                                     ElementDataPointerType& pVariables,
                                      double& rIntegrationWeight);
 
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       ElementDataType& rVariables,
+					       ElementDataPointerType& pVariables,
 					       Vector& rVolumeForce,
 					       double& rIntegrationWeight);
 
@@ -789,7 +790,7 @@ protected:
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementDataType& rVariables,
+					   ElementDataPointerType& pVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight);
 
@@ -797,7 +798,7 @@ protected:
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementDataType& rVariables,
+					   ElementDataPointerType& pVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight);
 
@@ -805,7 +806,7 @@ protected:
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       ElementDataType & rVariables,
+					       ElementDataPointerType & pVariables,
 					       double& rIntegrationWeight);
 
 

@@ -323,7 +323,7 @@ void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& r
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
+void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, double& rIntegrationWeight)
 {
     KRATOS_TRY
        
@@ -334,18 +334,18 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemCompone
       case VELOCITY_STEP:
         {
           // operation performed: add Km to the rLefsHandSideMatrix
-          this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+          this->CalculateAndAddKuum( rLeftHandSideMatrix, pVariables, rIntegrationWeight );
           
           // operation performed: add Kg to the rLefsHandSideMatrix
-          this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+          this->CalculateAndAddKuug( rLeftHandSideMatrix, pVariables, rIntegrationWeight );
           
-          rLeftHandSideMatrix *= rVariables.GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)  
+          rLeftHandSideMatrix *= pVariables->GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)  
           break;
         }
       case PRESSURE_STEP:
         {
           // operation performed: add Kpp to the rLefsHandSideMatrix
-          this->CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+          this->CalculateAndAddKpp( rLeftHandSideMatrix, pVariables, rIntegrationWeight );
           break;
         }
       default:

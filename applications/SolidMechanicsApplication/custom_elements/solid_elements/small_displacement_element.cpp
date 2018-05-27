@@ -119,25 +119,25 @@ SmallDisplacementElement::~SmallDisplacementElement()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::SetElementData(ElementDataType& rVariables,
+void SmallDisplacementElement::SetElementData(ElementDataPointerType& pVariables,
                                               ConstitutiveLaw::Parameters& rValues,
                                               const int & rPointNumber)
 {
     KRATOS_TRY
 
-    rValues.SetStrainVector(rVariables.StrainVector);
-    rValues.SetStressVector(rVariables.StressVector);
-    rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-    rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-    rValues.SetShapeFunctionsValues(rVariables.N);
+    rValues.SetStrainVector(pVariables->StrainVector);
+    rValues.SetStressVector(pVariables->StressVector);
+    rValues.SetConstitutiveMatrix(pVariables->ConstitutiveMatrix);
+    rValues.SetShapeFunctionsDerivatives(pVariables->DN_DX);
+    rValues.SetShapeFunctionsValues(pVariables->N);
 
-    if(rVariables.detJ<0)
+    if(pVariables->detJ<0)
       {
-	KRATOS_ERROR << " (small displacement) ELEMENT INVERTED |J|<0 : " << rVariables.detJ << std::endl;
+	KRATOS_ERROR << " (small displacement) ELEMENT INVERTED |J|<0 : " << pVariables->detJ << std::endl;
       }
 
-    rValues.SetDeterminantF(rVariables.detF);
-    rValues.SetDeformationGradientF(rVariables.F);
+    rValues.SetDeterminantF(pVariables->detF);
+    rValues.SetDeformationGradientF(pVariables->F);
 
     KRATOS_CATCH( "" )
 }
@@ -145,19 +145,19 @@ void SmallDisplacementElement::SetElementData(ElementDataType& rVariables,
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementElement::InitializeElementData (ElementDataPointerType & pVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    SolidElement::InitializeElementData(rVariables, rCurrentProcessInfo);
+    SolidElement::InitializeElementData(pVariables, rCurrentProcessInfo);
 
     //set variables including all integration points values
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
+    pVariables->DeltaPosition = this->CalculateTotalDeltaPosition(pVariables->DeltaPosition);
 
     //calculating the reference jacobian from initial cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+    pVariables->J = GetGeometry().Jacobian( pVariables->J, mThisIntegrationMethod, pVariables->DeltaPosition );
 
     KRATOS_CATCH( "" )
 }
@@ -167,7 +167,7 @@ void SmallDisplacementElement::InitializeElementData (ElementDataType & rVariabl
 //************************************************************************************
 
 void SmallDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						   ElementDataType& rVariables,
+						   ElementDataPointerType& pVariables,
 						   double& rIntegrationWeight)
 
 {
@@ -179,36 +179,36 @@ void SmallDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatr
 //************************************************************************************
 
 
-void SmallDisplacementElement::CalculateKinematics(ElementDataType& rVariables, const double& rPointNumber)
+void SmallDisplacementElement::CalculateKinematics(ElementDataPointerType& pVariables, const double& rPointNumber)
 {
     KRATOS_TRY
 
     //Get the parent coodinates derivative [dN/d£]
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = pVariables->GetShapeFunctionsGradients();
     //Get the shape functions for the order of the integration method [N]
-    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+    const Matrix& Ncontainer = pVariables->GetShapeFunctions();
 
     //Parent to reference configuration
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+    pVariables->StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( pVariables->J[rPointNumber], InvJ, pVariables->detJ);
 
     //Compute cartesian derivatives  [dN/dx_n]
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+    noalias( pVariables->DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
     //Displacement Gradient H  [dU/dx_n]
-    this->CalculateDisplacementGradient( rVariables.H, rVariables.DN_DX );
+    this->CalculateDisplacementGradient( pVariables->H, pVariables->DN_DX );
 
     //Set Shape Functions Values for this integration point
-    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
+    noalias(pVariables->N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    this->CalculateDeformationMatrix( rVariables.B, rVariables.DN_DX );
+    this->CalculateDeformationMatrix( pVariables->B, pVariables->DN_DX );
 
     //Compute infinitessimal strain
-    this->CalculateInfinitesimalStrain( rVariables.H, rVariables.StrainVector );
+    this->CalculateInfinitesimalStrain( pVariables->H, pVariables->StrainVector );
 
 
     KRATOS_CATCH( "" )
@@ -413,7 +413,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
     if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
     {
         //create and initialize element variables:
-        ElementDataType Variables;
+        ElementDataPointerType Variables(make_unique<ElementDataType>());
         this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
@@ -422,10 +422,10 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
 
-            if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
-                rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
+            if ( rOutput[PointNumber].size() != Variables->StrainVector.size() )
+                rOutput[PointNumber].resize( Variables->StrainVector.size(), false );
 
-            rOutput[PointNumber] = Variables.StrainVector;
+            rOutput[PointNumber] = Variables->StrainVector;
 
         }
 

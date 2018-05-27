@@ -60,7 +60,7 @@ public:
     ///Type for size
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
-    typedef LargeDisplacementElement::ElementDataType ElementDataType;
+    typedef LargeDisplacementElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of LargeDisplacementUPElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementUPElement );
@@ -211,7 +211,7 @@ protected:
      */
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            ElementDataType& rVariables,
+                            ElementDataPointerType& pVariables,
                             double& rIntegrationWeight) override;
 
     /**
@@ -219,7 +219,7 @@ protected:
      */
 
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                            ElementDataType& rVariables,
+                            ElementDataPointerType& pVariables,
                             Vector& rVolumeForce,
                             double& rIntegrationWeight) override;
 
@@ -228,7 +228,7 @@ protected:
      */
 
     void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
-                                   ElementDataType& rVariables, 
+                                   ElementDataPointerType& pVariables, 
                                    ProcessInfo& rCurrentProcessInfo, 
                                    double& rIntegrationWeight) override;
 
@@ -237,7 +237,7 @@ protected:
      */
 
     void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
-                                   ElementDataType& rVariables, 
+                                   ElementDataPointerType& pVariables, 
                                    ProcessInfo& rCurrentProcessInfo, 
                                    double& rIntegrationWeight) override;
     
@@ -245,7 +245,7 @@ protected:
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
     void CalculateAndAddKuum(MatrixType& rK,
-                             ElementDataType & rVariables,
+                             ElementDataPointerType & pVariables,
                              double& rIntegrationWeight
                              ) override;
 
@@ -253,7 +253,7 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     void CalculateAndAddKuug(MatrixType& rK,
-                             ElementDataType & rVariables,
+                             ElementDataPointerType & pVariables,
                              double& rIntegrationWeight
                              ) override;
 
@@ -261,7 +261,7 @@ protected:
      * Calculation of the Kup matrix
      */
     virtual void CalculateAndAddKup (MatrixType& rK,
-                                     ElementDataType & rVariables,
+                                     ElementDataPointerType & pVariables,
                                      double& rIntegrationWeight
                                     );
 
@@ -269,7 +269,7 @@ protected:
      * Calculation of the Kpu matrix
      */
     virtual void CalculateAndAddKpu(MatrixType& rK,
-                                    ElementDataType & rVariables,
+                                    ElementDataPointerType & pVariables,
                                     double& rIntegrationWeight
                                    );
 
@@ -278,7 +278,7 @@ protected:
      * Calculation of the Kpp matrix
      */
     virtual void CalculateAndAddKpp(MatrixType& rK,
-                                    ElementDataType & rVariables,
+                                    ElementDataPointerType & pVariables,
                                     double& rIntegrationWeight
                                    );
 
@@ -287,7 +287,7 @@ protected:
      * Calculation of the Kpp Stabilization Term matrix
      */
     virtual void CalculateAndAddKppStab(MatrixType& rK,
-                                        ElementDataType & rVariables,
+                                        ElementDataPointerType & pVariables,
                                         double& rIntegrationWeight
                                        );
 
@@ -297,7 +297,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-                                       ElementDataType& rVariables,
+                                       ElementDataPointerType& pVariables,
                                        Vector& rVolumeForce,
                                        double& rIntegrationWeight
                                       ) override;
@@ -307,7 +307,7 @@ protected:
       * Calculation of the Internal Forces due to sigma. Fi = B * sigma
       */
     void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                       ElementDataType & rVariables,
+                                       ElementDataPointerType & pVariables,
                                        double& rIntegrationWeight
                                       ) override;
 
@@ -316,7 +316,7 @@ protected:
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-            ElementDataType & rVariables,
+            ElementDataPointerType & pVariables,
             double& rIntegrationWeight
                                               );
 
@@ -325,7 +325,7 @@ protected:
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            ElementDataType & rVariables,
+            ElementDataPointerType & pVariables,
             double& rIntegrationWeight);
 
     /**
@@ -337,12 +337,12 @@ protected:
     /**
      * Calculation of the constitutive coefficient for pressure of the Element
      */
-    virtual double& CalculatePUCoefficient(double& rCoefficient, ElementDataType & rVariables);
+    virtual double& CalculatePUCoefficient(double& rCoefficient, ElementDataPointerType & pVariables);
 
     /**
      * Calculation of the constitutive coefficient derivative for pressure  of the Element
      */
-    virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, ElementDataType & rVariables);
+    virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, ElementDataPointerType & pVariables);
 
     ///@}
     ///@name Protected  Access

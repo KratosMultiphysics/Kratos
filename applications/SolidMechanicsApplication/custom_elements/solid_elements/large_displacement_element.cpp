@@ -116,30 +116,30 @@ LargeDisplacementElement::~LargeDisplacementElement()
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
+void LargeDisplacementElement::GetHistoricalVariables( ElementDataPointerType& pVariables, const double& rPointNumber )
 {
     //Deformation Gradient F ( set to identity )
-    unsigned int size =  rVariables.F.size1();
+    unsigned int size =  pVariables->F.size1();
 
-    rVariables.detF = 1;
-    noalias(rVariables.F) = IdentityMatrix(size);
+    pVariables->detF = 1;
+    noalias(pVariables->F) = IdentityMatrix(size);
 
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::SetElementData(ElementDataType& rVariables,
+void LargeDisplacementElement::SetElementData(ElementDataPointerType& pVariables,
                                               ConstitutiveLaw::Parameters& rValues,
                                               const int & rPointNumber)
 {
 
     //to take in account previous step for output print purposes
     if( mFinalizedStep ){
-      this->GetHistoricalVariables(rVariables,rPointNumber);
+      this->GetHistoricalVariables(pVariables,rPointNumber);
     }
 
-    if(rVariables.detF<0){
+    if(pVariables->detF<0){
 
 	std::cout<<" Element: "<<this->Id()<<std::endl;
 
@@ -167,20 +167,20 @@ void LargeDisplacementElement::SetElementData(ElementDataType& rVariables,
 	    }
 	  }
 
-        KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
+        KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", pVariables->detF )
     }
 
     //Compute F and detF (from 0 to n+1) : store it in H variable and detH
-    rVariables.detH = rVariables.detF * rVariables.detF0;
-    noalias(rVariables.H) = prod( rVariables.F, rVariables.F0 );
+    pVariables->detH = pVariables->detF * pVariables->detF0;
+    noalias(pVariables->H) = prod( pVariables->F, pVariables->F0 );
 
-    rValues.SetDeterminantF(rVariables.detH);
-    rValues.SetDeformationGradientF(rVariables.H);
-    rValues.SetStrainVector(rVariables.StrainVector);
-    rValues.SetStressVector(rVariables.StressVector);
-    rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-    rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-    rValues.SetShapeFunctionsValues(rVariables.N);
+    rValues.SetDeterminantF(pVariables->detH);
+    rValues.SetDeformationGradientF(pVariables->H);
+    rValues.SetStrainVector(pVariables->StrainVector);
+    rValues.SetStressVector(pVariables->StressVector);
+    rValues.SetConstitutiveMatrix(pVariables->ConstitutiveMatrix);
+    rValues.SetShapeFunctionsDerivatives(pVariables->DN_DX);
+    rValues.SetShapeFunctionsValues(pVariables->N);
 
 }
 
@@ -220,15 +220,15 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 //************************************************************************************
 
 void LargeDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						   ElementDataType& rVariables,
+						   ElementDataPointerType& pVariables,
 						   double& rIntegrationWeight)
 
 {
     KRATOS_TRY
 
     const SizeType& dimension = this->Dimension();
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
-    Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
+    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( pVariables->StressVector );
+    Matrix ReducedKg = prod( pVariables->DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( pVariables->DN_DX ) ) ) ); //to be optimized
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
 
     KRATOS_CATCH( "" )
@@ -376,7 +376,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
     if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
     {
         //create and initialize element variables:
-        ElementDataType Variables;
+        ElementDataPointerType Variables(make_unique<ElementDataType>());
         this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
@@ -388,20 +388,20 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 	    //to take in account previous step writing
 	    if( mFinalizedStep ){
 	      this->GetHistoricalVariables(Variables,PointNumber);
-	      noalias(Variables.H) = prod(Variables.F,Variables.F0);
+	      noalias(Variables->H) = prod(Variables->F,Variables->F0);
 	    }
 
             //Compute Green-Lagrange Strain
 
 	    if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
-	      this->CalculateGreenLagrangeStrain( Variables.H, Variables.StrainVector );
+	      this->CalculateGreenLagrangeStrain( Variables->H, Variables->StrainVector );
             else
-	      this->CalculateAlmansiStrain( Variables.H, Variables.StrainVector );
+	      this->CalculateAlmansiStrain( Variables->H, Variables->StrainVector );
 
-            if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
-	      rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
+            if ( rOutput[PointNumber].size() != Variables->StrainVector.size() )
+	      rOutput[PointNumber].resize( Variables->StrainVector.size(), false );
 
-            rOutput[PointNumber] = Variables.StrainVector;
+            rOutput[PointNumber] = Variables->StrainVector;
 
         }
 

@@ -101,34 +101,34 @@ AxisymmetricSmallDisplacementElement::~AxisymmetricSmallDisplacementElement()
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricSmallDisplacementElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void AxisymmetricSmallDisplacementElement::InitializeElementData (ElementDataPointerType & pVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType& dimension       = this->Dimension();
     const unsigned int voigt_size      = 4;
     
-    rVariables.Initialize(voigt_size,dimension,number_of_nodes);
+    pVariables->Initialize(voigt_size,dimension,number_of_nodes);
 
     //needed parameters for consistency with the general constitutive law: small displacements
-    rVariables.detF  = 1;
-    rVariables.F     = identity_matrix<double>(3);
+    pVariables->detF  = 1;
+    pVariables->F     = identity_matrix<double>(3);
 
     //set variables including all integration points values
 
     //reading shape functions
-    rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+    pVariables->SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
 
     //reading shape functions local gradients
-    rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+    pVariables->SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
     //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
-    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
+    pVariables->j = GetGeometry().Jacobian( pVariables->j, mThisIntegrationMethod );
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
+    pVariables->DeltaPosition = this->CalculateTotalDeltaPosition(pVariables->DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+    pVariables->J = GetGeometry().Jacobian( pVariables->J, mThisIntegrationMethod, pVariables->DeltaPosition );
 
 
 }
@@ -138,15 +138,15 @@ void AxisymmetricSmallDisplacementElement::InitializeElementData (ElementDataTyp
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
+void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, double& rIntegrationWeight)
 {
   
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * pVariables->ReferenceRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
   
     //contributions to stiffness matrix calculated on the reference config
-    SmallDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
+    SmallDisplacementElement::CalculateAndAddLHS( rLocalSystem, pVariables, IntegrationWeight );
 
     //KRATOS_WATCH( rLeftHandSideMatrix )
 }
@@ -155,14 +155,14 @@ void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemCompone
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymmetricSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * pVariables->ReferenceRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
   
     //contribution to external forces
-    SmallDisplacementElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
+    SmallDisplacementElement::CalculateAndAddRHS( rLocalSystem, pVariables, rVolumeForce, IntegrationWeight );
 
     //KRATOS_WATCH( rRightHandSideVector )
 }
@@ -176,7 +176,7 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
     KRATOS_TRY
 
     //Compute the Volume Change acumulated:
-    ElementDataType Variables;
+    ElementDataPointerType Variables(make_unique<ElementDataType>());
     this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -188,7 +188,7 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
 	this->CalculateKinematics(Variables,PointNumber);
 	
 	//getting informations for integration
-        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight() * 2.0 * 3.141592654 * Variables.ReferenceRadius;
+        double IntegrationWeight = Variables->detJ * integration_points[PointNumber].Weight() * 2.0 * 3.141592654 * Variables->ReferenceRadius;
 
 	//compute point volume changes	
 	rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;
@@ -204,41 +204,41 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
 //************************************************************************************
 
 
-void AxisymmetricSmallDisplacementElement::CalculateKinematics(ElementDataType& rVariables,
+void AxisymmetricSmallDisplacementElement::CalculateKinematics(ElementDataPointerType& pVariables,
         const double& rPointNumber)
 
 {
     KRATOS_TRY
       
     //Get the parent coodinates derivative [dN/d£]
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = pVariables->GetShapeFunctionsGradients();
     //Get the shape functions for the order of the integration method [N]
-    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+    const Matrix& Ncontainer = pVariables->GetShapeFunctions();
 
     //Parent to reference configuration
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+    pVariables->StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( pVariables->J[rPointNumber], InvJ, pVariables->detJ);
 
     //Compute cartesian derivatives [dN/dx_n]
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
+    noalias( pVariables->DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Set Shape Functions Values for this integration point
-    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
+    noalias(pVariables->N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Calculate IntegrationPoint radius
-    CalculateRadius(rVariables.ReferenceRadius, rVariables.N);
+    CalculateRadius(pVariables->ReferenceRadius, pVariables->N);
 
     //Displacement Gradient H [dU/dx_n]
-    CalculateDisplacementGradient(rVariables.H, rVariables.DN_DX, rVariables.N, rVariables.ReferenceRadius);
+    CalculateDisplacementGradient(pVariables->H, pVariables->DN_DX, pVariables->N, pVariables->ReferenceRadius);
 
     //Compute the deformation matrix B
-    CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.ReferenceRadius);
+    CalculateDeformationMatrix(pVariables->B, pVariables->DN_DX, pVariables->N, pVariables->ReferenceRadius);
 
     //Compute infinitessimal strain
-    this->CalculateInfinitesimalStrain(rVariables.H, rVariables.StrainVector);
+    this->CalculateInfinitesimalStrain(pVariables->H, pVariables->StrainVector);
 
 
     KRATOS_CATCH( "" )

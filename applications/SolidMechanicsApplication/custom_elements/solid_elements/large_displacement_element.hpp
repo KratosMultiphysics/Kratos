@@ -61,6 +61,8 @@ public:
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
     typedef SolidElement::ElementDataType ElementDataType;
+    ///Type for element variables pointer
+    typedef SolidElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementElement );
@@ -218,20 +220,20 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             ElementDataType& rVariables,
+                             ElementDataPointerType& pVariables,
                              double& rIntegrationWeight) override;
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void SetElementData(ElementDataType& rVariables,
+    void SetElementData(ElementDataPointerType& pVariables,
                              ConstitutiveLaw::Parameters& rValues,
                              const int & rPointNumber) override;
     
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    virtual void GetHistoricalVariables(ElementDataType& rVariables, 
+    virtual void GetHistoricalVariables(ElementDataPointerType& pVariables, 
 					const double& rPointNumber );
 
     /**

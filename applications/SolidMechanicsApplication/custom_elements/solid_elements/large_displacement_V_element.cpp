@@ -166,19 +166,19 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
+void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, double& rIntegrationWeight)
 {
     KRATOS_TRY
        
     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
 
     // operation performed: add Km to the rLefsHandSideMatrix
-    this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    this->CalculateAndAddKuum( rLeftHandSideMatrix, pVariables, rIntegrationWeight );
    
     // operation performed: add Kg to the rLefsHandSideMatrix
-    this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    this->CalculateAndAddKuug( rLeftHandSideMatrix, pVariables, rIntegrationWeight );
 
-    rLeftHandSideMatrix *= rVariables.GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)  
+    rLeftHandSideMatrix *= pVariables->GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)  
     
     //KRATOS_WATCH( rLeftHandSideMatrix )
   
@@ -208,7 +208,7 @@ unsigned int LargeDisplacementVElement::GetDofsSize()
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
+void LargeDisplacementVElement::SetElementData(ElementDataPointerType& pVariables,
                                                ConstitutiveLaw::Parameters& rValues,
                                                const int & rPointNumber)
 {
@@ -217,10 +217,10 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
     unsigned int step = 0;
     if( mFinalizedStep ){
       step = 1;
-      this->GetHistoricalVariables(rVariables,rPointNumber);
+      this->GetHistoricalVariables(pVariables,rPointNumber);
     }
   
-    if(rVariables.detF<0){
+    if(pVariables->detF<0){
         
 	std::cout<<" Element: "<<this->Id()<<std::endl;
 
@@ -236,7 +236,7 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 	    std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
 	  }
 
-        KRATOS_ERROR << " LARGE DISPLACEMENT VP ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
+        KRATOS_ERROR << " LARGE DISPLACEMENT VP ELEMENT INVERTED: |F|<0  detF = " << pVariables->detF << std::endl;
     }
 
 
@@ -254,22 +254,22 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 
     if( strain_rate_measure ){     
       //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
-      this->CalculateVelocityGradientVector( rVariables.StrainVector, rVariables.DN_DX, step );
+      this->CalculateVelocityGradientVector( pVariables->StrainVector, pVariables->DN_DX, step );
       Flags &ConstitutiveLawOptions=rValues.GetOptions();
       ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     }
 
     //Compute F and detF (from 0 to n+1) : store it in H variable and detH
-    rVariables.detH = rVariables.detF * rVariables.detF0;
-    noalias(rVariables.H) = prod( rVariables.F, rVariables.F0 );
+    pVariables->detH = pVariables->detF * pVariables->detF0;
+    noalias(pVariables->H) = prod( pVariables->F, pVariables->F0 );
     
-    rValues.SetDeterminantF(rVariables.detH);
-    rValues.SetDeformationGradientF(rVariables.H);
-    rValues.SetStrainVector(rVariables.StrainVector);
-    rValues.SetStressVector(rVariables.StressVector);
-    rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-    rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-    rValues.SetShapeFunctionsValues(rVariables.N);
+    rValues.SetDeterminantF(pVariables->detH);
+    rValues.SetDeformationGradientF(pVariables->H);
+    rValues.SetStrainVector(pVariables->StrainVector);
+    rValues.SetStressVector(pVariables->StressVector);
+    rValues.SetConstitutiveMatrix(pVariables->ConstitutiveMatrix);
+    rValues.SetShapeFunctionsDerivatives(pVariables->DN_DX);
+    rValues.SetShapeFunctionsValues(pVariables->N);
 
 }
 

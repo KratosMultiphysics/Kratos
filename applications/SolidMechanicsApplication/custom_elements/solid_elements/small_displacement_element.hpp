@@ -62,6 +62,8 @@ public:
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
     typedef SolidElement::ElementDataType ElementDataType;
+    ///Type for element variables pointer
+    typedef SolidElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of SmallDisplacementElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementElement );
@@ -181,27 +183,27 @@ protected:
      */
     
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             ElementDataType& rVariables,
+                             ElementDataPointerType& pVariables,
                              double& rIntegrationWeight) override;
 
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-   void SetElementData(ElementDataType& rVariables,
+   void SetElementData(ElementDataPointerType& pVariables,
                        ConstitutiveLaw::Parameters& rValues,
                        const int & rPointNumber) override;
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementDataType& rVariables,
+    void CalculateKinematics(ElementDataPointerType& pVariables,
                              const double& rPointNumber) override;
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementData(ElementDataType & rVariables, 
+    void InitializeElementData(ElementDataPointerType & pVariables, 
                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 

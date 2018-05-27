@@ -67,6 +67,8 @@ public:
     typedef GeometryData::SizeType                             SizeType;
     ///Type for element variables
     typedef LargeDisplacementBeamElement::ElementDataType ElementDataType;
+    ///Type for element variables pointer
+    typedef LargeDisplacementBeamElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of LargeDisplacementBeamEMCElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementBeamEMCElement );
@@ -194,20 +196,20 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables, 
+    virtual void InitializeElementData(ElementDataPointerType & pVariables, 
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
      */    
-    virtual void MapToSpatialFrame(const ElementDataType& rVariables, Matrix& rVariable) override;
+    virtual void MapToSpatialFrame(const ElementDataPointerType& pVariables, Matrix& rVariable) override;
 
 
     /**   
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataType& rVariables,
+    virtual void CalculateKinematics(ElementDataPointerType& pVariables,
                                      const unsigned int& rPointNumber) override;
 
     /**
@@ -219,14 +221,14 @@ protected:
     /**   
      * Calculate Element Frame
      */
-    virtual void CalculateFrameMapping(ElementDataType& rVariables,
+    virtual void CalculateFrameMapping(ElementDataPointerType& pVariables,
 				       const unsigned int& rPointNumber) override;
 
 
     /**
      * Update strain current member variables
      */ 
-    virtual void UpdateStrainVariables(ElementDataType& rVariables, 
+    virtual void UpdateStrainVariables(ElementDataPointerType& pVariables, 
 				       const unsigned int& rPointNumber) override;
 
 
@@ -243,44 +245,44 @@ protected:
     /**   
      * Calculate current strain resultants vector
      */
-    virtual void CalculateCurrentStrainResultantsVector(ElementDataType& rVariables, 
+    virtual void CalculateCurrentStrainResultantsVector(ElementDataPointerType& pVariables, 
 							Vector& rCurrentStrainResultantsVector,
 							double Alpha);
 
     /**   
      * Calculate current curvature vector
      */
-    virtual void CalculateCurrentCurvatureVector(ElementDataType& rVariables, 
+    virtual void CalculateCurrentCurvatureVector(ElementDataPointerType& pVariables, 
 						 Vector& rCurrentCurvatureVector,
 						 double Alpha);
 
     /**   
      * Calculate Element Constitutive Matrix
      */ 
-    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
+    virtual void CalculateConstitutiveMatrix(ElementDataPointerType& pVariables) override;
 
     /**   
      * Calculate Element Strain Resultants
      */ 
-    virtual void CalculateStrainResultants(Vector& rStrainResultants, ElementDataType& rVariables, double alpha);
+    virtual void CalculateStrainResultants(Vector& rStrainResultants, ElementDataPointerType& pVariables, double alpha);
 
     /**   
      * Calculate Element Strain Couples
      */ 
-    virtual void CalculateStrainCouples(Vector& rStrainCouples, ElementDataType& rVariables, double alpha);
+    virtual void CalculateStrainCouples(Vector& rStrainCouples, ElementDataPointerType& pVariables, double alpha);
 
 
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
+    virtual void CalculateStressResultants(ElementDataPointerType& pVariables, const unsigned int& rPointNumber) override;
 
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     ElementDataType& rVariables,
+				     ElementDataPointerType& pVariables,
 				     double& rIntegrationWeight) override;
 
 
@@ -288,7 +290,7 @@ protected:
      * Calculation of the Follower Load Stiffness Matrix. Kuuf
      */
     virtual void CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
-				     ElementDataType& rVariables,
+				     ElementDataPointerType& pVariables,
 				     double& rIntegrationWeight) override;
 
 
@@ -297,7 +299,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
-					       ElementDataType& rVariables,
+					       ElementDataPointerType& pVariables,
 					       double& rIntegrationWeight) override;
 
 
@@ -305,7 +307,7 @@ protected:
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementDataType& rVariables,
+					   ElementDataPointerType& pVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
@@ -314,7 +316,7 @@ protected:
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementDataType& rVariables,
+					   ElementDataPointerType& pVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
@@ -322,7 +324,7 @@ protected:
      * Calculation Complementary Method : Derivative Shape Function Matrix Operator
      */
     virtual void CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
-					       ElementDataType& rVariables,
+					       ElementDataPointerType& pVariables,
 					       const int& rNode,
 					       double alpha) override;
 
@@ -335,7 +337,7 @@ protected:
     /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
+    virtual void CalculateStrainEnergy(double& rEnergy, ElementDataPointerType& pVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
 
     ///@}
     ///@name Protected  Access
