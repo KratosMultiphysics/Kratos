@@ -59,8 +59,6 @@ public:
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
     typedef LargeDisplacementElement::ElementDataType ElementDataType;
-    ///Type for element variables pointer
-    typedef LargeDisplacementElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of TotalLagrangianElement
     KRATOS_CLASS_POINTER_DEFINITION( TotalLagrangianElement );
@@ -180,13 +178,13 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementDataPointerType& pVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                              const double& rPointNumber) override;
 
     /**
      * Calculate Element Jacobian
      */
-    void CalculateKinetics(ElementDataPointerType& pVariables,
+    void CalculateKinetics(ElementDataType& rVariables,
 			   const double& rPointNumber) override;
     
 
@@ -201,7 +199,7 @@ protected:
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementDataPointerType& pVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables, 
 				 const double& rPointNumber ) override;
 
 
@@ -214,7 +212,7 @@ protected:
     /**
      * Calculation of the Volume Change of the Element
      */
-    double& CalculateVolumeChange(double& rVolumeChange, ElementDataPointerType& pVariables) override;
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
 
     ///@}

@@ -228,7 +228,7 @@ void AxisymmetricUpdatedLagrangianElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::InitializeElementData (ElementDataPointerType & pVariables, const ProcessInfo& rCurrentProcessInfo)
+void AxisymmetricUpdatedLagrangianElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -236,35 +236,35 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementData (ElementDataPoi
     const SizeType& dimension       = this->Dimension();
     const unsigned int voigt_size      = 4;
 
-    pVariables->Initialize(voigt_size, dimension, number_of_nodes);
+    rVariables.Initialize(voigt_size, dimension, number_of_nodes);
 
-    pVariables->F.resize(3,3,false);
-    pVariables->F = IdentityMatrix(3);
-    pVariables->F0.resize(3,3,false);
-    pVariables->F0 = IdentityMatrix(3);
+    rVariables.F.resize(3,3,false);
+    rVariables.F = IdentityMatrix(3);
+    rVariables.F0.resize(3,3,false);
+    rVariables.F0 = IdentityMatrix(3);
 
-    pVariables->H.resize(3,3,false);
+    rVariables.H.resize(3,3,false);
     
     //set variables including all integration points values
 
     //reading shape functions
-    pVariables->SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+    rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
 
     //reading shape functions local gradients
-    pVariables->SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+    rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
     //set process info
-    pVariables->SetProcessInfo(rCurrentProcessInfo);
+    rVariables.SetProcessInfo(rCurrentProcessInfo);
 
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
-    pVariables->j = GetGeometry().Jacobian( pVariables->j, mThisIntegrationMethod );
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
 
     //Calculate Delta Position
-    pVariables->DeltaPosition = this->CalculateDeltaPosition(pVariables->DeltaPosition);
+    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    pVariables->J = GetGeometry().Jacobian( pVariables->J, mThisIntegrationMethod, pVariables->DeltaPosition );
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
     KRATOS_CATCH( "" )
 }
@@ -272,11 +272,11 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementData (ElementDataPoi
 ////************************************************************************************
 ////************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::FinalizeStepVariables( ElementDataPointerType & pVariables, const double& rPointNumber )
+void AxisymmetricUpdatedLagrangianElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 {
     //update internal (historical) variables
-    mDeterminantF0[rPointNumber]         = pVariables->detF * pVariables->detF0;
-    noalias(mDeformationGradientF0[rPointNumber]) = prod(pVariables->F, pVariables->F0);
+    mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
+    noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
 
 
@@ -284,16 +284,16 @@ void AxisymmetricUpdatedLagrangianElement::FinalizeStepVariables( ElementDataPoi
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, double& rIntegrationWeight)
+void AxisymmetricUpdatedLagrangianElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
 
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * pVariables->CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
     //contributions to stiffness matrix calculated on the reference config
 
-    LargeDisplacementElement::CalculateAndAddLHS( rLocalSystem, pVariables, IntegrationWeight );
+    LargeDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
     //KRATOS_WATCH( rLeftHandSideMatrix )
 }
@@ -302,15 +302,15 @@ void AxisymmetricUpdatedLagrangianElement::CalculateAndAddLHS(LocalSystemCompone
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymmetricUpdatedLagrangianElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * pVariables->CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
     //contribution to external forces
 
-    LargeDisplacementElement::CalculateAndAddRHS( rLocalSystem, pVariables, rVolumeForce, IntegrationWeight );
+    LargeDisplacementElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
     //KRATOS_WATCH( rRightHandSideVector )
 }
@@ -325,7 +325,7 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateTotalMass( double& rTotal
     KRATOS_TRY
 
     //Compute the Volume Change acumulated:
-    ElementDataPointerType Variables;
+    ElementDataType Variables;
     this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -338,13 +338,13 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateTotalMass( double& rTotal
 	this->CalculateKinematics(Variables,PointNumber);
 
 	//getting informations for integration
-        double IntegrationWeight = Variables->detJ * integration_points[PointNumber].Weight();
+        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume change
 	double PointVolumeChange = 0;
 	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
 
-	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Variables->CurrentRadius * IntegrationWeight;
+	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Variables.CurrentRadius * IntegrationWeight;
 
       }
 
@@ -359,53 +359,53 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateTotalMass( double& rTotal
 //************************************************************************************
 
 
-void AxisymmetricUpdatedLagrangianElement::CalculateKinematics(ElementDataPointerType& pVariables,
+void AxisymmetricUpdatedLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
         const double& rPointNumber)
 
 {
     KRATOS_TRY
 
     //Get the parent coodinates derivative [dN/d£]
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = pVariables->GetShapeFunctionsGradients();
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]
-    const Matrix& Ncontainer = pVariables->GetShapeFunctions();
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
     //Parent to reference configuration
-    pVariables->StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( pVariables->J[rPointNumber], InvJ, pVariables->detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives [dN/dx_n]
-    noalias( pVariables->DN_DX ) = prod( DN_De[rPointNumber], InvJ );
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Set Shape Functions Values for this integration point
-    noalias(pVariables->N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Calculate IntegrationPoint radius
-    CalculateRadius (pVariables->CurrentRadius, pVariables->ReferenceRadius, pVariables->N);
+    CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
 
     //Current Deformation Gradient [dx_n+1/dx_n]
-    CalculateDeformationGradient (pVariables->F, pVariables->DN_DX, pVariables->DeltaPosition, pVariables->CurrentRadius, pVariables->ReferenceRadius);
+    CalculateDeformationGradient (rVariables.F, rVariables.DN_DX, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
 
     //Determinant of the deformation gradient F
-    pVariables->detF  = MathUtils<double>::Det(pVariables->F);
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( pVariables->j[rPointNumber], Invj, pVariables->detJ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
-    noalias(pVariables->DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+    noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
-    pVariables->detF0 = mDeterminantF0[rPointNumber];
-    noalias(pVariables->F0)  = mDeformationGradientF0[rPointNumber];
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    noalias(rVariables.F0)  = mDeformationGradientF0[rPointNumber];
 
     //Compute the deformation matrix B
-    CalculateDeformationMatrix(pVariables->B, pVariables->DN_DX, pVariables->N, pVariables->CurrentRadius);
+    CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.CurrentRadius);
 
 
     KRATOS_CATCH( "" )
@@ -659,7 +659,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateAlmansiStrain(const Matrix& 
 //************************************************************************************
 
 void AxisymmetricUpdatedLagrangianElement::CalculateAndAddKuug(MatrixType& rK,
-        ElementDataPointerType& pVariables,
+        ElementDataType& rVariables,
         double& rIntegrationWeight)
 
 {
@@ -683,9 +683,9 @@ void AxisymmetricUpdatedLagrangianElement::CalculateAndAddKuug(MatrixType& rK,
         indexj =0;
         for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
-            alpha1 = pVariables->DN_DX(j,0) * ( pVariables->DN_DX(i,0) * pVariables->StressVector[0] + pVariables->DN_DX(i,1) * pVariables->StressVector[3] );
-            alpha2 = pVariables->DN_DX(j,1) * ( pVariables->DN_DX(i,0) * pVariables->StressVector[3] + pVariables->DN_DX(i,1) * pVariables->StressVector[1] );
-            alpha3 = pVariables->N[i] * pVariables->N[j] * pVariables->StressVector[2] * (1.0/pVariables->CurrentRadius*pVariables->CurrentRadius);
+            alpha1 = rVariables.DN_DX(j,0) * ( rVariables.DN_DX(i,0) * rVariables.StressVector[0] + rVariables.DN_DX(i,1) * rVariables.StressVector[3] );
+            alpha2 = rVariables.DN_DX(j,1) * ( rVariables.DN_DX(i,0) * rVariables.StressVector[3] + rVariables.DN_DX(i,1) * rVariables.StressVector[1] );
+            alpha3 = rVariables.N[i] * rVariables.N[j] * rVariables.StressVector[2] * (1.0/rVariables.CurrentRadius*rVariables.CurrentRadius);
 
             rK(indexi,indexj)     += (alpha1 + alpha2 + alpha3) * rIntegrationWeight ;
             rK(indexi+1,indexj+1) += (alpha1 + alpha2) * rIntegrationWeight ;
@@ -706,26 +706,26 @@ void AxisymmetricUpdatedLagrangianElement::CalculateAndAddKuug(MatrixType& rK,
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::GetHistoricalVariables( ElementDataPointerType& pVariables, const double& rPointNumber )
+void AxisymmetricUpdatedLagrangianElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
-    LargeDisplacementElement::GetHistoricalVariables(pVariables,rPointNumber);
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
     //Deformation Gradient F0
-    pVariables->detF0 = mDeterminantF0[rPointNumber];
-    pVariables->F0    = mDeformationGradientF0[rPointNumber];
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
-    pVariables->CurrentRadius = pVariables->ReferenceRadius;
+    rVariables.CurrentRadius = rVariables.ReferenceRadius;
 }
 
 
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& AxisymmetricUpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, ElementDataPointerType& pVariables )
+double& AxisymmetricUpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
 
-    rVolumeChange = 1.0 / (pVariables->detF * pVariables->detF0);
+    rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
 
     return rVolumeChange;
 

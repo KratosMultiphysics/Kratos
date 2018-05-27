@@ -59,8 +59,6 @@ public:
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
     typedef LargeDisplacementVElement::ElementDataType ElementDataType;
-    ///Type for element variables pointer
-    typedef LargeDisplacementVElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of UpdatedLagrangianVElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianVElement );
@@ -219,7 +217,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataPointerType& pVariables, 
+    virtual void InitializeElementData(ElementDataType& rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -227,21 +225,21 @@ protected:
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementDataPointerType & pVariables, 
+    virtual void FinalizeStepVariables(ElementDataType & rVariables, 
 				       const double& rPointNumber ) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataPointerType& pVariables,
+    virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const double& rPointNumber) override;
 
 
     /**
      * Calculate Element Jacobian
      */
-    void CalculateKinetics(ElementDataPointerType& pVariables,
+    void CalculateKinetics(ElementDataType& rVariables,
 			   const double& rPointNumber) override;
     
 
@@ -263,13 +261,13 @@ protected:
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementDataPointerType& pVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables, 
 				 const double& rPointNumber ) override;
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataPointerType& pVariables) override;
+    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access

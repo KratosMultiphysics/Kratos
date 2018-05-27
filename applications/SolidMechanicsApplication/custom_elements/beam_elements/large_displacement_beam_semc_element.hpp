@@ -67,8 +67,6 @@ public:
     typedef GeometryData::SizeType                             SizeType;
     ///Type for element variables
     typedef LargeDisplacementBeamElement::ElementDataType ElementDataType;
-    ///Type for element variables pointer
-    typedef LargeDisplacementBeamElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of LargeDisplacementBeamSEMCElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementBeamSEMCElement );
@@ -196,29 +194,29 @@ protected:
     /**   
      * Calculate Element Strain Resultants
      */ 
-    virtual void CalculateStrainResultants(Vector& rStrainResultants, ElementDataPointerType& pVariables, double alpha);
+    virtual void CalculateStrainResultants(Vector& rStrainResultants, ElementDataType& rVariables, double alpha);
 
     /**   
      * Calculate Element Strain Couples
      */ 
-    virtual void CalculateStrainCouples(Vector& rStrainCouples, ElementDataPointerType& pVariables, double alpha);
+    virtual void CalculateStrainCouples(Vector& rStrainCouples, ElementDataType& rVariables, double alpha);
 
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementDataPointerType& pVariables, const unsigned int& rPointNumber) override;
+    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
     /**   
      * Calculate current curvature
      */
-    virtual void CalculateCurrentCurvature(ElementDataPointerType& pVariables, const Variable<array_1d<double, 3 > >& rVariable) override;
+    virtual void CalculateCurrentCurvature(ElementDataType& rVariables, const Variable<array_1d<double, 3 > >& rVariable) override;
 
 
     /**
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementDataPointerType& pVariables,
+					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
@@ -227,7 +225,7 @@ protected:
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementDataPointerType& pVariables,
+					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
@@ -236,7 +234,7 @@ protected:
     /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(double& rEnergy, ElementDataPointerType& pVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
+    virtual void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
 
     ///@}
     ///@name Protected  Access

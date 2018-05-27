@@ -64,7 +64,7 @@ public:
 
     /// Counted pointer of SolidElement
     KRATOS_CLASS_POINTER_DEFINITION( SolidElement );
-
+  
 protected:
 
     /**
@@ -96,15 +96,15 @@ protected:
         double  ReferenceRadius;
 
         //general variables for large displacement use
-        double  detF;
-        double  detF0;
+        double  detF; 
+        double  detF0; 
         double  detH; //Wildcard ( detF(0 to n+1) )
         double  detJ;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
         Matrix  B;
-        Matrix  H;    //Wildcard ( Displacement Gradient, F(0 to n+1), B-bar, Velocity Gradient...)
+        Matrix  H;    //Wildcard ( Displacement Gradient, F(0 to n+1), B-bar, Velocity Gradient...) 
         Matrix  F;    //Incremental Deformation Gradient (n to n+1)
         Matrix  F0;   //Historical Deformation Gradient  (0 to n)
         Matrix  DN_DX;
@@ -153,9 +153,9 @@ protected:
         {
             return *pProcessInfo;
         };
-
-        void Initialize( const unsigned int& voigt_size,
-			 const unsigned int& dimension,
+      
+        void Initialize( const unsigned int& voigt_size, 
+			 const unsigned int& dimension, 
 			 const unsigned int& number_of_nodes )
         {
 	  StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
@@ -171,7 +171,7 @@ protected:
 	  //vectors
 	  StrainVector.resize(voigt_size,false);
           StressVector.resize(voigt_size,false);
-	  N.resize(number_of_nodes,false);
+	  N.resize(number_of_nodes,false);	  
 	  noalias(StrainVector) = ZeroVector(voigt_size);
 	  noalias(StressVector) = ZeroVector(voigt_size);
 	  noalias(N) = ZeroVector(number_of_nodes);
@@ -216,11 +216,11 @@ protected:
     struct LocalSystemComponents
     {
     private:
-
-      //for calculation local system with compacted LHS and RHS
+      
+      //for calculation local system with compacted LHS and RHS 
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
-
+   
     public:
 
       //calculation flags
@@ -233,14 +233,14 @@ protected:
 
       void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
 
-
+ 
       /**
        * returns the value of a specified pointer variable
        */
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
-
+ 
     };
 
 
@@ -248,10 +248,7 @@ public:
 
 
     ///Type for element variables
-    typedef ElementData                          ElementDataType;
-    typedef unique_ptr<ElementData>       ElementDataPointerType;
-
-    //ElementDataPointerType Variables(make_unique<ElementDataType>());
+    typedef ElementData ElementDataType;
 
     ///@}
     ///@name Life Cycle
@@ -438,8 +435,8 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			      VectorType& rRightHandSideVector,
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
+			      VectorType& rRightHandSideVector, 
 			      ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -449,7 +446,7 @@ public:
       * @param rRightHandSideVector: the elemental right hand side vector
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, 
 				ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -459,7 +456,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, 
 				ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -475,7 +472,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the second derivatives contributions for the LHS and RHS
+     * to calculate the second derivatives contributions for the LHS and RHS 
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
@@ -509,7 +506,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
+    void CalculateMassMatrix(MatrixType& rMassMatrix, 
 		    ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -518,7 +515,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, 
 		    ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -528,12 +525,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
       * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void AddExplicitContribution(const VectorType& rRHSVector,
-					 const Variable<VectorType>& rRHSVariable,
-					 Variable<array_1d<double,3> >& rDestinationVariable,
+     */      
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, 
+					 const Variable<VectorType>& rRHSVariable, 
+					 Variable<array_1d<double,3> >& rDestinationVariable, 
 					 const ProcessInfo& rCurrentProcessInfo) override;
 
     //on integration points:
@@ -615,7 +612,7 @@ protected:
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-
+    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -631,13 +628,13 @@ protected:
      */
     void IncreaseIntegrationMethod(IntegrationMethod& rThisIntegrationMethod,
 				   unsigned int increment) const;
-
+ 
     /**
      * Calculates the elemental contributions
      */
     virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
                                           ProcessInfo& rCurrentProcessInfo);
-
+    
     /**
      * Calculates the elemental dynamic contributions
      */
@@ -647,13 +644,13 @@ protected:
     /**
      * Prints element information for each gauss point (debugging purposes)
      */
-    void PrintElementCalculation(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables);
+    void PrintElementCalculation(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables);
 
 
     /**
      * Calculation of the tangent via perturbation of the dofs variables : testing purposes
      */
-    void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix,
+    void CalculatePerturbedLeftHandSide (MatrixType& rLeftHandSideMatrix, 
 					 ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -661,7 +658,7 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementDataPointerType& pVariables,
+                                    ElementDataType& rVariables,
                                     double& rIntegrationWeight);
 
     /**
@@ -669,7 +666,7 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementDataPointerType& pVariables,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight);
 
@@ -679,18 +676,18 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementDataPointerType& pVariables,
-					   ProcessInfo& rCurrentProcessInfo,
+    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
+					   ElementDataType& rVariables, 
+					   ProcessInfo& rCurrentProcessInfo, 
 					   double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
-					   ElementDataPointerType& pVariables,
-					   ProcessInfo& rCurrentProcessInfo,
+    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
+					   ElementDataType& rVariables, 
+					   ProcessInfo& rCurrentProcessInfo, 
 					   double& rIntegrationWeight);
 
 
@@ -700,14 +697,14 @@ protected:
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     ElementDataPointerType& pVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight);
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     ElementDataPointerType& pVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight);
 
 
@@ -715,7 +712,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       ElementDataPointerType& pVariables,
+					       ElementDataType& rVariables,
 					       Vector& rVolumeForce,
 					       double& rIntegrationWeight);
 
@@ -724,24 +721,24 @@ protected:
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       ElementDataPointerType & pVariables,
+					       ElementDataType & rVariables,
 					       double& rIntegrationWeight);
 
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    virtual void SetElementData(ElementDataPointerType& pVariables,
+    virtual void SetElementData(ElementDataType& rVariables,
                                      ConstitutiveLaw::Parameters& rValues,
                                      const int & rPointNumber);
 
 
     /**
      * Get element size from the dofs
-     */
+     */    
     virtual unsigned int GetDofsSize();
 
-
+    
     /**
      * Initialize System Matrices
      */
@@ -772,31 +769,31 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataPointerType& pVariables,
+    virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const double& rPointNumber);
 
     /**
      * Calculate Element Jacobian
      */
-    virtual void CalculateKinetics(ElementDataPointerType& pVariables,
+    virtual void CalculateKinetics(ElementDataType& rVariables,
 				   const double& rPointNumber);
-
+    
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataPointerType & pVariables,
+    virtual void InitializeElementData(ElementDataType & rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Transform Element General Variables
      */
-    virtual void TransformElementData(ElementDataPointerType & pVariables,
+    virtual void TransformElementData(ElementDataType & rVariables, 
 					   const double& rPointNumber);
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementDataPointerType & pVariables,
+    virtual void FinalizeStepVariables(ElementDataType & rVariables, 
 				       const double& rPointNumber);
 
     /**
@@ -827,16 +824,16 @@ protected:
      */
     virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
-
+    
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataPointerType& pVariables);
+    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables);
 
     /**
      * Calculation of the Volume Force of the Element
      */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, ElementDataPointerType& pVariables);
+    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, ElementDataType& rVariables);
 
 
     ///@}
@@ -904,4 +901,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SOLID_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_SOLID_ELEMENT_H_INCLUDED  defined 

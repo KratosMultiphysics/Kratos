@@ -61,8 +61,6 @@ public:
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
     typedef LargeDisplacementElement::ElementDataType ElementDataType;
-    ///Type for element variables pointer
-    typedef LargeDisplacementElement::ElementDataPointerType ElementDataPointerType;
  
     /// Counted pointer of LargeDisplacementVElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementVElement );
@@ -177,7 +175,7 @@ protected:
      */
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            ElementDataPointerType& pVariables,
+                            ElementDataType& rVariables,
                             double& rIntegrationWeight) override;
     
     /**
@@ -188,7 +186,7 @@ protected:
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void SetElementData(ElementDataPointerType& pVariables,
+    void SetElementData(ElementDataType& rVariables,
                              ConstitutiveLaw::Parameters& rValues,
                              const int & rPointNumber) override;
     

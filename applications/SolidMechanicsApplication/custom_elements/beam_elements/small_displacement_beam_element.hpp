@@ -146,12 +146,12 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataPointerType & pVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**   
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataPointerType& pVariables,
+    virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
     /**   
@@ -163,13 +163,13 @@ protected:
     /**   
      * Calculate Element Constitutive Matrix
      */ 
-    virtual void CalculateConstitutiveMatrix(ElementDataPointerType& pVariables) override;
+    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
 
      /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementDataPointerType& pVariables, const unsigned int& rPointNumber) override;
+    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
  
     /**
      * Calculation of the Rotation tensor
@@ -180,12 +180,12 @@ protected:
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementDataPointerType& pVariables, Matrix& rVariable) override;
+    virtual void MapLocalToGlobal(ElementDataType& rVariables, Matrix& rVariable) override;
 
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementDataPointerType& pVariables, VectorType& rVector) override;
+    virtual void MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector) override;
   
 
 
@@ -194,21 +194,21 @@ protected:
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     ElementDataPointerType& pVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight) override;
 
 
     /**
      * Calculation of the Material Stiffness Matrix
      */
-    void CalculateLocalStiffnessMatrix(Matrix& LocalMatrix,ElementDataPointerType& pVariables);
+    void CalculateLocalStiffnessMatrix(Matrix& LocalMatrix,ElementDataType& rVariables);
 
 
      /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       ElementDataPointerType & pVariables,
+					       ElementDataType & rVariables,
 					       double& rIntegrationWeight) override;
 
   

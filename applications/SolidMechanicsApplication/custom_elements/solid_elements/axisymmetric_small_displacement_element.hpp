@@ -162,7 +162,7 @@ protected:
      */
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            ElementDataPointerType& pVariables,
+                            ElementDataType& rVariables,
                             double& rIntegrationWeight) override;
 
     /**
@@ -170,7 +170,7 @@ protected:
      */
 
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                            ElementDataPointerType& pVariables,
+                            ElementDataType& rVariables,
                             Vector& rVolumeForce,
                             double& rIntegrationWeight) override;
 
@@ -183,14 +183,14 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementData(ElementDataPointerType & pVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementDataPointerType& pVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                              const double& rPointNumber) override;
 
 

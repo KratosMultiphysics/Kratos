@@ -60,8 +60,6 @@ public:
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
     typedef SmallDisplacementElement::ElementDataType ElementDataType;
-    ///Type for element variables pointer
-    typedef SmallDisplacementElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of SmallDisplacementBbarElement
     KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementBbarElement);
@@ -146,19 +144,19 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementDataPointerType& pVariables, const double& rPointNumber) override;
+    void CalculateKinematics(ElementDataType& rVariables, const double& rPointNumber) override;
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementData(ElementDataPointerType& pVariables,
+    void InitializeElementData(ElementDataType& rVariables,
                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Calculation of the Volumetric Deformation Matrix  H
      */
-    void CalculateVolumetricDeformationMatrix(ElementDataPointerType& pVariables);
+    void CalculateVolumetricDeformationMatrix(ElementDataType& rVariables);
 
     /**
      * Calculation of the Deformation Matrix B_bar B

@@ -61,8 +61,6 @@ public:
     typedef GeometryData::SizeType SizeType;
     ///Type for element variables
     typedef LargeDisplacementElement::ElementDataType ElementDataType;
-    ///Type for element variables pointer
-    typedef LargeDisplacementElement::ElementDataPointerType ElementDataPointerType;
 
     /// Counted pointer of UpdatedLagrangianUPElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUPElement );
@@ -203,7 +201,7 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementDataPointerType& pVariables,
+                                    ElementDataType& rVariables,
                                     double& rIntegrationWeight) override;
 
     /**
@@ -211,26 +209,26 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementDataPointerType& pVariables,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight) override;
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataPointerType & pVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
    /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementDataPointerType & pVariables, const double& rPointNumber) override;
+    virtual void FinalizeStepVariables(ElementDataType & rVariables, const double& rPointNumber) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataPointerType& pVariables,
+    virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const double& rPointNumber) override;
 
 
@@ -251,13 +249,13 @@ protected:
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( ElementDataPointerType& pVariables, 
+    void GetHistoricalVariables( ElementDataType& rVariables, 
 				 const double& rPointNumber ) override;
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataPointerType& pVariables) override;
+    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access

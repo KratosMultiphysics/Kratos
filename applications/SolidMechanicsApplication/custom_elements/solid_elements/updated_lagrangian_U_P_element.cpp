@@ -231,17 +231,17 @@ void UpdatedLagrangianUPElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::InitializeElementData (ElementDataPointerType & pVariables, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianUPElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    LargeDisplacementUPElement::InitializeElementData(pVariables,rCurrentProcessInfo);
+    LargeDisplacementUPElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
-    pVariables->DeltaPosition = this->CalculateDeltaPosition(pVariables->DeltaPosition);
+    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
     //set variables including all integration points values
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    pVariables->J = GetGeometry().Jacobian( pVariables->J, mThisIntegrationMethod, pVariables->DeltaPosition );
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
 }
 
@@ -249,11 +249,11 @@ void UpdatedLagrangianUPElement::InitializeElementData (ElementDataPointerType &
 ////************************************************************************************
 ////************************************************************************************
 
-void UpdatedLagrangianUPElement::FinalizeStepVariables( ElementDataPointerType & pVariables, const double& rPointNumber )
+void UpdatedLagrangianUPElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 { 
     //update internal (historical) variables
-    mDeterminantF0[rPointNumber]         = pVariables->detF * pVariables->detF0;
-    noalias(mDeformationGradientF0[rPointNumber]) = prod(pVariables->F, pVariables->F0);
+    mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
+    noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
 
 
@@ -261,18 +261,18 @@ void UpdatedLagrangianUPElement::FinalizeStepVariables( ElementDataPointerType &
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, double& rIntegrationWeight)
+void UpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
 
     //contributions to stiffness matrix calculated on the reference config
-    pVariables->detF0   *= pVariables->detF;
-    double DeterminantF = pVariables->detF;
-    pVariables->detF = 1; //in order to simplify updated and spatial lagrangian
+    rVariables.detF0   *= rVariables.detF;
+    double DeterminantF = rVariables.detF;
+    rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
 
-    LargeDisplacementUPElement::CalculateAndAddLHS( rLocalSystem, pVariables, rIntegrationWeight );
+    LargeDisplacementUPElement::CalculateAndAddLHS( rLocalSystem, rVariables, rIntegrationWeight );
 
-    pVariables->detF     = DeterminantF;
-    pVariables->detF0   /= pVariables->detF;
+    rVariables.detF     = DeterminantF;
+    rVariables.detF0   /= rVariables.detF;
     //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
@@ -280,17 +280,17 @@ void UpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLoca
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataPointerType& pVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void UpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     //contribution to external forces
-    pVariables->detF0   *= pVariables->detF;
-    double DeterminantF = pVariables->detF;
-    pVariables->detF = 1; //in order to simplify updated and spatial lagrangian
+    rVariables.detF0   *= rVariables.detF;
+    double DeterminantF = rVariables.detF;
+    rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
 
-    LargeDisplacementUPElement::CalculateAndAddRHS( rLocalSystem, pVariables, rVolumeForce, rIntegrationWeight );
+    LargeDisplacementUPElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, rIntegrationWeight );
 
-    pVariables->detF     = DeterminantF;
-    pVariables->detF0   /= pVariables->detF;
+    rVariables.detF     = DeterminantF;
+    rVariables.detF0   /= rVariables.detF;
     //KRATOS_WATCH( rRightHandSideVector )
 }
 
@@ -300,54 +300,54 @@ void UpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLoca
 //************************************************************************************
 
 
-void UpdatedLagrangianUPElement::CalculateKinematics(ElementDataPointerType& pVariables,
+void UpdatedLagrangianUPElement::CalculateKinematics(ElementDataType& rVariables,
         const double& rPointNumber)
 
 {
     KRATOS_TRY
 
     //Get the parent coodinates derivative [dN/d£]
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = pVariables->GetShapeFunctionsGradients();
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //Get the shape functions for the order of the integration method [N]
-    const Matrix& Ncontainer = pVariables->GetShapeFunctions();
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
     //Parent to reference configuration
-    pVariables->StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( pVariables->J[rPointNumber], InvJ, pVariables->detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives [dN/dx_n]
-    noalias( pVariables->DN_DX ) = prod( DN_De[rPointNumber], InvJ );
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Set Shape Functions Values for this integration point
-    noalias(pVariables->N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Current Deformation Gradient [dx_n+1/dx_n]
-    //this->CalculateDeformationGradient (pVariables->F, pVariables->DN_DX, pVariables->DeltaPosition);
+    //this->CalculateDeformationGradient (rVariables.F, rVariables.DN_DX, rVariables.DeltaPosition);
 
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
-    noalias( pVariables->F ) = prod( pVariables->j[rPointNumber], InvJ );
+    noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
     //Determinant of the deformation gradient F
-    pVariables->detF  = MathUtils<double>::Det(pVariables->F);
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( pVariables->j[rPointNumber], Invj, pVariables->detJ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
-    noalias(pVariables->DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+    noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
-    pVariables->detF0 = mDeterminantF0[rPointNumber];
-    pVariables->F0    = mDeformationGradientF0[rPointNumber];
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
 
     //Compute the deformation matrix B
-    CalculateDeformationMatrix(pVariables->B, pVariables->F, pVariables->DN_DX);
+    CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
 
 
     KRATOS_CATCH( "" )
@@ -476,23 +476,23 @@ void UpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::GetHistoricalVariables( ElementDataPointerType& pVariables, const double& rPointNumber )
+void UpdatedLagrangianUPElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
-    LargeDisplacementElement::GetHistoricalVariables(pVariables,rPointNumber);
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
     //Deformation Gradient F0
-    pVariables->detF0 = mDeterminantF0[rPointNumber];
-    pVariables->F0    = mDeformationGradientF0[rPointNumber];
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
 }
 
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& UpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementDataPointerType& pVariables )
+double& UpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
       
-    rVolumeChange = 1.0 / (pVariables->detF * pVariables->detF0);
+    rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
 
     return rVolumeChange;
 
