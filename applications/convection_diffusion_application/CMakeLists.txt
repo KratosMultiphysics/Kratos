@@ -7,6 +7,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 ## generate variables with the sources
 set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/convection_diffusion_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/convection_diffusion_application_variables.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_convection_diffusion_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
