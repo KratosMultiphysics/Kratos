@@ -1642,7 +1642,7 @@ public:
         Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
-            MathUtils<double>::InvertMatrix(rResult[pnt], Jinv, detJ);
+            MathUtils<double>::GeneralizedInvertMatrix(rResult[pnt], Jinv, detJ);
             noalias(rResult[pnt]) = Jinv;
         }
         return rResult;
@@ -1692,7 +1692,7 @@ public:
         double detJ;
         Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
 
-        MathUtils<double>::InvertMatrix(rResult, Jinv, detJ);
+        MathUtils<double>::GeneralizedInvertMatrix(rResult, Jinv, detJ);
         noalias(rResult) = Jinv;
 
         return rResult;
@@ -1716,7 +1716,7 @@ public:
         double detJ;
         Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
 
-        MathUtils<double>::InvertMatrix(rResult, Jinv, detJ);
+        MathUtils<double>::GeneralizedInvertMatrix(rResult, Jinv, detJ);
         noalias(rResult) = Jinv;
 
         return rResult;
@@ -2057,7 +2057,7 @@ public:
             if(rResult[pnt].size1() != this->WorkingSpaceDimension() ||  rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
             this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::InvertMatrix( J, Jinv, DetJ );
+            MathUtils<double>::GeneralizedInvertMatrix( J, Jinv, DetJ );
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
         }
 
@@ -2088,7 +2088,7 @@ public:
             if(rResult[pnt].size1() != this->WorkingSpaceDimension() ||  rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
             this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::InvertMatrix( J, Jinv, DetJ );
+            MathUtils<double>::GeneralizedInvertMatrix( J, Jinv, DetJ );
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
             determinants_of_jacobian[pnt] = DetJ;
         }
