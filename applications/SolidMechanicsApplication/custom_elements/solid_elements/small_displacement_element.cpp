@@ -119,9 +119,9 @@ SmallDisplacementElement::~SmallDisplacementElement()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::SetElementVariables(ElementVariables& rVariables,
-						   ConstitutiveLaw::Parameters& rValues,
-						   const int & rPointNumber)
+void SmallDisplacementElement::SetElementData(ElementDataType& rVariables,
+                                              ConstitutiveLaw::Parameters& rValues,
+                                              const int & rPointNumber)
 {
     KRATOS_TRY
 
@@ -145,11 +145,11 @@ void SmallDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    SolidElement::InitializeElementVariables(rVariables, rCurrentProcessInfo);
+    SolidElement::InitializeElementData(rVariables, rCurrentProcessInfo);
 
     //set variables including all integration points values
 
@@ -167,7 +167,7 @@ void SmallDisplacementElement::InitializeElementVariables (ElementVariables & rV
 //************************************************************************************
 
 void SmallDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						   ElementVariables& rVariables,
+						   ElementDataType& rVariables,
 						   double& rIntegrationWeight)
 
 {
@@ -179,7 +179,7 @@ void SmallDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatr
 //************************************************************************************
 
 
-void SmallDisplacementElement::CalculateKinematics(ElementVariables& rVariables, const double& rPointNumber)
+void SmallDisplacementElement::CalculateKinematics(ElementDataType& rVariables, const double& rPointNumber)
 {
     KRATOS_TRY
 
@@ -222,15 +222,15 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = this->Dimension();
 
     noalias(rH) = ZeroMatrix(dimension, dimension);
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
             array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -244,7 +244,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
     else if( dimension == 3 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
             array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -276,7 +276,7 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Ve
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
 
     if( dimension == 2 )
     {
@@ -328,8 +328,8 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matr
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension       = this->Dimension();
     unsigned int voigt_size            = dimension * (dimension +1) * 0.5;
 
     if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
@@ -338,7 +338,7 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matr
     if( dimension == 2 )
     {
         unsigned int index = 0;
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             index = 2 * i;
 
@@ -355,7 +355,7 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matr
     else if( dimension == 3 )
     {
       unsigned int index = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 	  index = 3 * i;
 
@@ -413,8 +413,8 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
     if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -462,7 +462,7 @@ int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     ErrorCode = SolidElement::Check(rCurrentProcessInfo);
 
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+    for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];
@@ -490,8 +490,8 @@ int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if( correct_strain_measure == false )
       KRATOS_ERROR <<  "constitutive law is not compatible with the small displacements element type" << std::endl;
 
-    // Check that the constitutive law has the correct dimension
-    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    // Check that the constitutive law has the correct dimension 
+    const SizeType& dimension = this->Dimension();
     if( dimension == 2 )
     {
       if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )

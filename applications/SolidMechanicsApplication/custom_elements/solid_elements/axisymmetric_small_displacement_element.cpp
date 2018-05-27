@@ -101,10 +101,10 @@ AxisymmetricSmallDisplacementElement::~AxisymmetricSmallDisplacementElement()
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricSmallDisplacementElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void AxisymmetricSmallDisplacementElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     const unsigned int voigt_size      = 4;
     
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
@@ -138,7 +138,7 @@ void AxisymmetricSmallDisplacementElement::InitializeElementVariables (ElementVa
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
   
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius;
@@ -155,7 +155,7 @@ void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemCompone
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymmetricSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
@@ -176,8 +176,8 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
     KRATOS_TRY
 
     //Compute the Volume Change acumulated:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -204,7 +204,7 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
 //************************************************************************************
 
 
-void AxisymmetricSmallDisplacementElement::CalculateKinematics(ElementVariables& rVariables,
+void AxisymmetricSmallDisplacementElement::CalculateKinematics(ElementDataType& rVariables,
         const double& rPointNumber)
 
 {
@@ -256,15 +256,15 @@ void AxisymmetricSmallDisplacementElement::CalculateRadius(double & rRadius,
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
 
     rRadius=0;
 
     if ( dimension == 2 )
     {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             //array_1d<double, 3 > & ReferencePosition = GetGeometry()[i].Coordinates();
             //rRadius   += ReferencePosition[0]*rN[i];
@@ -293,16 +293,16 @@ void AxisymmetricSmallDisplacementElement::CalculateDisplacementGradient(Matrix&
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
 
     rH = zero_matrix<double> ( 3 );
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
             array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -344,15 +344,15 @@ void AxisymmetricSmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension = this->Dimension();
 
     rB.clear(); //set all components to zero
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = 2 * i;
 
@@ -390,7 +390,7 @@ void AxisymmetricSmallDisplacementElement::CalculateInfinitesimalStrain(const Ma
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
 
     if( dimension == 2 )
     {

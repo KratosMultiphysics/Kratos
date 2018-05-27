@@ -83,9 +83,9 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType number_of_nodes = GetGeometry().size();
     const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVariables.Initialize(dimension, local_dimension, number_of_nodes);
    
@@ -104,8 +104,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
@@ -119,7 +119,7 @@ namespace Kratos
       //defined on condition
       if( this->Has( PLANE_MOMENT_LOAD ) ){
 	double& PointMoment = this->GetValue( PLANE_MOMENT_LOAD );
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	      rVariables.ExternalScalarValue += rVariables.N[i] * PointMoment;
 	  }
@@ -128,14 +128,14 @@ namespace Kratos
       //defined on condition nodes
       if( this->Has( PLANE_MOMENT_LOAD_VECTOR ) ){
 	Vector& PointMoments = this->GetValue( PLANE_MOMENT_LOAD_VECTOR );
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    rVariables.ExternalScalarValue += rVariables.N[i] * PointMoments[i];	  
 	  }
       }
     
       //defined on condition nodes      
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
 	  if( GetGeometry()[i].SolutionStepsDataHas( PLANE_MOMENT_LOAD ) ){
 	    double& PointMoment = GetGeometry()[i].FastGetSolutionStepValue( PLANE_MOMENT_LOAD );
@@ -149,9 +149,9 @@ namespace Kratos
       //defined on condition
       if( this->Has( MOMENT_LOAD ) ){
 	array_1d<double, 3 > & PointMoment = this->GetValue( MOMENT_LOAD );
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
-	    for( unsigned int k = 0; k < dimension; k++ )
+	    for( SizeType k = 0; k < dimension; k++ )
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointMoment[k];
 	  }
       }
@@ -160,10 +160,10 @@ namespace Kratos
       if( this->Has( MOMENT_LOAD_VECTOR ) ){
 	Vector& PointMoments = this->GetValue( MOMENT_LOAD_VECTOR );
 	unsigned int counter = 0;
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    counter = i*3;
-	    for( unsigned int k = 0; k < dimension; k++ )
+	    for( SizeType k = 0; k < dimension; k++ )
 	      {
 		rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointMoments[counter+k];
 	      }
@@ -172,11 +172,11 @@ namespace Kratos
       }
     
       //defined on condition nodes      
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
 	  if( GetGeometry()[i].SolutionStepsDataHas( MOMENT_LOAD ) ){
 	    array_1d<double, 3 > & PointMoment = GetGeometry()[i].FastGetSolutionStepValue( MOMENT_LOAD );
-	    for( unsigned int k = 0; k < dimension; k++ )
+	    for( SizeType k = 0; k < dimension; k++ )
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointMoment[k];
  
 	  }

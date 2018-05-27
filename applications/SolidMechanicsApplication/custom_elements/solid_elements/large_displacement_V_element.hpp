@@ -57,7 +57,11 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef LargeDisplacementElement::ElementDataType ElementDataType;
+ 
     /// Counted pointer of LargeDisplacementVElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementVElement );
     ///@}
@@ -171,7 +175,7 @@ protected:
      */
 
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            ElementVariables& rVariables,
+                            ElementDataType& rVariables,
                             double& rIntegrationWeight) override;
     
     /**
@@ -182,7 +186,7 @@ protected:
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void SetElementVariables(ElementVariables& rVariables,
+    void SetElementData(ElementDataType& rVariables,
                              ConstitutiveLaw::Parameters& rValues,
                              const int & rPointNumber) override;
     

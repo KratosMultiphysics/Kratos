@@ -101,11 +101,11 @@ namespace Kratos
 
   void BeamElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
   {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
     
     rElementalDofList.resize(0);
 
-    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+    for ( SizeType i = 0; i < GetGeometry().size(); i++ )
       {
 
 	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
@@ -130,8 +130,8 @@ namespace Kratos
   void BeamElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
   {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int       dofs_size       = number_of_nodes * ( (dimension-1) * 3 );
 
     if ( rResult.size() != dofs_size )
@@ -140,7 +140,7 @@ namespace Kratos
     unsigned int index = 0;
 
     if( dimension == 2 ){
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{	
 	  index = i * ( (dimension-1) * 3 );	  	  
 	  rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -149,7 +149,7 @@ namespace Kratos
 	}
     }
     else{
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * ( (dimension-1) * 3 );	  	  
 	  rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -172,8 +172,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int       dofs_size       = number_of_nodes * ( (dimension-1) * 3 );
 
     if ( rValues.size() != dofs_size )
@@ -181,7 +181,7 @@ namespace Kratos
 
     unsigned int index = 0;
     if( dimension == 2 ){
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * ( (dimension-1) * 3 );	  
 	  rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -190,7 +190,7 @@ namespace Kratos
 	}
     }
     else{
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * ( (dimension-1) * 3 );	  
 	  rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -213,8 +213,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int       dofs_size       = number_of_nodes * ( (dimension-1) * 3 );
 
     if ( rValues.size() != dofs_size )
@@ -222,7 +222,7 @@ namespace Kratos
 
     unsigned int index = 0;
     if( dimension == 2 ){
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * ( (dimension-1) * 3 );	  
 	  rValues[index]   = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -231,7 +231,7 @@ namespace Kratos
 	}
     }
     else{
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * ( (dimension-1) * 3 );
 	  rValues[index]   = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -254,8 +254,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int       dofs_size       = number_of_nodes * ( (dimension-1) * 3 );
 
     if ( rValues.size() != dofs_size )
@@ -264,7 +264,7 @@ namespace Kratos
     unsigned int index = 0;
     if( dimension == 2 ){
       
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * ( (dimension-1) * 3 );
 	  rValues[index]   = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -273,7 +273,7 @@ namespace Kratos
 	}
     }
     else{
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * ( (dimension-1) * 3 );
 	  rValues[index]   = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -317,7 +317,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = this->Dimension();
     
     Matrix LocalTransformationMatrix(dimension,dimension);
     noalias(LocalTransformationMatrix) = ZeroMatrix(dimension,dimension);
@@ -380,8 +380,8 @@ namespace Kratos
   {
     KRATOS_TRY
      
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
+    const SizeType& dimension       = this->Dimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();    
 
     unsigned int size = number_of_nodes * (dimension-1) * 3;
 
@@ -441,11 +441,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::MapLocalToGlobal(ElementVariables& rVariables, MatrixType& rMatrix)
+  void BeamElement::MapLocalToGlobal(ElementDataType& rVariables, MatrixType& rMatrix)
   {
     KRATOS_TRY
       
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
     
     if( dimension == 2 )
       BeamMathUtilsType::MapLocalToGlobal2D(mInitialLocalQuaternion, rMatrix);
@@ -459,11 +459,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector)
+  void BeamElement::MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector)
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
     
     if( dimension == 2 )
       BeamMathUtilsType::MapLocalToGlobal2D(mInitialLocalQuaternion, rVector);
@@ -481,17 +481,17 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
 
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
 
     //strains due to displacements and rotations
-    for ( unsigned int i = 0; i <number_of_nodes ; i++ )
+    for ( SizeType i = 0; i <number_of_nodes ; i++ )
       {
 	CurrentValueVector = GetNodalCurrentValue( rVariable, CurrentValueVector, i );
-	for( unsigned int j = 0; j < dimension; j++ )
+	for( SizeType j = 0; j < dimension; j++ )
 	  rValue[j] += rN[i] * CurrentValueVector[j];
       }
     
@@ -510,18 +510,18 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
 
     Vector PreviousValueVector(3);
     noalias(PreviousValueVector) = ZeroVector(3);
 
     //strains due to displacements and rotations
-    for( unsigned int i = 0; i < number_of_nodes ; i++ )
+    for( SizeType i = 0; i < number_of_nodes ; i++ )
       {
 	PreviousValueVector = GetNodalPreviousValue( rVariable, PreviousValueVector, i );
 	
-	for( unsigned int j = 0; j < dimension; j++ )
+	for( SizeType j = 0; j < dimension; j++ )
 	  rValue[j] += rN[i] * PreviousValueVector[j];
       }
     
@@ -541,7 +541,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
     
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
@@ -560,7 +560,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
 
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
@@ -576,12 +576,12 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void BeamElement::InitializeElementData(ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     const unsigned int voigt_size      = dimension * (dimension +1 ) * 0.5;
     
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
@@ -619,7 +619,7 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void BeamElement::CalculateKinematics(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void BeamElement::CalculateKinematics(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
@@ -636,16 +636,16 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension = this->Dimension();
 
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
        array_1d<double, 3 > & CurrentStepDisplacement = GetGeometry()[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
        
-       for ( unsigned int j = 0; j < dimension; j++ )
+       for ( SizeType j = 0; j < dimension; j++ )
 	  {
 	    rDeltaPosition(i,j) = CurrentStepDisplacement[j];		    
 	  }
@@ -664,16 +664,16 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension = this->Dimension();
 
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
             rDeltaPosition(i,j) = CurrentDisplacement[j];
 	  }
@@ -694,8 +694,8 @@ namespace Kratos
     KRATOS_TRY
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     //reading integration points 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -837,11 +837,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementVariables& rVariables)
+  void BeamElement::CalculateMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementDataType& rVariables)
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
 
     if( dimension == 2 ){
 
@@ -912,7 +912,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateConstitutiveMatrix(ElementVariables& rVariables)
+  void BeamElement::CalculateConstitutiveMatrix(ElementDataType& rVariables)
   {
     KRATOS_TRY
       
@@ -926,7 +926,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void BeamElement::CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
@@ -951,7 +951,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+  void BeamElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
   {
     KRATOS_TRY
  
@@ -986,7 +986,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+  void BeamElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
@@ -1110,14 +1110,14 @@ namespace Kratos
   //************************************************************************************
 
   void BeamElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						  ElementVariables& rVariables,
+						  ElementDataType& rVariables,
 						  Vector& rVolumeForce,
 						  double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension = this->Dimension();
 
     double DomainSize = rVariables.Section.Area; 
 
@@ -1137,7 +1137,7 @@ namespace Kratos
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
     
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	CurrentValueVector = GetGeometry()[i].Coordinates();
 	CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rVariables.PointNumber );
@@ -1145,7 +1145,7 @@ namespace Kratos
       }
     
     unsigned int RowIndex = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
       	RowIndex = i * ( (dimension-1) * 3 );
 
@@ -1178,7 +1178,7 @@ namespace Kratos
   //************************************************************************************
 
   void BeamElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-						  ElementVariables & rVariables,
+						  ElementDataType & rVariables,
 						  double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -1198,15 +1198,15 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension       = this->Dimension();
 
     if( (rRHSVariable == RESIDUAL_VECTOR) ){
 
       if ( rDestinationVariable == FORCE_RESIDUAL )
 	{
 
-	  for(unsigned int i=0; i< number_of_nodes; i++)
+	  for(SizeType i=0; i< number_of_nodes; i++)
 	    {
 	      int index = ((dimension-1) * 3) * i;
 
@@ -1214,7 +1214,7 @@ namespace Kratos
 
 	      array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-	      for(unsigned int j=0; j<dimension; j++)
+	      for(SizeType j=0; j<dimension; j++)
 		{
 		  ForceResidual[j] += rRHSVector[index + j];
 		}
@@ -1225,7 +1225,7 @@ namespace Kratos
       else if( rDestinationVariable == MOMENT_RESIDUAL )
 	{
 
-	  for(unsigned int i=0; i< number_of_nodes; i++)
+	  for(SizeType i=0; i< number_of_nodes; i++)
 	    {
 	      int index = dimension + ( (dimension-1) * 3 ) * i;
 
@@ -1233,7 +1233,7 @@ namespace Kratos
 
 	      array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
-	      for(unsigned int j=0; j<dimension; j++)
+	      for(SizeType j=0; j<dimension; j++)
 		{
 		  MomentResidual[j] += rRHSVector[index + j];
 		}
@@ -1256,7 +1256,7 @@ namespace Kratos
   //************************************************************************************
 
   void BeamElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-					ElementVariables& rVariables,
+					ElementDataType& rVariables,
 					double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -1271,7 +1271,7 @@ namespace Kratos
   //************************************************************************************
 
   void BeamElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-					ElementVariables& rVariables,
+					ElementDataType& rVariables,
 					double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -1290,8 +1290,8 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
 
     Vector LocalX(3);
     noalias(LocalX) = ZeroVector(3);
@@ -1308,7 +1308,7 @@ namespace Kratos
     ReferenceCoordinates[4] = GetGeometry()[k].Y();
     ReferenceCoordinates[5] = GetGeometry()[k].Z();     
    
-    for( unsigned int i = 0; i < dimension; i++ )
+    for( SizeType i = 0; i < dimension; i++ )
       {
 	LocalX[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
       }
@@ -1335,14 +1335,14 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
     if( rVolumeForce.size() != 3 )
       rVolumeForce.resize(3, false);
     
     noalias(rVolumeForce) = ZeroVector(3);
     
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    for ( SizeType j = 0; j < number_of_nodes; j++ )
       {
 	//temporary, will be checked once at the beginning only
 	if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){
@@ -1510,7 +1510,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void BeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
@@ -1523,7 +1523,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
  
-  void BeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void BeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
@@ -1573,13 +1573,13 @@ namespace Kratos
     if(rVariable==MOMENT || rVariable==FORCE){
 
       //create and initialize element variables:
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       //reading integration points (in fact is the two nodes beam element, only one integration point)
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const SizeType& dimension = this->Dimension();
 	
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	{  
@@ -1598,7 +1598,7 @@ namespace Kratos
 		rOutput[PointNumber][dimension] = Variables.StressVector[dimension]; 
 	      }
 	      else{
-		for( unsigned int i=0; i<dimension; i++ )
+		for( SizeType i=0; i<dimension; i++ )
 		  {
 		    rOutput[PointNumber][i] = Variables.StressVector[i+dimension]; 
 		  }
@@ -1607,7 +1607,7 @@ namespace Kratos
 
 	  if(rVariable==FORCE)
 	    {
-	      for( unsigned int i=0; i<dimension; i++ )
+	      for( SizeType i=0; i<dimension; i++ )
 		{
 		  rOutput[PointNumber][i] = Variables.StressVector[i];
 		}
@@ -1654,7 +1654,7 @@ namespace Kratos
     //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+    for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];

@@ -92,7 +92,7 @@ namespace Kratos
 
     KRATOS_ERROR << "calling the base class CalculateExternalStiffness method for a moment condition... " << std::endl;
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
@@ -115,7 +115,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize   = this->GetDofsSize();
 
     if(rLeftHandSideMatrix.size1() != MatSize)
@@ -123,13 +123,13 @@ namespace Kratos
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
     unsigned int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	index = dimension * i;
-	for ( unsigned int j = 0; j < dimension; j++ )
+	for ( SizeType j = 0; j < dimension; j++ )
 	  {
 	    rLeftHandSideMatrix(index+j, index+j) = fabs(rVariables.ExternalVectorValue[j]) * rIntegrationWeight;  	
 	  }
@@ -148,22 +148,22 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     Vector CurrentValueVector(dimension);
     noalias(CurrentValueVector) = ZeroVector(dimension); 
 
     int index = 0;
     
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         index = dimension * i;
 
 	//current displacements
 	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
 
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
 	    rRightHandSideVector[index + j] -= CurrentValueVector[j] * fabs(rVariables.ExternalVectorValue[j]) * rIntegrationWeight;
 	  }
@@ -185,15 +185,15 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     // Energy Calculation:
     Vector CurrentValueVector(dimension);
     noalias(CurrentValueVector) = ZeroVector(dimension); 
     Vector Displacements(dimension);
     noalias(Displacements) = ZeroVector(dimension);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	//current displacements to compute energy
 	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
@@ -205,12 +205,12 @@ namespace Kratos
     Vector ForceVector(dimension);
     noalias(ForceVector) = ZeroVector(dimension);
     
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
  	//current displacements
 	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
 	
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
 	    ForceVector[j] += CurrentValueVector[j] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
 	  }

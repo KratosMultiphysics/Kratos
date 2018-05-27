@@ -53,7 +53,10 @@ public:
 
     typedef Variable<array_1d<double,3>>      VariableVectorType;
     typedef Variable<double>                  VariableScalarType;
-    
+
+    ///Type for size
+    typedef GeometryData::SizeType                      SizeType;
+
     // Counted pointer of BoundaryCondition
     KRATOS_CLASS_POINTER_DEFINITION( BoundaryCondition );
     ///@}

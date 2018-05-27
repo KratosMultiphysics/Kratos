@@ -131,16 +131,16 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rCurrentRadius=0;
     rReferenceRadius=0;
 
     if ( dimension == 2 )
       {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
             //Displacement from the reference to the current configuration
             // array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);

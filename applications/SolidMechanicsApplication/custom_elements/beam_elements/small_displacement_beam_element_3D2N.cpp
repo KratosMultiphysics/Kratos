@@ -98,7 +98,7 @@ void SmallDisplacementBeamElement3D2N::GetDofList(DofsVectorType& ElementalDofLi
 {
     ElementalDofList.resize(0);
 
-    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+    for ( SizeType i = 0; i < GetGeometry().size(); i++ )
       {
 	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
@@ -117,14 +117,14 @@ void SmallDisplacementBeamElement3D2N::EquationIdVector(EquationIdVectorType& rR
                                    ProcessInfo& CurrentProcessInfo)
 {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * ( dimension * 2 );
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
+    unsigned int       dofs_size    = number_of_nodes * ( dimension * 2 );
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
       int index = i * ( dimension * 2 );
       rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -145,14 +145,14 @@ void SmallDisplacementBeamElement3D2N::EquationIdVector(EquationIdVectorType& rR
 void SmallDisplacementBeamElement3D2N::GetValuesVector(Vector& rValues, int Step)
 {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int       dofs_size       = number_of_nodes * ( dimension * 2 );
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
       int index = i * ( dimension * 2 );
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -175,14 +175,14 @@ void SmallDisplacementBeamElement3D2N::GetFirstDerivativesVector(Vector& rValues
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int       dofs_size       = number_of_nodes * ( dimension * 2 );
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
       int index = i * ( dimension * 2 );
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -205,14 +205,14 @@ void SmallDisplacementBeamElement3D2N::GetSecondDerivativesVector(Vector& rValue
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int       dofs_size       = number_of_nodes * ( dimension * 2 );
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
       int index = i * ( dimension * 2 );
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -291,8 +291,8 @@ void SmallDisplacementBeamElement3D2N::InitializeSystemMatrices(MatrixType& rLef
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
 
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * ( dimension * 2 );
@@ -376,10 +376,10 @@ void SmallDisplacementBeamElement3D2N::CalculateElementalSystem( LocalSystemComp
 {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = this->Dimension();
 
     //size needed
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType number_of_nodes  = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * ( dimension * 2 );
 
     //initialize local transformation/rotation matrix
@@ -466,8 +466,8 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
 
     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
   
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     const unsigned int MatSize         = rRightHandSideVector.size();
 
     //Calculate Body Force
@@ -476,7 +476,7 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
 
     //Displacements and Rotations Vector
     Vector LocalVector = ZeroVector(MatSize);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
       int index = i * ( dimension * 2 );
       LocalVector[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X );
@@ -689,8 +689,8 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
 {
 
     KRATOS_TRY
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int       size            = number_of_nodes * dimension;
     unsigned int       MatSize         = 2 * size;
 
@@ -715,7 +715,7 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
     ReferenceCoordinates[4] = GetGeometry()[k].Y();
     ReferenceCoordinates[5] = GetGeometry()[k].Z();     
    
-    for( unsigned int i = 0; i < dimension; i++ )
+    for( SizeType i = 0; i < dimension; i++ )
     {
       DirectionVectorX[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
     }
@@ -759,7 +759,7 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
     // std::cout<<" Ylocal "<<DirectionVectorY<<std::endl;
     // std::cout<<" Zlocal "<<DirectionVectorZ<<std::endl;
 
-    for (unsigned int i=0; i<dimension; i++)
+    for (SizeType i=0; i<dimension; i++)
       {
 	AuxRotationMatrix(i,0) = DirectionVectorX[i];  // column distribution
 	AuxRotationMatrix(i,1) = DirectionVectorY[i];
@@ -775,9 +775,9 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
     //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += dimension)
     {
-        for (unsigned int i=0; i<dimension; i++)
+        for (SizeType i=0; i<dimension; i++)
         {
-            for(unsigned int j=0; j<dimension; j++)
+            for(SizeType j=0; j<dimension; j++)
             {
 	      rRotationMatrix(i+kk,j+kk) = AuxRotationMatrix(i,j);
             }
@@ -796,11 +796,11 @@ Vector&  SmallDisplacementBeamElement3D2N::CalculateVolumeForce( Vector& rVolume
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension       = this->Dimension();
 
     rVolumeForce = ZeroVector(dimension);
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    for ( SizeType j = 0; j < number_of_nodes; j++ )
     {
         if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
             rVolumeForce += rN[j] * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
@@ -1073,8 +1073,8 @@ void SmallDisplacementBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatr
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = this->Dimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rMassMatrix.size1() != MatSize)
@@ -1089,11 +1089,11 @@ void SmallDisplacementBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatr
 
     LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
-    for( unsigned int i=0; i < number_of_nodes; i++ )
+    for( SizeType i=0; i < number_of_nodes; i++ )
     {
         double temp = LumpFact[i] * TotalMass;
 
-        for( unsigned int j=0; j < dimension; j++ )
+        for( SizeType j=0; j < dimension; j++ )
         {
  	    unsigned int index = i * (dimension * 2) + j;
 
@@ -1256,7 +1256,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
    KRATOS_TRY
 
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    const unsigned int dimension                  = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension                  = this->Dimension();
    
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
     
@@ -1312,7 +1312,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 	    factor = 1; //-1;
 	  }
 	
-	// for( unsigned int i= 0; i< dimension; i++ )
+	// for( SizeType i= 0; i< dimension; i++ )
 	//   CalculateDistributedBodyForce(i, Load[i], VolumeForce);
 
 	if( Load[PointNumber].size() != 3 )
@@ -1522,7 +1522,7 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
 
       }
 
-    if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size()!=2 )
+    if (this->Dimension() != 3 || GetGeometry().size()!=2 )
     {
       KRATOS_THROW_ERROR( std::invalid_argument, "This element works only in 3D and with 2 noded linear elements", "")
     }
