@@ -99,7 +99,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
       KRATOS_TRY
       
@@ -142,19 +142,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "BuildMeshBoundaryProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "BuildMeshBoundaryProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -183,7 +183,7 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    bool BuildCompositeConditions( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& rPreservedConditions, unsigned int& rConditionId )
+    bool BuildCompositeConditions( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& rPreservedConditions, unsigned int& rConditionId ) override
     {
 
       KRATOS_TRY
@@ -441,7 +441,7 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    bool CheckAcceptedCondition(ModelPart& rModelPart, Condition& rCondition)
+    bool CheckAcceptedCondition(ModelPart& rModelPart, Condition& rCondition) override
     {
       KRATOS_TRY
 
@@ -478,7 +478,7 @@ namespace Kratos
     //**************************************************************************
 
 
-    void AddConditionToModelPart(ModelPart& rModelPart, Condition::Pointer pCondition)
+    void AddConditionToModelPart(ModelPart& rModelPart, Condition::Pointer pCondition) override
     {
       KRATOS_TRY
 	

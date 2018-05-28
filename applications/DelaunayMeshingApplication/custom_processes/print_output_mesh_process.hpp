@@ -82,7 +82,7 @@ namespace Kratos
 
 
     /// Execute method is used to execute the Process algorithms.
-    virtual void Execute()
+    void Execute() override
     {
       KRATOS_TRY
 
@@ -104,39 +104,39 @@ namespace Kratos
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
+    void ExecuteBeforeSolutionLoop() override
     {
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {	
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
+    void ExecuteBeforeOutputStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
+    void ExecuteAfterOutputStep() override
     {
     }
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 
@@ -156,19 +156,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "PrintOutputMeshProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "PrintOutputMeshProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -206,7 +206,7 @@ namespace Kratos
 
       const int& step = mrModelPart.GetProcessInfo()[STEP];
       
-      const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
+      const unsigned int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
       
       std::string FileName;
       FileName += mrModelPart.Name();
@@ -221,7 +221,7 @@ namespace Kratos
       File.open(FileName);
 	
       double* PointList;
-      int NumberOfPoints;
+      unsigned int NumberOfPoints;
       if( mFileName == "input" ){
 	  PointList = mrRemesh.InMesh.GetPointList();
 	  NumberOfPoints = mrRemesh.InMesh.GetNumberOfPoints();
@@ -300,7 +300,7 @@ namespace Kratos
       File << "\n";
 
       double* PointList;
-      int NumberOfPoints;
+      unsigned int NumberOfPoints;
       if( mFileName == "input" ){
 	  PointList = mrRemesh.InMesh.GetPointList();
 	  NumberOfPoints = mrRemesh.InMesh.GetNumberOfPoints();
@@ -310,7 +310,7 @@ namespace Kratos
 	  NumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
       }
       
-      const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
+      const unsigned int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
       
       unsigned int base = 0;
       for(unsigned int pn=0; pn<NumberOfPoints; pn++)
@@ -347,7 +347,7 @@ namespace Kratos
       File << "\n";
       
       int* ElementList;
-      int NumberOfElements;
+      unsigned int NumberOfElements;
       if( mFileName == "input" ){
 	  ElementList = mrRemesh.InMesh.GetElementList();
 	  NumberOfElements = mrRemesh.InMesh.GetNumberOfElements();
@@ -358,9 +358,9 @@ namespace Kratos
       }
       
       
-      const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
+      const unsigned int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
 
-      int nds = 3; //number of nodes of a triangle
+      unsigned int nds = 3; //number of nodes of a triangle
       if( dimension == 3 ) //number of nodes of a tetrahedron
 	nds = 4;
 
