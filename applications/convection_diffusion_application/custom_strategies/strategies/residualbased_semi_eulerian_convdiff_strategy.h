@@ -409,7 +409,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpConvectionModelPart;
+    ModelPart* mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
     int mdimension;
@@ -428,8 +428,8 @@ private:
 
   void GenerateMeshPart(int dimension)
   {
-    mpConvectionModelPart = ModelPart::Pointer( new ModelPart("ConvectionPart",1) );
-
+    mpConvectionModelPart = BaseType::GetModelPart().CreateSubModelPart("ConvectionPart");
+    
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
 
