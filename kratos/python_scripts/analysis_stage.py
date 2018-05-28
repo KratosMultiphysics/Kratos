@@ -66,13 +66,9 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        self._GetSolver().ReadModelPart()
+        self._GetSolver().ImportModelPart()
         self._GetSolver().PrepareModelPart()
         self._GetSolver().AddDofs()
-
-        # This is temporary until the Model is fully supported
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
 
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -89,8 +85,8 @@ class AnalysisStage(object):
         ## Stepping and time settings
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self.time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
 
@@ -121,7 +117,7 @@ class AnalysisStage(object):
         self._GetSolver().InitializeSolutionStep()
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def FinalizeSolutionStep(self):

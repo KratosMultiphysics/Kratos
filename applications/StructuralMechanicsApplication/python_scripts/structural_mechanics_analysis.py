@@ -44,7 +44,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
-
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
         ## Import parallel modules if needed
@@ -65,7 +64,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
         import python_solvers_wrapper_structural
-        self.solver = python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
+        return python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
