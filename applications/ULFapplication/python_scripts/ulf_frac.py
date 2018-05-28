@@ -274,7 +274,7 @@ class ULF_FSISolver:
         ((self.combined_model_part).Conditions).clear();
         ((self.combined_model_part).Nodes).clear();
         ((self.fluid_model_part).Elements).clear();
-        #((self.fluid_model_part).Conditions).clear();
+        ((self.fluid_model_part).Conditions).clear();
 
         # self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 2.5000)
         # mark outer nodes for erasing
