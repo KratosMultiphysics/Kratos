@@ -811,6 +811,8 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveElementFromAllLevels3)
 		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveElementFromAllLevels4)
         .def("RemoveRemoveMasterSlaveConstraintsFromAllLevels", ModelPartRemoveElementsFromAllLevels)
+        .def("AddMasterSlaveConstraint", &ModelPart::AddElement)
+        .def("CeateNewMasterSlaveConstraint",&ModelPart::CreateNewMasterSlaveConstraint)
 		;
 }
 
