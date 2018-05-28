@@ -32,7 +32,7 @@ namespace Kratos
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
                                InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
     {
-        PrepareSearching(rpInterfaceInfo, InterfaceObjectTypeDestination);
+        PrepareSearching(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin, InterfaceObjectTypeDestination);
 
         ConductLocalSearch();
 
@@ -42,38 +42,6 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructureBase::PrepareSearching(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
-                                                    InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
-    {
-        if (mpInterfaceObjectsDestination != nullptr)
-        {
-            mpInterfaceObjectsDestination = Kratos::make_unique<InterfaceObjectContainerType>();
-            // mpInterfaceInfos = Kratos::make_unique<InterfaceObjectContainerType>();
-
-
-
-        }
-    }
-
-    void InterfaceSearchStructureBase::FinalizeSearching()
-    {
-        /*
-        TODO change to OMP
-        This is threadsafe bcs there will never be more than one InterfaceInfo per LocalSystem (per partition, but the mpi stuff is handled differently anyway!
-        => will also make it easier to assign the shared_ptrs to the LocalSystem
-        for (const auto& r_info : Infos)
-        {
-            if (info.GetLocalSearchWasSuccessful() == true) // Attention, do NOT do this check in MPI, the InterfaceInfo would not have been sent to a partition if it didn't have a successful local search!
-            {
-                IndexType local_sys_idx =
-                mpMapperLocalSystems[local_sys_idx].AddInterfaceInfo(r_info);
-            }
-        }
-
-        */
-
-    }
-
     void InterfaceSearchStructureBase::CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
         mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
@@ -129,6 +97,15 @@ namespace Kratos
             << mrModelPartOrigin.Name() << "\"!" << std::endl;
     }
 
+    void InterfaceSearchStructureBase::UpdateInterfaceObjectsOrigin()
+    {
+        const auto begin = mpInterfaceObjectsOrigin->begin();
+
+        #pragma omp parallel for
+        for (int i = 0; i< static_cast<int>(mpInterfaceObjectsOrigin->size()); ++i)
+            (*(begin + i))->UpdateCoordinates();
+    }
+
     void InterfaceSearchStructureBase::InitializeBinsSearchStructure()
     {
         if (mpInterfaceObjectsOrigin->size() > 0)   // only construct the bins if the partition has a part of the interface
@@ -140,31 +117,31 @@ namespace Kratos
 
     void InterfaceSearchStructureBase::ConductLocalSearch()
     {
-        // SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
+        SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
-        // if (num_interface_obj_bin > 0)   // this partition has a bin structure
-        // {
-        //     InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
-        //     std::vector<double> neighbor_distances(num_interface_obj_bin);
+        if (num_interface_obj_bin > 0)   // this partition has a bin structure
+        {
+            InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
+            std::vector<double> neighbor_distances(num_interface_obj_bin);
 
-        //     // This fails bcs the internal things are not properly initialized!
-        //     //   Searching the neighbors
-        //     // for (SizeType i = 0; i < mpInterfaceObjectsDestination->size(); ++i)
-        //     // {
-        //     //     const auto interface_object_itr = mpInterfaceObjectsDestination->begin() + i;
-        //     //     double search_radius = mSearchRadius; // reset search radius
+            // This fails bcs the internal things are not properly initialized!
+            //   Searching the neighbors
+            // for (SizeType i = 0; i < mpInterfaceObjectsDestination->size(); ++i)
+            // {
+            //     const auto interface_object_itr = mpInterfaceObjectsDestination->begin() + i;
+            //     double search_radius = mSearchRadius; // reset search radius
 
-        //     //     auto results_itr = neighbor_results.begin();
-        //     //     auto distance_itr = neighbor_distances.begin();
+            //     auto results_itr = neighbor_results.begin();
+            //     auto distance_itr = neighbor_distances.begin();
 
-        //     //     SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
-        //     //                                         *interface_object_itr, search_radius, results_itr,
-        //     //                                         distance_itr, num_interface_obj_bin);
+            //     SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
+            //                                         *interface_object_itr, search_radius, results_itr,
+            //                                         distance_itr, num_interface_obj_bin);
 
-        //     //         for (SizeType j=0; j<number_of_results; ++j)
-        //     //             (*mpMapperInterfaceInfos)[i]->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
-        //     // }
-        // }
+            //         for (SizeType j=0; j<number_of_results; ++j)
+            //             (*mpMapperInterfaceInfos)[i]->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
+            // }
+        }
     }
 
     /***********************************************************************************/

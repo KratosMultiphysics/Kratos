@@ -55,21 +55,21 @@ public:
     /// Default constructor.
     NearestElementInterfaceInfo() {}
 
-    NearestElementInterfaceInfo(const Point rPoint,
+    NearestElementInterfaceInfo(const CoordinatesType& rCoordinates,
                                 const IndexType SourceLocalSystemIndex,
                                 const IndexType SourceRank=0)
-        : MapperInterfaceInfo(rPoint, SourceLocalSystemIndex, SourceRank)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
     {
 
     }
 
-    MapperInterfaceInfo::Pointer Create(const Point rPoint,
+    MapperInterfaceInfo::Pointer Create(const CoordinatesType& rCoordinates,
                                         const IndexType SourceLocalSystemIndex,
-                                        const IndexType SouceRank) const override
+                                        const IndexType SourceRank) const override
     {
-        return Kratos::make_shared<NearestElementInterfaceInfo>(rPoint,
+        return Kratos::make_shared<NearestElementInterfaceInfo>(rCoordinates,
                                                                 SourceLocalSystemIndex,
-                                                                SouceRank);
+                                                                SourceRank);
     }
 
     void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject, const double NeighborDistance) override;
@@ -145,6 +145,11 @@ public:
                         EquationIdVectorType& rDestinationIds) const override;
 
     bool UseNodesAsBasis() const override { return true; }
+
+    CoordinatesType& GetCoordinates() const override
+    {
+        return mpNode->Coordinates();
+    }
 
 private:
     NodePointerType mpNode;

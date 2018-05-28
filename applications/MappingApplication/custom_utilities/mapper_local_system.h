@@ -70,6 +70,8 @@ public:
     using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
     using MapperLocalSystemUniquePointer = Kratos::unique_ptr<MapperLocalSystem>;
 
+    using CoordinatesType = typename MapperInterfaceInfo::CoordinatesType;
+
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
@@ -150,6 +152,8 @@ public:
     // // This specifies if Nodes should be used for the construction
     // // => this is the case if the Geometry on the destination is not important
     virtual bool UseNodesAsBasis() const = 0;
+
+    virtual CoordinatesType& GetCoordinates() const = 0;
 
 
     void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo)

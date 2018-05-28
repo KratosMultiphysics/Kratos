@@ -104,11 +104,10 @@ public:
     ///@name Operations
     ///@{
 
-    void Reset()
+    virtual void UpdateCoordinates()
     {
-        SetCoordinates();
+        KRATOS_ERROR << "Base class function called!" << std::endl;
     }
-
 
     ///@}
     ///@name Access
@@ -178,11 +177,6 @@ protected:
     // This constructor is called by its derived classes
     InterfaceObject() : Point(0.0f, 0.0f, 0.0f)
     {
-    }
-
-    virtual void SetCoordinates()
-    {
-        KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     ///@}
@@ -301,7 +295,7 @@ public:
 
     InterfaceNode(NodePointerType pNode) : mpNode(pNode)
     {
-        SetCoordinates();
+        UpdateCoordinates();
     }
 
 
@@ -314,7 +308,7 @@ public:
 private:
     NodePointerType mpNode;
 
-    void SetCoordinates() override
+    void UpdateCoordinates() override
     {
         noalias(Coordinates()) = mpNode->Coordinates();
     }
@@ -342,7 +336,7 @@ public:
 
     InterfaceGeometryObject(GeometryPointerType pGeometry) : mpGeometry(pGeometry)
     {
-        SetCoordinates();
+        UpdateCoordinates();
     }
 
 
@@ -355,7 +349,7 @@ public:
 private:
     GeometryPointerType mpGeometry;
 
-    void SetCoordinates() override
+    void UpdateCoordinates() override
     {
         noalias(Coordinates()) = mpGeometry->Center();
     }

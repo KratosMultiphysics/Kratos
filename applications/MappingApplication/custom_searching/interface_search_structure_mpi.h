@@ -182,7 +182,9 @@ protected:
     // This function constructs the InterfaceObjects on the Destination
     // In serial it only does it once, whereas in MPI this involves Data-Exchange!
     // Imagine a sliding interface, there the partitions might change!
-    void PrepareSearching(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+    void PrepareSearching(const Kratos::Flags& rOptions,
+                          const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                          InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
                           InterfaceObject::ConstructionType InterfaceObjectTypeDestination) override;
 
     void FinalizeSearching() override;
