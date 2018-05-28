@@ -14,7 +14,7 @@ import math
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return CompareTwoFilesCheckProcess(Model, settings["Parameters"])
+    return CompareTwoFilesCheckProcess(settings["Parameters"])
 
 class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
