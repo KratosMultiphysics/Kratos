@@ -70,7 +70,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //set current CURVATURES
     rVariables.CurrentCurvatureVector  = mPreviousCurvatureVectors[rPointNumber];
@@ -231,7 +231,7 @@ namespace Kratos
     KRATOS_TRY
 
     //Internal Energy Calculation: alpha = 1     
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
     Vector StrainResultants(3);
@@ -282,7 +282,7 @@ namespace Kratos
     KRATOS_TRY
       
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rMassMatrix.size1() != MatSize)
@@ -437,7 +437,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rLeftHandSideMatrix.size1() != MatSize)
@@ -574,7 +574,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rRightHandSideVector.size() != MatSize)
@@ -701,7 +701,7 @@ namespace Kratos
     KRATOS_TRY
       
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
  
 
     if( (rLHSVariable == TANGENT_MATRIX) ){
@@ -746,7 +746,7 @@ namespace Kratos
     KRATOS_TRY
       
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     if( (rRHSVariable == RESIDUAL_VECTOR) ){
 

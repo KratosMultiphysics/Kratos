@@ -142,7 +142,7 @@ namespace Kratos
 
     //-------------
 
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     Matrix Identity(dimension,dimension);
     noalias(Identity) = IdentityMatrix(dimension);
@@ -456,7 +456,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes  = GetGeometry().size();
 
     //Get the shape functions for the order of the integration method [N]
@@ -766,7 +766,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     Vector StrainResultants = rVariables.CurrentAxisPositionDerivatives;
     Vector StrainCouples    = rVariables.CurrentCurvatureVector;
@@ -834,7 +834,7 @@ namespace Kratos
     KRATOS_TRY
 
     //Internal Energy Calculation: alpha = 1
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
     Vector StrainResultants = rVariables.CurrentAxisPositionDerivatives;
@@ -983,7 +983,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Initialize Local Matrices
     VectorType Fi(6);
@@ -1041,7 +1041,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize = rRightHandSideVector.size();
 
     VectorType Fi(6);
@@ -1360,7 +1360,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize = dimension * 2;
 
     //Initialize Local Matrices
@@ -1417,7 +1417,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
 
     //MatrixType Kuum = rLeftHandSideMatrix;
@@ -1506,7 +1506,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
 
     // MatrixType Kuum = rLeftHandSideMatrix;
@@ -1630,7 +1630,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Initialize Local Matrices
     MatrixType Kij(6,6);
@@ -1701,7 +1701,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rLeftHandSideMatrix.size1() != MatSize)
@@ -1948,7 +1948,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rRightHandSideVector.size() != MatSize)
@@ -2369,7 +2369,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rMassMatrix.size1() != MatSize)
@@ -2443,7 +2443,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    //const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    //const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     rTotalMass = ( Section.Area ) * GetProperties()[DENSITY];
 
     return rTotalMass;

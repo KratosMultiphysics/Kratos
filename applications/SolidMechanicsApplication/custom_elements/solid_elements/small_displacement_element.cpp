@@ -223,7 +223,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
     KRATOS_TRY
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     noalias(rH) = ZeroMatrix(dimension, dimension);
 
@@ -276,7 +276,7 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Ve
 {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 )
     {
@@ -329,7 +329,7 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matr
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int voigt_size            = dimension * (dimension +1) * 0.5;
 
     if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
@@ -491,7 +491,7 @@ int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
       KRATOS_ERROR <<  "constitutive law is not compatible with the small displacements element type" << std::endl;
 
     // Check that the constitutive law has the correct dimension 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     if( dimension == 2 )
     {
       if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )

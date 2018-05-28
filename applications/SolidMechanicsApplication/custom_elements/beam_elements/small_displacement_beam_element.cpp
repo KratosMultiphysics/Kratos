@@ -68,7 +68,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
     
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
@@ -109,7 +109,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
@@ -150,7 +150,7 @@ namespace Kratos
     KRATOS_TRY
       
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int voigt_size = dimension * (dimension +1) * 0.5;
 
     if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
@@ -365,7 +365,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     
     // calculate rotation matrix from spatial frame to material frame
     this->CalculateTransformationMatrix(rVariables.CurrentRotationMatrix);
@@ -385,7 +385,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     // calculate rotation matrix from spatial frame to material frame
     this->CalculateTransformationMatrix(rVariables.CurrentRotationMatrix);

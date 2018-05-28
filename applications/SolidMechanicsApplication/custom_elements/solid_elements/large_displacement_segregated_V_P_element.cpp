@@ -122,7 +122,7 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
 {
     rElementalDofList.resize( 0 );
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     
     switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
     {
@@ -156,7 +156,7 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
 void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
@@ -198,7 +198,7 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
 void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int Step )
 {
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
@@ -242,7 +242,7 @@ void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int
 void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
@@ -284,7 +284,7 @@ void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rV
 void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
@@ -367,7 +367,7 @@ unsigned int LargeDisplacementSegregatedVPElement::GetDofsSize()
 {
   KRATOS_TRY
      
-  const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+  const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
   const SizeType number_of_nodes  = GetGeometry().PointsNumber();
   
   unsigned int size = 0;

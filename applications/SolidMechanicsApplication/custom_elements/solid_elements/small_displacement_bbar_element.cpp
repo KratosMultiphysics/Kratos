@@ -183,7 +183,7 @@ void SmallDisplacementBbarElement::CalculateInfinitesimalStrainBbar(Vector& rStr
 {
     KRATOS_TRY
 
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     Matrix J (dimension,dimension);
       
@@ -231,7 +231,7 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB,
     KRATOS_TRY
       
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     // Compute deformation matrix
     this->CalculateDeformationMatrix(rB, rDN_DX);
@@ -287,7 +287,7 @@ void SmallDisplacementBbarElement::CalculateVolumetricDeformationMatrix(ElementD
     KRATOS_TRY
       
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rVariables.H.resize(dimension * number_of_nodes, 1, false);
     rVariables.H.clear();

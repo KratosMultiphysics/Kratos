@@ -141,7 +141,7 @@ namespace Kratos
 
     //matrix value :  A = Q * A' * QT
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     unsigned int MatSize = rVariable.size1();
    
@@ -202,7 +202,7 @@ namespace Kratos
 
     BeamElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Set equilibrium point initial:0/mid:0.5/final:1
     if( rCurrentProcessInfo.Has(EQUILIBRIUM_POINT) )
@@ -226,7 +226,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes  = GetGeometry().size();
 
     //Get the shape functions for the order of the integration method [N]
@@ -372,7 +372,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
@@ -548,7 +548,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     Vector CurrentStepDisplacementDerivativesVector(3);
     noalias(CurrentStepDisplacementDerivativesVector) = ZeroVector(3);
@@ -757,7 +757,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
     Vector StrainResultants(3);
@@ -834,7 +834,7 @@ namespace Kratos
     KRATOS_TRY
 
     //Internal Energy Calculation: alpha = 1     
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
     Vector StrainResultants(3);
@@ -952,7 +952,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
 
     // MatrixType Kuum = rLeftHandSideMatrix;
@@ -1116,7 +1116,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rLeftHandSideMatrix.size1() != MatSize)
@@ -1256,7 +1256,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize            = number_of_nodes * ( dimension * 2 );
 
     if(rRightHandSideVector.size() != MatSize)

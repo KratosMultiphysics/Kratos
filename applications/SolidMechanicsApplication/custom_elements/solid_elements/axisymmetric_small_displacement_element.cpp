@@ -104,7 +104,7 @@ AxisymmetricSmallDisplacementElement::~AxisymmetricSmallDisplacementElement()
 void AxisymmetricSmallDisplacementElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = 4;
     
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
@@ -258,7 +258,7 @@ void AxisymmetricSmallDisplacementElement::CalculateRadius(double & rRadius,
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rRadius=0;
 
@@ -295,7 +295,7 @@ void AxisymmetricSmallDisplacementElement::CalculateDisplacementGradient(Matrix&
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rH = zero_matrix<double> ( 3 );
 
@@ -345,7 +345,7 @@ void AxisymmetricSmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rB.clear(); //set all components to zero
 
@@ -390,7 +390,7 @@ void AxisymmetricSmallDisplacementElement::CalculateInfinitesimalStrain(const Ma
 {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 )
     {

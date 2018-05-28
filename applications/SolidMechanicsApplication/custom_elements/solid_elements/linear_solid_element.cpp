@@ -149,7 +149,7 @@ void LinearSolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessI
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT 
     rElementalDofList.resize( 0 );
-    const SizeType& dimension  = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension   = GetGeometry().WorkingSpaceDimension();
 
     for ( SizeType i = 0; i < GetGeometry().size(); i++ )
     {
@@ -168,7 +168,7 @@ void LinearSolidElement::EquationIdVector( EquationIdVectorType& rResult, Proces
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = number_of_nodes * dimension;
 
     if ( rResult.size() != dofs_size )
@@ -192,7 +192,7 @@ void LinearSolidElement::GetValuesVector( Vector& rValues, int Step )
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = number_of_nodes * dimension;
 
     if ( rValues.size() != dofs_size )
@@ -218,7 +218,7 @@ void LinearSolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = number_of_nodes * dimension;
 
     if ( rValues.size() != dofs_size )
@@ -242,7 +242,7 @@ void LinearSolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = number_of_nodes * dimension;
 
     if ( rValues.size() != dofs_size )
@@ -401,7 +401,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     //1.-Initialize sizes for the system components:
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
     unsigned int system_size = number_of_nodes * dimension;
@@ -567,7 +567,7 @@ void LinearSolidElement::AddExplicitContribution(const VectorType& rRHSVector,
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
       {
@@ -671,7 +671,7 @@ Matrix& LinearSolidElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
     //KRATOS NODAL CURRENT POSITION (X = X0 + DISPLACEMENT_X) IS ALWAYS COMPUTED
     GeometryType& geom = GetGeometry();
     const SizeType number_of_nodes  = geom.PointsNumber();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     if( rDeltaPosition.size1() != number_of_nodes || rDeltaPosition.size2() != dimension )
       rDeltaPosition.resize( number_of_nodes , dimension, false);
@@ -700,7 +700,7 @@ void LinearSolidElement::CalculateInfinitesimalStrain( Vector& rStrainVector, co
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     Matrix H = zero_matrix<double> ( dimension ); //[dU/dx_n]
 
@@ -778,7 +778,7 @@ void LinearSolidElement::CalculateDeformationMatrix(Matrix& rB, const Matrix& rD
 {
     KRATOS_TRY
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     unsigned int voigt_size = dimension * (dimension +1) * 0.5;
 
@@ -844,7 +844,7 @@ Vector& LinearSolidElement::CalculateVolumeForce( Vector& rVolumeForce, const Ve
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     if( rVolumeForce.size() != dimension )
       rVolumeForce.resize(dimension,false);
@@ -876,7 +876,7 @@ void LinearSolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessIn
     KRATOS_TRY
 
     //lumped
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
     unsigned int system_size = dimension * number_of_nodes;
 
@@ -920,7 +920,7 @@ void LinearSolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, Pro
 
     //0.-Initialize the DampingMatrix:
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
     const unsigned int system_size = number_of_nodes * dimension;
@@ -987,7 +987,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
     //a.- It can be stored for all integration points as a member variables an supplied here (avoid it: memory consuming)
     //b.- It can be calculated again (recomendable: is it preferable to recompute than store it)
 
-    const SizeType& dimension  = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension   = GetGeometry().WorkingSpaceDimension();
 
     if ( rOutput.size() != mConstitutiveLawVector.size() )
         rOutput.resize( mConstitutiveLawVector.size() );
@@ -1223,7 +1223,7 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
 
     // Check that the constitutive law has the correct dimension
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     
     if ( dimension == 2 )
     {

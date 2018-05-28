@@ -210,7 +210,7 @@ void UpdatedLagrangianUPElement::Initialize()
     LargeDisplacementElement::Initialize();
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     //Resize historic deformation gradient
     if ( mDeformationGradientF0.size() != integration_points_number )
@@ -364,7 +364,7 @@ void UpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix& rF,
     KRATOS_TRY
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( dimension );
 
@@ -422,7 +422,7 @@ void UpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     rB.clear(); //set all components to zero
 

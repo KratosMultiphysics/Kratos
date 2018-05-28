@@ -226,7 +226,7 @@ void LargeDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatr
 {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
@@ -242,7 +242,7 @@ void LargeDisplacementElement::CalculateGreenLagrangeStrain(const Matrix& rF, Ve
 {
     KRATOS_TRY
 
-    const SizeType& dimension  = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension   = GetGeometry().WorkingSpaceDimension();
 
     //Right Cauchy-Green Calculation
     Matrix C ( dimension, dimension );
@@ -296,7 +296,7 @@ void LargeDisplacementElement::CalculateAlmansiStrain(const Matrix& rF, Vector& 
 {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Left Cauchy-Green Calculation
     Matrix LeftCauchyGreen(dimension, dimension);
@@ -442,7 +442,7 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
     // Check that the constitutive law has the correct dimension
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     if( dimension == 2 )
     {
       if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )

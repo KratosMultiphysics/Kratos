@@ -232,7 +232,7 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementData (ElementDataTyp
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = 4;
 
     rVariables.Initialize(voigt_size, dimension, number_of_nodes);
@@ -426,7 +426,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateRadius(double & rCurrentRadi
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rCurrentRadius=0;
     rReferenceRadius=0;
@@ -473,7 +473,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateDeformationGradient(Matrix& 
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( 3 );
 
@@ -520,7 +520,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     rB.clear(); //set all components to zero
 
@@ -564,7 +564,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateGreenLagrangeStrain(const Ma
 {
     KRATOS_TRY
 
-    const SizeType& dimension  = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension   = GetGeometry().WorkingSpaceDimension();
 
     //Right Cauchy-Green Calculation
     Matrix C ( 3, 3 );
@@ -609,7 +609,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateAlmansiStrain(const Matrix& 
 {
     KRATOS_TRY
 
-    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Left Cauchy-Green Calculation
     Matrix LeftCauchyGreen(rF.size1(),rF.size1());
