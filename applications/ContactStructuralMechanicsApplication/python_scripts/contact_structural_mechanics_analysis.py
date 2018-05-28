@@ -47,27 +47,14 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
         if (self.echo_level == 0):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
-        ## Structure model part definition
-        main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        if self.model.HasModelPart(main_model_part_name):
-            self.main_model_part = self.model[main_model_part_name]
-            self.using_external_model_part = True
-        else:
-            self.main_model_part = KratosMultiphysics.ModelPart(main_model_part_name)
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
-                                                      self.project_parameters["problem_data"]["domain_size"].GetInt())
-            self.using_external_model_part = False
-
         ## Solver construction
         import python_solvers_wrapper_contact_structural
-        self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.main_model_part, self.project_parameters)
+        self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.model, self.project_parameters)
 
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
 
-        if not self.using_external_model_part:
-            ## Read the model - note that SetBufferSize is done here
-            self.solver.ReadModelPart() # TODO move to global instance
+        self.solver.ImportModelPart() # TODO move to global instance
 
     def _SetUpListOfProcesses(self):
         """ Set up the list of processes """
