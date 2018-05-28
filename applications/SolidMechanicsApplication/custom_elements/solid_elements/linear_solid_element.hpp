@@ -53,6 +53,9 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+     
     /// Counted pointer of LinearSolidElement
     KRATOS_CLASS_POINTER_DEFINITION( LinearSolidElement );
     ///@}
@@ -286,9 +289,9 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    LinearSolidElement() : Element()
-    {
-    }
+    LinearSolidElement() : Element() {}
+
+    //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
 
     ///@}
     ///@name Protected Operations

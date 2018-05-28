@@ -62,6 +62,10 @@ public:
     typedef BeamMathUtils<double>                     BeamMathUtilsType;
     ///Type definition for quaternion 
     typedef Quaternion<double>                           QuaternionType;
+    ///Type for size
+    typedef GeometryData::SizeType                             SizeType;
+    ///Type for element variables
+    typedef BeamElement::ElementDataType                ElementDataType;
 
     /// Counted pointer of LargeDisplacementBeamElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementBeamElement );
@@ -285,52 +289,52 @@ protected:
     /**
      * Transform Vector Variable form Material Frame to the Spatial Frame
      */    
-    virtual void MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable);
+    virtual void MapToSpatialFrame(const ElementDataType& rVariables, Matrix& rVariable);
 
 
     /**   
      * Calculate current curvature
      */
-    virtual void CalculateCurrentCurvature(ElementVariables& rVariables, const Variable<array_1d<double, 3 > >& rVariable);
+    virtual void CalculateCurrentCurvature(ElementDataType& rVariables, const Variable<array_1d<double, 3 > >& rVariable);
 
 
     /**   
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
+    virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
     /**   
      * Calculate Element Frame
      */
-    virtual void CalculateFrameMapping(ElementVariables& rVariables,
+    virtual void CalculateFrameMapping(ElementDataType& rVariables,
 				       const unsigned int& rPointNumber);
 
 
     /**
      * Update strain current member variables
      */ 
-    virtual void UpdateStrainVariables(ElementVariables& rVariables, 
+    virtual void UpdateStrainVariables(ElementDataType& rVariables, 
 				       const unsigned int& rPointNumber);
 
 
     /**   
      * Calculate Element Constitutive Matrix
      */ 
-    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables) override;
+    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
 
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
+    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight) override;
 
 
@@ -339,18 +343,18 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight) override;
 
     virtual void CalculateAndAddKuug2(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight);
 
     /**
      * Calculation of the Follower Load Stiffness Matrix. Kuuf
      */
     virtual void CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight);
 
 
@@ -359,7 +363,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
-					       ElementVariables& rVariables,
+					       ElementDataType& rVariables,
 					       double& rIntegrationWeight);
 
 
@@ -367,7 +371,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables& rVariables,
+					       ElementDataType& rVariables,
 					       Vector& rVolumeForce,
 					       double& rIntegrationWeight) override;
 
@@ -377,7 +381,7 @@ protected:
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementVariables& rVariables,
+					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
@@ -385,7 +389,7 @@ protected:
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementVariables& rVariables,
+					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
 
@@ -393,7 +397,7 @@ protected:
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables & rVariables,
+					       ElementDataType & rVariables,
 					       double& rIntegrationWeight) override;
 
 
@@ -408,14 +412,14 @@ protected:
      * Calculation Complementary Method : Discrete Operator with Derivatives Shape Functions
      */
     void CalculateDiscreteOperator(MatrixType& rDiscreteOperator,
-				   ElementVariables& rVariables,
+				   ElementDataType& rVariables,
 				   const int& rNode);
 
     /**
      * Calculation Complementary Method : Derivative Shape Function Matrix Operator
      */
     virtual void CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
-					       ElementVariables& rVariables,
+					       ElementDataType& rVariables,
 					       const int& rNode,
 					       double alpha = 0);
 
@@ -424,7 +428,7 @@ protected:
      * Calculation Complementary Method : B Auxiliar Matrix Calculation
      */
     void CalculateBmatrix(MatrixType& rBmatrix,
-			  ElementVariables& rVariables);
+			  ElementDataType& rVariables);
 
     /**
      * Calculation of Element Mass
@@ -461,28 +465,28 @@ protected:
     /**
      * External forces energy computation
      */
-    virtual void CalculateExternalForcesEnergy(double& rEnergy, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight);
+    virtual void CalculateExternalForcesEnergy(double& rEnergy, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight);
 
     /**
      * Internal forces energy computation
      */
-    virtual void CalculateInternalForcesEnergy(double& rEnergy, ElementVariables& rVariables, double& rIntegrationWeight);
+    virtual void CalculateInternalForcesEnergy(double& rEnergy, ElementDataType& rVariables, double& rIntegrationWeight);
 
   
    /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
+    virtual void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
   
     /**
      * Get Element Mass/Inertia Matrix for energy computation
      */
-    virtual void CalculateKineticEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
+    virtual void CalculateKineticEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
 
     /**
      * Get Element Linear and Angular Momentum
      */
-    virtual void CalculateMomentumRelations(array_1d<double,3>& LinearMomentum, array_1d<double,3>& AngularMomentum, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
+    virtual void CalculateMomentumRelations(array_1d<double,3>& LinearMomentum, array_1d<double,3>& AngularMomentum, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight);
 
     ///@}
     ///@name Protected  Access

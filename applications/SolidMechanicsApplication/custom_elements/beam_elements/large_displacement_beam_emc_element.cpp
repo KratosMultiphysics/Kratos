@@ -134,14 +134,14 @@ namespace Kratos
   //*****************************************************************************
   //*****************************************************************************
 
-  void LargeDisplacementBeamEMCElement::MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable)
+  void LargeDisplacementBeamEMCElement::MapToSpatialFrame(const ElementDataType& rVariables, Matrix& rVariable)
   {
 
     KRATOS_TRY
 
     //matrix value :  A = Q * A' * QT
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     unsigned int MatSize = rVariable.size1();
    
@@ -196,13 +196,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamEMCElement::InitializeElementData(ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    BeamElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+    BeamElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //Set equilibrium point initial:0/mid:0.5/final:1
     if( rCurrentProcessInfo.Has(EQUILIBRIUM_POINT) )
@@ -222,12 +222,12 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::CalculateKinematics(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void LargeDisplacementBeamEMCElement::CalculateKinematics(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
 
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
@@ -371,8 +371,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
@@ -396,7 +396,7 @@ namespace Kratos
   //*************************COMPUTE FRAME MAPPING*************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::CalculateFrameMapping(ElementVariables& rVariables,const unsigned int& rPointNumber)
+  void LargeDisplacementBeamEMCElement::CalculateFrameMapping(ElementDataType& rVariables,const unsigned int& rPointNumber)
   {
 
     if( mThisIntegrationMethod == this->mReducedIntegrationMethod ){
@@ -435,7 +435,7 @@ namespace Kratos
   //*********************************SET STRAIN VARIABLES*******************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::UpdateStrainVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void LargeDisplacementBeamEMCElement::UpdateStrainVariables(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
@@ -470,7 +470,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::CalculateConstitutiveMatrix(ElementVariables& rVariables)
+  void LargeDisplacementBeamEMCElement::CalculateConstitutiveMatrix(ElementDataType& rVariables)
   {
     KRATOS_TRY
 
@@ -488,7 +488,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::CalculateStrainResultants(Vector& rStrainResultants, ElementVariables& rVariables, double alpha)
+  void LargeDisplacementBeamEMCElement::CalculateStrainResultants(Vector& rStrainResultants, ElementDataType& rVariables, double alpha)
   {
     KRATOS_TRY
 
@@ -514,7 +514,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::CalculateStrainCouples(Vector& rStrainCouples, ElementVariables& rVariables, double alpha)
+  void LargeDisplacementBeamEMCElement::CalculateStrainCouples(Vector& rStrainCouples, ElementDataType& rVariables, double alpha)
   {
     KRATOS_TRY
 
@@ -542,13 +542,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(ElementVariables& rVariables, 
+  void LargeDisplacementBeamEMCElement::CalculateCurrentStrainResultantsVector(ElementDataType& rVariables, 
 									       Vector& rCurrentStrainResultantsVector,
 									       double Alpha)
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     Vector CurrentStepDisplacementDerivativesVector(3);
     noalias(CurrentStepDisplacementDerivativesVector) = ZeroVector(3);
@@ -561,7 +561,7 @@ namespace Kratos
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
     
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType number_of_nodes  = GetGeometry().size();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -708,7 +708,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::CalculateCurrentCurvatureVector(ElementVariables& rVariables, 
+  void LargeDisplacementBeamEMCElement::CalculateCurrentCurvatureVector(ElementDataType& rVariables, 
 									Vector& rCurrentCurvatureVector,
 									double Alpha)
   {
@@ -719,7 +719,7 @@ namespace Kratos
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
     
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType number_of_nodes  = GetGeometry().size();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -753,11 +753,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamEMCElement::CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void LargeDisplacementBeamEMCElement::CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
     Vector StrainResultants(3);
@@ -829,12 +829,12 @@ namespace Kratos
   //************************************************************************************
 
   //Strain Energy Calculation 
-  void LargeDisplacementBeamEMCElement::CalculateStrainEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void LargeDisplacementBeamEMCElement::CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
     //Internal Energy Calculation: alpha = 1     
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
     Vector StrainResultants(3);
@@ -881,7 +881,7 @@ namespace Kratos
   //************************************************************************************
 
   void LargeDisplacementBeamEMCElement::CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
-								      ElementVariables & rVariables,
+								      ElementDataType & rVariables,
 								      double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -896,7 +896,7 @@ namespace Kratos
   //************************************************************************************
 
   void LargeDisplacementBeamEMCElement::CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
-								      ElementVariables& rVariables,
+								      ElementDataType& rVariables,
 								      const int& rNode,
 								      double alpha)
   {
@@ -946,13 +946,13 @@ namespace Kratos
 
 
   void LargeDisplacementBeamEMCElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-							    ElementVariables& rVariables,
+							    ElementDataType& rVariables,
 							    double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
 
     // MatrixType Kuum = rLeftHandSideMatrix;
@@ -1096,7 +1096,7 @@ namespace Kratos
   //************************************************************************************
 
   void LargeDisplacementBeamEMCElement::CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
-							    ElementVariables& rVariables,
+							    ElementDataType& rVariables,
 							    double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -1110,13 +1110,13 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration 
-  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rLeftHandSideMatrix.size1() != MatSize)
@@ -1251,13 +1251,13 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration 
-  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void LargeDisplacementBeamEMCElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int MatSize            = number_of_nodes * ( dimension * 2 );
 
     if(rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);

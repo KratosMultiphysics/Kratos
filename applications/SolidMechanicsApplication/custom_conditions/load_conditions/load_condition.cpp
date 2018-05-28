@@ -116,15 +116,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     unsigned int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         index = dimension * i;
 	
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
 	    rRightHandSideVector[index + j] += rVariables.N[i] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
 	  }
@@ -149,14 +149,14 @@ namespace Kratos
       Vector CurrentValueVector(3);
       noalias(CurrentValueVector) = ZeroVector(3);
       
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  CurrentValueVector = GetGeometry()[i].Coordinates();
 	  IntegrationPointPosition += rVariables.N[i] * CurrentValueVector;
 	}
     
       unsigned int RowIndex = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  RowIndex = i * ( (dimension-1) * 3 );
 
@@ -197,15 +197,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     // Energy Calculation:
     Vector CurrentValueVector(dimension);
     noalias(CurrentValueVector) = ZeroVector(dimension); 
     Vector Displacements(dimension);
     noalias(Displacements) = ZeroVector(dimension);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	//current displacements to compute energy
 	CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, i );
@@ -216,7 +216,7 @@ namespace Kratos
 
     Vector ForceVector(dimension);
     noalias(ForceVector) = ZeroVector(dimension);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	ForceVector += rVariables.N[i] * rVariables.ExternalVectorValue * rIntegrationWeight;
       }

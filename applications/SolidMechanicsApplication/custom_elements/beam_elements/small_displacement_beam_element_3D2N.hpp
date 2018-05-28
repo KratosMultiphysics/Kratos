@@ -50,7 +50,9 @@ public:
     ///@name Type Definitions
     ///@{
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+ 
     /// Counted pointer of SmallDisplacementBeamElement3D2N
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementBeamElement3D2N );
 
@@ -344,6 +346,8 @@ protected:
     ///@name Protected Operators
     ///@{
     SmallDisplacementBeamElement3D2N() {};
+    
+    //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
 
     ///@}
     ///@name Protected Operations

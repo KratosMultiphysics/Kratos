@@ -181,8 +181,8 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
@@ -196,7 +196,7 @@ namespace Kratos
     //defined on condition
     if( this->Has( BALLAST_COEFFICIENT ) ){
       double& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	rVariables.ExternalScalarValue += rVariables.N[i] * fabs(BallastCoefficient);
     }
 
@@ -204,7 +204,7 @@ namespace Kratos
     //defined on condition nodes  
     if( this->Has( BALLAST_COEFFICIENT_VECTOR ) ){
       Vector& BallastCoefficient = this->GetValue( BALLAST_COEFFICIENT_VECTOR );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{	  
 	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs(BallastCoefficient[i]); 
 	}
@@ -212,7 +212,7 @@ namespace Kratos
 
     
     //defined on geometry nodes
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( BALLAST_COEFFICIENT ) ) 
 	  rVariables.ExternalScalarValue += rVariables.N[i] * fabs( GetGeometry()[i].FastGetSolutionStepValue( BALLAST_COEFFICIENT ) );     
@@ -225,9 +225,9 @@ namespace Kratos
     //defined on condition
     if( this->Has( ELASTIC_LOAD ) ){
       array_1d<double, 3 > & SurfaceStiffness = this->GetValue( ELASTIC_LOAD );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(SurfaceStiffness[k]);
 	}
     }
@@ -236,9 +236,9 @@ namespace Kratos
     if( this->Has( ELASTIC_LOAD_VECTOR ) ){
       Vector& SurfaceStiffnesss = this->GetValue( ELASTIC_LOAD_VECTOR );
       unsigned int counter = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(SurfaceStiffnesss[counter]);
 	      counter++;
@@ -247,11 +247,11 @@ namespace Kratos
     }
         
     //defined on geometry nodes
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( ELASTIC_LOAD ) ){
 	  array_1d<double, 3 > & SurfaceStiffness = GetGeometry()[i].FastGetSolutionStepValue( ELASTIC_LOAD );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(SurfaceStiffness[k]);
 	}
       }
@@ -282,7 +282,7 @@ namespace Kratos
 	  BoundedMatrix<double, 3, 3 > Cross_gn;
 
 	  double coeff;
-	  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	  const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
 	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(rVariables.Tangent1,Cross_ge);
 	  BeamMathUtils<double>::VectorToSkewSymmetricTensor(rVariables.Tangent2,Cross_gn);
@@ -290,10 +290,10 @@ namespace Kratos
 	  unsigned int RowIndex = 0;
 	  unsigned int ColIndex = 0;
 
-	  for (unsigned int i = 0; i < number_of_nodes; i++)
+	  for (SizeType i = 0; i < number_of_nodes; i++)
 	    {
 	      RowIndex = i * 3;
-	      for (unsigned int j = 0; j < number_of_nodes; j++)
+	      for (SizeType j = 0; j < number_of_nodes; j++)
 		{
 		  ColIndex = j * 3;
 

@@ -136,7 +136,9 @@ protected:
     ///@name Protected Operators
     ///@{
     SmallDisplacementBeamElement() {};
-
+    
+    //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
+    
     ///@}
     ///@name Protected Operations
     ///@{
@@ -144,12 +146,12 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**   
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
+    virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
     /**   
@@ -161,13 +163,13 @@ protected:
     /**   
      * Calculate Element Constitutive Matrix
      */ 
-    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables) override;
+    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
 
      /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber) override;
+    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
  
     /**
      * Calculation of the Rotation tensor
@@ -178,12 +180,12 @@ protected:
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementVariables& rVariables, Matrix& rVariable) override;
+    virtual void MapLocalToGlobal(ElementDataType& rVariables, Matrix& rVariable) override;
 
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector) override;
+    virtual void MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector) override;
   
 
 
@@ -192,21 +194,21 @@ protected:
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight) override;
 
 
     /**
      * Calculation of the Material Stiffness Matrix
      */
-    void CalculateLocalStiffnessMatrix(Matrix& LocalMatrix,ElementVariables& rVariables);
+    void CalculateLocalStiffnessMatrix(Matrix& LocalMatrix,ElementDataType& rVariables);
 
 
      /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables & rVariables,
+					       ElementDataType & rVariables,
 					       double& rIntegrationWeight) override;
 
   

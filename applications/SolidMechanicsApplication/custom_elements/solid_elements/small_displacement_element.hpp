@@ -58,7 +58,11 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-   
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef SolidElement::ElementDataType ElementDataType;
+
     /// Counted pointer of SmallDisplacementElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementElement );
 
@@ -177,27 +181,27 @@ protected:
      */
     
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             ElementVariables& rVariables,
+                             ElementDataType& rVariables,
                              double& rIntegrationWeight) override;
 
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-   void SetElementVariables(ElementVariables& rVariables,
-                            ConstitutiveLaw::Parameters& rValues,
-                            const int & rPointNumber) override;
+   void SetElementData(ElementDataType& rVariables,
+                       ConstitutiveLaw::Parameters& rValues,
+                       const int & rPointNumber) override;
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementVariables& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                              const double& rPointNumber) override;
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementVariables(ElementVariables & rVariables, 
+    void InitializeElementData(ElementDataType & rVariables, 
                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 

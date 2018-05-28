@@ -59,11 +59,12 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
 
     /// Counted pointer of SolidElement
     KRATOS_CLASS_POINTER_DEFINITION( SolidElement );
-    ///@}
-
+  
 protected:
 
     /**
@@ -77,7 +78,7 @@ protected:
      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
      */
 
-    struct ElementVariables
+    struct ElementData
     {
       private:
 
@@ -246,6 +247,10 @@ protected:
 public:
 
 
+    ///Type for element variables
+    typedef ElementData ElementDataType;
+
+    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -607,12 +612,13 @@ protected:
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-	
+    
     ///@}
     ///@name Protected Operators
     ///@{
 
- 
+    //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -638,7 +644,7 @@ protected:
     /**
      * Prints element information for each gauss point (debugging purposes)
      */
-    void PrintElementCalculation(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables);
+    void PrintElementCalculation(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables);
 
 
     /**
@@ -652,7 +658,7 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     double& rIntegrationWeight);
 
     /**
@@ -660,7 +666,7 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight);
 
@@ -671,7 +677,7 @@ protected:
      */
 
     virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
-					   ElementVariables& rVariables, 
+					   ElementDataType& rVariables, 
 					   ProcessInfo& rCurrentProcessInfo, 
 					   double& rIntegrationWeight);
 
@@ -680,7 +686,7 @@ protected:
      */
 
     virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
-					   ElementVariables& rVariables, 
+					   ElementDataType& rVariables, 
 					   ProcessInfo& rCurrentProcessInfo, 
 					   double& rIntegrationWeight);
 
@@ -691,14 +697,14 @@ protected:
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight);
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight);
 
 
@@ -706,7 +712,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables& rVariables,
+					       ElementDataType& rVariables,
 					       Vector& rVolumeForce,
 					       double& rIntegrationWeight);
 
@@ -715,14 +721,14 @@ protected:
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables & rVariables,
+					       ElementDataType & rVariables,
 					       double& rIntegrationWeight);
 
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    virtual void SetElementVariables(ElementVariables& rVariables,
+    virtual void SetElementData(ElementDataType& rVariables,
                                      ConstitutiveLaw::Parameters& rValues,
                                      const int & rPointNumber);
 
@@ -763,31 +769,31 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
+    virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const double& rPointNumber);
 
     /**
      * Calculate Element Jacobian
      */
-    virtual void CalculateKinetics(ElementVariables& rVariables,
+    virtual void CalculateKinetics(ElementDataType& rVariables,
 				   const double& rPointNumber);
     
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, 
+    virtual void InitializeElementData(ElementDataType & rVariables, 
 					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Transform Element General Variables
      */
-    virtual void TransformElementVariables(ElementVariables & rVariables, 
+    virtual void TransformElementData(ElementDataType & rVariables, 
 					   const double& rPointNumber);
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementVariables & rVariables, 
+    virtual void FinalizeStepVariables(ElementDataType & rVariables, 
 				       const double& rPointNumber);
 
     /**
@@ -822,12 +828,12 @@ protected:
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
+    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables);
 
     /**
      * Calculation of the Volume Force of the Element
      */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, ElementVariables& rVariables);
+    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, ElementDataType& rVariables);
 
 
     ///@}

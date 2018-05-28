@@ -48,6 +48,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+
     // Counted pointer of ElasticCondition
     KRATOS_CLASS_POINTER_DEFINITION( ElasticCondition );
 

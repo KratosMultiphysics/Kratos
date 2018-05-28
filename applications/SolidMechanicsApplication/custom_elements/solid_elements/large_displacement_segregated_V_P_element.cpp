@@ -72,7 +72,7 @@ LargeDisplacementSegregatedVPElement&  LargeDisplacementSegregatedVPElement::ope
 
 Element::Pointer LargeDisplacementSegregatedVPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new LargeDisplacementSegregatedVPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+  return Kratos::make_shared< LargeDisplacementSegregatedVPElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);    
 }
 
 
@@ -102,7 +102,7 @@ Element::Pointer LargeDisplacementSegregatedVPElement::Clone( IndexType NewId, N
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
        
-    return Element::Pointer( new LargeDisplacementSegregatedVPElement(NewElement) );
+    return Kratos::make_shared< LargeDisplacementSegregatedVPElement >(NewElement);
 }
 
 
@@ -122,13 +122,13 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
 {
     rElementalDofList.resize( 0 );
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
     
     switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
     {
       case VELOCITY_STEP:
         {
-          for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+          for ( SizeType i = 0; i < GetGeometry().size(); i++ )
           {
             rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_X ) );
             rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_Y ) );
@@ -139,7 +139,7 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
         }
       case PRESSURE_STEP:
         {
-          for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+          for ( SizeType i = 0; i < GetGeometry().size(); i++ )
           {
             rElementalDofList.push_back( GetGeometry()[i].pGetDof( PRESSURE ) );
           }
@@ -155,8 +155,8 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
 
 void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
@@ -166,7 +166,7 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
     {
       case VELOCITY_STEP:
         {
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          for ( SizeType i = 0; i < number_of_nodes; i++ )
           {
             int index = i * dimension;
             rResult[index]     = GetGeometry()[i].GetDof( VELOCITY_X ).EquationId();
@@ -179,7 +179,7 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
         }
       case PRESSURE_STEP:
         {
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          for ( SizeType i = 0; i < number_of_nodes; i++ )
           {
             rResult[i] = GetGeometry()[i].GetDof( PRESSURE ).EquationId();
           }
@@ -197,8 +197,8 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
 
 void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
@@ -209,7 +209,7 @@ void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int
       case VELOCITY_STEP:
         {
           unsigned int index = 0;
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          for ( SizeType i = 0; i < number_of_nodes; i++ )
           {
             index = i * dimension;
             rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -223,7 +223,7 @@ void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int
         }
       case PRESSURE_STEP:
         {
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          for ( SizeType i = 0; i < number_of_nodes; i++ )
           {
             rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
           }
@@ -241,8 +241,8 @@ void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int
 
 void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
@@ -253,7 +253,7 @@ void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rV
       case VELOCITY_STEP:
         {
           unsigned int index = 0;
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          for ( SizeType i = 0; i < number_of_nodes; i++ )
           {
             index = i * dimension;
             rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -266,7 +266,7 @@ void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rV
         }
       case PRESSURE_STEP:
         {
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          for ( SizeType i = 0; i < number_of_nodes; i++ )
           {
             rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PRESSURE_VELOCITY, Step );
           }
@@ -283,8 +283,8 @@ void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rV
 
 void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
@@ -295,7 +295,7 @@ void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& r
       case VELOCITY_STEP:
         {
           unsigned int index = 0;
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          for ( SizeType i = 0; i < number_of_nodes; i++ )
           {
             index = i * dimension;
             rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -308,7 +308,7 @@ void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& r
         }
       case PRESSURE_STEP:
         {
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
+          for ( SizeType i = 0; i < number_of_nodes; i++ )
           {
             rValues[i]     = GetGeometry()[i].GetSolutionStepValue( PRESSURE_ACCELERATION, Step );
           }
@@ -323,7 +323,7 @@ void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& r
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
     KRATOS_TRY
        
@@ -367,8 +367,8 @@ unsigned int LargeDisplacementSegregatedVPElement::GetDofsSize()
 {
   KRATOS_TRY
      
-  const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+  const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+  const SizeType number_of_nodes  = GetGeometry().PointsNumber();
   
   unsigned int size = 0;
   switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
@@ -401,7 +401,7 @@ int  LargeDisplacementSegregatedVPElement::Check( const ProcessInfo& rCurrentPro
     ErrorCode = LargeDisplacementVElement::Check(rCurrentProcessInfo);
 
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+    for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];

@@ -78,8 +78,8 @@ namespace Kratos
 
     LargeDisplacementBeamEMCElement::Initialize();
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
 
     //Initial Local Directors initialization
     if ( mInitialLocalDirectors.size() != number_of_nodes )
@@ -102,7 +102,7 @@ namespace Kratos
 
     Matrix Identity = IdentityMatrix(dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	mInitialLocalDirectors[i]   = Identity;
 	mCurrentLocalDirectors[i]   = Identity;
@@ -132,7 +132,7 @@ namespace Kratos
     Matrix MatrixZero(dimension,dimension);
     noalias(MatrixZero) = ZeroMatrix(dimension,dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	mInitialLocalDirectorsVelocities[i]  = MatrixZero;
 	mCurrentLocalDirectorsVelocities[i]  = MatrixZero;
@@ -168,15 +168,15 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void GeometricallyExactRodElement::InitializeElementData(ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
     KRATOS_TRY
 
-    LargeDisplacementBeamEMCElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacementBeamEMCElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
 
     DirectorsVariables& Directors = rVariables.GetDirectors();
@@ -214,7 +214,7 @@ namespace Kratos
     Matrix MatrixZero(dimension,dimension);
     noalias(MatrixZero) = ZeroMatrix(dimension,dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 
 	Directors.CurrentNode[i]            = MatrixZero;
@@ -232,12 +232,12 @@ namespace Kratos
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateKinematics(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void GeometricallyExactRodElement::CalculateKinematics(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
 
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
@@ -287,7 +287,7 @@ namespace Kratos
     DirectorsVariables& Directors = rVariables.GetDirectors();
 
     //strains due to displacements and rotations
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 
 	//A: Current Nodes Position
@@ -376,7 +376,7 @@ namespace Kratos
     Matrix TensorAngularVelocity(3,3);
     noalias(TensorAngularVelocity) = ZeroMatrix(3,3);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 
 	//UPDATE CURRENT NODE DIRECTORS VELOCITIES:
@@ -419,11 +419,11 @@ namespace Kratos
   //*************************COMPUTE FRAME MAPPING*************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateFrameMapping(ElementVariables& rVariables,const unsigned int& rPointNumber)
+  void GeometricallyExactRodElement::CalculateFrameMapping(ElementDataType& rVariables,const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType number_of_nodes  = GetGeometry().size();
    
     //*------------------------------*//
     DirectorsVariables& Directors = rVariables.GetDirectors();
@@ -431,7 +431,7 @@ namespace Kratos
     //directors previous
     rVariables.PreviousRotationMatrix.resize(3,3,false);
     noalias(rVariables.PreviousRotationMatrix) = ZeroMatrix(3,3);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
     	rVariables.PreviousRotationMatrix  += rVariables.N[i] * ( Directors.PreviousNode[i]);
       }  
@@ -440,7 +440,7 @@ namespace Kratos
     //directors current
     rVariables.CurrentRotationMatrix.resize(3,3,false);
     noalias(rVariables.CurrentRotationMatrix) = ZeroMatrix(3,3);
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
     	rVariables.CurrentRotationMatrix  += rVariables.N[i] * ( Directors.CurrentNode[i]);
       }  
@@ -461,7 +461,7 @@ namespace Kratos
   //*********************************SET ROTATION VARIABLES*****************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::UpdateRotationVariables(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void GeometricallyExactRodElement::UpdateRotationVariables(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
@@ -485,7 +485,7 @@ namespace Kratos
   //*************************COMPUTE MAPPING TENSOR*************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateDirectorsMappingTensor(Matrix& rMappingTensor, ElementVariables& rVariables, const int& rNode, double alpha)
+  void GeometricallyExactRodElement::CalculateDirectorsMappingTensor(Matrix& rMappingTensor, ElementDataType& rVariables, const int& rNode, double alpha)
   {
 
     Matrix SkewSymDirector(3,3);
@@ -563,13 +563,13 @@ namespace Kratos
     KRATOS_TRY
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
     
     DirectorsVariables Directors;
     Variables.SetDirectors(Directors);
 
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     //reading integration points (in fact is the two nodes beam element, only one integration point)
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -634,8 +634,8 @@ namespace Kratos
     KRATOS_TRY
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
     
     DirectorsVariables Directors;
     Variables.SetDirectors(Directors);
@@ -662,8 +662,8 @@ namespace Kratos
       Variables.Alpha = 1;
 
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
  
     //reading shape functions
@@ -700,7 +700,7 @@ namespace Kratos
 	Matrix MatrixZero(dimension,dimension);
 	noalias(MatrixZero) = ZeroMatrix(dimension,dimension);
 
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    Directors.CurrentNode[i].resize(dimension,dimension,false);
 	    Directors.PreviousNode[i].resize(dimension,dimension,false);
@@ -728,7 +728,7 @@ namespace Kratos
 	noalias(TensorAngularVelocity) = ZeroMatrix(3,3);
 
 	//strains due to displacements and rotations
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 
 	    //********************************************************//
@@ -825,7 +825,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateCurrentStrainResultantsVector(ElementVariables& rVariables, 
+  void GeometricallyExactRodElement::CalculateCurrentStrainResultantsVector(ElementDataType& rVariables, 
 									    Vector& rCurrentStrainResultantsVector,
 									    double Alpha)
   {
@@ -879,7 +879,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateCurrentCurvatureVector(ElementVariables& rVariables, 
+  void GeometricallyExactRodElement::CalculateCurrentCurvatureVector(ElementDataType& rVariables, 
 								     Vector& rCurrentCurvatureVector,
 								     double Alpha)
   {
@@ -937,7 +937,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateConstitutiveMatrix(ElementVariables& rVariables)
+  void GeometricallyExactRodElement::CalculateConstitutiveMatrix(ElementDataType& rVariables)
   {
     KRATOS_TRY
 
@@ -951,11 +951,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber)
+  void GeometricallyExactRodElement::CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber)
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
     Vector StrainResultants(3);
@@ -968,7 +968,7 @@ namespace Kratos
 
     //std::cout<<" CurrentAxisPositionDerivatives "<<rVariables.CurrentAxisPositionDerivatives<<std::endl;
 
-    for ( unsigned int i = 0; i < dimension; i++ )
+    for ( SizeType i = 0; i < dimension; i++ )
       {
 	rVariables.StrainVector[i]   = StrainResultants[i];
 	rVariables.StrainVector[i+3] = StrainCouples[i];
@@ -998,14 +998,14 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-								   ElementVariables& rVariables,
+								   ElementDataType& rVariables,
 								   Vector& rVolumeForce,
 								   double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     double DomainSize = rVariables.Section.Area; 
 
@@ -1021,7 +1021,7 @@ namespace Kratos
     noalias(MappingTensor) = ZeroMatrix(12,6);
 
     unsigned int RowIndex = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
       	RowIndex = i * (dimension * 2);
         GravityLoad =  rIntegrationWeight * rVariables.N[i] * rVolumeForce * DomainSize;
@@ -1051,7 +1051,7 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateAndAddFollowerForces(VectorType& rRightHandSideVector,
-								   ElementVariables & rVariables,
+								   ElementDataType & rVariables,
 								   double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -1065,13 +1065,13 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-								   ElementVariables & rVariables,
+								   ElementDataType & rVariables,
 								   double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     VectorType Fi(12);
     noalias(Fi) = ZeroVector(12);
@@ -1087,7 +1087,7 @@ namespace Kratos
     MatrixType MappingTensor(12,6);
     noalias(MappingTensor) = ZeroMatrix(12,6);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 
 	RowIndex = i * (dimension * 2);
@@ -1129,7 +1129,7 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateDifferentialOperator(MatrixType& rDifferentialOperator,
-								   ElementVariables& rVariables,
+								   ElementDataType& rVariables,
 								   const int& rNode,
 								   double alpha)
   {
@@ -1308,7 +1308,7 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateDiscreteOperatorN(MatrixType& rDiscreteOperator,
-								ElementVariables& rVariables,
+								ElementDataType& rVariables,
 								const int& rNodeI,
 								const int& rNodeJ,
 								const int& rComponent)
@@ -1366,7 +1366,7 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateDiscreteOperatorM(MatrixType& rDiscreteOperator,
-								ElementVariables& rVariables,
+								ElementDataType& rVariables,
 								const int& rNodeI,
 								const int& rNodeJ,
 								const int& rComponent)
@@ -1434,7 +1434,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void GeometricallyExactRodElement::CalculateAlphaDirectors(Matrix& rDirectors, ElementVariables& rVariables, const int& rNode, double alpha)
+  void GeometricallyExactRodElement::CalculateAlphaDirectors(Matrix& rDirectors, ElementDataType& rVariables, const int& rNode, double alpha)
   {
     KRATOS_TRY
 
@@ -1450,7 +1450,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void GeometricallyExactRodElement::CalculateAlphaDirectorVector(Vector& rDirectorVector, ElementVariables& rVariables, const int& rNode, const int& rDirection, double alpha)
+  void GeometricallyExactRodElement::CalculateAlphaDirectorVector(Vector& rDirectorVector, ElementDataType& rVariables, const int& rNode, const int& rDirection, double alpha)
   {
     KRATOS_TRY
 
@@ -1472,7 +1472,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void GeometricallyExactRodElement::CalculateAlphaDirectorSkewSymTensor(Matrix& rDirectorSkewSymTensor, ElementVariables& rVariables, const int& rNode, const int& rDirection, double alpha)
+  void GeometricallyExactRodElement::CalculateAlphaDirectorSkewSymTensor(Matrix& rDirectorSkewSymTensor, ElementDataType& rVariables, const int& rNode, const int& rDirection, double alpha)
   {
     KRATOS_TRY
 
@@ -1491,7 +1491,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void GeometricallyExactRodElement::CalculateAlphaDirectorVector(Vector& rDirectorVector, ElementVariables& rVariables, const int& rDirection, double alpha)
+  void GeometricallyExactRodElement::CalculateAlphaDirectorVector(Vector& rDirectorVector, ElementDataType& rVariables, const int& rDirection, double alpha)
   {
     KRATOS_TRY
 
@@ -1511,7 +1511,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void GeometricallyExactRodElement::CalculateAlphaDirectorSkewSymTensor(Matrix& rDirectorSkewSymTensor, ElementVariables& rVariables, const int& rDirection, double alpha)
+  void GeometricallyExactRodElement::CalculateAlphaDirectorSkewSymTensor(Matrix& rDirectorSkewSymTensor, ElementDataType& rVariables, const int& rDirection, double alpha)
   {
 
     KRATOS_TRY
@@ -1532,7 +1532,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateDirectorDerivativesVector(Vector& rDirectorDerivativesVector, ElementVariables& rVariables, const int& rDirection, double alpha)
+  void GeometricallyExactRodElement::CalculateDirectorDerivativesVector(Vector& rDirectorDerivativesVector, ElementDataType& rVariables, const int& rDirection, double alpha)
   {
     KRATOS_TRY
 
@@ -1551,7 +1551,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void GeometricallyExactRodElement::CalculateDirectorDerivativesSkewSymTensor(Matrix& rDirectorDerivativesSkewSymTensor, ElementVariables& rVariables, const int& rDirection, double alpha)
+  void GeometricallyExactRodElement::CalculateDirectorDerivativesSkewSymTensor(Matrix& rDirectorDerivativesSkewSymTensor, ElementDataType& rVariables, const int& rDirection, double alpha)
   {
     KRATOS_TRY
 
@@ -1571,13 +1571,13 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-							 ElementVariables& rVariables,
+							 ElementDataType& rVariables,
 							 double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
     
     //Initialize Local Matrices
     MatrixType DifferentialOperatorI(12,6);
@@ -1599,7 +1599,7 @@ namespace Kratos
     noalias(MappingTensorJ) = ZeroMatrix(12,6);
     
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	RowIndex = i * (dimension * 2);
 
@@ -1609,7 +1609,7 @@ namespace Kratos
 
 	//std::cout<<" DifferentialOperatorI "<<DifferentialOperatorI<<std::endl;
 
-	for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	for ( SizeType j = 0; j < number_of_nodes; j++ )
 	  {
 
 	    noalias(Kij) = ZeroMatrix(12,12);
@@ -1647,13 +1647,13 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-							 ElementVariables& rVariables,
+							 ElementDataType& rVariables,
 							 double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
 
     //Initialize Local Matrices
@@ -1678,12 +1678,12 @@ namespace Kratos
 	StressResultants[i] = rVariables.StressVector[i];
       }
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	RowIndex = i * (dimension * 2);
 
 	
-	for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	for ( SizeType j = 0; j < number_of_nodes; j++ )
 	  {
 
 	    noalias(Kij) = ZeroMatrix(6,6);
@@ -1729,13 +1729,13 @@ namespace Kratos
 
 
     // compute KM
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	
 	RowIndex = i * (dimension * 2);
 
 	
-	for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	for ( SizeType j = 0; j < number_of_nodes; j++ )
 	  {
 
 	    noalias(Kij) = ZeroMatrix(6,6);
@@ -1806,7 +1806,7 @@ namespace Kratos
   //************************************************************************************
 
   void GeometricallyExactRodElement::CalculateAndAddKuuf(MatrixType& rLeftHandSideMatrix,
-							 ElementVariables& rVariables,
+							 ElementDataType& rVariables,
 							 double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -1818,13 +1818,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void GeometricallyExactRodElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rLeftHandSideMatrix.size1() != MatSize)
@@ -1871,14 +1871,14 @@ namespace Kratos
 
     Matrix DiagonalMatrix = identity_matrix<double> (3);   
     
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	noalias(m11) = ZeroMatrix(3,3);
 	noalias(m22) = ZeroMatrix(3,3);
 
 	RowIndex = i * (dimension * 2);
 
-	for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	for ( SizeType j = 0; j < number_of_nodes; j++ )
 	  {
 
 	    ColIndex = j * (dimension * 2);
@@ -1910,13 +1910,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void GeometricallyExactRodElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int MatSize            = number_of_nodes * ( dimension * 2 );
 
     if(rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);
@@ -1940,7 +1940,7 @@ namespace Kratos
     Vector PreviousLinearVelocityVector(3);
     noalias(PreviousLinearVelocityVector) = ZeroVector(3);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	//Current Linear Velocity Vector
 	CurrentValueVector = GetNodalCurrentValue( VELOCITY, CurrentValueVector, i );
@@ -1981,7 +1981,7 @@ namespace Kratos
 	noalias(PreviousDirectorsVelocity[i]) = ZeroVector(3);
       }   
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	Matrix& CurrentVelocity  = Directors.CurrentNodeVelocities[i];
 	Matrix& PreviousVelocity = Directors.PreviousNodeVelocities[i];
@@ -2038,7 +2038,7 @@ namespace Kratos
     MatrixType MappingTensor(12,6);
     noalias(MappingTensor) = ZeroMatrix(12,6);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 
 	RowIndex = i * (dimension * 2);
@@ -2072,7 +2072,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void GeometricallyExactRodElement::CalculateAlgorithmicInertia(Matrix & rAlgorithmicInertia, const Matrix& rInertiaDyadic, ElementVariables& rVariables, const int& rNodeJ, const int& rNodeI, double alpha)
+  void GeometricallyExactRodElement::CalculateAlgorithmicInertia(Matrix & rAlgorithmicInertia, const Matrix& rInertiaDyadic, ElementDataType& rVariables, const int& rNodeJ, const int& rNodeI, double alpha)
   {
     KRATOS_TRY
       

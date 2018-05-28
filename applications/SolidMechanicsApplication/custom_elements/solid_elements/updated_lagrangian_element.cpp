@@ -77,8 +77,7 @@ UpdatedLagrangianElement&  UpdatedLagrangianElement::operator=(UpdatedLagrangian
 
 Element::Pointer UpdatedLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-
-    return Element::Pointer( new UpdatedLagrangianElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< UpdatedLagrangianElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);    
 }
 
 
@@ -125,7 +124,7 @@ Element::Pointer UpdatedLagrangianElement::Clone( IndexType NewId, NodesArrayTyp
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new UpdatedLagrangianElement(NewElement) );
+    return Kratos::make_shared< UpdatedLagrangianElement >(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -218,7 +217,7 @@ void UpdatedLagrangianElement::Initialize()
     LargeDisplacementElement::Initialize();
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     //Resize historic deformation gradient
     if ( mDeformationGradientF0.size() != integration_points_number )
@@ -240,9 +239,9 @@ void UpdatedLagrangianElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianElement::InitializeElementVariables (ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianElement::InitializeElementData (ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    LargeDisplacementElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacementElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
     rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
@@ -257,7 +256,7 @@ void UpdatedLagrangianElement::InitializeElementVariables (ElementVariables& rVa
 ////************************************************************************************
 ////************************************************************************************
 
-void UpdatedLagrangianElement::FinalizeStepVariables( ElementVariables & rVariables, const double& rPointNumber )
+void UpdatedLagrangianElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 {
     //update internal (historical) variables
     mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
@@ -273,7 +272,7 @@ void UpdatedLagrangianElement::FinalizeStepVariables( ElementVariables & rVariab
 //************************************************************************************
 
 
-void UpdatedLagrangianElement::CalculateKinematics(ElementVariables& rVariables,
+void UpdatedLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
         const double& rPointNumber)
 
 {
@@ -328,14 +327,14 @@ void UpdatedLagrangianElement::CalculateKinematics(ElementVariables& rVariables,
 //*********************************COMPUTE KINETICS***********************************
 //************************************************************************************
 
-void UpdatedLagrangianElement::CalculateKinetics(ElementVariables& rVariables, const double& rPointNumber)
+void UpdatedLagrangianElement::CalculateKinetics(ElementDataType& rVariables, const double& rPointNumber)
 {
     KRATOS_TRY
 
     //TotalDeltaPosition must not be used in this element as mDeterminantF0 and mDeformationGradientF0 are stored for reduced order
     //however then the storage of variables in the full integration order quadrature must be considered
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -381,15 +380,15 @@ void UpdatedLagrangianElement::CalculateDeformationGradient(Matrix& rF,
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( dimension );
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
             rF ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
@@ -401,7 +400,7 @@ void UpdatedLagrangianElement::CalculateDeformationGradient(Matrix& rF,
     else if( dimension == 3)
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
             rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
@@ -438,15 +437,15 @@ void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rB.clear(); //set all components to zero
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = 2 * i;
 
@@ -461,7 +460,7 @@ void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
     else if( dimension == 3 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = 3 * i;
 
@@ -494,7 +493,7 @@ void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 
 
-void UpdatedLagrangianElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
+void UpdatedLagrangianElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
@@ -506,7 +505,7 @@ void UpdatedLagrangianElement::GetHistoricalVariables( ElementVariables& rVariab
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& UpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+double& UpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
 
@@ -544,7 +543,7 @@ int UpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+    for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];

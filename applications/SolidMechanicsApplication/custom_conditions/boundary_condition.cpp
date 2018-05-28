@@ -134,8 +134,8 @@ namespace Kratos
   {
     KRATOS_TRY
      
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();    
 
     unsigned int size = number_of_nodes * dimension;
 	
@@ -162,10 +162,10 @@ namespace Kratos
     KRATOS_TRY
 
     rConditionDofList.resize(0);
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
         if( HasVariableDof(DISPLACEMENT) ){
           rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
@@ -205,8 +205,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = this->GetDofsSize();
     
     if ( rResult.size() != dofs_size )
@@ -216,7 +216,7 @@ namespace Kratos
     
     if( HasVariableDof(ROTATION) && HasVariableDof(DISPLACEMENT) ){
       if( dimension == 2 ){
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {	
 	    index = i * ( (dimension-1) * 3 );	  	  
 	    rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -225,7 +225,7 @@ namespace Kratos
 	  }
       }
       else{
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );	  	  
 	    rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -240,7 +240,7 @@ namespace Kratos
     }
     else if( HasVariableDof(DISPLACEMENT) ){
 
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
 	  index = i * dimension;
 	  rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -251,7 +251,7 @@ namespace Kratos
     }
     else if( HasVariableDof(VELOCITY) ){
 
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
 	  index = i * dimension;
 	  rResult[index]     = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
@@ -272,8 +272,8 @@ namespace Kratos
   {
     KRATOS_TRY
     
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = this->GetDofsSize();
 
     if ( rValues.size() != dofs_size ) 
@@ -284,7 +284,7 @@ namespace Kratos
     if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );	  
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -293,7 +293,7 @@ namespace Kratos
 	  }
       }
       else{
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );	  
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -309,7 +309,7 @@ namespace Kratos
     }
     else{
 
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -331,8 +331,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = this->GetDofsSize();
     
     if ( rValues.size() != dofs_size )
@@ -343,7 +343,7 @@ namespace Kratos
     if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );	  
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -352,7 +352,7 @@ namespace Kratos
 	  }
       }
       else{
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );	  
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -368,7 +368,7 @@ namespace Kratos
     }
     else{
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -391,8 +391,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = this->GetDofsSize();
 
     if ( rValues.size() != dofs_size )
@@ -404,7 +404,7 @@ namespace Kratos
 
       if( dimension == 2 ){
       
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -413,7 +413,7 @@ namespace Kratos
 	  }
       }
       else{
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -429,7 +429,7 @@ namespace Kratos
     }
     else{
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -451,8 +451,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(FORCE_RESIDUAL) ){
 	  
@@ -496,20 +496,20 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
       {
 
-	for(unsigned int i=0; i< number_of_nodes; i++)
+	for(SizeType i=0; i< number_of_nodes; i++)
 	  {
 	    int index = dimension * i;
 
 	    GetGeometry()[i].SetLock();
 
 	    array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-	    for(unsigned int j=0; j<dimension; j++)
+	    for(SizeType j=0; j<dimension; j++)
 	      {
 		ExternalForce[j] += rRHS[index + j];
 	      }
@@ -521,14 +521,14 @@ namespace Kratos
     if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
       {
 
-	for(unsigned int i=0; i< number_of_nodes; i++)
+	for(SizeType i=0; i< number_of_nodes; i++)
 	  {
 	    int index = dimension * i;
 
 	    GetGeometry()[i].SetLock();
 
 	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-	    for(unsigned int j=0; j<dimension; j++)
+	    for(SizeType j=0; j<dimension; j++)
 	      {
 		ForceResidual[j] += rRHS[index + j];
 	      }
@@ -543,14 +543,14 @@ namespace Kratos
       if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_MOMENT )
 	{
 
-	  for(unsigned int i=0; i< number_of_nodes; i++)
+	  for(SizeType i=0; i< number_of_nodes; i++)
 	    {
 	      int index = dimension * i;
 
 	      GetGeometry()[i].SetLock();
 
 	      array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-	      for(unsigned int j=0; j<dimension; j++)
+	      for(SizeType j=0; j<dimension; j++)
 		{
 		  ExternalForce[j] += rRHS[index + j];
 		}
@@ -562,14 +562,14 @@ namespace Kratos
       if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL )
 	{
 
-	  for(unsigned int i=0; i< number_of_nodes; i++)
+	  for(SizeType i=0; i< number_of_nodes; i++)
 	    {
 	      int index = dimension * i;
 
 	      GetGeometry()[i].SetLock();
 
 	      array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-	      for(unsigned int j=0; j<dimension; j++)
+	      for(SizeType j=0; j<dimension; j++)
 		{
 		  MomentResidual[j] += rRHS[index + j];
 		}
@@ -657,9 +657,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& local_dimension = GetGeometry().LocalSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVariables.Initialize(dimension, local_dimension, number_of_nodes);
 
@@ -938,18 +938,18 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rDeltaPosition.resize(number_of_nodes , dimension, false);
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
         array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
             rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
 	  }
@@ -969,17 +969,17 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rDeltaPosition.resize(number_of_nodes , dimension, false);
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
             rDeltaPosition(i,j) = CurrentDisplacement[j];
 	  }
@@ -997,7 +997,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     if( rValues.size() != dimension )
       rValues.resize(dimension);
@@ -1031,7 +1031,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
@@ -1050,7 +1050,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);

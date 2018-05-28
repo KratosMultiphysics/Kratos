@@ -57,7 +57,9 @@ public:
     typedef BeamMathUtils<double>                     BeamMathUtilsType;
     ///Type definition for quaternion 
     typedef Quaternion<double>                           QuaternionType;
-
+    ///Type for size
+    typedef GeometryData::SizeType                             SizeType;
+ 
     /// Counted pointer of BeamElement
     KRATOS_CLASS_POINTER_DEFINITION( BeamElement );
 
@@ -116,7 +118,7 @@ protected:
      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
      */
 
-    struct ElementVariables
+    struct ElementData
     {
       private:
 
@@ -312,6 +314,9 @@ protected:
 
 
 public:
+    
+    ///Type for element variables
+    typedef ElementData                                 ElementDataType;
 
     ///@name Life Cycle
     ///@{
@@ -604,6 +609,8 @@ protected:
     ///@{
     BeamElement() {};
 
+    //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -652,12 +659,12 @@ protected:
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementVariables& rVariables, Matrix& rVariable);
+    virtual void MapLocalToGlobal(ElementDataType& rVariables, Matrix& rVariable);
 
     /**
      * Transform Vector Variable form Spatial Frame to Global Frame
      */    
-    virtual void MapLocalToGlobal(ElementVariables& rVariables, VectorType& rVector);
+    virtual void MapLocalToGlobal(ElementDataType& rVariables, VectorType& rVector);
      
 
     /**
@@ -693,7 +700,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -705,7 +712,7 @@ protected:
     /**   
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementVariables& rVariables,
+    virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber);
 
 
@@ -723,29 +730,29 @@ protected:
     /**   
      * Calculate Element Constitutive Matrix
      */ 
-    virtual void CalculateConstitutiveMatrix(ElementVariables& rVariables);
+    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables);
 
 
     /**   
      * Calculate Element Material Constitutive Matrix
      */ 
-    void CalculateMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementVariables& rVariables);
+    void CalculateMaterialConstitutiveMatrix(Matrix& rConstitutiveMatrix, ElementDataType& rVariables);
 
 
     /**   
      * Calculate Element Stress Resultants and Couples
      */ 
-    virtual void CalculateStressResultants(ElementVariables& rVariables, const unsigned int& rPointNumber);
+    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber);
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight);
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& VolumeForce, double& rIntegrationWeight);
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& VolumeForce, double& rIntegrationWeight);
 
    /**
      * Calculation of the Integration Weight
@@ -757,7 +764,7 @@ protected:
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight);
 
 
@@ -766,14 +773,14 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
+                                     ElementDataType& rVariables,
                                      double& rIntegrationWeight);
 
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables& rVariables,
+					       ElementDataType& rVariables,
 					       Vector& rVolumeForce,
 					       double& rIntegrationWeight);
 
@@ -782,7 +789,7 @@ protected:
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementVariables& rVariables,
+					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight);
 
@@ -790,7 +797,7 @@ protected:
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementVariables& rVariables,
+					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight);
 
@@ -798,7 +805,7 @@ protected:
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables & rVariables,
+					       ElementDataType & rVariables,
 					       double& rIntegrationWeight);
 
 

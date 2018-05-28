@@ -75,7 +75,7 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
 Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a large displacement element " << std::endl;
-    return Element::Pointer( new LargeDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< LargeDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -102,7 +102,7 @@ Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new LargeDisplacementElement(NewElement) );
+    return Kratos::make_shared< LargeDisplacementElement >(NewElement);    
 }
 
 
@@ -116,7 +116,7 @@ LargeDisplacementElement::~LargeDisplacementElement()
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
+void LargeDisplacementElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
     //Deformation Gradient F ( set to identity )
     unsigned int size =  rVariables.F.size1();
@@ -129,9 +129,9 @@ void LargeDisplacementElement::GetHistoricalVariables( ElementVariables& rVariab
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
-						   ConstitutiveLaw::Parameters& rValues,
-						   const int & rPointNumber)
+void LargeDisplacementElement::SetElementData(ElementDataType& rVariables,
+                                              ConstitutiveLaw::Parameters& rValues,
+                                              const int & rPointNumber)
 {
 
     //to take in account previous step for output print purposes
@@ -143,9 +143,9 @@ void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 
 	std::cout<<" Element: "<<this->Id()<<std::endl;
 
-	unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
 	    array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -155,7 +155,7 @@ void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 	    std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
 	  }
 
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
 	      array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
@@ -220,13 +220,13 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 //************************************************************************************
 
 void LargeDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						   ElementVariables& rVariables,
+						   ElementDataType& rVariables,
 						   double& rIntegrationWeight)
 
 {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
@@ -242,7 +242,7 @@ void LargeDisplacementElement::CalculateGreenLagrangeStrain(const Matrix& rF, Ve
 {
     KRATOS_TRY
 
-    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Right Cauchy-Green Calculation
     Matrix C ( dimension, dimension );
@@ -296,7 +296,7 @@ void LargeDisplacementElement::CalculateAlmansiStrain(const Matrix& rF, Vector& 
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //Left Cauchy-Green Calculation
     Matrix LeftCauchyGreen(dimension, dimension);
@@ -376,8 +376,8 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
     if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -442,7 +442,7 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
     // Check that the constitutive law has the correct dimension
-    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
     if( dimension == 2 )
     {
       if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )

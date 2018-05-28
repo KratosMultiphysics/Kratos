@@ -86,9 +86,9 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType number_of_nodes = GetGeometry().size();
     const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVariables.Initialize(dimension, local_dimension, number_of_nodes);
    
@@ -107,8 +107,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
@@ -119,9 +119,9 @@ namespace Kratos
     //defined on condition
     if( this->Has( FORCE_LOAD ) ){
       array_1d<double, 3 > & PointLoad = this->GetValue( FORCE_LOAD );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
 	}
     }
@@ -130,10 +130,10 @@ namespace Kratos
     if( this->Has( FORCE_LOAD_VECTOR ) ){
       Vector& PointLoads = this->GetValue( FORCE_LOAD_VECTOR );
       unsigned int counter = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  counter = i*3;
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoads[counter+k];
 	    }
@@ -142,22 +142,22 @@ namespace Kratos
     }
     
     //defined on condition nodes (legacy)     
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( POINT_LOAD ) ){
 	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( POINT_LOAD );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
  
 	}
       }
 
     //defined on condition nodes      
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( FORCE_LOAD ) ){
 	  array_1d<double, 3 > & PointLoad = GetGeometry()[i].FastGetSolutionStepValue( FORCE_LOAD );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * PointLoad[k];
  
 	}
