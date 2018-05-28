@@ -17,7 +17,7 @@
 
 // Processes
 #include "custom_processes/transfer_entities_between_model_parts_process.h"
-#include "custom_processes/transfer_nodes_to_model_part_process.h"
+#include "custom_processes/assign_flags_to_model_part_entities_process.h"
 #include "custom_processes/assign_scalar_variable_to_entities_process.h"
 #include "custom_processes/assign_vector_variable_to_conditions_process.h"
 #include "custom_processes/assign_vector_field_to_entities_process.h"
@@ -41,12 +41,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   using namespace pybind11;
       
-  //**********TRANSFER NODES TO MODEL PART*********//
+  //**********ASSIGN FLAGS TO MODEL PART ENTITIES*********//
 
-  class_<TransferNodesToModelPartProcess, TransferNodesToModelPartProcess::Pointer, Process>(m,"TransferNodesProcess")
-      .def(init<ModelPart&, ModelPart&, const FlagsContainer&>())
-      .def(init<ModelPart&, ModelPart&, const FlagsContainer&, const FlagsContainer& >())
-      .def("Execute", &TransferNodesToModelPartProcess::Execute)
+  class_<AssignFlagsToModelPartEntitiesProcess, AssignFlagsToModelPartEntitiesProcess::Pointer, Process>(m,"AssignFlagsToEntitiesProcess")
+      .def(init<ModelPart&, const std::string, const FlagsContainer&>())
+      .def(init<ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
+      .def("Execute", &AssignFlagsToModelPartEntitiesProcess::Execute)
       ;
       
   //**********TRANSFER ENTITIES BETWEEN MODEL PARTS*********//

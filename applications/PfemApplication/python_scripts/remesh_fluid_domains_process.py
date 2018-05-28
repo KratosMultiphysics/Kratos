@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.PfemApplication as KratosPfem
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 KratosMultiphysics.CheckForPreviousImport()
 
 
@@ -91,7 +91,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             self.meshing_output = self.meshing_frequency
 
 
-        self.main_model_part.ProcessInfo.SetValue(KratosPfem.INITIALIZED_DOMAINS, False);
+        self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, False);
 
         # initialize modeler
         if( self.remesh_domains_active ):
@@ -126,7 +126,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.neighbour_search_performed = True
 
         # set modeler utilities
-        self.modeler_utils = KratosPfem.ModelerUtilities()
+        self.modeler_utils = KratosDelaunay.ModelerUtilities()
 
         # set the domain labels to conditions
         self.modeler_utils.SetModelPartNameToConditions(self.main_model_part)
@@ -143,7 +143,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         # set the domain labels to nodes
         self.modeler_utils.SetModelPartNameToNodes(self.main_model_part)
 
-        self.main_model_part.ProcessInfo.SetValue(KratosPfem.INITIALIZED_DOMAINS, True)
+        self.main_model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, True)
 
         if(self.echo_level>1):
             print(self.main_model_part)
@@ -154,7 +154,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
 
         # define building utility
         model_part_name = self.settings["model_part_name"].GetString()
-        skin_build = KratosPfem.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)
+        skin_build = KratosDelaunay.BuildModelPartBoundary(self.main_model_part, model_part_name, self.echo_level)
 
         # execute building:
         skin_build.Execute()
@@ -361,13 +361,13 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
                 print("::[Remesh_fluid_domains_process]:: MESH DOMAIN...", self.counter)
 
             meshing_options = KratosMultiphysics.Flags()
-            self.modeler_utils = KratosPfem.ModelerUtilities()
+            self.modeler_utils = KratosDelaunay.ModelerUtilities()
 
 
             meshing_options.Set(self.modeler_utils.KEEP_ISOLATED_NODES, True)
 
-            #self.model_meshing =  KratosPfem.ModelMeshing(self.main_model_part, meshing_options, self.echo_level)
-            self.model_meshing =  KratosPfemFluid.ModelMeshingForFluids(self.main_model_part, meshing_options, self.echo_level)
+            #self.model_meshing =  KratosDelaunay.ModelMeshing(self.main_model_part, meshing_options, self.echo_level)
+            self.model_meshing =  KratosPfem.ModelMeshingForFluids(self.main_model_part, meshing_options, self.echo_level)
 
             self.model_meshing.ExecuteInitialize()
 

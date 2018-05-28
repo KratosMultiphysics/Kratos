@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemApplication as KratosPfem
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()

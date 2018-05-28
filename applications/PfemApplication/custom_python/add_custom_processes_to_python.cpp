@@ -18,7 +18,6 @@
 // Processes
 #include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_processes/inlet_management_process.hpp"
-#include "custom_processes/set_inlet_process.hpp"
 
 // MeshModeler initialization and finalization processes
 #include "custom_processes/model_start_end_meshing_for_fluids_process.hpp"
@@ -34,7 +33,6 @@
 #include "custom_processes/select_mesh_elements_for_fluids_process.hpp"
 #include "custom_processes/recover_volume_losses_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
-#include "custom_processes/transfer_model_part_elements_process.hpp"
 
 
 namespace Kratos
@@ -74,14 +72,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m, "ModelMeshingForFluids")
       .def(init<ModelPart&, Flags, int>());
 
-
-  //*****TRANSFER ELEMENTS TO MODEL PART****//
-  
-  class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, Process>
-      (m, "TransferModelPartElementsProcess")
-      .def(init<ModelPart&, ModelPart&>())
-      ;
-
   //*********ADAPTIVE TIME STEP*************//
   
   class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
@@ -93,10 +83,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   class_<InletManagementProcess, InletManagementProcess::Pointer, Process>
       (m, "InletManagement")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
-
-  class_<SetInletProcess, SetInletProcess::Pointer, Process>
-      (m, "SetInlet")
-      .def(init<ModelPart&, int>());
   
   
   //*********VOLUME RECOVETY PROCESS********//

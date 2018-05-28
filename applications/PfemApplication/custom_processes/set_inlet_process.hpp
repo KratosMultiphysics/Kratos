@@ -68,8 +68,6 @@ class SetInletProcess
                   int EchoLevel) 
       : mrModelPart(rModelPart)
   {
-    std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
-
     mEchoLevel = EchoLevel;
   }
 
@@ -105,20 +103,7 @@ class SetInletProcess
     // unsigned int count=0;
     for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
     {
-      // count++;
       i_node->Set(INLET);
-      // std::cout<<"x y ("<<")  "<<i_node->X()<<" "<<i_node->Y();
-      // i_node->Set(RIGID);
-      // std::cout<<count<<".  "<<i_node->X()<<std::endl;
-      // if(i_node->Is(FLUID)){
-      //   std::cout<<"fluid node "<<std::endl;
-      // }else{
-      //   std::cout<<"not fluid node "<<std::endl;
-      // }
-      // if(i_node->Is(RIGID)){
-      //   std::cout<<"rigid node "<<std::endl;
-      // }
-
     }
 
     KRATOS_CATCH(" ")

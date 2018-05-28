@@ -14,9 +14,7 @@
 
 // Project includes 
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_modelers_to_python.h"
-#include "custom_python/add_custom_bounding_to_python.h"
+
 
 #include "pfem_application.h"
  
@@ -38,9 +36,7 @@ PYBIND11_MODULE(KratosPfemApplication,m)
       ;
 
   AddCustomProcessesToPython(m);
-  AddCustomUtilitiesToPython(m);
-  AddCustomModelersToPython(m);
-  AddCustomBoundingToPython(m);
+
       
   //registering variables in python ( if must to be seen from python )
 }
