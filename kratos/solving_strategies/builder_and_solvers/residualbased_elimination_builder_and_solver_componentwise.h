@@ -373,9 +373,7 @@ public:
         ModelPart& rModelPart
     ) override
     {
-#ifndef __SUNPRO_CC
         KRATOS_TRY
-#endif
 
         if(pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
         {
@@ -416,7 +414,8 @@ public:
         {
             if(A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
-                KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                //KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
 #ifdef _OPENMP
                 ParallelConstructGraph(A);
