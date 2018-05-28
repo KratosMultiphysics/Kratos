@@ -19,12 +19,14 @@
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
+#include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "containers/constraint_equation.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
+#include "containers/variable_data.h"
 
 namespace Kratos
 {
@@ -45,7 +47,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     typedef double ConstantType;
     typedef Matrix MatrixType;
-    typedef VariableData VariableDataType;
+    typedef Kratos::Variable<double> VariableType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
 
     ///@name Life Cycle
@@ -70,7 +72,9 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     virtual Pointer Create(IndexType NewId) const
     {
         KRATOS_TRY
-        return Kratos::make_shared<MasterSlaveConstraint>(NewId);
+        auto new_pointer = Kratos::make_shared<MasterSlaveConstraint>();
+        new_pointer->SetId(NewId);
+        return new_pointer;
         KRATOS_CATCH("");
     }
 
@@ -163,28 +167,28 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     /**
 	* Adds a master to the current master slave relation
 	*/
-    virtual void AddMaster(NodeType const &rMasterNode, VariableType const &rMasterVariable, double Weight)
+    virtual void AddMaster(NodeType &rMasterNode, const VariableType &rMasterVariable, double Weight)
     {
         DofType &master_dof = rMasterNode.GetDof(rMasterVariable);
         mConstraintEquation.AddMaster(master_dof, Weight);
     }
-    virtual void AddMaster(NodeType const &rMasterNode, VariableComponentType const &rMasterVariableComponent, double Weight)
+    virtual void AddMaster(NodeType &rMasterNode, const VariableComponentType &rMasterVariableComponent, double Weight)
     {
         DofType &master_dof = rMasterNode.GetDof(rMasterVariableComponent);
-        mConstraintEquation.AddMaster(rMasterDof, Weight);
+        mConstraintEquation.AddMaster(master_dof, Weight);
     }
 
     /**
 	* Adds a master to the current master slave relation
 	*/
-    virtual void AddSlave(NodeType const &rSlaveNode, VariableType const &rSlaveVariable)
+    virtual void AddSlave(NodeType &rSlaveNode, const VariableType &rSlaveVariable)
     {
         rSlaveNode.Set(SLAVE);
         DofType &slave_dof = rSlaveNode.GetDof(rSlaveVariable);
         this->SetId (slave_dof.Id());
         mConstraintEquation.AddSlave(slave_dof);
     }
-    virtual void AddSlave(NodeType const &rSlaveNode, VariableComponentType const &rSlaveVariableComponent)
+    virtual void AddSlave(NodeType &rSlaveNode, const VariableComponentType &rSlaveVariableComponent)
     {
         rSlaveNode.Set(SLAVE);
         DofType &slave_dof = rSlaveNode.GetDof(rSlaveVariableComponent);
