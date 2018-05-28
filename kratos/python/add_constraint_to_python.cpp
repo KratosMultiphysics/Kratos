@@ -40,20 +40,6 @@ void  AddConstraintToPython(pybind11::module& m)
     .def("GetNumberOfMasters", &MasterSlaveConstraint::GetNumberOfMasters)
     ;
 
-/*
-	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart")
-		.def(init<std::string const&>())
-		.def(init<>())
-		.def_property("Name", GetModelPartName, SetModelPartName)
-		//  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
-		.def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
-		.def("CreateSolutionStep", &ModelPart::CreateSolutionStep)
-		.def("CloneSolutionStep", &ModelPart::CloneSolutionStep)
-		.def("CreateTimeStep", &ModelPart::CreateTimeStep)
-		.def("ReduceTimeStep", &ModelPart::ReduceTimeStep)
-		.def("CloneTimeStep", pointer_to_clone_time_step_1)
-		.def("CloneTimeStep", pointer_to_clone_time_step_2)    */
-
 }
 
 }  // namespace Python.
