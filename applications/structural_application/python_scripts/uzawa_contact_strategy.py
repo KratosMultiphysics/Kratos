@@ -272,7 +272,7 @@ class SolvingStrategyPython:
             #reorder the system dof id
             self.system_reorderer.Execute()
             #allocate memory for the system and preallocate the structure of the matrix
-            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.pA,self.pDx,self.pb,self.model_part.Elements,self.model_part.Conditions,self.model_part.ProcessInfo)
+            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.pA,self.pDx,self.pb,self.model_part)
             #updating references
             self.A = (self.pA).GetReference()
             self.Dx = (self.pDx).GetReference()
