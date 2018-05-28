@@ -34,15 +34,16 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
             solver_settings.AddValue("time_stepping", time_stepping_params)
 
-        # Create the ModelPart
-        # Note that this in temporary and will be done through the model in the future
-        main_model_part_name = project_parameters["problem_data"]["model_part_name"].GetString()
-        if model.HasModelPart(main_model_part_name):
-            self.main_model_part = model[main_model_part_name]
-        else:
-            self.main_model_part = KratosMultiphysics.ModelPart(main_model_part_name)
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
-                                                      project_parameters["problem_data"]["domain_size"].GetInt())
+        if not solver_settings.Has("domain_size"):
+            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            solver_settings.AddEmptyValue("domain_size")
+            solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
+
+        if not solver_settings.Has("model_part_name"):
+            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            solver_settings.AddEmptyValue("model_part_name")
+            solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
+
 
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
@@ -64,7 +65,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
         import python_solvers_wrapper_structural
-        return python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.project_parameters)
+        self.solver = python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
