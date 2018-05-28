@@ -75,8 +75,10 @@ namespace Kratos
         //mMPMLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
         //mMPMLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
         //mMPMLineLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
-        mMPMPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
-        mMPMPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1))))
+        mMPMPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
+        mMPMPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
+        mMPMLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+        mMPMLineLoadCondition2D3N(0, Condition::GeometryType::Pointer(new Line2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 
     {}
 
@@ -101,6 +103,8 @@ namespace Kratos
         //Registering conditions
         KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition2D1N", mMPMPointLoadCondition2D1N )
         KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition3D1N", mMPMPointLoadCondition3D1N )
+        KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition2D2N", mMPMLineLoadCondition2D2N)
+        KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition2D3N", mMPMLineLoadCondition2D3N)
 
         //element
         KRATOS_REGISTER_VARIABLE( COUNTER )
