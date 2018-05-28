@@ -68,13 +68,16 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtility, KratosCoreFastSuite)
 
     KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 2);
 
-    Properties property = model_part.GetProperties(1, 0);
+    Properties property;
+
+    property = model_part.GetProperties(1, 0);
 	KRATOS_CHECK(property.HasVariables());
     KRATOS_CHECK(property.Has(CONSTITUTIVE_LAW));
     KRATOS_CHECK(property.HasTable(TEMPERATURE, YOUNG_MODULUS));
     KRATOS_CHECK(property.HasTable(TEMPERATURE, VISCOSITY));
 
-    Properties p_prop = model_part.GetProperties(2, 0);
+    property = model_part.GetProperties(2, 0);
+    //KRATOS_CHECK_IS_FALSE(property.HasTable(TEMPERATURE, YOUNG_MODULUS));
 
 }
 }
