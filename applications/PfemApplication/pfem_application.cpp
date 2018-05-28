@@ -15,16 +15,7 @@
 #include "includes/define.h"
 
 #include "geometries/triangle_2d_3.h"
-#include "geometries/triangle_2d_6.h"
-#include "geometries/triangle_3d_3.h"
-
 #include "geometries/tetrahedra_3d_4.h"
-#include "geometries/tetrahedra_3d_10.h"
-
-#include "geometries/line_2d_2.h"
-
-#include "geometries/point_2d.h"
-#include "geometries/point_3d.h"
 
 #include "includes/element.h"
 #include "includes/condition.h"
@@ -39,7 +30,9 @@ namespace Kratos
 
 
   KratosPfemApplication    ::KratosPfemApplication    ():
-    KratosApplication("PfemApplication")
+      KratosApplication("PfemApplication"),
+      mUpdatedLagrangianSegregatedFluidElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mUpdatedLagrangianSegregatedFluidElement3D4N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))      
   {}
   
   void KratosPfemApplication    ::Register()
@@ -55,8 +48,12 @@ namespace Kratos
 
     //Register Variables (variables created in pfem_application_variables.cpp)
     KRATOS_REGISTER_VARIABLE( MATERIAL_PERCENT_COMPOSITION )
+    KRATOS_REGISTER_VARIABLE( PRESSURE_VELOCITY )
+    KRATOS_REGISTER_VARIABLE( PRESSURE_ACCELERATION )
 
-    //Register Conditions
+    //Register Elements
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianSegregatedFluidElement2D3N",mUpdatedLagrangianSegregatedFluidElement2D3N);
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianSegregatedFluidElement2D3N",mUpdatedLagrangianSegregatedFluidElement3D4N);
 
 
   }

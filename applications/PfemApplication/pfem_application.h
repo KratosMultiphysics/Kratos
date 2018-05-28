@@ -25,19 +25,14 @@
 // External includes 
 
 // Project includes
-
-// Core applications
-
-//conditions
-#include "custom_conditions/composite_condition.hpp"
-
-//constitutive laws
 #include "containers/flags.h"
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
-
 #include "containers/flags.h"
+
+//elements
+#include "custom_elements/fluid_elements/updated_lagrangian_segregated_fluid_element.hpp"
 
 #include "pfem_application_variables.h"
 
@@ -76,10 +71,8 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 		
-
     /// Pointer definition of KratosPfemApplication    
     KRATOS_CLASS_POINTER_DEFINITION(KratosPfemApplication);
-
 
     ///@}
     ///@name Life Cycle 
@@ -91,136 +84,102 @@ namespace Kratos
     /// Destructor.
     virtual ~KratosPfemApplication    (){}
 
-
     ///@}
     ///@name Operators 
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
-
-    virtual void Register();
-
-
+    void Register() override;
 
     ///@}
     ///@name Access
     ///@{ 
-
-
     ///@}
     ///@name Inquiry
     ///@{
-
-
     ///@}      
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-      {
-	return "KratosPfemApplication    ";
-      }
+    std::string Info() const override
+    {
+      return "KratosPfemApplication";
+    }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << Info();
       PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
       KRATOS_WATCH( "in KratosPfemApplication" ) 
       KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
       rOStream << "Variables:" << std::endl;
       KratosComponents<VariableData>().PrintData(rOStream);
       rOStream << std::endl;
+      rOStream << "Elements:" << std::endl;
+      KratosComponents<Element>().PrintData(rOStream);     
       rOStream << "Conditions:" << std::endl;
       KratosComponents<Condition>().PrintData(rOStream);
     }
 
-
     ///@}      
     ///@name Friends
     ///@{
-
-
     ///@}
 
   protected:
     ///@name Protected static Member Variables 
     ///@{ 
-
-
     ///@} 
     ///@name Protected member Variables 
     ///@{ 
-
-
     ///@} 
     ///@name Protected Operators
     ///@{ 
-
-
     ///@} 
     ///@name Protected Operations
     ///@{ 
-
-
     ///@} 
     ///@name Protected  Access 
     ///@{ 
-
-
     ///@}      
     ///@name Protected Inquiry 
     ///@{ 
-
-
     ///@}    
     ///@name Protected LifeCycle 
     ///@{ 
-
-
     ///@}
 
   private:
     ///@name Static Member Variables 
     ///@{ 
-
     ///@} 
     ///@name Member Variables 
     ///@{ 
 
-
-    const CompositeCondition mCompositeCondition2D2N;
-    const CompositeCondition mCompositeCondition3D3N;
+    const UpdatedLagrangianSegregatedFluidElement  mUpdatedLagrangianSegregatedFluidElement2D3N;
+    const UpdatedLagrangianSegregatedFluidElement  mUpdatedLagrangianSegregatedFluidElement3D4N;
 
     ///@} 
     ///@name Private Operators
     ///@{ 
-
-
     ///@} 
     ///@name Private Operations
     ///@{ 
-
-
     ///@} 
     ///@name Private  Access 
     ///@{ 
-
-
     ///@}    
     ///@name Private Inquiry 
     ///@{ 
-
-
     ///@}    
     ///@name Un accessible methods 
     ///@{ 
@@ -230,7 +189,6 @@ namespace Kratos
 
     /// Copy constructor.
     KratosPfemApplication(KratosPfemApplication const& rOther);
-
 
     ///@}    
 

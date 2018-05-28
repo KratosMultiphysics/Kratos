@@ -25,11 +25,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
+#include "includes/cfd_variables.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_application.h"
 
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -42,7 +41,9 @@ namespace Kratos
 
   //Define Variables
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, Vector, MATERIAL_PERCENT_COMPOSITION )
-  
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, PRESSURE_VELOCITY )
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, PRESSURE_ACCELERATION )
+
   ///@}
 
 }

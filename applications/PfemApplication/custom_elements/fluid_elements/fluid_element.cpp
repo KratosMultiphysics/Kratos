@@ -24,6 +24,7 @@ namespace Kratos
  */
 KRATOS_CREATE_LOCAL_FLAG( FluidElement, COMPUTE_RHS_VECTOR,                 0 );
 KRATOS_CREATE_LOCAL_FLAG( FluidElement, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( FluidElement, FINALIZED_STEP,                     2 );
 
 
 //******************************CONSTRUCTOR*******************************************
@@ -91,8 +92,7 @@ FluidElement&  FluidElement::operator=(FluidElement const& rOther)
 Element::Pointer FluidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a fluid element " << std::endl;
-
-    return Element::Pointer( new FluidElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< FluidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -121,9 +121,8 @@ Element::Pointer FluidElement::Clone( IndexType NewId, NodesArrayType const& rTh
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new FluidElement(NewElement) );
+    return Kratos::make_shared< FluidElement >(NewElement);
 }
-
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
@@ -272,7 +271,7 @@ void FluidElement::GetValueOnIntegrationPoints( const Variable<double>& rVariabl
 						std::vector<double>& rValues,
 						const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS || rVariable == PRESSURE || DAMAGE_VARIABLE)
+    if ( rVariable == PRESSURE )
     {
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
@@ -471,7 +470,7 @@ void FluidElement::ResetConstitutiveLaw()
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::InitializeElementVariables (ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void FluidElement::InitializeElementData (ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -500,7 +499,7 @@ void FluidElement::InitializeElementVariables (ElementVariables& rVariables, con
 //*********************************COMPUTE KINETICS***********************************
 //************************************************************************************
 
-void FluidElement::CalculateKinetics(ElementVariables& rVariables, const double& rPointNumber)
+void FluidElement::CalculateKinetics(ElementDataType& rVariables, const double& rPointNumber)
 {
     KRATOS_TRY
 
@@ -512,7 +511,7 @@ void FluidElement::CalculateKinetics(ElementVariables& rVariables, const double&
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::TransformElementVariables(ElementVariables& rVariables, const double& rPointNumber)
+void FluidElement::TransformElementData(ElementDataType& rVariables, const double& rPointNumber)
 {
   // to be used when different reference configuration is used
 }
@@ -561,9 +560,9 @@ void FluidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::SetElementVariables(ElementVariables& rVariables,
-				       ConstitutiveLaw::Parameters& rValues,
-				       const int & rPointNumber)
+void FluidElement::SetElementData(ElementDataType& rVariables,
+                                  ConstitutiveLaw::Parameters& rValues,
+                                  const int & rPointNumber)
 {
 
 }
@@ -572,13 +571,13 @@ void FluidElement::SetElementVariables(ElementVariables& rVariables,
 //************************************************************************************
 
 void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-                                             ProcessInfo& rCurrentProcessInfo)
+                                             ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     //create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -591,12 +590,6 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
 
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    double IntegrationWeight = 1;
-
-    //auxiliary terms
-    // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    // Vector VolumeForce(dimension);
-    // noalias(VolumeForce) = ZeroVector(dimension);
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -604,23 +597,23 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         this->CalculateKinematics(Variables,PointNumber);
 
         //set general variables to constitutivelaw parameters
-        this->SetElementVariables(Variables,Values,PointNumber);
+        this->SetElementData(Variables,Values,PointNumber);
 
         //compute stresses and constitutive parameters
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
 	//some transformation of the configuration can be needed (UL element specially)
-        this->TransformElementVariables(Variables,PointNumber);
+        this->TransformElementData(Variables,PointNumber);
 
         //calculating weights for integration on the "reference configuration"
-        IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+        Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 
         if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
-	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
+	    this->CalculateAndAddLHS ( rLocalSystem, Variables );
         }
 
         if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
@@ -628,7 +621,7 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
             //contribution to external forces
             //VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
 
-	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
+	    this->CalculateAndAddRHS ( rLocalSystem, Variables );
         }
 
 	//for debugging purposes
@@ -661,13 +654,12 @@ void FluidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
     }
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
 
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    double IntegrationWeight = 1;
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -675,21 +667,21 @@ void FluidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
         this->CalculateKinetics(Variables, PointNumber);
 
         //calculating weights for integration on the "reference configuration"
-        IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+        Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 
         if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
 	  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables, rCurrentProcessInfo, IntegrationWeight );
+	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables, rCurrentProcessInfo );
 
         }
 
         if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
 	  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables, rCurrentProcessInfo, IntegrationWeight );
+	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables, rCurrentProcessInfo );
         }
 
 	//for debugging purposes
@@ -705,7 +697,7 @@ void FluidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 
 //************************************************************************************
 //************************************************************************************
-void FluidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables)
+void FluidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables)
 {
     KRATOS_TRY
 
@@ -741,7 +733,6 @@ void FluidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, 
     std::cout<<" Stress "<<rVariables.StressVector<<std::endl;
     std::cout<<" Strain "<<rVariables.StrainVector<<std::endl;
     std::cout<<" F  "<<rVariables.F<<" detF "<<rVariables.detF<<std::endl;
-    std::cout<<" F0 "<<rVariables.F0<<" detF0 "<<rVariables.detF0<<std::endl;
     std::cout<<" ConstitutiveMatrix "<<rVariables.ConstitutiveMatrix<<std::endl;
     std::cout<<" K "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
     std::cout<<" f "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
@@ -752,7 +743,7 @@ void FluidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, 
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void FluidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables)
 {
   KRATOS_ERROR << " calling the default method CalculateAndAddLHS for a fluid element " << std::endl;  
 }
@@ -761,7 +752,7 @@ void FluidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, Eleme
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void FluidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables)
 {
   KRATOS_ERROR << " calling the default method CalculateAndAddRHS for a fluid element " << std::endl;  
 }
@@ -770,7 +761,7 @@ void FluidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, Eleme
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void FluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -800,7 +791,7 @@ void FluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
 	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
 	    {
 
-	      rLeftHandSideMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
+	      rLeftHandSideMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rVariables.IntegrationWeight;
 	      indexj += dimension;
 	    }
 
@@ -817,7 +808,7 @@ void FluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void FluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -861,7 +852,7 @@ void FluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, E
 	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
 	    {
 
-	      MassMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
+	      MassMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rVariables.IntegrationWeight;
 	      indexj += dimension;
 	    }
 
@@ -1086,6 +1077,9 @@ void FluidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
                 row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
                 rCurrentProcessInfo );
 
+
+    this->Set(FluidElement::FINALIZED_STEP,false);
+    
     KRATOS_CATCH( "" )
 
 }
@@ -1114,8 +1108,8 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     KRATOS_TRY
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     //create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1133,7 +1127,7 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
         this->CalculateKinematics(Variables,PointNumber);
 
         //set general variables to constitutivelaw parameters
-        this->SetElementVariables(Variables,Values,PointNumber);
+        this->SetElementData(Variables,Values,PointNumber);
 
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
@@ -1148,6 +1142,8 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 	this->FinalizeStepVariables(Variables,PointNumber);
     }
 
+    this->Set(FluidElement::FINALIZED_STEP,true);
+    
     KRATOS_CATCH( "" )
 }
 
@@ -1155,7 +1151,7 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::FinalizeStepVariables( ElementVariables & rVariables, const double& rPointNumber )
+void FluidElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 {
   //to update the internal element variables
 }
@@ -1164,13 +1160,12 @@ void FluidElement::FinalizeStepVariables( ElementVariables & rVariables, const d
 //************************************************************************************
 
 void FluidElement::CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
-				       ElementVariables& rVariables,
-				       double& rIntegrationWeight)
+				       ElementDataType& rVariables)
 {
     KRATOS_TRY
 
     //contributions to stiffness matrix calculated on the reference config
-    noalias( rLeftHandSideMatrix ) += rIntegrationWeight * prod( trans( rVariables.B ), Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
+    noalias( rLeftHandSideMatrix ) += rVariables.IntegrationWeight * prod( trans( rVariables.B ), Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
 
     KRATOS_CATCH( "" )
 }
@@ -1181,8 +1176,7 @@ void FluidElement::CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void FluidElement::CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
-				       ElementVariables& rVariables,
-				       double& rIntegrationWeight)
+				       ElementDataType& rVariables)
 
 {
 
@@ -1193,8 +1187,7 @@ void FluidElement::CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void FluidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						 ElementVariables& rVariables,
-						 double& rIntegrationWeight)
+						 ElementDataType& rVariables)
 
 {
     KRATOS_TRY
@@ -1210,7 +1203,7 @@ void FluidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVecto
         int index = dimension * i;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-	  rRightHandSideVector[index + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
+	  rRightHandSideVector[index + j] += rVariables.IntegrationWeight * rVariables.N[i] * VolumeForce[j];
         }
     }
 
@@ -1222,12 +1215,11 @@ void FluidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVecto
 //************************************************************************************
 
 void FluidElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                                 ElementVariables & rVariables,
-                                                 double& rIntegrationWeight)
+                                                 ElementDataType & rVariables)
 {
     KRATOS_TRY
 
-    VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
+    VectorType InternalForces = rVariables.IntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
     noalias( rRightHandSideVector ) -= InternalForces;
 
     KRATOS_CATCH( "" )
@@ -1340,7 +1332,7 @@ void FluidElement::AddExplicitContribution(const VectorType& rRHSVector,
 //************************************************************************************
 
 
-void FluidElement::CalculateKinematics(ElementVariables& rVariables, const double& rPointNumber)
+void FluidElement::CalculateKinematics(ElementDataType& rVariables, const double& rPointNumber)
 {
   KRATOS_ERROR << " calling the default method CalculateKinematics for a fluid element " << std::endl;
 }
@@ -1349,7 +1341,7 @@ void FluidElement::CalculateKinematics(ElementVariables& rVariables, const doubl
 //****************************COMPUTE VELOCITY GRADIENT*******************************
 //************************************************************************************
 
-void FluidElement::CalculateVelocityGradient(Matrix& rH,
+void FluidElement::CalculateVelocityGradient(Matrix& rL,
                                              const Matrix& rDN_DX,
                                              unsigned int step)
 {
@@ -1358,7 +1350,7 @@ void FluidElement::CalculateVelocityGradient(Matrix& rH,
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rH = zero_matrix<double> ( dimension );
+    rL = zero_matrix<double> ( dimension );
 
     if( dimension == 2 )
     {
@@ -1367,10 +1359,10 @@ void FluidElement::CalculateVelocityGradient(Matrix& rH,
         {
             array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
           
-            rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rL ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rL ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rL ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rL ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
         }
 
     }
@@ -1381,15 +1373,15 @@ void FluidElement::CalculateVelocityGradient(Matrix& rH,
         {
           array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
             
-            rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH ( 0 , 2 ) += rCurrentVelocity[0]*rDN_DX ( i , 2 );
-            rH ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH ( 1 , 2 ) += rCurrentVelocity[1]*rDN_DX ( i , 2 );
-            rH ( 2 , 0 ) += rCurrentVelocity[2]*rDN_DX ( i , 0 );
-            rH ( 2 , 1 ) += rCurrentVelocity[2]*rDN_DX ( i , 1 );
-            rH ( 2 , 2 ) += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+            rL ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rL ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rL ( 0 , 2 ) += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+            rL ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rL ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rL ( 1 , 2 ) += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+            rL ( 2 , 0 ) += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+            rL ( 2 , 1 ) += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+            rL ( 2 , 2 ) += rCurrentVelocity[2]*rDN_DX ( i , 2 );
         }
 
     }
@@ -1404,7 +1396,8 @@ void FluidElement::CalculateVelocityGradient(Matrix& rH,
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateVelocityGradientVector(Vector& rH,
+void FluidElement::CalculateVelocityGradientVector(Vector& rVector,
+                                                   const Matrix& rL,
                                                    const Matrix& rDN_DX,
                                                    unsigned int step)
 {
@@ -1413,7 +1406,60 @@ void FluidElement::CalculateVelocityGradientVector(Vector& rH,
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rH = ZeroVector( dimension * dimension );
+    rVector = ZeroVector( dimension * dimension );
+
+    if( dimension == 2 )
+    {
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {            
+            rVector[0] += rL(0,0);
+            rVector[1] += rL(1,1);
+            rVector[2] += rL(0,1);
+            rVector[3] += rL(1,0);
+        }
+
+    }
+    else if( dimension == 3)
+    {
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {            
+            rVector[0] += rL(0,0);
+            rVector[1] += rL(1,1);
+            rVector[2] += rL(2,2);
+            
+            rVector[3] += rL(0,1);
+            rVector[4] += rL(1,2);
+            rVector[5] += rL(2,0);
+
+            rVector[6] += rL(1,0);
+            rVector[7] += rL(2,1);
+            rVector[8] += rL(0,2);
+            
+        }
+    }
+    else
+    {
+      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
+    }
+    
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void FluidElement::CalculateVelocityGradientVector(Vector& rVector,
+                                                   const Matrix& rDN_DX,
+                                                   unsigned int step)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    rVector = ZeroVector( dimension * dimension );
 
     if( dimension == 2 )
     {
@@ -1422,10 +1468,10 @@ void FluidElement::CalculateVelocityGradientVector(Vector& rH,
         {
             array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
           
-            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH[2] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH[3] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rVector[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rVector[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rVector[2] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rVector[3] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
 
         }
 
@@ -1437,17 +1483,17 @@ void FluidElement::CalculateVelocityGradientVector(Vector& rH,
         {
           array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
             
-            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH[2] += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+            rVector[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rVector[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rVector[2] += rCurrentVelocity[2]*rDN_DX ( i , 2 );
             
-            rH[3] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH[4] += rCurrentVelocity[1]*rDN_DX ( i , 2 );
-            rH[5] += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+            rVector[3] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rVector[4] += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+            rVector[5] += rCurrentVelocity[2]*rDN_DX ( i , 0 );
 
-            rH[6] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH[7] += rCurrentVelocity[2]*rDN_DX ( i , 1 );
-            rH[8] += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+            rVector[6] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rVector[7] += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+            rVector[8] += rCurrentVelocity[0]*rDN_DX ( i , 2 );
         }
 
     }
@@ -1462,7 +1508,7 @@ void FluidElement::CalculateVelocityGradientVector(Vector& rH,
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateSymmetricVelocityGradient(const Matrix& rH,
+void FluidElement::CalculateSymmetricVelocityGradient(const Matrix& rL,
                                                       Vector& rStrainVector)
 {
     KRATOS_TRY
@@ -1473,21 +1519,21 @@ void FluidElement::CalculateSymmetricVelocityGradient(const Matrix& rH,
     {
         if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
 
-        rStrainVector[0] = rH( 0, 0 );
-        rStrainVector[1] = rH( 1, 1 );
-        rStrainVector[2] = (rH( 0, 1 ) + rH( 1, 0 )); // xy
+        rStrainVector[0] = rL( 0, 0 );
+        rStrainVector[1] = rL( 1, 1 );
+        rStrainVector[2] = (rL( 0, 1 ) + rL( 1, 0 )); // xy
 
     }
     else if( dimension == 3 )
     {
         if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
 
-        rStrainVector[0] = rH( 0, 0 );
-        rStrainVector[1] = rH( 1, 1 );
-        rStrainVector[2] = rH( 2, 2 );
-        rStrainVector[3] = ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
-        rStrainVector[4] = ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
-        rStrainVector[5] = ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
+        rStrainVector[0] = rL( 0, 0 );
+        rStrainVector[1] = rL( 1, 1 );
+        rStrainVector[2] = rL( 2, 2 );
+        rStrainVector[3] = ( rL( 0, 1 ) + rL( 1, 0 ) ); // xy
+        rStrainVector[4] = ( rL( 1, 2 ) + rL( 2, 1 ) ); // yz
+        rStrainVector[5] = ( rL( 0, 2 ) + rL( 2, 0 ) ); // xz
 
     }
     else
@@ -1502,7 +1548,7 @@ void FluidElement::CalculateSymmetricVelocityGradient(const Matrix& rH,
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
+void FluidElement::CalculateSkewSymmetricVelocityGradient(const Matrix& rL,
                                                           Vector& rStrainVector)
 {
     KRATOS_TRY
@@ -1515,7 +1561,7 @@ void FluidElement::CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
 
         rStrainVector[0] = 0.0;
         rStrainVector[1] = 0.0;
-        rStrainVector[2] = (rH( 0, 1 ) - rH( 1, 0 )); // xy
+        rStrainVector[2] = (rL( 0, 1 ) - rL( 1, 0 )); // xy
 
     }
     else if( dimension == 3 )
@@ -1525,9 +1571,9 @@ void FluidElement::CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
         rStrainVector[0] = 0.0;
         rStrainVector[1] = 0.0;
         rStrainVector[2] = 0.0;
-        rStrainVector[3] = ( rH( 0, 1 ) - rH( 1, 0 ) ); // xy
-        rStrainVector[4] = ( rH( 1, 2 ) - rH( 2, 1 ) ); // yz
-        rStrainVector[5] = ( rH( 0, 2 ) - rH( 2, 0 ) ); // xz
+        rStrainVector[3] = ( rL( 0, 1 ) - rL( 1, 0 ) ); // xy
+        rStrainVector[4] = ( rL( 1, 2 ) - rL( 2, 1 ) ); // yz
+        rStrainVector[5] = ( rL( 0, 2 ) - rL( 2, 0 ) ); // xz
 
     }
     else
@@ -1606,12 +1652,11 @@ double& FluidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //Compute the Volume Change acumulated:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    double IntegrationWeight = 1;
     double VolumeChange = 1;
 
     //reading integration points
@@ -1621,13 +1666,13 @@ double& FluidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 	this->CalculateKinematics(Variables,PointNumber);
 
 	//getting informations for integration
-        IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
+        Variables.IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume changes
 	VolumeChange = 1;
 	VolumeChange = this->CalculateVolumeChange( VolumeChange, Variables );
 
-	rTotalMass += VolumeChange * GetProperties()[DENSITY] * IntegrationWeight;
+	rTotalMass += VolumeChange * GetProperties()[DENSITY] * Variables.IntegrationWeight;
 
       }
 
@@ -1645,7 +1690,7 @@ double& FluidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& FluidElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+double& FluidElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
 
@@ -1660,7 +1705,7 @@ double& FluidElement::CalculateVolumeChange( double& rVolumeChange, ElementVaria
 //************************************CALCULATE VOLUME ACCELERATION*******************
 //************************************************************************************
 
-Vector& FluidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementVariables& rVariables )
+Vector& FluidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementDataType& rVariables )
 {
     KRATOS_TRY
 
@@ -2049,103 +2094,11 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number, false );
 
-
-    if ( rVariable == DAMAGE_VARIABLE)
+    if (rVariable == PRESSURE)
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-
-        //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-        //set constitutive law flags:
-        Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-        //reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-        {
-            //compute element kinematic variables B, F, DN_DX ...
-            this->CalculateKinematics(Variables,PointNumber);
-
-            //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
-
-            //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->CalculateValue(Values,rVariable,rOutput[PointNumber]);
-
-        }
-    }
-    if ( rVariable == VON_MISES_STRESS )
-    {
-        //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-
-        //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-        //set constitutive law flags:
-        Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-
-        //reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-        {
-
-            //compute element kinematic variables B, F, DN_DX ...
-            this->CalculateKinematics(Variables,PointNumber);
-
-            //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
-
-            //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-
-            ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
-        }
-    }
-    else if ( rVariable == NORM_ISOCHORIC_STRESS )
-    {
-        //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-
-        //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-        //set constitutive law flags:
-        Flags &ConstitutiveLawOptions=Values.GetOptions();
-
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
-
-        //reading integration points
-        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-        {
-            //compute element kinematic variables B, F, DN_DX ...
-            this->CalculateKinematics(Variables,PointNumber);
-
-            //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
-
-            //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-
-	    ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateStressNorm(Variables.StressVector);
-        }
-
-    }
-    else if (rVariable == PRESSURE)
-    {
-        //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2164,7 +2117,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 	    this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
 	    //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
@@ -2182,8 +2135,8 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     else if (rVariable == STRAIN_ENERGY)
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2198,7 +2151,6 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
 	double StrainEnergy = 0;
-	double IntegrationWeight = 1;
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -2207,7 +2159,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 	    this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
 	    //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
@@ -2216,10 +2168,10 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 	    StrainEnergy = 0;
 	    mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY,StrainEnergy);
 
-	    IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-	    IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+	    Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+	    Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
-	    rOutput[PointNumber] = StrainEnergy * IntegrationWeight;
+	    rOutput[PointNumber] = StrainEnergy * Variables.IntegrationWeight;
         }
     }
     else
@@ -2248,8 +2200,8 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
     if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2266,7 +2218,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
 	    this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
 	    //call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR)
@@ -2346,8 +2298,8 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
     else if ( rVariable == CONSTITUTIVE_MATRIX )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2364,7 +2316,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
             this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
 	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
@@ -2380,8 +2332,8 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
     else if ( rVariable == DEFORMATION_GRADIENT )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
