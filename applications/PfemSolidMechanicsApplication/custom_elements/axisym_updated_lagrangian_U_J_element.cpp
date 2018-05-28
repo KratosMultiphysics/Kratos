@@ -1248,7 +1248,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
       double detF0 = 0;
       unsigned int step = 1;
-      if ( mFinalizedStep ==  true) 
+      if ( this->Is(SolidElement::FINALIZED_STEP) ) 
          step = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++)
          detF0 += GetGeometry()[i].GetSolutionStepValue( JACOBIAN, step ) * rVariables.N[i];
@@ -1267,7 +1267,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
          std::cout << " CONSTITUTIVE INVERSE " << EECCInverseDefGrad[0] << std::endl;
          std::cout << "  CONSTITUTIVE " << EECCDefGrad << std::endl;
          std::cout << std::endl;
-         std::cout << " FINALIZED ?: " << mFinalizedStep << std::endl;
+         std::cout << " FINALIZED ?: " << this->Is(SolidElement::FINALIZED_STEP) << std::endl;
          std::cout << " NODAL " << detF0 << std::endl;
          std::cout << " PREVIOUS DISPL F " << rVariables.F0 << std::endl;
          std::cout << "   MAYBE " << rVariables.H << std::endl;

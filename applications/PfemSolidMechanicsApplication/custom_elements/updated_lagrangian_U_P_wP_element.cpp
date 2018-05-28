@@ -1188,8 +1188,7 @@ namespace Kratos
       }
 
 
-
-      mFinalizedStep = true;
+      this->Set(SolidElement::FINALIZED_STEP,true);
 
       KRATOS_CATCH( "" )
    }

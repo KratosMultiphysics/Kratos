@@ -261,7 +261,7 @@ namespace Kratos
             this->CalculateKinematics(Variables,PointNumber);
 
             //to take in account previous step writing
-            if( mFinalizedStep ){
+            if( this->Is(SolidElement::FINALIZED_STEP) ){
                this->GetHistoricalVariables(Variables,PointNumber);
             }		
 
