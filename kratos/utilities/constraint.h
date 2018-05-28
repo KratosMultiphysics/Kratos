@@ -167,15 +167,16 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 	*/
     virtual void AddMaster(DofType const &rMasterDof, double Weight)
     {
-
+        mConstraintEquation.AddMaster(rMasterDof, Weight);
     }
 
     /**
 	* Adds a master to the current master slave relation
 	*/
-    virtual void AddSlave(DofType const &rSlaveDof, double Weight)
+    virtual void AddSlave(DofType const &rSlaveDof)
     {
-
+        this->SetId (rSlaveDof.Id());
+        mConstraintEquation.AddSlave(rSlaveDof);
     }
 
 
