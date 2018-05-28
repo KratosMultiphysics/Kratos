@@ -16,7 +16,7 @@ if(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
 endif(NOT (${SOLID_MECHANICS_APPLICATION} MATCHES "ON"))
 
 if(NOT (${PFEM_APPLICATION} MATCHES "ON"))
-    message(SEND_ERROR "The Pfem Base Application must be compiled before this one. Set PFEM_APPLICATION=ON in the configure file.")
+    message(SEND_ERROR "The Pfem Application must be compiled before this one. Set PFEM_APPLICATION=ON in the configure file.")
 endif(NOT (${PFEM_APPLICATION} MATCHES "ON"))
 
 if(NOT (${CONTACT_MECHANICS_APPLICATION} MATCHES "ON"))
@@ -51,8 +51,10 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_wP_DME_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_stab_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_HO_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_DME_element.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_U_W_wP_element.cpp
 
@@ -65,6 +67,8 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_W_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_W_wP_DME_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_Pressure_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_wP_element.cpp
 
@@ -85,7 +89,9 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_axisym_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/new_hencky_tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_tresca_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/new_hencky_tresca_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.cpp
 
@@ -96,6 +102,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_CORE
 	##yield criteria
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/J2_yield_criterion.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/new_tresca_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/tresca_yield_criterion.cpp
 
 	##flow rules

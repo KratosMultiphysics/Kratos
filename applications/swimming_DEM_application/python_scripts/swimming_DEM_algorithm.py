@@ -91,6 +91,7 @@ class Algorithm(object):
         # creating a basset_force tool to perform the operations associated
         # with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
+        self.disperse_phase_solution.SetAnalyticFaceWatcher()
 
         # defining member variables for the model_parts (for convenience)
         self.fluid_model_part = self.fluid_solution.fluid_model_part
@@ -465,6 +466,8 @@ class Algorithm(object):
         self.debug_info_counter           = self.GetDebugInfo()
         self.particles_results_counter    = self.GetParticlesResultsCounter()
         self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
+        #Phantom
+        self.analytic_data_counter        = self.ProcessAnalyticDataCounter()
         self.mat_deriv_averager           = SDP.Averager(1, 3)
         self.laplacian_averager           = SDP.Averager(1, 3)
 
@@ -579,6 +582,15 @@ class Algorithm(object):
 
     def TheSimulationMustGoOn(self):
         return self.time <= self.final_time
+
+    def GetAnalyticFacesModelParts(self):
+        analytic_face_submodelpart_number = 1
+        analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))
+        return analytic_face_submodelpart_name
+
+    def MakeAnalyticsMeasurements(self):
+        self.analytic_face_watcher.MakeMeasurements()
+        self.analytic_particle_watcher.MakeMeasurements()
 
     def RunMainTemporalLoop(self):
         coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
@@ -720,6 +732,9 @@ class Algorithm(object):
                 if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
                     self.projection_module.ProjectFromParticles()
 
+                #Phantom
+                self.disperse_phase_solution.RunAnalytics(self.time, is_time_to_print=self.analytic_data_counter.Tick())
+
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
             # measuring mean velocities in a certain control volume (the 'velocity trap')
@@ -803,19 +818,15 @@ class Algorithm(object):
 
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor)
 
-    def SetAnalyticFaceWatcher(self):
-        from analytic_tools import analytic_data_procedures
-        self.watcher = AnalyticFaceWatcher()
-        self.watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(
-            analytic_face_watcher=self.watcher,
-            path=self.main_path)
-
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
         self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(
             analytic_particle_watcher=self.particle_watcher,
             path=self.main_path)
+
+    def ProcessAnalyticData(self):
+        self.disperse_phase_solution.WriteAnalyticDataToFileAndClear()
 
     def SetInletWatcher(self):
         self.watcher_analyser.SetInlet(self.DEM_inlet)
@@ -898,6 +909,12 @@ class Algorithm(object):
             self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt(),
             1,
             self.pp.CFD_DEM["basset_force_type"].GetInt())
+
+    def ProcessAnalyticDataCounter(self):
+        return SDP.Counter(
+            steps_in_cycle=self.pp.CFD_DEM["time_steps_per_analytic_processing_step"].GetInt(),
+            beginning_step=1,
+            is_active=self.pp.CFD_DEM["do_process_analytic_data"].GetBool())
 
     def GetVolumeDebugTool(self):
         return SDP.ProjectionDebugUtils(

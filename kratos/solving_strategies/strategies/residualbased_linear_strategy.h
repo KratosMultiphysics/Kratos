@@ -475,9 +475,7 @@ public:
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                 BaseType::GetModelPart().Elements(),
-                                                                 BaseType::GetModelPart().Conditions(),
-                                                                 BaseType::GetModelPart().GetProcessInfo());
+                                                                 BaseType::GetModelPart());
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
@@ -608,12 +606,25 @@ public:
     }
 
     /**
-     * @brief This method directly sets the input as the LHS
-     * @param A The LHS matrix
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
      */
-    void GetDirectSystemMatrix(TSystemMatrixType& A)
+    TSystemVectorType& GetSystemVector()
     {
-        A = *mpA;
+        TSystemVectorType& mb = *mpb;
+
+        return mb;
+    }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    TSystemVectorType& GetSolutionVector()
+    {
+        TSystemVectorType& mDx = *mpDx;
+
+        return mDx;
     }
 
     /**

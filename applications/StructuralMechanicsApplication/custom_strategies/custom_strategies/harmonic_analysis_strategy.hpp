@@ -343,9 +343,7 @@ public:
                             temp_stiffness_matrix,
                             pDx,
                             pb,
-                            r_model_part.Elements(),
-                            r_model_part.Conditions(),
-                            r_model_part.GetProcessInfo());
+                            r_model_part);
 
                         //build stiffness matrix for submodelpart material
                         p_builder_and_solver->BuildLHS(p_scheme, sub_model_part, *temp_stiffness_matrix);
@@ -407,7 +405,7 @@ public:
         {
             KRATOS_ERROR_IF( eigenvalues[i] < std::numeric_limits<double>::epsilon() ) << "No valid eigenvalue "
                     << "for mode " << i << std::endl;
-            modal_damping = mSystemDamping + mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
+            modal_damping = mSystemDamping + mRayleighAlpha / (2 * std::sqrt(eigenvalues[i])) + mRayleighBeta * std::sqrt(eigenvalues[i]) / 2;
 
             if( mUseMaterialDamping )
             {

@@ -303,6 +303,8 @@ public:
                         TSparseSpace::GetValue(rDx, it->EquationId());
             }
 
+            // Assign contributions to adjoint second derivatives that don't
+            // require assembly.
             #pragma omp parallel
             {
                 ModelPart::NodeIterator nodes_begin;
@@ -525,7 +527,7 @@ public:
         noalias(rLHS_Contribution) =
             mBetaNewmark * mDt * mInvGamma * mLeftHandSide[thread_id] +
             mFirstDerivsLHS[thread_id] + mInvGamma * mInvDt * mSecondDerivsLHS[thread_id];
-            
+
         // Calculate added numerical diffusion stabilization term
         #ifdef EIGEN_ROOT
             mNumericalDiffusion.CalculateNumericalDiffusion(
@@ -533,8 +535,8 @@ public:
                 mLeftHandSide[thread_id],
                 rCurrentProcessInfo
             );
-            noalias(rLHS_Contribution) -= mLeftHandSide[thread_id];        
-        #endif          
+            noalias(rLHS_Contribution) -= mLeftHandSide[thread_id];
+        #endif
 
         // Calculate system contributions in residual form.
         pCurrentElement->GetValuesVector(mAdjointValuesVector[thread_id]);

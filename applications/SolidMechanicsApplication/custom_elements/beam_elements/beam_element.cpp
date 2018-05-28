@@ -1313,7 +1313,15 @@ namespace Kratos
 	LocalX[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
       }
 
-    BeamMathUtilsType::CalculateLocalAxesMatrix(LocalX,rRotationMatrix);
+
+    if(this->Has(LOCAL_AXIS_2)){
+      Vector LocalY(3);
+      noalias(LocalY) = this->GetValue(LOCAL_AXIS_2);
+      BeamMathUtilsType::CalculateLocalAxesMatrix(LocalX,LocalY,rRotationMatrix);
+    }
+    else{
+      BeamMathUtilsType::CalculateLocalAxesMatrix(LocalX,rRotationMatrix);
+    }
 
     KRATOS_CATCH( "" )
 
