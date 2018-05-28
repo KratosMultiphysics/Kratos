@@ -4,6 +4,14 @@ message("**** configuring KratosIGAStructuralMechanicsApplication ****")
 
 include(pybind11Tools)
 
+if( NOT DEFINED STRUCTURAL_MECHANICS_APPLICATION )
+	message( FATAL_ERROR "STRUCTURAL_MECHANICS_APPLICATION not defined" )
+endif()
+
+if( STRUCTURAL_MECHANICS_APPLICATION MATCHES OFF )
+	message( FATAL_ERROR "STRUCTURAL_MECHANICS_APPLICATION not being compiled" )
+endif()
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #include_directories( ${CMAKE_SOURCE_DIR}/applications/SolidMechanicsApplication )
