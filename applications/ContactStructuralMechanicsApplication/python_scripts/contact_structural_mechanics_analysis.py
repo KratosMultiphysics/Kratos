@@ -43,7 +43,7 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
     #### Internal functions ####
-    def _CreateSolver(self, external_model_part=None):
+    def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
         import python_solvers_wrapper_contact_structural
