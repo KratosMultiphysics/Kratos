@@ -926,18 +926,14 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
 /** Inserts an master-slave constraint in the current mesh.
  */
 ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveConstraint(std::string ConstraintName, 
-                                                                                        ModelPart::IndexType SlaveNodeId, 
-                                                                                        std::vector<IndexType> MasterNodeIds, 
-                                                                                        std::vector<ModelPart::MasterWeightType> MasterWerights)
+                                                                                        ModelPart::IndexType SlaveNodeId)
 {
 
     KRATOS_TRY
     if (IsSubModelPart())
     {
         MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, 
-                                                                                                             SlaveNodeId, 
-                                                                                                             MasterNodeIds, 
-                                                                                                             MasterWerights);
+                                                                                                             SlaveNodeId);
         this->AddMasterSlaveConstraint(p_new_constraint);
         return p_new_constraint;
     }

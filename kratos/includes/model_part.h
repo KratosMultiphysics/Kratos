@@ -652,7 +652,7 @@ public:
 
     /** Inserts an master-slave constraint in the current mesh.
      */
-    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType SlaveNodeId, std::vector<IndexType> MasterNodeIds, std::vector<MasterWeightType> MasterWerights);
+    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType SlaveNodeId);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
