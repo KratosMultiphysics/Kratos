@@ -332,9 +332,7 @@ public:
         TSystemVectorType& b,
         TSystemMatrixType& mMconsistent,
         TSystemVectorType& mMdiagInv,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     )
     {
         KRATOS_TRY
