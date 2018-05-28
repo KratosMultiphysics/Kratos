@@ -25,6 +25,7 @@
 #include "includes/condition.h"
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
+#include "utilities/constraint.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -348,6 +349,9 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Element mElement3D6N;
     const Element mElement3D8N;
     const Element mElement3D10N;
+
+    // Master-Slave base constraint
+    const MasterSlaveConstraint mMasterSlaveConstraint;
 
     const ConstitutiveLaw mConstitutiveLaw;
 

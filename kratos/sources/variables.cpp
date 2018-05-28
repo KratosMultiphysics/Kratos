@@ -570,6 +570,9 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mElement3D10N(
           0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
                  Element::GeometryType::PointsArrayType(10)))),
+      // Master-Slave Constraint 
+      mMasterSlaveConstraint(),
+
       mpVariableData(KratosComponents<VariableData>::pGetComponents()),
       mpIntVariables(KratosComponents<Variable<int> >::pGetComponents()),
       mpUnsignedIntVariables(
