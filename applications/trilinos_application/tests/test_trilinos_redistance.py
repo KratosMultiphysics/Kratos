@@ -128,12 +128,13 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
-        self.model_part.GetCommunicator().MinAll(min_distance)
-        self.model_part.GetCommunicator().MaxAll(max_distance)
+        min_distance = self.model_part.GetCommunicator().MinAll(min_distance)
+        max_distance = self.model_part.GetCommunicator().MaxAll(max_distance)
 
-        self.assertAlmostEqual(max_distance, 0.44556526310761013)
-        self.assertAlmostEqual(min_distance,-0.504972246827639)
-        
+        # self.assertAlmostEqual(max_distance, 0.44556526310761013) # Serial max_distance
+        # self.assertAlmostEqual(min_distance,-0.504972246827639) # Serial min_distance
+        self.assertAlmostEqual(max_distance, 0.435374512020348)
+        self.assertAlmostEqual(min_distance, -0.38175478695287857)        
         
 if __name__ == '__main__':
     test = TestTrilinosRedistance()
