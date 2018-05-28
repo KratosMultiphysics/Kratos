@@ -754,7 +754,7 @@ namespace Kratos {
 
                 int Element_Id_1 = mpParticleCreatorDestructor->FindMaxElementIdInModelPart(fem_model_part);
 
-                Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(submp[PROPERTIES_ID]); ////This is Properties 0 ????? JIGJIGJIG
+                Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(submp[PROPERTIES_ID]);
 
                 std::string ElementNameString;
 
@@ -804,6 +804,7 @@ namespace Kratos {
                 }
 
                 rigid_body_element->Initialize(r_process_info);
+                rigid_body_element->CustomInitialize(submp);
             }
         }
 
@@ -1184,7 +1185,7 @@ namespace Kratos {
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE];
             }
 
-            rigid_body_element.CustomInitialize(*sub_model_part);
+            // rigid_body_element.CustomInitialize(*sub_model_part);
 
             rigid_body_elements_counter++;
         }
