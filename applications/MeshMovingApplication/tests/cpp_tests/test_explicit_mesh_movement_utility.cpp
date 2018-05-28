@@ -12,6 +12,8 @@
 //
 
 // Project includes
+#include "includes/kernel.h"
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
@@ -43,7 +45,7 @@ namespace Testing {
             "element_name": "Element2D3N"
         })");
 
-        ModelPart origin_model_part("OriginModelPart");
+        ModelPart& origin_model_part = Kernel::GetModel().CreateModelPart("OriginModelPart");
         origin_model_part.SetBufferSize(3);
         origin_model_part.AddNodalSolutionStepVariable(VELOCITY);
         origin_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -80,7 +82,7 @@ namespace Testing {
         }
 
         // Set the virtual model part
-        ModelPart virtual_model_part("VirtualModelPart");
+        ModelPart& virtual_model_part = Kernel::GetModel().CreateModelPart("VirtualModelPart");
         virtual_model_part.SetBufferSize(3);
         virtual_model_part.AddNodalSolutionStepVariable(VELOCITY);
         virtual_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -88,7 +90,7 @@ namespace Testing {
         virtual_model_part.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
 
         // Set the structure model part
-        ModelPart str_model_part("StructureModelPart");
+        ModelPart& str_model_part = Kernel::GetModel().CreateModelPart("StructureModelPart");
         str_model_part.SetBufferSize(3);
         str_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         Properties::Pointer p_prop = Kratos::make_shared<Properties>(0);
