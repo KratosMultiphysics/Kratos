@@ -105,7 +105,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
 
       KRATOS_TRY
@@ -213,6 +213,13 @@ namespace Kratos
 
     };
 
+    void ExecuteInitialize() override
+    {
+    }
+
+    void ExecuteFinalize() override
+    {
+    }
 
     void CheckNodalConditionForTimeStepReduction(double updatedTimeInterval,
 						 bool &increaseTimeInterval,
@@ -468,24 +475,17 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "AdaptiveTimeIntervalProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "AdaptiveTimeIntervalProcess";
     }
 
-    virtual void ExecuteInitialize()
-    {
-    }
-
-    virtual void ExecuteFinalize()
-    {
-    }
 
   protected:
     ///@name Protected static Member Variables

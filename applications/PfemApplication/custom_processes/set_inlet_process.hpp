@@ -45,222 +45,222 @@ namespace Kratos
 */
 
 class SetInletProcess
-  : public Process
+    : public Process
 {
-public:
-    ///@name Type Definitions
-    ///@{
+ public:
+  ///@name Type Definitions
+  ///@{
 
-    /// Pointer definition of Process
-    KRATOS_CLASS_POINTER_DEFINITION( SetInletProcess );
+  /// Pointer definition of Process
+  KRATOS_CLASS_POINTER_DEFINITION( SetInletProcess );
 
   typedef ModelPart::NodeType                   NodeType;
   typedef ModelPart::ConditionType         ConditionType;
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
-    /// Default constructor.
-    SetInletProcess(ModelPart& rModelPart,
-				int EchoLevel) 
+  /// Default constructor.
+  SetInletProcess(ModelPart& rModelPart,
+                  int EchoLevel) 
       : mrModelPart(rModelPart)
-    {
-      std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
+  {
+    std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
 
-      mEchoLevel = EchoLevel;
-    }
-
-
-    /// Destructor.
-    virtual ~SetInletProcess() {}
+    mEchoLevel = EchoLevel;
+  }
 
 
-    ///@}
-    ///@name Operators
-    ///@{
-
-    /// This operator is provided to call the process as a function and simply calls the Execute method.
-    void operator()()
-    {
-        Execute();
-    }
+  /// Destructor.
+  virtual ~SetInletProcess() {}
 
 
-    ///@}
-    ///@name Operations
-    ///@{
+  ///@}
+  ///@name Operators
+  ///@{
 
-    /// Execute method is used to execute the Process algorithms.
-    virtual void Execute()
+  /// This operator is provided to call the process as a function and simply calls the Execute method.
+  void operator()()
+  {
+    Execute();
+  }
+
+
+  ///@}
+  ///@name Operations
+  ///@{
+
+  /// Execute method is used to execute the Process algorithms.
+  void Execute() override
   {
     KRATOS_TRY
 
-      if( mEchoLevel > 1 )
-	std::cout<<"  SET INLET PROCESS ]; "<<std::endl;
+        if( mEchoLevel > 1 )
+          std::cout<<"  SET INLET PROCESS ]; "<<std::endl;
 
     // const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     // unsigned int count=0;
     for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
-      {
-	// count++;
-	i_node->Set(INLET);
-	// std::cout<<"x y ("<<")  "<<i_node->X()<<" "<<i_node->Y();
-        // i_node->Set(RIGID);
-	// std::cout<<count<<".  "<<i_node->X()<<std::endl;
-	// if(i_node->Is(FLUID)){
-	//   std::cout<<"fluid node "<<std::endl;
-	// }else{
-	//   std::cout<<"not fluid node "<<std::endl;
-	// }
-	// if(i_node->Is(RIGID)){
-	//   std::cout<<"rigid node "<<std::endl;
-	// }
+    {
+      // count++;
+      i_node->Set(INLET);
+      // std::cout<<"x y ("<<")  "<<i_node->X()<<" "<<i_node->Y();
+      // i_node->Set(RIGID);
+      // std::cout<<count<<".  "<<i_node->X()<<std::endl;
+      // if(i_node->Is(FLUID)){
+      //   std::cout<<"fluid node "<<std::endl;
+      // }else{
+      //   std::cout<<"not fluid node "<<std::endl;
+      // }
+      // if(i_node->Is(RIGID)){
+      //   std::cout<<"rigid node "<<std::endl;
+      // }
 
-      }
+    }
 
     KRATOS_CATCH(" ")
-      }
+  }
 
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
-    {
-      KRATOS_TRY
+  /// this function is designed for being called at the beginning of the computations
+  /// right after reading the model and the groups
+  void ExecuteInitialize() override
+  {
+    KRATOS_TRY
 
     KRATOS_CATCH(" ")
 
-    }
+  }
 
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
-    {
+  /// this function is designed for being execute once before the solution loop but after all of the
+  /// solvers where built
+  void ExecuteBeforeSolutionLoop() override
+  {
 
-    }
+  }
 
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
-    {	
-    }
+  /// this function will be executed at every time step BEFORE performing the solve phase
+  void ExecuteInitializeSolutionStep() override
+  {	
+  }
 
-    /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
-    {
-    }
+  /// this function will be executed at every time step AFTER performing the solve phase
+  void ExecuteFinalizeSolutionStep() override
+  {
+  }
 
-    /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
-    {
-    }
+  /// this function will be executed at every time step BEFORE  writing the output
+  void ExecuteBeforeOutputStep() override
+  {
+  }
 
-    /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
-    {
-    }
+  /// this function will be executed at every time step AFTER writing the output
+  void ExecuteAfterOutputStep() override
+  {
+  }
 
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
-    {
-    }
-
-
-    ///@}
-    ///@name Access
-    ///@{
+  /// this function is designed for being called at the end of the computations
+  /// right after reading the model and the groups
+  void ExecuteFinalize() override
+  {
+  }
 
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+  ///@}
+  ///@name Access
+  ///@{
 
 
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "SetInletProcess";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "SetInletProcess";
-    }
-
-    /// Print object's data.s
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
+  ///@}
+  ///@name Inquiry
+  ///@{
 
 
-    ///@}
-    ///@name Friends
-    ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
 
-    ///@}
+  /// Turn back information as a string.
+  std::string Info() const override
+  {
+    return "SetInletProcess";
+  }
+
+  /// Print information about this object.
+  void PrintInfo(std::ostream& rOStream) const override
+  {
+    rOStream << "SetInletProcess";
+  }
+
+  /// Print object's data.s
+  void PrintData(std::ostream& rOStream) const override
+  {
+  }
 
 
-private:
-    ///@name Static Member Variables
-    ///@{
+  ///@}
+  ///@name Friends
+  ///@{
 
-    ///@}
-    ///@name Static Member Variables
-    ///@{
-    ModelPart& mrModelPart;
+  ///@}
+
+
+ private:
+  ///@name Static Member Variables
+  ///@{
+
+  ///@}
+  ///@name Static Member Variables
+  ///@{
+  ModelPart& mrModelPart;
  
-    ModelerUtilities mModelerUtilities;  
+  ModelerUtilities mModelerUtilities;  
 
-    int mEchoLevel;
+  int mEchoLevel;
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+  ///@}
+  ///@name Private Operators
+  ///@{
 
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+  ///@}
+  ///@name Private Operations
+  ///@{
 
 
 
  
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+  ///@}
+  ///@name Private  Access
+  ///@{
 
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
+  ///@}
+  ///@name Private Inquiry
+  ///@{
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+  ///@}
+  ///@name Un accessible methods
+  ///@{
 
 
-    /// Assignment operator.
-    SetInletProcess& operator=(SetInletProcess const& rOther);
+  /// Assignment operator.
+  SetInletProcess& operator=(SetInletProcess const& rOther);
 
 
-    /// this function is a private function
+  /// this function is a private function
 
 
-    /// Copy constructor.
-    //Process(Process const& rOther);
+  /// Copy constructor.
+  //Process(Process const& rOther);
 
 
-    ///@}
+  ///@}
 
 }; // Class Process
 
@@ -283,11 +283,11 @@ inline std::istream& operator >> (std::istream& rIStream,
 inline std::ostream& operator << (std::ostream& rOStream,
                                   const SetInletProcess& rThis)
 {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+  rThis.PrintInfo(rOStream);
+  rOStream << std::endl;
+  rThis.PrintData(rOStream);
 
-    return rOStream;
+  return rOStream;
 }
 ///@}
 
