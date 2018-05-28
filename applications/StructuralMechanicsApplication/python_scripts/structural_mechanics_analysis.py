@@ -32,6 +32,12 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
         solver_settings = project_parameters["solver_settings"]
+        if not solver_settings.Has("time_stepping"):
+            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
+            time_stepping_params = KratosMultiphysics.Parameters("{}")
+            time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
+            solver_settings.AddValue("time_stepping", time_stepping_params)
+
         if not solver_settings.Has("domain_size"):
             KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
@@ -173,7 +179,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             f.close()
 
         ## Stepping and time settings
-        self.solver.SetDeltaTime(self.project_parameters["problem_data"]["time_step"].GetDouble())
         start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 

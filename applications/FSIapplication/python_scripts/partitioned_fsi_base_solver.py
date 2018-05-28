@@ -78,6 +78,11 @@ class PartitionedFSIBaseSolver:
         # Construct the structure solver
         self.structure_model = KratosMultiphysics.Model()
         structural_solver_settings = project_parameters["structure_solver_settings"]["solver_settings"]
+        if not structural_solver_settings.Has("time_stepping"):
+            KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Using the old way to pass the time_step, this will be removed!")
+            time_stepping_params = KratosMultiphysics.Parameters("{}")
+            time_stepping_params.AddValue("time_step", project_parameters["structure_solver_settings"]["problem_data"]["time_step"])
+            structural_solver_settings.AddValue("time_stepping", time_stepping_params)
         if not structural_solver_settings.Has("domain_size"):
             KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Using the old way to pass the domain_size, this will be removed!")
             structural_solver_settings.AddEmptyValue("domain_size")

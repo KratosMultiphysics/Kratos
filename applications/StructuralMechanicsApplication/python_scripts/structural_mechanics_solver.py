@@ -65,6 +65,7 @@ class MechanicalSolver(PythonSolver):
             "material_import_settings" :{
                 "materials_filename": ""
             },
+            "time_stepping" : { },
             "rotation_dofs": false,
             "pressure_dofs": false,
             "reform_dofs_at_each_step": false,
@@ -262,11 +263,7 @@ class MechanicalSolver(PythonSolver):
         return new_time
 
     def ComputeDeltaTime(self):
-        return self.delta_time
-
-    def SetDeltaTime(self, dt):
-        # This is a TEMPORARY function until the solver can compute dt!
-        self.delta_time = dt
+        return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
