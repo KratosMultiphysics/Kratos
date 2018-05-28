@@ -37,55 +37,17 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
     def Initialize(self):
         """ Initializing the Analysis """
         super(ContactStructuralMechanicsAnalysis, self).Initialize()
-        self.solver.SetEchoLevel(self.echo_level)
-
-    #### Internal functions ####
-    def _CreateSolver(self, external_model_part=None):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
-
+        self._GetSolver().SetEchoLevel(self.echo_level)
         # To avoid many prints
         if (self.echo_level == 0):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
+    #### Internal functions ####
+    def _CreateSolver(self, external_model_part=None):
+        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
         import python_solvers_wrapper_contact_structural
-        self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.model, self.project_parameters)
-
-        ## Adds the necessary variables to the model_part only if they don't exist
-        self.solver.AddVariables()
-
-        self.solver.ImportModelPart() # TODO move to global instance
-
-    def _SetUpListOfProcesses(self):
-        """ Set up the list of processes """
-
-        from process_factory import KratosProcessFactory
-        factory = KratosProcessFactory(self.model)
-        self.list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
-        self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
-        if (self.project_parameters.Has("list_other_processes") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
-        if (self.project_parameters.Has("json_output_process") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
-        # Processes for tests
-        if (self.project_parameters.Has("json_check_process") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
-        if (self.project_parameters.Has("check_analytic_results_process") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
-        if (self.project_parameters.Has("contact_process_list") is True):
-            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["contact_process_list"])
-
-        #TODO this should be generic
-        # initialize GiD  I/O
-        self._SetUpGiDOutput()
-        if self.have_output:
-            self.list_of_processes += [self.output,]
-
-        if self.is_printing_rank and self.echo_level > 1:
-            count = 0
-            for process in self.list_of_processes:
-                count += 1
-                # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
+        return python_solvers_wrapper_contact_structural.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
         return "::[KCSM Simulation]:: "
