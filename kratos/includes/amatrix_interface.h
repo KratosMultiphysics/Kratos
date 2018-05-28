@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/checks.h"
 
 
 namespace Kratos
@@ -83,11 +84,18 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     explicit Matrix(std::initializer_list<TDataType> InitialValues)
         : base_type(InitialValues) {}
 
-    template <typename TOtherMatrixType>
-    Matrix& operator=(TOtherMatrixType const& Other) {
-        base_type::operator=(Other);
-        return *this;
-    }
+	template <typename TExpressionType, std::size_t TCategory>
+	Matrix& operator=(
+		MatrixExpression<TExpressionType, TCategory> const& Other) {
+		base_type::operator=(Other.expression());
+		return *this;
+	}
+
+    //template <typename TOtherMatrixType>
+    //Matrix& operator=(TOtherMatrixType const& Other) {
+    //    base_type::operator=(Other);
+    //    return *this;
+    //}
 
     Matrix& operator=(Matrix const& Other) {
         base_type::operator=(Other);
@@ -244,19 +252,144 @@ bool operator!=(Matrix<TDataType, TSize1, TSize2> const& First,
 }
 
 /// output stream function
+///  format for a vector : [size](value1, value2, ...., valueN)
+///  format for a matrix : [size1, size2](()()...()) 
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
 inline std::ostream& operator<<(std::ostream& rOStream,
-    Matrix<TDataType, TSize1, TSize2> const& TheMatrix) {
-    rOStream << "{";
-    for (std::size_t i = 0; i < TheMatrix.size1(); i++) {
-        for (std::size_t j = 0; j < TheMatrix.size2(); j++)
-            rOStream << TheMatrix(i, j) << ",";
-        rOStream << std::endl;
-    }
-    rOStream << "}";
+	Matrix<TDataType, TSize1, TSize2> const& TheMatrix) {
 
-    return rOStream;
+	if ((TSize1 == 1) || (TSize2 == 1)) { // writing in vector format
+		const std::size_t size = TheMatrix.size();
+		rOStream << "[" << size << "](";
+		if (size > 0)
+			rOStream << TheMatrix[0];
+		for (std::size_t i = 1; i < size; i++) {
+			rOStream << "," << TheMatrix[i];
+		}
+		rOStream << ")";
+	}
+	else // writing in matrix format
+	{
+		const std::size_t size2 = TheMatrix.size2();
+		rOStream << "[" << TheMatrix.size1() << "," << TheMatrix.size2() << "](";
+		if (TheMatrix.size1() > 0) {
+			rOStream << "(";
+			if (size2 > 0)
+				rOStream << TheMatrix(0, 0);
+			for (std::size_t j = 1; j < size2; j++) {
+				rOStream << "," << TheMatrix(0, j);
+			}
+			rOStream << ")";
+		}
+		for (std::size_t i = 1; i < TheMatrix.size1(); i++) {
+			rOStream << ",(";
+			if (size2 > 0)
+				rOStream << TheMatrix(i, 0);
+			for (std::size_t j = 1; j < size2; j++) {
+				rOStream << "," << TheMatrix(i, j);
+			}
+			rOStream << ")";
+		}
+		rOStream << ")";
+	}
+	return rOStream;
 }
+
+/// input stream function for matrix using the ublas style for backward compatibility
+///  format for a matrix : [size1, size2](()()...()) 
+///  NOTE: it deosnot support white spaces, tab, etc.
+template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
+inline std::istream& operator>>(std::istream& rIStream,
+	Matrix<TDataType, TSize1, TSize2>& TheMatrix) {
+
+	std::size_t size1;
+	std::size_t size2;
+
+	char c;
+
+	rIStream >> c; // skipping the '['
+	KRATOS_DEBUG_CHECK(c == '[');
+
+	rIStream >> size1;
+
+	rIStream >> c; // skipping the ','
+	KRATOS_DEBUG_CHECK(c == ',');
+
+	rIStream >> size2;
+
+	rIStream >> c; // skipping the ']'
+	KRATOS_DEBUG_CHECK(c == ']');
+
+	TheMatrix.resize(size1, size2);
+
+	rIStream >> c; // skipping the '('
+	KRATOS_DEBUG_CHECK(c == '(');
+
+	for (std::size_t i = 0; i < size1; i++) {
+		if (i > 0) {
+			rIStream >> c; // skipping the row ','
+			KRATOS_DEBUG_CHECK(c == ',');
+		}
+		rIStream >> c; // skipping the row '('
+		KRATOS_DEBUG_CHECK(c == '(');
+
+		for (std::size_t j = 0; j < size2; j++) {
+			if (j > 0) {
+				rIStream >> c; // skipping the ','
+				KRATOS_DEBUG_CHECK(c == ',');
+			}
+			rIStream >> TheMatrix(i, j);
+		}
+
+		rIStream >> c; // skipping the row ')'
+		KRATOS_DEBUG_CHECK(c == ')');
+	}
+
+	rIStream >> c; // skipping the final ')'
+	KRATOS_DEBUG_CHECK(c == ')');
+
+	return rIStream;
+}
+
+/// input stream function for vector using the ublas style for backward compatibility
+///  format for a vector : [size](value1, value2, ...., valueN)
+///  NOTE: it deosnot support white spaces, tab, etc.
+template <typename TDataType, std::size_t TSize1>
+inline std::istream& operator>>(std::istream& rIStream,
+	Matrix<TDataType, TSize1, 1>& TheMatrix) {
+
+	std::size_t size1;
+
+
+	char c;
+
+	rIStream >> c; // skipping the '['
+	KRATOS_DEBUG_CHECK(c == '[');
+
+	rIStream >> size1;
+
+	rIStream >> c; // skipping the ']'
+	KRATOS_DEBUG_CHECK(c == ']');
+
+	TheMatrix.resize(size1);
+
+	rIStream >> c; // skipping the '('
+	KRATOS_DEBUG_CHECK(c == '(');
+
+	for (std::size_t i = 0; i < size1; i++) {
+		if (i > 0) {
+			rIStream >> c; // skipping the ','
+			KRATOS_DEBUG_CHECK(c == ',');
+		}
+		rIStream >> TheMatrix[i];
+	}
+
+	rIStream >> c; // skipping the ')'
+	KRATOS_DEBUG_CHECK(c == ')');
+
+	return rIStream;
+}
+
 
 } // namespace Internals
 
