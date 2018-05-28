@@ -97,6 +97,23 @@ protected:
 		}
 	};
 
+
+
+
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "ElemenSURFACE #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "ElemenSURFACE #" << Id();
+    }
+
 public:
     ///@name Type Definitions
     ///@{
@@ -290,4 +307,4 @@ private:
 ///@}
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_BASE_SURFACE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MESHLESS_BASE_SURFACE_ELEMENT_H_INCLUDED  defined

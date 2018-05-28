@@ -44,7 +44,7 @@ MeshlessBaseElement::MeshlessBaseElement(
 //************************************************************************************
 MeshlessBaseElement::MeshlessBaseElement(
 	IndexType NewId,
-	GeometryType::Pointer pGeometry,  
+	GeometryType::Pointer pGeometry,
 	PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
@@ -52,11 +52,11 @@ MeshlessBaseElement::MeshlessBaseElement(
 //************************************************************************************
 //************************************************************************************
 Element::Pointer MeshlessBaseElement::Create(
-	IndexType NewId, 
-	NodesArrayType const& ThisNodes,  
+	IndexType NewId,
+	NodesArrayType const& ThisNodes,
 	PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new MeshlessBaseElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    KRATOS_ERROR << "Trying to create a \"MeshlessBaseElement\"" << std::endl;
 }
 //************************************************************************************
 //************************************************************************************
@@ -67,11 +67,11 @@ MeshlessBaseElement::~MeshlessBaseElement()
 /*
 * GetGeometryData Gets data stored on the element.
 *
-* @param integration_weight the integration weight is the specific 
+* @param integration_weight the integration weight is the specific
   integration weight of the Gauss Point of this element.
 * @param N shape function N(xi, eta) evaluated on location of the Gauss Point.
-* @param DN_De shape function derivatives evaluated on location of this Gauss Point. 
-  Generally first and second column for first order derivatives. Additionally if 
+* @param DN_De shape function derivatives evaluated on location of this Gauss Point.
+  Generally first and second column for first order derivatives. Additionally if
   needed third and fourth for second order derivatives and fith for cross terms.
 */
 //************************************************************************************
@@ -110,7 +110,7 @@ void MeshlessBaseElement::ComputeGlobalDerivatives(const Matrix& DN_De,
 	// local_space_dimension = number of dimensions in Parameter Space
 	// If DN_De is used only for the first and second derivatives this term can be used:
 	// local_space_dimension = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES).size2();// GetGeometry().WorkingSpaceDimension();
-	const unsigned int local_space_dimension = 2; 
+	const unsigned int local_space_dimension = 2;
 
 	DN_DX.resize(number_of_points,working_space_dimension);
 
@@ -121,13 +121,13 @@ void MeshlessBaseElement::ComputeGlobalDerivatives(const Matrix& DN_De,
 }
 
 /**
-* Jacobian gives the mapping for the given shape functions. This 
-  function calculates the mapping from 3D in Geometry Space to 
+* Jacobian gives the mapping for the given shape functions. This
+  function calculates the mapping from 3D in Geometry Space to
   2D in Parameter Space.
 *
 * @param[in] DN_De derivatives of shape functions in two directions.
 * @param[out] Jacobian calculated Jacobian. Is always of size 3x2, as
-  the function only allows mapping from from 3D in Geometry Space to 
+  the function only allows mapping from from 3D in Geometry Space to
   2D in Parameter Space.
 *
 */
@@ -156,7 +156,7 @@ void MeshlessBaseElement::Jacobian(const Matrix& DN_De,
 }
 
 /**
-* Hessian calculates the Hessian for the given system with the 
+* Hessian calculates the Hessian for the given system with the
   shape function derivatives DN_De.
 *
 * @param[in] DN_De derivatives of shape functions.

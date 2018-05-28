@@ -60,6 +60,22 @@ public:
     ///@name Operations
     ///@{
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
+
+
+
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Elementwertzioiuztgf #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Element #" << Id();
+    }
     ///@}
 
 protected:
@@ -120,6 +136,6 @@ private:
 }; // Class MeshlessBaseElement
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_BASE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MESHLESS_BASE_ELEMENT_H_INCLUDED  defined
 
 

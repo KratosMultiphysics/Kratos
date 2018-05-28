@@ -50,10 +50,10 @@ public:
 	virtual ~MeshlessShellKLElement() override
 	{};
 
-	//Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
-	//{
-	//	return boost::make_shared< MeshlessShellKLElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-	//};
+	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+	{
+		return Kratos::make_shared< MeshlessShellKLElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+	};
 
     ///@}
     ///@name Operations
@@ -131,6 +131,23 @@ public:
 	*/
 	int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+
+
+
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "KLElement #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "KLElement #" << Id();
+    }
+
 	///@}
 
 protected:
@@ -190,4 +207,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_MESHLESS_SHELL_KL_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MESHLESS_MESHLESS_SHELL_KL_ELEMENT_H_INCLUDED  defined
