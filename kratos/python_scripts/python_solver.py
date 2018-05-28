@@ -45,7 +45,7 @@ class PythonSolver(object):
         """
         pass
 
-    def ReadModelPart(self):
+    def ImportModelPart(self):
         """This function reads the ModelPart
         """
         raise Exception("This function has to be implemented in the derived class")
@@ -59,13 +59,6 @@ class PythonSolver(object):
         """This function returns the minimum buffer size needed for this PythonSolver
         """
         raise Exception('Please implement "GetMinimumBufferSize" in your derived solver')
-
-    def ImportModelPart(self):
-        warning_msg  = 'Using "ImportModelPart" is deprecated and will be removed in the future!\n'
-        warning_msg  = 'Use "ReadModelPart" + "PrepareModelPart" instead'
-        KratosMultiphysics.Logger.PrintWarning("::[PythonSolver]::", warning_msg)
-        self.ReadModelPart()
-        self.PrepareModelPart()
 
     def ExportModelPart(self):
         """This function exports the ModelPart to and mdpa-file
