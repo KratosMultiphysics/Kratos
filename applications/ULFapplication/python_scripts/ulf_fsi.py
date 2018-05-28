@@ -2,8 +2,7 @@
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
-from KratosMultiphysics.PFEMApplication import PfemUtils
-from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 # CheckForPreviousImport()
@@ -95,8 +94,6 @@ class ULF_FSISolver:
 
         # temporary ... i need it to calculate the nodal area
         self.UlfUtils = UlfUtils()
-        self.PfemUtils = PfemUtils()
-
         # self.save_structural_elements
         self.alpha_shape = 1.5;
         self.h_multiplier = 0.1
@@ -261,15 +258,15 @@ class ULF_FSISolver:
 #
     def Remesh(self):
 
-        # self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.15)
-        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.05)
+	self.UlfUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.08)
+        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.00005)	
 
         # erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
         ((self.combined_model_part).Nodes).clear();
         ((self.fluid_model_part).Elements).clear();
-        ((self.fluid_model_part).Conditions).clear();
+        #((self.fluid_model_part).Conditions).clear();
 
         # self.UlfUtils.DeleteFreeSurfaceNodesBladder(self.fluid_model_part)
         # marking nodes outside of the bounding box

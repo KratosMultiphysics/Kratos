@@ -62,6 +62,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_quasiincompresible_builder_and_solver.h"
 #include "custom_strategies/strategies/modified_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+//schemes
+#include "solving_strategies/schemes/scheme.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -80,12 +83,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 //			typedef ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
 
+    //typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType >   ResidualBasedPredictorCorrectorBossakSchemeType;
     //********************************************************************
     //********************************************************************
     //typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 2> //ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D;
@@ -97,7 +102,17 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D, boost::noncopyable>
 //("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver2D", init< LinearSolverType::Pointer>() )
 //
-//
+//    //********************************************************************
+    //********************************************************************
+
+
+class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType>,
+                    typename ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType>::Pointer,
+                    BaseSchemeType >
+                    (m, "ResidualBasedPredictorCorrectorBossakScheme")
+                    .def(init< double >()
+                    );
+
 
     class_< ResidualBasedIncompressibleBuilderType2D, ResidualBasedIncompressibleBuilderType2D::Pointer, BuilderAndSolverType > (m, "ResidualBasedIncompressibleBuilder2D")
     .def(init< LinearSolverType::Pointer>() )

@@ -21,8 +21,7 @@
 
 
 // Project includes
-#include "includes/define.h"
-#include "includes/define_python.h"
+#include "includes/define.h" 
 #include "includes/kratos_application.h"
 
 #include <pybind11/pybind11.h>
