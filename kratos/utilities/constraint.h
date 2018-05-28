@@ -45,6 +45,8 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     typedef double ConstantType;
     typedef Matrix MatrixType;
+    typedef VariableData VariableDataType;
+    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
 
     ///@name Life Cycle
     ///@{
@@ -52,10 +54,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     /**
 	    Creates a MultipointConstraint object
 	*/
-    MasterSlaveConstraint(IndexType Id) : IndexedObject(Id), Flags()
-    {
-    }
-
     MasterSlaveConstraint() : IndexedObject(0), Flags()
     {
     }
@@ -165,18 +163,33 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     /**
 	* Adds a master to the current master slave relation
 	*/
-    virtual void AddMaster(DofType const &rMasterDof, double Weight)
+    virtual void AddMaster(NodeType const &rMasterNode, VariableType const &rMasterVariable, double Weight)
     {
+        DofType &master_dof = rMasterNode.GetDof(rMasterVariable);
+        mConstraintEquation.AddMaster(master_dof, Weight);
+    }
+    virtual void AddMaster(NodeType const &rMasterNode, VariableComponentType const &rMasterVariableComponent, double Weight)
+    {
+        DofType &master_dof = rMasterNode.GetDof(rMasterVariableComponent);
         mConstraintEquation.AddMaster(rMasterDof, Weight);
     }
 
     /**
 	* Adds a master to the current master slave relation
 	*/
-    virtual void AddSlave(DofType const &rSlaveDof)
+    virtual void AddSlave(NodeType const &rSlaveNode, VariableType const &rSlaveVariable)
     {
-        this->SetId (rSlaveDof.Id());
-        mConstraintEquation.AddSlave(rSlaveDof);
+        rSlaveNode.Set(SLAVE);
+        DofType &slave_dof = rSlaveNode.GetDof(rSlaveVariable);
+        this->SetId (slave_dof.Id());
+        mConstraintEquation.AddSlave(slave_dof);
+    }
+    virtual void AddSlave(NodeType const &rSlaveNode, VariableComponentType const &rSlaveVariableComponent)
+    {
+        rSlaveNode.Set(SLAVE);
+        DofType &slave_dof = rSlaveNode.GetDof(rSlaveVariableComponent);
+        this->SetId (slave_dof.Id());
+        mConstraintEquation.AddSlave(slave_dof);
     }
 
 
