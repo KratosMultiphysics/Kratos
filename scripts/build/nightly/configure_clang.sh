@@ -38,6 +38,7 @@ cmake .. \
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
 -DMAPPING_APPLICATION=ON                                                                        \
 -DMETIS_APPLICATION=OFF                                                                         \
+-DCOMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=ON                                                    \
 -DPARMETIS_ROOT_DIR=\"UNSET\"                                                                   \
 -DTRILINOS_APPLICATION=OFF                                                                      \
 -DTRILINOS_ROOT=\"UNSET\"                                                                       \

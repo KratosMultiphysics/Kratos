@@ -69,10 +69,11 @@ namespace Kratos {
 
             const double slope = 0.5 * (element1_props[TENSION_LIMIT_INCREASE_SLOPE] + element2_props[TENSION_LIMIT_INCREASE_SLOPE]);
 
-            /*Vector ordered_principal_stresses(3);
+            Vector ordered_principal_stresses(3);
             if(principal_stresses[1]>=principal_stresses[0]) {
                 ordered_principal_stresses[0] = principal_stresses[1];
                 ordered_principal_stresses[1] = principal_stresses[0];
+            }
             else{
                 ordered_principal_stresses[0] = principal_stresses[0];
                 ordered_principal_stresses[1] = principal_stresses[1];
@@ -80,6 +81,7 @@ namespace Kratos {
             if(principal_stresses[2]>=ordered_principal_stresses[1]) {
                 ordered_principal_stresses[1] = principal_stresses[2];
                 ordered_principal_stresses[2] = ordered_principal_stresses[1];
+            }
             else{
                 ordered_principal_stresses[2] = principal_stresses[2];
             }
@@ -87,10 +89,10 @@ namespace Kratos {
                 const double aux = ordered_principal_stresses[0];
                 ordered_principal_stresses[0] = ordered_principal_stresses[1];
                 ordered_principal_stresses[1] = aux;
-            }*/
+            }
 
-            if(principal_stresses[1] < 0.0) tension_limit += slope * principal_stresses[1];
-            if(principal_stresses[2] < 0.0) tension_limit += slope * principal_stresses[2];
+            if(ordered_principal_stresses[1] < 0.0) tension_limit -= slope * ordered_principal_stresses[1]; // negative sign because they are negative
+            if(ordered_principal_stresses[2] < 0.0) tension_limit -= slope * ordered_principal_stresses[2];
 
             if(principal_stresses[0] > tension_limit) {
                 failure_type = 4;

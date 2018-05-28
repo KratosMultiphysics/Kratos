@@ -45,6 +45,61 @@ namespace Kratos {
         mDragConstantVector[2] = rigid_body_element_sub_model_part[DEM_DRAG_CONSTANT_Z];
     }
     
+    void ShipElement3D::ComputeWaterDragForce() {
+
+        KRATOS_TRY
+
+        const double water_density = 1000;
+        const double drag_coefficient = 0.75; //https://www.engineeringtoolbox.com/drag-coefficient-d_627.html
+        const double water_level = 0.0;
+
+        for (unsigned int i = 0; i != mListOfRigidFaces.size(); ++i) {
+
+            double rigid_face_area = 0.0;
+            Point rigid_face_centroid;
+            array_1d<double, 3> drag_force = ZeroVector(3);
+            array_1d<double, 3> rigid_body_centroid_to_rigid_face_centroid_vector = ZeroVector(3);
+            array_1d<double, 3> drag_moment = ZeroVector(3);
+            size_t RF_size = mListOfRigidFaces[i]->GetGeometry().size();
+            array_1d<double, 3> rigid_face_z_coords_values = ZeroVector(RF_size);
+            unsigned int number_of_RF_nodes_out_of_water = 0;
+
+            for (unsigned int j = 0; j < RF_size; j++) {
+                rigid_face_z_coords_values[j] = mListOfRigidFaces[i]->GetGeometry()[j].Coordinates()[2];
+                if (rigid_face_z_coords_values[j] > water_level) number_of_RF_nodes_out_of_water++;
+            }
+            
+            if (number_of_RF_nodes_out_of_water == RF_size) continue;
+                        
+            array_1d<double, 3> rigid_face_velocity;
+            noalias(rigid_face_velocity) = mListOfRigidFaces[i]->GetVelocity();
+            
+            double velocity_modulus = DEM_MODULUS_3(rigid_face_velocity);
+            
+            if (velocity_modulus) {
+                DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, 1.0/velocity_modulus)
+            }
+            
+            rigid_face_centroid = mListOfRigidFaces[i]->GetGeometry().Center();
+            rigid_face_area = mListOfRigidFaces[i]->GetGeometry().Area();
+                        
+            DEM_MULTIPLY_BY_SCALAR_3(rigid_face_velocity, -0.5 * drag_coefficient * water_density * velocity_modulus * velocity_modulus * rigid_face_area)
+            DEM_COPY_SECOND_TO_FIRST_3(drag_force, rigid_face_velocity)
+                                
+            rigid_body_centroid_to_rigid_face_centroid_vector[0] = rigid_face_centroid.Coordinates()[0] - GetGeometry()[0].Coordinates()[0];
+            rigid_body_centroid_to_rigid_face_centroid_vector[1] = rigid_face_centroid.Coordinates()[1] - GetGeometry()[0].Coordinates()[1];
+            rigid_body_centroid_to_rigid_face_centroid_vector[2] = rigid_face_centroid.Coordinates()[2] - GetGeometry()[0].Coordinates()[2];
+
+            array_1d<double, 3>& total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+            DEM_ADD_SECOND_TO_FIRST(total_forces, drag_force)
+            array_1d<double, 3>& total_moments = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+            GeometryFunctions::CrossProduct(rigid_body_centroid_to_rigid_face_centroid_vector, drag_force, drag_moment);
+            DEM_ADD_SECOND_TO_FIRST(total_moments, drag_moment)
+        }
+
+        KRATOS_CATCH("")
+    }
+    
     void ShipElement3D::ComputeBuoyancyEffects() {
 
         KRATOS_TRY
@@ -59,7 +114,7 @@ namespace Kratos {
             Point rigid_face_centroid;
             array_1d<double, 3> normal_to_rigid_face = ZeroVector(3);
             array_1d<double, 3> normal_rigid_face_force = ZeroVector(3);
-            array_1d<double, 3> rigid_body_centroid_to_rigid_face_controid_vector = ZeroVector(3);
+            array_1d<double, 3> rigid_body_centroid_to_rigid_face_centroid_vector = ZeroVector(3);
             array_1d<double, 3> buoyancy_moment = ZeroVector(3);
             unsigned int rigid_face_size = mListOfRigidFaces[i]->GetGeometry().size();
 
@@ -78,10 +133,10 @@ namespace Kratos {
             normal_rigid_face_force[2] = mean_pressure * rigid_face_area * normal_to_rigid_face[2];
 
             for (unsigned int i = 0; i < rigid_face_size; i++) {
-                rigid_body_centroid_to_rigid_face_controid_vector[0] = rigid_face_centroid.Coordinates()[0] - GetGeometry()[0].Coordinates()[0];
-                rigid_body_centroid_to_rigid_face_controid_vector[1] = rigid_face_centroid.Coordinates()[1] - GetGeometry()[0].Coordinates()[1];
-                rigid_body_centroid_to_rigid_face_controid_vector[2] = rigid_face_centroid.Coordinates()[2] - GetGeometry()[0].Coordinates()[2];
-                if (GeometryFunctions::DotProduct(rigid_body_centroid_to_rigid_face_controid_vector, normal_to_rigid_face) > 0.0) {
+                rigid_body_centroid_to_rigid_face_centroid_vector[0] = rigid_face_centroid.Coordinates()[0] - GetGeometry()[0].Coordinates()[0];
+                rigid_body_centroid_to_rigid_face_centroid_vector[1] = rigid_face_centroid.Coordinates()[1] - GetGeometry()[0].Coordinates()[1];
+                rigid_body_centroid_to_rigid_face_centroid_vector[2] = rigid_face_centroid.Coordinates()[2] - GetGeometry()[0].Coordinates()[2];
+                if (GeometryFunctions::DotProduct(rigid_body_centroid_to_rigid_face_centroid_vector, normal_to_rigid_face) > 0.0) {
                     DEM_MULTIPLY_BY_SCALAR_3(normal_rigid_face_force, -1.0)
                 }
             }
@@ -89,7 +144,7 @@ namespace Kratos {
             array_1d<double, 3>& total_forces = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
             DEM_ADD_SECOND_TO_FIRST(total_forces, normal_rigid_face_force)
             array_1d<double, 3>& total_moments = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
-            GeometryFunctions::CrossProduct(rigid_body_centroid_to_rigid_face_controid_vector, normal_rigid_face_force, buoyancy_moment);
+            GeometryFunctions::CrossProduct(rigid_body_centroid_to_rigid_face_centroid_vector, normal_rigid_face_force, buoyancy_moment);
             DEM_ADD_SECOND_TO_FIRST(total_moments, buoyancy_moment)
         }
 
@@ -111,22 +166,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ShipElement3D::ComputeWaterDragForce() {
-
-        KRATOS_TRY
-        
-        array_1d<double, 3> water_drag_force;
-        const array_1d<double, 3> velocity = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-
-        water_drag_force[0] = ((velocity[0] >= 0.0) ? -mDragConstantVector[0] * velocity[0] * velocity[0] : mDragConstantVector[0] * velocity[0] * velocity[0]);
-        water_drag_force[1] = ((velocity[1] >= 0.0) ? -mDragConstantVector[1] * velocity[1] * velocity[1] : mDragConstantVector[1] * velocity[1] * velocity[1]);
-        water_drag_force[2] = ((velocity[2] >= 0.0) ? -mDragConstantVector[2] * velocity[2] * velocity[2] : mDragConstantVector[2] * velocity[2] * velocity[2]);
-        
-        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += water_drag_force;
-
-        KRATOS_CATCH("")
-    }
-
     void ShipElement3D::ComputeExternalForces(const array_1d<double,3>& gravity) {
 
         KRATOS_TRY
@@ -136,6 +175,9 @@ namespace Kratos {
         ComputeBuoyancyEffects();
         ComputeEngineForce();
         ComputeWaterDragForce();
+        
+        const array_1d<double, 3> external_applied_torque = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT)) += external_applied_torque;
 
         KRATOS_CATCH("")
     }
