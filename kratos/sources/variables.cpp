@@ -26,6 +26,7 @@
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
+#include "utilities/constraint.h"
 
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -1031,6 +1032,8 @@ void KratosApplication::RegisterVariables() {
     Serializer::Register("Node3D", Node<3>());
     Serializer::Register("DofDouble", Dof<double>());
 
+    Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
+
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
 
     //point conditions
@@ -1047,6 +1050,9 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D4N", mSurfaceCondition3D4N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D8N", mSurfaceCondition3D8N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D9N", mSurfaceCondition3D9N);
+
+    //master-slave constraints
+    KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
 
     //deprecated conditions start
     KRATOS_REGISTER_CONDITION("Condition2D", mCondition2D);
