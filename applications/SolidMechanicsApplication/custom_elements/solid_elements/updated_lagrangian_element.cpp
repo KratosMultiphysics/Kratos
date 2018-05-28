@@ -217,7 +217,7 @@ void UpdatedLagrangianElement::Initialize()
     LargeDisplacementElement::Initialize();
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     //Resize historic deformation gradient
     if ( mDeformationGradientF0.size() != integration_points_number )
@@ -334,7 +334,7 @@ void UpdatedLagrangianElement::CalculateKinetics(ElementDataType& rVariables, co
     //TotalDeltaPosition must not be used in this element as mDeterminantF0 and mDeformationGradientF0 are stored for reduced order
     //however then the storage of variables in the full integration order quadrature must be considered
 
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -381,7 +381,7 @@ void UpdatedLagrangianElement::CalculateDeformationGradient(Matrix& rF,
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( dimension );
 
@@ -438,7 +438,7 @@ void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rB.clear(); //set all components to zero
 

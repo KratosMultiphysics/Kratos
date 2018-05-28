@@ -609,7 +609,7 @@ protected:
     ///@{
     BeamElement() {};
 
-    constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
+    //constexpr const std::size_t& Dimension() const {return GetGeometry().WorkingSpaceDimension();}
 
     ///@}
     ///@name Protected Operations

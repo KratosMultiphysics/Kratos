@@ -78,7 +78,7 @@ namespace Kratos
 
     LargeDisplacementBeamEMCElement::Initialize();
 
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes  = GetGeometry().size();
 
     //Initial Local Directors initialization
@@ -176,7 +176,7 @@ namespace Kratos
     LargeDisplacementBeamEMCElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
 
     DirectorsVariables& Directors = rVariables.GetDirectors();
@@ -236,7 +236,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     const SizeType number_of_nodes  = GetGeometry().size();
 
     //Get the shape functions for the order of the integration method [N]
@@ -663,7 +663,7 @@ namespace Kratos
 
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
  
     //reading shape functions
@@ -955,7 +955,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
     Vector StrainResultants(3);
@@ -1005,7 +1005,7 @@ namespace Kratos
     KRATOS_TRY
 
     SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     double DomainSize = rVariables.Section.Area; 
 
@@ -1071,7 +1071,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     VectorType Fi(12);
     noalias(Fi) = ZeroVector(12);
@@ -1577,7 +1577,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
     
     //Initialize Local Matrices
     MatrixType DifferentialOperatorI(12,6);
@@ -1653,7 +1653,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
 
     //Initialize Local Matrices
@@ -1824,7 +1824,7 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
 
     if(rLeftHandSideMatrix.size1() != MatSize)
@@ -1915,8 +1915,8 @@ namespace Kratos
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = this->Dimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int MatSize            = number_of_nodes * ( dimension * 2 );
 
     if(rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);

@@ -196,7 +196,7 @@ void TotalLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
 {
     KRATOS_TRY
 
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -251,7 +251,7 @@ void TotalLagrangianElement::CalculateKinetics(ElementDataType& rVariables, cons
     //TotalDeltaPosition must not be used in this element as mInvJ0 and mDetJ0 are stored for reduced order
     //however then the storage of variables in the full integration order quadrature must be considered
 
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -296,7 +296,7 @@ void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 {
     KRATOS_TRY
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rB.clear(); //set all components to zero
 
@@ -363,7 +363,7 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, const Pr
 {
     KRATOS_TRY
 
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rTotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
 

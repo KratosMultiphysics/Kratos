@@ -124,7 +124,7 @@ void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, P
 {
     rElementalDofList.resize( 0 );
 
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     for ( SizeType i = 0; i < GetGeometry().size(); i++ )
     {
@@ -143,7 +143,7 @@ void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, P
 void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
     const SizeType number_of_nodes  = GetGeometry().size();
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
@@ -195,7 +195,7 @@ unsigned int LargeDisplacementVElement::GetDofsSize()
 {
   KRATOS_TRY
      
-  const SizeType& dimension       = this->Dimension();
+  const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
   const SizeType number_of_nodes  = GetGeometry().PointsNumber();    
   
   unsigned int size = number_of_nodes * dimension; //usual size for velocity based elements
@@ -283,7 +283,7 @@ void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rH = zero_matrix<double> ( dimension );
 
@@ -338,7 +338,7 @@ void LargeDisplacementVElement::CalculateVelocityGradientVector(Vector& rH,
     KRATOS_TRY
 
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType& dimension       = this->Dimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rH = ZeroVector( dimension * dimension );
 
@@ -394,7 +394,7 @@ void LargeDisplacementVElement::CalculateSymmetricVelocityGradient(const Matrix&
 {
     KRATOS_TRY
 
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 )
     {
@@ -434,7 +434,7 @@ void LargeDisplacementVElement::CalculateSkewSymmetricVelocityGradient(const Mat
 {
     KRATOS_TRY
 
-    const SizeType& dimension = this->Dimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 )
     {
