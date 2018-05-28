@@ -312,12 +312,18 @@ public:
                 case 1:
                     CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1,
                         EqThrsholds[i], Slopes[i], rMaterialProperties);
+                    break;
+
                 case 2:
                     CalculateEqStressThresholdHardCurve2(PlasticDissipation, r0, r1,
                         EqThrsholds[i], Slopes[i], rMaterialProperties);
+                    break;
+
                 case 3:
                     CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1,
-                        EqThrsholds[i], Slopes[i], rMaterialProperties);                    
+                        EqThrsholds[i], Slopes[i], rMaterialProperties);  
+                    break;
+                                      
                 // Add more cases...
             }
         }

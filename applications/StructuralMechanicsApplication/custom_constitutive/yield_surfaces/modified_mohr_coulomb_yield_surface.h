@@ -100,7 +100,7 @@ public:
         double& rEqStress, 
         const Properties& rMaterialProperties
     )
-    {      
+    {  
 		const double YieldCompression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 		const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
 		const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!

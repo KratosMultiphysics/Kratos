@@ -46,8 +46,9 @@ namespace Kratos
  * @class TangentOperatorCalculatorProcess
  * @ingroup StructuralMechanicsApplication
  * @brief An algorithm that derives numerically the constitutive tangent tensor at one GP
- * @details 
- * @author Alejandro Cornejo
+ * @details The procedure is defined in the PAPER "Caracterización de la delaminación en materiales
+ compuestos mediante la teoría de mezclas serie/paralelo" X. Martinez, S. Oller y E. Barbero.
+ * @author Alejandro Cornejo & Lucia Barbu
  */
 
 template <class TConstitutiveLawType>
@@ -62,16 +63,8 @@ public:
     /// Constructor
     TangentOperatorCalculatorProcess(
         ConstitutiveLaw::Parameters& rValues
-        // Matrix& TangentTensor, 
-        // const Vector StressVectorGP,
-        // const Vector StrainVectorGP,
-        // const Properties& rMaterialProperties
     )
     {
-        // mTangentTensor = TangentTensor;
-        // mStressVectorGP = StressVectorGP;
-        // mStrainVectorGP = StrainVectorGP;
-        // mMaterialProperties = rMaterialProperties;
         mValues = rValues;
     }
 
@@ -80,7 +73,7 @@ public:
 
     void Execute()
     {
-        const Matrix C;
+        Matrix C;
         TConstitutiveLawType::CalculateElasticMatrix(C, mMaterialProperties);
 
         const Vector& StrainVectorGP = mValues.GetStrainVector();
@@ -96,14 +89,15 @@ public:
         {
             ConstitutiveLaw::Parameters PerturbedValues = mValues;
             Vector& PerturbedStrain = PerturbedValues.GetStrainVector();
-            Vector& PerturbedIntegratedStress = PerturbedValues.GetStressVector();
+            
 
             double Perturbation;
             this->CalculatePerturbation(PerturbedStrain, Component, Perturbation);
             this->PerturbateStrainVector(PerturbedStrain, StrainVectorGP, Perturbation, Component);
             this->IntegratePerturbedStrain(PerturbedValues);
 
-            const Vector& DeltaStress = PerturbedIntegratedStress - StressVectorGP;
+            Vector& PerturbedIntegratedStress = PerturbedValues.GetStressVector(); // now integrated
+            const Vector& DeltaStress = PerturbedIntegratedStress - StressVectorGP; 
             this->AssignComponentsToTangentTensor(TangentTensor, DeltaStress, Perturbation, Component);
         }
     }
@@ -114,7 +108,7 @@ public:
         double& Perturbation
     )
     {
-        double Pert1, Pert2
+        double Pert1, Pert2;
         if (StrainVector[Component] != 0.0)
         {
             Pert1 = 1e-5*StrainVector[Component];
@@ -122,11 +116,11 @@ public:
         else
         {
             double MinStrainComp;
-            this->GetMinAbsValue(StrainVector,MinStrainComp);
+            this->GetMinAbsValue(StrainVector, MinStrainComp);
             Pert1 = 1e-5*MinStrainComp;
         }
         double MaxStrainComp;
-        this->GetMaxAbsValue(StrainVector,MaxStrainComp);
+        this->GetMaxAbsValue(StrainVector, MaxStrainComp);
         Pert2 = 1e-10*MaxStrainComp;
 
         Perturbation = std::max(Pert1, Pert2);
@@ -143,9 +137,7 @@ public:
         PerturbedStrainVector[Component] += Perturbation;
     }
 
-    void IntegratePerturbedStrain(
-        ConstitutiveLaw::Parameters& rValues
-    )
+    void IntegratePerturbedStrain(ConstitutiveLaw::Parameters& rValues)
     {
         TConstitutiveLawType::CalculateMaterialResponseCauchy(rValues);
     }

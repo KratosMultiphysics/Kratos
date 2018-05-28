@@ -184,7 +184,7 @@ public:
         else // Plastic case
         {
             // while loop backward euler
-            /* Inside IntegrateStressVector the PredictiveStressVector
+            /* Inside "IntegrateStressVector" the PredictiveStressVector
                is updated to verify the yield criterion */
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, rValues.GetStrainVector(), 
                 UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
@@ -194,14 +194,14 @@ public:
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
 
-            this->CalculateTangentTensor(C); // todo
-            TangentTensor = C;
+            this->CalculateTangentTensor(rValues); // this modifies the C
+            TangentTensor = rValues.GetConstitutiveMatrix();
         }
     } // End CalculateMaterialResponseCauchy
 
-    void CalculateTangentTensor(Matrix& C) //TODO: 
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
     {
-
+        TangentOperatorCalculatorProcess <GenericSmallStrainIsotropicPlasticity3D> (rValues).Execute();
     }
 
     void FinalizeSolutionStep(

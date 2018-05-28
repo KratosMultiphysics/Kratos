@@ -21,6 +21,7 @@
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
+#include "custom_processes/tangent_operator_calculator_process.h"
 
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
@@ -169,9 +170,10 @@ public:
 
         if (F <= 0.0) 
         {   // Elastic case
-            IntegratedStressVector = PredictiveStressVector;
+            noalias(IntegratedStressVector) = PredictiveStressVector;
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
+            
             noalias(TangentTensor) = (1 - Damage)*C;
         }
         else // Damage case
@@ -186,14 +188,17 @@ public:
             noalias(IntegratedStressVector) = PredictiveStressVector; 
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
-            noalias(TangentTensor) = (1 - Damage)*C; // Secant Tensor
+
+            //noalias(TangentTensor) = (1 - Damage)*C; // Secant Tensor
+            this->CalculateTangentTensor(rValues); 
+            TangentTensor = rValues.GetConstitutiveMatrix();
         }
         
     } // End CalculateMaterialResponseCauchy
 
-    void CalculateTangentTensor(Matrix& C) // todo
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
     {
-
+        TangentOperatorCalculatorProcess <GenericSmallStrainIsotropicDamage3D> (rValues).Execute();
     }
 
     void FinalizeSolutionStep(

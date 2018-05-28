@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/constitutive_law.h"
 
 //Processes
 #include "custom_processes/prism_neighbours_process.h"
@@ -74,6 +75,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(init< ModelPart&, Parameters >())
         .def("Execute",&ShellToSolidShellProcess<4>::Execute)
         ;
+
+    // class_<TangentOperatorCalculatorProcess, Process >(m,"TangentOperatorCalculatorProcess")
+    //     .def(init<ConstitutiveLaw::Parameters&&>())
+    //     .def("Execute", &TangentOperatorCalculatorProcess::Execute)
+    //     ;
 }
 
 }  // namespace Python.  
