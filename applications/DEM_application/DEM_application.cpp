@@ -119,6 +119,7 @@ KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_Z_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_X_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_Y_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_Z_VALUE)
+KRATOS_CREATE_VARIABLE(bool, IS_GHOST)
 
 // *************** Continuum only BEGIN *************
 KRATOS_CREATE_VARIABLE(bool, DELTA_OPTION)
@@ -453,7 +454,7 @@ void KratosDEMApplication::Register() {
 #ifdef KRATOS_BUILD_TYPE
 #define ____CONVERT_INNER_VALUE_TO_STRING(S) ____CONVERT_TO_STRING(S)
 #define ____CONVERT_TO_STRING(S) #S
-    KRATOS_INFO("DEM") << "( compiled in mode \""
+    KRATOS_INFO("") << "( compiled in mode \""
               << ____CONVERT_INNER_VALUE_TO_STRING(KRATOS_BUILD_TYPE) << "\" )";
 #undef ____CONVERT_INNER_VALUE_TO_STRING
 #undef ____CONVERT_TO_STRING
@@ -525,6 +526,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(INITIAL_ANGULAR_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_ANGULAR_VELOCITY_Y_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_ANGULAR_VELOCITY_Z_VALUE)
+    KRATOS_REGISTER_VARIABLE(IS_GHOST)
 
     // *************** Continuum only BEGIN *************
     KRATOS_REGISTER_VARIABLE(DELTA_OPTION)
@@ -857,6 +859,6 @@ void KratosDEMApplication::Register() {
     Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
 
-    KRATOS_INFO("DEM") << " done." << std::endl;
+    KRATOS_INFO("") << " done." << std::endl;
 }
 }  // namespace Kratos.
