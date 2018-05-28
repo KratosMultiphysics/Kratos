@@ -130,7 +130,7 @@ class TestCase(KratosUnittest.TestCase):
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
             self._remove_h5_files("MainModelPart")
             self._remove_file("./test_vms_sensitivity_2d/one_element_test.dat")
-            self._remove_file("./test_vms_sensitivity_2d/one_element_test.time")
+            self._remove_file("./one_element_test.time")
 
     def test_Cylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -150,12 +150,12 @@ class TestCase(KratosUnittest.TestCase):
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
             self._remove_h5_files("MainModelPart")
             self._remove_file("./test_vms_sensitivity_2d/cylinder_test.dat")
-            self._remove_file("./test_vms_sensitivity_2d/cylinder_test.time")
-            self._remove_file("./test_vms_sensitivity_2d/cylinder_test_probe1.dat")
-            self._remove_file("./test_vms_sensitivity_2d/cylinder_test_probe2.dat")
-            self._remove_file("./test_vms_sensitivity_2d/cylinder_test_adjoint_probe1.dat")
-            self._remove_file("./test_vms_sensitivity_2d/cylinder_test_adjoint_probe2.dat")
-            self._remove_file("./test_vms_sensitivity_2d/cylinder_test_adjoint_probe3.dat")
+            self._remove_file("./cylinder_test.time")
+            self._remove_file("./cylinder_test_probe1.dat")
+            self._remove_file("./cylinder_test_probe2.dat")
+            self._remove_file("./cylinder_test_adjoint_probe1.dat")
+            self._remove_file("./cylinder_test_adjoint_probe2.dat")
+            self._remove_file("./cylinder_test_adjoint_probe3.dat")
 
     def test_SteadyCylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -174,8 +174,8 @@ class TestCase(KratosUnittest.TestCase):
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
             self._remove_h5_files("MainModelPart")
-            self._remove_file("./test_vms_sensitivity_2d/steady_cylinder_test.dat")
-            self._remove_file("./test_vms_sensitivity_2d/steady_cylinder_test.time")
+            self._remove_file("./steady_cylinder_test.dat")
+            self._remove_file("./steady_cylinder_test.time")
 
     def tearDown(self):
         pass
