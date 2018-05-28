@@ -56,8 +56,6 @@ class AdjointFluidAnalysis(AnalysisStage):
             self.solver.ImportModelPart()
             self.solver.AddDofs()
 
-        self.model.AddModelPart(self.main_model_part)
-
         # this should let eventual derived stages modify the model after reading.
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
@@ -226,6 +224,5 @@ if __name__ == '__main__':
         primal_simulation = FluidDynamicsAnalysis(model,parameters["primal_settings"])
         primal_simulation.Run()
 
-    adjoint_model = Kratos.Model()
-    adjoint_simulation = AdjointFluidAnalysis(adjoint_model,parameters["adjoint_settings"])
+    adjoint_simulation = AdjointFluidAnalysis(model,parameters["adjoint_settings"])
     adjoint_simulation.Run()
