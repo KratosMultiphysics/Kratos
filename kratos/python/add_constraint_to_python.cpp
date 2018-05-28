@@ -32,7 +32,6 @@ void  AddConstraintToPython(pybind11::module& m)
 {
 
     class_<MasterSlaveConstraint>(m, "MasterSlaveConstraint" )
-    .def(init<MasterSlaveConstraint::IndexType const&>())
 	.def(init<>())
     .def("Clear", &MasterSlaveConstraint::Clear)
     .def("AddMaster", &MasterSlaveConstraint::AddMaster)
