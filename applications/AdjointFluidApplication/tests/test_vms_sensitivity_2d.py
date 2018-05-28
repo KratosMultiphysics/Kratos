@@ -174,7 +174,7 @@ class TestCase(KratosUnittest.TestCase):
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
             self._remove_h5_files("MainModelPart")
-            self._remove_file("./steady_cylinder_test.dat")
+            self._remove_file("./test_vms_sensitivity_2d/steady_cylinder_test.dat")
             self._remove_file("./steady_cylinder_test.time")
 
     def tearDown(self):

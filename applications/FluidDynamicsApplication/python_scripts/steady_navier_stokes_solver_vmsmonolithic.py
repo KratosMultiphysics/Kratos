@@ -15,7 +15,7 @@ def CreateSolver(main_model_part, custom_settings):
 class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
     def __init__(self, main_model_part, custom_settings):
-    
+
         # parse and strip parameters that do not exist in base class. we need to remove
         # extra parameters so base class doesn't throw an error. alternatively a single solver script
         # could be used and the scheme type could be passed in json parameters.
@@ -50,7 +50,7 @@ class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.
                                                      self.settings["absolute_velocity_tolerance"].GetDouble(),
                                                      self.settings["relative_pressure_tolerance"].GetDouble(),
                                                      self.settings["absolute_pressure_tolerance"].GetDouble())
-        
+
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(self.velocity_relaxation_factor, self.pressure_relaxation_factor, self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
@@ -83,7 +83,9 @@ class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Check()
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
+        if self.settings["stabilization"].Has("dynamic_tau"):
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["stabilization"]["dynamic_tau"].GetDouble())
+        if self.settings["stabilization"].Has("oss_switch"):
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["stabilization"]["oss_switch"].GetInt())
 
         print ("Monolithic solver initialization finished.")
