@@ -37,26 +37,26 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class LineLoadCondition2D
-    : public BaseLoadCondition
+class MPMLineLoadCondition2D
+    : public MPMBaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of LineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoadCondition2D );
+    /// Counted pointer of MPMLineLoadCondition2D
+    KRATOS_CLASS_POINTER_DEFINITION( MPMLineLoadCondition2D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
-    LineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
+    MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    ~LineLoadCondition2D() override;
+    ~MPMLineLoadCondition2D() override;
 
     ///@}
     ///@name Operators
@@ -176,7 +176,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    LineLoadCondition2D() {};
+    MPMLineLoadCondition2D() {};
 
     ///@}
 
@@ -214,12 +214,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
     }
 
 
@@ -228,15 +228,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //LineLoadCondition2D& operator=(const LineLoadCondition2D& rOther);
+    //MPMLineLoadCondition2D& operator=(const MPMLineLoadCondition2D& rOther);
 
     /// Copy constructor.
-    //LineLoadCondition2D(const LineLoadCondition2D& rOther);
+    //MPMLineLoadCondition2D(const MPMLineLoadCondition2D& rOther);
 
 
     ///@}
 
-}; // Class LineLoadCondition2D
+}; // Class MPMLineLoadCondition2D
 
 ///@}
 ///@name Type Definitions
@@ -250,11 +250,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-        LineLoadCondition2D& rThis);
+        MPMLineLoadCondition2D& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoadCondition2D& rThis)
+        const MPMLineLoadCondition2D& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

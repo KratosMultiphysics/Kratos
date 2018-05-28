@@ -31,39 +31,39 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class SurfaceLoadCondition3D
-    : public BaseLoadCondition
+class MPMSurfaceLoadCondition3D
+    : public MPMBaseLoadCondition
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    // Counted pointer of SurfaceLoadCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoadCondition3D );
+    // Counted pointer of MPMSurfaceLoadCondition3D
+    KRATOS_CLASS_POINTER_DEFINITION( MPMSurfaceLoadCondition3D );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    SurfaceLoadCondition3D();
+    MPMSurfaceLoadCondition3D();
 
     // Constructor using an array of nodes
-    SurfaceLoadCondition3D(
+    MPMSurfaceLoadCondition3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
     // Constructor using an array of nodes with properties
-    SurfaceLoadCondition3D(
+    MPMSurfaceLoadCondition3D(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
     // Destructor
-    ~SurfaceLoadCondition3D() override;
+    ~MPMSurfaceLoadCondition3D() override;
 
     ///@}
     ///@name Operators
@@ -213,16 +213,16 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
     }
 
 
-}; // class SurfaceLoadCondition3D.
+}; // class MPMSurfaceLoadCondition3D.
 
 ///@name Type Definitions
 ///@{
