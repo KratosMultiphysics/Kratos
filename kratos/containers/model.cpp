@@ -40,16 +40,13 @@ namespace Kratos
 //         KRATOS_INFO("Model") << "within CreateModelPart address of Model is " <<  &(*this) << std::endl; //TODO: remove - debugging purposes
         
         auto search = mRootModelPartMap.find(ModelPartName);
-        if( search == mRootModelPartMap.end())
-        {
+        if( search == mRootModelPartMap.end()) {
 //             KRATOS_INFO("Model") << ModelPartName << std::endl; //TODO: remove only for debugging purposes
             auto pvar_list = Kratos::make_unique<VariablesList>();
             mRootModelPartMap[ModelPartName] = Kratos::make_unique<ModelPart>(ModelPartName, NewBufferSize, pvar_list.get());
             mListOfVariablesLists.insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
-        }
-        else
-        {
+        } else {
             KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
         }
 
@@ -70,11 +67,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        if(!this->HasModelPart(OldName))
-            KRATOS_ERROR << "The Old Name is not in model (as a root model part). Required old name was : " << OldName << std::endl;
+        KRATOS_ERROR_IF_NOT(this->HasModelPart(OldName)) << "The Old Name is not in model (as a root model part). Required old name was : " << OldName << std::endl;
 
-        if(this->HasModelPart(NewName))
-            KRATOS_ERROR << "The New Name is already existing in model. Proposed name was : " << NewName << std::endl;
+        KRATOS_ERROR_IF(this->HasModelPart(NewName)) << "The New Name is already existing in model. Proposed name was : " << NewName << std::endl;
         
         mRootModelPartMap[OldName]->Name() = NewName; //change the name of the existing modelpart
         

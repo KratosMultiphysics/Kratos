@@ -30,7 +30,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
+  ///@addtogroup KratosCore
   ///@{
 
   ///@name Kratos Globals
@@ -52,8 +52,12 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Short class definition.
-  /** Detail class definition.
+  /** 
+   * @class Model
+   * @ingroup KratosCore
+   * @brief This class aims to manage different model parts across multi-physics simulations
+   * @details The class behaves as a manager of the different model parts. It uses unordered_maps of the variables and the model parts for that pourpose
+   * @author Riccardo Rossi
   */
   class KRATOS_API(KRATOS_CORE)  Model
     {
@@ -74,8 +78,8 @@ namespace Kratos
       /// Destructor.
       virtual ~Model()
       {
-        mRootModelPartMap.clear();
-        mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
+          mRootModelPartMap.clear();
+          mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
       }
       
       Model & operator=(const Model&) = delete;
