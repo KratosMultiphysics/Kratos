@@ -68,7 +68,13 @@ namespace Kratos {
         moments_of_inertia[1] = moment_of_inertia;
         moments_of_inertia[2] = moment_of_inertia;
 
-       if (StepFlag != 1 && StepFlag != 2) {
+        for (int j = 0; j < 3; j++) {
+            if (Fix_Ang_vel[j] == true) {
+                torque[j] = 0.0;
+            }
+        }
+
+        if (StepFlag != 1 && StepFlag != 2) {
             array_1d<double, 3 > local_angular_velocity, quarter_angular_velocity, half_angular_velocity;
 
             CalculateLocalAngularAcceleration(moment_of_inertia, torque, moment_reduction_factor, local_angular_acceleration);
@@ -146,6 +152,12 @@ namespace Kratos {
         array_1d<double, 3 >& half_local_angular_velocity = i.FastGetSolutionStepValue(LOCAL_AUX_ANGULAR_VELOCITY);
         Quaternion<double  >& half_Orientation            = i.FastGetSolutionStepValue(AUX_ORIENTATION);
         array_1d<double, 3 > local_angular_acceleration, local_torque;
+
+        for (int j = 0; j < 3; j++) {
+            if (Fix_Ang_vel[j] == true) {
+                torque[j] = 0.0;
+            }
+        }
 
         if (StepFlag != 1 && StepFlag != 2) {
             array_1d<double, 3 > quarter_local_angular_velocity, quarter_angular_velocity, half_angular_velocity;
