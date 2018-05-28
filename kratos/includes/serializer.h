@@ -291,7 +291,7 @@ public:
         }
     }
 
-    
+
     template<class TDataType>
     void load(std::string const & rTag, TDataType*& pValue)
     {
@@ -337,104 +337,13 @@ public:
         }
     }
 
-    void load(std::string const & rTag, ModelPart*& pValue)
-        {
-        PointerType pointer_type = SP_INVALID_POINTER;
-        void* p_pointer;
-        read(pointer_type);
+    void load(std::string const & rTag, ModelPart*& pValue);
 
-        if(pointer_type != SP_INVALID_POINTER)
-        {
-            read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
-            if(i_pointer == mLoadedPointers.end())
-            {
-                if(pointer_type == SP_BASE_CLASS_POINTER)
-                {
-                    if(!pValue)
-                        KRATOS_ERROR << "an already constructed modelpart must be passed to load a ModelPart" <<std::endl;
+    void load(std::string const & rTag, Kratos::unique_ptr<ModelPart>& pValue);
 
-                    load(rTag, *pValue);
-                                    }
-                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
-                {
-                    KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
-                }
-                mLoadedPointers[p_pointer]=&pValue;
-            }
-            else
-            {
-                KRATOS_ERROR << "modelpart has already been serialized - should not be done twice!" << std::endl;
-            }
-        }
-    }
-
-    void load(std::string const & rTag, Kratos::unique_ptr<ModelPart>& pValue)
-        {
-        PointerType pointer_type = SP_INVALID_POINTER;
-        void* p_pointer;
-        read(pointer_type);
-
-        if(pointer_type != SP_INVALID_POINTER)
-        {
-            read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
-            if(i_pointer == mLoadedPointers.end())
-            {
-                if(pointer_type == SP_BASE_CLASS_POINTER)
-                {
-                    if(!pValue)
-                        KRATOS_ERROR << "an already constructed modelpart must be passed to load a ModelPart" <<std::endl;
-
-                    load(rTag, *pValue);
-                                    }
-                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
-                {
-                    KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
-                }
-                mLoadedPointers[p_pointer]=&pValue;
-            }
-            else
-            {
-                KRATOS_ERROR << "modelpart has already been serialized - should not be done twice!" << std::endl;
-            }
-        }
-    }
-
-    void load(std::string const & rTag, Kratos::shared_ptr<ModelPart>& pValue)
-        {
-        PointerType pointer_type = SP_INVALID_POINTER;
-        void* p_pointer;
-        read(pointer_type);
-
-        if(pointer_type != SP_INVALID_POINTER)
-        {
-            read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
-            if(i_pointer == mLoadedPointers.end())
-            {
-                if(pointer_type == SP_BASE_CLASS_POINTER)
-                {
-                    if(!pValue)
-                        KRATOS_ERROR << "an already constructed modelpart must be passed to load a ModelPart" <<std::endl;
-
-                    load(rTag, *pValue);
-                                    }
-                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
-                {
-                    KRATOS_ERROR << "should not find SP_DERIVED_CLASS_POINTER for ModelPart load" << std::endl;
-                }
-                mLoadedPointers[p_pointer]=&pValue;
-            }
-            else
-            {
-                KRATOS_ERROR << "modelpart has already been serialized - should not be done twice!" << std::endl;
-            }
-        }
-    }
+    void load(std::string const & rTag, Kratos::shared_ptr<ModelPart>& pValue);
 
 
-    
     template<class TDataType>
     void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
     {
@@ -647,7 +556,7 @@ public:
     {
         save(rTag, pValue.get());
     }
-    
+
     template<class TDataType>
     void save(std::string const & rTag, Kratos::unique_ptr<TDataType> pValue)
     {
