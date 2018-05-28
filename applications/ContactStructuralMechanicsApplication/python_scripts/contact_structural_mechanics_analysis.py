@@ -30,7 +30,6 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
     It can be imported and used as "black-box"
     """
     def __init__(self, model, project_parameters):
-
         # Construct the base analysis.
         super(ContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
@@ -59,7 +58,7 @@ if __name__ == "__main__":
         err_msg =  'Too many input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '- With default ProjectParameters (read from "ProjectParameters.json"):\n'
-        err_msg += '    "python3 contact_structural_mechanics_analysis.py"\n'
+        err_msg += '    "python3 structural_mechanics_analysis.py"\n'
         err_msg += '- With custom ProjectParameters:\n'
         err_msg += '    "python3 contact_structural_mechanics_analysis.py CustomProjectParameters.json"\n'
         raise Exception(err_msg)
@@ -69,4 +68,9 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    ContactStructuralMechanicsAnalysis(project_parameters_file_name).Run()
+    with open(parameter_file_name,'r') as parameter_file:
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+    model = KratosMultiphysics.Model()
+    simulation = ContactStructuralMechanicsAnalysis(model, parameters)
+    simulation.Run()

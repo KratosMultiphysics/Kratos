@@ -26,7 +26,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     It can be imported and used as "black-box"
     """
     def __init__(self, model, project_parameters):
-        # In case of the old format, where dT is given under "problem_data", copy it to solver settings
+        # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
         if not solver_settings.Has("time_stepping"):
             KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
@@ -53,11 +53,10 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
 
     def OutputSolutionStep(self):
-        # This function is temporary until restart saving is handled through process
+        # This function is TEMPORARY until restart saving is handled through process
         super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
 
         self._GetSolver().SaveRestart()
-
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -76,14 +75,14 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process"
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
-            if len(list_of_processes) == 0:
+            if len(list_of_processes) == 0: # Processes are given in the old format
                 KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
                         list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
-            else:
+            else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
                         raise Exception("Mixing of process initialization is not alowed!")
