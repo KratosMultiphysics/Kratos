@@ -63,7 +63,10 @@ kratos/includes/kratos_version.h
 applications/FluidDynamicsApplication/test_examples/fs_cavity/ProjectParameters\.py
 
 applications/FluidDynamicsApplication/test_examples/fs_cavity/run_test\.py
-
+applications/ULFapplication/test_examples/TRIALS/
+EXAMPLES/
 *.cpp~
 
 applications/python_scripts/beam_profiles\.csv
+
+applications/FluidDynamicsApplication/test_examples/cyl_bench/cyl_benchFluid\.post\.bin
