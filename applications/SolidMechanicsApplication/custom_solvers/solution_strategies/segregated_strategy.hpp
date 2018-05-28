@@ -155,7 +155,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     int counter = 0;
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+      this->GetModelPart().GetProcessInfo().SetValue(SEGREGATED_STEP, counter);
       (*it)->InitializeSolutionStep();
       ++counter;
     }
@@ -179,7 +179,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     int counter = 0;
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+      this->GetModelPart().GetProcessInfo().SetValue(SEGREGATED_STEP, counter);
       (*it)->FinalizeSolutionStep();
       ++counter;
     }
@@ -216,7 +216,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
       int counter = 0;
       for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
       {
-        this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+        this->GetModelPart().GetProcessInfo().SetValue(SEGREGATED_STEP, counter);
         convergences[counter-1] = (*it)->SolveIteration();
         ++counter;
       }
@@ -244,7 +244,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     int counter = 0;
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+      this->GetModelPart().GetProcessInfo().SetValue(SEGREGATED_STEP, counter);
       (*it)->Clear();
       ++counter;
     }
@@ -263,7 +263,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     int counter = 0;
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
-      this->GetModelPart().GetProcessInfo().SetValue(FRACTIONAL_STEP, counter);
+      this->GetModelPart().GetProcessInfo().SetValue(SEGREGATED_STEP, counter);
       (*it)->Check();
       ++counter;
     }

@@ -25,7 +25,7 @@ namespace Kratos
    */
   KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_RHS_VECTOR,                 0 );
   KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_LHS_MATRIX,                 1 );
-
+  KRATOS_CREATE_LOCAL_FLAG( BeamElement, FINALIZED_STEP,                     2 );
 
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
@@ -337,6 +337,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    this->Set(BeamElement::FINALIZED_STEP,false);
+        
     KRATOS_CATCH( "" )
   }
 
@@ -368,7 +370,9 @@ namespace Kratos
   void BeamElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-      
+
+    this->Set(BeamElement::FINALIZED_STEP,true);
+        
     KRATOS_CATCH( "" )
   }
 

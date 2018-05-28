@@ -24,6 +24,7 @@ namespace Kratos
  */
 KRATOS_CREATE_LOCAL_FLAG( SolidElement, COMPUTE_RHS_VECTOR,                 0 );
 KRATOS_CREATE_LOCAL_FLAG( SolidElement, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( SolidElement, FINALIZED_STEP,                     2 );
 
 
 //******************************CONSTRUCTOR*******************************************

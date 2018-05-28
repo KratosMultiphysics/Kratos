@@ -264,7 +264,7 @@ namespace Kratos
     
     //strains due to displacements and rotations
 
-    if( mFinalizedStep == true ){
+    if( this->Is(BeamElement::FINALIZED_STEP) ){
 
         //rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
         
@@ -338,7 +338,7 @@ namespace Kratos
     //*************************************//   
 
     //Compute current CURVATURES
-    if( mFinalizedStep == true ){
+    if( this->Is(BeamElement::FINALIZED_STEP) ){
 
 	//set current STRAIN RESULTANTS
 	rVariables.CurrentStrainResultantsVector  = mCurrentStrainResultantsVector[rPointNumber];

@@ -44,8 +44,6 @@ namespace Kratos
   LargeDisplacementBeamElement::LargeDisplacementBeamElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BeamElement(NewId, pGeometry, pProperties)
   {
-    mFinalizedStep = true; // the creation is out of the time step, it must be true
-
     mReducedIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     mFullIntegrationMethod = mReducedIntegrationMethod;
     this->IncreaseIntegrationMethod(mFullIntegrationMethod,1);
@@ -56,7 +54,6 @@ namespace Kratos
 
   LargeDisplacementBeamElement::LargeDisplacementBeamElement(LargeDisplacementBeamElement const& rOther)
     :BeamElement(rOther)
-    ,mFinalizedStep(rOther.mFinalizedStep)
     ,mReducedIntegrationMethod(rOther.mReducedIntegrationMethod)
     ,mFullIntegrationMethod(rOther.mFullIntegrationMethod)
     ,mIterationCounter(rOther.mIterationCounter)
@@ -209,8 +206,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    mFinalizedStep = false;
-
+    BeamElement::InitializeSolutionStep(rCurrentProcessInfo);
+    
     //predict is done after initialize solution step -- perform this operations in initialize to write results correctly --
 
 
@@ -314,8 +311,8 @@ namespace Kratos
 	mPreviousCurvatureVectors[i] = mCurrentCurvatureVectors[i] ;
       }
 
-    mFinalizedStep = true;
-
+    BeamElement::FinalizeSolutionStep(rCurrentProcessInfo);
+    
     KRATOS_CATCH( "" )
   }
 
@@ -486,7 +483,7 @@ namespace Kratos
     noalias(CurrentValueVector) = ZeroVector(3);
 
 
-    if( mFinalizedStep == true ){
+    if( this->Is(BeamElement::FINALIZED_STEP) ){
 
       rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
@@ -527,7 +524,7 @@ namespace Kratos
 
 
     //Compute current CURVATURES
-    if( mFinalizedStep == true ){
+    if( this->Is(BeamElement::FINALIZED_STEP) ){
 
       rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
 
@@ -2794,7 +2791,6 @@ namespace Kratos
   void LargeDisplacementBeamElement::save( Serializer& rSerializer ) const
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BeamElement )
-    rSerializer.save("FinalizedStep",mFinalizedStep);
     int IntMethod = int(mReducedIntegrationMethod);
     rSerializer.save("ReducedIntegrationMethod",IntMethod);
     IntMethod = int(mFullIntegrationMethod);
@@ -2809,7 +2805,6 @@ namespace Kratos
   void LargeDisplacementBeamElement::load( Serializer& rSerializer )
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BeamElement )
-    rSerializer.load("FinalizedStep",mFinalizedStep);
     int IntMethod;
     rSerializer.load("ReducedIntegrationMethod",IntMethod);
     mReducedIntegrationMethod = IntegrationMethod(IntMethod);

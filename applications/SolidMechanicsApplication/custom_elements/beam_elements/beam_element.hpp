@@ -72,7 +72,7 @@ protected:
      */
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-
+    KRATOS_DEFINE_LOCAL_FLAG( FINALIZED_STEP );
     /**
      * Parameters to be used to store section properties
      */

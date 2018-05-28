@@ -212,12 +212,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-
-    /**
-     * Finalize and Initialize label
-     */
-    bool mFinalizedStep;
-  
     /**
      * Currently selected reduced integration method
      */

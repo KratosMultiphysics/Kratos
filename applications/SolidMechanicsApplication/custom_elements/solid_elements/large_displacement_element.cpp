@@ -42,7 +42,6 @@ LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryTyp
 LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     :SolidElement( NewId, pGeometry, pProperties )
 {
-    mFinalizedStep = true; // the creation is out of the time step, it must be true
 }
 
 
@@ -51,7 +50,6 @@ LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryTyp
 
 LargeDisplacementElement::LargeDisplacementElement( LargeDisplacementElement const& rOther)
     :SolidElement(rOther)
-    ,mFinalizedStep(rOther.mFinalizedStep)
 {
 }
 
@@ -62,8 +60,6 @@ LargeDisplacementElement::LargeDisplacementElement( LargeDisplacementElement con
 LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacementElement const& rOther)
 {
     SolidElement::operator=(rOther);
-
-    mFinalizedStep = rOther.mFinalizedStep;
 
     return *this;
 }
@@ -135,7 +131,7 @@ void LargeDisplacementElement::SetElementData(ElementDataType& rVariables,
 {
 
     //to take in account previous step for output print purposes
-    if( mFinalizedStep ){
+    if( this->Is(SolidElement::FINALIZED_STEP) ){
       this->GetHistoricalVariables(rVariables,rPointNumber);
     }
 
@@ -194,8 +190,6 @@ void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
 
     SolidElement::InitializeSolutionStep(rCurrentProcessInfo);
 
-    mFinalizedStep = false;
-
     KRATOS_CATCH( "" )
 }
 
@@ -209,8 +203,6 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
     KRATOS_TRY
 
     SolidElement::FinalizeSolutionStep(rCurrentProcessInfo);
-
-    mFinalizedStep = true;
 
     KRATOS_CATCH( "" )
 }
@@ -386,7 +378,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             this->CalculateKinematics(Variables,PointNumber);
 
 	    //to take in account previous step writing
-	    if( mFinalizedStep ){
+	    if( this->Is(SolidElement::FINALIZED_STEP) ){
 	      this->GetHistoricalVariables(Variables,PointNumber);
 	      noalias(Variables.H) = prod(Variables.F,Variables.F0);
 	    }
@@ -460,13 +452,11 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 void LargeDisplacementElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SolidElement )
-    rSerializer.save("FinalizedStep",mFinalizedStep);
 }
 
 void LargeDisplacementElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SolidElement )
-    rSerializer.load("FinalizedStep",mFinalizedStep);
 }
 
 

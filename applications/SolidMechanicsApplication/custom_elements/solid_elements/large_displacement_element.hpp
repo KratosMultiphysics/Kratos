@@ -194,25 +194,15 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    /**
-     * Finalize and Initialize label
-     */
-    bool mFinalizedStep;
-
-	
     ///@}
     ///@name Protected Operators
-    ///@{
-    
+    ///@{   
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S

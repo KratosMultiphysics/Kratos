@@ -215,7 +215,7 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 
     //to take in account previous step for output print purposes
     unsigned int step = 0;
-    if( mFinalizedStep ){
+    if( this->Is(SolidElement::FINALIZED_STEP) ){
       step = 1;
       this->GetHistoricalVariables(rVariables,rPointNumber);
     }
