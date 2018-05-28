@@ -201,9 +201,11 @@ public:
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     if (mreform_dof_set_at_each_step == true)
+    {
         mstrategy_x->Clear();
         mstrategy_y->Clear();
         mstrategy_z->Clear();
+    }
 
     return 0.0;
 
@@ -275,7 +277,7 @@ private:
   /*@} */
   /**@name Member Variables */
   /*@{ */
-  ModelPart::Pointer mpmesh_model_part;
+  ModelPart* mpmesh_model_part;
 
   typename BaseType::Pointer mstrategy_x;
   typename BaseType::Pointer mstrategy_y;

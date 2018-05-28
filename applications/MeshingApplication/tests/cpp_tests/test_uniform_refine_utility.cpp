@@ -40,7 +40,7 @@ namespace Kratos
         /**
          * Checks the correct refining utility with triangles
          */
-        KRATOS_TEST_CASE_IN_SUITE(UniformRefineTrianglesUtility, MeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(UniformRefineTrianglesUtility, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
 
@@ -49,8 +49,8 @@ namespace Kratos
             Properties::Pointer p_properties = this_model_part.pGetProperties(0);
 
             // Creating the sub model parts
-            ModelPart::Pointer p_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
-            ModelPart::Pointer p_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
+            ModelPart* p_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
+            ModelPart* p_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
 
             // Creating the nodes
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -174,7 +174,7 @@ namespace Kratos
         /**
          * Checks the correct refining utility with quadrilaterals
          */
-        KRATOS_TEST_CASE_IN_SUITE(UniformRefineQuadrilateralsUtility, MeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(UniformRefineQuadrilateralsUtility, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
 
@@ -183,8 +183,8 @@ namespace Kratos
             Properties::Pointer p_properties = this_model_part.pGetProperties(0);
 
             // Creating the sub model parts
-            ModelPart::Pointer p_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
-            ModelPart::Pointer p_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
+            ModelPart* p_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
+            ModelPart* p_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
 
             // Creating the nodes
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);

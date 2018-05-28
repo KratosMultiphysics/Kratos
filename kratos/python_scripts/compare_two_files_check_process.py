@@ -18,7 +18,7 @@ def Factory(settings, Model):
 
 class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
 
-    def __init__(self, model, params):
+    def __init__(self, params):
         """This process compares files that are written during a simulation
         against reference files.
         Please see the "ExecuteFinalize" functions for details about the

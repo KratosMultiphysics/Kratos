@@ -82,7 +82,25 @@ namespace Kratos
     {
       mpStepVariable = nullptr;
     }
+    
+    /// Constructor.
+    StaticStepMethod(const TVariableType& rVariable) : DerivedType(rVariable)
+    {
+      mpStepVariable = nullptr;
+    }
 
+    /// Constructor.
+    StaticStepMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative)
+    {
+      mpStepVariable = nullptr;
+    }
+    
+    /// Constructor.
+    StaticStepMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable)
+    {
+      mpStepVariable = nullptr;
+    }
+    
     /// Copy Constructor.
     StaticStepMethod(StaticStepMethod& rOther)
       :DerivedType(rOther)
@@ -165,9 +183,13 @@ namespace Kratos
       ErrorCode = BaseType::Check(rCurrentProcessInfo);
 
 
-      if( this->mpStepVariable != nullptr )
-        KRATOS_ERROR << " time integration method Variable not set " <<std::endl;
-
+      if( this->mpStepVariable == nullptr ){
+        KRATOS_ERROR << " time integration method Step Variable not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpStepVariable));
+      }
+        
       return ErrorCode;
       
       KRATOS_CATCH("")

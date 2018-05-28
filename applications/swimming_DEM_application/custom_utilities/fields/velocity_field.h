@@ -28,7 +28,7 @@
 
 namespace Kratos
 {
-class VelocityField : public VectorField<3>
+class KRATOS_API(SWIMMING_DEM_APPLICATION) VelocityField : public VectorField<3>
 {
 public:
 

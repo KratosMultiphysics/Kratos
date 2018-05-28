@@ -108,12 +108,10 @@ public:
         TDataType LMRatioTolerance,
         TDataType LMAbsTolerance,
         bool EnsureContact = false,
-        TablePrinterPointerType pTable = nullptr,
         const bool PrintingOutput = false
         )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mEnsureContact(EnsureContact),
-          mpTable(pTable),
           mPrintingOutput(PrintingOutput),
           mTableIsInitialized(false)
     {
@@ -138,7 +136,6 @@ public:
       ,mLMAbsTolerance(rOther.mLMAbsTolerance)
       ,mLMInitialResidualNorm(rOther.mLMInitialResidualNorm)
       ,mLMCurrentResidualNorm(rOther.mLMCurrentResidualNorm)
-      ,mpTable(rOther.mpTable)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
@@ -229,20 +226,21 @@ public:
             
             // We print the results // TODO: Replace for the new log
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-                if (mpTable != nullptr) {
+                if (r_process_info.Has(TABLE_UTILITY)) {
                     std::cout.precision(4);
-                    auto& Table = mpTable->GetTable();
+                    TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                    auto& Table = p_table->GetTable();
                     Table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << residual_lm_ratio << mLMRatioTolerance << residual_lm_abs << mLMAbsTolerance;
                 } else {
                     std::cout.precision(4);
                     if (mPrintingOutput == false) {
-                        std::cout << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-                        std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
-                        std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << residual_lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << residual_lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << BOLDFONT("RESIDUAL CONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << residual_lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << residual_lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
                     } else {
-                        std::cout << "RESIDUAL CONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
-                        std::cout << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
-                        std::cout << "\tLAGRANGE MUL: RATIO = " << residual_lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << residual_lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << "RESIDUAL CONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
+                        KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << "\tLAGRANGE MUL: RATIO = " << residual_lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << residual_lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
                     }
                 }
             }
@@ -256,33 +254,35 @@ public:
             
             if (disp_converged && lm_converged ) {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-                    if (mpTable != nullptr) {
-                        auto& Table = mpTable->GetTable();
+                    if (r_process_info.Has(TABLE_UTILITY)) {
+                        TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                        auto& Table = p_table->GetTable();
                         if (mPrintingOutput == false)
                             Table << BOLDFONT(FGRN("       Achieved"));
                         else
                             Table << "Achieved";
                     } else {
                         if (mPrintingOutput == false)
-                            std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                            KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                         else
-                            std::cout << "\tResidual convergence is achieved" << std::endl;
+                            KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << "\tResidual convergence is achieved" << std::endl;
                     }
                 }
                 return true;
             } else {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-                    if (mpTable != nullptr) {
-                        auto& table = mpTable->GetTable();
+                    if (r_process_info.Has(TABLE_UTILITY)) {
+                        TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                        auto& table = p_table->GetTable();
                         if (mPrintingOutput == false)
                             table << BOLDFONT(FRED("   Not achieved"));
                         else
                             table << "Not achieved";
                     } else {
                         if (mPrintingOutput == false)
-                            std::cout << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
+                            KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << BOLDFONT("\tResidual") << " convergence is " << BOLDFONT(FRED(" not achieved")) << std::endl;
                         else
-                            std::cout << "\tResidual convergence is not achieved" << std::endl;
+                            KRATOS_INFO("DisplacementLagrangeMultiplierResidualContactCriteria") << "\tResidual convergence is not achieved" << std::endl;
                     }
                 }
                 return false;
@@ -300,8 +300,10 @@ public:
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
         
-        if (mpTable != nullptr && mTableIsInitialized == false) {
-            auto& table = mpTable->GetTable();
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+            auto& table = p_table->GetTable();
             table.AddColumn("DP RATIO", 10);
             table.AddColumn("EXP. RAT", 10);
             table.AddColumn("ABS", 10);
@@ -393,9 +395,8 @@ private:
     
     const bool mEnsureContact; /// This "flag" is used to check that the norm of the LM is always greater than 0 (no contact)
     
-    TablePrinterPointerType mpTable; /// Pointer to the fancy table 
-    bool mPrintingOutput;            /// If the colors and bold are printed
-    bool mTableIsInitialized;        /// If the table is already initialized
+    bool mPrintingOutput;      /// If the colors and bold are printed
+    bool mTableIsInitialized;  /// If the table is already initialized
     
     TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
     TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual 

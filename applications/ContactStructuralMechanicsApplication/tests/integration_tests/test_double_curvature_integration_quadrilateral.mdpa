@@ -2024,7 +2024,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements MembraneElement3D4N// GUI group identifier: Parts Auto1
+Begin Elements PreStressMembraneElement3D4N// GUI group identifier: Parts Auto1
        915          0       1286       1282       1270       1272 
        916          0          1          4          7          3 
        917          0       2012       2001       2002       2013 
@@ -2962,7 +2962,7 @@ Begin Elements MembraneElement3D4N// GUI group identifier: Parts Auto1
       1849          0        815        845        940        946 
 End Elements
 
-Begin Elements MembraneElement3D4N// GUI group identifier: Parts Auto2
+Begin Elements PreStressMembraneElement3D4N// GUI group identifier: Parts Auto2
          1          0       1276       1274       1261       1265 
          2          0       2008       1996       1995       2007 
          3          0        938        989       1008        954 

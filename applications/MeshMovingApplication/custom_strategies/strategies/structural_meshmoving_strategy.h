@@ -214,7 +214,7 @@ private:
   /*@} */
   /**@name Member Variables */
   /*@{ */
-  ModelPart::Pointer mpmesh_model_part;
+  ModelPart* mpmesh_model_part;
 
   typename BaseType::Pointer mstrategy;
   typename TBuilderAndSolverType::Pointer mpbulider_and_solver;

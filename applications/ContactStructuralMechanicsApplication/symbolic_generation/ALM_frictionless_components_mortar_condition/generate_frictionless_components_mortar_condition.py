@@ -105,8 +105,8 @@ for normalvar in range(normal_combs):
             wLMTangent = DefineMatrix('wLMTangent',nnodes,dim)
 
             for node in range(nnodes):
-                LMNormal[node] = LM.row(node) * NormalSlave.row(node).transpose()
-                wLMNormal[node] = wLM.row(node) * NormalSlave.row(node).transpose()
+                LMNormal[node] = LM.row(node).dot(NormalSlave.row(node))
+                wLMNormal[node] = wLM.row(node).dot(NormalSlave.row(node))
 
                 # We calculate the LM tangent resultant
                 for idim in range(dim):
@@ -174,11 +174,11 @@ for normalvar in range(normal_combs):
                 active = active_inactive[node]
                 if (active == 1):
                     augmented_lm = (ScaleFactor * LM.row(node) + PenaltyParameter[node] * NormalGap[node] * NormalSlave.row(node))
-                    rv_galerkin += DynamicFactor[node] *  (augmented_lm).dot(Dw1Mw2.row(node))
-                    rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
-                    rv_galerkin += - ScaleFactor**2.0/PenaltyParameter[node] * (wLMTangent.row(node) * LMTangent.row(node).transpose())[0,0]
+                    rv_galerkin += DynamicFactor[node] * (augmented_lm).dot(Dw1Mw2.row(node))
+                    rv_galerkin -= ScaleFactor * NormalGap[node] * wLMNormal[node]
+                    rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLMTangent.row(node).dot(LMTangent.row(node)))
                 else:
-                    rv_galerkin += - ScaleFactor**2.0/PenaltyParameter[node] * (wLM.row(node) * LM.row(node).transpose())[0,0]
+                    rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * (wLM.row(node).dot(LM.row(node)))
 
             if(do_simplifications):
                 rv_galerkin = simplify(rv_galerkin)

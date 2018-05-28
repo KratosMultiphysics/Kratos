@@ -45,9 +45,9 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Project includes
 #include "includes/communicator.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 
 
 namespace Kratos
@@ -158,7 +158,7 @@ public:
         //generate a linear strategy
 
         // Scheme
-        typename BaseType::SchemeType::Pointer pscheme = typename BaseType::SchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
+        typename BaseType::SchemeType::Pointer pscheme = typename BaseType::SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
 
         // Builder and Solver
         int RowSizeGuess = (TDim == 2 ? 15 : 40);
@@ -236,9 +236,9 @@ protected:
         KRATOS_TRY
 
         //generate
-        ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
+        ModelPart* pAuxModelPart = ModelPart*( new ModelPart("DistancePart",1) );
 
-        ModelPart::Pointer& p_distance_model_part = this->mp_distance_model_part;
+        ModelPart*& p_distance_model_part = this->mp_distance_model_part;
         p_distance_model_part.swap(pAuxModelPart);
 
         p_distance_model_part->Nodes().clear();
