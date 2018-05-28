@@ -54,8 +54,8 @@ namespace Kratos
 
                 ModelPart& submp = *sub_model_part;
 
-                const bool imposed_body_motion = submp[IMPOSED_BODY_MOTION];
-                if (!imposed_body_motion) continue;
+                const bool rigid_body_motion = submp[RIGID_BODY_MOTION];
+                if (!rigid_body_motion) continue;
 
                 NodesArrayType& rNodes = submp.Nodes();
                 array_1d<double, 3>& previous_displ = submp[DISPLACEMENT];

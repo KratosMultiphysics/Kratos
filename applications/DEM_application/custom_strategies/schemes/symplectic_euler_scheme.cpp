@@ -35,13 +35,13 @@ namespace Kratos {
             if (Fix_vel[k] == false) {
                 vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
                 delta_displ[k] = delta_t * vel[k];
-                    displ[k] += delta_displ[k];
-                    coor[k] = initial_coor[k] + displ[k];
+                displ[k] += delta_displ[k];
+                coor[k] = initial_coor[k] + displ[k];
             } else {
                 delta_displ[k] = delta_t * vel[k];
-                    displ[k] += delta_displ[k];
-                    coor[k] = initial_coor[k] + displ[k];
-                }
+                displ[k] += delta_displ[k];
+                coor[k] = initial_coor[k] + displ[k];
+            }
         } // dimensions
     }
 

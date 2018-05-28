@@ -33,16 +33,16 @@ namespace Kratos {
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {
                     delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t ;
-                        displ[k] += delta_displ[k];
-                        coor[k] = initial_coor[k] + displ[k];
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
                     vel[k] += 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
                 } else {
                     delta_displ[k] = delta_t * vel[k];
-                        displ[k] += delta_displ[k];
-                        coor[k] = initial_coor[k] + displ[k];
-                    }
+                    displ[k] += delta_displ[k];
+                    coor[k] = initial_coor[k] + displ[k];
                 }
             }
+        }
         else if(StepFlag == 2) //CORRECT
         {
             for (int k = 0; k < 3; k++) {
