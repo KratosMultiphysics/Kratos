@@ -20,6 +20,7 @@
 // Project includes
 #include "mapper.h"
 #include "custom_utilities/mapper_typedefs.h"
+#include "custom_searching/interface_search_structure.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "custom_searching/interface_search_structure_mpi.h"
 #endif
@@ -120,7 +121,6 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
 template<>
 void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
 {
-    // here we could return the MatrixFree variant in the future
     // Parameters utility_settings(R"({})"); // TODO fill this
     mpSearchStructure = Kratos::make_unique<InterfaceSearchStructure>(mrModelPartOrigin,
                                                                       mpMapperLocalSystems);
@@ -130,7 +130,6 @@ void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceTyp
 template<>
 void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
 {
-    // here we could return the MatrixFree variant in the future
     // Parameters utility_settings(R"({})"); // TODO fill this
     mpSearchStructure = Kratos::make_unique<InterfaceSearchStructureMPI>(mrModelPartOrigin,
                                                                          mpMapperLocalSystems);

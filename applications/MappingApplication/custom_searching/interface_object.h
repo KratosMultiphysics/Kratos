@@ -25,6 +25,8 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 
 
 namespace Kratos

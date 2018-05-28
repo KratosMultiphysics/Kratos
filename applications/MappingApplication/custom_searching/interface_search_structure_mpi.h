@@ -21,7 +21,7 @@
 // External includes
 
 // Project includes
-#include "interface_search_structure.h"
+#include "interface_search_structure_base.h"
 // #include "custom_utilities/mapper_utilities.h"
 // #include "custom_utilities/mapper_utilities_mpi.h"
 
@@ -59,7 +59,7 @@ namespace Kratos
 * The results are sent back to the partition where the object is local, and the best result is then chosen.
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
-class InterfaceSearchStructureMPI : public InterfaceSearchStructure
+class InterfaceSearchStructureMPI : public InterfaceSearchStructureBase
 {
 public:
     ///@name Type Definitions
@@ -70,7 +70,7 @@ public:
 
     typedef matrix<int> GraphType; // GraphColoringProcess
 
-    using BaseType = InterfaceSearchStructure;
+    using BaseType = InterfaceSearchStructureBase;
 
     using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
     using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
@@ -82,7 +82,7 @@ public:
 
     InterfaceSearchStructureMPI(ModelPart& rModelPartOrigin,
                                 MapperLocalSystemPointerVectorPointer pMapperLocalSystems) :
-        InterfaceSearchStructure(rModelPartOrigin,
+        InterfaceSearchStructureBase(rModelPartOrigin,
                                  pMapperLocalSystems)
     {
         // mCommRank = CommRank;
@@ -178,12 +178,12 @@ protected:
 
     }
 
+
     // This function constructs the InterfaceObjects on the Destination
     // In serial it only does it once, whereas in MPI this involves Data-Exchange!
     // Imagine a sliding interface, there the partitions might change!
     void PrepareSearching(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
                           InterfaceObject::ConstructionType InterfaceObjectTypeDestination) override;
-
 
     void FinalizeSearching() override;
 

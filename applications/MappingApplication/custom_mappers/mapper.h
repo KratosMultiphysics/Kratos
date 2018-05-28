@@ -29,7 +29,7 @@
 // #include "custom_utilities/mapper_interface_info.h" // TODO needed?
 #include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapper_flags.h"
-#include "custom_searching/interface_search_structure.h"
+#include "custom_searching/interface_search_structure_base.h"
 #include "mapping_application_variables.h"
 
 
@@ -84,13 +84,14 @@ public:
     typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
     typedef typename Kratos::unique_ptr<MappingOperationUtilityType> MappingOperationUtilityPointerType;
     using InterfacePreprocessorPointerType = Kratos::unique_ptr<InterfacePreprocessor>;
-    using SearchStructurePointerType = Kratos::unique_ptr<InterfaceSearchStructure>;
+    using SearchStructureBaseType = InterfaceSearchStructureBase;
+    using SearchStructurePointerType = Kratos::unique_ptr<SearchStructureBaseType>;
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
     using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
 
-    using MapperInterfaceInfoUniquePointerType = typename InterfaceSearchStructure::MapperInterfaceInfoUniquePointerType;
+    using MapperInterfaceInfoUniquePointerType = typename SearchStructureBaseType::MapperInterfaceInfoUniquePointerType;
 
     using MapperLocalSystemPointer = typename MappingOperationUtilityType::MapperLocalSystemPointer;
     using MapperLocalSystemPointerVector = typename MappingOperationUtilityType::MapperLocalSystemPointerVector;

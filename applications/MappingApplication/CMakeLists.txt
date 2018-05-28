@@ -16,6 +16,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_neighbor_mapper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_element_mapper.cpp
     # # Searching
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_base.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mapper_bounding_box.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/mapper_axis_aligned_bounding_box.cpp
