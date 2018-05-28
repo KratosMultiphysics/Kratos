@@ -271,6 +271,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<Condition >::Add(name, reference); \
     Serializer::Register(name, reference);
 
+#ifdef KRATOS_REGISTER_CONSTRAINT
+#undef KRATOS_REGISTER_CONSTRAINT
+#endif
+#define KRATOS_REGISTER_CONSTRAINT(name, reference) \
+    KratosComponents<MasterSlaveConstraint >::Add(name, reference); \
+    Serializer::Register(name, reference);
+
+
 #ifdef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #undef KRATOS_REGISTER_CONSTITUTIVE_LAW
 #endif
