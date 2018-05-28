@@ -105,13 +105,13 @@ public:
         unsigned int MaxIter,
         bool ReformDofSet,
         unsigned int TimeOrder)
-        : mr_model_part(rModelPart), 
-        mdomain_size(DomainSize), 
-        mtol(NonLinearTol), 
-        mmax_it(MaxIter), 
+        : mr_model_part(rModelPart),
+        mrspalart_model_part(Kernel::GetModel().CreateModelPart("SpalartModelPart")),
+        mdomain_size(DomainSize),
+        mtol(NonLinearTol),
+        mmax_it(MaxIter),
         mtime_order(TimeOrder),
-        madapt_for_fractional_step(false),
-        mrspalart_model_part(Kernel::GetModel().CreateModelPart("SpalartModelPart"))
+        madapt_for_fractional_step(false)
     {
         //************************************************************************************************
         //check that the variables needed are in the model part
