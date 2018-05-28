@@ -1355,8 +1355,8 @@ protected:
         double zeta_dissapative_JM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_JM];
         double zeta_dissapative_BM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_BM];
         double zeta_dissapative_SM = rCurrentProcessInfo[DISSIPATIVE_FORCE_COEFF_SM];
-	double gamma_sl = rCurrentProcessInfo[SOLID_LIQIUD_SURFTENS_COEFF];
-	double gamma_sv = rCurrentProcessInfo[SOLID_AIR_SURFTENS_COEFF];
+// 	double gamma_sl = rCurrentProcessInfo[SOLID_LIQIUD_SURFTENS_COEFF];
+// 	double gamma_sv = rCurrentProcessInfo[SOLID_AIR_SURFTENS_COEFF];
 	
 	double dt = rCurrentProcessInfo[DELTA_TIME];
 	
@@ -1407,8 +1407,8 @@ protected:
 	    ii = node_indx[0];
 	    jj = node_indx[1];
 	
-// 	    if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
-            if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
+	    if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//             if(flag_trip > 0 && (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
 	    {
 		  ii = node_indx[1];
 		  jj = node_indx[0];	    
@@ -1612,45 +1612,44 @@ protected:
 		  rRightHandSideVector[3*ii] 	-= coef*gamma*(m[0]-x12[0]);
  		  rRightHandSideVector[3*ii+1]	-= coef*gamma*(m[1]-x12[1]);
  		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_X) = -coef*gamma*(m[0] - x12[0]);
- 		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef*gamma*(m[1] - x12[1]);		  	  
+	  	  
+//  		  this->GetGeometry()[ii].FastGetSolutionStepValue(FORCE_Y) = -coef*gamma*(m[1] - x12[1]);
 		  
-
-//                   //start of adding dissipative force: where v_clx here is the x_velocity at the contact line; and v_cly is the y_velocity at the contact line
-//                   double v_clx = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X);
-//                   double v_cly = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y);
+		  //start of adding dissipative force: where v_clx here is the x_velocity at the contact line; and v_cly is the y_velocity at the contact line
+                  double v_clx = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_X);
+                  double v_cly = this->GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY_Y);
 //          
-//                   double mu, rho;
-//                   mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
-//                   rho = this->GetGeometry()[ii].FastGetSolutionStepValue(DENSITY);
-//                   mu *= rho;
-//                 
-//                   //capillary
-//                   double cap_x   =  mu * abs(v_clx) / gamma;
-//                   double cap_y   =  mu * abs(v_cly) / gamma;
-//                   // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
-//                   rRightHandSideVector[3*ii]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_x,0.702)); 
-//                   rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_y,0.702)); 
+                  double mu;
+                  mu  = this->GetGeometry()[ii].FastGetSolutionStepValue(VISCOSITY);
+                
+                  //capillary
+		  double v_clx_abs = fabs (v_clx);
+		  double v_cly_abs = fabs (v_cly) ;
+		  
+                  double cap_x   =  mu *  v_clx_abs / gamma;
+                  double cap_y   =  mu *  v_cly_abs / gamma;
+                  // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
+                  rRightHandSideVector[3*ii]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_x,0.702)); 
+                  rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_JM*gamma*tanh(4.96 * pow(cap_y,0.702)); 
 //                 
 //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-//                   rRightHandSideVector[3*ii]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_x,0.54); 
-//                   rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_y,0.54); 
+                  rRightHandSideVector[3*ii]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_x,0.54); 
+                  rRightHandSideVector[3*ii+1]	        -= zeta_dissapative_BM*gamma* 2.24 * pow(cap_y,0.54); 
 //                 
 //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-//                   double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y));
-//                   if (cap > 0.01)
-//                   {
-//                     rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_x,0.54); 
-//                     rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_y,0.54);  
-//                   }
-//                   else
-//                   {
-//                     rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_x,0.42); 
-//                     rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_y,0.42);  
-//                   }
-//                   // end of adding disppative force
-	    
-  	  
-		  
+                  double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y));
+                  if (cap > 0.01)
+                  {
+                    rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_x,0.54); 
+                    rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 2.24 * pow(cap_y,0.54);  
+                  }
+                  else
+                  {
+                    rRightHandSideVector[3*ii]	        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_x,0.42); 
+                    rRightHandSideVector[3*ii+1]        -= zeta_dissapative_SM*gamma* 4.47 * pow(cap_y,0.42);  
+                  }
+                  // end of adding disppative force
+                  
 	      }
 	      else
 	      {
@@ -1775,14 +1774,14 @@ protected:
 	
 	    if(flag_trip == 1)
 	    {
-// 	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
-              if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
+	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
+//               if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15)
 	      {
 		  ii = node_indx[1];
 		  jj = node_indx[0];
 	      }
-// 	      if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
-              if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
+	      if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
+//               if ((this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
 	      {
 		  ii = node_indx[2];
 		  kk = node_indx[0];
@@ -1790,15 +1789,15 @@ protected:
 	    }
 	    if(flag_trip > 1)
 	    {
-// 	      if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
-              if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))  < 1e-15 )
+	      if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//               if ((this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(TRIPLE_POINT))  < 1e-15 )
 	      {
 		  ii = node_indx[1];
 		  jj = node_indx[2];
 		  kk = node_indx[0];
 	      }
-// 	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
-              if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
+	      if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT))*1000 == 0.0)
+//               if ((this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT)) < 1e-15 )
 	      {
 		  jj = node_indx[2];
 		  kk = node_indx[1];
@@ -1811,11 +1810,11 @@ protected:
 	  jj = node_indx[1];
 	  kk = node_indx[2];
 	  ll = node_indx[3];
-// 	  if(flag_trip == 0.0) //four nodes at interface
-          if(flag_trip < 1e-15)
+	  if(flag_trip == 0.0) //four nodes at interface
+//           if(flag_trip < 1e-15)
 	  {
-// 	    if(flag_struct == 0.0) //four nodes that are free surface
-            if(flag_struct < 1e-15)
+	    if(flag_struct == 0.0) //four nodes that are free surface
+//             if(flag_struct < 1e-15)
 	    {
 	      for(int i = 0; i < 4; i++)
 	      {
@@ -2254,8 +2253,8 @@ protected:
 	double coef_j = 0.333333333333; // 0.333333333333 | (1/num_neighs_j) | 1.0/(num_neighs_j-1)
 	double coef_k = 0.333333333333; // 0.333333333333 | (1/num_neighs_k) | 1.0/(num_neighs_k-1)
 	
-//      if(flag_trip == 0)
-        if(flag_trip < 1e-15)
+        if(flag_trip == 0)
+//         if(flag_trip < 1e-15)
 	{
 	  rRightHandSideVector[4*ii]   -= coef_i*gamma*curv1*An1[0]*area_tr;
 	  rRightHandSideVector[4*ii+1] -= coef_i*gamma*curv1*An1[1]*area_tr;

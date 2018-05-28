@@ -1,0 +1,479 @@
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: True
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_ULFApplication: False
+importing KratosR1IncompressibleFluidApplication ...
+KratosR1IncompressibleFluidApplication lib loaded
+KratosR1IncompressibleFluidApplication application created
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosR1IncompressibleFluidApplication... 
+Initializing KratosR1IncompressibleFluidApplication...Register completed 
+Initializing KratosR1IncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosR1IncompressibleFluidApplication...elements succesfully registered 
+"Application Registered" : Application Registered
+"Variables Registered Registered" : Variables Registered Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosR1IncompressibleFluidApplication Succesfully imported
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosR1 MeshingApplication... 
+"Application Registered" : Application Registered
+"Variables Registered Registered" : Variables Registered Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: True
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_ULFApplication: False
+importing KratosR1IncompressibleFluidApplication ...
+KratosR1IncompressibleFluidApplication lib loaded
+KratosR1IncompressibleFluidApplication application created
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosR1IncompressibleFluidApplication... 
+Initializing KratosR1IncompressibleFluidApplication...Register completed 
+Initializing KratosR1IncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosR1IncompressibleFluidApplication...elements succesfully registered 
+"Application Registered" : Application Registered
+"Variables Registered Registered" : Variables Registered Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosR1IncompressibleFluidApplication Succesfully imported
+dam3d_remesh opened for io
+dam3d_remesh.node opened for io
+dam3d_remesh.prop opened for io
+dam3d_remesh.elem opened for io
+dam3d_remesh.cond opened for io
+dam3d_remesh.init opened for io
+initializing result files
+reading nodes
+temp : Node #6495 : (1 , 1 , 0)
+Nodes succesfully read
+reading Properties
+Properties succesfully read
+reading Elements
+Properties succesfully read
+reading Conditions
+Properties succesfully read
+reading Initial Values
+ reading initiali values 
+ finished reading initial values 
+Initial Values succesfully read
+Reading completed succesfully
+time =  0.005  new_Dt=  0.005  step =  0
+TimeStep cloned!!!
+time =  0.01  new_Dt=  0.005  step =  1
+TimeStep cloned!!!
+time =  0.015  new_Dt=  0.005  step =  2
+TimeStep cloned!!!
+time =  0.02  new_Dt=  0.005  step =  3
+TimeStep cloned!!!
+Arrays are cleared!!!
+Constructing Delaunay tetrahedralization.
+Delaunay seconds:  0.42
+
+Writing nodes.
+Writing elements.
+Writing faces.
+
+Output seconds:  0
+Total running seconds:  0.42
+
+Statistics:
+
+  Input points: 6495
+
+  Mesh points: 6495
+  Mesh tetrahedra: 26772
+  Convex hull triangles: 8616
+
+mesh generation time = 0.43
+time for passing alpha shape0.02
+qui
+Reconstructing mesh.
+  Constructing mapping from indices to points.
+  Constructing mapping from points to tetrahedra.
+  Constructing mapping from points to subfaces.
+Mesh reconstruction seconds:  0.12
+Repairing mesh.
+Repair seconds:  0
+Adding Steiner points to enforce quality.
+  Marking sharp segments.
+  2516 sharp segments.
+  Deciding feature-point sizes.
+  Constructing mapping from points to segments.
+  659 feature points.
+  Splitting encroached subsegments.
+  0 split points.
+  Splitting encroached subfaces.
+  0 split points.
+  Splitting bad tetrahedra.
+  1663 refinement points.
+  Totally added 1663 points.
+Quality seconds:  0.21
+Optimizing mesh.
+  166 edges are flipped.
+Optimize seconds:  0.03
+
+Writing nodes.
+Writing elements.
+Writing faces.
+Writing neighbors.
+
+Output seconds:  0
+Total running seconds:  0.36
+
+Statistics:
+
+  Input points: 6495
+  Input tetrahedra: 19338
+
+  Mesh points: 8158
+  Mesh tetrahedra: 29722
+  Mesh triangles: 62905
+  Mesh subfaces: 6922
+  Mesh subsegments: 1706
+
+Mesh quality statistics:
+
+  Smallest volume:       4.5581e-07   |  Largest volume:       2.4608e-05
+  Shortest edge:           0.017324   |  Longest edge:            0.10607
+  Smallest facangle:         11.165   |  Largest facangle:       136.7887
+  Smallest dihedral:         6.2817   |  Largest dihedral:       164.8808
+
+  Aspect ratio histogram:
+         < 1.5       :      1859      |      6 - 10         :       541
+     1.5 - 2         :     11329      |     10 - 15         :        12
+       2 - 2.5       :      9134      |     15 - 25         :         0
+     2.5 - 3         :      2874      |     25 - 50         :         0
+       3 - 4         :      1551      |     50 - 100        :         0
+       4 - 6         :      2422      |    100 -            :         0
+  (A tetrahedron's aspect ratio is its longest edge length divided by its
+    smallest side height)
+
+  Face angle histogram:
+      0 -  10 degrees:         0      |     90 - 100 degrees:      6902
+     10 -  20 degrees:      2485      |    100 - 110 degrees:      2714
+     20 -  30 degrees:      2318      |    110 - 120 degrees:      1168
+     30 -  40 degrees:     13242      |    120 - 130 degrees:      1203
+     40 -  50 degrees:     24275      |    130 - 140 degrees:       121
+     50 -  60 degrees:     20585      |    140 - 150 degrees:         0
+     60 -  70 degrees:     19606      |    150 - 160 degrees:         0
+     70 -  80 degrees:     18912      |    160 - 170 degrees:         0
+     80 -  90 degrees:     12279      |    170 - 180 degrees:         0
+  Minimum input face angle is 11.9093 (degree).
+
+  Dihedral angle histogram:
+       0 -  5 degrees:         0      |     80 - 110 degrees:     17471
+       5 - 10 degrees:        33      |    110 - 120 degrees:      5308
+      10 - 20 degrees:      1447      |    120 - 130 degrees:      2406
+      20 - 30 degrees:      1631      |    130 - 140 degrees:      1696
+      30 - 40 degrees:      4662      |    140 - 150 degrees:       782
+      40 - 50 degrees:     10495      |    150 - 160 degrees:       397
+      50 - 60 degrees:      8482      |    160 - 170 degrees:       121
+      60 - 70 degrees:      2905      |    170 - 175 degrees:         0
+      70 - 80 degrees:      1608      |    175 - 180 degrees:         0
+  Minimum input facet dihedral angle is 33.3811 (degree).
+
+Memory allocation statistics:
+
+  Maximum number of vertices: 8158
+  Maximum number of tetrahedra: 29894
+  Maximum number of subfaces: 6922
+  Maximum number of segments: 1706
+  Approximate heap memory used by the mesh (K bytes): 4889.36
+
+mesh recreation time0.44
+During refinement we added 1663nodes 
+properties : 0xf0d0a0
+ln334
+time for adding elems0.07
+ln368
+time for adding neigbours0.02
+time for adding faces0.03
+second part time = 0.88
+meshing is performed
+"writing Node Mesh" : writing Node Mesh
+writing a 3D mesh
+step finished
+time =  0.025  new_Dt=  0.005  step =  4
+TimeStep cloned!!!
+Arrays are cleared!!!
+Constructing Delaunay tetrahedralization.
+Delaunay seconds:  0.47
+
+Writing nodes.
+Writing elements.
+Writing faces.
+
+Output seconds:  0
+Total running seconds:  0.48
+
+Statistics:
+
+  Input points: 8158
+
+  Mesh points: 8158
+  Mesh tetrahedra: 37312
+  Convex hull triangles: 8616
+
+mesh generation time = 0.5
+time for passing alpha shape0.03
+qui
+Reconstructing mesh.
+  Constructing mapping from indices to points.
+  Constructing mapping from points to tetrahedra.
+  Constructing mapping from points to subfaces.
+Mesh reconstruction seconds:  0.16
+Repairing mesh.
+Repair seconds:  0
+Adding Steiner points to enforce quality.
+  Marking sharp segments.
+  14171 sharp segments.
+  Deciding feature-point sizes.
+  Constructing mapping from points to segments.
+  2629 feature points.
+  Splitting encroached subsegments.
+  0 split points.
+  Splitting encroached subfaces.
+  0 split points.
+  Splitting bad tetrahedra.
+  0 refinement points.
+  Totally added 0 points.
+Quality seconds:  0.17
+Optimizing mesh.
+  153 edges are flipped.
+  1 passes.
+Optimize seconds:  0.02
+
+Writing nodes.
+Writing elements.
+Writing faces.
+Writing neighbors.
+
+Output seconds:  0.01
+Total running seconds:  0.36
+
+Statistics:
+
+  Input points: 8158
+  Input tetrahedra: 27300
+
+  Mesh points: 8158
+  Mesh tetrahedra: 27156
+  Mesh triangles: 59924
+  Mesh subfaces: 11224
+  Mesh subsegments: 7869
+
+Mesh quality statistics:
+
+  Smallest volume:       4.5581e-07   |  Largest volume:       2.4608e-05
+  Shortest edge:           0.017324   |  Longest edge:            0.10607
+  Smallest facangle:         11.165   |  Largest facangle:       136.7887
+  Smallest dihedral:         6.2817   |  Largest dihedral:       166.7814
+
+  Aspect ratio histogram:
+         < 1.5       :      1678      |      6 - 10         :       563
+     1.5 - 2         :     10622      |     10 - 15         :        18
+       2 - 2.5       :      7743      |     15 - 25         :         0
+     2.5 - 3         :      2612      |     25 - 50         :         0
+       3 - 4         :      1552      |     50 - 100        :         0
+       4 - 6         :      2368      |    100 -            :         0
+  (A tetrahedron's aspect ratio is its longest edge length divided by its
+    smallest side height)
+
+  Face angle histogram:
+      0 -  10 degrees:         0      |     90 - 100 degrees:      6615
+     10 -  20 degrees:      2484      |    100 - 110 degrees:      2607
+     20 -  30 degrees:      2316      |    110 - 120 degrees:      1162
+     30 -  40 degrees:     12652      |    120 - 130 degrees:      1203
+     40 -  50 degrees:     22808      |    130 - 140 degrees:       120
+     50 -  60 degrees:     19664      |    140 - 150 degrees:         0
+     60 -  70 degrees:     18722      |    150 - 160 degrees:         0
+     70 -  80 degrees:     17893      |    160 - 170 degrees:         0
+     80 -  90 degrees:     11602      |    170 - 180 degrees:         0
+  Minimum input face angle is 11.9093 (degree).
+
+  Dihedral angle histogram:
+       0 -  5 degrees:         0      |     80 - 110 degrees:     15760
+       5 - 10 degrees:        35      |    110 - 120 degrees:      4964
+      10 - 20 degrees:      1384      |    120 - 130 degrees:      2239
+      20 - 30 degrees:      1508      |    130 - 140 degrees:      1595
+      30 - 40 degrees:      4326      |    140 - 150 degrees:       712
+      40 - 50 degrees:      9654      |    150 - 160 degrees:       363
+      50 - 60 degrees:      7573      |    160 - 170 degrees:       112
+      60 - 70 degrees:      2609      |    170 - 175 degrees:         0
+      70 - 80 degrees:      1478      |    175 - 180 degrees:         0
+  Minimum input facet dihedral angle is 12.6369 (degree).
+
+Memory allocation statistics:
+
+  Maximum number of vertices: 8159
+  Maximum number of tetrahedra: 27308
+  Maximum number of subfaces: 11224
+  Maximum number of segments: 7869
+  Approximate heap memory used by the mesh (K bytes): 5649.23
+
+mesh recreation time0.43
+During refinement we added 0nodes 
+properties : 0xf0d0a0
+ln334
+time for adding elems0.06
+ln368
+time for adding neigbours0.02
+time for adding faces0.04
+second part time = 0.64
+meshing is performed
+"writing Node Mesh" : writing Node Mesh
+writing a 3D mesh
+step finished
+time =  0.03  new_Dt=  0.005  step =  5
+TimeStep cloned!!!
+Arrays are cleared!!!
+Constructing Delaunay tetrahedralization.
+Delaunay seconds:  0.48
+
+Writing nodes.
+Writing elements.
+Writing faces.
+
+Output seconds:  0
+Total running seconds:  0.49
+
+Statistics:
+
+  Input points: 8158
+
+  Mesh points: 8158
+  Mesh tetrahedra: 37312
+  Convex hull triangles: 8616
+
+mesh generation time = 0.49
+time for passing alpha shape0.02
+qui
+Reconstructing mesh.
+  Constructing mapping from indices to points.
+  Constructing mapping from points to tetrahedra.
+  Constructing mapping from points to subfaces.
+Mesh reconstruction seconds:  0.17
+Repairing mesh.
+Repair seconds:  0
+Adding Steiner points to enforce quality.
+  Marking sharp segments.
+  14171 sharp segments.
+  Deciding feature-point sizes.
+  Constructing mapping from points to segments.
+  2629 feature points.
+  Splitting encroached subsegments.
+  0 split points.
+  Splitting encroached subfaces.
+  0 split points.
+  Splitting bad tetrahedra.
+  0 refinement points.
+  Totally added 0 points.
+Quality seconds:  0.16
+Optimizing mesh.
+  153 edges are flipped.
+  1 passes.
+Optimize seconds:  0.02
+
+Writing nodes.
+Writing elements.
+Writing faces.
+Writing neighbors.
+
+Output seconds:  0.01
+Total running seconds:  0.36
+
+Statistics:
+
+  Input points: 8158
+  Input tetrahedra: 27300
+
+  Mesh points: 8158
+  Mesh tetrahedra: 27156
+  Mesh triangles: 59924
+  Mesh subfaces: 11224
+  Mesh subsegments: 7869
+
+Mesh quality statistics:
+
+  Smallest volume:       4.5581e-07   |  Largest volume:       2.4608e-05
+  Shortest edge:           0.017324   |  Longest edge:            0.10607
+  Smallest facangle:         11.165   |  Largest facangle:       136.7887
+  Smallest dihedral:         6.2817   |  Largest dihedral:       166.7814
+
+  Aspect ratio histogram:
+         < 1.5       :      1678      |      6 - 10         :       563
+     1.5 - 2         :     10622      |     10 - 15         :        18
+       2 - 2.5       :      7743      |     15 - 25         :         0
+     2.5 - 3         :      2612      |     25 - 50         :         0
+       3 - 4         :      1552      |     50 - 100        :         0
+       4 - 6         :      2368      |    100 -            :         0
+  (A tetrahedron's aspect ratio is its longest edge length divided by its
+    smallest side height)
+
+  Face angle histogram:
+      0 -  10 degrees:         0      |     90 - 100 degrees:      6613
+     10 -  20 degrees:      2484      |    100 - 110 degrees:      2607
+     20 -  30 degrees:      2316      |    110 - 120 degrees:      1162
+     30 -  40 degrees:     12652      |    120 - 130 degrees:      1203
+     40 -  50 degrees:     22808      |    130 - 140 degrees:       120
+     50 -  60 degrees:     19664      |    140 - 150 degrees:         0
+     60 -  70 degrees:     18722      |    150 - 160 degrees:         0
+     70 -  80 degrees:     17893      |    160 - 170 degrees:         0
+     80 -  90 degrees:     11604      |    170 - 180 degrees:         0
+  Minimum input face angle is 11.9093 (degree).
+
+  Dihedral angle histogram:
+       0 -  5 degrees:         0      |     80 - 110 degrees:     15760
+       5 - 10 degrees:        35      |    110 - 120 degrees:      4964
+      10 - 20 degrees:      1384      |    120 - 130 degrees:      2239
+      20 - 30 degrees:      1508      |    130 - 140 degrees:      1595
+      30 - 40 degrees:      4326      |    140 - 150 degrees:       712
+      40 - 50 degrees:      9654      |    150 - 160 degrees:       363
+      50 - 60 degrees:      7573      |    160 - 170 degrees:       112
+      60 - 70 degrees:      2609      |    170 - 175 degrees:         0
+      70 - 80 degrees:      1478      |    175 - 180 degrees:         0
+  Minimum input facet dihedral angle is 12.6369 (degree).
+
+Memory allocation statistics:
+
+  Maximum number of vertices: 8159
+  Maximum number of tetrahedra: 27308
+  Maximum number of subfaces: 11224
+  Maximum number of segments: 7869
+  Approximate heap memory used by the mesh (K bytes): 5649.23
+
+mesh recreation time0.43
+During refinement we added 0nodes 
+properties : 0xf0d0a0
+ln334
+time for adding elems0.06
+ln368
+time for adding neigbours0.03
+time for adding faces0.03
+second part time = 0.62
+meshing is performed
+"writing Node Mesh" : writing Node Mesh
+writing a 3D mesh
+step finished
+finito
