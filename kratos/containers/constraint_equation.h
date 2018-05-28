@@ -50,25 +50,25 @@ class MasterSlaveRelation
     struct MasterData
     {
         KRATOS_CLASS_POINTER_DEFINITION(MasterData);
-        MasterData(DofType const &rMasterDof, double Weight = 0.0) : mMasterWeight(Weight), mId(rMasterDof.Id()), mKey(rMasterDof.GetVariable().Key())
+        MasterData(DofType const &rMasterDof, double Weight = 0.0) : mMasterWeight(Weight), mMasterDofId(rMasterDof.Id()), mMasterDofKey(rMasterDof.GetVariable().Key())
         {
         }
         // This is only for serializer. This is not meant to be used anywhere else
-        MasterData(std::size_t Id, std::size_t Key, double Weight = 0.0) : mMasterWeight(Weight), mId(Id), mKey(Key)
+        MasterData(std::size_t Id, std::size_t Key, double Weight = 0.0) : mMasterWeight(Weight), mMasterDofId(Id), mMasterDofKey(Key)
         {
         }
-        std::size_t MasterDofKey() { return mKey; }
+        std::size_t MasterDofKey() { return mMasterDofKey; }
         double MasterWeight() const { return mMasterWeight; }
         double &MasterWeight() { return mMasterWeight; }
-        std::size_t MasterDofId() { return mId; }
-        std::size_t MasterEqId() { return mEquationId; }
-        void SetMasterEqId(std::size_t Id) { mEquationId = Id; }
+        std::size_t MasterDofId() { return mMasterDofId; }
+        std::size_t MasterEqId() { return mMasterEquationId; }
+        void SetMasterEqId(std::size_t Id) { mMasterEquationId = Id; }
 
       private:
         double mMasterWeight;
-        const std::size_t mId;
-        const std::size_t mKey;
-        std::size_t mEquationId;
+        const std::size_t mMasterDofId;
+        const std::size_t mMasterDofKey;
+        std::size_t mMasterEquationId;
     };
 
   public:
@@ -102,21 +102,21 @@ class MasterSlaveRelation
   public:
 
     // empty constructor and methods to add master and slave independently.
-    MasterSlaveRelation() : mId(0), mKey(0)
+    MasterSlaveRelation() : mSlaveDofId(0), mSlaveDofKey(0)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
 
 
-    MasterSlaveRelation(DofType const &rSlaveDof) : mId(rSlaveDof.Id()), mKey(rSlaveDof.GetVariable().Key())
+    MasterSlaveRelation(DofType const &rSlaveDof) : mSlaveDofId(rSlaveDof.Id()), mSlaveDofKey(rSlaveDof.GetVariable().Key())
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
 
     // This is only for serializer. This is not meant to be used anywhere else
-    MasterSlaveRelation(std::size_t Id, std::size_t Key) : mId(Id), mKey(Key)
+    MasterSlaveRelation(std::size_t Id, std::size_t Key) : mSlaveDofId(Id), mSlaveDofKey(Key)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
@@ -126,10 +126,10 @@ class MasterSlaveRelation
     void SetConstantUpdate(double ConstantUpdate) { mConstantUpdate = ConstantUpdate; }
     double Constant() const { return mConstant; }
     double ConstantUpdate() const { return mConstantUpdate; }
-    std::size_t SlaveDofId() const { return mId; }
-    std::size_t SlaveDofKey() const { return mKey; }
-    std::size_t SlaveEquationId() const { return mEquationId; }
-    void SetSlaveEquationId(std::size_t Id) { mEquationId = Id; }
+    std::size_t SlaveDofId() const { return mSlaveDofId; }
+    std::size_t SlaveDofKey() const { return mSlaveDofKey; }
+    std::size_t SlaveEquationId() const { return mSlaveEquationId; }
+    void SetSlaveEquationId(std::size_t Id) { mSlaveEquationId = Id; }
 
     // Add a master or update a master(if already present) to this slave given are the masterDofId, masterDofKey, weight
     void AddMaster(DofType const &rMasterDof, double Weight)
@@ -144,6 +144,13 @@ class MasterSlaveRelation
         {
             mMasterDataSet.insert(master_data);
         }
+    }
+
+    // Add Slave to the current constraint. Currently only one Slave can be added.
+    void AddSlave(DofType const &rSlaveDof)
+    {
+        this->mSlaveDofId  = rSlaveDof.Id();
+        this->mSlaveDofKey = rSlaveDof.GetVariable().Key();
     }
 
     // This is only for serializer. Not to be used outside
@@ -196,8 +203,8 @@ class MasterSlaveRelation
 
     virtual void save(Serializer &rSerializer) const
     {
-        rSerializer.save("slave_id", mId);            // saving the vector of the slave id
-        rSerializer.save("slave_key", mKey);          // saving the vector of the slave key
+        rSerializer.save("slave_id", mSlaveDofId);            // saving the vector of the slave id
+        rSerializer.save("slave_key", mSlaveDofKey);          // saving the vector of the slave key
         rSerializer.save("constant", mConstant);              // saving the id of the master
         rSerializer.save("constant_update", mConstantUpdate); // saving the id of the master
         rSerializer.save("num_masters", GetNumberOfMasters());    // Writint number of masters for this slave
@@ -234,9 +241,9 @@ class MasterSlaveRelation
   private:
     std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator> mMasterDataSet;
 
-    const std::size_t mId;
-    const std::size_t mKey;
-    std::size_t mEquationId;
+    std::size_t mSlaveDofId;
+    std::size_t mSlaveDofKey;
+    std::size_t mSlaveEquationId;
     double mConstant;
     double mConstantUpdate;
 
