@@ -9,15 +9,15 @@ KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
-# Other imports
-import os
+# Importing the base class
+from python_solver import PythonSolver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return MechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return MechanicalSolver(model, custom_settings)
 
 
-class MechanicalSolver(object):
+class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
 
     This class provides functions for importing and exporting models,
@@ -41,12 +41,16 @@ class MechanicalSolver(object):
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
+    model -- the model containing the modelpart used to construct the solver.
     settings -- Kratos parameters containing solver settings.
-    main_model_part -- the model part used to construct the solver.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
+        super(MechanicalSolver, self).__init__(model, custom_settings)
+
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "model_part_name" : "",
+            "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
             "analysis_type": "non_linear",
@@ -55,13 +59,13 @@ class MechanicalSolver(object):
                 "input_filename": "unknown_name"
             },
             "restart_settings" : {
-                "load_restart"  : false,
                 "save_restart"  : false
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
                 "materials_filename": ""
             },
+            "time_stepping" : { },
             "rotation_dofs": false,
             "pressure_dofs": false,
             "reform_dofs_at_each_step": false,
@@ -110,17 +114,29 @@ class MechanicalSolver(object):
             self.print_warning_on_rank_zero("Time integration method", warning)
 
         # Overwrite the default settings with user-provided parameters.
-        self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+        model_part_name = self.settings["model_part_name"].GetString()
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
+        if model_part_name == "":
+            raise Exception('Please specify a model_part name!')
+
+        # This will be changed once the Model is fully supported!
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model[model_part_name]
+            self.solver_imports_model_part = False
+        else:
+            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateodelPart()
+            domain_size = self.settings["domain_size"].GetInt()
+            if domain_size < 0:
+                raise Exception('Please specify a "domain_size" >= 0!')
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+            self.solver_imports_model_part = True
+
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
-        if self.settings["restart_settings"].Has("load_restart"):
-            load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
+        if self.settings["model_import_settings"]["input_type"].GetString() == "rest":
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         else:
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
@@ -169,51 +185,24 @@ class MechanicalSolver(object):
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
-        """ Legacy function, use ReadModelPart and PrepareModelPartForSolver instead """
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Importing model part.")
-        problem_path = os.getcwd()
-        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
-        if self.is_restarted():
-            self.get_restart_utility().LoadRestart()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
-            self.PrepareModelPartForSolver()
-        else:
-            raise Exception("Other model part input options are not yet implemented.")
-        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished importing model part.")
+        """This function imports the ModelPart
+        """
+        if self.solver_imports_model_part:
+            self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
-    def ReadModelPart(self):
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part.")
-        problem_path = os.getcwd()
-        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
-        if self.is_restarted():
-            self.get_restart_utility().LoadRestart()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
-        else:
-            raise Exception("Other model part input options are not yet implemented.")
-        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished reading model part.")
-
-    def PrepareModelPartForSolver(self):
+    def PrepareModelPart(self):
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
-    def ExportModelPart(self):
-        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
-        file = open(name_out_file + ".mdpa","w")
-        file.close()
-        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
+        # This will be removed once the Model is fully supported! => It wont e necessary anymore
+        if not self.model.HasModelPart(self.main_model_part.Name):
+            self.model.AddModelPart(self.main_model_part)
+
+        print(self.model)
+
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
@@ -235,13 +224,7 @@ class MechanicalSolver(object):
         self.Check()
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
-    def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
-
     def GetOutputVariables(self):
-        pass
-
-    def ComputeDeltaTime(self):
         pass
 
     def SaveRestart(self):
@@ -270,6 +253,26 @@ class MechanicalSolver(object):
 
     def FinalizeSolutionStep(self):
         self.get_mechanical_solution_strategy().FinalizeSolutionStep()
+
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.main_model_part.CloneTimeStep(new_time)
+
+        return new_time
+
+    def ComputeDeltaTime(self):
+        return self.settings["time_stepping"]["time_step"].GetDouble()
+
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+
+    def ExportModelPart(self):
+        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
+        file = open(name_out_file + ".mdpa","w")
+        file.close()
+        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
         self.get_mechanical_solution_strategy().SetEchoLevel(level)

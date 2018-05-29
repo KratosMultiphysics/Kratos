@@ -27,7 +27,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
 
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
@@ -472,6 +471,7 @@ KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 
 KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
+KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -1023,6 +1023,7 @@ void KratosApplication::RegisterVariables() {
     //--------------- ULF Application (surface_tension) -------------------//
     KRATOS_REGISTER_VARIABLE(TRIPLE_POINT)
     KRATOS_REGISTER_VARIABLE(CONTACT_ANGLE)
+    KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
 
 
     //Register objects with general definition
@@ -1102,9 +1103,6 @@ void KratosApplication::RegisterVariables() {
     Serializer::Register("Sphere3D1", Sphere3D1Prototype);
 
     //Lines:
-    Line2D<Node<3> > Line2DPrototype(Element::GeometryType::PointsArrayType(2));
-    Serializer::Register("Line2D", Line2DPrototype);
-
     Line2D2<Node<3> > Line2D2Prototype(
         Element::GeometryType::PointsArrayType(2));
     Serializer::Register("Line2D2", Line2D2Prototype);

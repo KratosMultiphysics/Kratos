@@ -22,6 +22,7 @@
 #include "custom_processes/clear_point_contact_conditions_process.hpp"
 #include "custom_processes/build_contact_conditions_process.hpp"
 
+#include "custom_processes/hm_parametric_wall_contact_search_process.hpp"
 
 namespace Kratos
 {
@@ -47,32 +48,37 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //**********MESH MODELLER PROCESS*********//
 
-  class_<ContactModelStartEndMeshingProcess, ModelStartEndMeshingProcess>
+  class_<ContactModelStartEndMeshingProcess, ContactModelStartEndMeshingProcess::Pointer, ModelStartEndMeshingProcess>
       (m, "ContactModelMeshing")
       .def(init<ModelPart&, Flags, int>())
       ;
 
-  class_<ParametricWallContactSearchProcess, Process>
+  class_<ParametricWallContactSearchProcess, ParametricWallContactSearchProcess::Pointer, Process>
       (m,"ParametricWallContactSearch")
       .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
       ;
 
-  class_<BuildContactModelPartProcess, Process>
+  class_<HMParametricWallContactSearchProcess, HMParametricWallContactSearchProcess::Pointer, Process> 
+	   (m,"HMParametricWallContactSearch")
+      .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
+	   ;
+
+  class_<BuildContactModelPartProcess, BuildContactModelPartProcess::Pointer, Process>
       (m,"BuildContactModelPart")
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, std::vector<std::string>&, int>())
       ;
 
-  class_<ClearPointContactConditionsProcess, Process>
+  class_<ClearPointContactConditionsProcess, ClearPointContactConditionsProcess::Pointer, Process>
       (m,"ClearPointContactConditions")
       .def(init<ModelPart&, int>())
       ;
 
-  class_<ClearContactConditionsProcess, Process>
+  class_<ClearContactConditionsProcess, ClearContactConditionsProcess::Pointer, Process>
       (m,"ClearContactConditions")
       .def(init<ModelPart&, int>())
       ;
 
-  class_<BuildContactConditionsProcess, Process>
+  class_<BuildContactConditionsProcess, BuildContactConditionsProcess::Pointer, Process>
       (m,"BuildContactConditions")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;

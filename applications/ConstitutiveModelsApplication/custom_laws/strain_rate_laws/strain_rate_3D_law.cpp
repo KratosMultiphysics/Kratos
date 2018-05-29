@@ -183,12 +183,24 @@ namespace Kratos
 
     LawDataType& rVariables = rModelValues.rConstitutiveLawData();
 
-    // The desired thing is to have a VelocityGradient variable in Parameters....
-    // Get spatial velocity gradient in strain rate laws (F is l = [dv/dx_n+1])
-    const MatrixType& rDeltaDeformationMatrix = rValues.GetDeformationGradientF();
+    // VelocityGradient is supplied in the Strain Vector
+    MatrixType& rStrainMatrix = rModelValues.rStrainMatrix();
+    if( rValues.GetOptions().Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN) ) {
+      rStrainMatrix = ConstitutiveModelUtilities::VectorToTensor(rValues.GetStrainVector(), rStrainMatrix);
+    }
+    else{
+      KRATOS_ERROR << "STRAIN RATE not provided in the StrainVector, Law not compatible " << std::endl;
+    }
+      
+    //a.- Calculate incremental deformation gradient determinant
+    rVariables.TotalDeformationDet = rValues.GetDeterminantF();    
+        
+    //b.- Calculate incremental deformation gradient
+    const MatrixType& rTotalDeformationMatrix = rValues.GetDeformationGradientF();
 
-    rVariables.DeltaDeformationMatrix = ConstitutiveModelUtilities::VelocityGradientTo3D(rDeltaDeformationMatrix, rVariables.DeltaDeformationMatrix);
+    rVariables.TotalDeformationMatrix = ConstitutiveModelUtilities::DeformationGradientTo3D(rTotalDeformationMatrix, rVariables.TotalDeformationMatrix);
 
+    
     if( rValues.GetOptions().Is(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE) )
       rModelValues.State.Set(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES);
 

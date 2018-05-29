@@ -31,7 +31,7 @@ void  AddCustomModelersToPython(pybind11::module& m)
 {
   using namespace pybind11;
   
-  //class that allos remeshing and adaptive refining (inserting and erasing nodes)
+  //class that allows remeshing and adaptive refining (inserting and erasing nodes)
   class_<MeshModeler, typename MeshModeler::Pointer>(m,"MeshModeler")
       .def(init< >())
       .def("Initialize",&MeshModeler::Initialize)

@@ -15,8 +15,8 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import structural_mechanics_solver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return TrilinosMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return TrilinosMechanicalSolver(model, custom_settings)
 
 
 class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
@@ -24,16 +24,16 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         if not custom_settings.Has("linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type" : "Klu",
-                "scaling" : false
+                "solver_type" : "AmesosSolver",
+                "amesos_solver_type" : "Amesos_Klu"
             }""")
             custom_settings.AddValue("linear_solver_settings", linear_solver_settings)
 
         # Construct the base solver.
-        super(TrilinosMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(TrilinosMechanicalSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
@@ -41,22 +41,6 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             super(TrilinosMechanicalSolver, self).AddVariables()
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
             self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
-
-    def ImportModelPart(self):
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
-        if self.is_restarted():
-            self.get_restart_utility().LoadRestart()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            # Construct the Trilinos import model part utility.
-            import trilinos_import_model_part_utility
-            self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-            # Execute the Metis partitioning and reading.
-            self.trilinos_model_part_importer.ExecutePartitioningAndReading()
-            # Call the base class PrepareModelPartForSolver
-            super(TrilinosMechanicalSolver, self).PrepareModelPartForSolver()
-        else:
-            raise Exception("Other model part input options are not yet implemented.")
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     def ReadModelPart(self):
         self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Reading model part.")
@@ -70,11 +54,11 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             self.trilinos_model_part_importer.ExecutePartitioningAndReading()
         else:
             raise Exception("Other model part input options are not yet implemented.")
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished reading model part.")
 
-    def PrepareModelPartForSolver(self):
+    def PrepareModel(self):
         if not self.is_restarted():
-            super(TrilinosMechanicalSolver, self).PrepareModelPartForSolver()
+            super(TrilinosMechanicalSolver, self).PrepareModelPart()
             # Construct the communicators
             self.trilinos_model_part_importer.CreateCommunicators()
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]::", "ModelPart prepared for Solver.")

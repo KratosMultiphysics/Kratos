@@ -201,9 +201,11 @@ public:
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     if (mreform_dof_set_at_each_step == true)
+    {
         mstrategy_x->Clear();
         mstrategy_y->Clear();
         mstrategy_z->Clear();
+    }
 
     return 0.0;
 

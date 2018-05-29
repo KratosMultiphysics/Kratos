@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_STATIC_STEP_ROTATION_METHOD )
-#define  KRATOS_STATIC_STEP_ROTATION_METHOD
+#if !defined(KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED)
+#define  KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED
 
 // System includes
 
@@ -80,6 +80,16 @@ namespace Kratos
     /// Default Constructor.
     StaticStepRotationMethod() : DerivedType() {}
 
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+
+    
+    /// Constructor.
+    StaticStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
+    
     /// Copy Constructor.
     StaticStepRotationMethod(StaticStepRotationMethod& rOther) : DerivedType(rOther) {}
 
@@ -269,4 +279,4 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_STATIC_STEP_ROTATION_METHOD defined
+#endif // KRATOS_STATIC_STEP_ROTATION_METHOD_H_INCLUDED defined

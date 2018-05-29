@@ -47,7 +47,7 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) BackwardEulerMethod : public TimeIntegrationMethod<TVariableType,TValueType>
+  class BackwardEulerMethod : public TimeIntegrationMethod<TVariableType,TValueType>
   {
   public:
 
@@ -75,6 +75,15 @@ namespace Kratos
 
     /// Default Constructor.
     BackwardEulerMethod() : BaseType() {}
+
+    /// Constructor.
+    BackwardEulerMethod(const TVariableType& rVariable) : BaseType(rVariable) {}
+
+    /// Constructor.
+    BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    BackwardEulerMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
 
     /// Copy Constructor.
     BackwardEulerMethod(BackwardEulerMethod& rOther)
@@ -126,88 +135,50 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
 
-
-    // assign
-    void Assign(NodeType& rNode) override
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed
+     * @return 0 all ok
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override
     {
-     KRATOS_TRY
+      KRATOS_TRY
 
-     if( this->mpInputVariable != nullptr ){
+      // Perform base integration method checks
+      int ErrorCode = 0;
+      ErrorCode = BaseType::Check(rCurrentProcessInfo);
 
-       if( *this->mpInputVariable == *this->mpVariable ){
-	 this->PredictFromVariable(rNode);
-       }
-       else if( *this->mpInputVariable == *this->mpFirstDerivative ){
-	 this->PredictFromFirstDerivative(rNode);
-       }
-       else if( *this->mpInputVariable == *this->mpSecondDerivative ){
-	 this->PredictFromSecondDerivative(rNode);
-       }
+      // Check that all required variables have been registered               
+      if( this->mpFirstDerivative == nullptr ){
+        KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpFirstDerivative));
+      }
 
-     }
-
-     KRATOS_CATCH( "" )
+      if( this->mpSecondDerivative == nullptr ){
+        KRATOS_ERROR << " time integration method SecondDerivative not set " <<std::endl;
+      }
+      else{
+        KRATOS_CHECK_VARIABLE_KEY((*this->mpSecondDerivative));
+      }
+      
+      return ErrorCode;
+      
+      KRATOS_CATCH("")
     }
-
-    // predict
-    void Predict(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     this->PredictVariable(rNode);
-     this->PredictFirstDerivative(rNode);
-     this->PredictSecondDerivative(rNode);
-
-     KRATOS_CATCH( "" )
-    }
-
-    // update
-    void Update(NodeType& rNode) override
-    {
-     KRATOS_TRY
-
-     if( this->mpOutputVariable != nullptr ){
-
-       if( *this->mpOutputVariable != *this->mpVariable ){
-	 this->UpdateFromVariable(rNode);
-       }
-       else if( *this->mpOutputVariable != *this->mpFirstDerivative ){
-	 this->UpdateFromFirstDerivative(rNode);
-       }
-       else if( *this->mpOutputVariable != *this->mpSecondDerivative ){
-	 this->UpdateFromSecondDerivative(rNode);
-       }
-     }
-     else{
-
-       this->UpdateVariable(rNode);
-       this->UpdateFirstDerivative(rNode);
-       this->UpdateSecondDerivative(rNode);
-
-     }
-
-     KRATOS_CATCH( "" )
-    }
-
-
+    
     ///@}
     ///@name Access
     ///@{
 
     // get parameters
-    double& GetMethodParameter(double& rParameter) override
-    {
-      rParameter = mDeltaTime;
-      return rParameter;
-    }
-
-    double& GetFirstDerivativeParameter(double& rParameter) override
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = 3.0 / (2.0 * mDeltaTime);
       return rParameter;
     }
 
-    double& GetSecondDerivativeParameter(double& rParameter) override
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = 2.0 / (mDeltaTime*mDeltaTime);
       return rParameter;
@@ -267,7 +238,7 @@ namespace Kratos
     ///@name Protected Operators
     ///@{
 
-    void PredictFromVariable(NodeType& rNode) override
+    void AssignFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -282,7 +253,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    void PredictFromFirstDerivative(NodeType& rNode) override
+    void AssignFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -305,7 +276,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    void PredictFromSecondDerivative(NodeType& rNode) override
+    void AssignFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
@@ -323,7 +294,28 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
+    void PredictFromVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
 
+      this->PredictVariable(rNode);
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+
+    void PredictFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+          
+      this->PredictVariable(rNode);
+      this->PredictFirstDerivative(rNode);
+      this->PredictSecondDerivative(rNode);
+
+      KRATOS_CATCH( "" )
+    }
+    
     void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY

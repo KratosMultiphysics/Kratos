@@ -83,6 +83,15 @@ namespace Kratos
     /// Default Constructor.
     BossakMethod() : DerivedType() {}
 
+    /// Constructor.
+    BossakMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    BossakMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    BossakMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
+
     /// Copy Constructor.
     BossakMethod(BossakMethod& rOther)
       :DerivedType(rOther)
@@ -152,7 +161,7 @@ namespace Kratos
     {
      KRATOS_TRY
        
-     double delta_time = rCurrentProcessInfo[DELTA_TIME];
+     const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
      if (delta_time < 1.0e-24)
         {
@@ -198,13 +207,13 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
     
-    double& GetMethodParameter(double& rParameter) override
+    double& GetSecondDerivativeKineticParameter(double& rParameter) override
     {
       rParameter = mAlpha;
       return rParameter;
     }
     
-    double& GetSecondDerivativeParameter(double& rParameter) override
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
     {
       rParameter = (1.0 - mAlpha) * this->mNewmark.c0;
       return rParameter;
