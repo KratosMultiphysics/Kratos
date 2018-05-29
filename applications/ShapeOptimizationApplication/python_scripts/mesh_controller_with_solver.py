@@ -57,7 +57,7 @@ class MeshControllerWithSolver(MeshController) :
         self.MeshSolverSettings["problem_data"]["domain_size"].SetInt(OptimizationModelPart.ProcessInfo[DOMAIN_SIZE])
 
         self.OptimizationModelPart = OptimizationModelPart
-
+        print("------------------------------------------",self.OptimizationModelPart)
         self.mesh_solver = MeshMovingAnalysis(self.MeshSolverSettings, OptimizationModelPart)
 
     # --------------------------------------------------------------------------

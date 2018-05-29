@@ -71,7 +71,6 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
 
         self.primal_model_part = model_part
         model = Model()
-        model.AddModelPart(self.primal_model_part)
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
