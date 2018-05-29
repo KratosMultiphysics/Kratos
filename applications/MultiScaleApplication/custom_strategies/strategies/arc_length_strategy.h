@@ -612,9 +612,7 @@ protected:
 
         mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, 
 					mpA, mpDx, mpb, 
-					model.Elements(), 
-					model.Conditions(), 
-					model.GetProcessInfo());
+					model);
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;

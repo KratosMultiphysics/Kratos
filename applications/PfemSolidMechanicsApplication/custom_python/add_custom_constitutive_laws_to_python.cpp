@@ -23,7 +23,9 @@
 #include "custom_constitutive/hencky_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
+#include "custom_constitutive/new_hencky_tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
+#include "custom_constitutive/new_hencky_tresca_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_3D_law.hpp"
 
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
@@ -104,6 +106,12 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       .def( init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
       ;
+
+ class_<NewHenckyTrescaPlasticAxisym2DLaw, typename NewHenckyTrescaPlasticAxisym2DLaw::Pointer, ConstitutiveLaw >
+      (m, "NewHenckyTrescaPlasticAxisym2DLaw")
+      .def( init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+      ;
   class_<HenckyTresca3DLaw, typename HenckyTresca3DLaw::Pointer, ConstitutiveLaw >
       (m, "HenckyTresca3DLaw")
       .def( init<>() )
@@ -111,6 +119,12 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       ;
   class_<HenckyTrescaPlasticPlaneStrain2DLaw, typename HenckyTrescaPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
       (m, "HenckyTrescaPlasticPlaneStrain2DLaw")
+      .def( init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+      ;
+
+ class_<NewHenckyTrescaPlasticPlaneStrain2DLaw, typename NewHenckyTrescaPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+      (m, "NewHenckyTrescaPlasticPlaneStrain2DLaw")
       .def( init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
       ;
