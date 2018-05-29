@@ -110,7 +110,12 @@ namespace Kratos
 
 		// Adding mrModelPart2 to the octree
 		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+			mOctree.Insert(i_node->Coordinates().data());
+
+#else
 			mOctree.Insert(i_node->Coordinates().data().data());
+#endif // ifdef KRATOS_USE_AMATRIX
 		}
 
 		for (auto i_element = mrModelPart2.ElementsBegin(); i_element != mrModelPart2.ElementsEnd(); i_element++) {
@@ -147,7 +152,12 @@ namespace Kratos
 
 
 		// TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
-		mOctree.SetBoundingBox(low.data().data(), high.data().data());
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+	mOctree.SetBoundingBox(low.data(), high.data());
+#else
+	mOctree.SetBoundingBox(low.data().data(), high.data().data());
+#endif // ifdef KRATOS_USE_AMATRIX
+	
 	}
 
 	void  FindIntersectedGeometricalObjectsProcess::MarkIfIntersected(Element& rElement1, std::vector<OctreeType::cell_type*>& leaves) {
