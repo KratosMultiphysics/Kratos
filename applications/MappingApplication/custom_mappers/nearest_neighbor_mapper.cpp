@@ -26,7 +26,7 @@ namespace Kratos
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void NearestNeigborInterfaceInfo::ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject, const double NeighborDistance)
+void NearestNeigborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance)
 {
     SetLocalSearchWasSuccessful();
 
@@ -34,7 +34,7 @@ void NearestNeigborInterfaceInfo::ProcessSearchResult(InterfaceObject::Pointer p
     if (distance < mNearestNeighborDistance)
     {
         mNearestNeighborDistance = distance;
-        mNearestNeighborId = pInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
+        mNearestNeighborId = rpInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
     }
 }
 

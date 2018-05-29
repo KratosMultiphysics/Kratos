@@ -86,9 +86,13 @@ public:
     /// Default constructor.
     MapperInterfaceInfo() {}
 
-    MapperInterfaceInfo(const IndexType SourceLocalSystemIndex, const IndexType SourceRank)
+    MapperInterfaceInfo(const CoordinatesArrayType& rCoordinates,
+                        const IndexType SourceLocalSystemIndex,
+                        const IndexType SourceRank)
         : mSourceLocalSystemIndex(SourceLocalSystemIndex),
+          mCoordinates(rCoordinates),
           mSourceRank(SourceRank)
+
     {
     }
 
@@ -107,9 +111,10 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject, const double NeighborDistance) = 0;
+    virtual void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) = 0;
 
-    virtual MapperInterfaceInfo::Pointer Create(const IndexType SourceLocalSystemIndex,
+    virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
+                                                const IndexType SourceLocalSystemIndex,
                                                 const IndexType SourceRank=0) const = 0;
 
     virtual void Clear()
@@ -126,6 +131,16 @@ public:
     void SetLocalSearchWasSuccessful()
     {
         mLocalSearchWasSuccessful = true;
+    }
+
+    void UpdateCoordinates(const CoordinatesArrayType& rCoordinates)
+    {
+        noalias(mCoordinates) = rCoordinates;
+    }
+
+    CoordinatesArrayType& GetCoordinates()
+    {
+        return mCoordinates;
     }
 
 
@@ -188,6 +203,7 @@ protected:
     IndexType mSourceLocalSystemIndex;
 
     // These variables are NOT being serialized bcs they are not needed after searching!
+    CoordinatesArrayType mCoordinates;
     IndexType mSourceRank = 0;
 
     ///@}

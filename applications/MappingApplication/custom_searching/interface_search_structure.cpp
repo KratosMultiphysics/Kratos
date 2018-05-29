@@ -36,8 +36,7 @@ namespace Kratos
     /***********************************************************************************/
     void InterfaceSearchStructure::PrepareSearching(const Kratos::Flags& rOptions,
                                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                                    InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
-                                                    InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
+                                                    InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
         if (mpInterfaceObjectsOrigin == nullptr || rOptions.Is(MapperFlags::REMESHED))
             CreateInterfaceObjectsOrigin(InterfaceObjectTypeOrigin);
@@ -47,10 +46,10 @@ namespace Kratos
         if (mpLocalBinStructure == nullptr || !rOptions.Is(MapperFlags::DESTINATION_ONLY))
             InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
 
-        if (mpInterfaceObjectsDestination == nullptr || rOptions.Is(MapperFlags::REMESHED))
-            CreateInterfaceObjectsDestination(rpRefInterfaceInfo);
+        if (mpMapperInterfaceInfos == nullptr || rOptions.Is(MapperFlags::REMESHED))
+            CreateInterfaceInfos(rpRefInterfaceInfo);
         else
-            UpdateInterfaceObjectsDestination();
+            UpdateInterfaceInfos();
     }
 
     void InterfaceSearchStructure::FinalizeSearching()
@@ -76,28 +75,26 @@ namespace Kratos
     /***********************************************************************************/
     /* PRIVATE Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructure::CreateInterfaceObjectsDestination(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+    void InterfaceSearchStructure::CreateInterfaceInfos(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
     {
         const int num_objects = mpMapperLocalSystems->size();
 
-        mpInterfaceObjectsDestination = Kratos::make_unique<InterfaceObjectContainerType>(num_objects);
         mpMapperInterfaceInfos = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>(num_objects);
 
         #pragma omp parallel for
         for (int i = 0; i<num_objects; ++i)
         {
             const auto& r_coords = (*mpMapperLocalSystems)[i]->GetCoordinates();
-
-            (*mpInterfaceObjectsDestination)[i] = Kratos::make_shared<InterfaceObject>(r_coords);
-            (*mpMapperInterfaceInfos)[i] = rpRefInterfaceInfo->Create(i);
+            (*mpMapperInterfaceInfos)[i] = rpRefInterfaceInfo->Create(r_coords, i);
         }
 
-        // Making sure that the data-structure was correctly initialized
-        KRATOS_ERROR_IF_NOT(mpInterfaceObjectsDestination->size() > 0)
-            << "No interface objects were created in Destination-ModelPart!" << std::endl;
+        // Making sure that the data-structure was correctly initialized, should be ensured anyways...
+        // This is in serial so I can do this directly
+        KRATOS_ERROR_IF_NOT(mpMapperInterfaceInfos->size() > 0)
+            << "No MapperInterfaceInfos were created in Destination-ModelPart!" << std::endl;
     }
 
-    void InterfaceSearchStructure::UpdateInterfaceObjectsDestination()
+    void InterfaceSearchStructure::UpdateInterfaceInfos()
     {
         const int num_objects = mpMapperLocalSystems->size();
 
@@ -105,7 +102,7 @@ namespace Kratos
         for (int i = 0; i<num_objects; ++i)
         {
             const auto& r_coords = (*mpMapperLocalSystems)[i]->GetCoordinates();
-            (*mpInterfaceObjectsDestination)[i]->UpdateCoordinates(r_coords);
+            (*mpMapperInterfaceInfos)[i]->UpdateCoordinates(r_coords);
         }
     }
 

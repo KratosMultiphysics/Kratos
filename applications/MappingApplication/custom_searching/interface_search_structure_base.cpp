@@ -29,10 +29,9 @@ namespace Kratos
     /***********************************************************************************/
     void InterfaceSearchStructureBase::ExchangeInterfaceData(const Kratos::Flags& rOptions,
                                const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
-                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
-                               InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
+                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
-        PrepareSearching(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin, InterfaceObjectTypeDestination);
+        PrepareSearching(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
         ConductLocalSearch();
 
@@ -123,22 +122,26 @@ namespace Kratos
         {
             InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
             std::vector<double> neighbor_distances(num_interface_obj_bin);
+            auto interface_obj = Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0));
 
-            // Searching the neighbors
-            for (SizeType i = 0; i < mpInterfaceObjectsDestination->size(); ++i)
+            // #pragma omp parallel for / TODO this requires to make some things thread-local!
+            for (SizeType i = 0; i < mpMapperInterfaceInfos->size(); ++i)
             {
-                const auto interface_object_itr = mpInterfaceObjectsDestination->begin() + i;
-                double search_radius = mSearchRadius; // reset search radius
+                const auto& r_interface_info = (*mpMapperInterfaceInfos)[i];
 
+                interface_obj->UpdateCoordinates(r_interface_info->GetCoordinates());
+                double search_radius = mSearchRadius; // reset search radius // TODO check this
+
+                // reset the containers
                 auto results_itr = neighbor_results.begin();
                 auto distance_itr = neighbor_distances.begin();
 
-                SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
-                                                    *interface_object_itr, search_radius, results_itr,
-                                                    distance_itr, num_interface_obj_bin);
+                const SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
+                    interface_obj, search_radius, results_itr,
+                    distance_itr, num_interface_obj_bin);
 
-                    for (SizeType j=0; j<number_of_results; ++j)
-                        (*mpMapperInterfaceInfos)[i]->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
+                for (SizeType j=0; j<number_of_results; ++j)
+                    r_interface_info->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
             }
         }
     }

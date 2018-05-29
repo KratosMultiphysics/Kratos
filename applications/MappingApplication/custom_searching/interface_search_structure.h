@@ -172,8 +172,7 @@ protected:
     // Imagine a sliding interface, there the partitions might change!
     void PrepareSearching(const Kratos::Flags& rOptions,
                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                          InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
-                          InterfaceObject::ConstructionType InterfaceObjectTypeDestination) override;
+                          InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
 
     void FinalizeSearching() override;
 
@@ -215,9 +214,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateInterfaceObjectsDestination(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
+    void CreateInterfaceInfos(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
-    void UpdateInterfaceObjectsDestination();
+    void UpdateInterfaceInfos();
 
     ///@}
     ///@name Private  Access

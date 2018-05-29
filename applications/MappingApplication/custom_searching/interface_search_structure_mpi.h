@@ -167,16 +167,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void Initialize(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override
-    {
-        BaseType::Initialize(InterfaceObjectTypeOrigin); // this has to be done first in order to build the internal datastructure!
-        InitializeBoundingBox();
-    }
+    // void Initialize(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override
+    // {
+    //     BaseType::Initialize(InterfaceObjectTypeOrigin); // this has to be done first in order to build the internal datastructure!
+    //     InitializeBoundingBox();
+    // }
 
-    void InitializeBoundingBox()
-    {
+    // void InitializeBoundingBox()
+    // {
 
-    }
+    // }
 
 
     // This function constructs the InterfaceObjects on the Destination
@@ -184,8 +184,7 @@ protected:
     // Imagine a sliding interface, there the partitions might change!
     void PrepareSearching(const Kratos::Flags& rOptions,
                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                          InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
-                          InterfaceObject::ConstructionType InterfaceObjectTypeDestination) override;
+                          InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
 
     void FinalizeSearching() override;
 

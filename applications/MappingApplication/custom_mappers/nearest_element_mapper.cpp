@@ -27,9 +27,9 @@ namespace Kratos
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void NearestElementInterfaceInfo::ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject, const double NeighborDistance)
+void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance)
 {
-    const auto p_geom = pInterfaceObject->pGetBaseGeometry();
+    const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
 
     // trying to project to the geometry
     // ...

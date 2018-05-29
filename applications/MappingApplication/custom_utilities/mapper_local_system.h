@@ -165,7 +165,7 @@ public:
     virtual void Clear()
     {
         mInterfaceInfos.clear();
-        if (mIsComputed)
+        if (mIsComputed) // TODO I think this "if" is not needed ...
         {
             mMappingWeights.clear();
             mOriginIds.clear();

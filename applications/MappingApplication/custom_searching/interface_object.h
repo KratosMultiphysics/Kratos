@@ -108,7 +108,7 @@ public:
     ///@name Operations
     ///@{
 
-   void UpdateCoordinates(const CoordinatesArrayType& rCoordinates)
+    void UpdateCoordinates(const CoordinatesArrayType& rCoordinates)
     {
         noalias(Coordinates()) = rCoordinates;
     }

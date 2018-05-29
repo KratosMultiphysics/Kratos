@@ -43,6 +43,8 @@ namespace Kratos
             CreateMapperLocalSystemsFromNodes(rpLocalSystem);
         else
             CreateMapperLocalSystemsFromGeometries(rpLocalSystem);
+
+        // TODO check if MapperLocalSystems were created!
     }
     /***********************************************************************************/
     /* PROTECTED Methods */

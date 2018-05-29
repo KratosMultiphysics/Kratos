@@ -53,21 +53,24 @@ public:
     /// Default constructor.
     NearestNeigborInterfaceInfo() {}
 
-    NearestNeigborInterfaceInfo(const IndexType SourceLocalSystemIndex,
+    NearestNeigborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
+                                const IndexType SourceLocalSystemIndex,
                                 const IndexType SourceRank)
-        : MapperInterfaceInfo(SourceLocalSystemIndex, SourceRank)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
     {
 
     }
 
-    MapperInterfaceInfo::Pointer Create(const IndexType SourceLocalSystemIndex,
+    MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
+                                        const IndexType SourceLocalSystemIndex,
                                         const IndexType SourceRank=0) const override
     {
-        return Kratos::make_shared<NearestNeigborInterfaceInfo>(SourceLocalSystemIndex,
+        return Kratos::make_shared<NearestNeigborInterfaceInfo>(rCoordinates,
+                                                                SourceLocalSystemIndex,
                                                                 SourceRank);
     }
 
-    void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject, const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) override;
 
     void GetValue(std::size_t& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {
@@ -282,11 +285,6 @@ protected:
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const override
-    {
-        return InterfaceObject::Node_Coords;
-    }
-
-    InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeDestination() const override
     {
         return InterfaceObject::Node_Coords;
     }

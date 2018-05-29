@@ -32,8 +32,7 @@ namespace Kratos
     /***********************************************************************************/
     void InterfaceSearchStructureMPI::PrepareSearching(const Kratos::Flags& rOptions,
                                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                                       InterfaceObject::ConstructionType InterfaceObjectTypeOrigin,
-                                                       InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
+                                                       InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
         // TODO pass mappingoptions!
         // TODO print info saying that ORIGIN_ONLY has no effect in MPI, the destination also has to be updated
