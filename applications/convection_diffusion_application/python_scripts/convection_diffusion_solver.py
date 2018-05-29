@@ -14,12 +14,25 @@ class ConvectionDiffusionSolver(object):
 
     def __init__(self, model_part, custom_settings):
 
-        self.main_model_part = model_part
-        self.domain_size = 2
+        ##settings string in json format
+        default_settings = Parameters("""
+        {
+            "solver_type": "convection_diffusion_solver",
+            "dynamic_tau": 0.0,
+            "echo_level": 1,
+            "calculate_reactions": false,
+            "reform_dofs_at_each_step": false,
+            "time_stepping"                : {
+                "theta"      : 0.5,
+                "time_step"  : 0.1
+            }
+        }""")
 
-        #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        self.theta = 0.5
-        self.dynamic_tau = 0.0
+        ## Overwrite the default settings with user-provided parameters
+        self.solver_parameters = custom_settings
+        self.solver_parameters.ValidateAndAssignDefaults(default_settings)
+
+        self.main_model_part = model_part
 
         if not self.main_model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
             raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
@@ -27,10 +40,9 @@ class ConvectionDiffusionSolver(object):
         self.linear_solver = None
         self.strategy = None
 
-        self.calculate_reactions = False
-        self.reform_dofs_at_each_step = False
+        self.echo_level = self.solver_parameters["echo_level"].GetInt()
 
-        self.echo_level = 1
+        self.time_step = self.solver_parameters["time_stepping"]["time_step"].GetDouble()
 
     def AddVariables(self):
         ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
@@ -89,10 +101,10 @@ class ConvectionDiffusionSolver(object):
     def PrepareModelPart(self):
         # Duplicate model part
         self.thermal_model_part = ModelPart("Thermal")
-        if self.domain_size == 2:
+        if self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 2:
             conv_diff_element = "EulerianConvDiff2D"
             conv_diff_condition = "Condition2D2N"
-        elif self.domain_size == 3:
+        elif self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 3:
             conv_diff_element = "EulerianConvDiff3D"
             conv_diff_condition = "Condition3D3N"
 
@@ -104,7 +116,10 @@ class ConvectionDiffusionSolver(object):
         ''' Initialize the underlying C++ objects and validate input
         '''
 
-        if self.linear_solver is None:
+        if self.solver_parameters.Has("linear_solver_settings"):
+            import linear_solver_factory
+            self.linear_solver = linear_solver_factory.ConstructSolver(self.solver_parameters["linear_solver_settings"])
+        else:
             diagonal_preconditioner = DiagonalPreconditioner()
             linear_solver_tolerance = 1e-9
             linear_solver_maximum_iterations = 5000
@@ -117,7 +132,7 @@ class ConvectionDiffusionSolver(object):
             scheme = ResidualBasedIncrementalUpdateStaticScheme()
             builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-            calculate_norm_dx = True
+            calculate_norm_dx = False
             move_mesh = False
 
             self.strategy = ResidualBasedLinearStrategy(
@@ -125,8 +140,8 @@ class ConvectionDiffusionSolver(object):
                 scheme,
                 self.linear_solver,
                 builder_and_solver,
-                self.calculate_reactions,
-                self.reform_dofs_at_each_step,
+                self.solver_parameters["calculate_reactions"].GetBool(),
+                self.solver_parameters["reform_dofs_at_each_step"].GetBool(),
                 calculate_norm_dx,
                 move_mesh)
 
@@ -136,8 +151,9 @@ class ConvectionDiffusionSolver(object):
         verbose = True
         self._ValidateInput(verbose)
 
-        self.thermal_model_part.ProcessInfo[THETA] = self.theta
-        self.thermal_model_part.ProcessInfo[DYNAMIC_TAU] = self.dynamic_tau
+        #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
+        self.thermal_model_part.ProcessInfo[THETA] = self.solver_parameters["time_stepping"]["theta"].GetDouble()
+        self.thermal_model_part.ProcessInfo[DYNAMIC_TAU] = self.solver_parameters["dynamic_tau"].GetDouble()
 
     def Solve(self):
         ''' Solve an iteration of the convection-diffusion problem
@@ -145,7 +161,7 @@ class ConvectionDiffusionSolver(object):
         self.strategy.Solve()
 
     def AdvanceInTime(self, current_time):
-        dt = self.ComputeDeltaTime()
+        dt = self.time_step
         new_time = current_time + dt
 
         self.thermal_model_part.CloneTimeStep(new_time)
