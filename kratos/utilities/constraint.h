@@ -41,24 +41,60 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
     typedef std::size_t IndexType;
     typedef Dof<double> DofType;
+    typedef std::vector< DofType::Pointer > DofsVectorType;
     typedef Node<3> NodeType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     typedef std::vector<std::size_t> EquationIdVectorType;
 
     typedef double ConstantType;
     typedef Matrix MatrixType;
+    typedef Vector VectorType;
     typedef Kratos::Variable<double> VariableType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
-
     ///@name Life Cycle
     ///@{
 
-    /**
-	    Creates a MultipointConstraint object
-	*/
-    MasterSlaveConstraint() : IndexedObject(0), Flags()
+   /*
+    * Empty Constructor
+    */
+    MasterSlaveConstraint():IndexedObject(0), Flags()
     {
     }
+
+    /*
+    * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
+    */
+    MasterSlaveConstraint(IndexType Id, DofsVectorType& rMasterDofsVector,
+                                        DofsVectorType& rSlaveDofsVector,
+                                        MatrixType RelationMatrix,
+                                        VectorType ConstantVector):IndexedObject(Id), Flags()
+    {
+    }
+
+    /*
+    * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
+    */
+    MasterSlaveConstraint(IndexType Id, NodeType& rMasterNode,
+                                        VariableType& rMasterVariable,
+                                        NodeType& rSlaveNode,
+                                        VariableType& rSlaveVariable,
+                                        double Weight,
+                                        double Constant):IndexedObject(Id), Flags()
+    {
+    }
+
+    /*
+    * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
+    */
+    MasterSlaveConstraint(IndexType Id, NodeType& rMasterNode,
+                                        VariableComponentType& rMasterVariable,
+                                        NodeType& rSlaveNode,
+                                        VariableComponentType& rSlaveVariable,
+                                        double Weight,
+                                        double Constant):IndexedObject(Id), Flags()
+    {
+    }
+
     /// Destructor.
     virtual ~MasterSlaveConstraint(){};
 
@@ -69,11 +105,36 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    virtual Pointer Create(IndexType NewId) const
+    virtual Pointer Create(IndexType Id, DofsVectorType& MasterDofsVector, DofsVectorType& SlaveDofsVector, MatrixType RelationMatrix, VectorType ConstantVector) const
     {
         KRATOS_TRY
-        auto new_pointer = Kratos::make_shared<MasterSlaveConstraint>();
-        new_pointer->SetId(NewId);
+        auto new_pointer = Kratos::make_shared<MasterSlaveConstraint>(Id, MasterDofsVector, SlaveDofsVector, RelationMatrix, ConstantVector);
+        return new_pointer;
+        KRATOS_CATCH("");
+    }
+
+    virtual Pointer Create(IndexType Id, NodeType& rMasterNode,
+                                        VariableType& rMasterVariable,
+                                        NodeType& rSlaveNode,
+                                        VariableType& rSlaveVariable,
+                                        double Weight,
+                                        double Constant) const
+    {
+        KRATOS_TRY
+        auto new_pointer = Kratos::make_shared<MasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
+        return new_pointer;
+        KRATOS_CATCH("");
+    }
+
+    virtual Pointer Create(IndexType Id, NodeType& rMasterNode,
+                                        VariableComponentType& rMasterVariable,
+                                        NodeType& rSlaveNode,
+                                        VariableComponentType& rSlaveVariable,
+                                        double Weight,
+                                        double Constant) const
+    {
+        KRATOS_TRY
+        auto new_pointer = Kratos::make_shared<MasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
         return new_pointer;
         KRATOS_CATCH("");
     }
@@ -89,7 +150,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 	*/
     void Clear()
     {
-        mConstraintEquation.Clear();
+        //TODO: clear the relation matrix and the constant vector.
     }
 
 
@@ -136,11 +197,15 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @param rResult the elemental equation ID vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
+    virtual void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
+                                  EquationIdVectorType& rMasterEquationIds,
                                   ProcessInfo& rCurrentProcessInfo)
     {
-        if (rResult.size() != 0)
-            rResult.resize(0);
+        if (rSlaveEquationIds.size() != 0)
+            rSlaveEquationIds.resize(0);
+
+        if (rMasterEquationIds.size() != 0)
+            rMasterEquationIds.resize(0);
     }
 
     /**
@@ -152,59 +217,15 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(MatrixType& rTransformationMatrix,
-                                      ConstantType& rConstant,
+                                      VectorType& rConstantVector,
                                       ProcessInfo& rCurrentProcessInfo)
     {
       if (rTransformationMatrix.size1() != 0)
       {
     	rTransformationMatrix.resize(0, 0, false);
       }
-
-	  rConstant = 0.00;
     }
 
-
-    /**
-	* Adds a master to the current master slave relation
-	*/
-    virtual void AddMaster(NodeType &rMasterNode, const VariableType &rMasterVariable, double Weight)
-    {
-        DofType &master_dof = rMasterNode.GetDof(rMasterVariable);
-        mConstraintEquation.AddMaster(master_dof, Weight);
-    }
-    virtual void AddMaster(NodeType &rMasterNode, const VariableComponentType &rMasterVariableComponent, double Weight)
-    {
-        DofType &master_dof = rMasterNode.GetDof(rMasterVariableComponent);
-        mConstraintEquation.AddMaster(master_dof, Weight);
-    }
-
-    /**
-	* Adds a master to the current master slave relation
-	*/
-    virtual void AddSlave(NodeType &rSlaveNode, const VariableType &rSlaveVariable)
-    {
-        rSlaveNode.Set(SLAVE);
-        DofType &slave_dof = rSlaveNode.GetDof(rSlaveVariable);
-        this->SetId (slave_dof.Id());
-        mConstraintEquation.AddSlave(slave_dof);
-    }
-    virtual void AddSlave(NodeType &rSlaveNode, const VariableComponentType &rSlaveVariableComponent)
-    {
-        rSlaveNode.Set(SLAVE);
-        DofType &slave_dof = rSlaveNode.GetDof(rSlaveVariableComponent);
-        this->SetId (slave_dof.Id());
-        mConstraintEquation.AddSlave(slave_dof);
-    }
-
-
-    /**
-	* Get the Total number of MasterDOFs for a given slave dof
-	* @return Total number of MasterDOFs for a given slave dof
-	*/
-    virtual std::size_t GetNumberOfMasters()
-    {
-        return mConstraintEquation.GetNumberOfMasters();
-    }
 
     /**
 	* Returns the string containing a detailed description of this object.
@@ -225,7 +246,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     virtual void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << " Constraint base class !" << std::endl;
-        mConstraintEquation.PrintInfo(rOStream);
     }
 
     ///@name Serialization
@@ -234,17 +254,15 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     virtual void save(Serializer &rSerializer) const override
     {
-        this->mConstraintEquation.save(rSerializer);
+
     }
 
     virtual void load(Serializer &rSerializer) override
     {
-        this->mConstraintEquation.load(rSerializer);
+
     }
 
   private:
-
-    MasterSlaveRelation mConstraintEquation;
     ///@}
 
     ///@}
