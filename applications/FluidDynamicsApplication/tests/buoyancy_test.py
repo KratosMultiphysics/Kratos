@@ -176,15 +176,8 @@ class BuoyancyTest(UnitTest.TestCase):
         self.fluid_solver.use_slip_conditions = 0
 
         if self.convection_diffusion_solver == 'eulerian':
-            # Duplicate model part
-            thermal_model_part = ModelPart("Thermal")
-            conv_diff_element = "EulerianConvDiff2D"
-            conv_diff_condition = "Condition2D2N"
-
-            modeler = ConnectivityPreserveModeler()
-            modeler.GenerateModelPart(self.fluid_model_part,thermal_model_part,conv_diff_element,conv_diff_condition)
-
-            self.thermal_solver.model_part = thermal_model_part
+            self.thermal_solver.ImportModelPart()
+            self.thermal_solver.PrepareModelPart()
         else:
             class SolverSettings:
                 def __init__(self,domain_size):
