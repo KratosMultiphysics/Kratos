@@ -416,7 +416,7 @@ template <typename T> AMatrix::TransposeMatrix<const T> trans(const T& TheMatrix
 
 template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){return TheMatrix.transpose();}
 
-template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType>;
+template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType,AMatrix::row_major_access>;
 
 using ZeroMatrix = AMatrix::ZeroMatrix<double>;
 
