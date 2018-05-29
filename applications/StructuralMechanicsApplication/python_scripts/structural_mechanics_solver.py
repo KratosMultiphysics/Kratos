@@ -196,9 +196,6 @@ class MechanicalSolver(PythonSolver):
             self._execute_after_reading()
             self._set_and_fill_buffer()
 
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
 
         print(self.model)
 
@@ -321,7 +318,7 @@ class MechanicalSolver(PythonSolver):
             import read_materials_process
             # Create a dictionary of model parts.
             Model = KratosMultiphysics.Model()
-            Model.AddModelPart(self.main_model_part)
+
             # Add constitutive laws and material properties from json file to model parts.
             read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
             materials_imported = True
