@@ -43,7 +43,7 @@ namespace Kratos
 *   This equation is imposed on the linear system of equations either element wise or on the global system.
 *
 */
-class MasterSlaveRelation
+class MasterSlaveRelation : public IndexedObject
 {
   private:
     typedef Dof<double> DofType;
@@ -102,21 +102,21 @@ class MasterSlaveRelation
   public:
 
     // empty constructor and methods to add master and slave independently.
-    MasterSlaveRelation() : mSlaveDofId(0), mSlaveDofKey(0)
+    MasterSlaveRelation() : IndexedObject(0), mSlaveDofId(0), mSlaveDofKey(0)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
 
 
-    MasterSlaveRelation(DofType const &rSlaveDof) : mSlaveDofId(rSlaveDof.Id()), mSlaveDofKey(rSlaveDof.GetVariable().Key())
+    MasterSlaveRelation(DofType const &rSlaveDof) : IndexedObject(rSlaveDof.Id()), mSlaveDofId(rSlaveDof.Id()), mSlaveDofKey(rSlaveDof.GetVariable().Key())
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
 
     // This is only for serializer. This is not meant to be used anywhere else
-    MasterSlaveRelation(std::size_t Id, std::size_t Key) : mSlaveDofId(Id), mSlaveDofKey(Key)
+    MasterSlaveRelation(std::size_t Id, std::size_t Key) : IndexedObject(Id), mSlaveDofId(Id), mSlaveDofKey(Key)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
@@ -174,7 +174,7 @@ class MasterSlaveRelation
         return mMasterDataSet.size();
     }
 
-    void PrintInfo(std::ostream& Output) const
+    void PrintInfo(std::ostream& Output) const override
     {
         Output << "##############################" << std::endl;
         Output << "SlaveDofID :: " << SlaveDofId() << std::endl;
@@ -201,7 +201,7 @@ class MasterSlaveRelation
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer &rSerializer) const
+    virtual void save(Serializer &rSerializer) const override
     {
         rSerializer.save("slave_id", mSlaveDofId);            // saving the vector of the slave id
         rSerializer.save("slave_key", mSlaveDofKey);          // saving the vector of the slave key
@@ -216,7 +216,7 @@ class MasterSlaveRelation
         }
     }
 
-    virtual void load(Serializer &rSerializer)
+    virtual void load(Serializer &rSerializer) override
     {
         std::size_t slave_id(0), slave_key(0), num_masters(0);
         double constant(0.0), constant_update(0.0);
