@@ -243,9 +243,13 @@ class BuoyancyTest(UnitTest.TestCase):
         for step in range(self.nsteps):
             time = time+self.dt
             self.fluid_model_part.CloneTimeStep(time)
+            self.fluid_model_part.ProcessInfo[STEP] += 1
             self.buoyancy_process.ExecuteInitializeSolutionStep()
             self.fluid_solver.Solve()
-            self.thermal_solver.Solve()
+            self.thermal_solver.InitializeSolutionStep()
+            self.thermal_solver.Predict()
+            self.thermal_solver.SolveSolutionStep()
+            self.thermal_solver.FinalizeSolutionStep()
 
     def checkResults(self):
 
