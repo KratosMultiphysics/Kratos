@@ -43,6 +43,10 @@
 #include "input_output/logger.h"
 #include "includes/kratos_flags.h"
 #include "utilities/constraint.h"
+#include "containers/variable.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
+#include "containers/variable_data.h"
 
 namespace Kratos
 {
@@ -104,6 +108,11 @@ public:
     typedef std::size_t SizeType;
 
     typedef Dof<double> DofType;
+    typedef std::vector< DofType::Pointer > DofsVectorType;
+    typedef Kratos::Variable<double> VariableType;
+    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef Matrix MatrixType;
+    typedef Vector VectorType;
 
 //     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
     typedef PointerVectorSet<DofType,
@@ -610,14 +619,14 @@ public:
         return mMasterSlaveConstraints;
     }
 
-    void SetMasterSlaveConstraints(MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
-    {
-        mMasterSlaveConstraints = *pOtherMasterSlaveConstraints;
-    }
-
     MasterSlaveConstraintContainerType::Pointer pGetMasterSlaveConstraints()
     {
         return Kratos::shared_ptr<MasterSlaveConstraintContainerType>(&mMasterSlaveConstraints);
+    }
+
+    void SetMasterSlaveConstraints(MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
+    {
+        mMasterSlaveConstraints = *pOtherMasterSlaveConstraints;
     }
 
     MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin() const
@@ -642,7 +651,7 @@ public:
 
 
 
-    /** Inserts a master-slave constraint in the current mesh.
+    /** Inserts a master-slave constraint in the current modelpart.
      */
     void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint);
 
@@ -650,9 +659,26 @@ public:
      */
     void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds);
 
-    /** Inserts an master-slave constraint in the current mesh.
+    /** Creates a new master-slave constraint in the current modelpart.
      */
-    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType SlaveNodeId);
+    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType Id, DofsVectorType& rMasterDofsVector,
+                                                                                    DofsVectorType& rSlaveDofsVector,
+                                                                                    MatrixType RelationMatrix,
+                                                                                    VectorType ConstantVector);
+
+    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
+                                                                                    VariableType& rMasterVariable,
+                                                                                    NodeType& rSlaveNode,
+                                                                                    VariableType& rSlaveVariable,
+                                                                                    double Weight,
+                                                                                    double Constant);
+
+    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
+                                                                                    VariableComponentType& rMasterVariable,
+                                                                                    NodeType& rSlaveNode,
+                                                                                    VariableComponentType& rSlaveVariable,
+                                                                                    double Weight,
+                                                                                    double Constant);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
@@ -679,7 +705,7 @@ public:
     void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint);
 
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
-    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ElementId);
+    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId);
 
     /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
     MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId);
