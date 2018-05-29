@@ -1115,8 +1115,10 @@ public:
 
             //create and fill the graph of the matrix --> the temp array is reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mguess_row_size);
-            //int ierr;
+
             Element::EquationIdVectorType EquationId;
+            ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+            
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {
