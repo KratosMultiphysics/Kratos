@@ -35,6 +35,15 @@
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_flags.h"
 #include "utilities/constraint.h"
+#include "containers/constraint_equation.h"
+
+#include "containers/variable.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
+#include "containers/variable_data.h"
+#include "containers/pointer_vector_map.h"
+#include "containers/pointer_hash_map_set.h"
+#include "containers/data_value_container.h"
 
 namespace Kratos
 {
@@ -112,6 +121,12 @@ public:
 
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
     typedef typename MasterSlaveConstraint::Pointer MasterSlaveConstraintPointerType;
+
+    typedef MasterSlaveRelation MasterSlaveRelationType;
+
+    typedef PointerVectorSet<MasterSlaveRelationType, IndexedObject> MasterSlaveRelationContainerType;
+
+    typedef std::vector<std::size_t> EquationIdVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -512,6 +527,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    MasterSlaveRelationContainerType mGlobalMasterSlaveRelations; //This can be changed to more efficient implementation lateron.
 
     ///@}
     ///@name Private Operators
@@ -520,6 +536,39 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void FormulateGlobalMasterSlaveRelations(ModelPart& rModelPart)
+    {
+
+        // Getting the array of the conditions
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        // Getting the beginning iterator
+        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.ConditionsBegin();
+
+        //contributions to the system
+        LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType constraint_vector = LocalSystemVectorType(0);
+        EquationIdVectorType  slave_equation_ids = EquationIdVectorType(0);
+        EquationIdVectorType  master_equation_ids = EquationIdVectorType(0);
+
+        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+        {
+            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + i_constraints;
+
+            //detect if the element is active or not. If the user did not make any choice the element
+            //is active by default
+            bool constraint_is_active = true;
+            if ((it)->IsDefined(ACTIVE))
+                constraint_is_active = (it)->Is(ACTIVE);
+
+            if (constraint_is_active)
+            {
+                //calculate elemental contribution
+
+                //assemble the Constraint contribution
+            }
+        }
+    }
 
     void ApplyConstraints(  ModelPart& rModelPart,
                             Element::Pointer pCurrentElement,
