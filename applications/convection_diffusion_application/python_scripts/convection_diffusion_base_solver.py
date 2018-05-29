@@ -77,6 +77,7 @@ class ConvectionDiffusionBaseSolver(object):
                 "reaction_variable" : "REACTION_FLUX",
             },
             "reform_dofs_at_each_step": false,
+            "line_search": false,
             "compute_reactions": true,
             "block_builder": true,
             "clear_storage": false,
@@ -88,8 +89,9 @@ class ConvectionDiffusionBaseSolver(object):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
+                "solver_type": "BICGSTABSolver",
+                "preconditioner_type": "DiagonalPreconditioner",
+                "max_iteration": 5000,
                 "tolerance": 1e-9,
                 "scaling": false,
                 "verbosity": 1
@@ -100,6 +102,35 @@ class ConvectionDiffusionBaseSolver(object):
         }
         """)
 
+        # Adding warnings
+        if not custom_settings.Has("convection_diffusion_variables"):
+            self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: CONVECTION DIFFUSION  VARIABLES NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"])
+        else:
+            if not custom_settings["convection_diffusion_variables"].Has("density_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: DENSITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["density_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("diffusion_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: DIFUSSION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["diffusion_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("unknown_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: UNKNOWN VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["unknown_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("volume_source_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: VOLUME SOURCE VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["volume_source_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("surface_source_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "W-A-R-N-I-N-G: SURFACE SOURCE VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["surface_source_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("projection_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: PROJECTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["projection_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("convection_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: CONVECTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["convection_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("mesh_velocity_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: MESH VELOCITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["mesh_velocity_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("transfer_coefficient_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: TRANSFER COEFFICIENT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["transfer_coefficient_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("velocity_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: VELOCITY VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["velocity_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("specific_heat_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: SPECIFIC HEAT VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["specific_heat_variable"].GetString())
+            if not custom_settings["convection_diffusion_variables"].Has("reaction_variable"):
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", " W-A-R-N-I-N-G: REACTION VARIABLE NOT DEFINED, TAKING DEFAULT", default_settings["convection_diffusion_variables"]["reaction_variable"].GetString())
+    
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -239,6 +270,19 @@ class ConvectionDiffusionBaseSolver(object):
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
+            
+        # Duplicate model part
+        self.thermal_model_part = ModelPart("Thermal")
+        if self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 2:
+            conv_diff_element = "EulerianConvDiff2D"
+            conv_diff_condition = "Condition2D2N"
+        elif self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 3:
+            conv_diff_element = "EulerianConvDiff3D"
+            conv_diff_condition = "Condition3D3N"
+
+        modeler = ConnectivityPreserveModeler()
+        modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, conv_diff_element, conv_diff_condition)
+        
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
 
     def ExportModelPart(self):
@@ -528,6 +572,7 @@ class ConvectionDiffusionBaseSolver(object):
         """Create the solution scheme for the structural problem.
         """
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
+        
 
     def _create_mechanical_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
@@ -565,14 +610,14 @@ class ConvectionDiffusionBaseSolver(object):
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
-                                                                     mechanical_scheme,
-                                                                     linear_solver,
-                                                                     mechanical_convergence_criterion,
-                                                                     builder_and_solver,
-                                                                     self.settings["max_iteration"].GetInt(),
-                                                                     self.settings["compute_reactions"].GetBool(),
-                                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                     self.settings["move_mesh_flag"].GetBool())
+                                        mechanical_scheme,
+                                        linear_solver,
+                                        mechanical_convergence_criterion,
+                                        builder_and_solver,
+                                        self.settings["max_iteration"].GetInt(),
+                                        self.settings["compute_reactions"].GetBool(),
+                                        self.settings["reform_dofs_at_each_step"].GetBool(),
+                                        self.settings["move_mesh_flag"].GetBool())
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
@@ -581,14 +626,14 @@ class ConvectionDiffusionBaseSolver(object):
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.LineSearchStrategy(computing_model_part,
-                                                     mechanical_scheme,
-                                                     linear_solver,
-                                                     mechanical_convergence_criterion,
-                                                     builder_and_solver,
-                                                     self.settings["max_iteration"].GetInt(),
-                                                     self.settings["compute_reactions"].GetBool(),
-                                                     self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                     self.settings["move_mesh_flag"].GetBool())
+                            mechanical_scheme,
+                            linear_solver,
+                            mechanical_convergence_criterion,
+                            builder_and_solver,
+                            self.settings["max_iteration"].GetInt(),
+                            self.settings["compute_reactions"].GetBool(),
+                            self.settings["reform_dofs_at_each_step"].GetBool(),
+                            self.settings["move_mesh_flag"].GetBool())
 
     def _create_restart_utility(self):
         """Create the restart utility. Has to be overridden for MPI/trilinos-solvers"""
