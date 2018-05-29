@@ -10,17 +10,31 @@ import os
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
+def GetValueForEntity(entity):
+    # assign a value randomly
+    return (20.0*entity.Id)%200
+
+def GetValueFromNodes(entity):
+    cond_nodes = entity.GetNodes()
+    num_nodes = len(cond_nodes)
+    value = 0.0
+
+    for node in cond_nodes:
+        value += GetValueForEntity(node)
+
+    return value / num_nodes
+
 class TestMaterialsInput(KratosUnittest.TestCase):
 
     def test_input(self):
         try:
             import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-        except:
+        except ImportError:
             self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
 
         try:
             import KratosMultiphysics.StructuralMechanicsApplication
-        except:
+        except ImportError:
             self.skipTest("KratosMultiphysics.StructuralMechanicsApplication is not available")
 
         model_part = KratosMultiphysics.ModelPart("Main")
@@ -87,6 +101,87 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertAlmostEqual(table.GetValue(1.5),11.0)
         self.assertAlmostEqual(table.GetNearestValue(1.1),10.0)
         self.assertAlmostEqual(table.GetDerivative(1.2),2.0)
+
+    def test_input_interpolative(self):
+        try:
+            import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+        except ImportError:
+            self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
+
+        try:
+            import KratosMultiphysics.StructuralMechanicsApplication
+        except ImportError:
+            self.skipTest("KratosMultiphysics.StructuralMechanicsApplication is not available")
+
+        model_part = KratosMultiphysics.ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_INDEX)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_processes")) #reusing an mdpa-file that is already in the directory
+        model_part_io.ReadModelPart(model_part)
+
+        #define a Model TODO: replace to use the real Model once available
+        Model = {
+            "Main" : model_part,
+            "Main_domain" : model_part.GetSubModelPart("Main_domain"),
+            "Left_side" : model_part.GetSubModelPart("Left_side")
+        }
+
+        test_settings = KratosMultiphysics.Parameters("""{
+            "Parameters": {
+                "materials_filename": "materials_interpolative.json"
+            }
+        }""")
+
+        #assign the real path
+        test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("materials_interpolative.json"))
+
+        # Populate the Entities with values, usually these are coming from mdpa
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.AUX_INDEX, GetValueForEntity(node))
+        for element in model_part.Elements:
+            element.SetValue(KratosMultiphysics.TEMPERATURE, GetValueForEntity(element))
+
+        import read_materials_process
+        read_materials_process.Factory(test_settings, Model)
+
+        self.assertEqual(model_part.NumberOfTables(), 4)
+        table_1 = model_part.GetTable(1)
+        table_2 = model_part.GetTable(2)
+        table_3 = model_part.GetTable(3)
+        table_4 = model_part.GetTable(4)
+        self.assertAlmostEqual(table_1.GetValue(100),300.0)
+        self.assertAlmostEqual(table_2.GetValue(150),200.0)
+        self.assertAlmostEqual(table_3.GetValue(110),23.75)
+        self.assertAlmostEqual(table_4.GetValue(75),121.25)
+
+        self.assertEqual(model_part.NumberOfProperties(), 23) # 2 props are in the mdpa already
+
+        # In this SubModelPart we test the interpolation for doubles and for matrices
+        for elem in model_part.GetSubModelPart("Main_domain").Elements:
+            self.assertAlmostEqual(elem.Properties.GetValue(KratosMultiphysics.POISSON_RATIO), 0.39)
+            self.assertAlmostEqual(elem.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS),
+                                    table_1.GetValue(elem.GetValue(KratosMultiphysics.TEMPERATURE)))
+
+            local_inertia_tensor = elem.Properties.GetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR)
+            local_inertia_tensor_expected = KratosMultiphysics.Matrix(2,2)
+            local_inertia_tensor_expected[0,0] = 1.27
+            local_inertia_tensor_expected[0,1] = table_3.GetValue(elem.GetValue(KratosMultiphysics.TEMPERATURE))
+            local_inertia_tensor_expected[1,0] = table_2.GetValue(GetValueForEntity(elem))
+            local_inertia_tensor_expected[1,1] = 0.257
+            for i in range(2):
+                for j in range(2):
+                    self.assertAlmostEqual(local_inertia_tensor[i,j], local_inertia_tensor_expected[i,j])
+
+        # In this SubModelPart we test the interpolation for vectors
+        for cond in model_part.GetSubModelPart("Left_side").Conditions:
+            self.assertAlmostEqual(cond.Properties.GetValue(KratosMultiphysics.POISSON_RATIO), 0.55)
+
+            cauchy_stress_vector = cond.Properties.GetValue(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
+            cauchy_stress_vector_expected = KratosMultiphysics.Vector(3)
+            cauchy_stress_vector_expected[0] = table_4.GetValue(GetValueFromNodes(cond))
+            cauchy_stress_vector_expected[1] = 0.3
+            cauchy_stress_vector_expected[2] = -2.58
+            for i in range(3):
+                self.assertAlmostEqual(cauchy_stress_vector[i], cauchy_stress_vector_expected[i])
 
 
 if __name__ == '__main__':
