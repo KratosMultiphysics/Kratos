@@ -115,6 +115,7 @@ public:
             MapperSettings.RemoveValue("interface_submodel_part_origin");
             MapperSettings.RemoveValue("interface_submodel_part_destination");
 
+            // TODO check why this works, Clone currently returns a unique ptr!!!
             return mapper_list.at(mapper_name)->Clone(r_interface_model_part_origin,
                                                       r_interface_model_part_destination,
                                                       MapperSettings);
