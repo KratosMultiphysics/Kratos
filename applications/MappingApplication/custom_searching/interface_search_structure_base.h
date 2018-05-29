@@ -115,6 +115,10 @@ public:
                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
 
+    void ExchangeInterfaceData2(const Kratos::Flags& rOptions,
+                               const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
+
 
 
     // void Search(const double SearchRadius, const int MaxSearchIterations)

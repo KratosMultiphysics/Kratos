@@ -38,6 +38,68 @@ namespace Kratos
         FinalizeSearching();
     }
 
+    void InterfaceSearchStructureBase::ExchangeInterfaceData2(const Kratos::Flags& rOptions,
+                               const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+    {
+        /*void Search(const double SearchRadius, const int MaxSearchIterations)
+    {
+        mSearchRadius = SearchRadius;
+        mMaxSearchIterations = MaxSearchIterations;
+        const int increase_factor = 4;
+        int num_iteration = 1;
+        bool last_iteration = false;
+
+        if (mMaxSearchIterations == 1)   // in case only one search iteration is conducted
+        {
+            last_iteration = true;
+        }
+
+        // First Iteration is done outside the search loop bcs it has
+        // to be done in any case
+        // one search iteration should be enough in most cases (if the search
+        // radius was either computed or specified properly)
+        // only if some points did not find a neighbor or dont have a valid
+        // projection, more search iterations are necessary
+        ConductSearchIteration(last_iteration);
+
+        while (num_iteration < mMaxSearchIterations && !mpInterfaceObjectManager->AllNeighborsFound())
+        {
+            mSearchRadius *= increase_factor;
+            ++num_iteration;
+
+            if (num_iteration == mMaxSearchIterations)
+            {
+                last_iteration = true;
+            }
+
+            if (mEchoLevel >= 2 && mCommRank == 0)
+            {
+                std::cout << "MAPPER WARNING, search radius was increased, "
+                          << "another search iteration is conducted, "
+                          << "search iteration " << num_iteration << " / "
+                          << mMaxSearchIterations << ", search radius "
+                          << mSearchRadius << std::endl;
+            }
+
+            ConductSearchIteration(last_iteration);
+        }
+        if (mEchoLevel >= 2)
+        {
+            mpInterfaceObjectManager->CheckResults();
+        }
+    }
+        */
+
+
+
+        PrepareSearching(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
+
+        ConductLocalSearch();
+
+        FinalizeSearching();
+    }
+
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
