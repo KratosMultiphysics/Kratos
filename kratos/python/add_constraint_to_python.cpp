@@ -19,17 +19,17 @@
 // Project includes
 #include "includes/define_python.h"
 #include "add_constraint_to_python.h"
-#include "utilities/constrain.h"
+#include "utilities/constraint.h" 
 
 namespace Kratos
 {
 namespace Python
 {
 
-using namespace pybind11;
-
 void  AddConstraintToPython(pybind11::module& m)
 {
+
+    using namespace pybind11;
 
     class_<MasterSlaveConstraint>(m, "MasterSlaveConstraint" )
 	.def(init<>())

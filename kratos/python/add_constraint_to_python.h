@@ -32,8 +32,9 @@ namespace Python
 {
 
 void  AddConstraintToPython(pybind11::module& m);
+
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_MATRIX_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CONSTRANT_TO_PYTHON_H_INCLUDED  defined 
