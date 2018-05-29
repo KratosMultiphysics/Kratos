@@ -44,8 +44,10 @@ Import_ContactStructuralMechanicsApplication = False
 Import_KratosMappingApplication = False
 Import_ConstitutiveModelsApplication = False
 Import_ShallowWaterApplication = False
+Import_FluidRveLagrangeMultipliersApplication=False
 
 print("Applications Available:")
+print("Import_FluidRveLagrangeMultipliersApplication: False")
 print("Import_ExternalSolversApplication: False")
 print("Import_SolidMechanicsApplication: False")
 print("Import_PfemApplication: False")
@@ -93,6 +95,7 @@ application_directory = os.path.dirname(os.path.realpath(__file__))
 def ImportApplications(kernel, applications_path=application_directory):
     # importing the applications
     print("Applications Available:")
+    print("Import_FluidRveLagrangeMultipliersApplication: " + str(Import_FluidRveLagrangeMultipliersApplication))
     print("Import_ExternalSolversApplication: " + str(Import_ExternalSolversApplication))
     print("Import_SolidMechanicsApplication: " + str(Import_SolidMechanicsApplication))
     print("Import_PfemApplication: " + str(Import_PfemApplication))
@@ -135,6 +138,15 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_ConstitutiveModelsApplication: " + str(Import_ConstitutiveModelsApplication))
     print("Import_ShallowWaterApplication: " + str(Import_ShallowWaterApplication))
 
+    if(Import_FluidRveLagrangeMultipliersApplication):
+        print("importing KratosFluidRveLagrangeMultipliersApplication ...")
+        sys.path.append(applications_path + '/fluid_rve_lagrange_multipliers_application/python_scripts')
+        sys.path.append(applications_path + '/fluid_rve_lagrange_multipliers_application/Linux')
+        from KratosFluidRveLagrangeMultipliersApplication import *
+        fluid_rve_lagrange_multipliers_application = KratosFluidRveLagrangeMultipliersApplication()
+        kernel.ImportApplication(fluid_rve_lagrange_multipliers_application)
+        print("KratosFluidRveLagrangeMultipliersApplication sucessfully imported")
+
     if(Import_ExternalSolversApplication):
         print("importing KratosExternalSolversApplication ...")
         sys.path.append(applications_path + '/ExternalSolversApplication/python_scripts')
@@ -143,6 +155,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         external_solvers_application = KratosExternalSolversApplication()
         kernel.ImportApplication(external_solvers_application)
         print("KratosExternalSolversApplication sucessfully imported")
+
 
     if(Import_SolidMechanicsApplication):
         print("importing KratosSolidMechanicsApplication ...")
@@ -490,6 +503,9 @@ def ImportApplications(kernel, applications_path=application_directory):
 
     # dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
+
+    if(Import_FluidRveLagrangeMultipliersApplication):
+        kernel.InitializeApplication(fluid_rve_lagrange_multipliers_application)
     if(Import_SolidMechanicsApplication):
         kernel.InitializeApplication(solid_mechanics_application)
     if(Import_PfemApplication):

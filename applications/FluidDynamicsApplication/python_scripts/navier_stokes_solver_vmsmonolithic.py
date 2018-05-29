@@ -234,7 +234,7 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
         super(NavierStokesSolverMonolithic, self).ImportModelPart()
 
         ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
-        self._set_physical_properties()
+        #self._set_physical_properties()
 
 
     def Initialize(self):
