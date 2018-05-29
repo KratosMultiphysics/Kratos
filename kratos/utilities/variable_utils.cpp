@@ -77,7 +77,7 @@ void VariableUtils::SaveVectorVar(
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         it_node->SetValue(SavedVariable, it_node->FastGetSolutionStepValue(OriginVariable));
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -91,11 +91,51 @@ void VariableUtils::SaveScalarVar(
     )
 {
     KRATOS_TRY
-    
+
     #pragma omp parallel for
     for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         it_node->SetValue(SavedVariable,it_node->FastGetSolutionStepValue(OriginVariable));
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::SaveVectorNonHistoricalVar(
+    const ArrayVarType& OriginVariable,
+    const ArrayVarType& SavedVariable,
+    NodesContainerType& rNodes
+    )
+{
+    KRATOS_TRY
+
+    #pragma omp parallel for
+    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
+        NodesContainerType::iterator it_node = rNodes.begin() + k;
+        it_node->SetValue(SavedVariable, it_node->GetValue(OriginVariable));
+    }
+    
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::SaveScalarNonHistoricalVar(
+    const DoubleVarType& OriginVariable,
+    DoubleVarType& SavedVariable,
+    NodesContainerType& rNodes
+    )
+{
+    KRATOS_TRY
+    
+    #pragma omp parallel for
+    for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
+        NodesContainerType::iterator it_node = rNodes.begin() + k;
+        it_node->SetValue(SavedVariable,it_node->GetValue(OriginVariable));
     }
     
     KRATOS_CATCH("")
