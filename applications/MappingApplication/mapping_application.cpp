@@ -77,9 +77,29 @@ void KratosMappingApplication::Register()
 
     ModelPart dummy_model_part("dummy");
 
-    MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>
-        ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
-        MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
+// #define abc(T1) __abc<T1, T2>
+
+// //usage:
+
+// abc(Type) instance;
+
+#define KRATOS_REGISTER_MAPPER(MapperType, MapperName, DummyModelPart) \
+{                                                              \
+std::cout << MapperName << " was registered through the MACRO" << std::endl;\
+MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>\
+    (MapperName, Kratos::make_shared<MapperType<\
+    MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(DummyModelPart, DummyModelPart));\
+}
+
+//usage:
+
+KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor", dummy_model_part);
+
+
+
+    // MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>
+    //     ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
+    //     MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
     MapperFactory::Register<MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>
         ("nearest_element",  Kratos::make_shared<NearestElementMapper<
         MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
