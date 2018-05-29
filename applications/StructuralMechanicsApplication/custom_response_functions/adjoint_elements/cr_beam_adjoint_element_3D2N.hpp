@@ -131,6 +131,8 @@ namespace Kratos
         Vector CalculateBendingDeformationModesOnGP(const Vector &DiscreteBendingDefMode);
 
         double CalculateFirstOrderElongation();
+
+        Vector CalculatePseudoLoadOfBendingStiffnessSOnGP(const ProcessInfo& rCurrentProcessInfo);
         // ***************************************************************
 
 
