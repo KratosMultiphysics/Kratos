@@ -219,10 +219,6 @@ private:
     const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
     const MPMLineLoadCondition2D mMPMLineLoadCondition2D2N;
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
-    //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D2N;
-    //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D3N;
-    //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D2N;
-    //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D3N;
 
     //constitutive laws
     const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;

@@ -262,7 +262,6 @@ class ParticleMPMSolver(object):
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_LUMPED_MASS)
         
         # Add variables for arbitrary slope with slip
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         
         # Add variables for specific cases
