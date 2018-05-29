@@ -58,7 +58,7 @@ class ConvectionDiffusionBaseSolver(object):
                 "load_restart"  : false,
                 "save_restart"  : false
             },
-            "computing_model_part_name" : "computing_domain",
+            "computing_model_part_name" : "Thermal",
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -275,28 +275,33 @@ class ConvectionDiffusionBaseSolver(object):
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Finished reading model part.")
 
     def PrepareModelPartForSolver(self):
+            
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
-            self._set_and_fill_buffer()
+            #construct a model part which contains both the skin and the volume
+            #computing_model_part_name = self.settings["computing_model_part_name"].GetString()
+            #if not (self.main_model_part.HasSubModelPart(computing_model_part_name)):
+                #self.main_model_part.CreateSubModelPart(computing_model_part_name)
             
-        throw_errors = False
-        KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
-            
-        # Duplicate model part
-        self.thermal_model_part = KratosMultiphysics.ModelPart("Thermal")
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            conv_diff_element = "EulerianConvDiff2D"
-            conv_diff_condition = "Condition2D2N"
-        elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-            conv_diff_element = "EulerianConvDiff3D"
-            conv_diff_condition = "Condition3D3N"
+            throw_errors = False
+            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
+                
+            # Duplicate model part
+            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                conv_diff_element = "EulerianConvDiff2D"
+                conv_diff_condition = "Condition2D2N"
+            elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+                conv_diff_element = "EulerianConvDiff3D"
+                conv_diff_condition = "Condition3D3N"
 
-        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, conv_diff_element, conv_diff_condition)
+            modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+            modeler.GenerateModelPart(self.main_model_part, self.GetComputingModelPart(), conv_diff_element, conv_diff_condition)
+            
+            # TODO: Replace with "element_replace_settings" when more consistent names given to the conditions and elements
+            #KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
         
-        # TODO: Replace with "element_replace_settings" when more consistent names given to the conditions and elements
-        #KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+            self._set_and_fill_buffer()
         
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
 

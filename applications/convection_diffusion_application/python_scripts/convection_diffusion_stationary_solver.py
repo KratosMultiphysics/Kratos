@@ -40,7 +40,7 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
 
     def _create_solution_scheme(self):
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        self.thermal_model_part.ProcessInfo[ConvectionDiffusionApplication.THETA] = 0.5
-        self.thermal_model_part.ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
+        self.GetComputingModelPart().ProcessInfo[ConvectionDiffusionApplication.THETA] = 0.5
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
         mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return mechanical_scheme
