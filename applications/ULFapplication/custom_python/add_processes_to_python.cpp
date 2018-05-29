@@ -135,59 +135,63 @@ void  AddProcessesToPython(pybind11::module& m)
     	 init<ModelPart&>())
     	 ;
      */
-    class_<PressureCalculateProcess, Process >(m,"PressureCalculateProcess")
+
+
+
+    class_<PressureCalculateProcess, PressureCalculateProcess::Pointer, Process >(m,"PressureCalculateProcess")
     .def(init<ModelPart&, unsigned int>())
     ;
-    class_<PressureCalculateProcessAxisym, Process> (m,"PressureCalculateProcessAxisym")
+    class_<PressureCalculateProcessAxisym, PressureCalculateProcessAxisym::Pointer, Process> (m,"PressureCalculateProcessAxisym")
     
     .def(init<ModelPart&, unsigned int>())
     ;
 
-    class_<MassCalculateProcess, Process > (m,"MassCalculateProcess")
+    class_<MassCalculateProcess, MassCalculateProcess::Pointer, Process > (m,"MassCalculateProcess")
     .def(init<ModelPart&>())
     ;
 
-    class_<UlfApplyBCProcess, Process > (m,"UlfApplyBCProcess")
+    class_<UlfApplyBCProcess, UlfApplyBCProcess::Pointer, Process > (m,"UlfApplyBCProcess")
     .def(init<ModelPart&>())
     ;
-    class_<UlfTimeStepDecProcess, Process > (m,"UlfTimeStepDecProcess")
+    class_<UlfTimeStepDecProcess,UlfTimeStepDecProcess::Pointer, Process > (m,"UlfTimeStepDecProcess")
     .def(init<ModelPart&>())
     .def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
     ;
-    class_<MarkOuterNodesProcess, Process > (m,"MarkOuterNodesProcess")
+    class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process > (m,"MarkOuterNodesProcess")
     .def(init<ModelPart&>())
     .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
     ;
-    class_<MarkFluidProcess, Process > (m,"MarkFluidProcess")
+    class_<MarkFluidProcess, MarkFluidProcess::Pointer, Process > (m,"MarkFluidProcess")
     .def(init<ModelPart&>())
     ;
-    class_<MarkCloseNodesProcess, Process > (m,"MarkCloseNodesProcess")
+    class_<MarkCloseNodesProcess, MarkCloseNodesProcess::Pointer, Process > (m,"MarkCloseNodesProcess")
     .def(init<ModelPart&>())
     .def("MarkCloseNodes", &MarkCloseNodesProcess::MarkCloseNodes)
     ;
-    class_<SaveStructureModelPartProcess, Process> (m, "SaveStructureModelPartProcess")
+    class_<SaveStructureModelPartProcess, SaveStructureModelPartProcess::Pointer, Process> (m, "SaveStructureModelPartProcess")
     .def(init<>())
     .def("SaveStructure", &SaveStructureModelPartProcess::SaveStructure)
     ;
-    class_<SaveStructureConditionsProcess, Process> (m,"SaveStructureConditionsProcess")
+    class_<SaveStructureConditionsProcess, SaveStructureConditionsProcess::Pointer, Process> (m,"SaveStructureConditionsProcess")
     .def(init<>())
     .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
     ;
-    class_<MergeModelPartsProcess, Process >(m,"MergeModelPartsProcess")
+    class_<MergeModelPartsProcess, MergeModelPartsProcess::Pointer, Process >(m,"MergeModelPartsProcess")
     .def(init<> ())
     .def("MergeParts", &MergeModelPartsProcess::MergeParts)
     ;
-    class_<SaveFluidOnlyProcess, Process >(m,"SaveFluidOnlyProcess")
+    class_<SaveFluidOnlyProcess, SaveFluidOnlyProcess::Pointer, Process >(m,"SaveFluidOnlyProcess")
     .def(init<> ())
     .def("SaveFluidOnly", &SaveFluidOnlyProcess::SaveFluidOnly)
     ;
-    class_<LagrangianInletProcess, Process >(m,"LagrangianInletProcess")
+    class_<LagrangianInletProcess, LagrangianInletProcess::Pointer, Process >(m,"LagrangianInletProcess")
     .def(init<ModelPart&, double,  array_1d<double,3> >())
     ;
-    class_<RemoveAndSaveWallNodesProcess, Process> (m,"RemoveAndSaveWallNodesProcess")
+    class_<RemoveAndSaveWallNodesProcess, RemoveAndSaveWallNodesProcess::Pointer, Process> (m,"RemoveAndSaveWallNodesProcess")
     .def(init<> ())
     .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
     ;     
+/////////////////////////////////////////////
     class_<AddWallProcess>(m,"AddWallProcess")
     .def(init<> ())
     .def("AddWall", &AddWallProcess::AddWall)
