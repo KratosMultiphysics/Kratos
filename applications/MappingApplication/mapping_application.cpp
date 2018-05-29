@@ -36,8 +36,31 @@
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
 
-#ifdef KRATOS_USING_MPI
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "mpi.h"
+#define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                            \
+{                                                                                                 \
+ModelPart dummy_model_part("dummy");                                                              \
+/* Registering the non-MPI mapper */                                                              \
+MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>    \
+    (MapperName, Kratos::make_shared<MapperType<                                                  \
+    MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
+    (dummy_model_part, dummy_model_part));                                                        \
+/* Registering the MPI mapper */                                                                  \
+MapperFactory::Register<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType> \
+    (MapperName, Kratos::make_shared<MapperType<                                                  \
+    MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>>                     \
+    (dummy_model_part, dummy_model_part));                                                        \
+}
+#else
+#define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                            \
+{                                                                                                 \
+ModelPart dummy_model_part("dummy");                                                              \
+MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>    \
+    (MapperName, Kratos::make_shared<MapperType<                                                  \
+    MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
+    (dummy_model_part, dummy_model_part));                                                        \
+}
 #endif
 
 namespace Kratos
@@ -75,43 +98,10 @@ void KratosMappingApplication::Register()
 
     if (rank == 0) std::cout << banner.str();
 
-    ModelPart dummy_model_part("dummy");
-
-// #define abc(T1) __abc<T1, T2>
-
-// //usage:
-
-// abc(Type) instance;
-
-#define KRATOS_REGISTER_MAPPER(MapperType, MapperName, DummyModelPart) \
-{                                                              \
-std::cout << MapperName << " was registered through the MACRO" << std::endl;\
-MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>\
-    (MapperName, Kratos::make_shared<MapperType<\
-    MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(DummyModelPart, DummyModelPart));\
-}
-
-//usage:
-
-KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor", dummy_model_part);
-
-
-
-    // MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>
-    //     ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
-    //     MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
-    MapperFactory::Register<MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>
-        ("nearest_element",  Kratos::make_shared<NearestElementMapper<
-        MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    MapperFactory::Register<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>
-        ("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper<
-        MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
-    MapperFactory::Register<MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>
-        ("nearest_element",  Kratos::make_shared<NearestElementMapper<
-        MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>>(dummy_model_part, dummy_model_part));
-#endif
+    // registering the mappers using the registration-macro
+    // note that this takes care to register the mappers also in MPI
+    KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
+    KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
 
