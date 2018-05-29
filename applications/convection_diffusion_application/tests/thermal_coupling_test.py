@@ -110,7 +110,7 @@ class ThermalCouplingTest(UnitTest.TestCase):
 
     def setUpSolvers(self):
 
-        import deprecated_convection_diffusion_solver as thermal_solver
+        import convection_diffusion_solver as thermal_solver
         thermal_solver.AddVariables(self.left_model_part)
         thermal_solver.AddVariables(self.right_model_part)
         # Also add mapper variables

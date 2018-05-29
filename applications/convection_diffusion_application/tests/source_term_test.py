@@ -154,7 +154,7 @@ class SourceTermTest(UnitTest.TestCase):
 
     def setUpSolvers(self):
 
-        import deprecated_convection_diffusion_solver as thermal_solver
+        import convection_diffusion_solver as thermal_solver
         thermal_solver.AddVariables(self.model_part)
 
         model_part_io = KratosMultiphysics.ModelPartIO(self.input_file)
