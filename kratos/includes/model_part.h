@@ -240,12 +240,6 @@ public:
     usage. */
     typedef MasterSlaveConstraintContainerType::const_iterator MasterSlaveConstraintConstantIteratorType;
 
-    /**
-     * Type of the weight for a master
-     * */
-    typedef double MasterWeightType;
-
-
     /// The container of the sub model parts. A hash table is used.
     /**
     */
