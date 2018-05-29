@@ -62,8 +62,35 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/** 
+ * @class KratosConvectionDiffusionApplication
+ * @ingroup KratosConvectionDiffusionApplication
+ * @brief The Convection DIffusion Application contains a series of elements and conditions and the corresponding strategies and solvers within Kratos Multiphysics necesaries in order to simulate a convection-diffusion problem
+ * @details The application includes tests to check the proper functioning of the application. Features:  
+- A set of *Neumann* conditions:
+     * Flux conditions
+     * Thermal conditions
+- Elements:
+    * Laplacian element (both 2D/3D)
+    * Eulerian convection-diffusion (both 2D/3D)
+    * Convection-diffusion (both 2D/3D)
+    * Convection-diffusion with change of phase (2D)
+- Strategies:
+    * Non-linear/linear convection-diffusion strategy
+    * Eulerian convection-diffusion strategy
+    * Semi-Eulerian convection-diffusion strategy
+- Utilities and others:
+    * BFECC convection utility
+    * BFECC elemental limiter convection utility
+    * Convection particle
+    * Face-heat utilities
+    * Move particle utility
+    * Pure convection tools
+    * Pure convection (Crank-Nicolson) tools
+ * @author Riccardo Rossi
+ * @author Pablo Becker
+ * @author Jordi Cotela
+ * @see KratosApplication
 */
 class KratosConvectionDiffusionApplication : public KratosApplication
 {
