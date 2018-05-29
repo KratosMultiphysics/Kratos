@@ -33,8 +33,7 @@
                 "constitutive_law": {
                     "name": "LinearElastic3DLaw"
                 },
-                "Variables": {
-                },
+                "Variables": {},
                 "Tables": {}
             }
 

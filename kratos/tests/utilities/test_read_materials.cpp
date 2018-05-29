@@ -67,18 +67,13 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMaterialsUtility, KratosCoreFastSuite)
     ReadMaterialsUtility(model_part, parameters);
 
     KRATOS_CHECK_EQUAL(model_part.NumberOfProperties(), 2);
-
-    Properties property;
-
-    property = model_part.GetProperties(1, 0);
-	KRATOS_CHECK(property.HasVariables());
-    KRATOS_CHECK(property.Has(CONSTITUTIVE_LAW));
-    KRATOS_CHECK(property.HasTable(TEMPERATURE, YOUNG_MODULUS));
-    KRATOS_CHECK(property.HasTable(TEMPERATURE, VISCOSITY));
-
-    property = model_part.GetProperties(2, 0);
-    //KRATOS_CHECK_IS_FALSE(property.HasTable(TEMPERATURE, YOUNG_MODULUS));
-
+    Properties& r_property = model_part.GetProperties(1, 0);
+	KRATOS_CHECK(r_property.HasVariables());
+    KRATOS_CHECK(r_property.HasTables());
+    KRATOS_CHECK(r_property.Has(CONSTITUTIVE_LAW));
+    KRATOS_CHECK(r_property.HasTable(TEMPERATURE, YOUNG_MODULUS));
+    KRATOS_CHECK_EQUAL(r_property(DENSITY), 7850.0);
+    KRATOS_CHECK_EQUAL(r_property(CONSTITUTIVE_LAW)->Info(), "ConstitutiveLaw");
 }
 }
 } // namespace Kratos.
