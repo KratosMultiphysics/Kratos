@@ -7,14 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:
-//
+//  Main authors:    Marcelo Raschi
+
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/properties.h"
@@ -23,7 +21,7 @@
 namespace Kratos
 {
     ReadMaterialsUtility::ReadMaterialsUtility(ModelPart &rModelPart,
-                                             Parameters parameters)
+                                               Parameters parameters)
             : mrModelPart(rModelPart)
     {
         Parameters default_parameters(R"(
@@ -34,8 +32,6 @@ namespace Kratos
 
         parameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-        KRATOS_INFO("Read materials") << "Started" << std::endl;
-
         // read json string in materials file, create Parameters
         std::string materials_filename = parameters["materials_filename"].GetString();
         std::ifstream infile(materials_filename);
@@ -43,12 +39,27 @@ namespace Kratos
         buffer << infile.rdbuf();
         Parameters materials(buffer.str());
 
+        GetPropertyBlock(materials);
+    }
+
+    ReadMaterialsUtility::ReadMaterialsUtility(ModelPart &rModelPart,
+                                               std::string parameters_str)
+            : mrModelPart(rModelPart)
+    {
+        // receive json string with materials properties, create Parameters
+        Parameters materials(parameters_str);
+
+        GetPropertyBlock(materials);
+    }
+
+    void ReadMaterialsUtility::GetPropertyBlock(Parameters materials)
+    {
+        KRATOS_INFO("Read materials") << "Started" << std::endl;
         for (auto i = 0; i < materials["properties"].size(); ++i)
         {
             Parameters material = materials["properties"].GetArrayItem(i);
             AssignPropertyBlock(material);
         }
-
         KRATOS_INFO("Read materials") << "Finished" << std::endl;
     }
 
@@ -112,6 +123,7 @@ namespace Kratos
                 auto variable = KratosComponents<Variable<Matrix>>().Get(iter.name());
                 prop->SetValue(variable, value.GetMatrix());
             }
+                //TODO(marcelo): Add error here
             else {
                 KRATOS_INFO("Read materials")
                         << "Type of value is not available" << std::endl;
@@ -134,7 +146,8 @@ namespace Kratos
                                  table_param["data"][i][1].GetDouble());
                 }
                 prop->SetTable(input_var, output_var, table);
-                KRATOS_WATCH(table);
+    //            KRATOS_WATCH(table);
         }
     }
+
 }  // namespace Kratos.
