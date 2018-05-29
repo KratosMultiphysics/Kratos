@@ -5,66 +5,17 @@ from KratosMultiphysics.ConvectionDiffusionApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part):
-    ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
-    '''
-
-    if model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
-        settings = model_part.ProcessInfo[CONVECTION_DIFFUSION_SETTINGS]
-
-        if settings.IsDefinedUnknownVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetUnknownVariable())
-        if settings.IsDefinedVelocityVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetVelocityVariable())
-        if settings.IsDefinedMeshVelocityVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable())
-        if settings.IsDefinedDiffusionVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetDiffusionVariable())
-        if settings.IsDefinedSpecificHeatVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetSpecificHeatVariable())
-        if settings.IsDefinedDensityVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetDensityVariable())
-        if settings.IsDefinedVolumeSourceVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetVolumeSourceVariable())
-        if settings.IsDefinedSurfaceSourceVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetSurfaceSourceVariable())
-        if settings.IsDefinedReactionVariable():
-            model_part.AddNodalSolutionStepVariable(settings.GetReactionVariable())
-    else:
-        raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
-
-def AddDofs(model_part):
-    ''' Add nodal degrees of freedom based on provided CONVECTION_DIFFUSION_SETTINGS
-    '''
-    if not model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
-        raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
-
-    settings = model_part.ProcessInfo[CONVECTION_DIFFUSION_SETTINGS]
-
-    if not settings.IsDefinedUnknownVariable():
-        raise Exception("the provided CONVECTION_DIFFUSION_SETTINGS does not define an Unknown variable.")
-
-    unknown_variable = settings.GetUnknownVariable()
-
-    if settings.IsDefinedReactionVariable():
-        reaction_variable = settings.GetReactionVariable()
-
-        for node in model_part.Nodes:
-            node.AddDof(unknown_variable,reaction_variable)
-    else:
-        for node in model_part.Nodes:
-            node.AddDof(unknown_variable)
-
-    print("DOFs for the convection diffusion solver added correctly")
+def CreateSolver(main_model_part, custom_settings):
+    return ConvectionDiffusionSolver(main_model_part, custom_settings)
 
 class ConvectionDiffusionSolver(object):
     ''' Python class for the convection-diffusion solver.
     '''
 
-    def __init__(self, model_part, domain_size):
+    def __init__(self, model_part, custom_settings):
 
         self.model_part = model_part
-        self.domain_size = domain_size
+        self.domain_size = 2
 
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.theta = 0.5
@@ -81,6 +32,56 @@ class ConvectionDiffusionSolver(object):
 
         self.echo_level = 1
 
+    def AddVariables(self):
+        ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
+        '''
+        if self.model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
+            settings = self.model_part.ProcessInfo[CONVECTION_DIFFUSION_SETTINGS]
+
+            if settings.IsDefinedUnknownVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetUnknownVariable())
+            if settings.IsDefinedVelocityVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetVelocityVariable())
+            if settings.IsDefinedMeshVelocityVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable())
+            if settings.IsDefinedDiffusionVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetDiffusionVariable())
+            if settings.IsDefinedSpecificHeatVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetSpecificHeatVariable())
+            if settings.IsDefinedDensityVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetDensityVariable())
+            if settings.IsDefinedVolumeSourceVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetVolumeSourceVariable())
+            if settings.IsDefinedSurfaceSourceVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetSurfaceSourceVariable())
+            if settings.IsDefinedReactionVariable():
+                self.model_part.AddNodalSolutionStepVariable(settings.GetReactionVariable())
+        else:
+            raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
+
+    def AddDofs(self):
+        ''' Add nodal degrees of freedom based on provided CONVECTION_DIFFUSION_SETTINGS
+        '''
+        if not self.model_part.ProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS):
+            raise Exception("the provided model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
+
+        settings = self.model_part.ProcessInfo[CONVECTION_DIFFUSION_SETTINGS]
+
+        if not settings.IsDefinedUnknownVariable():
+            raise Exception("the provided CONVECTION_DIFFUSION_SETTINGS does not define an Unknown variable.")
+
+        unknown_variable = settings.GetUnknownVariable()
+
+        if settings.IsDefinedReactionVariable():
+            reaction_variable = settings.GetReactionVariable()
+
+            for node in self.model_part.Nodes:
+                node.AddDof(unknown_variable,reaction_variable)
+        else:
+            for node in self.model_part.Nodes:
+                node.AddDof(unknown_variable)
+
+        Logger.PrintInfo("Convection-diffusion solver","DOFs for the convection diffusion solver added correctly")
 
     def Initialize(self):
         ''' Initialize the underlying C++ objects and validate input

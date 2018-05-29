@@ -115,18 +115,26 @@ class BuoyancyTest(UnitTest.TestCase):
         if self.convection_diffusion_solver == 'bfecc':
             import bfecc_convection_diffusion_solver as thermal_solver
         elif self.convection_diffusion_solver == 'eulerian':
-            import convection_diffusion_solver as thermal_solver
+            import convection_diffusion_solver
+            self.thermal_solver = convection_diffusion_solver.CreateSolver(self.fluid_model_part,Parameters(r'''{}'''))
         else:
             raise Exception("Unsupported convection-diffusion solver option: {0}".format(self.convection_diffusion_solver))
 
-        thermal_solver.AddVariables(self.fluid_model_part)
+        if self.convection_diffusion_solver == 'bfecc':
+            thermal_solver.AddVariables(self.fluid_model_part)
+        elif self.convection_diffusion_solver == 'eulerian':
+            self.thermal_solver.AddVariables()
 
         model_part_io = ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.fluid_model_part)
 
         self.fluid_model_part.SetBufferSize(2)
         vms_monolithic_solver.AddDofs(self.fluid_model_part)
-        thermal_solver.AddDofs(self.fluid_model_part)
+
+        if self.convection_diffusion_solver == 'bfecc':
+            thermal_solver.AddDofs(self.fluid_model_part)
+        elif self.convection_diffusion_solver == 'eulerian':
+            self.thermal_solver.AddDofs()
 
         # Building custom fluid solver
         self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
@@ -176,8 +184,7 @@ class BuoyancyTest(UnitTest.TestCase):
             modeler = ConnectivityPreserveModeler()
             modeler.GenerateModelPart(self.fluid_model_part,thermal_model_part,conv_diff_element,conv_diff_condition)
 
-            # thermal solver
-            self.thermal_solver = thermal_solver.ConvectionDiffusionSolver(thermal_model_part,self.domain_size)
+            self.thermal_solver.model_part = thermal_model_part
         else:
             class SolverSettings:
                 def __init__(self,domain_size):
