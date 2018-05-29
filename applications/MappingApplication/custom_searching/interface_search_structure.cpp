@@ -25,6 +25,7 @@
 namespace Kratos
 {
     using SizeType = std::size_t;
+    using IndexType = std::size_t;
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
@@ -47,62 +48,49 @@ namespace Kratos
             InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
 
         if (mpInterfaceObjectsDestination == nullptr || rOptions.Is(MapperFlags::REMESHED))
-            CreateInterfaceObjectsDestination(InterfaceObjectTypeDestination);
+            CreateInterfaceObjectsDestination(rpRefInterfaceInfo);
         else
             UpdateInterfaceObjectsDestination();
     }
 
     void InterfaceSearchStructure::FinalizeSearching()
     {
-        /*
-        TODO change to OMP
-        This is threadsafe bcs there will never be more than one InterfaceInfo per LocalSystem (per partition, but the mpi stuff is handled differently anyway!
-        => will also make it easier to assign the shared_ptrs to the LocalSystem
-        for (const auto& r_info : Infos)
+        const int num_interface_infos = mpMapperInterfaceInfos->size();
+
+        // This is threadsafe bcs there will never be more than one InterfaceInfo per LocalSystem
+        #pragma omp parallel for
+        for (int i = 0; i<num_interface_infos; ++i)
         {
-            if (info.GetLocalSearchWasSuccessful() == true) // Attention, do NOT do this check in MPI, the InterfaceInfo would not have been sent to a partition if it didn't have a successful local search!
+            const auto& r_interface_info = (*mpMapperInterfaceInfos)[i];
+
+            if (r_interface_info->GetLocalSearchWasSuccessful())
             {
-                IndexType local_sys_idx =
-                mpMapperLocalSystems[local_sys_idx].AddInterfaceInfo(r_info);
+                const IndexType local_sys_idx = r_interface_info->GetLocalSystemIndex();
+                KRATOS_DEBUG_ERROR_IF_NOT(local_sys_idx == static_cast<IndexType>(i))
+                    << "Index mismatch!" << std::endl; // This has to be ensured in serial!
+                (*mpMapperLocalSystems)[local_sys_idx]->AddInterfaceInfo(r_interface_info);
             }
         }
-
-        */
-
     }
 
     /***********************************************************************************/
     /* PRIVATE Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructure::CreateInterfaceObjectsDestination(InterfaceObject::ConstructionType InterfaceObjectTypeDestination)
+    void InterfaceSearchStructure::CreateInterfaceObjectsDestination(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
     {
         const int num_objects = mpMapperLocalSystems->size();
 
         mpInterfaceObjectsDestination = Kratos::make_unique<InterfaceObjectContainerType>(num_objects);
         mpMapperInterfaceInfos = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>(num_objects);
 
-
         #pragma omp parallel for
-        for (int i = 0; i< num_objects; ++i)
+        for (int i = 0; i<num_objects; ++i)
         {
             const auto& r_coords = (*mpMapperLocalSystems)[i]->GetCoordinates();
 
-            // mpInterfaceObjectsDestination = Kratos::make_shared<InterfaceObject>(r_coords)
-
-            // auto it_node = nodes_begin + i;
-            // (*mpInterfaceObjectsDestination)[i] = Kratos::make_unique<InterfaceNode>(*(it_node));
+            (*mpInterfaceObjectsDestination)[i] = Kratos::make_shared<InterfaceObject>(r_coords);
+            (*mpMapperInterfaceInfos)[i] = rpRefInterfaceInfo->Create(i);
         }
-
-
-        //         rNumObjects = CoordinateListSize / 3;
-
-        // for (int i = 0; i < rNumObjects; ++i)   // create InterfaceObjects
-        // {
-        //     rRemotePointList[i] = InterfaceObject::Pointer(new InterfaceObject(
-        //                               pCoordinateList[(i * 3) + 0], pCoordinateList[(i * 3) + 1], pCoordinateList[(i * 3) + 2]));
-        // }
-
-
 
         // Making sure that the data-structure was correctly initialized
         KRATOS_ERROR_IF_NOT(mpInterfaceObjectsDestination->size() > 0)
@@ -111,13 +99,14 @@ namespace Kratos
 
     void InterfaceSearchStructure::UpdateInterfaceObjectsDestination()
     {
-        const auto begin = mpInterfaceObjectsDestination->begin();
+        const int num_objects = mpMapperLocalSystems->size();
 
-        // TODO uncomment
-        // Commented bcs it would cause a
-        // #pragma omp parallel for a segfault due to mpInterfaceObjectsDestination being uninitialized
-        // for (int i = 0; i< static_cast<int>(mpInterfaceObjectsDestination->size()); ++i)
-        //     (*(begin + i))->UpdateCoordinates();
+        #pragma omp parallel for
+        for (int i = 0; i<num_objects; ++i)
+        {
+            const auto& r_coords = (*mpMapperLocalSystems)[i]->GetCoordinates();
+            (*mpInterfaceObjectsDestination)[i]->UpdateCoordinates(r_coords);
+        }
     }
 
 

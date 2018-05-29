@@ -65,6 +65,10 @@ public:
     /// Pointer definition of InterfaceObject
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceObject);
 
+    using BaseType = Point;
+
+    using CoordinatesArrayType = typename BaseType::CoordinatesArrayType;
+
     using NodeType = Node<3>;
     using NodePointerType = Kratos::shared_ptr<NodeType>;
 
@@ -87,7 +91,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    InterfaceObject(double X, double Y, double Z) : Point(X, Y, Z)   // constuct from coordinates
+    InterfaceObject(const CoordinatesArrayType& rCoordinates) : Point(rCoordinates)   // constuct from coordinates
     {
     }
 
@@ -103,6 +107,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+   void UpdateCoordinates(const CoordinatesArrayType& rCoordinates)
+    {
+        noalias(Coordinates()) = rCoordinates;
+    }
 
     virtual void UpdateCoordinates()
     {

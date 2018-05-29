@@ -215,7 +215,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateInterfaceObjectsDestination(InterfaceObject::ConstructionType InterfaceObjectTypeDestination);
+    void CreateInterfaceObjectsDestination(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     void UpdateInterfaceObjectsDestination();
 

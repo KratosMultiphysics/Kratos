@@ -65,7 +65,7 @@ public:
 
     using IndexType = std::size_t;
 
-    using CoordinatesType = array_1d<double, 3>;
+    using CoordinatesArrayType = typename InterfaceObject::CoordinatesArrayType;
 
     using NodeType = Node<3>;
     using GeometryType = Geometry<NodeType>;
@@ -86,10 +86,9 @@ public:
     /// Default constructor.
     MapperInterfaceInfo() {}
 
-    MapperInterfaceInfo(const CoordinatesType& rCoordinates, const IndexType SourceLocalSystemIndex, const IndexType SourceRank=0)
+    MapperInterfaceInfo(const IndexType SourceLocalSystemIndex, const IndexType SourceRank)
         : mSourceLocalSystemIndex(SourceLocalSystemIndex),
-          mSourceRank(SourceRank),
-          mCoordinates(rCoordinates)
+          mSourceRank(SourceRank)
     {
     }
 
@@ -110,9 +109,8 @@ public:
 
     virtual void ProcessSearchResult(InterfaceObject::Pointer pInterfaceObject, const double NeighborDistance) = 0;
 
-    virtual MapperInterfaceInfo::Pointer Create(const CoordinatesType& rCoordinates,
-                                                const IndexType SourceLocalSystemIndex,
-                                                const IndexType SourceRank) const = 0;
+    virtual MapperInterfaceInfo::Pointer Create(const IndexType SourceLocalSystemIndex,
+                                                const IndexType SourceRank=0) const = 0;
 
     virtual void Clear()
     {
@@ -122,6 +120,8 @@ public:
     IndexType GetLocalSystemIndex() const { return mSourceLocalSystemIndex; }
 
     IndexType GetSourceRank() const { return mSourceRank; }
+
+    bool GetLocalSearchWasSuccessful() const { return mLocalSearchWasSuccessful; }
 
     void SetLocalSearchWasSuccessful()
     {
@@ -189,7 +189,6 @@ protected:
 
     // These variables are NOT being serialized bcs they are not needed after searching!
     IndexType mSourceRank = 0;
-    CoordinatesType mCoordinates;
 
     ///@}
     ///@name Protected Operators

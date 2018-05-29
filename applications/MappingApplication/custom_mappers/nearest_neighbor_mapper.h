@@ -53,20 +53,17 @@ public:
     /// Default constructor.
     NearestNeigborInterfaceInfo() {}
 
-    NearestNeigborInterfaceInfo(const CoordinatesType& rCoordinates,
-                                const IndexType SourceLocalSystemIndex,
-                                const IndexType SourceRank=0)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
+    NearestNeigborInterfaceInfo(const IndexType SourceLocalSystemIndex,
+                                const IndexType SourceRank)
+        : MapperInterfaceInfo(SourceLocalSystemIndex, SourceRank)
     {
 
     }
 
-    MapperInterfaceInfo::Pointer Create(const CoordinatesType& rCoordinates,
-                                        const IndexType SourceLocalSystemIndex,
-                                        const IndexType SourceRank) const override
+    MapperInterfaceInfo::Pointer Create(const IndexType SourceLocalSystemIndex,
+                                        const IndexType SourceRank=0) const override
     {
-        return Kratos::make_shared<NearestNeigborInterfaceInfo>(rCoordinates,
-                                                                SourceLocalSystemIndex,
+        return Kratos::make_shared<NearestNeigborInterfaceInfo>(SourceLocalSystemIndex,
                                                                 SourceRank);
     }
 
@@ -136,7 +133,7 @@ public:
 
     bool UseNodesAsBasis() const override { return true; }
 
-    CoordinatesType& GetCoordinates() const override
+    CoordinatesArrayType& GetCoordinates() const override
     {
         return mpNode->Coordinates();
     }

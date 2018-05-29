@@ -45,11 +45,9 @@ namespace Kratos
 
 KratosMappingApplication::KratosMappingApplication() :
     KratosApplication("MappingApplication"),
-    mInterfaceObject(0.0, 0.0, 0.0),
+    mInterfaceObject(array_1d<double, 3>(0.0)),
     mInterfaceNode(),
     mInterfaceGeometryObject()
-    // mNearestNeighborCondition(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
-    // mNearestElementCondition(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1))))
 {}
 
 void KratosMappingApplication::Register()
