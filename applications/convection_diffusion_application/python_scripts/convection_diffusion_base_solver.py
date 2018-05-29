@@ -74,7 +74,7 @@ class ConvectionDiffusionBaseSolver(object):
                 "transfer_coefficient_variable" : "",
                 "velocity_variable" : "VELOCITY",
                 "specific_heat_variable" : "SPECIFIC_HEAT",
-                "reaction_variable" : "REACTION_FLUX",
+                "reaction_variable" : "REACTION_FLUX"
             },
             "reform_dofs_at_each_step": false,
             "line_search": false,
@@ -93,11 +93,10 @@ class ConvectionDiffusionBaseSolver(object):
                 "preconditioner_type": "DiagonalPreconditioner",
                 "max_iteration": 5000,
                 "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
+                "scaling": false
             },
             "element_replace_settings" : {
-                "element_name" : "LaplacianElement"
+                "element_name" : "LaplacianElement",
                 "condition_name" : "ThermalFace"
             },
             "problem_domain_sub_model_part_list": ["conv_diff_body"],
@@ -236,7 +235,7 @@ class ConvectionDiffusionBaseSolver(object):
         # this can safely be called also for restarts, it is internally checked if the dofs exist already
         settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
         if settings.IsDefinedReactionVariable():
-            KratosMultiphysics.VariableUtils().AddDofWithReaction(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
         else:
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), self.main_model_part)
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "DOF's ADDED")
@@ -285,19 +284,18 @@ class ConvectionDiffusionBaseSolver(object):
         KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
             
         # Duplicate model part
-        self.thermal_model_part = ModelPart("Thermal")
-        if self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 2:
+        self.thermal_model_part = KratosMultiphysics.ModelPart("Thermal")
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             conv_diff_element = "EulerianConvDiff2D"
             conv_diff_condition = "Condition2D2N"
-        elif self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 3:
+        elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
             conv_diff_element = "EulerianConvDiff3D"
             conv_diff_condition = "Condition3D3N"
 
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, conv_diff_element, conv_diff_condition)
         
-        # TODO: Replace with "element_replace_settings" when more consistent names given to the conditions and elements,):
-         elif (creating a dictionary
+        # TODO: Replace with "element_replace_settings" when more consistent names given to the conditions and elements
         #KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
         
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
@@ -516,7 +514,7 @@ class ConvectionDiffusionBaseSolver(object):
             materials = KratosMultiphysics.Parameters(parameter_file.read())
             
         for i in range(materials["properties"].size()):
-            model_part = self.main_model_part[materials["properties"][i]["model_part_name"].GetString()]
+            model_part = self.main_model_part.GetSubModelPart(materials["properties"][i]["model_part_name"].GetString())
             mat = materials["properties"][i]["Material"]
             
             for key, value in mat["Variables"].items():

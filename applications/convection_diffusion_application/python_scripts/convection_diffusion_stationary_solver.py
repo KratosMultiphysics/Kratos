@@ -15,7 +15,7 @@ import convection_diffusion_base_solver
 def CreateSolver(main_model_part, custom_settings):
     return ConvectionDiffusionStationarySolver(main_model_part, custom_settings)
 
-class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.MechanicalSolver):
+class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.ConvectionDiffusionBaseSolver):
     """The stationary class for convection-diffusion solvers.
 
     Public member variables:
@@ -40,7 +40,7 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Mecha
 
     def _create_solution_scheme(self):
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        self.thermal_model_part.ProcessInfo[THETA] = 0.5
-        self.thermal_model_part.ProcessInfo[DYNAMIC_TAU] = 0.0
+        self.thermal_model_part.ProcessInfo[ConvectionDiffusionApplication.THETA] = 0.5
+        self.thermal_model_part.ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
         mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return mechanical_scheme

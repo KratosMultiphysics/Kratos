@@ -15,7 +15,7 @@ def Factory(settings, Model):
     return CheckAndPrepareModelProcess(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
-class CheckAndPrepareModelProcess(KM.Process):
+class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     """Prepare the computing model part.
 
     The computing model part is created if it does not exist. Nodes and elements
