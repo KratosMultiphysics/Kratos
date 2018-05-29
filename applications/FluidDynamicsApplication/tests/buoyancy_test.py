@@ -136,6 +136,8 @@ class BuoyancyTest(UnitTest.TestCase):
         elif self.convection_diffusion_solver == 'eulerian':
             self.thermal_solver.AddDofs()
 
+        self.fluid_model_part.ProcessInfo.SetValue(DOMAIN_SIZE,self.domain_size)
+
         # Building custom fluid solver
         self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
         rel_vel_tol = 1e-5
