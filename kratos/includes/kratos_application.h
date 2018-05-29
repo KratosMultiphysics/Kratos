@@ -65,7 +65,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
           mpMatrixVariables(rOther.mpMatrixVariables),
           mpArray1DVariableComponents(rOther.mpArray1DVariableComponents),
           mpElements(rOther.mpElements),
-          mpConditions(rOther.mpConditions) {}
+          mpConditions(rOther.mpConditions),
+          mpMasterSlaveConstraints(rOther.mpMasterSlaveConstraints) {}
 
     /// Destructor.
     virtual ~KratosApplication() {}
@@ -163,6 +164,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpConditions;
     }
 
+    KratosComponents<MasterSlaveConstraint>::ComponentsContainerType& GetMasterSlaveConstraints() {
+        return *mpMasterSlaveConstraints;
+    }
+
     void SetComponents(
         KratosComponents<VariableData>::ComponentsContainerType const&
             VariableDataComponents)
@@ -212,6 +217,13 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         // It's better to make a loop over new components and add them if they are NOT already exist in application. Or make an ERROR for incompatibility between applications.
 
         mpElements->insert(ElementComponents.begin(), ElementComponents.end());
+    }
+
+    void SetComponents(KratosComponents<MasterSlaveConstraint>::ComponentsContainerType const&
+            MasterSlaveConstraintComponents)
+
+    {
+        mpMasterSlaveConstraints->insert(MasterSlaveConstraintComponents.begin(), MasterSlaveConstraintComponents.end());
     }
 
     void SetComponents(
@@ -384,6 +396,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
     KratosComponents<Condition>::ComponentsContainerType* mpConditions;
+
+    KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
 
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
 
