@@ -31,10 +31,10 @@ namespace Kratos {
 			for(auto i_SubModelPart = model_part.SubModelPartsBegin() ; i_SubModelPart != model_part.SubModelPartsEnd() ; i_SubModelPart++){
 				i_SubModelPart->CreateNewNode(id++, 0.00,0.00,0.00);
 			}
+
 			KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), 4);
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Inlet1").NumberOfNodes(), 1);
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
-			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").GetNode(2).Id(), 2);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
