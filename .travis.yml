@@ -29,6 +29,7 @@ addons:
       - libblas-dev
       - liblapack-dev
       - python3-pip
+      - libhdf5-dev
 
 before_script:
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
