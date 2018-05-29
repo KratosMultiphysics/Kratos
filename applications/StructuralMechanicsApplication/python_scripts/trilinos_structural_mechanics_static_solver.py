@@ -15,8 +15,8 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import trilinos_structural_mechanics_solver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return TrilinosStaticMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return TrilinosStaticMechanicalSolver(model, custom_settings)
 
 
 class TrilinosStaticMechanicalSolver(trilinos_structural_mechanics_solver.TrilinosMechanicalSolver):
@@ -26,9 +26,9 @@ class TrilinosStaticMechanicalSolver(trilinos_structural_mechanics_solver.Trilin
     structural_mechanics_solver.py
     trilinos_structural_mechanics_solver.py
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(TrilinosStaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(TrilinosStaticMechanicalSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[TrilinosStaticMechanicalSolver]:: ", "Construction finished")
 
     def _create_solution_scheme(self):
