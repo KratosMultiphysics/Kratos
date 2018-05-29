@@ -221,6 +221,8 @@ class ConvectionDiffusionBaseSolver(object):
         else:
             raise Exception("The provided main_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
         
+        # Adding nodal area variable (some solvers use it. TODO: Ask)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         ## If LaplacianElement is used
         #if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement")
             #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -294,7 +296,8 @@ class ConvectionDiffusionBaseSolver(object):
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, conv_diff_element, conv_diff_condition)
         
-        # TODO: Replace with "element_replace_settings" when more consistent names given to the conditions and elements, or creating a dictionary
+        # TODO: Replace with "element_replace_settings" when more consistent names given to the conditions and elements,):
+         elif (creating a dictionary
         #KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
         
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
@@ -423,6 +426,10 @@ class ConvectionDiffusionBaseSolver(object):
             Model.AddModelPart(self.main_model_part)
             # Add constitutive laws and material properties from json file to model parts.
             read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
+            
+            # We set the properties that are nodal
+            self._assign_nodally_properties()
+            
             materials_imported = True
         else:
             materials_imported = False
@@ -502,6 +509,47 @@ class ConvectionDiffusionBaseSolver(object):
 
     #### Private functions ####
 
+    def _assign_nodally_properties(self):
+        
+        # We transfer the values of the con.diff variables to the nodes
+        with open(self.settings["material_import_settings"]["materials_filename"].GetString(), 'r') as parameter_file:
+            materials = KratosMultiphysics.Parameters(parameter_file.read())
+            
+        for i in range(materials["properties"].size()):
+            model_part = self.main_model_part[materials["properties"][i]["model_part_name"].GetString()]
+            mat = materials["properties"][i]["Material"]
+            
+            for key, value in mat["Variables"].items():
+                var = KratosMultiphysics.KratosGlobals.GetVariable(key)
+                if (self._check_variable_to_set(var)):
+                    if value.IsDouble():
+                        KratosMultiphysics.VariableUtils().SetScalarVar(var, value.GetDouble(), model_part.Nodes)
+                    elif value.IsVector():
+                        KratosMultiphysics.VariableUtils().SetVectorVar(var, value.GetVector(), model_part.Nodes)
+                    else:
+                        raise ValueError("Type of value is not available")
+    
+    def _check_variable_to_set(self, var):
+        thermal_settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
+        if (thermal_settings.GetDensityVariable() == var):
+            return True
+        elif (thermal_settings.GetDiffusionVariable() == var):
+            return True
+        elif (thermal_settings.GetVolumeSourceVariable() == var):
+            return True
+        elif (thermal_settings.GetSurfaceSourceVariable() == var):
+            return True
+        elif (thermal_settings.GetProjectionVariable() == var):
+            return True
+        elif (thermal_settings.GetConvectionVariable() == var):
+            return True
+        elif (thermal_settings.GetTransferCoefficientVariable() == var):
+            return True
+        elif (thermal_settings.GetSpecificHeatVariable() == var):
+            return True
+        else:
+            return False
+    
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
         # Auxiliary parameters object for the CheckAndPepareModelProcess
