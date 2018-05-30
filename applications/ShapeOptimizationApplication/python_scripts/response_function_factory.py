@@ -16,6 +16,7 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 import structural_response_function_factory
+import response_analysis_driver_based_factory
 
 # ==============================================================================
 def CreateListOfResponseFunctions( optimization_settings, optimization_model_part ):
@@ -42,9 +43,8 @@ class ResponseFunctionCreator:
         for objective_number in range(self.optimization_settings["objectives"].size()):
             objective = self.optimization_settings["objectives"][objective_number]
             objective_id = objective["identifier"].GetString()
-            if objective["use_kratos"].GetBool():
-                self.__CheckIfGivenResponseFunctionIsAlreadyDefined( objective_id )
-                self.__CreateAndAddGivenResponse( objective_id, objective["kratos_response_settings"] )
+            self.__CheckIfGivenResponseFunctionIsAlreadyDefined( objective_id )
+            self.__CreateAndAddGivenResponse( objective_id, objective["kratos_response_settings"] )
 
         if not self.list_of_response_functions:
             raise ValueError("No objective function specified!")
@@ -54,9 +54,8 @@ class ResponseFunctionCreator:
         for constraint_number in range(self.optimization_settings["constraints"].size()):
             constraint = self.optimization_settings["constraints"][constraint_number]
             constraint_id = constraint["identifier"].GetString()
-            if constraint["use_kratos"].GetBool():
-                self.__CheckIfGivenResponseFunctionIsAlreadyDefined( constraint_id )
-                self.__CreateAndAddGivenResponse( constraint_id, constraint["kratos_response_settings"] )
+            self.__CheckIfGivenResponseFunctionIsAlreadyDefined( constraint_id )
+            self.__CreateAndAddGivenResponse( constraint_id, constraint["kratos_response_settings"] )
 
     # --------------------------------------------------------------------------
     def __CheckIfGivenResponseFunctionIsAlreadyDefined( self, response_id ):
@@ -68,6 +67,8 @@ class ResponseFunctionCreator:
         response_type = response_settings["response_type"].GetString()
         if response_type in ["strain_energy", "mass", "eigenfrequency"]:
             self.list_of_response_functions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.optimization_model_part)
+        elif response_type == "analysis_driver_based":
+            self.list_of_response_functions[response_id] = response_analysis_driver_based_factory.CreateResponseFunction(response_id, response_settings, self.optimization_model_part)
         else:
             raise NameError("The following response function is not available for optimization: " + response_id)
 
