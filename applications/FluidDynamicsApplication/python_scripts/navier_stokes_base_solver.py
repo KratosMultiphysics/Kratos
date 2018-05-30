@@ -28,22 +28,25 @@ class NavierStokesBaseSolver(PythonSolver):
         self.condition_name = None
         self.min_buffer_size = 3
 
-        if self.settings.Has("model_part_name"):
-            model_part_name = self.settings["model_part_name"].GetString()
-            if self.model.HasModelPart(model_part_name):
-                self.main_model_part = self.model.GetModelPart(model_part_name)
-            else:
-                self.main_model_part = ModelPart(model_part_name)
-                self.model.AddModelPart(self.main_model_part)
+        # Either retrieve the model part from the model or create a new one
+        model_part_name = self.settings["model_part_name"].GetString()
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            message = "".join(
-                "\"model_part_name\" not found in solver settings\n."
-                "Please validate input parameters before calling the NavierStokesBaseSolver base class constructor."
-            )
-            raise Exception(message)
+            self.main_model_part = ModelPart(model_part_name)
+            self.model.AddModelPart(self.main_model_part)
 
     def AddVariables(self):
         raise Exception("Trying to call NavierStokesBaseSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
+
+    def AddDofs(self):
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Fluid solver DOFs added correctly.")
 
     def ImportModelPart(self):
         ## Read model part
@@ -53,7 +56,7 @@ class NavierStokesBaseSolver(PythonSolver):
         ## Executes the check and prepare model process
         self._execute_check_and_prepare()
         ## Set buffer size
-        self._set_buffer_size()
+        self.main_model_part.SetBufferSize(self.min_buffer_size)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model reading finished.")
@@ -66,51 +69,11 @@ class NavierStokesBaseSolver(PythonSolver):
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model export finished.")
 
-    def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
-
-        if self._IsPrintingRank():
-            KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Fluid solver DOFs added correctly.")
-
-    def AdaptMesh(self):
-        pass
-
-    def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
-
-    def GetOutputVariables(self):
-        pass
-
-    def ComputeDeltaTime(self):
-        # Automatic time step computation according to user defined CFL number
-        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
-        # User-defined delta time
-        else:
-            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
-
-        return delta_time
-
     def GetMinimumBufferSize(self):
         return self.min_buffer_size
 
     def Initialize(self):
         raise Exception("Calling the Navier-Stokes base solver. Please implement the custom Initialize() method of your solver.")
-
-    def SaveRestart(self):
-        pass #one should write the restart file here
-
-    def Clear(self):
-        (self.solver).Clear()
-
-    def Check(self):
-        (self.solver).Check()
-
-    def SetEchoLevel(self, level):
-        (self.solver).SetEchoLevel(level)
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -141,11 +104,76 @@ class NavierStokesBaseSolver(PythonSolver):
         if self._TimeBufferIsInitialized():
             (self.solver).FinalizeSolutionStep()
 
+    def Check(self):
+        (self.solver).Check()
+
+    def Clear(self):
+        (self.solver).Clear()
+
     def Solve(self):
+        message = "".join(
+            "Calling NavierStokesBaseSolver.Solve() method, which is deprecated\n",
+            "Please call the individual methods instead:\n",
+            "solver.InitializeSolutionStep()\n",
+            "solver.Predict()\n",
+            "solver.SolveSolutionStep()\n",
+            "solver.FinalizeSolutionStep()\n"
+        )
+        KratosMultiphysics.Logger.PrintWarning("NavierStokesBaseSolver",message)
         self.InitializeSolutionStep()
         self.Predict()
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
+
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
+
+    ## Fluid-specific additions (?)
+
+    def AdaptMesh(self):
+        pass
+
+    def GetOutputVariables(self):
+        pass
+
+    def ComputeDeltaTime(self):
+        # Automatic time step computation according to user defined CFL number
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            delta_time = self.EstimateDeltaTimeUtility.EstimateDt()
+        # User-defined delta time
+        else:
+            delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+
+        return delta_time
+
+    def SaveRestart(self):
+        pass #one should write the restart file here
+
+
+    def SetEchoLevel(self, level):
+        (self.solver).SetEchoLevel(level)
+
+    def _get_automatic_time_stepping_utility(self):
+        if (self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part,
+                                                                     self.settings["time_stepping"])
+        else:
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part,
+                                                                     self.settings["time_stepping"])
+
+        return EstimateDeltaTimeUtility
+
+    ## The following are required by derived classes
+
+    def _TimeBufferIsInitialized(self):
+        # We always have one extra old step (step 0, read from input)
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
+
+    def _IsPrintingRank(self):
+        return self._is_printing_rank
+
+    def _GetDefaultSettings(self):
+        raise Exception("Please define the default solver settings in the derived solver class")
 
     def _model_part_reading(self):
         ## Model part reading
@@ -158,31 +186,6 @@ class NavierStokesBaseSolver(PythonSolver):
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part, tmp).Execute()
         else:
             raise Exception("Other input options are not implemented yet.")
-
-    def _execute_check_and_prepare(self):
-        ## Check that the input read has the shape we like
-        prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
-        prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
-        prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
-
-        import check_and_prepare_model_process_fluid
-        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
-
-
-    def _set_buffer_size(self):
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        if self.min_buffer_size > current_buffer_size:
-            self.main_model_part.SetBufferSize(self.min_buffer_size)
-
-    def _get_automatic_time_stepping_utility(self):
-        if (self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part,
-                                                                     self.settings["time_stepping"])
-        else:
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part,
-                                                                     self.settings["time_stepping"])
-
-        return EstimateDeltaTimeUtility
 
     def _replace_elements_and_conditions(self):
         ## Get number of nodes and domain size
@@ -242,9 +245,11 @@ class NavierStokesBaseSolver(PythonSolver):
         condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
 
-    def _IsPrintingRank(self):
-        return self._is_printing_rank
+    def _execute_check_and_prepare(self):
+        ## Check that the input read has the shape we like
+        prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
+        prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])
+        prepare_model_part_settings.AddValue("skin_parts",self.settings["skin_parts"])
 
-    def _TimeBufferIsInitialized(self):
-        # We always have one extra old step (step 0, read from input)
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
+        import check_and_prepare_model_process_fluid
+        check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
