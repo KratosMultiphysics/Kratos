@@ -36,7 +36,7 @@ namespace Kratos
  * @details The submodelparts are later updated 
  * @author Riccardo Rossi
 */
-class ReplaceElementsAndConditionsProcess 
+class KRATOS_API(KRATOS_CORE) ReplaceElementsAndConditionsProcess 
     : public Process
 {
 public:
