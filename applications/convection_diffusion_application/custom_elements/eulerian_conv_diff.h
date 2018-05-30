@@ -83,7 +83,7 @@ public:
 
     std::string Info() const override
     {
-        return "LevelSetConvectionElementSimplex #";
+        return "EulerianConvectionDiffusionElement #";
     }
 
     /// Print information about this object.
