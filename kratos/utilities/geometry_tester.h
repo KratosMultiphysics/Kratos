@@ -1040,6 +1040,8 @@ private:
             return std::string("GI_GAUSS_4");
         case GeometryData::GI_GAUSS_5 :
             return std::string("GI_GAUSS_5");
+        case GeometryData::GI_GAUSS_9 :
+            return std::string("GI_GAUSS_9");    
         case GeometryData::GI_EXTENDED_GAUSS_1 :
             return std::string("GI_EXTENDED_GAUSS_1");
         case GeometryData::GI_EXTENDED_GAUSS_2 :

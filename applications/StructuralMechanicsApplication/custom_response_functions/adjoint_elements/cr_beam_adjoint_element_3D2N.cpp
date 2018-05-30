@@ -659,6 +659,8 @@ namespace Kratos
         if (rOutput.size() != write_points_number) 
             rOutput.resize(write_points_number);  
 
+        std::cout << "Gauss Point number = " << write_points_number << "#################################################"<<  std::endl;  
+
         // rOutput[GP 1,2,3][x,y,z]
         if(rVariable == BEAM_BENDING_MODES) 
         {
@@ -705,10 +707,10 @@ namespace Kratos
             if(Has(TRACED_STRESS_TYPE))
                 def_mode_bending_y[0] += 1.0;
 
-            std::cout << "Def-modes y of element id #" << this->Id() << std::endl;
-            std::cout << def_mode_bending_y[0]  << std::endl;
-            std::cout << def_mode_bending_y[1] << std::endl;
-            std::cout << "#####################################" << std::endl;  
+            //std::cout << "Def-modes y of element id #" << this->Id() << std::endl;
+            //std::cout << def_mode_bending_y[0]  << std::endl;
+            //std::cout << def_mode_bending_y[1] << std::endl;
+            //std::cout << "#####################################" << std::endl;  
 
             Vector x_mode_internal = CalculateBendingDeformationModesOnGP(def_mode_bending_x);
             Vector y_mode_internal = CalculateBendingDeformationModesOnGP(def_mode_bending_y);
@@ -739,8 +741,8 @@ namespace Kratos
 
             double reference_I22_sensitivity = this->GetValue(I22_SENSITIVITY);
             
-            std::cout << "adj. SA = " << reference_I22_sensitivity << std::endl;
-            std::cout << "def. mode = " << sensitivity_wrt_I22 << std::endl;
+            //std::cout << "adj. SA = " << reference_I22_sensitivity << std::endl;
+            //std::cout << "def. mode = " << sensitivity_wrt_I22 << std::endl;
 
             // check if relative deviation < 8%
             //KRATOS_ERROR_IF(std::abs((-reference_I22_sensitivity+sensitivity_wrt_I22)/reference_I22_sensitivity) > 0.08)
@@ -864,8 +866,15 @@ namespace Kratos
 
     CrBeamAdjointElement3D2N::IntegrationMethod CrBeamAdjointElement3D2N::GetIntegrationMethod() const 
     {
+        const unsigned int &write_points_number =
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_9);
+
+        std::cout << "Gauss Point number = " << write_points_number << " ##############"<<  std::endl;  
+
+    
         // do this to have 5GP as an output in GID
-        return Kratos::GeometryData::GI_GAUSS_5;
+        return Kratos::GeometryData::GI_GAUSS_9;
+
     }
 
     void CrBeamAdjointElement3D2N::save(Serializer& rSerializer) const
@@ -993,10 +1002,10 @@ namespace Kratos
         const double p2 = (-1.0) / (L*L)*(pseudo_force_vector[10]*24 + pseudo_force_vector[4]*36);
         const double p4 = 1.0 / (L*L)*(pseudo_force_vector[10]*36 + pseudo_force_vector[4]*24);
 
-        std::cout << "pseudo-load of element id #" << this->Id() << std::endl;
-        std::cout << p2  << std::endl;
-        std::cout << p4  << std::endl;
-        std::cout << "#####################################" << std::endl;  
+        //std::cout << "pseudo-load of element id #" << this->Id() << std::endl;
+        //std::cout << p2  << std::endl;
+        //std::cout << p4  << std::endl;
+        //std::cout << "#####################################" << std::endl;  
 
         const double step = 1.0 / (write_points_number + 1.0);
         double x = 0.0;
