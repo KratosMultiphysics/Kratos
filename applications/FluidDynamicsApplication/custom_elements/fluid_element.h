@@ -50,6 +50,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+// Forward decalration of auxiliary class
+namespace Internals {
+template <class TElementData, bool TDataKnowsAboutTimeIntegration>
+class FluidElementTimeIntegrationDetail;
+}
+
 template <class TElementData>
 class FluidElement : public Element
 {
@@ -464,6 +470,12 @@ private:
 
     //// Constitutive relation for the element
     ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    friend class Internals::FluidElementTimeIntegrationDetail<TElementData, TElementData::ElementManagesTimeIntegration>;
 
     ///@}
     ///@name Serialization

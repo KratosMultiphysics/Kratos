@@ -34,9 +34,14 @@ class AdjointVMSMonolithicSolver:
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts"  : [""],
+            "no_skin_parts"  : [""],
             "dynamic_tau" : 0.0,
             "oss_switch"  : 0,
-            "echo_level"  : 0
+            "echo_level"  : 0,
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : -0.1
+        }
         }""")
 
         # overwrite the default settings with user-provided parameters
@@ -66,7 +71,7 @@ class AdjointVMSMonolithicSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
-        
+
         print("variables for the adjoint fluid solver added correctly")
 
     def ImportModelPart(self):
@@ -107,7 +112,11 @@ class AdjointVMSMonolithicSolver:
             #here we read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
             for el in self.main_model_part.Elements:
                 rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-                kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+                if el.Properties.Has(KratosMultiphysics.DYNAMIC_VISCOSITY):
+                    dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+                    kin_viscosity = dyn_viscosity/rho
+                else:
+                    kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
                 break
 
             KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
@@ -171,7 +180,7 @@ class AdjointVMSMonolithicSolver:
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.solver.Check()
-        
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
@@ -192,20 +201,26 @@ class AdjointVMSMonolithicSolver:
 
     def DivergenceClearance(self):
         pass
-        
+
+    def AdvanceInTime(self,current_time):
+        delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        new_time = current_time + delta_time
+        self.main_model_part.CloneTimeStep(new_time)
+        return new_time
+
     def SolverInitialize(self):
         self.solver.Initialize()
 
-    def SolverInitializeSolutionStep(self):
+    def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
 
-    def SolverPredict(self):
+    def Predict(self):
         self.solver.Predict()
 
-    def SolverSolveSolutionStep(self):
+    def SolveSolutionStep(self):
         self.solver.SolveSolutionStep()
 
-    def SolverFinalizeSolutionStep(self):
+    def FinalizeSolutionStep(self):
         self.solver.FinalizeSolutionStep()
 
     def Solve(self):

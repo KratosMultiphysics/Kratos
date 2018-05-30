@@ -49,6 +49,29 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
+    def _apply_orthotropic_shell_material_properties(self,mp):
+        #define properties
+        # we specify only the properties we need (others are youngs modulus etc)
+        num_plies = 3
+        orthotropic_props = KratosMultiphysics.Matrix(num_plies,16)
+        for row in range(num_plies):
+            for col in range(16):
+                orthotropic_props[row,col] = 0.0
+
+        # Orthotropic mechanical moduli
+        orthotropic_props[0,0] = 0.005 # lamina thickness
+        orthotropic_props[0,2] = 2200  # density
+        orthotropic_props[1,0] = 0.01  # lamina thickness
+        orthotropic_props[1,2] = 1475  # density
+        orthotropic_props[2,0] = 0.015 # lamina thickness
+        orthotropic_props[2,2] = 520   # density
+
+        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.SHELL_ORTHOTROPIC_LAYERS,orthotropic_props)
+
+        cl = StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw()
+
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
     def _apply_solid_material_properties(self,mp):
         #define properties
         mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,100e3)
@@ -89,6 +112,37 @@ class TestMassCalculation(KratosUnittest.TestCase):
             mp.CloneTimeStep(time)
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
+    def test_nodal_mass(self):
+        dim = 3
+        nr_nodes = 4
+        mp = KratosMultiphysics.ModelPart("structural_part")
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
+        self._add_variables(mp)
+
+        #create nodes
+        dx = 1.2
+        for i in range(nr_nodes):
+            mp.CreateNewNode(i+1,i*dx,0.00,0.00)
+        #add dofs
+        self._add_dofs(mp)
+
+        #create Element
+        elem1 = mp.CreateNewElement("NodalConcentratedElement2D1N", 1, [1], mp.GetProperties()[0])
+        elem2 = mp.CreateNewElement("NodalConcentratedElement2D1N", 2, [2], mp.GetProperties()[0])
+        elem3 = mp.CreateNewElement("NodalConcentratedElement3D1N", 3, [3], mp.GetProperties()[0])
+        elem4 = mp.CreateNewElement("NodalConcentratedElement3D1N", 4, [4], mp.GetProperties()[0])
+
+        elem1.SetValue(KratosMultiphysics.NODAL_MASS,21.234)
+        elem2.SetValue(KratosMultiphysics.NODAL_MASS,5.234)
+        elem3.SetValue(KratosMultiphysics.NODAL_MASS,112.234)
+        elem4.SetValue(KratosMultiphysics.NODAL_MASS,78.234)
+
+        mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
+        mass_process.Execute()
+        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
+
+        self.assertAlmostEqual(216.936, total_mass, 5)
 
     def test_beam_mass(self):
         dim = 3
@@ -133,6 +187,24 @@ class TestMassCalculation(KratosUnittest.TestCase):
         total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
 
         self.assertAlmostEqual(1.36733, total_mass, 5)
+
+    def test_orthotropic_shell_mass(self):
+        dim = 3
+        mp = KratosMultiphysics.ModelPart("structural_part")
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
+        mp.SetBufferSize(2)
+
+        self._add_variables(mp)
+        self._apply_orthotropic_shell_material_properties(mp)
+        self._create_shell_nodes(mp)
+        self._add_dofs(mp)
+        self._create_shell_elements(mp)
+
+        mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
+        mass_process.Execute()
+        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
+
+        self.assertAlmostEqual(45.8740273, total_mass, 5)
 
     def test_solid_mass(self):
         dim = 2

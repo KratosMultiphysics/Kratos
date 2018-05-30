@@ -47,10 +47,11 @@ void AddProcesses(pybind11::module& m)
 {
     typedef SpalartAllmarasTurbulenceModel<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSpAlModelType;
 
-    class_ < BaseSpAlModelType,Process  >(m, "TrilinosBaseSpAlModel" );
+    class_<BaseSpAlModelType, BaseSpAlModelType::Pointer, Process>(m, "TrilinosBaseSpAlModel" );
 
     // Turbulence models
-    class_< TrilinosSpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, BaseSpAlModelType >
+    typedef TrilinosSpalartAllmarasTurbulenceModel<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosSpAlModelType;
+    class_<TrilinosSpAlModelType, TrilinosSpAlModelType::Pointer, BaseSpAlModelType >
     (m,"TrilinosSpalartAllmarasTurbulenceModel")
     .def(init < Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ActivateDES)
@@ -59,11 +60,12 @@ void AddProcesses(pybind11::module& m)
 
     typedef StokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseStokesInitializationType;
 
-    class_ < BaseStokesInitializationType,Process  >
+    class_<BaseStokesInitializationType, BaseStokesInitializationType::Pointer, Process>
             (m, "TrilinosBaseStokesInitialization" )
             .def("SetConditions",&BaseStokesInitializationType::SetConditions);
 
-    class_< TrilinosStokesInitializationProcess< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, BaseStokesInitializationType >
+    typedef TrilinosStokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosStokesInitializationType;
+    class_<TrilinosStokesInitializationType, TrilinosStokesInitializationType::Pointer, BaseStokesInitializationType >
             (m,"TrilinosStokesInitializationProcess")
             .def(init<Epetra_MpiComm&, ModelPart::Pointer,TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
             ;
@@ -71,14 +73,16 @@ void AddProcesses(pybind11::module& m)
     typedef VariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseDistanceCalculationType2D;
     typedef VariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseDistanceCalculationType3D;
 
-    class_< BaseDistanceCalculationType2D, Process  >(m,"BaseDistanceCalculation2D");
-    class_< BaseDistanceCalculationType3D, Process  >(m,"BaseDistanceCalculation3D");
+    class_<BaseDistanceCalculationType2D, BaseDistanceCalculationType2D::Pointer, Process>(m,"BaseDistanceCalculation2D");
+    class_<BaseDistanceCalculationType3D, BaseDistanceCalculationType3D::Pointer, Process>(m,"BaseDistanceCalculation3D");
 
-    class_< TrilinosVariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>,
+    typedef TrilinosVariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosDistanceCalculationType2D;
+    class_<TrilinosDistanceCalculationType2D, TrilinosDistanceCalculationType2D::Pointer,
             BaseDistanceCalculationType2D >(m,"TrilinosVariationalDistanceCalculationProcess2D")
             .def(init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int>() );
 
-    class_< TrilinosVariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>,
+    typedef TrilinosVariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosDistanceCalculationType3D;
+    class_<TrilinosDistanceCalculationType3D, TrilinosDistanceCalculationType3D::Pointer,
             BaseDistanceCalculationType3D >(m,"TrilinosVariationalDistanceCalculationProcess3D")
             .def(init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int>() );
 }

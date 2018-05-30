@@ -44,7 +44,6 @@
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_elements/membrane_element.hpp"
 #include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D4N.hpp"
@@ -272,6 +271,7 @@ private:
     const CrBeamElement2D2N mCrBeamElement2D2N;
     const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
 
+
     // Adding the shells elements
     const IsotropicShellElement mIsotropicShellElement3D3N;
     const ShellThickElement3D4N mShellThickElement3D4N;
@@ -281,16 +281,14 @@ private:
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
 	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
 
-    // Adding the membrane element 
-    const MembraneElement mMembraneElement3D3N;
-    const MembraneElement mMembraneElement3D4N;
+    // Adding the membrane element
     const PrestressMembraneElement mPreStressMembraneElement3D3N;
     const PrestressMembraneElement mPreStressMembraneElement3D4N;
-    
-    // Adding the SPRISM element 
+
+    // Adding the SPRISM element
     const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
-    
-    // Adding the nodal concentrated element 
+
+    // Adding the nodal concentrated element
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;

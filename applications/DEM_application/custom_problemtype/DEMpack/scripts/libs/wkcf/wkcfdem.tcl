@@ -179,12 +179,14 @@ proc ::wkcf::AssignSpecialBoundaries {ndime entitylist} {
 	    set endlinelist [list]
 	    foreach surfid $entitylist {
 		set surfprop [GiD_Geometry get surface $surfid]
-		# set surfacetype [lindex $surfprop 0]
+		set surfacetype [lindex $surfprop 0]
 		set nline [lindex $surfprop 2]
 		set lineprop [list]
-		#if {$surfacetype eq "nurbssurface"} {
+		if {$surfacetype eq "nurbssurface"} {
 		    set lineprop [lrange $surfprop 9 [expr {9+$nline-1}]]
-		    #}
+		} else {
+			set lineprop [lrange $surfprop 3 [expr {3+$nline-1}]]
+		}
 		foreach lprop $lineprop {
 		    lassign $lprop lineid orientation
 		    lappend endlinelist $lineid
@@ -670,23 +672,37 @@ proc ::wkcf::WriteMatTestData {fileid} {
     } else {
 	puts $fileid "\"TestType\"                       : \"None\","
     }
-    set LVel 0.0
+    set LVelt 0.0
+    set LVelb 0.0
     set cxpath "DEM//c.DEM-MaterialTest//i.DEM-ConfinementPressure"
     set ConfPress [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"ConfinementPressure\"              : $ConfPress,"
+
     set basexpath "DEM//c.DEM-MaterialTest//c.DEM-TopLayerGroup"
     set topgroup [::xmlutils::setXmlContainerIds $basexpath]
     if {[llength $topgroup]} {
-	set basexpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall"
-	set gproplist [::xmlutils::setXmlContainerIds $basexpath]
-	if {[llength $gproplist]} {
-	    set cxpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall//c.[lindex $topgroup 0]//c.LinearVelocity//i.LinearVelocityY"
-	    set LVel [::xmlutils::setXml $cxpath "dv"]
-	}
+    set basexpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall"
+    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+    if {[llength $gproplist]} {
+        set cxpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall//c.[lindex $topgroup 0]//c.LinearVelocity//i.LinearVelocityY"
+        set LVelt [::xmlutils::setXml $cxpath "dv"]
     }
-    if {$TestTypeOn eq "No"} {set LVel 0.0}
-    puts $fileid "\"LoadingVelocityTop\"              : $LVel,"
-    puts $fileid "\"LoadingVelocityBot\"               : 0.0,"
+    }
+
+    set basexpath "DEM//c.DEM-MaterialTest//c.DEM-BotLayerGroup"
+    set botgroup [::xmlutils::setXmlContainerIds $basexpath]
+    if {[llength $botgroup]} {
+    set basexpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall"
+    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+    if {[llength $gproplist]} {
+        set cxpath "DEM//c.DEM-Conditions//c.DEM-FEM-Wall//c.[lindex $botgroup 0]//c.LinearVelocity//i.LinearVelocityY"
+        set LVelb [::xmlutils::setXml $cxpath "dv"]
+    }
+    }
+
+    if {$TestTypeOn eq "No"} {set LVelt 0.0}
+    if {$TestTypeOn eq "No"} {set LVelb 0.0}
+    puts $fileid "\"LoadingVelocity\"              : [expr ($LVelt-$LVelb)],"
     set cxpath "DEM//c.DEM-MaterialTest//i.DEM-MeshType"
     set mt [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"MeshType\"                        : \"$mt\","
@@ -3407,11 +3423,18 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		set AngularPeriod "0.0"
 	    }
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.fixed_wall"
-	    set fixed_wall [::xmlutils::setXml $cxpath $cproperty]
+            set fixed_wall [::xmlutils::setXml $cxpath $cproperty]
 	    if {$fixed_wall=="Yes"} {
 		set fixed_wall_value 1
 	    } else {
 		set fixed_wall_value 0
+	    }
+            set ghostpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.AnalyticProps"
+            set ghost_wall [::xmlutils::setXml $ghostpath $cproperty]
+	    if {$ghost_wall=="Yes"} {
+		set ghost_wall_value 1
+	    } else {
+		set ghost_wall_value 0
 	    }
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularStartTime"
 	    set AngularVelocityStartTime [::xmlutils::setXml $cxpath $cproperty]
@@ -3422,7 +3445,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    incr dem_group_mesh_property_number
 	    set TableNumber 0
 	    set TableVelocityComponent 0
-	    foreach {FreeBodyMotion RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0} {}
+	    foreach {FreeBodyMotion RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 "No"} {}
 	    set type_of_motion [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.DEM-RBImposedMotion" dv]
 	    if {$type_of_motion=="None"} {
 		foreach {LinearVelocityX LinearVelocityY LinearVelocityZ AngularVelocityX AngularVelocityY AngularVelocityZ RigidBodyMotionOption} {0.0 0.0 0.0 0.0 0.0 0.0 0} {}
@@ -3448,7 +3471,29 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    set ExternalMX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MX" dv]
 	    set ExternalMY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MY" dv]
 	    set ExternalMZ [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.ExternalMoments//i.MZ" dv]
-	    set Buoyancy [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.IceSettings//i.Buoyancy" dv]
+	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.ShipElement"
+		    set Buoyancy [::xmlutils::setXml $cxpath dv]
+		    if {$Buoyancy=="Yes"} {
+		        set Buoyancy 1
+		    } else {
+		        set Buoyancy 0
+		    }
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.EnginePower"
+		    set enginepower [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.MaxEngineForce"
+		    set maxengineforce [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.ThresholdVelocity"
+		    set thresholdvelocity [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.EnginePerformance"
+		    set engineperformance [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.DragConstantX"
+		    set dragconstantx [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.DragConstantY"
+		    set dragconstanty [::xmlutils::setXml $cxpath dv]
+		    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.DragConstantZ"
+		    set dragconstantz [::xmlutils::setXml $cxpath dv]
+	    }
 	}
 	    GiD_File fprintf $demfemchannel "Begin SubModelPart $dem_group_mesh_property_number // DEM-FEM-Wall. Group name: $cgroupid"
 	    GiD_File fprintf $demfemchannel "  Begin SubModelPartData // DEM-FEM-Wall. Group name: $cgroupid"
@@ -3506,7 +3551,16 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VEnd" "dv"]"
 	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE \[3\] ($ExternalFX,$ExternalFY,$ExternalFZ)"
 	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT \[3\] ($ExternalMX,$ExternalMY,$ExternalMZ)"
-	    GiD_File fprintf $demfemchannel "  //FLOATING_OPTION $Buoyancy"
+	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+		GiD_File fprintf $demfemchannel "  FLOATING_OPTION $Buoyancy"
+		GiD_File fprintf $demfemchannel "  DEM_ENGINE_POWER $enginepower"
+		GiD_File fprintf $demfemchannel "  DEM_MAX_ENGINE_FORCE $maxengineforce"
+		GiD_File fprintf $demfemchannel "  DEM_THRESHOLD_VELOCITY $thresholdvelocity"
+		GiD_File fprintf $demfemchannel "  DEM_ENGINE_PERFORMANCE $engineperformance"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_X $dragconstantx"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Y $dragconstanty"
+		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Z $dragconstantz"
+	    }
 	    }
 	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
@@ -3514,6 +3568,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
+            GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER $TableNumber"
 	    GiD_File fprintf $demfemchannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
 	    GiD_File fprintf $demfemchannel "  IDENTIFIER $cgroupid"
@@ -3537,6 +3592,16 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		GiD_File fprintf $demfemchannel "  $nodeid"
 	    }
 	    GiD_File fprintf $demfemchannel "  End SubModelPartNodes"
+	    #
+	    set nlist [GiD_EntitiesGroups get $cgroupid elements]
+        if {[llength $nlist]} {
+            GiD_File fprintf $demfemchannel "  Begin SubModelPartConditions"
+            foreach elemid $nlist {
+                GiD_File fprintf $demfemchannel "  $elemid"
+            }
+            GiD_File fprintf $demfemchannel "  End SubModelPartConditions"
+        }
+	    #
 	    GiD_File fprintf $demfemchannel "End SubModelPart"
 	    GiD_File fprintf $demfemchannel ""
 

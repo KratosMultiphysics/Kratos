@@ -77,7 +77,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
 
     // Custom strategy types
-    typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
+    // typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
@@ -87,7 +87,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
-    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;    
+    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
     typedef AdjointStructuralStaticScheme< SparseSpaceType, LocalSpaceType > AdjointStructuralStaticSchemeType;
 
 
@@ -100,12 +100,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
-    
-    // Residual Based Arc Length Strategy      
-    class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
-    .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
-                                                                unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
-            ;
+
+    // Residual Based Arc Length Strategy
+    // Currently not woking
+    // class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
+    // .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
+    //                                                             unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
+    //        ;
 
     // Eigensolver Strategy
     class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")

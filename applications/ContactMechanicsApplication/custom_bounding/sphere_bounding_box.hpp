@@ -62,7 +62,7 @@ public:
     /// Pointer definition of SphereBoundingBox
     KRATOS_CLASS_POINTER_DEFINITION( SphereBoundingBox );
 
-    //typedef bounded_vector<double, 3>                     PointType;
+    //typedef BoundedVector<double, 3>                     PointType;
     typedef array_1d<double, 3>                             PointType;
     typedef ModelPart::NodeType                              NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;

@@ -2,6 +2,7 @@ import os
 
 # Import Kratos
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -46,6 +47,10 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json", 'r') as parameter_file:
                 self.project_parameters_save = KratosMultiphysics.Parameters(parameter_file.read())
 
+            # To avoid many prints
+            if (self.project_parameters_save["problem_data"]["echo_level"].GetInt() == 0):
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
             # Set common settings
             self.time_step = 1.5
             self.start_time = 0.0
@@ -64,19 +69,20 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             save_restart_parameters = KratosMultiphysics.Parameters("""{
                 "save_restart" : true
             }""")
-            load_restart_parameters = KratosMultiphysics.Parameters("""{
-                "load_restart"              : true,
-                "restart_load_file_label"   : "3.0"
-            }""")
 
             self.project_parameters_save["solver_settings"].AddValue("restart_settings", save_restart_parameters)
-            self.project_parameters_load["solver_settings"].AddValue("restart_settings", load_restart_parameters)
+            load_mp_import_settings = self.project_parameters_load["solver_settings"]["model_import_settings"]
+            load_mp_import_settings.AddEmptyValue("restart_load_file_label")
+            load_mp_import_settings["input_type"].SetString("rest")
+            load_mp_import_settings["restart_load_file_label"].SetString("3.0")
 
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            structural_mechanics_analysis.StructuralMechanicsAnalysis(self.project_parameters_save).Run()
-            structural_mechanics_analysis.StructuralMechanicsAnalysis(self.project_parameters_load).Run()
+            model_save = KratosMultiphysics.Model()
+            model_load = KratosMultiphysics.Model()
+            structural_mechanics_analysis.StructuralMechanicsAnalysis(model_save, self.project_parameters_save).Run()
+            structural_mechanics_analysis.StructuralMechanicsAnalysis(model_load, self.project_parameters_load).Run()
 
     def tearDown(self):
         # remove the created restart files
@@ -94,3 +100,14 @@ class TestTotalLagrangian2D3N(StructuralMechanicsRestartTestFactory):
 
 class TestUpdatedLagrangian3D8N(StructuralMechanicsRestartTestFactory):
     file_name = "patch_test/updated_lagrangian/patch_test_3D_shear_hexa"
+
+
+if __name__ == "__main__":
+    suites = KratosUnittest.KratosSuites
+    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestSmallDisplacement2D4N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTotalLagrangian2D3N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestUpdatedLagrangian3D8N]))
+    allSuite = suites['all']
+    allSuite.addTests(smallSuite)
+    KratosUnittest.runTests(suites)
