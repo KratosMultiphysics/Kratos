@@ -11,12 +11,12 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 
 import structural_mechanics_solver
 
-def CreateSolver(main_model_part, custom_settings):
-    return StructuralMechanicsAdjointStaticSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return StructuralMechanicsAdjointStaticSolver(model, custom_settings)
 
 class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.MechanicalSolver):
 
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
 
         adjoint_settings = KratosMultiphysics.Parameters("""
         {
@@ -32,7 +32,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.response_function_settings = custom_settings["response_function_settings"].Clone()
         custom_settings.RemoveValue("response_function_settings")
         # Construct the base solver.
-        super(StructuralMechanicsAdjointStaticSolver, self).__init__(main_model_part, custom_settings)
+        super(StructuralMechanicsAdjointStaticSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
@@ -45,11 +45,11 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
-    def PrepareModelPartForSolver(self):
+    def PrepareModelPart(self):
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
             raise Exception("there are currently only 3D adjoint elements available")
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part).Execute()
-        super(StructuralMechanicsAdjointStaticSolver, self).PrepareModelPartForSolver()
+        super(StructuralMechanicsAdjointStaticSolver, self).PrepareModelPart()
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):
@@ -86,10 +86,14 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             mechanical_solution_strategy = self.get_mechanical_solution_strategy()
             mechanical_solution_strategy.Solve()
 
+    def SolveSolutionStep(self):
+        if self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
+            self._SolveSpecialStrainEnergy()
+        else:
+            super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
+
     def _SolveSpecialStrainEnergy(self):
-
         self.response_function.Initialize()
-
         for node in self.main_model_part.Nodes:
             adjoint_displacement = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement )
@@ -97,7 +101,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
                 adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
                 node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
 
-        self.response_function.FinalizeSolutionStep()
+        #self.response_function.FinalizeSolutionStep()
 
     def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
