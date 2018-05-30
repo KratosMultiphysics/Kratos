@@ -6,7 +6,7 @@
 //  License: BSD License
 //   license: convection_diffusion_application/license.txt
 //
-//  Main authors:  Antonia Laresse
+//  Main authors:  Antonia Larese
 //
 
 #if !defined(KRATOS_PURE_CONVECTION_CRANKN_UTILITIES_INCLUDED )
