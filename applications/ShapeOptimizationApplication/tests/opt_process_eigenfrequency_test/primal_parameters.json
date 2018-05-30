@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "structure",
-        "model_part_name" : "Structure",
+        "model_part_name" : "structure",
         "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
@@ -38,7 +38,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_support",
+            "model_part_name" : "structure.DISPLACEMENT_support",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
             "value"           : [0.0,0.0,0.0],
@@ -54,7 +54,7 @@
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_load_point",
+            "model_part_name" : "structure.PointLoad3D_load_point",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 10000.0,
             "direction"       : [0.0,-1.0,0.0],
