@@ -27,10 +27,10 @@ namespace Kratos
     {
         typedef Node<3> NodeType;
         typedef std::size_t IndexSize;
-        typedef std::unordered_map<IndexSize,int> IndexIntMapType;
-        typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
-        typedef std::map<std::pair<int,int>,int> PairIntMapType;
-        typedef std::unordered_map<int,std::vector<ModelPart*>> IntModelPartPtrMapType;
+        typedef std::unordered_map<IndexSize,IndexSize> IndexIntMapType;
+        typedef std::unordered_map<IndexSize,std::vector<std::string>> IntStringMapType;
+        typedef std::map<std::pair<IndexSize,IndexSize>,IndexSize> PairIntMapType;
+        typedef std::unordered_map<IndexSize,std::vector<ModelPart*>> IntModelPartPtrMapType;
 
         /**
         * Checks the correct work of the sub modelparts list utility
@@ -117,9 +117,9 @@ namespace Kratos
             second_model_part.AddElements(first_model_part.Elements().begin(), first_model_part.Elements().end());
 
             for (auto & nodes_color : nodes_colors) {
-                const int id = nodes_color.first;
+                const IndexSize id = nodes_color.first;
                 NodeType::Pointer p_node = second_model_part.pGetNode(id);
-                const int key = nodes_color.second;
+                const IndexSize key = nodes_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -130,9 +130,9 @@ namespace Kratos
                 }
             }
             for (auto & elems_color : elem_colors) {
-                const int id = elems_color.first;
+                const IndexSize id = elems_color.first;
                 ElementType::Pointer p_elem = second_model_part.pGetElement(id);
-                const int key = elems_color.second;
+                const IndexSize key = elems_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -259,9 +259,9 @@ namespace Kratos
             second_model_part.AddElements(first_model_part.Elements().begin(), first_model_part.Elements().end());
 
             for (auto & nodes_color : nodes_colors) {
-                const int id = nodes_color.first;
+                const IndexSize id = nodes_color.first;
                 NodeType::Pointer p_node = second_model_part.pGetNode(id);
-                const int key = nodes_color.second;
+                const IndexSize key = nodes_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -272,9 +272,9 @@ namespace Kratos
                 }
             }
             for (auto & elems_color : elem_colors) {
-                const int id = elems_color.first;
+                const IndexSize id = elems_color.first;
                 ElementType::Pointer p_elem = second_model_part.pGetElement(id);
-                const int key = elems_color.second;
+                const IndexSize key = elems_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -399,7 +399,7 @@ namespace Kratos
             // Compute the intersections
             PairIntMapType intersections;
             SubModelPartsListUtility::IntersectColors(colors, intersections);
-            int key;
+            IndexSize key;
             // The intersection gives the main model part
             key = intersections[std::minmax(nodes_colors[p_node_1->Id()], nodes_colors[p_node_3->Id()])];
             KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_2->Id()]);

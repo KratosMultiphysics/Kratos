@@ -22,11 +22,11 @@ import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
-def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
-    return PartitionedFSIBaseSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
+def CreateSolver(fluid_main_model_part, project_parameters):
+    return PartitionedFSIBaseSolver(fluid_main_model_part, project_parameters)
 
 class PartitionedFSIBaseSolver:
-    def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
+    def __init__(self, fluid_main_model_part, project_parameters):
 
         print("** Calling the partitioned FSI base solver constructor...")
 
@@ -41,7 +41,6 @@ class PartitionedFSIBaseSolver:
         if end_time_structure != end_time_fluid:
             raise("ERROR: Different final time among subdomains!")
 
-        self.structure_main_model_part = structure_main_model_part
         self.fluid_main_model_part = fluid_main_model_part
 
         # Time stepping checks (no sub-stepping between subdomains has been implemented yed)
@@ -76,7 +75,22 @@ class PartitionedFSIBaseSolver:
         coupling_utility_parameters = self.settings["coupling_solver_settings"]["coupling_strategy"]
 
         # Construct the structure solver
-        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_main_model_part,
+        self.structure_model = KratosMultiphysics.Model()
+        structural_solver_settings = project_parameters["structure_solver_settings"]["solver_settings"]
+        if not structural_solver_settings.Has("time_stepping"):
+            KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Using the old way to pass the time_step, this will be removed!")
+            time_stepping_params = KratosMultiphysics.Parameters("{}")
+            time_stepping_params.AddValue("time_step", project_parameters["structure_solver_settings"]["problem_data"]["time_step"])
+            structural_solver_settings.AddValue("time_stepping", time_stepping_params)
+        if not structural_solver_settings.Has("domain_size"):
+            KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Using the old way to pass the domain_size, this will be removed!")
+            structural_solver_settings.AddEmptyValue("domain_size")
+            structural_solver_settings["domain_size"].SetInt(project_parameters["structure_solver_settings"]["problem_data"]["domain_size"].GetInt())
+        if not structural_solver_settings.Has("model_part_name"):
+            KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Using the old way to pass the model_part_name, this will be removed!")
+            structural_solver_settings.AddEmptyValue("model_part_name")
+            structural_solver_settings["model_part_name"].SetString(project_parameters["structure_solver_settings"]["problem_data"]["model_part_name"].GetString())
+        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_model,
                                                                                project_parameters["structure_solver_settings"])
         print("* Structure solver constructed.")
 
@@ -134,6 +148,7 @@ class PartitionedFSIBaseSolver:
     def ImportModelPart(self):
         # Import structure model part
         self.structure_solver.ImportModelPart()
+        self.structure_solver.PrepareModelPart()
 
         # Import fluid model part
         self.fluid_solver.ImportModelPart()
