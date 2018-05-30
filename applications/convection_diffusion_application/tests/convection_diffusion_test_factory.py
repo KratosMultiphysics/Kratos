@@ -62,5 +62,5 @@ class ConvectionDiffusionTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
 
-class SimpleMeshMovingTest(ConvectionDiffusionTestFactory):
-    file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test"
+class BasicConvectionDiffusionStationaryTest(ConvectionDiffusionTestFactory):
+    file_name = "basic_conv_diffusion_test/basic_conv_diffusion_test_stationary"
