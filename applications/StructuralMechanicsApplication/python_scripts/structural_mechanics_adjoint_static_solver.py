@@ -79,7 +79,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
 
     def Solve(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
-            self._SolveSpecialStrainEnergy()
+            self._SolveSolutionStepSpecialStrainEnergy()
         else:
             if self.settings["clear_storage"].GetBool():
                 self.Clear()
@@ -88,11 +88,11 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
 
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
-            self._SolveSpecialStrainEnergy()
+            self._SolveSolutionStepSpecialStrainEnergy()
         else:
             super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
 
-    def _SolveSpecialStrainEnergy(self):
+    def _SolveSolutionStepSpecialStrainEnergy(self):
         self.response_function.Initialize()
         for node in self.main_model_part.Nodes:
             adjoint_displacement = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
