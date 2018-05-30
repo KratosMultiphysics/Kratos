@@ -7,11 +7,11 @@
         "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
-        "echo_level"      : 1
+        "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Stationary",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -52,7 +52,7 @@
                 "model_part_name" : "Check_Part",
                 "variable_name"   : "TEMPERATURE",
                 "interval"        : [0.0, "End"],
-                "value"           : 2.0,
+                "value"           : 1.0,
                 "tolerance_rank"  : 3
         }
     }],
