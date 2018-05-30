@@ -96,8 +96,8 @@ class ConvectionDiffusionBaseSolver(object):
                 "scaling": false
             },
             "element_replace_settings" : {
-                "element_name" : "LaplacianElement",
-                "condition_name" : "ThermalFace"
+                "element_name" : "EulerianConvDiff",
+                "condition_name" : "Condition"
             },
             "problem_domain_sub_model_part_list": ["conv_diff_body"],
             "processes_sub_model_part_list": [""],
@@ -589,21 +589,59 @@ class ConvectionDiffusionBaseSolver(object):
 
     def _get_element_condition_replace_settings(self):
         # Duplicate model part
+        num_nodes_elements = 0
+        if (len(self.main_model_part.Elements) > 0):
+            num_nodes_elements = len(self.main_model_part.Elements[1].GetNodes())
+
+        ## Elements
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
-                self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
-                self.settings["element_replace_settings"]["condition_name"].SetString("Condition2D2N")
+                if (num_nodes_elements == 3):
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
+                else:
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N")
             elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
                 self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement2D3N")
-                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace2D")
-
         elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
             if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
-                self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
-                self.settings["element_replace_settings"]["condition_name"].SetString("Condition3D3N")
+                if (num_nodes_elements == 4):
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
+                else:
+                    self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
             elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
-                self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D4N")
+                if (num_nodes_elements == 4):
+                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D4N")
+                elif (num_nodes_elements == 8):
+                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D8N")
+                else:
+                    self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D27N")
+        else:
+            raise Exception("DOMAIN_SIZE not set")
+        
+        ## Conditions
+        num_nodes_conditions = 0
+        if (len(self.main_model_part.Conditions) > 0):
+            num_nodes_conditions = len(self.main_model_part.Conditions[1].GetNodes())
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
+                self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition2D2N")
+            elif (self.settings["element_replace_settings"]["condition_name"].GetString() == "ThermalFace"):
+                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace2D")
+            else:
+                self.settings["element_replace_settings"]["condition_name"].SetString("LineCondition2D2N")
+        elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+            if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
+                if (num_nodes_conditions == 3):
+                    self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition3D3N")
+                else:
+                    self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition3D4N")
+            elif (self.settings["element_replace_settings"]["condition_name"].GetString() == "ThermalFace"):
                 self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace3D")
+            else:
+                if (num_nodes_conditions == 3):
+                    self.settings["element_replace_settings"]["condition_name"].SetString("SurfaceCondition3D3N")
+                else:
+                    self.settings["element_replace_settings"]["condition_name"].SetString("SurfaceCondition3D4N")
         else:
             raise Exception("DOMAIN_SIZE not set")
 
