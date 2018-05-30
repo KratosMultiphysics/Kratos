@@ -286,7 +286,7 @@ void AxisymmetricUpdatedLagrangianElement::FinalizeStepVariables( ElementDataTyp
 void AxisymmetricUpdatedLagrangianElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
 
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
@@ -303,7 +303,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateAndAddLHS(LocalSystemCompone
 
 void AxisymmetricUpdatedLagrangianElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
@@ -343,7 +343,7 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateTotalMass( double& rTotal
 	double PointVolumeChange = 0;
 	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
 
-	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Variables.CurrentRadius * IntegrationWeight;
+	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * Globals::Pi * Variables.CurrentRadius * IntegrationWeight;
 
       }
 
