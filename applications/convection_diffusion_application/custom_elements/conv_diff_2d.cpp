@@ -24,33 +24,43 @@
 namespace Kratos
 {
 
+ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry)
+: Element(NewId, pGeometry)
+{
+    //DO NOT ADD DOFS HERE!!!
+}
 
-    //************************************************************************************
-    //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-    ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
-    {
-        //DO NOT ADD DOFS HERE!!!
-    }
+ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+: Element(NewId, pGeometry, pProperties)
+{
 
-    //************************************************************************************
-    //************************************************************************************
+}
 
-    ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
-    {
+//************************************************************************************
+//************************************************************************************
 
-    }
+Element::Pointer ConvDiff2D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<ConvDiff2D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
 
-  Element::Pointer ConvDiff2D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-  {
-    return Element::Pointer(new ConvDiff2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
-  }
-  
-  ConvDiff2D::~ConvDiff2D()
-  {
-  }
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer ConvDiff2D::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<ConvDiff2D>(NewId, pGeom, pProperties);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+ConvDiff2D::~ConvDiff2D()
+{
+}
   
   //************************************************************************************
   //************************************************************************************

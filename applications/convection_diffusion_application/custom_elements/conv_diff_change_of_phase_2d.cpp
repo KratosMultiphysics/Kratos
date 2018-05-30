@@ -62,7 +62,12 @@ ConvDiffChangeOfPhase2D::ConvDiffChangeOfPhase2D(IndexType NewId, GeometryType::
 
 Element::Pointer ConvDiffChangeOfPhase2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new ConvDiffChangeOfPhase2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<ConvDiffChangeOfPhase2D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Element::Pointer ConvDiffChangeOfPhase2D::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<ConvDiffChangeOfPhase2D>(NewId, pGeom, pProperties);
 }
 
 ConvDiffChangeOfPhase2D::~ConvDiffChangeOfPhase2D()

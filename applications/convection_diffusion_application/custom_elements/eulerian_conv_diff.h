@@ -64,11 +64,22 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId, 
+        NodesArrayType const& ThisNodes, 
+        PropertiesType::Pointer pProperties
+        ) const override
     {
-        KRATOS_TRY
-        return Element::Pointer(new EulerianConvectionDiffusionElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        KRATOS_CATCH("");
+        return Kratos::make_shared<EulerianConvectionDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+    
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override
+    {
+        return Kratos::make_shared<EulerianConvectionDiffusionElement>(NewId, pGeom, pProperties);
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;

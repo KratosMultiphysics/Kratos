@@ -96,9 +96,12 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY
-        return Element::Pointer(new EulerianDiffusionElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        KRATOS_CATCH("");
+        return Kratos::make_shared<EulerianDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+    
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared<EulerianDiffusionElement>(NewId, pGeom, pProperties);
     }
 
 
