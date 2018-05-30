@@ -118,6 +118,7 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "navier_stokes_solver_vmsmonolithic",
+            "model_part_name": "FluidModelPart",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"

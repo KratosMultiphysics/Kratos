@@ -49,8 +49,10 @@ class NavierStokesBaseSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Fluid solver DOFs added correctly.")
 
     def ImportModelPart(self):
-        ## Read model part
-        self._model_part_reading()
+        # we can use the default implementation in the base class
+        self._ImportModelPart()
+
+    def PrepareModelPart(self):
         ## Replace default elements and conditions
         self._replace_elements_and_conditions()
         ## Executes the check and prepare model process
@@ -174,18 +176,6 @@ class NavierStokesBaseSolver(PythonSolver):
 
     def _GetDefaultSettings(self):
         raise Exception("Please define the default solver settings in the derived solver class")
-
-    def _model_part_reading(self):
-        ## Model part reading
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            ## Here it would be the place to import restart data if required
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-
-            if(self.settings["reorder"].GetBool()):
-                tmp = KratosMultiphysics.Parameters("{}")
-                KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part, tmp).Execute()
-        else:
-            raise Exception("Other input options are not implemented yet.")
 
     def _replace_elements_and_conditions(self):
         ## Get number of nodes and domain size
