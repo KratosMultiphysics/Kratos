@@ -222,9 +222,9 @@ class ConvectionDiffusionBaseSolver(object):
         
         # Adding nodal area variable (some solvers use it. TODO: Ask)
         #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        ## If LaplacianElement is used
-        #if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement")
-            #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        # If LaplacianElement is used
+        if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Variables ADDED")
 
@@ -279,27 +279,11 @@ class ConvectionDiffusionBaseSolver(object):
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
-            #construct a model part which contains both the skin and the volume
-            #computing_model_part_name = self.settings["computing_model_part_name"].GetString()
-            #if not (self.main_model_part.HasSubModelPart(computing_model_part_name)):
-                #self.main_model_part.CreateSubModelPart(computing_model_part_name)
-            
+
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
-                
-            # Duplicate model part
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                conv_diff_element = "EulerianConvDiff2D"
-                conv_diff_condition = "Condition2D2N"
-            elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-                conv_diff_element = "EulerianConvDiff3D"
-                conv_diff_condition = "Condition3D3N"
-
-            modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-            modeler.GenerateModelPart(self.main_model_part, self.GetComputingModelPart(), conv_diff_element, conv_diff_condition)
             
-            # TODO: Replace with "element_replace_settings" when more consistent names given to the conditions and elements
-            #KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+            KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
         
             self._set_and_fill_buffer()
         
@@ -603,6 +587,31 @@ class ConvectionDiffusionBaseSolver(object):
 
         return restart_settings
 
+    def _get_element_condition_replace_settings(self):
+        # Duplicate model part
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
+                self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
+                self.settings["element_replace_settings"]["condition_name"].SetString("Condition2D2N")
+            elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
+                self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement2D3N")
+                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace2D")
+
+        elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+            if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
+                self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
+                self.settings["element_replace_settings"]["condition_name"].SetString("Condition3D3N")
+            elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
+                self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement3D4N")
+                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace3D")
+        else:
+            raise Exception("DOMAIN_SIZE not set")
+
+        #modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+        #modeler.GenerateModelPart(self.main_model_part, self.GetComputingModelPart(), self.settings["element_replace_settings"]["element_name"].GetString(), self.settings["element_replace_settings"]["condition_name"].GetString())
+
+        return self.settings["element_replace_settings"]
+    
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
