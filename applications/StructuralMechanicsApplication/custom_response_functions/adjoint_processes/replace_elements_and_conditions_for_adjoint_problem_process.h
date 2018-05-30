@@ -48,8 +48,8 @@ public:
     ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part);
     
     /// Destructor.
-    ~ReplaceElementsAndConditionsForAdjointProblemProcess() override;
-
+    ~ReplaceElementsAndConditionsForAdjointProblemProcess() override
+    = default;
 
     ///@}
     ///@name Operators
@@ -120,7 +120,7 @@ private:
     bool GetNewConditionName(const Condition& rCondition, std::string& rName);
 
     /// Assignment operator.
-    ReplaceElementsAndConditionsForAdjointProblemProcess& operator=(ReplaceElementsAndConditionsForAdjointProblemProcess const& rOther);
+    ReplaceElementsAndConditionsForAdjointProblemProcess& operator=(ReplaceElementsAndConditionsForAdjointProblemProcess const& rOther) = delete;
 
     /// Copy constructor.
     //ReplaceElementsAndConditionsForAdjointProblemProcess(ReplaceElementsAndConditionsForAdjointProblemProcess const& rOther);
