@@ -105,8 +105,8 @@ namespace Kratos
       
       bool success=false;
 
-      boost::timer auxiliary;
-	
+      double begin_time = OpenMPUtils::GetCurrentTime();
+      
       if( mEchoLevel > 0 )
 	std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
 
@@ -118,8 +118,10 @@ namespace Kratos
         }
       else
 	{
-          if( mEchoLevel >= 1 )
-	    std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
+          if( mEchoLevel >= 1 ){
+            double end_time = OpenMPUtils::GetCurrentTime();
+	    std::cout<<" [ Search performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+          }
             //PrintSkin(mrModelPart);
         }
 
@@ -225,8 +227,8 @@ namespace Kratos
 	    //
 	    //********************************************************************
 
-	    boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	    DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+	    DenseVector<unsigned int> lnofa; //number of points defining faces
 	 
 	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 	    
@@ -292,7 +294,7 @@ namespace Kratos
 				
 				if( condition_found ){
 				
-				  pBoundaryCondition = (*(ic.base())); //accessing boost::shared_ptr  get() to obtain the raw pointer
+				  pBoundaryCondition = (*(ic.base())); //accessing shared_ptr  get() to obtain the raw pointer
 				  rPreservedConditions[ic->Id()-1] += 1; //add each time is used
 
 				  if( rConditionGeometry.PointsNumber() == 1 )
@@ -311,7 +313,7 @@ namespace Kratos
 				
 				if( condition_found ){
 				
-				  pBoundaryCondition = (*(ic.base())); //accessing boost::shared_ptr  get() to obtain the raw pointer
+				  pBoundaryCondition = (*(ic.base())); //accessing shared_ptr  get() to obtain the raw pointer
 				  rPreservedConditions[ic->Id()-1] += 1; //add each time is used
 
 				  if( rConditionGeometry.PointsNumber() == 1 )
@@ -536,7 +538,7 @@ namespace Kratos
     //**************************************************************************
 
 
-    bool FindNodeInCondition(Geometry< Node<3> >& rConditionGeometry,Geometry< Node<3> >& rElementGeometry , boost::numeric::ublas::matrix<unsigned int>& lpofa, boost::numeric::ublas::vector<unsigned int>& lnofa, unsigned int& iface)
+    bool FindNodeInCondition(Geometry< Node<3> >& rConditionGeometry,Geometry< Node<3> >& rElementGeometry , DenseMatrix<unsigned int>& lpofa, DenseVector<unsigned int>& lnofa, unsigned int& iface)
     {
       KRATOS_TRY
       

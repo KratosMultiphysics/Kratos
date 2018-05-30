@@ -15,7 +15,6 @@
 #include <iostream>
 
 // External includes
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -118,8 +117,8 @@ namespace Kratos
 
       int method = 0; //Kratos or Lohner method
 
-      boost::timer auxiliary;
-
+      double begin_time = OpenMPUtils::GetCurrentTime();
+      
       if(method==0)
 	{
 	  success=KratosSearch();
@@ -138,8 +137,10 @@ namespace Kratos
       else
 	{
 	  //print out the mesh generation time
-	  if( mEchoLevel > 1 )
-	    std::cout<<"  Neighbour Nodes Search time = "<<auxiliary.elapsed()<<std::endl;
+	  if( mEchoLevel > 1 ){
+            double end_time = OpenMPUtils::GetCurrentTime();
+	    std::cout<<"  Neighbour Nodes Search time = "<<end_time-begin_time<<std::endl;
+          }
 	  //PrintNodeNeighbours();
 	}
 

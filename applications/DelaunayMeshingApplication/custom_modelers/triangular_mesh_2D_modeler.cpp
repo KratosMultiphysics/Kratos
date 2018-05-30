@@ -49,8 +49,8 @@ namespace Kratos
     
     //*********************************************************************
 
-    boost::timer auxiliary;
-
+    double begin_time = OpenMPUtils::GetCurrentTime();
+    
     //Generate Mesh
     ////////////////////////////////////////////////////////////
     int fail = GenerateTessellation(rMeshingVariables,in,out);
@@ -71,9 +71,10 @@ namespace Kratos
     }
 
     //Print out the mesh generation time
-    if( this->GetEchoLevel() > 0 )
-      std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
-
+    if( this->GetEchoLevel() > 0 ){
+      double end_time = OpenMPUtils::GetCurrentTime(); 
+      std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
+    }
 
     //*********************************************************************
 

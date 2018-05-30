@@ -16,8 +16,6 @@
 #include <iostream>
 
 // External includes
-#include <boost/timer.hpp>
-
 
 // Project includes
 #include "includes/define.h"
@@ -126,8 +124,8 @@ namespace Kratos
 
       bool success=false;
 
-      boost::timer auxiliary;
-
+      double begin_time = OpenMPUtils::GetCurrentTime();
+      
       unsigned int NumberOfSubModelParts=mrModelPart.NumberOfSubModelParts();
       
       if( mModelPartName == mrModelPart.Name() ){
@@ -146,8 +144,10 @@ namespace Kratos
 	      }
 	    else
 	      {
-		if( mEchoLevel >= 1 )
-		  std::cout<<" [ Performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
+		if( mEchoLevel >= 1 ){
+                  double end_time = OpenMPUtils::GetCurrentTime(); 
+		  std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+                }
 		//PrintSkin(*i_mp);
 	      }
 	  }
@@ -166,8 +166,10 @@ namespace Kratos
 	  }
 	else
 	  {
-	    if( mEchoLevel >= 1 )
-	      std::cout<<" [ Performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
+	    if( mEchoLevel >= 1 ){
+              double end_time = OpenMPUtils::GetCurrentTime();
+	      std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+            }
 	    //PrintSkin(rModelPart);
 	  }
       }
@@ -222,8 +224,8 @@ namespace Kratos
 
 	  //********************************************************************
 
-	  boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-	  boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	  DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+	  DenseVector<unsigned int> lnofa; //number of points defining faces
 	 	    
 	  Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 	  unsigned int size=rConditionGeometry.size();
@@ -638,8 +640,8 @@ namespace Kratos
 	    //********************************************************************
 
 	    //finding boundaries and creating the "skin"	   
-	    boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	    DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+	    DenseVector<unsigned int> lnofa; //number of points defining faces
 	 
 	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 

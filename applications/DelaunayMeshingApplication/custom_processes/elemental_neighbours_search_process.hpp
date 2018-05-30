@@ -10,15 +10,11 @@
 #if !defined(KRATOS_ELEMENTAL_NEIGHBOURS_SEARCH_PROCESS_H_INCLUDED )
 #define  KRATOS_ELEMENTAL_NEIGHBOURS_SEARCH_PROCESS_H_INCLUDED
 
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-#include <boost/timer.hpp>
-
 
 // Project includes
 #include "includes/define.h"
@@ -123,8 +119,8 @@ namespace Kratos
 
       int method = 0;  //Kratos or Lohner method
 
-      boost::timer auxiliary;
-
+      double begin_time = OpenMPUtils::GetCurrentTime();
+      
       if(method==0)
         {
 	  //std::cout<<" Kratos Search "<<std::endl;
@@ -143,8 +139,10 @@ namespace Kratos
       else
         {
 	  //print out the mesh generation time
-	  if( mEchoLevel > 1 )
-            std::cout<<"  Neighbour Elements Search time = "<<auxiliary.elapsed()<<std::endl;
+	  if( mEchoLevel > 1 ){
+            double end_time = OpenMPUtils::GetCurrentTime();
+            std::cout<<"  Neighbour Elements Search time = "<<end_time-begin_time<<std::endl;
+          }
 	  //PrintElementNeighbours();	       
         }
 
@@ -513,7 +511,7 @@ namespace Kratos
 
 			ie->Set(BOUNDARY);
 		
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -551,7 +549,7 @@ namespace Kratos
 
 			ie->Set(BOUNDARY);
 			
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -605,7 +603,7 @@ namespace Kratos
 		
 			ie->Set(BOUNDARY);
 
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -648,7 +646,7 @@ namespace Kratos
 
 			Geometry<Node<3> >& rGeometry = (ie)->GetGeometry();
 			
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -721,8 +719,8 @@ namespace Kratos
       unsigned int nnofj=0;
       unsigned int nface=0;
 
-      boost::numeric::ublas::vector<unsigned int> lnofa; //number of nodes per face
-      boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+      DenseVector<unsigned int> lnofa; //number of nodes per face
+      DenseMatrix<unsigned int> lpofa; //points that define the faces
 
       Element::GeometryType& pGeom = rElems.begin()->GetGeometry(); // the first element is taken as reference
       unsigned int Nf= pGeom.FacesNumber();     //number of faces
@@ -732,9 +730,9 @@ namespace Kratos
       pGeom.NodesInFaces(lpofa);
 
       //Auxiliary vectors
-      boost::numeric::ublas::vector<unsigned int> lhelp (Nf-1); //can be only 2 or 3 nodes per face : Triangles(faces of 2 nodes) Tetrahedra(faces of 3 nodes)
+      DenseVector<unsigned int> lhelp (Nf-1); //can be only 2 or 3 nodes per face : Triangles(faces of 2 nodes) Tetrahedra(faces of 3 nodes)
       lhelp.clear();
-      boost::numeric::ublas::vector<unsigned int> lpoin (Np+1);
+      DenseVector<unsigned int> lpoin (Np+1);
       lpoin.clear();
 
 

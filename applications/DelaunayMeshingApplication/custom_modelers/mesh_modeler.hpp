@@ -15,8 +15,6 @@
 #include <iostream>
 #include <stdlib.h>
 
-#include <boost/timer.hpp>
-
 // External includes
 
 // Project includes
