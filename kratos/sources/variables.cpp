@@ -519,10 +519,6 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mElement3D10N( 0, Element::GeometryType::Pointer(new Tetrahedra3D10<NodeType >(Element::GeometryType::PointsArrayType(10)))),
       
-      // Auxiliar elements
-      mAuxiliarElement2D3N( 0, Element::GeometryType::Pointer(new Triangle2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-      mAuxiliarElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
-      
       // Components
       mpVariableData(KratosComponents<VariableData>::pGetComponents()),
       mpIntVariables(KratosComponents<Variable<int> >::pGetComponents()),
@@ -1022,10 +1018,6 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
     KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
     KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
-    
-    // Auxiliar elements
-    KRATOS_REGISTER_ELEMENT("AuxiliarElement2D3N", mAuxiliarElement2D3N)
-    KRATOS_REGISTER_ELEMENT("AuxiliarElement3D4N", mAuxiliarElement3D4N)
     
     //Register general geometries:
 
