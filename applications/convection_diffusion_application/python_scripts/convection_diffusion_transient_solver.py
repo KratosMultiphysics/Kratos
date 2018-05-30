@@ -29,7 +29,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
         {
             "dynamic_tau": 1.0,
             "time_stepping" : {
-                "theta"    : 0.5
+                "theta"    : 1.0
             }
         }
         """)
