@@ -167,6 +167,11 @@ public:
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         Properties::Pointer pProperties) const override;
+        
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        Properties::Pointer pProperties) const override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,

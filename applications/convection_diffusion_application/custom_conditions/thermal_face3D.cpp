@@ -38,7 +38,11 @@ ThermalFace3D::ThermalFace3D(IndexType NewId, GeometryType::Pointer pGeometry,  
 
 Condition::Pointer ThermalFace3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new ThermalFace3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<ThermalFace3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+Condition::Pointer ThermalFace3D::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<ThermalFace3D>(NewId, pGeom, pProperties);
 }
 
 ThermalFace3D::~ThermalFace3D()

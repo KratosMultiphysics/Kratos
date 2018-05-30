@@ -38,7 +38,12 @@ ThermalFace2D::ThermalFace2D(IndexType NewId, GeometryType::Pointer pGeometry,  
 
 Condition::Pointer ThermalFace2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new ThermalFace2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<ThermalFace2D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer ThermalFace2D::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<ThermalFace2D>(NewId, pGeom, pProperties);
 }
 
 ThermalFace2D::~ThermalFace2D()
