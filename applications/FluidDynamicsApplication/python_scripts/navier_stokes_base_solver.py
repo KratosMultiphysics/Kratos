@@ -3,6 +3,7 @@ import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
+from python_sovler import PythonSolver
 
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
@@ -13,20 +14,36 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesBaseSolver(main_model_part, custom_settings)
 
-class NavierStokesBaseSolver(object):
+class NavierStokesBaseSolver(PythonSolver):
 
-    def __init__(self, main_model_part, custom_settings):
-        ## Set the element and condition names for the replace settings
-        self.element_name = None
-        self.condition_name = None
-        self.min_buffer_size = 3
-        self.step = 0
+    def __init__(self, model, custom_settings):
+        super(NavierStokesBaseSolver,self).__init___(model, custom_settings)
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
 
+        ## Set the element and condition names for the replace settings
+        ## These should be defined in derived classes
+        self.element_name = None
+        self.condition_name = None
+        self.min_buffer_size = 3
+
+        if self.settings.Has("model_part_name"):
+            model_part_name = self.settings["model_part_name"].GetString()
+            if self.model.HasModelPart(model_part_name):
+                self.main_model_part = self.model.GetModelPart(model_part_name)
+            else:
+                self.main_model_part = ModelPart(model_part_name)
+                self.model.AddModelPart(self.main_model_part)
+        else:
+            message = "".join(
+                "\"model_part_name\" not found in solver settings\n."
+                "Please validate input parameters before calling the NavierStokesBaseSolver base class constructor."
+            )
+            raise Exception(message)
+
     def AddVariables(self):
-        raise Exception("Trying to add Navier-Stokes base solver variables. Implement the AddVariables() method in the specific derived solver.")
+        raise Exception("Trying to call NavierStokesBaseSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
     def ImportModelPart(self):
         ## Read model part
