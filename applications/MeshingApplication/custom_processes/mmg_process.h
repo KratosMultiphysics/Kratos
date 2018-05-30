@@ -147,7 +147,7 @@ public:
     typedef std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType> > IndexVectorMapType;
 
     /// Colors map
-    typedef std::unordered_map<IndexType,int> ColorsMapType;
+    typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
 
     ///@}
     ///@name  Enum's
@@ -281,20 +281,20 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrThisModelPart;                                   /// The model part to compute           
-    Parameters mThisParameters;                                   /// The parameters (can be used for general pourposes)
-    NodeType::DofsContainerType  mDofs;                           /// Storage for the dof of the node
+    ModelPart& mrThisModelPart;                                      /// The model part to compute           
+    Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
+    NodeType::DofsContainerType  mDofs;                              /// Storage for the dof of the node
     
-    char* mFilename;                                              /// I/O file name
-    std::string mStdStringFilename;                               /// I/O file name (string)
-    IndexType mEchoLevel;                                         /// The echo level
+    char* mFilename;                                                 /// I/O file name
+    std::string mStdStringFilename;                                  /// I/O file name (string)
+    IndexType mEchoLevel;                                            /// The echo level
 
-    FrameworkEulerLagrange mFramework;                            /// The framework
+    FrameworkEulerLagrange mFramework;                               /// The framework
     
-    std::unordered_map<int,std::vector<std::string>> mColors;     /// Where the sub model parts IDs are stored
+    std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
     
-    std::unordered_map<int,Element::Pointer>   mpRefElement;      /// Reference condition
-    std::unordered_map<int,Condition::Pointer> mpRefCondition;    /// Reference element
+    std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference condition
+    std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference element
 
     ///@}
     ///@name Private Operators
@@ -499,7 +499,7 @@ private:
      * @param VerbosityMMG The equivalent verbosity level in the MMG API
      */
         
-    void InitVerbosityParameter(const int& VerbosityMMG);
+    void InitVerbosityParameter(const IndexType VerbosityMMG);
     
     /**
      * @brief This sets the size of the mesh
@@ -519,21 +519,21 @@ private:
      * @param NumNodes Number of nodes
      */
     
-    void SetSolSizeScalar(const int NumNodes);
+    void SetSolSizeScalar(const SizeType NumNodes);
     
     /**
      * @brief This sets the size of the solution for the vector case
      * @param NumNodes Number of nodes
      */
     
-    void SetSolSizeVector(const int NumNodes);
+    void SetSolSizeVector(const SizeType NumNodes);
     
     /**
      * @brief This sets the size of the solution for the tensor case
      * @param NumNodes Number of nodes
      */
     
-    void SetSolSizeTensor(const int NumNodes);
+    void SetSolSizeTensor(const SizeType NumNodes);
     
     /**
      * @brief This checks the mesh data and prints if it is OK
@@ -593,8 +593,8 @@ private:
         const double X,
         const double Y,
         const double Z,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -606,8 +606,8 @@ private:
     
     void SetConditions(
         GeometryType& Geom,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -619,8 +619,8 @@ private:
     
     void SetElements(
         GeometryType& Geom,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -629,8 +629,8 @@ private:
      */
 
     void SetMetricScalar(
-        const double& Metric,
-        const int NodeId 
+        const double Metric,
+        const IndexType NodeId 
         );
     
     /**
@@ -640,7 +640,7 @@ private:
 
     void SetMetricVector(
         const array_1d<double, 3>& Metric,
-        const int NodeId 
+        const IndexType NodeId 
         );
     
     /**
@@ -650,7 +650,7 @@ private:
 
     void SetMetricTensor(
         const Vector& Metric,
-        const int NodeId 
+        const IndexType NodeId 
         );
 
     /**
