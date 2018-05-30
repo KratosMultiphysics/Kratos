@@ -78,15 +78,11 @@ namespace Kratos
             Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D3N", 3, triangle_2, p_elem_prop);
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
                          
-            // Skip if the StructuralMechanicsApplication is not compiled
-            if (!KratosComponents<Element>::Has("SmallDisplacementElement2D3N"))
-                return void();
-            
             // Compute process
             Parameters settings( R"(
             {
-                "element_name":"SmallDisplacementElement2D3N",
-                "condition_name": "LineLoad2D2N"
+                "element_name":"AuxiliarElement2D3N",
+                "condition_name": "Condition2D2N"
             }  )" );
             
             ReplaceElementsAndConditionsProcess process = ReplaceElementsAndConditionsProcess(this_model_part, settings);
@@ -96,7 +92,7 @@ namespace Kratos
             std::string component_name;
             for (auto& r_element : this_model_part.Elements()) {
                 CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
-                KRATOS_CHECK_EQUAL(component_name, "SmallDisplacementElement2D3N");
+                KRATOS_CHECK_EQUAL(component_name, "AuxiliarElement2D3N");
             }
         }
         
@@ -223,16 +219,12 @@ namespace Kratos
             Element::Pointer p_elem_9 = this_model_part.CreateNewElement("Element3D4N", 10, tetrahedra_9, p_elem_prop);
             Element::Pointer p_elem_10 = this_model_part.CreateNewElement("Element3D4N", 11, tetrahedra_10, p_elem_prop);
             Element::Pointer p_elem_11 = this_model_part.CreateNewElement("Element3D4N", 12, tetrahedra_11, p_elem_prop);
-                      
-            // Skip if the StructuralMechanicsApplication is not compiled
-            if (!KratosComponents<Element>::Has("SmallDisplacementElement3D4N"))
-                return void();
             
             // Compute process
             Parameters settings( R"(
             {
-                "element_name":"SmallDisplacementElement3D4N",
-                "condition_name": "SurfaceLoad3D3N"
+                "element_name":"AuxiliarElement3D4N",
+                "condition_name": "SurfaceCondition3D3N"
             }  )" );
             
             ReplaceElementsAndConditionsProcess process = ReplaceElementsAndConditionsProcess(this_model_part, settings);
@@ -242,7 +234,7 @@ namespace Kratos
             std::string component_name;
             for (auto& r_element : this_model_part.Elements()) {
                 CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
-                KRATOS_CHECK_EQUAL(component_name, "SmallDisplacementElement3D4N");
+                KRATOS_CHECK_EQUAL(component_name, "AuxiliarElement3D4N");
             }
         }
     } // namespace Testing
