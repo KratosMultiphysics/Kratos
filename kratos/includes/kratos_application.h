@@ -348,10 +348,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Element mElement3D6N;
     const Element mElement3D8N;
     const Element mElement3D10N;
-
-    // Auxiliar elements
-    const Element mAuxiliarElement2D3N;
-    const Element mAuxiliarElement3D4N;
     
     const ConstitutiveLaw mConstitutiveLaw;
 
