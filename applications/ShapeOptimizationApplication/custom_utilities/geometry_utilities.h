@@ -147,26 +147,51 @@ public:
     	// Create map to ask for number of faces for the given set of node ids representing one face in the model part
     	hashmap n_faces_map;
 
+        unsigned int domain_size = static_cast<unsigned int>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+
     	// Fill map that counts number of faces for given set of nodes
     	for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
     	{
-    		Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+            if (domain_size==3)
+            {
+                Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
-    		for(unsigned int face=0; face<faces.size(); face++)
-    		{
-    			// Create vector that stores all node is of current face
-    			vector<unsigned int> ids(faces[face].size());
+                for(unsigned int face=0; face<faces.size(); face++)
+                {
+                    // Create vector that stores all node is of current face
+                    vector<unsigned int> ids(faces[face].size());
 
-    			// Store node ids
-    			for(unsigned int i=0; i<faces[face].size(); i++)
-    				ids[i] = faces[face][i].Id();
+                    // Store node ids
+                    for(unsigned int i=0; i<faces[face].size(); i++)
+                        ids[i] = faces[face][i].Id();
 
-    			//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-    			std::sort(ids.begin(), ids.end());
+                    //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                    std::sort(ids.begin(), ids.end());
 
-    			// Fill the map
-    			n_faces_map[ids] += 1;
-    		}
+                    // Fill the map
+                    n_faces_map[ids] += 1;
+                }
+            }
+            else if (domain_size == 2)
+            {
+                Element::GeometryType::GeometriesArrayType edges = itElem->GetGeometry().Edges();
+
+                for(unsigned int edge=0; edge<edges.size(); edge++)
+                {
+                    // Create vector that stores all node is of current face
+                    vector<unsigned int> ids(edges[edge].size());
+
+                    // Store node ids
+                    for(unsigned int i=0; i<edges[edge].size(); i++)
+                        ids[i] = edges[edge][i].Id();
+
+                    //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                    std::sort(ids.begin(), ids.end());
+
+                    // Fill the map
+                    n_faces_map[ids] += 1;
+                }                
+            }
     	}
 
     	// Vector to store all nodes on surface. Node ids may be listed several times
