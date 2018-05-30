@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "processes/process.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
 #include "custom_solvers/time_integration_methods/time_integration_method.hpp"
@@ -56,6 +57,7 @@ class SolverLocalFlags
   KRATOS_DEFINE_LOCAL_FLAG( CONDITIONS_INITIALIZED );
 
   /// Flags for the solution options:
+  KRATOS_DEFINE_LOCAL_FLAG( MOVE_MESH );
   KRATOS_DEFINE_LOCAL_FLAG( REFORM_DOFS );
   KRATOS_DEFINE_LOCAL_FLAG( INCREMENTAL_SOLUTION );
   KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_REACTIONS );
@@ -103,6 +105,9 @@ class SolutionScheme : public Flags
   typedef TimeIntegrationMethod<VariableScalarType, double>     IntegrationScalarType;
   typedef typename IntegrationScalarType::Pointer        IntegrationScalarPointerType;
   typedef std::vector<IntegrationScalarPointerType>      IntegrationMethodsScalarType;
+
+  typedef typename Process::Pointer                                ProcessPointerType;
+  typedef std::vector<ProcessPointerType>                    ProcessPointerVectorType;
   
   /// Pointer definition of SolutionScheme
   KRATOS_CLASS_POINTER_DEFINITION(SolutionScheme);
@@ -136,6 +141,7 @@ class SolutionScheme : public Flags
   
   /// Copy contructor.
   SolutionScheme(SolutionScheme& rOther) : mOptions(rOther.mOptions)
+                                         , mProcesses(rOther.mProcesses)
   {
     std::copy(std::begin(rOther.mTimeVectorIntegrationMethods), std::end(rOther.mTimeVectorIntegrationMethods), std::back_inserter(mTimeVectorIntegrationMethods));
   }
@@ -166,9 +172,12 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    if( this->mOptions.IsNotDefined(LocalFlagType::INCREMENTAL_SOLUTION) )
-      mOptions.Set(LocalFlagType::INCREMENTAL_SOLUTION); //default : dof is the variable increment
+    if( this->mOptions.IsNotDefined(LocalFlagType::MOVE_MESH) )
+      mOptions.Set(LocalFlagType::MOVE_MESH,true); //default : lagrangian mesh update
 
+    if( this->mOptions.IsNotDefined(LocalFlagType::INCREMENTAL_SOLUTION) )
+      mOptions.Set(LocalFlagType::INCREMENTAL_SOLUTION,true); //default : dof is the variable increment
+    
     this->InitializeElements(rModelPart);
 
     this->InitializeConditions(rModelPart);
@@ -481,23 +490,44 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    if (rModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-    {
-      KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the Model Part. Add DISPLACEMENT to the list of variables" << std::endl;
-    }
+    if( this->mOptions.Is(LocalFlagType::MOVE_MESH) ){
+      
+      if (rModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
+      {
+        KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the Model Part. Add DISPLACEMENT to the list of variables" << std::endl;
+      }
 
-    const int nnodes = rModelPart.NumberOfNodes();
-    ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
+      bool DisplacementIntegration = false;
+      for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
+          it!=mTimeVectorIntegrationMethods.end(); ++it)
+      {
+        if( "DISPLACEMENT" == (*it)->GetVariableName() ){
+          DisplacementIntegration = true;
+          break;
+        }
+      }
+
+      if(DisplacementIntegration == true){
+    
+        // Update mesh positions : node coordinates
+        const int nnodes = rModelPart.NumberOfNodes();
+        ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
 
 #pragma omp parallel for
-    for(int i = 0; i<nnodes; i++)
-    {
-      ModelPart::NodesContainerType::iterator it_node = it_begin + i;
+        for(int i = 0; i<nnodes; i++)
+        {
+          ModelPart::NodesContainerType::iterator it_node = it_begin + i;
 
-      noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-      noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+          noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+          noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+        }
+
+        // Execute processes to update mesh topology variables
+        ExecuteProcesses();
+      }
+      
     }
-
+    
     KRATOS_CATCH("")
   }
 
@@ -723,6 +753,19 @@ class SolutionScheme : public Flags
     return mOptions;
   }
 
+   /**
+    * @brief Post update processes are set
+    */
+  void SetProcess( ProcessPointerType pProcess )
+  {
+    mProcesses.push_back(pProcess); //NOTE: order set = order of execution
+  }
+  
+  void SetProcessVector( ProcessPointerVectorType& rProcessVector )
+  {
+    mProcesses = rProcessVector;     
+  }
+  
   ///@}
   ///@name Inquiry
   ///@{
@@ -744,9 +787,12 @@ class SolutionScheme : public Flags
   Flags mOptions;
 
   // Time integration methods
-  IntegrationMethodsVectorType  mTimeVectorIntegrationMethods;
-  IntegrationMethodsScalarType  mTimeScalarIntegrationMethods;
+  IntegrationMethodsVectorType mTimeVectorIntegrationMethods;
+  IntegrationMethodsScalarType mTimeScalarIntegrationMethods;
 
+  // Processes called after move mesh is called
+  ProcessPointerVectorType mProcesses;
+  
   ///@}
   ///@name Protected Operators
   ///@{
@@ -855,6 +901,19 @@ class SolutionScheme : public Flags
   }
 
 
+  /**
+   * Execute Process after calling move mesh
+   */
+  void ExecuteProcesses()
+  {
+    KRATOS_TRY
+        
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->Execute();
+        
+    KRATOS_CATCH( "" )
+  }
+  
   ///@}
   ///@name Protected  Access
   ///@{
@@ -908,7 +967,7 @@ class SolutionScheme : public Flags
 ///@{
 
 /**
- * Flags for the Strategy control
+ * Flags for the solution control
  */
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED,               0 );
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONVERGED,                 1 );
@@ -917,14 +976,16 @@ KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, ELEMENTS_INITIALIZED,      3 );
 KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONDITIONS_INITIALIZED,    4 );
 
 /**
- * Flags for the Strategy options
+ * Flags for the solution options
  */
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, REFORM_DOFS,               0 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INCREMENTAL_SOLUTION,      1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_MATRIX,    3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, RAYLEIGH_DAMPING,          4 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    5 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, MOVE_MESH,                 0 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, REFORM_DOFS,               1 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INCREMENTAL_SOLUTION,      2 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         3 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_MATRIX,    4 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, RAYLEIGH_DAMPING,          5 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    6 );
+
 ///@}
 ///@name Input and output
 ///@{

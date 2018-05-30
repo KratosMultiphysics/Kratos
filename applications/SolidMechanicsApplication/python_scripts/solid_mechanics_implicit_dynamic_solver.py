@@ -103,7 +103,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
 
     def _create_line_search_strategy(self):
-        mechanical_scheme = self._get_solution_scheme()
+        solution_scheme = self._get_solution_scheme()
         #linear_solver = self._get_linear_solver()
         convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
@@ -113,11 +113,11 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
         #options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.settings["solving_strategy_settings"]["move_mesh_flag"].GetBool())
 
-        return KratosSolid.LineSearchStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
+        return KratosSolid.LineSearchStrategy(self.model_part, solution_scheme, builder_and_solver, convergence_criterion,
                                               options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt())
 
     def _create_newton_raphson_strategy(self):
-        mechanical_scheme = self._get_solution_scheme()
+        solution_scheme = self._get_solution_scheme()
         #linear_solver = self._get_linear_solver()
         convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
@@ -127,5 +127,5 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
         options.Set(KratosSolid.SolverLocalFlags.IMPLEX, self.settings["solving_strategy_settings"]["implex"].GetBool())
 
-        return KratosSolid.NewtonRaphsonStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
+        return KratosSolid.NewtonRaphsonStrategy(self.model_part, solution_scheme, builder_and_solver, convergence_criterion,
                                                  options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt())

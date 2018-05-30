@@ -63,7 +63,7 @@ public:
   KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianSegregatedFluidElement );
   ///@}
 
-  enum StepType{VELOCITY_STEP = 1, PRESSURE_STEP = 2};
+  enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
     
   ///@name Life Cycle
   ///@{

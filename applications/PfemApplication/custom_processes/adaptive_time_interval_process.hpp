@@ -109,16 +109,17 @@ namespace Kratos
     {
 
       KRATOS_TRY
-	std::cout<<" Execute() in AdaptiveTimeIntervalProcess"<<std::endl;
 
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
       const double initialTimeInterval = rCurrentProcessInfo[INITIAL_DELTA_TIME];	
       const double currentTimeInterval = rCurrentProcessInfo[CURRENT_DELTA_TIME];
-      double updatedTime = rCurrentProcessInfo[TIME];
-      double updatedTimeInterval = rCurrentProcessInfo[DELTA_TIME];
-      double deltaTimeToNewMilestone=initialTimeInterval;
-      double minimumTimeInterval=initialTimeInterval*0.0001;
+      
+      double updatedTime               = rCurrentProcessInfo[TIME];
+      double updatedTimeInterval       = rCurrentProcessInfo[DELTA_TIME];
+      
+      double deltaTimeToNewMilestone   = initialTimeInterval;
+      double minimumTimeInterval       = initialTimeInterval*0.0001;
 
       rCurrentProcessInfo.SetValue(PREVIOUS_DELTA_TIME,currentTimeInterval);
       rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,false);
@@ -140,6 +141,7 @@ namespace Kratos
       if(updatedTimeInterval<2.0*minimumTimeInterval && mEchoLevel > 0 && mrModelPart.GetCommunicator().MyPID() == 0){
 	std::cout<<"ATTENTION! time step much smaller than initial time step, I'll not reduce it"<<std::endl;
       }
+      
       if((badPressureConvergence==true || badVelocityConvergence==true) && updatedTimeInterval>(2.0*minimumTimeInterval)){
 	updatedTimeInterval *=0.5;
 	/* std::cout<<"reducing time step (bad convergence at the previous step)"<<updatedTimeInterval<<std::endl; */
@@ -161,6 +163,7 @@ namespace Kratos
       }
 
       if(timeIntervalReduced==false){
+        
 	if(updatedTimeInterval>(2.0*minimumTimeInterval)){
 
 	  const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -169,7 +172,7 @@ namespace Kratos
 	    if(timeIntervalReduced==false){
 	      CheckElementalConditionForTimeStepReduction(increaseTimeInterval);
 	    }
-	}
+          }
 	}
 
 	// if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
@@ -184,6 +187,7 @@ namespace Kratos
 
       double newTimeInterval = rCurrentProcessInfo[DELTA_TIME];
       double milestoneGap=fabs(newTimeInterval-deltaTimeToNewMilestone);
+      
       if(milestoneGap<0.49*newTimeInterval && milestoneTimeReached==false){
 	/* std::cout<<"the milestone is very close, I add "<<milestoneGap<<" to "<<newTimeInterval<<std::endl;*/
 	newTimeInterval+=milestoneGap;
@@ -443,15 +447,19 @@ namespace Kratos
 			      double tolerance,
 			      bool &increaseTimeInterval)
     {
-      ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();    
-      double increasedTimeInterval=2.0*updatedTimeInterval;
-      if(increasedTimeInterval<deltaTimeToNewMilestone*(1.0+tolerance)){
+      ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+      
+      double increasedTimeInterval = 2.0 * updatedTimeInterval;
+      
+      if(increasedTimeInterval<deltaTimeToNewMilestone*(1.0+tolerance))
+      {
 	rCurrentProcessInfo.SetValue(DELTA_TIME,increasedTimeInterval);
-	/* std::cout<<"increasing time step "<<increasedTimeInterval<<" previous one="<<updatedTimeInterval<<std::endl; */
 	rCurrentProcessInfo.SetValue(TIME_INTERVAL_CHANGED,true);
-      }else{
+      }
+      else{
 	increaseTimeInterval=false;
       }
+      
     }
 
 

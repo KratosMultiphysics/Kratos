@@ -311,7 +311,7 @@ protected:
 				      MeshingParametersType& rMeshingVariables);
 
     /**
-     * Mesh Modeler :: Set Element Neighbours
+     * Mesh Modeler :: Recover Boundary Position
      */
     virtual void RecoverBoundaryPosition(ModelPart& rModelPart, 
 					 MeshingParametersType& rMeshingVariables);

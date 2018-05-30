@@ -64,11 +64,11 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
 
     def _create_linear_strategy(self):
-        mechanical_scheme = self._get_solution_scheme()
+        solution_scheme = self._get_solution_scheme()
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
         options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
-        return KratosSolid.LinearStrategy(self.model_part, mechanical_scheme, builder_and_solver, options)
+        return KratosSolid.LinearStrategy(self.model_part, solution_scheme, builder_and_solver, options)

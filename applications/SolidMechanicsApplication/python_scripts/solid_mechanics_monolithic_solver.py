@@ -252,8 +252,8 @@ class MonolithicSolver(object):
     def _create_solution_scheme(self):
         import schemes_factory
         Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
-        mechanical_scheme = Schemes.GetSolutionScheme()
-        return mechanical_scheme
+        solution_scheme = Schemes.GetSolutionScheme()
+        return solution_scheme
 
     def _create_convergence_criterion(self):
         criterion_parameters = self.settings["convergence_criterion_settings"]

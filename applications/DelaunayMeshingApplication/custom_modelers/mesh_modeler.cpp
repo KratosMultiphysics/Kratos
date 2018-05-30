@@ -26,9 +26,6 @@ namespace Kratos
 
   void MeshModeler::Initialize()
   {
-    KRATOS_TRY
-    
-    KRATOS_CATCH(" ")
   }
   
 
@@ -38,10 +35,6 @@ namespace Kratos
 
   void MeshModeler::InitializeMeshModeler( ModelPart& rModelPart )
   {
-    KRATOS_TRY
-
-
-    KRATOS_CATCH(" ")
   }
 
 
@@ -52,11 +45,6 @@ namespace Kratos
 
   void MeshModeler::FinalizeMeshModeler( ModelPart& rModelPart )
   {
-    KRATOS_TRY
-
-
-
-    KRATOS_CATCH(" ")
   }
 
   //*******************************************************************************************

@@ -210,12 +210,18 @@ namespace Kratos
     }
         
 
-    // check if the integration method has the step variable (step variable)
+    // get primary variable name
     std::string GetPrimaryVariableName()
     {
       return (*this->mpPrimaryVariable).Name();
     }
 
+    // get primary variable name
+    std::string GetVariableName()
+    {
+      return (*this->mpVariable).Name();
+    }
+    
     // check if the integration method has the variable
     bool HasVariableName(const std::string& rVariableName)
     {

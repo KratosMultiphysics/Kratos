@@ -250,7 +250,6 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
         if (condition_is_active)
         {
-
           //calculate elemental contribution
           pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, rCurrentProcessInfo);
 
