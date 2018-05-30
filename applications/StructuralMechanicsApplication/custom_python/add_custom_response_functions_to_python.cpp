@@ -65,7 +65,7 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
       .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
 
     // Processes
-    class_<ReplaceElementsAndConditionsForAdjointProblemProcess , Process>
+    class_<ReplaceElementsAndConditionsForAdjointProblemProcess, ReplaceElementsAndConditionsForAdjointProblemProcess::Pointer , Process>
       (m, "ReplaceElementsAndConditionsForAdjointProblemProcess")
       .def(init<ModelPart&>());
 
