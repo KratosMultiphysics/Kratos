@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**   
+/**
  * @class SegregatedStrategy
  * @brief This is the base class for a segregated strategy for the same model part
  */
@@ -68,9 +68,9 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   typedef typename BaseType::Pointer                                     BasePointerType;
   typedef typename BaseType::LocalFlagType                                 LocalFlagType;
 
-  typedef typename std::vector<BasePointerType>                  StrategiesContainerType; 
+  typedef typename std::vector<BasePointerType>                  StrategiesContainerType;
   typedef typename StrategiesContainerType::iterator     StrategiesContainerIteratorType;
-  
+
   typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>        ConvergenceCriterionType;
   typedef typename BaseType::BuilderAndSolverType                   BuilderAndSolverType;
   typedef typename BaseType::SchemeType                                       SchemeType;
@@ -90,25 +90,25 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   ///@{
 
   /**
-   * Default constructor 
+   * Default constructor
    * @param rModelPart The model part of the problem
    * @param rOptions The solution options
-   */  
+   */
   SegregatedStrategy(ModelPart& rModelPart,
                      Flags& rOptions)
       : SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, rOptions)
   {
     KRATOS_TRY
- 
+
     KRATOS_CATCH("")
   }
-  
+
   /**
-   * Constructor 
+   * Constructor
    * @param rModelPart The model part of the problem
    * @param rOptions The solution options
    * @param rStrategies Vector with the solution strategies
-   */  
+   */
   SegregatedStrategy(ModelPart& rModelPart,
                      Flags& rOptions,
                      StrategiesContainerType& rStrategies)
@@ -117,11 +117,11 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     KRATOS_TRY
 
     mStrategies = rStrategies;
-        
+
     KRATOS_CATCH("")
   }
-  
-  /** 
+
+  /**
    * @brief Destructor.
    */
   ~SegregatedStrategy() override
@@ -137,18 +137,18 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   ///@}
   ///@name Operations
   ///@{
-  
+
   /**
    * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
    */
   void InitializeSolutionStep() override
   {
     KRATOS_TRY
-                    
+
     //set implex
     if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX))
       this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
-    
+
     //prints informations about the current time
     //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
 
@@ -159,7 +159,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
       (*it)->InitializeSolutionStep();
       ++counter;
     }
-            
+
     KRATOS_CATCH("")
   }
 
@@ -175,7 +175,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     //set implex calculation
     if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX))
       this->GetModelPart().GetProcessInfo()[IMPLEX] = 0;
-    
+
     int counter = 0;
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
@@ -185,55 +185,84 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     }
 
     //this->Finalize();
-    
+
     KRATOS_CATCH("")
   }
 
-  
+
   /**
    * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-   */   
+   */
   bool SolveSolutionStep() override
   {
     KRATOS_TRY
-               
+
     //initializing the parameters of the Newton-Raphson cicle
     unsigned int iteration_number = 1;
 
     //setting the iteration number
     this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-    //convergence vector
-    std::vector<bool> convergences(mStrategies.size());
-    std::fill(convergences.begin(), convergences.end(), false);
-    
-    //Iteration Cicle... performed only for NonLinearProblems
-    while( this->IsNot(LocalFlagType::CONVERGED) )
+    //maximum number of iterations
+    unsigned int MaxIterationNumber = 1;
+    for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
+    {
+      if(MaxIterationNumber < (*it)->GetMaxIterationNumber())
+        MaxIterationNumber = (*it)->GetMaxIterationNumber();
+    }
+
+    //setting the iteration number
+    this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+    this->Set(LocalFlagType::CONVERGED, this->SolveIteration());
+
+    //iteration cycle... performed only for NonLinearProblems
+    while( this->IsNot(LocalFlagType::CONVERGED) && iteration_number++ < MaxIterationNumber)
     {
       //setting the iteration number
       this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-      int counter = 0;
-      for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
-      {
-        this->GetModelPart().GetProcessInfo().SetValue(SEGREGATED_STEP, counter);
-        convergences[counter-1] = (*it)->SolveIteration();
-        ++counter;
-      }
-
-      this->Set(LocalFlagType::CONVERGED, std::all_of(convergences.begin(), convergences.end(), [](bool const n){return n == true;}) );
-
-      ++iteration_number;
-
+      this->Set(LocalFlagType::CONVERGED, this->SolveIteration());
     }
-          
+
+    //plots a warning if the maximum number of iterations is exceeded
+    if(iteration_number >= MaxIterationNumber)
+    {
+      KRATOS_WARNING("Max Iterations Exceeded") << " **** Maximum iterations Exceeded [" << iteration_number << "] ****\n";
+    }
+
     return (this->Is(LocalFlagType::CONVERGED));
 
     KRATOS_CATCH("")
 
   }
 
-  
+
+  /**
+   * @brief Solves the iteration. This function returns true if a solution has been found, false otherwise.
+   */
+  bool SolveIteration() override
+  {
+    KRATOS_TRY
+
+    //convergence vector
+    std::vector<bool> convergences(mStrategies.size());
+    std::fill(convergences.begin(), convergences.end(), false);
+        
+    int counter = 0;
+    for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
+    {
+      this->GetModelPart().GetProcessInfo().SetValue(SEGREGATED_STEP, counter);
+      convergences[counter-1] = (*it)->SolveIteration();
+      ++counter;
+    }
+
+    return (std::all_of(convergences.begin(), convergences.end(), [](bool const n){return n == true;}));
+
+    KRATOS_CATCH("")
+  }
+
+
   /**
    * @brief Clears the internal storage
    */
@@ -248,7 +277,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
       (*it)->Clear();
       ++counter;
     }
-    
+
     KRATOS_CATCH("")
   }
 
@@ -267,12 +296,12 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
       (*it)->Check();
       ++counter;
     }
-            
+
     return 0;
 
     KRATOS_CATCH("")
   }
-  
+
 
   ///@}
   ///@name Access
@@ -281,7 +310,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   /**
    * @brief This sets the level of echo for the solving strategy
    * @param Level of echo for the solving strategy
-   * @details 
+   * @details
    * {
    * 0 -> Mute... no echo at all
    * 1 -> Printing time and basic informations
@@ -298,7 +327,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     }
 
   }
-  
+
   /**
    * @brief Set method for the time scheme
    * @param pScheme The pointer to the time scheme considered
@@ -316,7 +345,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   {
     return mStrategies[Label];
   };
-   
+
 
   ///@}
   ///@name Inquiry
@@ -337,7 +366,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
   ///@{
 
   StrategiesContainerType  mStrategies;
- 
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -394,6 +423,6 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
 ///@}
 
 ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 #endif // KRATOS_SEGREGATED_STRATEGY_H_INCLUDED defined

@@ -84,6 +84,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
                 self._get_mechanical_solver.SetInitializePerformedFlag(True)
             else:
                 self._get_mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
+
     #
     def _create_mechanical_solver(self):
         strategies = []

@@ -61,7 +61,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
     #### Solver internal methods ####
 
-    def _set_scheme_parameters(self):
+    def _set_scheme_process_info_parameters(self):
 
         integration_method = self.settings["time_integration_settings"]["integration_method"].GetString()
 

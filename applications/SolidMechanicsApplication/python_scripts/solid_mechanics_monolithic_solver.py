@@ -253,6 +253,7 @@ class MonolithicSolver(object):
         import schemes_factory
         Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
         solution_scheme = Schemes.GetSolutionScheme()
+        solution_scheme.SetProcessVector(self._get_scheme_custom_processes())
         return solution_scheme
 
     def _create_convergence_criterion(self):
@@ -295,8 +296,12 @@ class MonolithicSolver(object):
             print(dof_variables + dof_reactions)
             print("::[Solver]:: DOF's ADDED")
 
-
-    def _set_scheme_parameters(self):
+            
+    def _get_scheme_custom_processes(self):
+        process_list = []
+        return process_list
+    
+    def _set_scheme_process_info_parameters(self):
         pass
 
     def _get_time_integration_methods(self):
@@ -313,12 +318,12 @@ class MonolithicSolver(object):
 
         #print(scalar_integration_methods)
         #print(component_integration_methods)
-        
+
         # set time order
         self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = Schemes.GetTimeIntegrationOrder()
 
         # set scheme parameters to process_info
-        self._set_scheme_parameters()
+        self._set_scheme_process_info_parameters()
 
         # first: calculate parameters (only once permitted for each monolithic dof set "components + scalar")
         dofs_list = self.settings["dofs"]

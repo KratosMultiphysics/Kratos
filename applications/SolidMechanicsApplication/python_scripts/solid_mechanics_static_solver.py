@@ -48,7 +48,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
     #### Solver internal methods ####
 
-    def _set_scheme_parameters(self):
+    def _set_scheme_process_info_parameters(self):
         pass
 
     def _create_mechanical_solver(self):

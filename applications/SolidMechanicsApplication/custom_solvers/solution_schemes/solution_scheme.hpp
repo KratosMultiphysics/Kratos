@@ -205,6 +205,9 @@ class SolutionScheme : public Flags
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->ExecuteInitializeSolutionStep();
+    
 #pragma omp parallel for
     for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
     {
@@ -217,7 +220,7 @@ class SolutionScheme : public Flags
     {
       auto itCond = rModelPart.ConditionsBegin() + i;
       itCond->InitializeSolutionStep(rCurrentProcessInfo);
-    }
+    }    
 
     KRATOS_CATCH("")
   }
@@ -231,9 +234,13 @@ class SolutionScheme : public Flags
   virtual void FinalizeSolutionStep(ModelPart& rModelPart)
   {
     KRATOS_TRY
-
+        
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->ExecuteFinalizeSolutionStep();
+    
+    
 #pragma omp parallel for
     for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
     {
@@ -261,6 +268,9 @@ class SolutionScheme : public Flags
     KRATOS_TRY
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->ExecuteInitialize(); //corresponds to ExecuteInitializeNonLinearIteration() 
 
 #pragma omp parallel for
     for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
@@ -290,6 +300,9 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->ExecuteFinalize(); //corresponds to ExecuteFinalizeNonLinearIteration()
+    
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
 #pragma omp parallel for
@@ -306,8 +319,7 @@ class SolutionScheme : public Flags
       auto itCond = rModelPart.ConditionsBegin() + i;
       itCond->FinalizeNonLinearIteration(rCurrentProcessInfo);
     }
-
-
+    
     KRATOS_CATCH("")
   }
 
@@ -522,8 +534,6 @@ class SolutionScheme : public Flags
           noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
         }
 
-        // Execute processes to update mesh topology variables
-        ExecuteProcesses();
       }
       
     }
@@ -752,15 +762,18 @@ class SolutionScheme : public Flags
   {
     return mOptions;
   }
-
-   /**
-    * @brief Post update processes are set
-    */
+  
+  /**
+   * @brief Set process to execute after move_mesh
+   */
   void SetProcess( ProcessPointerType pProcess )
   {
     mProcesses.push_back(pProcess); //NOTE: order set = order of execution
   }
-  
+
+  /**
+   * @brief Set list of processes to execute after move_mesh
+   */
   void SetProcessVector( ProcessPointerVectorType& rProcessVector )
   {
     mProcesses = rProcessVector;     
@@ -900,20 +913,7 @@ class SolutionScheme : public Flags
       (*it)->Predict(rNode);
   }
 
-
-  /**
-   * Execute Process after calling move mesh
-   */
-  void ExecuteProcesses()
-  {
-    KRATOS_TRY
-        
-    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
-      (*it)->Execute();
-        
-    KRATOS_CATCH( "" )
-  }
-  
+         
   ///@}
   ///@name Protected  Access
   ///@{

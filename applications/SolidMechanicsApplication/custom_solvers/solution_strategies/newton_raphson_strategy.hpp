@@ -210,7 +210,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
 
     this->Set(LocalFlagType::CONVERGED, this->SolveIteration());
    
-    //Iteration Cicle... performed only for NonLinearProblems
+    //iteration cycle... performed only for NonLinearProblems
     while( this->IsNot(LocalFlagType::CONVERGED) && iteration_number++ < mMaxIterationNumber)
     {
       //setting the iteration number
@@ -250,7 +250,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
         
     is_converged = mpConvergenceCriteria->PreCriteria(this->GetModelPart(), this->mpBuilderAndSolver->GetDofSet(), (*this->mpA), (*this->mpDx), (*this->mpb));
 
-    //function to perform the building and the solving phase.
+    // Function to perform the building and the solving phase.
     if(this->mOptions.IsNot(LocalFlagType::CONSTANT_SYSTEM_MATRIX)){
 
       TSparseSpace::SetToZero((*this->mpA));
@@ -364,7 +364,7 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
    * @brief This method gets the flag mMaxIterationNumber
    * @return mMaxIterationNumber: This is the maximum number of on linear iterations
    */
-  unsigned int GetMaxIterationNumber()
+  unsigned int GetMaxIterationNumber() override
   {
     return mMaxIterationNumber;
   }

@@ -832,28 +832,49 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
   KRATOS_TRY
       
   GeometryType& rGeometry = GetGeometry();
+
   DenseMatrix<unsigned int> NodesInFaces;
   rGeometry.NodesInFaces(NodesInFaces);
 
-  for( SizeType i=0; i<NodesInFaces.size2(); ++i ){
-    bool free_surface = true;
-    for( SizeType j=1; j<NodesInFaces.size1(); ++j ){
-      if( rGeometry[NodesInFaces(j,i)].IsNot(FREE_SURFACE) ){
-        free_surface = false;
-        break;
-      }
-    }
-    if( free_surface ){
+  //based on node flags (fail in edge elements)
+  // for( SizeType i=0; i<NodesInFaces.size2(); ++i ){
+  //   bool free_surface = true;
+  //   for( SizeType j=1; j<NodesInFaces.size1(); ++j ){
+  //     if( rGeometry[NodesInFaces(j,i)].IsNot(FREE_SURFACE) ){
+  //       free_surface = false;
+  //       break;
+  //     }
+  //   }
+  //   if( free_surface ){
+  //     std::vector<SizeType> Nodes;
+  //     for( SizeType j=1; j<NodesInFaces.size1(); ++j ){
+  //       if( rGeometry[NodesInFaces(j,i)].IsNot(INLET) ){
+  //         Nodes.push_back(NodesInFaces(j,i));
+  //       }
+  //     }
+  //     Faces.push_back(Nodes);
+  //   }
+  // }
+
+  //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
+  WeakPointerVector<Element>& neighb_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+  unsigned int counter=0;
+  for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+  {
+    if (ne->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
+    {
       std::vector<SizeType> Nodes;
-      for( SizeType j=1; j<NodesInFaces.size1(); ++j ){
-        if( rGeometry[NodesInFaces(j,i)].IsNot(INLET) ){
-          Nodes.push_back(NodesInFaces(j,i));
-        }
+      for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
+      {
+        if(i!=counter)
+          Nodes.push_back(NodesInFaces(i,0));  //set boundary nodes
       }
       Faces.push_back(Nodes);
     }
+		    
+    counter++;
   }
-
+  
   KRATOS_CATCH( "" )
 }
 

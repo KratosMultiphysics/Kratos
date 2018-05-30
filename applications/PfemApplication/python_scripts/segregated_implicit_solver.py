@@ -20,7 +20,7 @@ class SegregatedImplicitSolver(BaseSolver.MechanicalSolver):
 
         # Set defaults and validate custom settings.
         segregated_solver_settings = KratosMultiphysics.Parameters("""
-        {  
+        {     
            "time_integration_settings":{
                 "buffer_size": 3
             },

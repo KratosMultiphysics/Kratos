@@ -221,6 +221,15 @@ class SolutionStrategy : public Flags
   
 
   /**
+   * @brief This method gets the flag mMaxIterationNumber
+   * @return mMaxIterationNumber: This is the maximum number of on linear iterations
+   */
+  virtual unsigned int GetMaxIterationNumber()
+  {
+    return 0;
+  }
+  
+  /**
    * @brief Operations to get the pointer to the model
    * @return mrModelPart: The model part member variable
    */

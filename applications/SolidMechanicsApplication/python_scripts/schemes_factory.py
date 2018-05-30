@@ -63,7 +63,7 @@ class SolutionScheme:
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) ):
 
                 integration_method_name   = self._get_integration_method_name(dof)
-                vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
+                vector_integration_method = None
 
                 variable_names = self._get_integration_method_variables(dof)
                 variables = []
@@ -72,8 +72,13 @@ class SolutionScheme:
 
                 integration_method = None
                 if( len(variables) == 4 ):
+                    vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
                     integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
+                    if(integration_method_name.find("Step") != -1):
+                        vector_integration_method = getattr(KratosSolid, 'StaticStepVectorIntegration')
+                    else:
+                        vector_integration_method = getattr(KratosSolid, 'StaticVectorIntegration')
                     integration_method = vector_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
@@ -88,7 +93,7 @@ class SolutionScheme:
             elif( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) ):
 
                 integration_method_name   = self._get_integration_method_name(dof)
-                scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
+                scalar_integration_method = None
 
                 variable_names = self._get_integration_method_variables(dof)
                 variables = []
@@ -97,8 +102,13 @@ class SolutionScheme:
 
                 integration_method = None
                 if( len(variables) == 4 ):
+                    scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
                     integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
+                    if(integration_method_name.find("Step") != -1):
+                        scalar_integration_method = getattr(KratosSolid,'StaticStepScalarIntegration')
+                    else:
+                        scalar_integration_method = getattr(KratosSolid,'StaticScalarIntegration')
                     integration_method = scalar_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
@@ -145,7 +155,7 @@ class SolutionScheme:
             kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof)
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) ):
 
-                component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
+                component_integration_method = None
 
                 variable_components = ['_X','_Y','_Z']
                 for component in variable_components:
@@ -155,8 +165,13 @@ class SolutionScheme:
 
                     integration_method = None
                     if( len(variables) == 4 ):
+                        component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
                         integration_method = component_integration_method(variables[0],variables[1],variables[2],variables[3])
                     elif( len(variables) == 1 ):
+                        if(integration_method_name.find("Step") != -1):
+                            component_integration_method = getattr(KratosSolid, 'StaticStepComponentIntegration')
+                        else:
+                            component_integration_method = getattr(KratosSolid, 'StaticComponentIntegration')
                         integration_method = component_integration_method(variables[0])
                     else:
                         raise Exception('len(variables) = ' + str(len(variables)))
@@ -166,7 +181,7 @@ class SolutionScheme:
                         integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
 
                     integration_methods.update({variables[0].Name(): integration_method})
-                    if( len(variables) == 4 ):    
+                    if( len(variables) == 4 ):
                         integration_methods.update({variables[1].Name(): integration_method})
                         integration_methods.update({variables[2].Name(): integration_method})
 
@@ -191,7 +206,7 @@ class SolutionScheme:
             kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof)
             if( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) ):
 
-                scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
+                scalar_integration_method = None
 
                 variables = []
                 for variable in variable_names:
@@ -199,8 +214,13 @@ class SolutionScheme:
 
                 integration_method = None
                 if( len(variables) == 4 ):
+                    scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
                     integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
+                    if(integration_method_name.find("Step") != -1):
+                        vector_integration_method = getattr(KratosSolid, 'StaticStepScalarIntegration')
+                    else:
+                        vector_integration_method = getattr(KratosSolid, 'StaticScalarIntegration')
                     integration_method = scalar_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
