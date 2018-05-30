@@ -141,14 +141,14 @@ void AxisymmetricSmallDisplacementElement::InitializeElementVariables (ElementVa
 void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
 {
   
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.ReferenceRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
   
     //contributions to stiffness matrix calculated on the reference config
     SmallDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
-    //KRATOS_WATCH( rLeftHandSideMatrix )
+    //KRATOS_WATCH( rLocalSystem.GetLeftHandSideMatrix() )
 }
 
 
@@ -157,14 +157,15 @@ void AxisymmetricSmallDisplacementElement::CalculateAndAddLHS(LocalSystemCompone
 
 void AxisymmetricSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius;
+ 
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.ReferenceRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
-  
+
     //contribution to external forces
     SmallDisplacementElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
-    //KRATOS_WATCH( rRightHandSideVector )
+    //KRATOS_WATCH( rLocalSystem.GetRightHandSideVector() )
 }
 
 
@@ -188,7 +189,7 @@ double& AxisymmetricSmallDisplacementElement::CalculateTotalMass( double& rTotal
 	this->CalculateKinematics(Variables,PointNumber);
 	
 	//getting informations for integration
-        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight() * 2.0 * 3.141592654 * Variables.ReferenceRadius;
+        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight() * 2.0 * Globals::Pi * Variables.ReferenceRadius;
 
 	//compute point volume changes	
 	rTotalMass += GetProperties()[DENSITY] * IntegrationWeight;

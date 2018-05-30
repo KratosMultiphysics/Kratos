@@ -127,7 +127,7 @@ ShellThickElement3D4N::MITC4Params::MITC4Params(
   Cy = -LCS.Y1() - LCS.Y2() + LCS.Y3() + LCS.Y4();
 
   double Alpha = std::atan(Ay / Ax);
-  double Beta = 3.141592653589793 * 0.5 - std::atan(Cx / Cy);
+  double Beta = Globals::Pi * 0.5 - std::atan(Cx / Cy);
 
   Transformation(0, 0) = std::sin(Beta);
   Transformation(0, 1) = -std::sin(Alpha);
