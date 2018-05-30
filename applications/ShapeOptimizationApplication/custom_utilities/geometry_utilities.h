@@ -159,7 +159,7 @@ public:
                 for(unsigned int face=0; face<faces.size(); face++)
                 {
                     // Create vector that stores all node is of current face
-                    vector<unsigned int> ids(faces[face].size());
+                    DenseVector<unsigned int> ids(faces[face].size());
 
                     // Store node ids
                     for(unsigned int i=0; i<faces[face].size(); i++)
@@ -179,7 +179,7 @@ public:
                 for(unsigned int edge=0; edge<edges.size(); edge++)
                 {
                     // Create vector that stores all node is of current face
-                    vector<unsigned int> ids(edges[edge].size());
+                    DenseVector<unsigned int> ids(edges[edge].size());
 
                     // Store node ids
                     for(unsigned int i=0; i<edges[edge].size(); i++)
