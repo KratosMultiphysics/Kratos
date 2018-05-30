@@ -59,7 +59,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
         self.log_file = "%s.log" % self.analysis_driver_name
         self.results_file = "%s.results.h5" % self.analysis_driver_name
 
-        self.analysis_driver = None
+        self.analysis_driver = __import__(self.analysis_driver_name)
 
         self.is_analysis_step_completed = False
 
@@ -68,7 +68,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
         self.is_analysis_step_completed = self.__IsAnalysisCompleted()
         
         if not self.is_analysis_step_completed:
-            model_part_io = ModelPartIO(self.model_part_filename)
+            model_part_io = ModelPartIO(self.model_part_filename, ModelPartIO.WRITE)
             model_part_io.WriteModelPart(self.model_part)
         else:
             # read results from the file.
@@ -76,8 +76,6 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
 
     def CalculateValue(self):
         if not self.is_analysis_step_completed:
-            if self.analysis_driver is None:
-                self.analysis_driver = __import__(self.analysis_driver_name)
             self.response_data = {}
             self.analysis_driver.Run(self.model_part, self.response_data)
 
