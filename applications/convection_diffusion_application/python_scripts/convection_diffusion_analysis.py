@@ -79,7 +79,7 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
         super(ConvectionDiffusionAnalysis, self).InitializeSolutionStep()
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
     def OutputSolutionStep(self):

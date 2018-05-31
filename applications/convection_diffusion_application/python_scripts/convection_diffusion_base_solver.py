@@ -267,7 +267,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         if self.solver_imports_model_part:
             self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
-    def PrepareModelPartForSolver(self):
+    def PrepareModelPart(self):
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
