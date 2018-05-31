@@ -78,11 +78,11 @@ class MonolithicSolver(object):
         }
         """)
 
-        # Linear solver settings can have different number of settings 
+        # Linear solver settings can have different number of settings
         if(custom_settings.Has("linear_solver_settings")):
             default_settings.RemoveValue("linear_solver_settings")
             default_settings.AddValue("linear_solver_settings",custom_settings["linear_solver_settings"])
-            
+
         # Check and fix supplied settings compatibility (experimental)
         from json_settings_utility import JsonSettingsUtility
         JsonSettingsUtility.CheckAndFixNotMatchingSettings(custom_settings,default_settings)
