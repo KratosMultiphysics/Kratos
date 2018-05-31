@@ -129,14 +129,14 @@ namespace Kratos
         this-> InitializeElement(variables, rCurrentProcessInfo);
 
         // Compute the geometry
-        bounded_matrix<double,TNumNodes, 2> DN_DX;
+        BoundedMatrix<double,TNumNodes, 2> DN_DX;
         array_1d<double,TNumNodes> N;
         double Area;
         this-> CalculateGeometry(DN_DX, Area);
         double elem_length = this->ComputeElemSize(DN_DX);
 
         // Getting the values of shape functions on Integration Points
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides
         const GeometryType& rGeom = this->GetGeometry();
         Ncontainer = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 
@@ -155,15 +155,15 @@ namespace Kratos
         this-> ComputeStabilizationParameters(variables, elem_length, tau_m, tau_h, k_dc);
 
         // Some auxilary definitions
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_convect  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_non_lin  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_m  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_m_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_h_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> mass_matrix  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> aux_convect  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> aux_non_lin  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> aux_q_div_m  = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> aux_m_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> aux_h_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
 
         // ComputeAuxMatrices: loops the Gauss points and build the matrices
         this-> ComputeAuxMatrices(Ncontainer, DN_DX, variables, mass_matrix_q, mass_matrix_w, aux_w_grad_h, aux_q_div_m, aux_h_diffus, aux_m_diffus, aux_convect, aux_non_lin);
@@ -240,7 +240,7 @@ namespace Kratos
 //----------------------------------------------------------------------
 
     template< unsigned int TNumNodes >
-    void EulerConsVarElement<TNumNodes>::GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables)
+    void EulerConsVarElement<TNumNodes>::GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables)
     {
         // Initialize outputs
         rVariables.height = 0;
@@ -301,17 +301,17 @@ namespace Kratos
 
     template< unsigned int TNumNodes >
     void EulerConsVarElement<TNumNodes>::ComputeAuxMatrices(
-            const bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
-            const bounded_matrix<double,TNumNodes,2>& rDN_DX,
+            const BoundedMatrix<double,TNumNodes, TNumNodes>& rNcontainer,
+            const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
             const ElementVariables& rVariables,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rConvection,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rNonLinear )
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rConvection,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rNonLinear )
     {
         // Initialize solution
         noalias(rMassMatrixVector) = ZeroMatrix(TNumNodes*3, TNumNodes*3);
@@ -325,13 +325,13 @@ namespace Kratos
 
         // Some auxilary definitions
         array_1d<double,TNumNodes> N;
-        bounded_matrix<double,2,TNumNodes*3> N_mom        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for velocity unknown)
+        BoundedMatrix<double,2,TNumNodes*3> N_mom        = ZeroMatrix(2,TNumNodes*3);  // Shape functions matrix (for velocity unknown)
         array_1d<double,TNumNodes*3> N_height             = ZeroVector(TNumNodes*3);    // Shape functions vector (for height unknown)
         array_1d<double,TNumNodes*3> DN_DX_mom            = ZeroVector(TNumNodes*3);    // Shape functions gradients vector (for velocity unknown)
-        bounded_matrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradients matrix (for height unknown)
-        bounded_matrix<double,2,TNumNodes*3> Grad_mom_1   = ZeroMatrix(2,TNumNodes*3);
-        bounded_matrix<double,2,TNumNodes*3> Grad_mom_2   = ZeroMatrix(2,TNumNodes*3);
-        bounded_matrix<double,TNumNodes*3,TNumNodes*3> temp_non_lin;
+        BoundedMatrix<double,2,TNumNodes*3> DN_DX_height = ZeroMatrix(2,TNumNodes*3);  // Shape functions gradients matrix (for height unknown)
+        BoundedMatrix<double,2,TNumNodes*3> Grad_mom_1   = ZeroMatrix(2,TNumNodes*3);
+        BoundedMatrix<double,2,TNumNodes*3> Grad_mom_2   = ZeroMatrix(2,TNumNodes*3);
+        BoundedMatrix<double,TNumNodes*3,TNumNodes*3> temp_non_lin;
 
         // Loop on Gauss points. In this case, number of Gauss points and number of nodes coincides
         for(unsigned int igauss = 0; igauss < TNumNodes; igauss++)
