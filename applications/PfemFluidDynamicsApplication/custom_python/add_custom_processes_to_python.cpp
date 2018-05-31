@@ -54,49 +54,49 @@ namespace Kratos
 
 
 
-      class_<RecoverVolumeLossesProcess, ProcessBaseType>
+      class_<RecoverVolumeLossesProcess, RecoverVolumeLossesProcess::Pointer, ProcessBaseType>
 	(m, "RecoverVolumeLosses")
 	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
 
-      class_<RemoveMeshNodesForFluidsProcess, ProcessBaseType>
+      class_<RemoveMeshNodesForFluidsProcess, RemoveMeshNodesForFluidsProcess::Pointer, ProcessBaseType>
       	(m, "RemoveMeshNodesForFluids")
 	.def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>());
 
-      class_<GenerateNewNodesBeforeMeshingProcess, ProcessBaseType>
+      class_<GenerateNewNodesBeforeMeshingProcess, GenerateNewNodesBeforeMeshingProcess::Pointer, ProcessBaseType>
       	(m, "GenerateNewNodesBeforeMeshing")
 	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
 
-      class_<SelectMeshElementsForFluidsProcess, ProcessBaseType>
+      class_<SelectMeshElementsForFluidsProcess, SelectMeshElementsForFluidsProcess::Pointer, ProcessBaseType>
 	(m, "SelectMeshElementsForFluids")
 	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
 
-      class_<InletManagementProcess, ProcessBaseType>
+      class_<InletManagementProcess, InletManagementProcess::Pointer, ProcessBaseType>
       	(m, "InletManagement")
 	.def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>());
 
-      class_<SetInletProcess, ProcessBaseType>
+      class_<SetInletProcess, SetInletProcess::Pointer, ProcessBaseType>
       	(m, "SetInlet")
 	.def(init<ModelPart&, int>());
 
-      class_<SplitElementsProcess, ProcessBaseType>
+      class_<SplitElementsProcess, SplitElementsProcess::Pointer, ProcessBaseType>
 	(m,"SplitElementsProcess")
 	.def(init<ModelPart&, int>());
 
-      class_<SetActiveFlagProcess, ProcessBaseType>
+      class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, ProcessBaseType>
 	(m, "SetActiveFlagProcess")
 	.def(init<ModelPart&, bool, bool, int>());
 
-      class_<AdaptiveTimeIntervalProcess, ProcessBaseType>
+      class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, ProcessBaseType>
       	(m, "AdaptiveTimeIntervalProcess")
 	.def(init<ModelPart&, int>());
 
-     class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingProcessType>
+     class_<ModelStartEndMeshingForFluidsProcess, ModelStartEndMeshingForFluidsProcess::Pointer, ModelStartEndMeshingProcessType>
        (m, "ModelMeshingForFluids")
        .def(init<ModelPart&, Flags, int>());
 
       //**********TRANSFER ELEMENTS TO MODEL PART*********//
 
-      class_<TransferModelPartElementsProcess, ProcessBaseType>
+      class_<TransferModelPartElementsProcess, TransferModelPartElementsProcess::Pointer, ProcessBaseType>
       	(m, "TransferModelPartElementsProcess")
 	  .def(init<ModelPart&, ModelPart&>())
         .def("Execute", &TransferModelPartElementsProcess::Execute)

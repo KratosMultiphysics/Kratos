@@ -100,7 +100,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
       std::cout<<" Execute() in SplitElementsProcess"<<std::endl;
 
@@ -127,18 +127,18 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "SplitElementsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "SplitElementsProcess";
     }
 
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
 
       KRATOS_TRY
@@ -404,7 +404,7 @@ namespace Kratos
 
     }
 
-   virtual void ExecuteFinalize()
+   void ExecuteFinalize() override
     {
 
       KRATOS_TRY
