@@ -27,8 +27,8 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
         # Set defaults and validate custom settings.
         self.transient_settings = KratosMultiphysics.Parameters("""
         {
-            "dynamic_tau": 1.0,
-            "time_stepping" : {
+            "transient_parameters" : {
+                "dynamic_tau": 1.0,
                 "theta"    : 1.0
             }
         }
@@ -44,7 +44,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
 
     def _create_solution_scheme(self):
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
-        self.GetComputingModelPart().ProcessInfo[ConvectionDiffusionApplication.THETA] = self.transient_settings["time_stepping"]["theta"].GetDouble()
-        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.transient_settings["dynamic_tau"].GetDouble()
+        self.GetComputingModelPart().ProcessInfo[ConvectionDiffusionApplication.THETA] = self.transient_settings["transient_parameters"]["theta"].GetDouble()
+        self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.transient_settings["transient_parameters"]["dynamic_tau"].GetDouble()
         mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return mechanical_scheme
