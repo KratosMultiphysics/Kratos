@@ -215,9 +215,9 @@ void CalculateAirMaterialResponse() {
 		this->C(1, 1) = 2.0*nu;
 		this->C(2, 2) = nu;
 
-		this->ShearStress[0] = this->StrainRate[0];
-		this->ShearStress[1] = this->StrainRate[1];
-		this->ShearStress[2] = this->StrainRate[2];
+		this->ShearStress[0] = c1 * this->StrainRate[0];
+		this->ShearStress[1] = c1 * this->StrainRate[1];
+		this->ShearStress[2] = c2 * this->StrainRate[2];
 	}
 
 	else if (TDim == 3)
