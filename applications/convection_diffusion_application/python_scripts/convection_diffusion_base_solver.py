@@ -51,6 +51,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "model_part_name" : "Thermic",
+            "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
             "analysis_type": "non_linear",
@@ -62,7 +64,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "load_restart"  : false,
                 "save_restart"  : false
             },
-            "computing_model_part_name" : "Thermal",
+            "computing_model_part_name" : "ThermicModelPart",
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -80,6 +82,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "specific_heat_variable"        : "SPECIFIC_HEAT",
                 "reaction_variable"             : "REACTION_FLUX"
             },
+            "time_stepping" : { },
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
