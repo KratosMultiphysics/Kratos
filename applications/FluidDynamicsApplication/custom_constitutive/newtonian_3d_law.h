@@ -123,6 +123,8 @@ protected:
     /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
     double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
     
+    virtual double ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+
     ///@}
 
 

@@ -29,6 +29,7 @@
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
+#include "custom_constitutive/newtonian_nodal_properties_3d_law.h"
 
 // 2D constitutive laws
 #include "custom_constitutive/euler_2d_law.h"
@@ -62,6 +63,9 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( init<>() );
   
     class_< HerschelBulkley3DLaw, HerschelBulkley3DLaw::Pointer, ConstitutiveLaw >(m,"HerschelBulkley3DLaw")
+    .def( init<>() );
+
+    class_< NewtonianNodalProperties3DLaw, NewtonianNodalProperties3DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianNodalProperties3DLaw")
     .def( init<>() );
     
 }
