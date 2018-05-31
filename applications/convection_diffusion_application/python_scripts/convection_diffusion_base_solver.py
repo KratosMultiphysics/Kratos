@@ -518,22 +518,30 @@ class ConvectionDiffusionBaseSolver(object):
     
     def _check_variable_to_set(self, var):
         thermal_settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
-        if (thermal_settings.GetDensityVariable() == var):
-            return True
-        elif (thermal_settings.GetDiffusionVariable() == var):
-            return True
-        elif (thermal_settings.GetVolumeSourceVariable() == var):
-            return True
-        elif (thermal_settings.GetSurfaceSourceVariable() == var):
-            return True
-        elif (thermal_settings.GetProjectionVariable() == var):
-            return True
-        elif (thermal_settings.GetConvectionVariable() == var):
-            return True
-        elif (thermal_settings.GetTransferCoefficientVariable() == var):
-            return True
-        elif (thermal_settings.GetSpecificHeatVariable() == var):
-            return True
+        if (thermal_settings.IsDefinedDensityVariable()):
+            if (thermal_settings.GetDensityVariable() == var):
+                return True
+        if (thermal_settings.IsDefinedDiffusionVariable()):
+            if (thermal_settings.GetDiffusionVariable() == var):
+                return True
+        if (thermal_settings.IsDefinedVolumeSourceVariable()):
+            if (thermal_settings.GetVolumeSourceVariable() == var):
+                return True
+        if (thermal_settings.IsDefinedSurfaceSourceVariable()):
+            if (thermal_settings.GetSurfaceSourceVariable() == var):
+                return True
+        if (thermal_settings.IsDefinedProjectionVariable()):
+            if (thermal_settings.GetProjectionVariable() == var):
+                return True
+        if (thermal_settings.IsDefinedConvectionVariable()):
+            if (thermal_settings.GetConvectionVariable() == var):
+                return True
+        if (thermal_settings.IsDefinedTransferCoefficientVariable()):
+            if (thermal_settings.GetTransferCoefficientVariable() == var):
+                return True
+        if (thermal_settings.IsDefinedSpecificHeatVariable()):
+            if (thermal_settings.GetSpecificHeatVariable() == var):
+                return True
         else:
             return False
     
