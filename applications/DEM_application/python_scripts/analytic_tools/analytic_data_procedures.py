@@ -1,5 +1,4 @@
 import os
-import h5py
 
 class ParticleWatcherAnalyzer:
     def __init__(self, analytic_particle_watcher, path, do_clear_data = True):
@@ -48,6 +47,7 @@ class FaceWatcherAnalyzer:
         if os.path.exists(new_path):
             os.rename(new_path, old_path)
 
+        import h5py
         h5py.File(new_path)
 
     @staticmethod
@@ -83,6 +83,7 @@ class FaceWatcherAnalyzer:
 
     def GetJointData(self, data_base_names):
         import numpy as np
+        import h5py
         data_list = []
 
         with h5py.File(self.file_path, 'r') as f:
@@ -143,6 +144,7 @@ class FaceWatcherAnalyzer:
             avg_vel_nr_db = surface_data.require_dataset(name_avg_vel_nr, shape = current_shape, dtype = float)
             return time_db, n_particles_db, mass_db, avg_vel_nr_db
 
+        import h5py
         if self.OldFileExists():
 
             with h5py.File(self.file_path) as f, h5py.File(self.old_file_path, 'r') as f_old:
@@ -180,6 +182,7 @@ class FaceWatcherAnalyzer:
 
     def MakeTotalFluxPlot(self):
         import matplotlib.pyplot as plt
+        import h5py
         with h5py.File(self.file_path) as f:
             times = f['/' + self.face_watcher_name + '/' + '/time'].value
             mass_flux = f['/' + self.face_watcher_name + '/' + '/m_accum'].value
