@@ -78,6 +78,11 @@ class MonolithicSolver(object):
         }
         """)
 
+        # Linear solver settings can have different number of settings
+        if(custom_settings.Has("linear_solver_settings")):
+            default_settings.RemoveValue("linear_solver_settings")
+            default_settings.AddValue("linear_solver_settings",custom_settings["linear_solver_settings"])
+
         # Check and fix supplied settings compatibility (experimental)
         from json_settings_utility import JsonSettingsUtility
         JsonSettingsUtility.CheckAndFixNotMatchingSettings(custom_settings,default_settings)
@@ -91,6 +96,7 @@ class MonolithicSolver(object):
         self.settings["solving_strategy_settings"].ValidateAndAssignDefaults(default_settings["solving_strategy_settings"])
         self.settings["convergence_criterion_settings"].ValidateAndAssignDefaults(default_settings["convergence_criterion_settings"])
         self.settings["linear_solver_settings"].ValidateAndAssignDefaults(default_settings["linear_solver_settings"])
+        #print("Monolithic Solver Settings",self.settings.PrettyPrintJsonString())
 
         # Echo level
         self.echo_level = 0
