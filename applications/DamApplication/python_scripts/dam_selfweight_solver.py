@@ -121,6 +121,7 @@ class DamSelfweightSolver(object):
 
         print("Variables correctly added")
 
+    @classmethod
     def GetMinimumBufferSize(self):
         return 2
 
@@ -281,6 +282,7 @@ class DamSelfweightSolver(object):
         if(minimum_buffer_size > self.main_model_part.GetBufferSize()):
             self.main_model_part.SetBufferSize( minimum_buffer_size )
 
+    @classmethod
     def _ConstructBuilderAndSolver(self, block_builder, linear_solver):
 
         # Creating the builder and solver
