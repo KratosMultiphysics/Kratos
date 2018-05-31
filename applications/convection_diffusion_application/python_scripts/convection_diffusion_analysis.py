@@ -7,12 +7,10 @@ import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionA
 # Importing the solvers (if available)
 try:
     import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
 except ImportError:
     KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
 try:
     import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
 except ImportError:
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
 
@@ -66,7 +64,6 @@ class ConvectionDiffusionAnalysis(AnalysisStage):
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
-        sys.stdout.flush()
 
     def OutputSolutionStep(self):
         if self.have_output and self.output.IsOutputStep():
