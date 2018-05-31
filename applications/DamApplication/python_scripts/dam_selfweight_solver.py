@@ -119,6 +119,28 @@ class DamSelfweightSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
 
+        ## Thermal variables
+        thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
+        thermal_settings.SetDiffusionVariable(KratosMultiphysics.CONDUCTIVITY)
+        thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+        thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
+        thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
+        thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
+        thermal_settings.SetSurfaceSourceVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, thermal_settings)
+
+        # Add thermal variables
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_REFERENCE_TEMPERATURE)
+        # This Variable is used for computing heat source according Azenha Formulation
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.ALPHA_HEAT_SOURCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.TIME_ACTIVATION)
+
         print("Variables correctly added")
 
     @classmethod
