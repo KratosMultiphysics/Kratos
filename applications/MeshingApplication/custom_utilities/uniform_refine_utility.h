@@ -298,7 +298,7 @@ private:
      */
     void CreateElement(
         Element::Pointer pOriginElement,
-        std::vector<NodeType::Pointer> ThisNodes,
+        std::vector<NodeType::Pointer>& rThisNodes,
         const int& rRefinementLevel
         );
 
@@ -310,7 +310,7 @@ private:
      */
     void CreateCondition(
         Condition::Pointer pOriginCondition,
-        std::vector<NodeType::Pointer> ThisNodes,
+        std::vector<NodeType::Pointer>& rThisNodes,
         const int& rRefinementLevel
         );
 
@@ -329,7 +329,7 @@ private:
     std::vector<typename NodeType::Pointer> GetSubTriangleNodes(
         const int Position,
         const Geometry<NodeType>& rGeom,
-        std::array<NodeType::Pointer, 3>& rMiddleNodes
+        std::vector<NodeType::Pointer>& rMiddleNodes
         );
 
     /**
@@ -338,15 +338,22 @@ private:
     std::vector<typename NodeType::Pointer> GetSubQuadrilateralNodes(
         const int Position,
         const Geometry<NodeType>& rGeom,
-        std::array<NodeType::Pointer, 5>& rMiddleNodes
+        std::vector<NodeType::Pointer>& rMiddleNodes
         );
 
     /**
-     * this method adds a node to the sub model parts  
+     * This method adds a node to the sub model parts  
      * specified by a tag
      * TODO: improve this function with Model
      */
     void AddNodeToSubModelParts(NodeType::Pointer pNode, IndexType Tag);
+
+    /**
+     * This method adds the nodes to the sub model parts  
+     * specified by a tag
+     * TODO: improve this function with Model
+     */
+    void AddNodesToSubModelParts(std::vector<NodeType::Pointer>& rThisNodes, IndexType Tag);
 
     ///@}
     ///@name Private  Access

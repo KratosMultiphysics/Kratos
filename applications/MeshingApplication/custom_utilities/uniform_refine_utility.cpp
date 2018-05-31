@@ -169,16 +169,10 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 
         // Loop the edges of the father element and get the nodes
         for (auto edge : geom.Edges())
-        {
             NodeType::Pointer new_node = CreateNodeInEdge(edge, step_refine_level);
-            AddNodeToSubModelParts(new_node, mElemColorMap[id]);
-        }
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-        {
             NodeType::Pointer new_node = CreateNodeInFace( geom, step_refine_level );
-            AddNodeToSubModelParts(new_node, mElemColorMap[id]);
-        }
     }
 
     // TODO: add OMP
@@ -198,9 +192,10 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         {
             // Loop the edges of the father element and get the nodes
             int i_edge = 0;
-            std::array<NodeType::Pointer, 3> middle_nodes;
+            std::vector<NodeType::Pointer> middle_nodes(3);
             for (auto edge : geom.Edges())
                 middle_nodes[i_edge++] = GetNodeInEdge(edge);
+            AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
 
             // Create the sub elements
             std::vector<NodeType::Pointer> sub_element_nodes(3);
@@ -214,10 +209,11 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         {
             // Loop the edges of the father element and get the nodes
             int i_edge = 0;
-            std::array<NodeType::Pointer, 5> middle_nodes;
+            std::vector<NodeType::Pointer> middle_nodes(5);
             for (auto edge : geom.Edges())
                 middle_nodes[i_edge++] = GetNodeInEdge(edge);
             middle_nodes[4] = GetNodeInFace( geom );
+            AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
 
             // Create the sub elements
             std::vector<NodeType::Pointer> sub_element_nodes(4);
@@ -472,11 +468,11 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
 template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateElement(
     Element::Pointer pOriginElement,
-    std::vector<NodeType::Pointer> ThisNodes,
+    std::vector<NodeType::Pointer>& rThisNodes,
     const int& rRefinementLevel
     )
 {
-    Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, ThisNodes, pOriginElement->pGetProperties());
+    Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, rThisNodes, pOriginElement->pGetProperties());
 
     if (sub_element != nullptr)
     {
@@ -507,11 +503,11 @@ void UniformRefineUtility<TDim>::CreateElement(
 template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateCondition(
     Condition::Pointer pOriginCondition,
-    std::vector<NodeType::Pointer> ThisNodes,
+    std::vector<NodeType::Pointer>& rThisNodes,
     const int& rRefinementLevel
     )
 {
-    Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, ThisNodes, pOriginCondition->pGetProperties());
+    Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, rThisNodes, pOriginCondition->pGetProperties());
 
     if (sub_condition != nullptr)
     {
@@ -574,7 +570,7 @@ template<unsigned int TDim>
 std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubTriangleNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
-    std::array<NodeType::Pointer, 3>& rMiddleNodes
+    std::vector<NodeType::Pointer>& rMiddleNodes
     )
 {
     std::vector<NodeType::Pointer> sub_triangle_nodes(3);
@@ -620,7 +616,7 @@ template<unsigned int TDim>
 std::vector<typename NodeType::Pointer> UniformRefineUtility<TDim>::GetSubQuadrilateralNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
-    std::array<NodeType::Pointer, 5>& rMiddleNodes
+    std::vector<NodeType::Pointer>& rMiddleNodes
     )
 {
     std::vector<NodeType::Pointer> sub_triangle_nodes(4);
@@ -683,6 +679,28 @@ void UniformRefineUtility<TDim>::AddNodeToSubModelParts(
     }
     // Store the node Id on the unique tag map
     mNodesColorMap[pNode->Id()] = Tag;
+}
+
+
+/// Add a node to the sub model parts specified by the tag
+template<unsigned int TDim>
+void UniformRefineUtility<TDim>::AddNodesToSubModelParts(
+    std::vector<NodeType::Pointer>& rThisNodes,
+    IndexType Tag
+    )
+{
+    if (Tag != 0)  // NOTE: Tag==0 is the main model part
+    {
+        for (auto sub_name : mColors[Tag])
+        {
+            ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
+            for (auto node : rThisNodes)
+                sub_model_part.AddNode(node);
+        }
+    }
+    // Store the node Id on the unique tag map
+    for (auto node : rThisNodes)
+        mNodesColorMap[node->Id()] = Tag;
 }
 
 
