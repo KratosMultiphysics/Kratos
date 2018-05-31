@@ -253,6 +253,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
         {
             NodeType::Pointer middle_node = GetNodeInEdge(geom);
+            AddNodeToSubModelParts(middle_node, mCondColorMap[id]);
 
             // Create the sub conditions
             std::vector<NodeType::Pointer> sub_condition_nodes(2);
