@@ -105,8 +105,7 @@ double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParam
 }
 
 double Newtonian3DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    const double effective_viscosity = rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
-    return effective_viscosity;
+    return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
 }
 
 void Newtonian3DLaw::save(Serializer& rSerializer) const {
