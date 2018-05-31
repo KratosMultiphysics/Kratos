@@ -20,12 +20,21 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         return x
         #return -(math.sqrt(x**2+y**2+z**2) - 0.4)
 
+    # TODO: FINISH IMPLEMENTING THIS!!!!!!!
     def tearDown(self):
         my_pid = self.model_part.GetCommunicator().MyPID()
 
+        # Remove the .time file
+        if (my_pid == 0):
+            try:
+                os.remove('coarse_sphere.time')
+            except FileNotFoundError as e:
+                pass
+
+        # Remove the Metis partitioning files
         try:
-            os.remove('coarse_sphere_' + my_pid + '.time')
-            os.remove('coarse_sphere_' + my_pid + '.mdpa')
+            os.remove('coarse_sphere_' + str(my_pid) + '.time')
+            os.remove('coarse_sphere_' + str(my_pid) + '.mdpa')
         except FileNotFoundError as e:
             pass
 
@@ -54,45 +63,9 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         # Initialize the DISTANCE values
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0, self._ExpectedDistance(node.X,node.Y,node.Z))
-
-        # Set the output utility TODO: Remove after debugging
-        import gid_output_process_mpi
-        out_params = KratosMultiphysics.Parameters("""{
-            "result_file_configuration": {
-                "gidpost_flags": {
-                    "GiDPostMode": "GiD_PostBinary",
-                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                    "WriteConditionsFlag": "WriteElementsOnly",
-                    "MultiFileFlag": "SingleFile"
-                },
-                "file_label": "time",
-                "output_control_type": "step",
-                "output_frequency": 1.0,
-                "body_output": true,
-                "node_output": false,
-                "skin_output": false,
-                "plane_output": [],
-                "nodal_results": ["DISTANCE"],
-                "nodal_nonhistorical_results": [],
-                "nodal_flags_results": [],
-                "gauss_point_results": [],
-                "additional_list_files": []
-            },
-            "point_data_configuration": []
-        }""")
-        gid_io = gid_output_process_mpi.GiDOutputProcessMPI(self.model_part, "coarse_sphere", out_params)
-        gid_io.ExecuteInitialize()
-        gid_io.ExecuteBeforeSolutionLoop()
         
         # Fake time advance
-        self.model_part.CloneTimeStep(0.0)
-        gid_io.ExecuteInitializeSolutionStep()
-        gid_io.ExecuteFinalizeSolutionStep()
-        if (gid_io.IsOutputStep()):
-            gid_io.PrintOutput()
-        
         self.model_part.CloneTimeStep(1.0)
-        gid_io.ExecuteInitializeSolutionStep()
 
         # Set the utility and compute the variational distance values
         import trilinos_linear_solver_factory
@@ -102,26 +75,23 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         epetra_comm = TrilinosApplication.CreateCommunicator()
 
         max_iterations = 2
-
         TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(
             epetra_comm, self.model_part, trilinos_linear_solver, max_iterations).Execute()
 
-        # Print results TODO: Remove after debugging
-        gid_io.ExecuteFinalizeSolutionStep()
-        if (gid_io.IsOutputStep()):
-            gid_io.PrintOutput()
-
-        self.model_part.CloneTimeStep(2.0)
-        gid_io.ExecuteInitializeSolutionStep()
-        gid_io.ExecuteFinalizeSolutionStep()
-        if (gid_io.IsOutputStep()):
-            gid_io.PrintOutput()
-        gid_io.ExecuteFinalize()
+        # Set the output utility TODO: Remove after debugging
+        import gid_output
+        filename = "coarse_sphere_" + str(self.model_part.GetCommunicator().MyPID())
+        gid_io = gid_output.GiDOutput(filename)
+        gid_io._write_mesh(1.0, self.model_part)
+        gid_io._initialize_results(1.0, self.model_part)
+        gid_io._write_nodal_results(1.0, self.model_part, KratosMultiphysics.DISTANCE)
+        gid_io._write_nodal_results(1.0, self.model_part, KratosMultiphysics.PARTITION_INDEX)
+        gid_io._finalize_results()
 
         self.model_part.GetCommunicator().Barrier()
 
         # Check the obtained values
-        max_distance = -1.0;
+        max_distance = -1.0
         min_distance = +1.0
         for node in self.model_part.Nodes:
             d =  node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -133,9 +103,8 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
 
         # self.assertAlmostEqual(max_distance, 0.44556526310761013) # Serial max_distance
         # self.assertAlmostEqual(min_distance,-0.504972246827639) # Serial min_distance
-        self.assertAlmostEqual(max_distance, 0.435374512020348)
-        self.assertAlmostEqual(min_distance, -0.38175478695287857)        
+        self.assertAlmostEqual(max_distance, 0.4549620068021185) # MPI max_distance (4 cores)
+        self.assertAlmostEqual(min_distance, -0.5167312149897061) # MPI min_distance (4 cores)
         
 if __name__ == '__main__':
-    test = TestTrilinosRedistance()
-    test.testTrilinosRedistance()
+    KratosUnittest.main()

@@ -230,7 +230,6 @@ protected:
         Communicator& rRefComm = base_model_part.GetCommunicator();
         Communicator::Pointer pNewComm = rRefComm.Create();
 
-
         pNewComm->SetNumberOfColors(rRefComm.GetNumberOfColors());
         pNewComm->NeighbourIndices() = rRefComm.NeighbourIndices();
         pNewComm->LocalMesh().SetNodes(rRefComm.LocalMesh().pNodes());
@@ -263,11 +262,7 @@ protected:
 
         // Using the conditions to mark the boundary with the flag boundary
         // Note that we DO NOT add the conditions to the model part
-        for (auto it_node = p_distance_model_part->NodesBegin(); it_node != p_distance_model_part->NodesEnd(); ++it_node)
-        {
-            it_node->Set(BOUNDARY,false);
-        }
-
+        VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, p_distance_model_part->Nodes());
         // Note that above we have assigned the same geometry. Thus the flag is 
         // set in the distance model part despite we are iterating the base one
         for (auto it_cond = base_model_part.ConditionsBegin(); it_cond != base_model_part.ConditionsEnd(); ++it_cond)

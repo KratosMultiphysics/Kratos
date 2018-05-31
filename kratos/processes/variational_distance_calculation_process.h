@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Ruben Zorrilla
 //                    
 //
 
@@ -15,32 +16,23 @@
 #if !defined(KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED )
 #define  KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <algorithm>
 
 // External includes
-#include "includes/kratos_flags.h"
-
-
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "includes/kratos_flags.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "geometries/geometry_data.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "elements/distance_calculation_element_simplex.h"
+#include "linear_solvers/linear_solver.h"
+#include "processes/process.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -51,7 +43,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name  Enum's
@@ -65,9 +56,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-
-
-
 /// Short class definition.
 /**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and recomputes a signed distance function
 mantaining as much as possible the position of the zero of the function prior to the call.
@@ -75,13 +63,8 @@ mantaining as much as possible the position of the zero of the function prior to
 This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )**2
 with the restriction that "distance" is a finite elment function
 */
-
-template< unsigned int TDim,
-          class TSparseSpace,
-          class TDenseSpace,
-          class TLinearSolver >
-class VariationalDistanceCalculationProcess
-    : public Process
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver >
+class VariationalDistanceCalculationProcess : public Process
 {
 public:
     
@@ -92,15 +75,15 @@ public:
     ///@{
 
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
+    typedef typename SchemeType::Pointer SchemePointerType;
+    typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
     typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
-///@}
+    ///@}
     ///@name Pointer Definitions
+
     /// Pointer definition of VariationalDistanceCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(VariationalDistanceCalculationProcess);
-
-
-
 
     ///@}
     ///@name Life Cycle
@@ -133,6 +116,7 @@ public:
      distance_calculator = VariationalDistanceCalculationProcess2D(fluid_model_part, distance_linear_solver, max_iterations)
      distance_calculator.Execute()
      */
+
     VariationalDistanceCalculationProcess(ModelPart& base_model_part,
                                           typename TLinearSolver::Pointer plinear_solver,
                                           unsigned int max_iterations = 10
@@ -141,53 +125,57 @@ public:
     {
         KRATOS_TRY
 
-
         mmax_iterations = max_iterations;
 
         mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
 
-        //check that there is at least one element and node in the model
-        if(base_model_part.Nodes().size() == 0) KRATOS_THROW_ERROR(std::logic_error, "the model has no Nodes","");
-        if(base_model_part.Elements().size() == 0) KRATOS_THROW_ERROR(std::logic_error, "the model has no Elements","");
-        if(base_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data","");
+        // Check that there is at least one element and node in the model
+        KRATOS_ERROR_IF(base_model_part.NumberOfNodes() == 0) << "The model part has no nodes." << std::endl;
+        KRATOS_ERROR_IF(base_model_part.NumberOfElements() == 0) << "The model Part has no elements." << std::endl;
+
+        // Check if nodes have DISTANCE variable
+        VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE,base_model_part.Nodes());
+
+        // if(base_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing DISTANCE variable on solution step data","");
         if(TDim == 2)
         {
-            if(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle)
-                KRATOS_THROW_ERROR(std::logic_error, "In 2D the element type is expected to be a triangle","");
+            KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
+                "In 2D the element type is expected to be a triangle." << std::endl;
         }
         else if(TDim == 3)
         {
-            if(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra)
-                KRATOS_THROW_ERROR(std::logic_error, "In 3D the element type is expected to be a tetrahedra","");
+            KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+                "In 3D the element type is expected to be a tetrahedron" << std::endl;
         }
 
-        //generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
+        // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         ReGenerateDistanceModelPart(base_model_part);
 
-        //generate a linear strategy
-
-
-        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-        typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
+        // Generate a linear strategy
+        SchemePointerType pscheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
 
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
+        BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-        BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
-        mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
+        mp_solving_strategy = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+            *mp_distance_model_part,
+            pscheme,
+            plinear_solver,
+            pBuilderSolver,
+            CalculateReactions,
+            ReformDofAtEachIteration,
+            CalculateNormDxFlag);
 
-        //TODO: check flag DO_EXPENSIVE_CHECKS
+        // TODO: check flag DO_EXPENSIVE_CHECKS
         mp_solving_strategy->Check();
 
         KRATOS_CATCH("")
     }
 
     /// Destructor.
-    ~VariationalDistanceCalculationProcess() override
-    {
-    }
-
+    ~VariationalDistanceCalculationProcess() override {};
 
     ///@}
     ///@name Operators
@@ -197,7 +185,6 @@ public:
     {
         Execute();
     }
-
 
     ///@}
     ///@name Operations
@@ -210,39 +197,34 @@ public:
         if(mdistance_part_is_initialized == false)
             ReGenerateDistanceModelPart(mr_base_model_part);
 
-        //TODO: check flag    PERFORM_STEP1
-        //step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
+        // TODO: check flag    PERFORM_STEP1
+        // Step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
         mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
         
-        //unfix the distances
-        const int nnodes = static_cast<int>(mp_distance_model_part->Nodes().size());
+        // Unfix the distances
+        const int nnodes = static_cast<int>(mp_distance_model_part->NumberOfNodes());
         #pragma omp parallel for
         for(int iii=0; iii<nnodes; iii++)
         {
             auto it = mp_distance_model_part->NodesBegin() + iii;
             it->Free(DISTANCE);
             
-            
             double& d = it->FastGetSolutionStepValue(DISTANCE);
-            it->SetValue(DISTANCE, d); //save the distances
+            it->SetValue(DISTANCE, d); // Save the distances
               
             if(d == 0){
                 it->Fix(DISTANCE);
                 d = 1e-15;
-            }
-            else{
-                if(d > 0.0) //set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
+            } else {
+                if(d > 0.0) // Set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
                     d = 1.0e15;
                 else
-                    d = -1.015;
-            }
-            
-            
+                    d = -1.0e15;
+            } 
         }
-        
-        
-        const int nelem = static_cast<int>(mp_distance_model_part->Elements().size());
-        
+
+        const int nelem = static_cast<int>(mp_distance_model_part->NumberOfElements());
+
         #pragma omp parallel for
         for(int iii=0; iii<nelem; iii++)
         {
@@ -253,41 +235,48 @@ public:
             for(unsigned int i=0; i<TDim+1; i++)
                 distances[i] = geom[i].GetValue(DISTANCE);
             
-            array_1d<double,TDim+1> original_distances = distances;
+            const array_1d<double,TDim+1> original_distances = distances;
             
             unsigned int positives = 0, negatives=0;
             for(unsigned int i=0; i<TDim+1; i++)
             {
-                if(distances[i] >= 0) positives++;
-                else negatives++;
+                if(distances[i] >= 0) 
+                    positives++;
+                else
+                    negatives++;
             }
         
-            if(positives> 0  && negatives>0) //the element is cut by the interface
+            // The element is cut by the interface
+            if(positives> 0  && negatives>0) 
             {
+                // Compute the unsigned distance using GeometryUtils
                 if(TDim==3)
                     GeometryUtils::CalculateTetrahedraDistances(geom, distances);
                 else
-                    GeometryUtils::CalculateTriangleDistances(geom,distances);
+                    GeometryUtils::CalculateTriangleDistances(geom, distances);
                 
-                //assign the sign 
-                for(unsigned int i=0; i<TDim+1; i++)
-                {
-                    if(original_distances[i] < 0) distances[i] = -distances[i];
+                // Assign the sign using the original distance values
+                for(unsigned int i=0; i<TDim+1; i++){
+                    if(original_distances[i] < 0)
+                        distances[i] = -distances[i];
                 }
                
                 for(unsigned int i=0; i<TDim+1; i++)
                 {
-                    
                     double& d = geom[i].FastGetSolutionStepValue(DISTANCE);
                     geom[i].SetLock();
-                    if(std::abs(d) > std::abs(distances[i])) d = distances[i];
+                    if(std::abs(d) > std::abs(distances[i]))
+                        d = distances[i];
                     geom[i].Fix(DISTANCE);
                     geom[i].UnSetLock();
                 }
             }
         }
-        
-        //compute the maximum and minimum distance for the fixed nodes
+
+        // SHALL WE SYNCHRONIZE SOMETHING IN HERE?¿?¿??¿ WE'VE CHANGED THE NODAL DISTANCE VALUES FROM THE ELEMENTS...
+        this->SynchronizeDistance();
+
+        // Compute the maximum and minimum distance for the fixed nodes
         double max_dist = 0.0;
         double min_dist = 0.0;
         for(int iii=0; iii<nnodes; iii++)
@@ -301,9 +290,15 @@ public:
                 if(d<min_dist)
                     min_dist = d;
             }
-        }        
-        
-        //assign the max dist to all of the non-fixed positve nodes and the minimum one to the non-fixed negatives
+        }
+
+        // Synchronize the maximum and minimum distance values
+        auto &r_communicator = mp_distance_model_part->GetCommunicator();
+        r_communicator.MaxAll(max_dist);
+        r_communicator.MinAll(min_dist);
+
+        // Assign the max dist to all of the non-fixed positive nodes 
+        // and the minimum one to the non-fixed negatives
         #pragma omp parallel for
         for(int iii=0; iii<nnodes; iii++)
         {
@@ -316,43 +311,23 @@ public:
                 else
                     d = min_dist;
             }
-        }  
-        
-        //
-        if(mp_distance_model_part->GetCommunicator().TotalProcesses() != 1) //MPI case
-        {
-            #pragma omp parallel for
-            for(int iii=0; iii<nnodes; iii++)
-            {
-                auto it = mp_distance_model_part->NodesBegin() + iii;
-                it->FastGetSolutionStepValue(DISTANCE) = std::abs(it->FastGetSolutionStepValue(DISTANCE));
-            }
-            
-            mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
-            
-            #pragma omp parallel for
-            for(int iii=0; iii<nnodes; iii++)
-            {
-                auto it = mp_distance_model_part->NodesBegin() + iii;
-                if(it->GetValue(DISTANCE) < 0.0)
-                    it->FastGetSolutionStepValue(DISTANCE) = -it->FastGetSolutionStepValue(DISTANCE);
-            }
         }
-        
         
         mp_solving_strategy->Solve();
 
-
-        //step2 - minimize the target residual
+        // Step2 - minimize the target residual
         mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
         for(unsigned int it = 0; it<mmax_iterations; it++)
         {
              mp_solving_strategy->Solve();
         }
-        
-        //unfix the distances
-        for(auto it = mp_distance_model_part->NodesBegin(); it!=mp_distance_model_part->NodesEnd(); ++it)
-            it->Free(DISTANCE);
+
+        // Unfix the distances
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < nnodes; ++i_node){
+            auto it_node = (mp_distance_model_part->NodesBegin()) + i_node;
+            it_node->Free(DISTANCE);
+        }
 
         KRATOS_CATCH("")
     }
@@ -368,15 +343,14 @@ public:
         mp_solving_strategy->Clear();
 
     }
+
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -399,14 +373,11 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -419,10 +390,10 @@ protected:
         mmax_iterations = max_iterations;
     }
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
+
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
     ModelPart::Pointer mp_distance_model_part;
@@ -430,16 +401,20 @@ protected:
 
     typename SolvingStrategyType::Pointer mp_solving_strategy;
 
-
     ///@}
     ///@name Protected Operators
     ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
     virtual void ReGenerateDistanceModelPart(ModelPart& base_model_part)
     {
         KRATOS_TRY
 
-        //generate
-        ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
+        // Generate
+        ModelPart::Pointer pAuxModelPart = Kratos::make_shared<ModelPart>("DistancePart",1);
         mp_distance_model_part.swap(pAuxModelPart);
 
         mp_distance_model_part->Nodes().clear();
@@ -451,80 +426,62 @@ protected:
         mp_distance_model_part->SetProperties(base_model_part.pProperties());
         mp_distance_model_part->Tables() = base_model_part.Tables();
 
-        //assigning the nodes to the new model part
+        // Assigning the nodes to the new model part
         mp_distance_model_part->Nodes() = base_model_part.Nodes();
 
-        //ensure that the nodes have distance as a DOF
-        for (ModelPart::NodesContainerType::iterator iii = base_model_part.NodesBegin(); iii != base_model_part.NodesEnd(); iii++)
-        {
-            iii->AddDof(DISTANCE);
-        }
+        // Ensure that the nodes have distance as a DOF
+        VariableUtils().AddDof<Variable<double> >(DISTANCE,base_model_part);
 
-        //generating the elements
+        // Generating the elements
         mp_distance_model_part->Elements().reserve(base_model_part.Elements().size());
-        for (ModelPart::ElementsContainerType::iterator iii = base_model_part.ElementsBegin(); iii != base_model_part.ElementsEnd(); iii++)
+        for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem)
         {
-            Properties::Pointer properties = iii->pGetProperties();
-            Element::Pointer p_element = Element::Pointer(new DistanceCalculationElementSimplex<TDim>(
-                                             iii->Id(),
-                                             iii->pGetGeometry(),
-                                             iii->pGetProperties() ) );
+            Properties::Pointer properties = it_elem->pGetProperties();
+            Element::Pointer p_element = Kratos::make_shared<DistanceCalculationElementSimplex<TDim> >(
+                it_elem->Id(),
+                it_elem->pGetGeometry(),
+                it_elem->pGetProperties());
 
-            //assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-            p_element->pGetGeometry() = iii->pGetGeometry();
+            // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
+            p_element->pGetGeometry() = it_elem->pGetGeometry();
             
             mp_distance_model_part->Elements().push_back(p_element);
         }
 
-
-        //using the conditions to mark the boundary with the flag boundary
-        //note that we DO NOT add the conditions to the model part
-        for (ModelPart::NodesContainerType::iterator iii = mp_distance_model_part->NodesBegin(); iii != mp_distance_model_part->NodesEnd(); iii++)
-        {
-            iii->Set(BOUNDARY,false);
-        }
+        // Using the conditions to mark the boundary with the flag boundary
+        // Note that we DO NOT add the conditions to the model part
+        VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, mp_distance_model_part->Nodes());
+        // Note that above we have assigned the same geometry. Thus the flag is 
+        // set in the distance model part despite we are iterating the base one
         for (ModelPart::ConditionsContainerType::iterator iii = base_model_part.ConditionsBegin(); iii != base_model_part.ConditionsEnd(); iii++)
         {
             Geometry< Node<3> >& geom = iii->GetGeometry();
-            for(unsigned int i=0; i<geom.size(); i++) geom[i].Set(BOUNDARY,true);
+            for(unsigned int i=0; i<geom.size(); i++){
+                geom[i].Set(BOUNDARY,true);
+            }
         }
-
-        //next is for mpi (but mpi would also imply calling an mpi strategy)
-        Communicator::Pointer pComm = base_model_part.GetCommunicator().Create();
-        mp_distance_model_part->SetCommunicator(pComm);
 
         mdistance_part_is_initialized = true;
 
         KRATOS_CATCH("")
     }
 
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -538,16 +495,41 @@ private:
     ///@name Private Operations
     ///@{
 
+    void SynchronizeDistance(){
+
+        int nnodes = static_cast<int>(mp_distance_model_part->NumberOfNodes());
+        auto &r_communicator = mp_distance_model_part->GetCommunicator();
+
+        // Only required in the MPI case
+        if(r_communicator.TotalProcesses() != 1){
+            // Set the distance absolute value
+            #pragma omp parallel for
+            for(int i_node = 0; i_node < nnodes; ++i_node){
+                auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+                it_node->FastGetSolutionStepValue(DISTANCE) = std::abs(it_node->FastGetSolutionStepValue(DISTANCE));
+            }
+            
+            // Synchronize the unsigned value to minimum
+            r_communicator.SynchronizeCurrentDataToMin(DISTANCE);
+            
+            // Set the distance sign again by retrieving it from the non-historical database
+            #pragma omp parallel for
+            for(int i_node = 0; i_node < nnodes; ++i_node){
+                auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+                if(it_node->GetValue(DISTANCE) < 0.0){
+                    it_node->FastGetSolutionStepValue(DISTANCE) = -it_node->FastGetSolutionStepValue(DISTANCE);
+                }
+            }
+        }
+    }
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -559,9 +541,7 @@ private:
     /// Copy constructor.
     //VariationalDistanceCalculationProcess(VariationalDistanceCalculationProcess const& rOther);
 
-
     ///@}
-
 }; // Class VariationalDistanceCalculationProcess
 
 //avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
