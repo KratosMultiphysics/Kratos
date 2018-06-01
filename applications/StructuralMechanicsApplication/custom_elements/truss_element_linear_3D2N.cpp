@@ -125,17 +125,30 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
 
   std::cout << "CalculateRightHandSide" <<std::endl;
 
-  Matrix left_hand_side_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+/*   Matrix left_hand_side_matrix = ZeroMatrix(msLocalSize, msLocalSize);
   this->CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
   Vector nodal_deformation = ZeroVector(msLocalSize);
-  this->GetValuesVector(nodal_deformation);
-  rRightHandSideVector = ZeroVector(msLocalSize);
+  this->GetValuesVector(nodal_deformation);*/
+  rRightHandSideVector = ZeroVector(msLocalSize); 
 
-  
+  const double current_stress = this->TrialStateStress();
+  BoundedVector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize); 
+
+  const double area = this->GetProperties()[CROSS_AREA];
+  const double truss_axial_force = area*current_stress;
+  internal_forces[0] = -1.00 * truss_axial_force;
+  internal_forces[3] = 1.00 * truss_axial_force;
+
+  BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
+      ZeroMatrix(msLocalSize, msLocalSize);
+  this->CreateTransformationMatrix(transformation_matrix);
+
+  internal_forces = prod(transformation_matrix, internal_forces);
 
 
-  noalias(rRightHandSideVector) -=
-      prod(left_hand_side_matrix, nodal_deformation);
+/*   noalias(rRightHandSideVector) -=
+      prod(left_hand_side_matrix, nodal_deformation); */
+  rRightHandSideVector -= internal_forces;
   this->AddPrestressLinear(rRightHandSideVector);
 
   // add bodyforces
