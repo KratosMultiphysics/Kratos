@@ -42,6 +42,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
         import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(model, self.project_parameters)
 
+        self.__restart_utility = None
+
     def Initialize(self):
         '''
         Construct and initialize all classes and tools used in the simulation loop.
@@ -50,8 +52,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
         self._SetUpRestart()
 
         if self.load_restart:
-            self.main_model_part = self.model.CreateModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
-            self.restart_utility.LoadRestart()
+            restart_utility = self._GetRestartUtility()
+            restart_utility.LoadRestart()
         else:
             self.solver.AddVariables()
             self.solver.ImportModelPart()
@@ -90,7 +92,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
                 process.ExecuteAfterOutputStep()
 
         if self.save_restart:
-            self.restart_utility.SaveRestart()
+            restart_utility = self._GetRestartUtility()
+            restart_utility.SaveRestart()
 
     def _SetUpListOfProcesses(self):
         '''
@@ -164,17 +167,29 @@ class FluidDynamicsAnalysis(AnalysisStage):
             restart_settings.RemoveValue("save_restart")
             restart_settings.AddValue("input_filename", self.project_parameters["problem_data"]["problem_name"])
             restart_settings.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
+        else:
+            self.load_restart = False
+            self.save_restart = False
 
+    def _GetRestartUtility(self):
+
+        if self.__restart_utility is not None:
+            return self.__restart_utility
+        else:
             if self.parallel_type == "OpenMP":
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
                 from trilinos_restart_utility import TrilinosRestartUtility as Restart
 
-            self.restart_utility = Restart(self.main_model_part,
-                                           self.project_parameters["restart_settings"])
-        else:
-            self.load_restart = False
-            self.save_restart = False
+            model_part_name = self.project_parameters["solver_settings"]["model_part_name"].GetString()
+            if self.model.HasModelPart(model_part_name):
+                model_part = self.model.GetModelPart(model_part_name)
+            else:
+                model_part = self.model.CreateModelPart(model_part_name)
+
+            self.__restart_utility = Restart(model_part,
+                                             self.project_parameters["restart_settings"])
+
 
 if __name__ == '__main__':
     from sys import argv
