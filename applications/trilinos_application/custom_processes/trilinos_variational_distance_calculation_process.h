@@ -88,8 +88,9 @@ public:
         Epetra_MpiComm &rComm,
         ModelPart &base_model_part,
         LinearSolverPointerType plinear_solver,
-        unsigned int max_iterations = 10) : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations),
-                                            mrComm(rComm)
+        unsigned int max_iterations = 10) 
+        : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations),
+        mrComm(rComm)
     {
 
         KRATOS_TRY
@@ -101,15 +102,14 @@ public:
         KRATOS_ERROR_IF(NNode > 0 && base_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false) << 
             "Missing DISTANCE variable on solution step data" << std::endl;
 
-        if(NElem > 0)
-        {
-            if(TDim == 2)
-            {
+        KRATOS_ERROR_IF(NNode > 0 && base_model_part.NodesBegin()->SolutionStepsDataHas(FLAG_VARIABLE) == false) << 
+            "Missing DISTANCE variable on solution step data" << std::endl;
+
+        if(NElem > 0){
+            if(TDim == 2){
                 KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) << 
                     "In 2D the element type is expected to be a triangle" << std::endl;
-            }
-            else if(TDim == 3)
-            {
+            } else if(TDim == 3) {
                 KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
                     "In 3D the element type is expected to be a tetrahedra" << std::endl;
             }
@@ -118,8 +118,7 @@ public:
         base_model_part.GetCommunicator().SumAll(NNode);
         base_model_part.GetCommunicator().SumAll(NElem);
 
-        if( base_model_part.GetCommunicator().MyPID() == 0 )
-        {
+        if( base_model_part.GetCommunicator().MyPID() == 0 ){
             KRATOS_ERROR_IF(NNode == 0) << "The model has no nodes" << std::endl;
             KRATOS_ERROR_IF(NElem == 0) << "The model has no elements" << std::endl;
         }
@@ -221,10 +220,7 @@ protected:
         p_distance_model_part->Nodes() = base_model_part.Nodes();
 
         // Ensure that the nodes have distance as a DOF
-        for (auto it_node = base_model_part.NodesBegin(); it_node != base_model_part.NodesEnd(); ++it_node)
-        {
-            it_node->AddDof(DISTANCE);
-        }
+        VariableUtils().AddDof<Variable<double> >(DISTANCE, base_model_part);
 
         // For MPI: copy communication data
         Communicator& rRefComm = base_model_part.GetCommunicator();
@@ -235,8 +231,7 @@ protected:
         pNewComm->LocalMesh().SetNodes(rRefComm.LocalMesh().pNodes());
         pNewComm->InterfaceMesh().SetNodes(rRefComm.InterfaceMesh().pNodes());
         pNewComm->GhostMesh().SetNodes(rRefComm.GhostMesh().pNodes());
-        for (unsigned int i = 0; i < rRefComm.GetNumberOfColors(); ++i)
-        {
+        for (unsigned int i = 0; i < rRefComm.GetNumberOfColors(); ++i){
             pNewComm->pInterfaceMesh(i)->SetNodes(rRefComm.pInterfaceMesh(i)->pNodes());
             pNewComm->pLocalMesh(i)->SetNodes(rRefComm.pLocalMesh(i)->pNodes());
             pNewComm->pGhostMesh(i)->SetNodes(rRefComm.pGhostMesh(i)->pNodes());
@@ -246,8 +241,7 @@ protected:
 
         // Generating the elements
         p_distance_model_part->Elements().reserve(base_model_part.Elements().size());
-        for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem)
-        {
+        for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem){
             Element::Pointer p_element = Kratos::make_shared<DistanceCalculationElementSimplex<TDim> >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
@@ -265,8 +259,7 @@ protected:
         VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, p_distance_model_part->Nodes());
         // Note that above we have assigned the same geometry. Thus the flag is 
         // set in the distance model part despite we are iterating the base one
-        for (auto it_cond = base_model_part.ConditionsBegin(); it_cond != base_model_part.ConditionsEnd(); ++it_cond)
-        {
+        for (auto it_cond = base_model_part.ConditionsBegin(); it_cond != base_model_part.ConditionsEnd(); ++it_cond){
             auto &r_geom = it_cond->GetGeometry();
             for (unsigned int i = 0; i < r_geom.size(); ++i){
                 r_geom[i].Set(BOUNDARY, true);
