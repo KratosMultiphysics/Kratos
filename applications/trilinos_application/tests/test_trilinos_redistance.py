@@ -20,7 +20,6 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         return x
         #return -(math.sqrt(x**2+y**2+z**2) - 0.4)
 
-    # TODO: FINISH IMPLEMENTING THIS!!!!!!!
     def tearDown(self):
         my_pid = self.model_part.GetCommunicator().MyPID()
 
@@ -42,6 +41,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         # Set the model part
         self.model_part = KratosMultiphysics.ModelPart("Main")
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         # Import the model part, perform the partitioning and create communicators
@@ -78,18 +78,6 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(
             epetra_comm, self.model_part, trilinos_linear_solver, max_iterations).Execute()
 
-        # Set the output utility TODO: Remove after debugging
-        import gid_output
-        filename = "coarse_sphere_" + str(self.model_part.GetCommunicator().MyPID())
-        gid_io = gid_output.GiDOutput(filename)
-        gid_io._write_mesh(1.0, self.model_part)
-        gid_io._initialize_results(1.0, self.model_part)
-        gid_io._write_nodal_results(1.0, self.model_part, KratosMultiphysics.DISTANCE)
-        gid_io._write_nodal_results(1.0, self.model_part, KratosMultiphysics.PARTITION_INDEX)
-        gid_io._finalize_results()
-
-        self.model_part.GetCommunicator().Barrier()
-
         # Check the obtained values
         max_distance = -1.0
         min_distance = +1.0
@@ -101,10 +89,8 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         min_distance = self.model_part.GetCommunicator().MinAll(min_distance)
         max_distance = self.model_part.GetCommunicator().MaxAll(max_distance)
 
-        # self.assertAlmostEqual(max_distance, 0.44556526310761013) # Serial max_distance
-        # self.assertAlmostEqual(min_distance,-0.504972246827639) # Serial min_distance
-        self.assertAlmostEqual(max_distance, 0.4549620068021185) # MPI max_distance (4 cores)
-        self.assertAlmostEqual(min_distance, -0.5167312149897061) # MPI min_distance (4 cores)
+        self.assertAlmostEqual(max_distance, 0.44556526310761013) # Serial max_distance
+        self.assertAlmostEqual(min_distance,-0.504972246827639) # Serial min_distance
         
 if __name__ == '__main__':
     KratosUnittest.main()
