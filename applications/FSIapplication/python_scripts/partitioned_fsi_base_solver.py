@@ -22,11 +22,11 @@ import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
-def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
-    return PartitionedFSIBaseSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
+def CreateSolver(fluid_main_model_part, project_parameters):
+    return PartitionedFSIBaseSolver(fluid_main_model_part, project_parameters)
 
 class PartitionedFSIBaseSolver:
-    def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
+    def __init__(self, fluid_main_model_part, project_parameters):
 
         print("** Calling the partitioned FSI base solver constructor...")
 
@@ -41,7 +41,6 @@ class PartitionedFSIBaseSolver:
         if end_time_structure != end_time_fluid:
             raise("ERROR: Different final time among subdomains!")
 
-        self.structure_main_model_part = structure_main_model_part
         self.fluid_main_model_part = fluid_main_model_part
 
         # Time stepping checks (no sub-stepping between subdomains has been implemented yed)

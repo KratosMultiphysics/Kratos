@@ -307,9 +307,9 @@ void UniformRefineUtility<TDim>::CreateNodeInEdge(
             middle_node->pAddDof(*it_dof);
 
         // Add the node to the sub model parts
-        const int key0 = mNodesColorMap[rEdge(0)->Id()];
-        const int key1 = mNodesColorMap[rEdge(1)->Id()];
-        const int key = mIntersections[std::minmax(key0, key1)];
+        const IndexType key0 = mNodesColorMap[rEdge(0)->Id()];
+        const IndexType key1 = mNodesColorMap[rEdge(1)->Id()];
+        const IndexType key = mIntersections[std::minmax(key0, key1)];
         if (key != 0)  // NOTE: key==0 is the main model part
         {
             for (std::string sub_name : mColors[key])
@@ -385,10 +385,10 @@ void UniformRefineUtility<TDim>::CreateNodeInFace(
             middle_node->pAddDof(*it_dof);
 
         // Add the node to the sub model parts
-        int key0 = mNodesColorMap[rFace(0)->Id()];
-        int key1 = mNodesColorMap[rFace(1)->Id()];
-        int key2 = mNodesColorMap[rFace(2)->Id()];
-        int key3 = mNodesColorMap[rFace(3)->Id()];
+        IndexType key0 = mNodesColorMap[rFace(0)->Id()];
+        IndexType key1 = mNodesColorMap[rFace(1)->Id()];
+        IndexType key2 = mNodesColorMap[rFace(2)->Id()];
+        IndexType key3 = mNodesColorMap[rFace(3)->Id()];
         key0 = mIntersections[std::minmax(key0, key1)];
         key1 = mIntersections[std::minmax(key2, key3)];
         key0 = mIntersections[std::minmax(key0, key1)];
@@ -498,7 +498,7 @@ void UniformRefineUtility<TDim>::CreateElement(
         this_elem_level = rRefinementLevel;
 
         // Add the element to the sub model parts
-        int key = mElemColorMap[pOriginElement->Id()];
+        IndexType key = mElemColorMap[pOriginElement->Id()];
         if (key != 0)  // NOTE: key==0 is the main model part
         {
             for (std::string sub_name : mColors[key])
@@ -532,7 +532,7 @@ void UniformRefineUtility<TDim>::CreateCondition(
         this_cond_level = rRefinementLevel;
 
         // Add the element to the sub model parts
-        int key = mCondColorMap[pOriginCondition->Id()];
+        IndexType key = mCondColorMap[pOriginCondition->Id()];
         if (key != 0)  // NOTE: key==0 is the main model part
         {
             for (std::string sub_name : mColors[key])

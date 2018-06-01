@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
-        "model_part_name" : "rectangular_plate",
+        "model_part_name" : "rectangular_plate_structure",
         "domain_size"     : 3,
         "time_step"       : 1.0,
         "start_time"      : 0.0,
@@ -42,7 +42,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_DIR_BC",
+            "model_part_name" : "rectangular_plate_structure.DISPLACEMENT_DIR_BC",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -57,7 +57,7 @@
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_NODES",
+            "model_part_name" : "rectangular_plate_structure.PointLoad3D_NODES",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 1.0,
             "direction"       : [0.0,0.0,1],
