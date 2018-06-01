@@ -54,7 +54,7 @@ class ExplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         # Construct the base solver.
         super(ExplicitMonolithicSolver, self).__init__(custom_settings)
 
-        print("::[Explicit_Scheme]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
+        print("::[--Explicit_Solver--]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
 
     def GetVariables(self):
