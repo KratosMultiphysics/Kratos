@@ -118,7 +118,7 @@ namespace Kratos
     // rReferenceRadius = ReferencePosition[0];
       
     rCurrentRadius   = GetGeometry()[0].X();
-    rReferenceRadius = GetGeometry()[0].X() + GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X,1) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+    rReferenceRadius = GetGeometry()[0].X0();
       
 
     KRATOS_CATCH( "" )
@@ -130,7 +130,7 @@ namespace Kratos
 
   void AxisymmetricPointElasticCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
 
     //contributions to stiffness matrix calculated on the reference config
 
@@ -144,7 +144,7 @@ namespace Kratos
 
   void AxisymmetricPointElasticCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
 
     //contribution to external forces
 
