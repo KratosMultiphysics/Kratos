@@ -66,29 +66,26 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if (rResult.size() != dim * NumberOfNodes)
-        {
-            rResult.resize(dim*NumberOfNodes,false);
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t dim = GetGeometry().WorkingSpaceDimension();
+        const std::size_t block_size = this->GetBlockSize();
+        if (rResult.size() != dim * number_of_nodes) {
+            rResult.resize(number_of_nodes * block_size, false);
         }
 
-        const unsigned int pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+        const std::size_t pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
-        if(dim == 2)
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                const unsigned int index = i * 2;
+        if(dim == 2) {
+            for (std::size_t i = 0; i < number_of_nodes; ++i) {
+                const std::size_t index = i * block_size;
                 rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+                if (this->HasRotDof())
+                    rResult[index + 2] = GetGeometry()[i].GetDof(ROTATION_Z,pos + 2).EquationId();
             }
-        }
-        else
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
-                const unsigned int index = i * 3;
+        } else {
+            for (std::size_t i = 0; i < number_of_nodes; ++i) {
+                const std::size_t index = i * block_size;
                 rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
                 rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
@@ -106,23 +103,21 @@ namespace Kratos
     {
         KRATOS_TRY
         
-        const unsigned int NumberOfNodes = GetGeometry().size();
-        const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
+        const std::size_t number_of_nodes = GetGeometry().size();
+        const std::size_t dim =  GetGeometry().WorkingSpaceDimension();
+        const std::size_t block_size = this->GetBlockSize();
         ElementalDofList.resize(0);
-        ElementalDofList.reserve(dim * NumberOfNodes);
+        ElementalDofList.reserve(number_of_nodes * block_size);
 
-        if(dim == 2)
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
+        if(dim == 2) {
+            for (std::size_t i = 0; i < number_of_nodes; ++i) {
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_X));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+                if (this->HasRotDof())
+                    ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_Z));
             }
-        }
-        else
-        {
-            for (unsigned int i = 0; i < NumberOfNodes; ++i)
-            {
+        } else {
+            for (std::size_t i = 0; i < number_of_nodes; ++i) {
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_X));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
