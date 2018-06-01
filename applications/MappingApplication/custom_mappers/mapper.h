@@ -309,13 +309,13 @@ protected:
      * */
     virtual void Initialize();
 
-    virtual void InitializeInterface();
-
     virtual void InitializeSearchStructure();
 
-    virtual void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags());
-
     virtual void InitializeMappingOperationUtility();
+
+    virtual void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
+
+    virtual void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags());
 
     virtual void UpdateInterfaceInternal(Kratos::Flags MappingOptions, double SearchRadius);
 
@@ -476,6 +476,9 @@ private:
             rMappingOptions.Set(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
         }
     }
+
+    void AssignInterfaceEquationIds();
+    void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
     ///@}
     ///@name Private  Access

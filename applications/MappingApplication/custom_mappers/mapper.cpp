@@ -68,7 +68,7 @@ void Mapper<TSparseSpace, TDenseSpace>::Initialize()
 I.e. Operations that can be performed several times in the livetime of the mapper
 */
 template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
+void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
 {
     mpMapperLocalSystems->clear();
 
@@ -77,7 +77,7 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface()
     KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
     mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
 
-    BuildMappingMatrix();
+    BuildMappingMatrix(MappingOptions);
 }
 
 /* Performs operations that are needed for Initialization and when the interface is updated (All cases)
@@ -86,6 +86,8 @@ I.e. Operations that can be performed several times in the livetime of the mappe
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags MappingOptions)
 {
+    AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
+
     KRATOS_ERROR_IF_NOT(mpSearchStructure) << "mpSearchStructure is a nullptr!" << std::endl;
 
     const MapperInterfaceInfoUniquePointerType p_ref_interface_info = GetMapperInterfaceInfo();
@@ -155,9 +157,9 @@ void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags Ma
                 << "setting \"DESTINATION_ONLY\" has no effect" << std::endl;
             MappingOptions.Reset(MapperFlags::DESTINATION_ONLY);
         }
+        InitializeInterface(MappingOptions);
     }
-
-    BuildMappingMatrix(MappingOptions);
+    else BuildMappingMatrix(MappingOptions);
 }
 
 
@@ -169,6 +171,35 @@ void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags Ma
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::AssignInterfaceEquationIds()
+{
+    AssignInterfaceEquationIds(mrModelPartOrigin.GetCommunicator());
+    AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
+    {
+        const int num_nodes_local = rModelPartCommunicator.LocalMesh().NumberOfNodes();
+
+        int num_nodes_accumulated;
+
+        rModelPartCommunicator.ScanSum(num_nodes_local, num_nodes_accumulated);
+
+        const int start_equation_id = num_nodes_accumulated - num_nodes_local;
+
+        const auto nodes_begin = rModelPartCommunicator.LocalMesh().NodesBegin();
+
+        #pragma omp parallel for
+        for (int i=0; i<num_nodes_local; ++i)
+        {
+            // std::cout << "INTERFACE_EQUATION_ID = " << start_equation_id + i << std::endl;
+            ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
+        }
+
+        rModelPartCommunicator.SynchronizeVariable(INTERFACE_EQUATION_ID);
+    }
 
 // /// input stream function
 // inline std::istream & operator >> (std::istream& rIStream, Mapper& rThis);
