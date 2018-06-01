@@ -201,6 +201,10 @@ class SolutionScheme:
                 if( len(variables) == 4 ):
                     integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
+                    if(integration_method_name.find("Step") != -1):
+                        scalar_integration_method = getattr(KratosSolid, 'StaticStepScalarIntegration')
+                    else:
+                        scalar_integration_method = getattr(KratosSolid, 'StaticScalarIntegration')
                     integration_method = scalar_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
