@@ -130,6 +130,10 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
   Vector nodal_deformation = ZeroVector(msLocalSize);
   this->GetValuesVector(nodal_deformation);
   rRightHandSideVector = ZeroVector(msLocalSize);
+
+  
+
+
   noalias(rRightHandSideVector) -=
       prod(left_hand_side_matrix, nodal_deformation);
   this->AddPrestressLinear(rRightHandSideVector);
@@ -295,21 +299,6 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
 
     this->plastic_strain = this->plastic_strain + (delta_gamma*MathUtils<double>::Sign(trial_stress));
     this->plastic_alpha = this->plastic_alpha + delta_gamma;
-
-    this->test_is_plas = 0.05; //test!!!
-
-  }
-
-  else {
-
-    //MatrixType left_handside_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-    // creating LHS
-    //left_handside_matrix = this->CreateElementStiffnessMatrix(temp_process_information);
-    //Vector nodal_deformation = ZeroVector(msLocalSize);
-    //this->GetValuesVector(nodal_deformation, 0);
-
-    //rinternalForces = prod(left_handside_matrix, nodal_deformation);
-    this->test_is_plas = 0.0; //test!!!
   }
 
   this->test_stress_total=current_stress;
@@ -318,10 +307,13 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
   rinternalForces[0] = -1.00 * truss_axial_force;
   rinternalForces[3] = 1.00 * truss_axial_force;
 
+  BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
+      ZeroMatrix(msLocalSize, msLocalSize);
+  this->CreateTransformationMatrix(transformation_matrix);
 
-  //////////////////////////////////////
-  ///////// ROTATATE TO GLOBAL CS !!!!!
-  ////////////////////////////////////
+  rinternalForces = prod(transformation_matrix, rinternalForces);
+
+
   KRATOS_CATCH("");
 }
 
