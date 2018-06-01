@@ -13,20 +13,20 @@
 // External includes
  
 // Project includes
-#include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.h"
 #include "includes/cfd_variables.h" 
 
 namespace Kratos {
 
   /*
-   * public TwoStepUpdatedLagrangianVPSolidElement<TDim> functions
+   * public TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim> functions
    */
   
 template< unsigned int TDim >
-Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
   // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
-  TwoStepUpdatedLagrangianVPSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+  TwoStepUpdatedLagrangianVPExplicitSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
   if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
     NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
@@ -66,12 +66,12 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Element::Pointer( new TwoStepUpdatedLagrangianVPSolidElement(NewElement) );
+  return Element::Pointer( new TwoStepUpdatedLagrangianVPExplicitSolidElement(NewElement) );
 }
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Initialize()
   {
     KRATOS_TRY;
 
@@ -108,7 +108,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
   {
    KRATOS_TRY;
 
@@ -126,13 +126,13 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
   {
 
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& Density,
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
 									       ProcessInfo &currentProcessInfo,
@@ -171,7 +171,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
   template< unsigned int TDim >
-  int TwoStepUpdatedLagrangianVPSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -232,67 +232,67 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   }
 
 
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureVelLump(Matrix& BulkVelMatrix,
-											 const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    double coeff=1.0+TDim;
-    // coeff=6.0;
-    if(TDim==2 && NumNodes ==6){
-      double Mij = Weight/57.0;
-      double consistent=1.0;
-      for (SizeType i = 0; i < NumNodes; ++i)
-	{
-	  if(i<3){
-	    consistent=coeff;
-	  }else{
-	    consistent=16.0;
-	  }
+  // template< unsigned int TDim >
+  // void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::ComputeBulkMatrixLump(Matrix& BulkVelMatrix,
+  // 											 const double Weight)
+  // {
+  //   const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  //   double coeff=1.0+TDim;
+  //   // coeff=6.0;
+  //   if(TDim==2 && NumNodes ==6){
+  //     double Mij = Weight/57.0;
+  //     double consistent=1.0;
+  //     for (SizeType i = 0; i < NumNodes; ++i)
+  // 	{
+  // 	  if(i<3){
+  // 	    consistent=coeff;
+  // 	  }else{
+  // 	    consistent=16.0;
+  // 	  }
 
-	  BulkVelMatrix(i,i) +=  Mij*consistent;
+  // 	  BulkVelMatrix(i,i) +=  Mij*consistent;
 	 
-	}
-    }else{
-      for (SizeType i = 0; i < NumNodes; ++i)
-	{
-	  // LHS contribution
-	  double Mij  = Weight /coeff;
-	  BulkVelMatrix(i,i) +=  Mij;
-	}
-      if(NumNodes>4){
-	std::cout<<"ComputeBulkMatrixForPressureVelLump 3D not yet implemented!"<<std::endl;
-      }
-    }
+  // 	}
+  //   }else{
+  //     for (SizeType i = 0; i < NumNodes; ++i)
+  // 	{
+  // 	  // LHS contribution
+  // 	  double Mij  = Weight /coeff;
+  // 	  BulkVelMatrix(i,i) +=  Mij;
+  // 	}
+  //     if(NumNodes>4){
+  // 	std::cout<<"ComputeBulkMatrixForPressureVelLump 3D not yet implemented!"<<std::endl;
+  //     }
+  //   }
 
 
-  }
+  // }
 
 
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeBulkMatrixForPressureVel(Matrix& BulkVelMatrix,
-										     const ShapeFunctionsType& rN,
-										     const double Weight)
-  {
+  // template< unsigned int TDim >
+  // void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::ComputeBulkMatrix(Matrix& BulkVelMatrix,
+  // 									       const ShapeFunctionsType& rN,
+  // 									       const double Weight)
+  // {
 
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-    	for (SizeType j = 0; j < NumNodes; ++j)
-    	  {
-    	    // LHS contribution
-    	    double Mij  = Weight*rN[i]*rN[j];
-    	    BulkVelMatrix(i,j) +=  Mij;
-    	  }
+  //   const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  //   for (SizeType i = 0; i < NumNodes; ++i)
+  //     {
+  //   	for (SizeType j = 0; j < NumNodes; ++j)
+  //   	  {
+  //   	    // LHS contribution
+  //   	    double Mij  = Weight*rN[i]*rN[j];
+  //   	    BulkVelMatrix(i,j) +=  Mij;
+  //   	  }
 
-      }
+  //     }
  
-  }
+  // }
  
 
 
 // template< unsigned int TDim>
-// bool TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+// bool TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 // 									const ProcessInfo& rCurrentProcessInfo,
 // 									const ShapeFunctionDerivativesType& rDN_DX,
 // 									unsigned int g)
@@ -307,7 +307,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPSolidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
 
     GeometryType& rGeom = this->GetGeometry();
@@ -329,7 +329,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPSolidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -353,7 +353,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
 
 
 template <  unsigned int TDim> 
-void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
+void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
  {
     unsigned int voigtsize  = 3;
     if( TDim == 3 )
@@ -385,9 +385,10 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables
 
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPExplicitSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
-
+  // std::cout<<"CalcElasticPlasticCauchySplitted "<<std::endl;
+  
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
@@ -444,7 +445,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
 }
 
 template < > 
-void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+void TwoStepUpdatedLagrangianVPExplicitSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
 {
 
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -517,7 +518,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
 
 
 template < unsigned int TDim > 
-void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
+void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
 {
    
   double theta=this->GetThetaContinuity();
@@ -535,145 +536,130 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
     this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
   }
 
-  // ElementalVariables rElementalVariables;
-  // this->InitializeElementalVariables(rElementalVariables);
-
-  // double theta=0;
-  // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,g,theta);
-
-  //     // //SIGMA(2D)=(F·S·Ft)/J --> already checked -> ok!
-  // double SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
-  // 		    2*rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(0,1) +
-  // 		      rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(0,1))/rElementalVariables.DetFgrad ;
-
-  // double SigmaYY= (  rElementalVariables.Fgrad(1,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-  // 		    2*rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-  // 		      rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad ;
-
-  // double SigmaXY= (rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-  // 		    rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,1) +
-  // 		    rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-  // 		    rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedTotalCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad;
-
-  // rElementalVariables.UpdatedTotalCauchyStress[0]=SigmaXX;
-  // rElementalVariables.UpdatedTotalCauchyStress[1]=SigmaYY;
-  // rElementalVariables.UpdatedTotalCauchyStress[2]=SigmaXY;
-   
-  // this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
-   
-  //     // //SIGMA(2D)=(F·S·Ft)/J --> already checked -> ok!
-  // SigmaXX= (  rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(0,0) +
-  // 	       2*rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(0,1) +
-  // 	       rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(0,1))/rElementalVariables.DetFgrad ;
-
-  // SigmaYY= (  rElementalVariables.Fgrad(1,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-  // 	       2*rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-  // 	       rElementalVariables.Fgrad(1,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad ;
-
-  // SigmaXY= (rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[0]*rElementalVariables.Fgrad(1,0) +
-  // 	     rElementalVariables.Fgrad(0,0)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,1) +
-  // 	     rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[2]*rElementalVariables.Fgrad(1,0) +
-  // 	     rElementalVariables.Fgrad(0,1)*rElementalVariables.UpdatedDeviatoricCauchyStress[1]*rElementalVariables.Fgrad(1,1))/rElementalVariables.DetFgrad;
-
-  // rElementalVariables.UpdatedDeviatoricCauchyStress[0]=SigmaXX;
-  // rElementalVariables.UpdatedDeviatoricCauchyStress[1]=SigmaYY;
-  // rElementalVariables.UpdatedDeviatoricCauchyStress[2]=SigmaXY;
-   
-  // this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
-
   // std::cout<<"  UpdateCauchyStress ";
   this->mCurrentTotalCauchyStress[g]=this->mUpdatedTotalCauchyStress[g];
   this->mCurrentDeviatoricCauchyStress[g]=this->mUpdatedDeviatoricCauchyStress[g];
 
+}
 
+template < unsigned int TDim > 
+void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::ComputeBulkMatrixRHS(Matrix& BulkMatrix,
+										  const double Weight)
+{
+  const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
+  double coeff=1.0+TDim;
+  if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	// LHS contribution
+	double Mij  = Weight /coeff;
+	BulkMatrix(i,i) +=  Mij;
+      }
+  }else{
+    std::cout<<"... ComputeBulkMatrixLump TO IMPLEMENT"<<std::endl;
+  }
+    
+  // const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  // for (SizeType i = 0; i < NumNodes; ++i)
+  //   {
+  // 	for (SizeType j = 0; j < NumNodes; ++j)
+  // 	  {
+  // 	    // LHS contribution
+  // 	    double Mij  = Weight/12.0;
+  // 	    if(i==j)
+  // 	      Mij  *= 2.0;
+  // 	    BulkMatrix(i,j) +=  Mij;
+  // 	  }
+  //   }
 }
 
 
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-  {
-    GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
+  // template< unsigned int TDim >
+  // void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  // {
+  //   GeometryType& rGeom = this->GetGeometry();
+  //   const unsigned int NumNodes = rGeom.PointsNumber();
 
-    // Check sizes and initialize
-    if( rLeftHandSideMatrix.size1() != NumNodes ) 
-      rLeftHandSideMatrix.resize(NumNodes,NumNodes);
+  //   // Check sizes and initialize
+  //   if( rLeftHandSideMatrix.size1() != NumNodes ) 
+  //     rLeftHandSideMatrix.resize(NumNodes,NumNodes);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
+  //   rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
  
-    if( rRightHandSideVector.size() != NumNodes )
-      rRightHandSideVector.resize(NumNodes);
+  //   if( rRightHandSideVector.size() != NumNodes )
+  //     rRightHandSideVector.resize(NumNodes);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+  //   rRightHandSideVector = ZeroVector(NumNodes);
  
-    // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
+  //   // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
     
-    // Shape functions and integration points
-    ShapeFunctionDerivativesArrayType DN_DX;
-    Matrix NContainer;
-    VectorType GaussWeights;
-    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-    const unsigned int NumGauss = GaussWeights.size();
+  //   // Shape functions and integration points
+  //   ShapeFunctionDerivativesArrayType DN_DX;
+  //   Matrix NContainer;
+  //   VectorType GaussWeights;
+  //   this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+  //   const unsigned int NumGauss = GaussWeights.size();
 
-    // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-    double theta=this->GetThetaContinuity();
+  //   // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+  //   double theta=this->GetThetaContinuity();
 
-    ElementalVariables rElementalVariables;
-    this->InitializeElementalVariables(rElementalVariables);
+  //   ElementalVariables rElementalVariables;
+  //   this->InitializeElementalVariables(rElementalVariables);
  
-    // double Density  = mMaterialDensity;
-    // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
-    double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+  //   // double Density  = mMaterialDensity;
+  //   // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
+  //   double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
     
-    double totalVolume=0;
+  //   double totalVolume=0;
 
-    // Loop on integration points
-    for (unsigned int g = 0; g < NumGauss; g++)
-      {
-	const double GaussWeight = GaussWeights[g];
-	totalVolume+=GaussWeight;
-	const ShapeFunctionsType& N = row(NContainer,g);
-	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-	// bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-	bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-	if(computeElement==true){
-	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
-	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
+  //   // Loop on integration points
+  //   for (unsigned int g = 0; g < NumGauss; g++)
+  //     {
+  // 	const double GaussWeight = GaussWeights[g];
+  // 	totalVolume+=GaussWeight;
+  // 	const ShapeFunctionsType& N = row(NContainer,g);
+  // 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+  // 	// bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  // 	bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  // 	if(computeElement==true){
+  // 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
+  // 	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
 
-	  for (SizeType i = 0; i < NumNodes; ++i)
-	    {
-	      // RHS contribution
-	      // Velocity divergence
-	      double RHSi =  N[i] * rElementalVariables.VolumetricDefRate;
-	      rRightHandSideVector[i] += GaussWeight * RHSi;
-	    }
+  // 	  for (SizeType i = 0; i < NumNodes; ++i)
+  // 	    {
+  // 	      // RHS contribution
+  // 	      // Velocity divergence
+  // 	      double RHSi =  N[i] * rElementalVariables.VolumetricDefRate;
+  // 	      rRightHandSideVector[i] += GaussWeight * RHSi;
+  // 	    }
 
-	}
+  // 	}
 
-      }   
+  //     }   
     
-    MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
-    double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
-    this->ComputeBulkMatrixForPressureVelLump(BulkVelMatrixLump,lumpedBulkCoeff);
+  //   MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
+  //   double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
+  //   this->ComputeBulkMatrixLump(BulkVelMatrixLump,lumpedBulkCoeff);
   
-    rLeftHandSideMatrix+=BulkVelMatrixLump;
-    // rLeftHandSideMatrix+=BulkVelMatrix;	
+  //   rLeftHandSideMatrix+=BulkVelMatrixLump;
+  //   // rLeftHandSideMatrix+=BulkVelMatrix;	
 
-    VectorType UpdatedPressure = ZeroVector(NumNodes);
-    VectorType CurrentPressure = ZeroVector(NumNodes);;
+  //   VectorType UpdatedPressure = ZeroVector(NumNodes);
+  //   VectorType CurrentPressure = ZeroVector(NumNodes);;
 
-    this->GetPressureValues(UpdatedPressure,0);
-    this->GetPressureValues(CurrentPressure,1);
+  //   this->GetPressureValues(UpdatedPressure,0);
+  //   this->GetPressureValues(CurrentPressure,1);
 
-    VectorType DeltaPressure = UpdatedPressure-CurrentPressure;
+  //   VectorType DeltaPressure = UpdatedPressure-CurrentPressure;
 
-    rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
-    // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
+  //   rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
+  //   // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
 
-  }
+  // }
   
 
-  template class TwoStepUpdatedLagrangianVPSolidElement<2>;
-  template class TwoStepUpdatedLagrangianVPSolidElement<3>;
+  template class TwoStepUpdatedLagrangianVPExplicitSolidElement<2>;
+  template class TwoStepUpdatedLagrangianVPExplicitSolidElement<3>;
 
 }
