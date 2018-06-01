@@ -203,9 +203,9 @@ protected:
 
     void GetNodalValues(ElementVariables& rVariables);
 
-    void GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
+    void GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
 
-    void CalculateLumpedMassMatrix(bounded_matrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
+    void CalculateLumpedMassMatrix(BoundedMatrix<double, TNumNodes*3, TNumNodes*3>& rMassMatrix);
 
     ///@}
     ///@name Protected  Access
