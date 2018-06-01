@@ -66,9 +66,8 @@ class DataLogger():
     # --------------------------------------------------------------------------
     def __CreateFolderToStoreOptimizationResults ( self ):
         resultsDirectory = self.OptimizationSettings["output"]["output_directory"].GetString()
-        if os.path.exists(resultsDirectory):
-            shutil.rmtree(resultsDirectory)
-        os.makedirs(resultsDirectory)
+        if not os.path.exists(resultsDirectory):
+            os.makedirs(resultsDirectory)
 
     # --------------------------------------------------------------------------
     def __OutputInformationAboutResponseFunctions( self ):
