@@ -134,7 +134,29 @@ void SkinDetectionProcess<TDim>::Execute()
     }
 
     // We create the auxiliar ModelPart
-    ModelPart::Pointer p_auxiliar_model_part = mrModelPart.CreateSubModelPart(mThisParameters["name_auxiliar_model_part"].GetString());
+    const std::string& name_auxiliar_model_part = mThisParameters["name_auxiliar_model_part"].GetString();
+    if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
+        mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
+    } else {
+        ModelPart::Pointer p_auxiliar_model_part = mrModelPart.pGetSubModelPart(name_auxiliar_model_part);
+
+        auto& nodes_array = p_auxiliar_model_part->Nodes();
+    
+        #pragma omp parallel for 
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+            (nodes_array.begin() + i)->Set(TO_ERASE, true);
+   
+        p_auxiliar_model_part->RemoveNodes(TO_ERASE);    
+    
+        auto& conditions_array = p_auxiliar_model_part->Conditions();
+ 
+        #pragma omp parallel for 
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+            (conditions_array.begin() + i)->Set(TO_ERASE, true);
+         
+        p_auxiliar_model_part->RemoveConditions(TO_ERASE); 
+    } 
+    ModelPart::Pointer p_auxiliar_model_part = mrModelPart.pGetSubModelPart(name_auxiliar_model_part);
 
     // The auxiliar name of the condition
     const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
