@@ -1629,12 +1629,14 @@ namespace Kratos {
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
 	
+    double maxViscousValueForStabilization=0.1;
     double Density = this->mMaterialDensity;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
     double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
-    // if(DeviatoricCoeff>0.01){
-    //   DeviatoricCoeff=0.01;
-    // }
+
+    if(DeviatoricCoeff>maxViscousValueForStabilization){
+      DeviatoricCoeff=maxViscousValueForStabilization;
+    }
 
     double Tau=0;
     this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
