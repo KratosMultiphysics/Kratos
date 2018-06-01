@@ -101,8 +101,8 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesSolverMonolithic(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return NavierStokesSolverMonolithic(model, custom_settings)
 
 class NavierStokesSolverMonolithic(FluidSolver):
 
@@ -113,6 +113,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
         {
             "solver_type": "navier_stokes_solver_vmsmonolithic",
             "model_part_name": "FluidModelPart",
+            "domain_size": 2,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -136,7 +137,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "skin_parts": [""],
             "no_skin_parts":[""],
             "time_stepping"                : {
-                "automatic_time_step" : true,
+                "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
@@ -175,8 +176,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
 
-    def __init__(self, main_model_part, custom_settings):
-        super(NavierStokesSolverMonolithic,self).__init__(main_model_part,custom_settings)
+    def __init__(self, model, custom_settings):
+        super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True

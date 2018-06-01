@@ -3,7 +3,7 @@ import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_sovler import PythonSolver
+from python_solver import PythonSolver
 
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
@@ -11,13 +11,13 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-def CreateSolver(main_model_part, custom_settings):
-    return FluidSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return FluidSolver(model, custom_settings)
 
 class FluidSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-        super(FluidSolver,self).__init___(model, custom_settings)
+        super(FluidSolver,self).__init__(model, custom_settings)
 
         self._ValidateSettings()
 
@@ -35,8 +35,10 @@ class FluidSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = ModelPart(model_part_name)
-            self.model.AddModelPart(self.main_model_part)
+            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+
+        domain_size = self.settings["domain_size"].GetInt()
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
     def AddVariables(self):
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
@@ -52,15 +54,18 @@ class FluidSolver(PythonSolver):
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
-        self._ImportModelPart()
+        self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
         ## Replace default elements and conditions
-        self.ReplaceElementsAndConditions()
+        self._ReplaceElementsAndConditions()
         ## Executes the check and prepare model process
         self._ExecuteCheckAndPrepare()
         ## Set buffer size
         self.main_model_part.SetBufferSize(self.min_buffer_size)
+
+        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
+            self.model.AddModelPart(self.main_model_part)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("FluidSolver", "Model reading finished.")
@@ -80,7 +85,7 @@ class FluidSolver(PythonSolver):
         raise Exception("Calling FluidSolver.Initialize() base method. Please implement a custom Initialize() method for your solver.")
 
     def AdvanceInTime(self, current_time):
-        dt = self.ComputeDeltaTime()
+        dt = self._ComputeDeltaTime()
         new_time = current_time + dt
 
         self.main_model_part.CloneTimeStep(new_time)

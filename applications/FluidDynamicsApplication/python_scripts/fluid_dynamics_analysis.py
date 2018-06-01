@@ -27,30 +27,37 @@ class FluidDynamicsAnalysis(AnalysisStage):
         else:
             self.is_printing_rank = True
 
-        ## Create model part and solver (but don't initialize them yet)
-        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        self.main_model_part = Kratos.ModelPart(model_part_name)
+        # Deprecation warnings
+        solver_settings = self.project_parameters["solver_settings"]
+        if not solver_settings.Has("domain_size"):
+            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            solver_settings.AddEmptyValue("domain_size")
+            solver_settings["domain_size"].SetInt(self.project_parameters["problem_data"]["domain_size"].GetInt())
+
+        if not solver_settings.Has("model_part_name"):
+            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            solver_settings.AddEmptyValue("model_part_name")
+            solver_settings["model_part_name"].SetString(self.project_parameters["problem_data"]["model_part_name"].GetString())
 
         import python_solvers_wrapper_fluid
-        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
+        self.solver = python_solvers_wrapper_fluid.CreateSolver(model, self.project_parameters)
 
     def Initialize(self):
         '''
         Construct and initialize all classes and tools used in the simulation loop.
         '''
-        domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
 
         self._SetUpRestart()
 
         if self.load_restart:
+            self.main_model_part = self.model.CreateModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
             self.restart_utility.LoadRestart()
         else:
             self.solver.AddVariables()
             self.solver.ImportModelPart()
+            self.solver.PrepareModelPart()
             self.solver.AddDofs()
-
-        self.model.AddModelPart(self.main_model_part)
+            self.main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
 
         # this should let eventual derived stages modify the model after reading.
         self.ModifyInitialProperties()
