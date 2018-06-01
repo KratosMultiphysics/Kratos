@@ -61,13 +61,13 @@ class ModelManager(object):
 
         self._add_variables()
 
-        #print("::[Model_Manager]:: Importing model part.")
+        #print("::[---Model_Manager---]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["input_file_settings"]["name"].GetString()
 
         if(self.settings["input_file_settings"]["type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
-            print("  (reading file: "+ input_filename + ".mdpa)")
+            print("::[---Model_Manager---]:: Reading file: "+ input_filename + ".mdpa")
             #print("   " + os.path.join(problem_path, input_filename) + ".mdpa ")
             sys.stdout.flush()
 
@@ -118,8 +118,8 @@ class ModelManager(object):
             raise Exception("Other input options are not yet implemented.")
 
 
-        #print ("::[Model_Manager]:: Finished importing model part")
-        print ("::[Model_Manager]:: Model Ready")
+        #print ("::[---Model_Manager---]:: Finished importing model part")
+        print ("::[---Model_Manager---]:: Model Ready")
 
 
     def ExportModel(self):
@@ -191,7 +191,7 @@ class ModelManager(object):
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
 
         #print(self.nodal_variables)
-        #print("::[Model_Manager]:: General Variables ADDED")
+        #print("::[---Model_Manager---]:: General Variables ADDED")
 
 
     def _set_input_variables(self):
@@ -232,7 +232,7 @@ class ModelManager(object):
             self.main_model_part.CreateSubModelPart(body_model_part_name)
             body_model_part = self.main_model_part.GetSubModelPart(body_model_part_name)
 
-            print("::[Model_Prepare]::Body Created :", body_model_part_name)
+            print("::[---Model_Manager---]::Body Created :", body_model_part_name)
             body_model_part.ProcessInfo = self.main_model_part.ProcessInfo
             body_model_part.Properties  = self.main_model_part.Properties
 
@@ -362,7 +362,7 @@ class ModelManager(object):
                 body_parts_name_list = bodies_list[i]["parts_list"]
                 for j in range(body_parts_name_list.size()):
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
-                    print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
+                    print("::[---Model_Manager---]::Body Part Removed:", body_parts_name_list[j].GetString())
 
     #
     def _has_bodies(self):

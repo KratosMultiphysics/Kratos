@@ -50,7 +50,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         # Construct the base solver.
         super(ImplicitMonolithicSolver, self).__init__(custom_settings)
 
-        print("::[Implicit_Scheme]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
+        print("::[--Implicit_Solver--]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
 
     def GetVariables(self):
