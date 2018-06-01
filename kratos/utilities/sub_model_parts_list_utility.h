@@ -17,14 +17,11 @@
 // System includes
 #include <unordered_map>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
@@ -82,16 +79,16 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
     ///@{
 
     /// The map containing the id for each component and the corresponding colors integers
-    typedef std::unordered_map<IndexType,int> IndexIntMapType;
+    typedef std::unordered_map<IndexType,IndexType> IndexIntMapType;
 
     /// The map containing the colors integers and the names of the submodelparts related
-    typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
+    typedef std::unordered_map<IndexType,std::vector<std::string>> IntStringMapType;
 
     /// The map containing the colors integers and the pointers of the submodelparts related
     //typedef std::unordered_map<int,std::vector<ModelPart>> IntModelPartPtrMapType;
 
     /// The map containing the intersections of submodelparts combinations
-    typedef std::map<std::pair<int,int>, int> PairIntMapType;
+    typedef std::map<std::pair<IndexType,IndexType>, IndexType> PairIntMapType;
 
     /// Pointer definition of SubModelPartsListUtility
     KRATOS_CLASS_POINTER_DEFINITION( SubModelPartsListUtility );
@@ -160,7 +157,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
      * @param rColors The reference colors
      * @return The fast access colors
      */
-    static std::unordered_map<int, std::vector<ModelPart*>> GetModelPartColorsPointers(
+    static std::unordered_map<IndexType, std::vector<ModelPart*>> GetModelPartColorsPointers(
         ModelPart& ThisModelPart,
         const IntStringMapType& rColors
         );

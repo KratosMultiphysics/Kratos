@@ -9,19 +9,19 @@ sys.path.insert(0, '')
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ or "I_MPI_INFO_NUMA_NODE_NUM" in os.environ:
     if "DO_NOT_PARTITION_DOMAIN" in os.environ:
-        Logger.Print("Running under MPI...........",label="DEM")
+        Logger.PrintInfo("DEM", "Running under MPI........")
         from KratosMultiphysics.mpi import *
         import DEM_procedures_mpi_no_partitions as DEM_procedures
         import DEM_material_test_script
     else:
-        Logger.Print("Running under OpenMP........",label="DEM")
+        Logger.PrintInfo("DEM", "Running under OpenMP........")
         from KratosMultiphysics.MetisApplication import *
         from KratosMultiphysics.MPISearchApplication import *
         from KratosMultiphysics.mpi import *
         import DEM_procedures_mpi as DEM_procedures
         import DEM_material_test_script_mpi as DEM_material_test_script
 else:
-    Logger.Print("Running under OpenMP........",label="DEM")
+    Logger.PrintInfo("DEM", "Running under OpenMP........")
     import DEM_procedures
     import DEM_material_test_script
 

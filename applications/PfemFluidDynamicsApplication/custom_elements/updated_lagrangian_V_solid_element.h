@@ -175,12 +175,12 @@ namespace Kratos
        * @return a Pointer to the new element
        */
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-			      pPropertiesType pProperties) const
+			      pPropertiesType pProperties) const override
 	{
 	  return Element::Pointer(new UpdatedLagrangianVSolidElement(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties));
 	}
 
-      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
       /* virtual void Initialize(); */
@@ -191,16 +191,16 @@ namespace Kratos
 
       /* virtual void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo); */
 
-      virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-					 ProcessInfo& rCurrentProcessInfo)
+      void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+					 ProcessInfo& rCurrentProcessInfo) override
       {
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"UpdatedLagrangianVSolidElement::CalculateLeftHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
-      virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-					  ProcessInfo& rCurrentProcessInfo)
+      void CalculateRightHandSide(VectorType& rRightHandSideVector,
+					  ProcessInfo& rCurrentProcessInfo) override
       {
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"UpdatedLagrangianVSolidElement::CalculateRightHandSide not implemented","");
@@ -252,7 +252,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      std::string Info() const override
 	{
 	  std::stringstream buffer;
 	  buffer << "UpdatedLagrangianVSolidElement #" << BaseType::Id();
@@ -260,7 +260,7 @@ namespace Kratos
 	}
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
+      void PrintInfo(std::ostream& rOStream) const override
       {
 	rOStream << "UpdatedLagrangianVSolidElement" << TDim << "D";
       }
@@ -311,12 +311,12 @@ namespace Kratos
 	
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
-					    unsigned int g);
+					    unsigned int g) override;
 
 
-      double GetThetaMomentum (){return 1.0;};
+      double GetThetaMomentum () override{return 1.0;};
 
-      double GetThetaContinuity (){return 1.0;};
+      double GetThetaContinuity () override{return 1.0;};
 
 
       ///@}
@@ -350,12 +350,12 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
+      void save(Serializer& rSerializer) const override
       {
 	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
       }
 
-      virtual void load(Serializer& rSerializer)
+      void load(Serializer& rSerializer) override
       {
 	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
       }
