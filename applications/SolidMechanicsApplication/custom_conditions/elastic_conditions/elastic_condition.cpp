@@ -118,10 +118,10 @@ namespace Kratos
     const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize   = this->GetDofsSize();
 
-    if(rLeftHandSideMatrix.size1() != MatSize)
+    if(rLeftHandSideMatrix.size1() != MatSize){
       rLeftHandSideMatrix.resize(MatSize,MatSize,false);
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);
+      noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);
+    }
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
@@ -131,10 +131,12 @@ namespace Kratos
 	index = dimension * i;
 	for ( SizeType j = 0; j < dimension; j++ )
 	  {
-	    rLeftHandSideMatrix(index+j, index+j) = fabs(rVariables.ExternalVectorValue[j]) * rIntegrationWeight;  	
+	    rLeftHandSideMatrix(index+j, index+j) += fabs(rVariables.ExternalVectorValue[j]) * rIntegrationWeight;  	
 	  }
       }
-  
+
+    //std::cout<<" ExternalStifness "<< rLeftHandSideMatrix <<std::endl;
+    
     KRATOS_CATCH( "" )
   }
   
@@ -171,6 +173,8 @@ namespace Kratos
       }
 
     //different possibilities can be considered here only compression, just certain directions, ballast bedding...
+
+    //std::cout<<" ExternalForces "<< rRightHandSideVector <<std::endl;
 
     KRATOS_CATCH( "" )
   }

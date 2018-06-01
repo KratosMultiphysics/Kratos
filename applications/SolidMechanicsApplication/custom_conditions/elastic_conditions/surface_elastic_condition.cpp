@@ -301,7 +301,8 @@ namespace Kratos
 
 		  noalias(Kij) = coeff * Cross_gn;
 		  
-		  coeff = rVariables.ExternalScalarValue * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
+		  coeff = rVariables.ExternalScalarValue
+                      * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
 		  noalias(Kij) -= coeff * Cross_ge;
 
 		  

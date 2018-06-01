@@ -283,10 +283,11 @@ namespace Kratos
       
       if( rVariables.ExternalScalarValue == 0 )
 	{
-	  unsigned int size = GetGeometry().PointsNumber() * dimension;
-	  if(rLeftHandSideMatrix.size1() != size )
-	    rLeftHandSideMatrix.resize(size,size,false);
-	  noalias(rLeftHandSideMatrix) = ZeroMatrix( size, size );
+          unsigned int MatSize = this->GetDofsSize();
+          if(rLeftHandSideMatrix.size1() != MatSize ){
+            rLeftHandSideMatrix.resize(MatSize,MatSize,false);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
+          }
 	}
       else
 	{
@@ -324,10 +325,11 @@ namespace Kratos
 
 	  }
 	  else{ //3D line pressure not considered here
-	    unsigned int size = GetGeometry().PointsNumber() * dimension;
-	    if(rLeftHandSideMatrix.size1() != size )
-	      rLeftHandSideMatrix.resize(size,size,false);
-	    noalias(rLeftHandSideMatrix) = ZeroMatrix( size, size );
+	    unsigned int MatSize = this->GetDofsSize();
+	    if(rLeftHandSideMatrix.size1() != MatSize ){
+	      rLeftHandSideMatrix.resize(MatSize,MatSize,false);
+              noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
+            }
 	  }
  
 	}

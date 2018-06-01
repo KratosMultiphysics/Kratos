@@ -287,14 +287,12 @@ namespace Kratos
 
       if( rVariables.ExternalScalarValue == 0 )
 	{
-
-	  unsigned int MatSize = this->GetDofsSize();
-	  if(rLeftHandSideMatrix.size1() != MatSize )
-	    rLeftHandSideMatrix.resize(MatSize,MatSize,false);
-	  
-	  noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
-
-	}
+          unsigned int MatSize = this->GetDofsSize();
+          if(rLeftHandSideMatrix.size1() != MatSize ){
+            rLeftHandSideMatrix.resize(MatSize,MatSize,false);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
+          }
+        }
       else
 	{
 	  BoundedMatrix<double, 3, 3 > Kij;
