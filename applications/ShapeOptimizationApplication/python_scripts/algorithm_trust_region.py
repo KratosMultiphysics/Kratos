@@ -19,7 +19,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # Additional imports
 from algorithm_base import OptimizationAlgorithm
 from custom_math import NormInf3D, DotProduct, ScalarVectorProduct
-from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList
+from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteNodeCoordinatesToList, WriteListToNodalVariable
 from custom_timer import Timer
 import mapper_factory
 
@@ -72,6 +72,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.next_iteration_to_enforce_feasibility = 9999
         self.last_itr_with_step_length_update = 0
 
+        self.number_of_design_variables = 3*self.design_surface.NumberOfNodes()
+        self.x_init = WriteNodeCoordinatesToList(self.design_surface)
+
         self.value_history = {}
         self.value_history["val_obj"] = []
         self.value_history["val_eqs"] = []
@@ -113,11 +116,12 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
             len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
 
+            # # convert (stepLength,lInequality,lEquality) into delta_x
+            # deltaXBar,lambdaBarObjective,lambdaBarInequality,lambdaBarEquality,sInit,sDx = stepDirectionRule(eObjective,lBarInequality,eInequality,lBarEquality,eEquality,self)
+            # deltaX = [stepLength*deltaXBar[i] for i in range(self.n)]
+            dx = [0.0 for i in range(self.number_of_design_variables)]
 
-
-
-
-
+            self.__UpdateMesh(dx)
 
             self.value_history["val_obj"].append(val_obj)
             self.value_history["val_eqs"].append(val_ineqs)
@@ -457,5 +461,15 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 return True
             else:
                 return False
+
+    # --------------------------------------------------------------------------
+    def __UpdateMesh(self, dx):
+        WriteListToNodalVariable(dx, self.design_surface, SHAPE_UPDATE)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.SetReferenceMeshToMesh()
+
+        x = WriteNodeCoordinatesToList(self.design_surface)
+        dxAbsolute = [x[i]+dx[i] - self.x_init[i] for i in range(self.number_of_design_variables)]
+        WriteListToNodalVariable(dxAbsolute, self.design_surface, SHAPE_CHANGE)
 
 # ==============================================================================
