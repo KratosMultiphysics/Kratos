@@ -57,8 +57,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "reorder": false
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
 
@@ -186,6 +184,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
         (self.solver).Solve()
 
     def PrepareModelPart(self):
+        super(NavierStokesCompressibleSolver,self).PrepareModelPart()
         self._ExecuteAfterReading()
 
     def _ExecuteAfterReading(self):
