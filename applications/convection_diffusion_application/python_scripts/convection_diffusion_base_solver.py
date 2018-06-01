@@ -33,11 +33,11 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     _create_convergence_criterion
     _create_linear_solver
     _create_builder_and_solver
-    _create_mechanical_solution_strategy
+    _create_convection_diffusion_solution_strategy
     _create_restart_utility
 
-    The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_mechanical_solution_strategy, get_builder_and_solver,
+    The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
+    using the getter functions get_convection_diffusion_solution_strategy, get_builder_and_solver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -290,18 +290,18 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Initializing ...")
-        # The mechanical solution strategy is created here if it does not already exist.
+        # The convection_diffusion solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-        mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
+        convection_diffusion_solution_strategy = self.get_convection_diffusion_solution_strategy()
+        convection_diffusion_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         if not self.is_restarted():
-            mechanical_solution_strategy.Initialize()
+            convection_diffusion_solution_strategy.Initialize()
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
             try:
-                mechanical_solution_strategy.SetInitializePerformedFlag(True)
+                convection_diffusion_solution_strategy.SetInitializePerformedFlag(True)
             except AttributeError:
                 pass
         self.Check()
@@ -321,21 +321,21 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-        mechanical_solution_strategy.Solve()
+        convection_diffusion_solution_strategy = self.get_convection_diffusion_solution_strategy()
+        convection_diffusion_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
-        self.get_mechanical_solution_strategy().InitializeSolutionStep()
+        self.get_convection_diffusion_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.get_mechanical_solution_strategy().Predict()
+        self.get_convection_diffusion_solution_strategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        is_converged = self.get_convection_diffusion_solution_strategy().SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.get_mechanical_solution_strategy().FinalizeSolutionStep()
+        self.get_convection_diffusion_solution_strategy().FinalizeSolutionStep()
 
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
@@ -358,13 +358,13 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def SetEchoLevel(self, level):
-        self.get_mechanical_solution_strategy().SetEchoLevel(level)
+        self.get_convection_diffusion_solution_strategy().SetEchoLevel(level)
 
     def Clear(self):
-        self.get_mechanical_solution_strategy().Clear()
+        self.get_convection_diffusion_solution_strategy().Clear()
 
     def Check(self):
-        self.get_mechanical_solution_strategy().Check()
+        self.get_convection_diffusion_solution_strategy().Check()
 
     #### Specific internal functions ####
 
@@ -388,10 +388,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
 
-    def get_mechanical_solution_strategy(self):
-        if not hasattr(self, '_mechanical_solution_strategy'):
-            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
-        return self._mechanical_solution_strategy
+    def get_convection_diffusion_solution_strategy(self):
+        if not hasattr(self, '_convection_diffusion_solution_strategy'):
+            self._convection_diffusion_solution_strategy = self._create_convection_diffusion_solution_strategy()
+        return self._convection_diffusion_solution_strategy
 
     def get_restart_utility(self):
         if not hasattr(self, '_restart_utility'):
@@ -667,7 +667,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def _create_convergence_criterion(self):
         import convergence_criteria_factory
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
-        return convergence_criterion.mechanical_convergence_criterion
+        return convergence_criterion.convection_diffusion_convergence_criterion
 
     def _create_linear_solver(self):
         import linear_solver_factory
@@ -688,28 +688,28 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
         
 
-    def _create_mechanical_solution_strategy(self):
+    def _create_convection_diffusion_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
-            mechanical_solution_strategy = self._create_linear_strategy()
+            convection_diffusion_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
             if(self.settings["line_search"].GetBool() == False):
-                mechanical_solution_strategy = self._create_newton_raphson_strategy()
+                convection_diffusion_solution_strategy = self._create_newton_raphson_strategy()
             else:
-                mechanical_solution_strategy = self._create_line_search_strategy()
+                convection_diffusion_solution_strategy = self._create_line_search_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
-        return mechanical_solution_strategy
+        return convection_diffusion_solution_strategy
 
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        convection_diffusion_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
-                                                              mechanical_scheme,
+                                                              convection_diffusion_scheme,
                                                               linear_solver,
                                                               builder_and_solver,
                                                               self.settings["compute_reactions"].GetBool(),
@@ -719,14 +719,14 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        convection_diffusion_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
+        convection_diffusion_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
-                                        mechanical_scheme,
+                                        convection_diffusion_scheme,
                                         linear_solver,
-                                        mechanical_convergence_criterion,
+                                        convection_diffusion_convergence_criterion,
                                         builder_and_solver,
                                         self.settings["max_iteration"].GetInt(),
                                         self.settings["compute_reactions"].GetBool(),
@@ -735,14 +735,14 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
+        convection_diffusion_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
+        convection_diffusion_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
         return KratosMultiphysics.LineSearchStrategy(computing_model_part,
-                            mechanical_scheme,
+                            convection_diffusion_scheme,
                             linear_solver,
-                            mechanical_convergence_criterion,
+                            convection_diffusion_convergence_criterion,
                             builder_and_solver,
                             self.settings["max_iteration"].GetInt(),
                             self.settings["compute_reactions"].GetBool(),
