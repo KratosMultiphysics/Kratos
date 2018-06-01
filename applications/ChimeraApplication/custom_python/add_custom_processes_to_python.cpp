@@ -39,7 +39,7 @@ using namespace pybind11;
 void AddCustomProcessesToPython(pybind11::module& m)
 {
 
-	class_<ApplyChimeraProcessMonolithic<2>, Process>(m, "ApplyChimeraProcessMonolithic2d")
+	class_<ApplyChimeraProcessMonolithic<2>, ApplyChimeraProcessMonolithic<2>::Pointer, Process>(m, "ApplyChimeraProcessMonolithic2d")
 		.def(init< ModelPart&, Parameters >())
 		.def("ApplyMpcConstraint", &ApplyChimeraProcessMonolithic<2>::ApplyMpcConstraint)
 		.def("FormulateChimera2D", &ApplyChimeraProcessMonolithic<2>::FormulateChimera)
@@ -48,7 +48,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def("SetType",&ApplyChimeraProcessMonolithic<2>::SetType)
 		;
 
-	class_<ApplyChimeraProcessMonolithic<3>, Process>(m, "ApplyChimeraProcessMonolithic3d")
+	class_<ApplyChimeraProcessMonolithic<3>, ApplyChimeraProcessMonolithic<3>::Pointer, Process>(m, "ApplyChimeraProcessMonolithic3d")
 		.def(init< ModelPart&, Parameters >())
 		.def("ApplyMpcConstraint", &ApplyChimeraProcessMonolithic<3>::ApplyMpcConstraint)
 		.def("FormulateChimera2D", &ApplyChimeraProcessMonolithic<3>::FormulateChimera)
@@ -57,7 +57,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def("SetType",&ApplyChimeraProcessMonolithic<3>::SetType)
 		;
 
-	class_<ApplyChimeraProcessFractionalStep<2>, Process>(m, "ApplyChimeraProcessFractionalStep2d")
+	class_<ApplyChimeraProcessFractionalStep<2>, ApplyChimeraProcessFractionalStep<2>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep2d")
 		.def(init< ModelPart&, Parameters >())
 		.def("ApplyMpcConstraint", &ApplyChimeraProcessFractionalStep<2>::ApplyMpcConstraint)
 		.def("FormulateChimera2D", &ApplyChimeraProcessFractionalStep<2>::FormulateChimera)
@@ -66,7 +66,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 		.def("SetType",&ApplyChimeraProcessFractionalStep<2>::SetType)
 		;
 
-	class_<ApplyChimeraProcessFractionalStep<3>, Process>(m, "ApplyChimeraProcessFractionalStep3d")
+	class_<ApplyChimeraProcessFractionalStep<3>, ApplyChimeraProcessFractionalStep<3>::Pointer, Process>(m, "ApplyChimeraProcessFractionalStep3d")
 		.def(init< ModelPart&, Parameters >())
 		.def("ApplyMpcConstraint", &ApplyChimeraProcessFractionalStep<3>::ApplyMpcConstraint)
 		.def("FormulateChimera2D", &ApplyChimeraProcessFractionalStep<3>::FormulateChimera)
@@ -84,7 +84,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 			.def("SetType",&ApplyChimeraProcess<3>::SetType);
  */
 
-    class_< RotateRegionProcess, Process >(m, "RotateRegionProcess")
+    class_< RotateRegionProcess,RotateRegionProcess::Pointer, Process >(m, "RotateRegionProcess")
 		.def(init< ModelPart&, Parameters >())
 		.def("SetCentreOfRotation", &RotateRegionProcess::SetCentreOfRotation)
 		;
