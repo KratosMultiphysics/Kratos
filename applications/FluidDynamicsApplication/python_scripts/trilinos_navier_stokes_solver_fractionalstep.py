@@ -21,7 +21,7 @@ def CreateSolver(model, custom_settings):
 
 class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep):
 
-    def _ValidateSettings(self):
+    def _ValidateSettings(self,settings):
         ## Default settings string in Json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -75,7 +75,8 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
             "use_slip_conditions": true
         }""")
 
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 
     def __init__(self, model, custom_settings):
         # Note: deliberately calling the constructor of the base python solver (the parent of my parent)

@@ -17,9 +17,9 @@ def CreateSolver(model, custom_settings):
 class FluidSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-        super(FluidSolver,self).__init__(model, custom_settings)
+        settings = self._ValidateSettings(custom_settings)
 
-        self._ValidateSettings()
+        super(FluidSolver,self).__init__(model, settings)
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
@@ -146,8 +146,11 @@ class FluidSolver(PythonSolver):
     def _IsPrintingRank(self):
         return self._is_printing_rank
 
-    def _ValidateSettings(self):
+    def _ValidateSettings(self, settings):
         raise Exception("Please define the default solver settings in the derived solver class")
+
+        settings.ValidateAndAssignDefaults(KratosMultiphysics.Parameters(r'{}'))
+        return settings
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size

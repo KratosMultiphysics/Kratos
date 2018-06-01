@@ -14,7 +14,7 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesCompressibleSolver(FluidSolver):
 
-    def _ValidateSettings(self):
+    def _ValidateSettings(self,settings):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -57,7 +57,8 @@ class NavierStokesCompressibleSolver(FluidSolver):
             "reorder": false
         }""")
 
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 
 
     def __init__(self, model, custom_settings):

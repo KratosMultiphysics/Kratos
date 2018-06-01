@@ -17,7 +17,7 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesSolverFractionalStep(FluidSolver):
 
-    def _ValidateSettings(self):
+    def _ValidateSettings(self, settings):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -80,8 +80,8 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "reorder": false
         }""")
 
-        ## Validate input settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 
     def __init__(self, model, custom_settings):
         super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)

@@ -21,7 +21,8 @@ def CreateSolver(model, custom_settings):
 
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
-    def _ValidateSettings(self):## Default settings string in json format
+    def _ValidateSettings(self, settings):
+        ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "trilinos_navier_stokes_solver_vmsmonolithic",
@@ -70,7 +71,8 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "turbulence_model": "None"
         }""")
 
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 
 
     def __init__(self, model, custom_settings):
