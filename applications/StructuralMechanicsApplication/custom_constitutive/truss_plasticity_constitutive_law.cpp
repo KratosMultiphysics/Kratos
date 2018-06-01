@@ -15,7 +15,8 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/truss_plasticity_constitutive_law.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -23,7 +24,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::TrussConstitutiveLaw()
+TrussPlasticityConstitutiveLaw::TrussPlasticityConstitutiveLaw()
     : ConstitutiveLaw()
 {
 }
@@ -31,7 +32,7 @@ TrussConstitutiveLaw::TrussConstitutiveLaw()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
+TrussPlasticityConstitutiveLaw::TrussPlasticityConstitutiveLaw(const TrussPlasticityConstitutiveLaw& rOther)
     : ConstitutiveLaw(rOther)
 {
 }
@@ -39,16 +40,16 @@ TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer TrussConstitutiveLaw::Clone() const
+ConstitutiveLaw::Pointer TrussPlasticityConstitutiveLaw::Clone() const
 {
-    TrussConstitutiveLaw::Pointer p_clone(new TrussConstitutiveLaw(*this));
+    TrussPlasticityConstitutiveLaw::Pointer p_clone(new TrussPlasticityConstitutiveLaw(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-TrussConstitutiveLaw::~TrussConstitutiveLaw()
+TrussPlasticityConstitutiveLaw::~TrussPlasticityConstitutiveLaw()
 {
     // TODO: Add if necessary
 }
@@ -56,7 +57,7 @@ TrussConstitutiveLaw::~TrussConstitutiveLaw()
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
+void TrussPlasticityConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the strain size
     rFeatures.mStrainSize = 1;
@@ -68,24 +69,24 @@ void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-int TrussConstitutiveLaw::Check(
+int TrussPlasticityConstitutiveLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
-    {
-        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+    KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
 
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)
-    {
-        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK(rMaterialProperties.Has(DENSITY));
 
+    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
+    KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS));
+
+    KRATOS_CHECK_VARIABLE_KEY(HARDENING_MODULUS_1D);
+    KRATOS_CHECK(rMaterialProperties.Has(HARDENING_MODULUS_1D));
     return 0;
-
 }
 
 } // Namespace Kratos

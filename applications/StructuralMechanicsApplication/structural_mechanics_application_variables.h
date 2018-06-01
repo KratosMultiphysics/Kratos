@@ -58,6 +58,7 @@ typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
 
     // Truss generalized variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION,double, TRUSS_PRESTRESS_PK2)
+    KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION,double, HARDENING_MODULUS_1D)
 
 
     // Beam generalized variables

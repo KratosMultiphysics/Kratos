@@ -233,8 +233,8 @@ double TrussElementLinear3D2N::CalculateLinearStrain()  {
 double TrussElementLinear3D2N::ReturnElastoPlasticTangentModulus() const {
   KRATOS_TRY;
   double hardening_modulus = 0.00;
-  if (this->GetProperties().Has(DP_K)) {
-    hardening_modulus = this->GetProperties()[DP_K];
+  if (this->GetProperties().Has(HARDENING_MODULUS_1D)) {
+    hardening_modulus = this->GetProperties()[HARDENING_MODULUS_1D];
   }
   const double youngs_modulus = this->GetProperties()[YOUNG_MODULUS];
   const double tangent_modulus = (hardening_modulus*youngs_modulus)/(hardening_modulus+youngs_modulus);
@@ -255,12 +255,12 @@ double TrussElementLinear3D2N::TrialStateStress() {
 double TrussElementLinear3D2N::TrialYieldFunction() {
   KRATOS_TRY;
   double yield_stress_limit = 0.00;
-  if (this->GetProperties().Has(INFINITY_YIELD_STRESS)) {
-    yield_stress_limit = this->GetProperties()[INFINITY_YIELD_STRESS];
+  if (this->GetProperties().Has(YIELD_STRESS)) {
+    yield_stress_limit = this->GetProperties()[YIELD_STRESS];
   }
   double hardening_modulus = 0.00;
-  if (this->GetProperties().Has(DP_K)) {
-    hardening_modulus = this->GetProperties()[DP_K];
+  if (this->GetProperties().Has(HARDENING_MODULUS_1D)) {
+    hardening_modulus = this->GetProperties()[HARDENING_MODULUS_1D];
   }
 
   const double trial_stress = this->TrialStateStress();
@@ -298,8 +298,8 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
   if (this->CheckIfIsPlasticRegime()) {
 
     double hardening_modulus = 0.00;
-    if (this->GetProperties().Has(DP_K)) {
-      hardening_modulus = this->GetProperties()[DP_K];
+    if (this->GetProperties().Has(HARDENING_MODULUS_1D)) {
+      hardening_modulus = this->GetProperties()[HARDENING_MODULUS_1D];
     }
     const double youngs_modulus = this->GetProperties()[YOUNG_MODULUS];  
 
@@ -345,13 +345,13 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
     rOutput.resize(integration_points.size());
   }
 
+
   //test!!!
   if (rVariable == DP_K)rOutput[0] = this->plastic_strain;
   if (rVariable == INFINITY_YIELD_STRESS)rOutput[0] = this->test_is_plas;
   if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE)rOutput[0] = this->test_stress_total;
   if (rVariable == LAMBDA_MAX)rOutput[0] = this->CalculateLinearStrain();
    
-
   KRATOS_CATCH("")
   }
 

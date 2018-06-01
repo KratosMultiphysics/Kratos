@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED)
-#define  KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED
+#if !defined (KRATOS_TRUSS_PLASTICITY_LAW_H_INCLUDED)
+#define  KRATOS_TRUSS_PLASTICITY_LAW_H_INCLUDED
 
 // System includes
 
@@ -18,12 +18,13 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussConstitutiveLaw : public ConstitutiveLaw
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussPlasticityConstitutiveLaw : public ConstitutiveLaw
 {
 public:
     /**
@@ -33,10 +34,10 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of TrussConstitutiveLaw
+     * Counted pointer of TrussPlasticityConstitutiveLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( TrussConstitutiveLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( TrussPlasticityConstitutiveLaw );
 
     /**
      * Life Cycle
@@ -45,20 +46,20 @@ public:
     /**
      * Default constructor.
      */
-    TrussConstitutiveLaw();
+    TrussPlasticityConstitutiveLaw();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    TrussConstitutiveLaw (const TrussConstitutiveLaw& rOther);
+    TrussPlasticityConstitutiveLaw (const TrussPlasticityConstitutiveLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    ~TrussConstitutiveLaw() override;
+    ~TrussPlasticityConstitutiveLaw() override;
 
     /**
      * Operators
@@ -155,6 +156,6 @@ private:
     }
 
 
-}; // Class TrussConstitutiveLaw
+}; // Class TrussPlasticityConstitutiveLaw
 }  // namespace Kratos.
 #endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined 
