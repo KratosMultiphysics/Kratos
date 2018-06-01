@@ -1,13 +1,3 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
-//
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
-//
-//  Main authors:    Riccardo Rossi
-//
 
 // System includes
 
@@ -16,11 +6,11 @@
 
 
 // Project includes
-#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/mpm_base_load_condition.h"
 
 namespace Kratos
 {
-    void BaseLoadCondition::Initialize()
+    void MPMBaseLoadCondition::Initialize()
     {
         // TODO: Add somethig if necessary
     }
@@ -28,7 +18,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    void MPMBaseLoadCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -36,7 +26,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    void MPMBaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -44,7 +34,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+    void MPMBaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -52,7 +42,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+    void MPMBaseLoadCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
     {
         // TODO: Add somethig if necessary
     }
@@ -60,32 +50,35 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::EquationIdVector(
+    void MPMBaseLoadCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
         
-        const std::size_t number_of_nodes = GetGeometry().size();
-        const std::size_t dim = GetGeometry().WorkingSpaceDimension();
-        const std::size_t block_size = this->GetBlockSize();
-        if (rResult.size() != dim * number_of_nodes) {
-            rResult.resize(number_of_nodes * block_size, false);
+        const unsigned int NumberOfNodes = GetGeometry().size();
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        if (rResult.size() != dim * NumberOfNodes)
+        {
+            rResult.resize(dim*NumberOfNodes,false);
         }
 
-        const std::size_t pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
+        const unsigned int pos = this->GetGeometry()[0].GetDofPosition(DISPLACEMENT_X);
 
-        if(dim == 2) {
-            for (std::size_t i = 0; i < number_of_nodes; ++i) {
-                const std::size_t index = i * block_size;
+        if(dim == 2)
+        {
+            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            {
+                const unsigned int index = i * 2;
                 rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-                if (this->HasRotDof())
-                    rResult[index + 2] = GetGeometry()[i].GetDof(ROTATION_Z,pos + 2).EquationId();
             }
-        } else {
-            for (std::size_t i = 0; i < number_of_nodes; ++i) {
-                const std::size_t index = i * block_size;
+        }
+        else
+        {
+            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            {
+                const unsigned int index = i * 3;
                 rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
                 rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
@@ -96,28 +89,30 @@ namespace Kratos
     
     //***********************************************************************
     //***********************************************************************
-    void BaseLoadCondition::GetDofList(
+    void MPMBaseLoadCondition::GetDofList(
         DofsVectorType& ElementalDofList,
         ProcessInfo& rCurrentProcessInfo
         )
     {
         KRATOS_TRY
         
-        const std::size_t number_of_nodes = GetGeometry().size();
-        const std::size_t dim =  GetGeometry().WorkingSpaceDimension();
-        const std::size_t block_size = this->GetBlockSize();
+        const unsigned int NumberOfNodes = GetGeometry().size();
+        const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
         ElementalDofList.resize(0);
-        ElementalDofList.reserve(number_of_nodes * block_size);
+        ElementalDofList.reserve(dim * NumberOfNodes);
 
-        if(dim == 2) {
-            for (std::size_t i = 0; i < number_of_nodes; ++i) {
+        if(dim == 2)
+        {
+            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            {
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_X));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-                if (this->HasRotDof())
-                    ElementalDofList.push_back( GetGeometry()[i].pGetDof(ROTATION_Z));
             }
-        } else {
-            for (std::size_t i = 0; i < number_of_nodes; ++i) {
+        }
+        else
+        {
+            for (unsigned int i = 0; i < NumberOfNodes; ++i)
+            {
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_X));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
                 ElementalDofList.push_back( GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
@@ -129,7 +124,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::GetValuesVector(
+    void MPMBaseLoadCondition::GetValuesVector(
         Vector& rValues,
         int Step
         )
@@ -157,7 +152,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::GetFirstDerivativesVector(
+    void MPMBaseLoadCondition::GetFirstDerivativesVector(
         Vector& rValues,
         int Step 
         )
@@ -185,7 +180,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::GetSecondDerivativesVector(
+    void MPMBaseLoadCondition::GetSecondDerivativesVector(
         Vector& rValues,
         int Step 
         )
@@ -213,7 +208,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void BaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void MPMBaseLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
     {
         // Calculation flags
         const bool CalculateStiffnessMatrixFlag = false;
@@ -225,7 +220,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    void BaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void MPMBaseLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
     {
         //calculation flags
         const bool CalculateStiffnessMatrixFlag = true;
@@ -237,7 +232,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::CalculateMassMatrix(
+    void MPMBaseLoadCondition::CalculateMassMatrix(
         MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo 
         )
@@ -251,7 +246,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    void BaseLoadCondition::CalculateDampingMatrix(
+    void MPMBaseLoadCondition::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo 
         )
@@ -265,7 +260,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void BaseLoadCondition::CalculateAll( 
+    void MPMBaseLoadCondition::CalculateAll( 
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
@@ -278,7 +273,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
     
-    int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+    int MPMBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         if ( DISPLACEMENT.Key() == 0 )
         {
@@ -307,7 +302,7 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    double BaseLoadCondition::GetIntegrationWeight(
+    double MPMBaseLoadCondition::GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber,
         const double detJ
@@ -319,7 +314,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void BaseLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
+    void MPMBaseLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
         const Variable<VectorType>& rRHSVariable,
         Variable<array_1d<double,3> >& rDestinationVariable, 
         const ProcessInfo& rCurrentProcessInfo)

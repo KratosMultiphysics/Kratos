@@ -1,17 +1,7 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
-//
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
-//
-//  Main authors:    Vicente Mataix Ferrándiz
-//
 
 // System includes
-#if !defined(KRATOS_POINT_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MPM_POINT_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_MPM_POINT_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -19,7 +9,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/mpm_base_load_condition.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -48,34 +38,34 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  PointLoadCondition
-    : public BaseLoadCondition
+class MPMPointLoadCondition
+    : public MPMBaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PointLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointLoadCondition );
+    /// Counted pointer of MPMPointLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MPMPointLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLoadCondition( 
+    MPMPointLoadCondition( 
         IndexType NewId, 
         GeometryType::Pointer pGeometry 
         );
     
-    PointLoadCondition( 
+    MPMPointLoadCondition( 
         IndexType NewId, 
         GeometryType::Pointer pGeometry,  
         PropertiesType::Pointer pProperties 
         );
 
     /// Destructor.
-    ~PointLoadCondition() override;
+    ~MPMPointLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -98,11 +88,6 @@ public:
         PropertiesType::Pointer pProperties 
         ) const override;
 
-    /**
-     * Check if Rotational Dof existant
-     */
-    bool HasRotDof() override {return false;};
-        
     ///@}
     ///@name Access
     ///@{
@@ -189,7 +174,7 @@ protected:
     ///@{
     
     // A protected default constructor necessary for serialization
-    PointLoadCondition() {};
+    MPMPointLoadCondition() {};
 
     ///@}
 
@@ -230,12 +215,12 @@ private:
 
     void save( Serializer& rSerializer ) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
     }
 
     void load( Serializer& rSerializer ) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMBaseLoadCondition );
     }
 
     ///@}
@@ -243,15 +228,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //PointLoadCondition& operator=(const PointLoadCondition& rOther);
+    //MPMPointLoadCondition& operator=(const MPMPointLoadCondition& rOther);
 
     /// Copy constructor.
-    //PointLoadCondition(const PointLoadCondition& rOther);
+    //MPMPointLoadCondition(const MPMPointLoadCondition& rOther);
 
 
     ///@}
 
-}; // Class PointLoadCondition
+}; // Class MPMPointLoadCondition
 
 ///@}
 ///@name Type Definitions
@@ -265,11 +250,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-        PointLoadCondition& rThis);
+        MPMPointLoadCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-        const PointLoadCondition& rThis)
+        const MPMPointLoadCondition& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -281,6 +266,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_LOAD_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_MPM_POINT_LOAD_CONDITION_H_INCLUDED  defined 
 
 

@@ -1,16 +1,6 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
-//
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
-//
-//  Main authors:    Riccardo Rossi
-//
 
-#if !defined(KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED
+#if !defined(KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED )
+#define  KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED
 
 // System includes
 
@@ -18,7 +8,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/condition.h"
-#include "structural_mechanics_application_variables.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -42,7 +32,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
     
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseLoadCondition
+class MPMBaseLoadCondition
     : public Condition
 {
 public:
@@ -51,27 +41,27 @@ public:
     typedef std::size_t SizeType;
     ///@{
     
-    // Counted pointer of BaseLoadCondition
-    KRATOS_CLASS_POINTER_DEFINITION( BaseLoadCondition );
+    // Counted pointer of MPMBaseLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MPMBaseLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor void
-    BaseLoadCondition()
+    MPMBaseLoadCondition()
     {};
 
     // Constructor using an array of nodes
-    BaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
+    MPMBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ):Condition(NewId,pGeometry)
     {};
 
     // Constructor using an array of nodes with properties
-    BaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
+    MPMBaseLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Condition(NewId,pGeometry,pProperties)
     {};
 
     // Destructor
-    ~BaseLoadCondition() override
+    ~MPMBaseLoadCondition() override
     {};
 
     ///@}
@@ -234,19 +224,22 @@ public:
     /**
      * Check if Rotational Dof existant
      */
-    virtual bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
+    bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
     
     unsigned int GetBlockSize()
     {
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if( HasRotDof() ) { // if it has rotations
+        if( HasRotDof() ) // if it has rotations
+        {
             if(dim == 2)
                 return 3;
             else if(dim == 3)
                 return 6;
             else
-                KRATOS_ERROR << "The conditions only works for 2D and 3D elements";
-        } else {
+                KRATOS_ERROR << "the conditions only works for 2D and 3D elements";
+        }
+        else
+        {
             return dim;
         }
     }
@@ -371,7 +364,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
 
-}; // class BaseLoadCondition.
+}; // class MPMBaseLoadCondition.
 
 ///@}
 ///@name Type Definitions
@@ -384,4 +377,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined 
+#endif // KRATOS_MPM_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined 
