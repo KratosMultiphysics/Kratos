@@ -92,8 +92,31 @@ namespace Kratos
 		void WriteTransformationCoordinates(
 			BoundedVector<double,msLocalSize>& rReferenceCoordinates) override;
 
+		/**
+         * @brief This function calculates the current linear-Lagrange strain
+         */
+		double CalculateLinearStrain();
+		double ReturnElastoPlasticTangentModulus() const;
+		double TrialStateStress();
+		double TrialYieldFunction();
+		bool CheckIfIsPlasticRegime();
+		void UpdateInternalForces(
+			BoundedVector<double,msLocalSize>& rinternalForces) override;
+
+		void CalculateOnIntegrationPoints(
+			const Variable<double>& rVariable,
+			std::vector<double>& rOutput,
+			const ProcessInfo& rCurrentProcessInfo) override;
+
 
 		private:
+
+			double plastic_strain = 0.00;
+			double plastic_alpha = 0.00;
+
+			//test!!!
+			double test_is_plas = 0.00; 
+			double test_stress_total = 0.00;
 
 			friend class Serializer;
 			void save(Serializer& rSerializer) const override;
