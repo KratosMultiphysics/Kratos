@@ -98,6 +98,11 @@ public:
         PropertiesType::Pointer pProperties 
         ) const override;
 
+    /**
+     * Check if Rotational Dof existant
+     */
+    bool HasRotDof() override {return false;};
+        
     ///@}
     ///@name Access
     ///@{

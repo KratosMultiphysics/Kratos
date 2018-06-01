@@ -234,22 +234,19 @@ public:
     /**
      * Check if Rotational Dof existant
      */
-    bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
+    virtual bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
     
     unsigned int GetBlockSize()
     {
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if( HasRotDof() ) // if it has rotations
-        {
+        if( HasRotDof() ) { // if it has rotations
             if(dim == 2)
                 return 3;
             else if(dim == 3)
                 return 6;
             else
-                KRATOS_ERROR << "the conditions only works for 2D and 3D elements";
-        }
-        else
-        {
+                KRATOS_ERROR << "The conditions only works for 2D and 3D elements";
+        } else {
             return dim;
         }
     }

@@ -12,6 +12,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemSolidMechanicsApplicatio
 ## generate variables with the sources
 set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application_variables.cpp 	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/particle_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
@@ -44,8 +45,11 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_plastic_flow_rule.cpp
 
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_2D_condition.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_3D_condition.cpp
+	###conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_base_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_condition_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_surface_load_condition_3d.cpp
 )
 
 ###############################################################

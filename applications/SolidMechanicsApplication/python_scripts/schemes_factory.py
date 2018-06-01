@@ -245,6 +245,10 @@ class SolutionScheme:
                 variables = variables + ['DISPLACEMENT','VELOCITY','ACCELERATION',dof]
             elif(dof == 'ROTATION' or dof == 'ANGULAR_VELOCITY' or dof == 'ANGULAR_ACCELERATION'):
                 variables = variables + ['ROTATION','ANGULAR_VELOCITY','ANGULAR_ACCELERATION',dof]
+            elif(dof == 'WATER_DISPLACEMENT'):
+                variables = variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION',dof]
+            elif(dof == 'WATER_PRESSURE'):
+                variables = variables + ['WATER_PRESSURE','WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION',dof]
             else:
                 variables = variables + [dof]
         else:
@@ -303,12 +307,12 @@ class SolutionScheme:
         # Add water displacement variables
         if self._check_input_dof("WATER_DISPLACEMENT"):
             self.dof_variables = self.dof_variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','WATER_VELOCITY_REACTION','WATER_ACCELERATION_REACTION']
+            self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','NOT_DEFINED','NOT_DEFINED']
 
         # Add water pressure variables
         if self._check_input_dof("WATER_PRESSURE"):
             self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
+            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'NOT_DEFINED', 'NOT_DEFINED']
 
         # Add jacobian variables
         if self._check_input_dof("JACOBIAN"):

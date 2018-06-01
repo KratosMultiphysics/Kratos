@@ -20,7 +20,6 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 
@@ -54,24 +53,24 @@ namespace Kratos
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
       //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
-
+      typedef TwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > TwoStepVPStrategyType;
+      typedef GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GaussSeidelLinearStrategyType;
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
 
-      class_< TwoStepVPStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType > >
-	      (m, "TwoStepVPStrategy")
-	      .def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
-        .def("CalculateAccelerations",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateAccelerations)
-        .def("CalculateDisplacements",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateDisplacements)
+ 
+      class_< TwoStepVPStrategyType, TwoStepVPStrategyType::Pointer, BaseSolvingStrategyType >(m,"TwoStepVPStrategy")
+      	.def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
+        .def("CalculateAccelerations",&TwoStepVPStrategyType::CalculateAccelerations)
+        .def("CalculateDisplacements",&TwoStepVPStrategyType::CalculateDisplacements)
       	// .def("InitializeStressStrain",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
-	    ;
+      	    ;
 
-      class_< GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > >
-	      (m,"GaussSeidelLinearStrategy")
+      class_< GaussSeidelLinearStrategyType,GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType >(m,"GaussSeidelLinearStrategy")
 	      .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool  >())
-        .def("GetResidualNorm", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
-        .def("SetBuilderAndSolver", &GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
+        .def("GetResidualNorm", &GaussSeidelLinearStrategyType::GetResidualNorm)
+        .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver)
       ;
 
     }

@@ -59,7 +59,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
-            "contact_model_part"          : "Contact_Part",
+            "contact_model_part"          : "",
             "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
             "interval"                    : [0.0,"End"],
@@ -104,7 +104,13 @@ class ALMContactProcess(python_process.PythonProcess):
 
         self.dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
-        self.contact_model_part = model_part[self.settings["contact_model_part"].GetString()]
+        contact_model_part_name = self.settings["contact_model_part"].GetString()
+        # In case no model part is assigned we detect the skin
+        if contact_model_part_name == "":
+            detect_skin = KM.SkinDetectionProcess3D(model_part)
+            detect_skin.Execute()
+            contact_model_part_name = "SkinModelPart"
+        self.contact_model_part = model_part[contact_model_part_name]
 
         # A check necessary for axisymmetric cases (the domain can not be 3D)
         if (self.settings["alternative_formulations"]["axisymmetric"].GetBool() is True) and (self.dimension == 3):
