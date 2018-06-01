@@ -184,31 +184,31 @@ namespace Kratos
        * @return a Pointer to the new element
        */
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-			      pPropertiesType pProperties) const
+			      pPropertiesType pProperties) const override
 	{
 	  return Element::Pointer(new TwoStepUpdatedLagrangianVPFluidElement(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties));
 	}
 
-      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-      virtual void Initialize();
+      void Initialize() override;
 
       /// Initializes the element and all geometric information required for the problem.
-      virtual void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo);
+      void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 
 
-      virtual void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo);
+      void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override;
 
-      virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-					 ProcessInfo& rCurrentProcessInfo)
+      void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+					 ProcessInfo& rCurrentProcessInfo) override
       {
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPFluidElement::CalculateLeftHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
-      virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-					  ProcessInfo& rCurrentProcessInfo)
+      void CalculateRightHandSide(VectorType& rRightHandSideVector,
+					  ProcessInfo& rCurrentProcessInfo) override
       {
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPFluidElement::CalculateRightHandSide not implemented","");
@@ -230,7 +230,7 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info instance
        */
 
-      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
+      void InitializeElementalVariables(ElementalVariables & rElementalVariables) override;
 
       ///@}
       ///@name Access
@@ -249,7 +249,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-      virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+      int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
       ///@}
       ///@name Inquiry
@@ -261,7 +261,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      std::string Info() const override
 	{
 	  std::stringstream buffer;
 	  buffer << "TwoStepUpdatedLagrangianVPFluidElement #" << BaseType::Id();
@@ -269,7 +269,7 @@ namespace Kratos
 	}
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
+      void PrintInfo(std::ostream& rOStream) const override
       {
 	rOStream << "TwoStepUpdatedLagrangianVPFluidElement" << TDim << "D";
       }
@@ -307,7 +307,7 @@ namespace Kratos
 				      double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
 				      ProcessInfo& rCurrentProcessInfo,
-				      ElementalVariables& rElementalVariables);
+				      ElementalVariables& rElementalVariables) override;
 
    
 
@@ -318,20 +318,20 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
    
-      virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
+      void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
 						 double& MeanValue,
 						 const ShapeFunctionDerivativesType& rShapeDeriv,
 						 const double secondLame,
 						 double& bulkModulus,
 						 const double Weight,
 						 double& MeanValueMass,
-						 const double TimeStep);   
+						 const double TimeStep) override;   
 	
-      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
+      void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
 						   MatrixType StiffnessMatrix,
 						   double& meanValueStiff,
 						   double& bulkCoefficient,
-						   double timeStep);
+						   double timeStep) override;
       
       double ComputeNonLinearViscosity(double & equivalentStrainRate);
 
@@ -339,7 +339,7 @@ namespace Kratos
 						double& DeviatoricCoeff,
 						double& VolumetricCoeff,
 						ProcessInfo& rCurrentProcessInfo,
-						ElementalVariables& rElementalVariables);
+						ElementalVariables& rElementalVariables) override;
 
       double ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables);
 
@@ -352,32 +352,32 @@ namespace Kratos
       double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
       
       void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					      const double Weight);
+					      const double Weight) override;
 	
      void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
-					      const double Weight);
+					      const double Weight) override;
 
      void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
 					  const ShapeFunctionsType& rN,
-					  const double Weight);
+					  const double Weight) override;
 	
      void ComputeBulkMatrixForPressureAcc(MatrixType& BulkAccMatrix,
 					  const ShapeFunctionsType& rN,
-					  const double Weight);
+					  const double Weight) override;
 
      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				const ShapeFunctionsType& rN,
-				const double Weight);
+				const double Weight) override;
 
      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
 				const ShapeFunctionsType& rN,
 				const double TimeStep,
 				const double BoundRHSCoeffAcc,
-				const double BoundRHSCoeffDev);
+				const double BoundRHSCoeffDev) override;
 
      void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
 				     const ShapeFunctionDerivativesType& rShapeDeriv,
-				     const double Weight);
+				     const double Weight) override;
 
 
       /* bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
@@ -387,39 +387,39 @@ namespace Kratos
 
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,
-			const double theta);
+			const double theta) override;
 	
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
-					    unsigned int g);
+					    unsigned int g) override;
 
       virtual void CalculateTauFIC(double& TauOne,
 				   double ElemSize,
 				   const double Density,
 				   const double Viscosity,
-				   const ProcessInfo& rCurrentProcessInfo);
+				   const ProcessInfo& rCurrentProcessInfo) override;
 
       void AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
 				     Matrix& BulkAccMatrix,
 				     const ShapeFunctionsType& rN,
-				     const double Weight);
+				     const double Weight) override;
 
       void AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
 					 const double Tau,
 					 const double Weight,
 					 const ShapeFunctionDerivativesType& rDN_DX,
-					 const SizeType i);
+					 const SizeType i) override;
 
       void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
 					 const double Tau,
 					 const double Density,
 					 const double Weight,
 					 const ShapeFunctionDerivativesType& rDN_DX,
-					 const SizeType i);
+					 const SizeType i) override;
 
       void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 						 VectorType& rRightHandSideVector,
-						 ProcessInfo& rCurrentProcessInfo); 
+						 ProcessInfo& rCurrentProcessInfo) override; 
 
       void GetPressureVelocityValues(Vector& rValues,
 				     const int Step);
@@ -428,9 +428,9 @@ namespace Kratos
       void GetPressureAccelerationValues(Vector& rValues,
 					 const int Step);
 
-      double GetThetaMomentum (){return 0.5;};
+      double GetThetaMomentum () override{return 0.5;};
 
-      double GetThetaContinuity (){return 1.0;};
+      double GetThetaContinuity () override{return 1.0;};
       
 
 
@@ -465,12 +465,12 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
+      void save(Serializer& rSerializer) const override
       {
 	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
       }
 
-      virtual void load(Serializer& rSerializer)
+      void load(Serializer& rSerializer) override
       {
 	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
       }
