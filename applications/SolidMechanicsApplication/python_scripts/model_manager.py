@@ -118,8 +118,9 @@ class ModelManager(object):
             raise Exception("Other input options are not yet implemented.")
 
 
+        dofs = self.main_model_part.NumberOfNodes() * self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         #print ("::[---Model_Manager---]:: Finished importing model part")
-        print ("::[---Model_Manager---]:: Model Ready")
+        print ("::[---Model_Manager---]:: Model Ready ( DOFs:",dofs,")")
 
 
     def ExportModel(self):
