@@ -194,7 +194,7 @@ void Mapper<TSparseSpace, TDenseSpace>::AssignInterfaceEquationIds(Communicator&
         #pragma omp parallel for
         for (int i=0; i<num_nodes_local; ++i)
         {
-            // std::cout << "INTERFACE_EQUATION_ID = " << start_equation_id + i << std::endl;
+            // TODO this should be working in omp, not usre though
             ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
         }
 

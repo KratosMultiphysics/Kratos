@@ -128,22 +128,18 @@ namespace Kratos
         const SizeType num_nodes_origin = rModelPartOrigin.NumberOfNodes();
         const SizeType num_nodes_destination = rModelPartDestination.NumberOfNodes();
 
-        if (rpMdo == nullptr || rpMdo->size1() != num_nodes_origin || rpMdo->size2() != num_nodes_destination) //if the pointer is not initialized initialize it to an empty matrix
-        {
-            const SizeType num_non_zeros = 100; // TODO this should be computed
+        // Initialize the Matrix
+        // This has to be done always since the Graph has changed if the Interface is updated!
+        const SizeType num_non_zeros = 100; // TODO this should be computed
 
-            // ConstructMatrixStructure(rpMdo, rMapperLocalSystems);
+        // ConstructMatrixStructure(rpMdo, rMapperLocalSystems);
 
-            TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(
-                num_nodes_origin,num_nodes_destination, num_non_zeros);
-            rpMdo.swap(p_Mdo);
+        TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(
+            num_nodes_origin,num_nodes_destination, num_non_zeros);
+        rpMdo.swap(p_Mdo);
 
-            // TODO do I also have to set to zero the contents?
-        }
-        else
-        {
-            SparseSpaceType::SetToZero(*rpMdo);
-        }
+        // TODO do I also have to set to zero the contents?
+        // SparseSpaceType::SetToZero(*rpMdo);
 
         InitializeVector(rpQo, num_nodes_origin);
         InitializeVector(rpQd, num_nodes_destination);
