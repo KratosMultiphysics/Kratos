@@ -1,0 +1,115 @@
+{
+  
+  "problem_data": {
+    "problem_name": "PlateWithFriction_kratos",
+    "model_part_name": "IGAModelPart",
+    "domain_size": 5,
+    "start_time": 0,
+    "end_time": 0,
+    "time_step": 0.01
+  },
+  "Parameters": { "materials_filename": "materials.json" },
+  "solver_settings": {
+    "solver_type": "iga_structural_mechanics_solver",
+    "model_import_settings": {
+      "input_type": "NurbsBrepApplication",
+      "input_filename": "PlateWithFriction_elements.txt"
+    },
+    "maximum_iterations": 1,
+    "echo_level": 3,
+    "compute_reactions": false,
+    "reform_dofs_at_each_iteration": false,
+    "relative_tolerance": 1E-07,
+    "absolute_tolerance": 1E-07,
+    "linear_solver_settings": {
+      "solver_type": "Super_LU",
+      "scaling": false,
+      "verbosity": 0
+    },
+    "problem_domain_sub_model_part_list": [ ],
+    "processes_sub_model_part_list": [ ],
+    "rotation_dofs": "false"
+  },
+  "output_configuration": {
+    "nodal_results": [ "DISPLACEMENT" ],
+    "integration_point_results": [ ],
+    "output_file_name": "PlateWithFriction_kratos_0.post.res",
+    "model_part_name": "IGAModelPart",
+    "sub_model_part_name": "",
+    "time_frequency": 1
+  },
+  "nurbs_brep_configuration": {
+    "process_name": "NurbsBrepProcess",
+    "cad_geometry_file_name": "geometry.json",
+    "integration_domain_model_part_name": "IntegrationDomain",
+    "parameters": {
+      "integration_domain_parameter": {
+        "integration_scheme": "trinagulation",
+        "accuracy": 1E-07,
+        "shape_function_derivatives_order": 2,
+        "number_projection_iterations": 20,
+        "polygon_discretization": 10,
+        "integration_domains": {
+          "faces": true,
+          "faces_embedded": false,
+          "faces_reversed": false,
+          "edges": true,
+          "coupling_edges": true
+        }
+      },
+      "geometry_refinement": [
+        {
+          "selection": "ALL",
+          "parameters": {
+            "knot_insertions_u": [ ],
+            "knot_insertions_v": [ ],
+            "multiply_knots_u": 0,
+            "multiply_knots_v": 0,
+            "max_element_size_u": 0,
+            "max_element_size_v": 0,
+            "min_order_p": 0,
+            "min_order_q": 0,
+            "order_elevation_p": 0,
+            "order_elevation_q": 0
+          }
+        }
+      ]
+    },
+    "compute_surface_area": true,
+    "write_integration_domain_global": true,
+    "write_integration_domain_json_local": true,
+    "integration_domain_file_name": "PlateWithFriction_integrationdomain.json"
+  },
+  "constraints_process_list": [ ],
+  "loads_process_list": [ ],
+  "condition_list": [ ],
+  "element_list": [
+    {
+      "element_name": "MeshlessShellKLElement",
+      "cad_model_part": [ "IntegrationDomain.FACES.FACE_2" ],
+      "iga_model_part": "STRUCTURAL_ANALYSIS_2",
+      "parameters": {
+        "properties_id": 1,
+        "control_points": "CONTROL_POINT_IDS",
+        "variables": [
+          {
+            "cad_variable": "NURBS_SHAPE_FUNCTIONS",
+            "iga_variable": "SHAPE_FUNCTION_VALUES"
+          },
+          {
+            "cad_variable": "NURBS_SHAPE_FUNCTION_DERIVATIVES",
+            "iga_variable": "SHAPE_FUNCTION_LOCAL_DERIVATIVES"
+          },
+          {
+            "cad_variable": "INTEGRATION_WEIGHT",
+            "iga_variable": "INTEGRATION_WEIGHT"
+          },
+          {
+            "cad_variable": "NURBS_SHAPE_FUNCTION_SECOND_DERIVATIVES",
+            "iga_variable": "SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES"
+          }
+        ]
+      }
+    }
+  ]
+}
