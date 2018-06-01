@@ -19,6 +19,8 @@ class FluidSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         super(FluidSolver,self).__init___(model, custom_settings)
 
+        self._ValidateSettings()
+
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
 
@@ -130,7 +132,7 @@ class FluidSolver(PythonSolver):
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
-    ## The following are required by derived classes
+    ## FluidSolver specific methods.
 
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step (step 0, read from input)
@@ -139,7 +141,7 @@ class FluidSolver(PythonSolver):
     def _IsPrintingRank(self):
         return self._is_printing_rank
 
-    def _GetDefaultSettings(self):
+    def _ValidateSettings(self):
         raise Exception("Please define the default solver settings in the derived solver class")
 
     def _ReplaceElementsAndConditions(self):
