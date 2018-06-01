@@ -161,6 +161,11 @@ public:
         mInterfaceInfos.push_back(pInterfaceInfo);
     }
 
+    bool HasInterfaceInfo() const
+    {
+        return mInterfaceInfos.size() > 0;
+    }
+
 
     virtual void Clear()
     {

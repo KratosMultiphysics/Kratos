@@ -34,7 +34,21 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructure::PrepareSearching(const Kratos::Flags& rOptions,
+    void InterfaceSearchStructure::PrepareSearch(const Kratos::Flags& rOptions,
+                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+    {
+
+    }
+
+    void InterfaceSearchStructure::FinalizeSearch()
+    {
+
+    }
+
+
+
+    void InterfaceSearchStructure::PrepareSearchIteration(const Kratos::Flags& rOptions,
                                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                                     InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
@@ -52,7 +66,7 @@ namespace Kratos
             UpdateInterfaceInfos();
     }
 
-    void InterfaceSearchStructure::FinalizeSearching()
+    void InterfaceSearchStructure::FinalizeSearchIteration()
     {
         const int num_interface_infos = mpMapperInterfaceInfos->size();
 

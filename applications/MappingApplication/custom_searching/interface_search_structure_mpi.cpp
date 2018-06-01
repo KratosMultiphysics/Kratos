@@ -30,7 +30,21 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructureMPI::PrepareSearching(const Kratos::Flags& rOptions,
+    void InterfaceSearchStructureMPI::PrepareSearch(const Kratos::Flags& rOptions,
+                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+    {
+
+    }
+
+    void InterfaceSearchStructureMPI::FinalizeSearch()
+    {
+
+    }
+
+
+
+    void InterfaceSearchStructureMPI::PrepareSearchIteration(const Kratos::Flags& rOptions,
                                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
@@ -49,7 +63,7 @@ namespace Kratos
         */
     }
 
-        void InterfaceSearchStructureMPI::FinalizeSearching()
+        void InterfaceSearchStructureMPI::FinalizeSearchIteration()
     {
         /*
         1. Check with which Partitions I have to communicate

@@ -178,15 +178,21 @@ protected:
 
     // }
 
+    void PrepareSearch(const Kratos::Flags& rOptions,
+                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
+
+    void FinalizeSearch() override;
+
 
     // This function constructs the InterfaceObjects on the Destination
     // In serial it only does it once, whereas in MPI this involves Data-Exchange!
     // Imagine a sliding interface, there the partitions might change!
-    void PrepareSearching(const Kratos::Flags& rOptions,
+    void PrepareSearchIteration(const Kratos::Flags& rOptions,
                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                           InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
 
-    void FinalizeSearching() override;
+    void FinalizeSearchIteration() override;
 
     ///@}
     ///@name Protected  Access
@@ -232,14 +238,14 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ConductSearchIteration(const bool LastIteration) override
-    {
-        // CandidateManager candidate_manager;
-        // FindNeighborCandidates(candidate_manager, LastIteration);
-        // SelectNeighbors(candidate_manager);
-    }
+    // void ConductSearchIteration(const bool LastIteration) override
+    // {
+    //     // CandidateManager candidate_manager;
+    //     // FindNeighborCandidates(candidate_manager, LastIteration);
+    //     // SelectNeighbors(candidate_manager);
+    // }
 
-    // void PrepareSearching(CandidateManager& rCandidateManager, int& rMaxSendBufferSize,
+    // void PrepareSearchIteration(CandidateManager& rCandidateManager, int& rMaxSendBufferSize,
     //                       int& rMaxReceiveBufferSize, bool& rLocalSearchRequired,
     //                       GraphType& rDomainsColoredGraph, int& rMaxColors,
     //                       const bool LastIteration)
@@ -294,7 +300,7 @@ private:
     //     // GraphType domains_colored_graph;
     //     // int max_colors;
 
-    //     // PrepareSearching(rCandidateManager, max_send_buffer_size,
+    //     // PrepareSearchIteration(rCandidateManager, max_send_buffer_size,
     //     //                  max_receive_buffer_size, local_search_required,
     //     //                  domains_colored_graph, max_colors, LastIteration);
 

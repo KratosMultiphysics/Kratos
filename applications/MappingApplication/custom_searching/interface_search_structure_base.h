@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/communicator.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_searching/custom_configures/interface_object_configure.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -110,12 +111,8 @@ public:
     ///@name Operations
     ///@{
 
-    // this function performs the search and the exchange of the data on the interface
-    void ExchangeInterfaceData(const Kratos::Flags& rOptions,
-                               const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
-
-    void ExchangeInterfaceData2(const Kratos::Flags& rOptions,
+    void ExchangeInterfaceData(const Communicator& rComm,
+                               const Kratos::Flags& rOptions,
                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
 
@@ -269,11 +266,20 @@ protected:
     // This function constructs the InterfaceObjects on the Destination
     // In serial it only does it once, whereas in MPI this involves Data-Exchange!
     // Imagine a sliding interface, there the partitions might change!
-    virtual void PrepareSearching(const Kratos::Flags& rOptions,
-                                  const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                  InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) = 0;
+    virtual void PrepareSearch(const Kratos::Flags& rOptions,
+                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) = 0;
 
-    virtual void FinalizeSearching() = 0;
+    virtual void FinalizeSearch() = 0;
+
+    // This function constructs the InterfaceObjects on the Destination
+    // In serial it only does it once, whereas in MPI this involves Data-Exchange!
+    // Imagine a sliding interface, there the partitions might change!
+    virtual void PrepareSearchIteration(const Kratos::Flags& rOptions,
+                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) = 0;
+
+    virtual void FinalizeSearchIteration() = 0;
 
 
     // void FindLocalNeighbors(InterfaceObjectConfigure::ContainerType& rInterfaceObjects,
@@ -409,25 +415,34 @@ private:
     ///@name Private Operations
     ///@{
 
-    virtual void ConductSearchIteration(const bool LastIteration)
-    {
-        // InterfaceObjectConfigure::ContainerType interface_objects;
-        // mpInterfaceObjectManager->GetInterfaceObjectsSerialSearch(interface_objects);
+    // virtual void ConductSearchIteration(const bool LastIteration)
+    // {
+    //     // InterfaceObjectConfigure::ContainerType interface_objects;
+    //     // mpInterfaceObjectManager->GetInterfaceObjectsSerialSearch(interface_objects);
 
-        // int num_objects = interface_objects.size();
+    //     // int num_objects = interface_objects.size();
 
-        // std::vector<InterfaceObject::Pointer> interface_object_results(num_objects);
-        // std::vector<double> min_distances(num_objects);
-        // std::vector<std::vector<double>> shape_function_values(num_objects);
-        // std::vector<int> pairing_indices(num_objects);
+    //     // std::vector<InterfaceObject::Pointer> interface_object_results(num_objects);
+    //     // std::vector<double> min_distances(num_objects);
+    //     // std::vector<std::vector<double>> shape_function_values(num_objects);
+    //     // std::vector<int> pairing_indices(num_objects);
 
-        // FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
-        //                    min_distances, shape_function_values, pairing_indices);
+    //     // FindLocalNeighbors(interface_objects, num_objects, interface_object_results,
+    //     //                    min_distances, shape_function_values, pairing_indices);
 
-        // mpInterfaceObjectManagerBins->StoreSearchResults(min_distances, interface_object_results, shape_function_values);
-        // mpInterfaceObjectManager->PostProcessReceivedResults(interface_objects, min_distances,
-        //         pairing_indices);
-    }
+    //     // mpInterfaceObjectManagerBins->StoreSearchResults(min_distances, interface_object_results, shape_function_values);
+    //     // mpInterfaceObjectManager->PostProcessReceivedResults(interface_objects, min_distances,
+    //     //         pairing_indices);
+    // }
+
+
+
+    // this function performs the search and the exchange of the data on the interface
+    void ConductSearchIteration(const Kratos::Flags& rOptions,
+                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
+
+    bool AllNeighborsFound(const Communicator& rComm) const;
 
 
     // void InitializeInterfaceNodeManager(ModelPart& rModelPart)

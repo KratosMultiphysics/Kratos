@@ -94,7 +94,8 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags Mapping
     const InterfaceObject::ConstructionType interface_object_construction_type_origin =
         GetInterfaceObjectConstructionTypeOrigin();
 
-    mpSearchStructure->ExchangeInterfaceData(MappingOptions,
+    mpSearchStructure->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
+                                             MappingOptions,
                                              p_ref_interface_info,
                                              interface_object_construction_type_origin);
 

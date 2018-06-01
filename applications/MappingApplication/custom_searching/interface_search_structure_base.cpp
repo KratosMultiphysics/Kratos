@@ -27,33 +27,19 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructureBase::ExchangeInterfaceData(const Kratos::Flags& rOptions,
-                               const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
-                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+    void InterfaceSearchStructureBase::ExchangeInterfaceData(const Communicator& rComm,
+                                const Kratos::Flags& rOptions,
+                                const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
-        PrepareSearching(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
-        ConductLocalSearch();
-
-        FinalizeSearching();
-    }
-
-    void InterfaceSearchStructureBase::ExchangeInterfaceData2(const Kratos::Flags& rOptions,
-                               const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
-                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
-    {
-        /*void Search(const double SearchRadius, const int MaxSearchIterations)
-    {
-        mSearchRadius = SearchRadius;
-        mMaxSearchIterations = MaxSearchIterations;
+        // mSearchRadius = SearchRadius;
+        // mMaxSearchIterations = MaxSearchIterations;
         const int increase_factor = 4;
         int num_iteration = 1;
-        bool last_iteration = false;
+        bool last_iteration = (mMaxSearchIterations == 1) ? true : false; // true in case only one search iteration is conducted
 
-        if (mMaxSearchIterations == 1)   // in case only one search iteration is conducted
-        {
-            last_iteration = true;
-        }
+        PrepareSearch(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
         // First Iteration is done outside the search loop bcs it has
         // to be done in any case
@@ -61,17 +47,13 @@ namespace Kratos
         // radius was either computed or specified properly)
         // only if some points did not find a neighbor or dont have a valid
         // projection, more search iterations are necessary
-        ConductSearchIteration(last_iteration);
+        ConductSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
-        while (num_iteration < mMaxSearchIterations && !mpInterfaceObjectManager->AllNeighborsFound())
+        while (++num_iteration < mMaxSearchIterations && !AllNeighborsFound(rComm))
         {
             mSearchRadius *= increase_factor;
-            ++num_iteration;
 
-            if (num_iteration == mMaxSearchIterations)
-            {
-                last_iteration = true;
-            }
+            if (num_iteration == mMaxSearchIterations) last_iteration = true;
 
             if (mEchoLevel >= 2 && mCommRank == 0)
             {
@@ -82,22 +64,10 @@ namespace Kratos
                           << mSearchRadius << std::endl;
             }
 
-            ConductSearchIteration(last_iteration);
+            ConductSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
         }
-        if (mEchoLevel >= 2)
-        {
-            mpInterfaceObjectManager->CheckResults();
-        }
-    }
-        */
 
-
-
-        PrepareSearching(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
-
-        ConductLocalSearch();
-
-        FinalizeSearching();
+        FinalizeSearch();
     }
 
     /***********************************************************************************/
@@ -211,6 +181,37 @@ namespace Kratos
     /***********************************************************************************/
     /* PRIVATE Methods */
     /***********************************************************************************/
+    void InterfaceSearchStructureBase::ConductSearchIteration(const Kratos::Flags& rOptions,
+                               const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+    {
+        PrepareSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
+
+        ConductLocalSearch();
+
+        FinalizeSearchIteration();
+    }
+
+    bool InterfaceSearchStructureBase::AllNeighborsFound(const Communicator& rComm) const
+    {
+        int all_neighbors_found = 1; // set to "1" aka "true" by default in case
+        // this partition doesn't have a part of the interface!
+
+        for (const auto& local_sys : (*mpMapperLocalSystems))
+        {
+            if (!local_sys->HasInterfaceInfo())
+            {
+                all_neighbors_found = 0;
+                break;
+            }
+        }
+
+        // This is necessary bcs not all partitions would start a new search iteration!
+        rComm.MinAll(all_neighbors_found);
+
+        return all_neighbors_found > 0;
+   }
+
 
 
 }  // namespace Kratos.
