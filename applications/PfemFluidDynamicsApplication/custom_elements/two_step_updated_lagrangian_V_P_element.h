@@ -217,38 +217,38 @@ namespace Kratos
        * @return a Pointer to the new element
        */
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties) const
+			      PropertiesType::Pointer pProperties) const  override
         {
 	  return Element::Pointer(new TwoStepUpdatedLagrangianVPElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         }
 
 
-      virtual Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const  override;
 
-      virtual void Initialize(){};
+      void Initialize() override {};
 
       /// Initializes the element and all geometric information required for the problem.
-      virtual void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo){};
+      void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override{};
 
 
-      virtual void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo){};
+      void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override {};
 
       /// Calculate the element's local contribution to the system for the current step.
-      virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 					VectorType& rRightHandSideVector,
-					ProcessInfo& rCurrentProcessInfo);
+					ProcessInfo& rCurrentProcessInfo) override;
 
 
-      virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-					 ProcessInfo& rCurrentProcessInfo)
+      void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+					 ProcessInfo& rCurrentProcessInfo) override 
       {
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPElement::CalculateLeftHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
-      virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-					  ProcessInfo& rCurrentProcessInfo)
+      void CalculateRightHandSide(VectorType& rRightHandSideVector,
+					  ProcessInfo& rCurrentProcessInfo) override 
       {
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPElement::CalculateRightHandSide not implemented","");
@@ -264,19 +264,19 @@ namespace Kratos
        * @param rResult A vector containing the global Id of each row
        * @param rCurrentProcessInfo the current process info object (unused)
        */
-      virtual void EquationIdVector(EquationIdVectorType& rResult,
-				    ProcessInfo& rCurrentProcessInfo);
+      void EquationIdVector(EquationIdVectorType& rResult,
+				    ProcessInfo& rCurrentProcessInfo) override ;
 
       /// Returns a list of the element's Dofs
       /**
        * @param ElementalDofList the list of DOFs
        * @param rCurrentProcessInfo the current process info instance
        */
-      virtual void GetDofList(DofsVectorType& rElementalDofList,
-			      ProcessInfo& rCurrentProcessInfo);
+      void GetDofList(DofsVectorType& rElementalDofList,
+			      ProcessInfo& rCurrentProcessInfo) override ;
 
     
-      virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
+      GeometryData::IntegrationMethod GetIntegrationMethod() const override;
     
       virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo){};
 
@@ -305,7 +305,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-      virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+      int Check(const ProcessInfo& rCurrentProcessInfo) override ;
 
       ///@}
       ///@name Inquiry
@@ -317,7 +317,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      std::string Info() const override 
 	{
 	  std::stringstream buffer;
 	  buffer << "TwoStepUpdatedLagrangianVPElement #" << Id();
@@ -325,7 +325,7 @@ namespace Kratos
 	}
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
+      void PrintInfo(std::ostream& rOStream) const override 
       {
 	rOStream << "TwoStepUpdatedLagrangianVPElement" << TDim << "D";
       }
@@ -370,7 +370,7 @@ namespace Kratos
 
       void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 					std::vector<double>& rValues,
-					const ProcessInfo& rCurrentProcessInfo );
+					const ProcessInfo& rCurrentProcessInfo ) override;
       
       void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
 					   VectorType& rRightHandSideVector,
@@ -795,12 +795,12 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
+      void save(Serializer& rSerializer) const override
       {
 	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
       }
 
-      virtual void load(Serializer& rSerializer)
+      void load(Serializer& rSerializer) override
       {
 	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
       }

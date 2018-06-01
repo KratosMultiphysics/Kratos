@@ -175,32 +175,32 @@ namespace Kratos
        * @return a Pointer to the new element
        */
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-			      pPropertiesType pProperties) const
+			      pPropertiesType pProperties) const override
 	{
 	  return Element::Pointer(new TwoStepUpdatedLagrangianVPSolidElement(NewId, BaseType::GetGeometry().Create(ThisNodes), pProperties));
 	}
 
-      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
-      virtual void Initialize();
+      void Initialize() override;
 
       /// Initializes the element and all geometric information required for the problem.
-      virtual void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo);
+      void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 
 
-      virtual void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo);
+      void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override;
 
-      virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-					 ProcessInfo& rCurrentProcessInfo)
+      void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+					 ProcessInfo& rCurrentProcessInfo) override
       {
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPSolidElement::CalculateLeftHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
-      virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-					  ProcessInfo& rCurrentProcessInfo)
+      void CalculateRightHandSide(VectorType& rRightHandSideVector,
+					  ProcessInfo& rCurrentProcessInfo) override
       {
 	KRATOS_TRY;
 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPSolidElement::CalculateRightHandSide not implemented","");
@@ -223,9 +223,9 @@ namespace Kratos
        */
 
 
-      virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo);
+      void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo) override;
 
-      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables);
+      void InitializeElementalVariables(ElementalVariables & rElementalVariables) override;
 
       /* virtual void CalculateDeltaPosition (Matrix & rDeltaPosition); */
 
@@ -246,7 +246,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-      virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+      int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
       ///@}
       ///@name Inquiry
@@ -258,7 +258,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      std::string Info() const override
 	{
 	  std::stringstream buffer;
 	  buffer << "TwoStepUpdatedLagrangianVPSolidElement #" << BaseType::Id();
@@ -266,7 +266,7 @@ namespace Kratos
 	}
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
+      void PrintInfo(std::ostream& rOStream) const override
       {
 	rOStream << "TwoStepUpdatedLagrangianVPSolidElement" << TDim << "D";
       }
@@ -308,7 +308,7 @@ namespace Kratos
 				      double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
 				      ProcessInfo &rCurrentProcessInfo,
-				      ElementalVariables& rElementalVariables);
+				      ElementalVariables& rElementalVariables) override;
 
 
       /// Add integration point contribution to the mass matrix.
@@ -331,31 +331,31 @@ namespace Kratos
 						 double& bulkModulus,
 						 const double Weight,
 						 double& MeanValueMass,
-						 const double TimeStep){};
+						 const double TimeStep) override{};
       
       void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
 					   MatrixType StiffnessMatrix,
 					   double& meanValueStiff,
 					   double& bulkCoefficient,
-					   double timeStep){};
+					   double timeStep) override{};
       
       void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-					       const double Weight);
+					       const double Weight) override;
 
 
       void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
 				       const ShapeFunctionsType& rN,
-				       const double Weight);
+				       const double Weight) override;
 
      void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
 				const ShapeFunctionsType& rN,
-				const double Weight){};
+				const double Weight) override{};
 
      void ComputeBoundRHSVector(VectorType& BoundRHSVector,
 				const ShapeFunctionsType& rN,
 				const double TimeStep,
 				const double BoundRHSCoeffAcc,
-				const double BoundRHSCoeffDev){};
+				const double BoundRHSCoeffDev) override {};
 
       /* virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
       /* 					const ProcessInfo& rCurrentProcessInfo, */
@@ -364,19 +364,19 @@ namespace Kratos
 	
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,
-			const double theta);
+			const double theta) override;
 	
-      virtual void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
+      void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 						    double TimeStep,
-						    unsigned int g);
+						    unsigned int g) override;
      
-      virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
+      void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo);
+							 ProcessInfo& rCurrentProcessInfo) override;
  
-      double GetThetaMomentum (){return 1.0;};
+      double GetThetaMomentum () override {return 1.0;};
 
-      double GetThetaContinuity (){return 1.0;};
+      double GetThetaContinuity () override {return 1.0;};
 
       ///@}
       ///@name Protected  Access
@@ -409,12 +409,12 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
+      void save(Serializer& rSerializer) const override
       {
 	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
       }
 
-      virtual void load(Serializer& rSerializer)
+      void load(Serializer& rSerializer) override
       {
 	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
       }
