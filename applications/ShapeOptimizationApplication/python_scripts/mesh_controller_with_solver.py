@@ -72,7 +72,7 @@ class MeshControllerWithSolver(MeshController) :
         VariableUtils().SetToZero_VectorVar(MESH_DISPLACEMENT,self.OptimizationModelPart.Nodes)
 
         sub_model_part_name = "surface_nodes"
-        GeometryUtilities(self.OptimizationModelPart).ExtractSurfaceNodes(sub_model_part_name)
+        GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes(sub_model_part_name)
         surface_nodes = self.OptimizationModelPart.GetSubModelPart(sub_model_part_name).Nodes
 
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_X, True, surface_nodes)
