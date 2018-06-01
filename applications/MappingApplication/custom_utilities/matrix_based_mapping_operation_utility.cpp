@@ -41,6 +41,7 @@ namespace Kratos
     void InitializeVector(UtilityType::TSystemVectorUniquePointerType& rpVector,
                          const SizeType VectorSize)
     {
+        // The vectors dont have graphs, that why we don't always have to reinitialie them
         if (rpVector == nullptr || rpVector->size() != VectorSize) //if the pointer is not initialized initialize it to an empty vector
         {
             UtilityType::TSystemVectorUniquePointerType p_new_vector = Kratos::make_unique<UtilityType::TSystemVectorType>(VectorSize);

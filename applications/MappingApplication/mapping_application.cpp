@@ -36,31 +36,35 @@
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
 
+// Macro to register the mapper WITHOUT MPI
+#define KRATOS_REGISTER_MAPPER_SERIAL(MapperType, MapperName)                                         \
+    {                                                                                                 \
+    ModelPart dummy_model_part("dummy");                                                              \
+    MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>    \
+        (MapperName, Kratos::make_shared<MapperType<                                                  \
+        MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
+        (dummy_model_part, dummy_model_part));                                                        \
+    }
+
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "mpi.h"
-#define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                            \
-{                                                                                                 \
-ModelPart dummy_model_part("dummy");                                                              \
-/* Registering the non-MPI mapper */                                                              \
-MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>    \
-    (MapperName, Kratos::make_shared<MapperType<                                                  \
-    MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
-    (dummy_model_part, dummy_model_part));                                                        \
-/* Registering the MPI mapper */                                                                  \
-MapperFactory::Register<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType> \
-    (MapperName, Kratos::make_shared<MapperType<                                                  \
-    MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>>                     \
-    (dummy_model_part, dummy_model_part));                                                        \
-}
-#else
-#define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                            \
-{                                                                                                 \
-ModelPart dummy_model_part("dummy");                                                              \
-MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>    \
-    (MapperName, Kratos::make_shared<MapperType<                                                  \
-    MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
-    (dummy_model_part, dummy_model_part));                                                        \
-}
+    // Macro to register the mapper WITH MPI
+    #define KRATOS_REGISTER_MAPPER_MPI(MapperType, MapperName)                                            \
+        {                                                                                                 \
+        ModelPart dummy_model_part("dummy");                                                              \
+        MapperFactory::Register<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType> \
+            (MapperName, Kratos::make_shared<MapperType<                                                  \
+            MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>>                     \
+            (dummy_model_part, dummy_model_part));                                                        \
+        }
+    // Macro to register the mapper WITH and WITHOUT MPI
+    #define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                            \
+        KRATOS_REGISTER_MAPPER_SERIAL(MapperType, MapperName)                                         \
+        KRATOS_REGISTER_MAPPER_MPI(MapperType, MapperName)
+    #else
+    // Macro to register the mapper WITH and WITHOUT MPI
+    #define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                            \
+        KRATOS_REGISTER_MAPPER_SERIAL(MapperType, MapperName)
 #endif
 
 namespace Kratos
@@ -99,7 +103,6 @@ void KratosMappingApplication::Register()
     if (rank == 0) std::cout << banner.str();
 
     // registering the mappers using the registration-macro
-    // note that this takes care to register the mappers also in MPI
     KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
     KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
 
