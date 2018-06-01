@@ -22,7 +22,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-
+#include "utilities/openmp_utils.h"
 
 ///VARIABLES used:
 //Data:     NEIGHBOUR_ELEMENTS(set), NEIGHBOUR_NODES(set)

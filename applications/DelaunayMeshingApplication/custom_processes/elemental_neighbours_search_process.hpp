@@ -23,6 +23,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "utilities/openmp_utils.h"
 #include "delaunay_meshing_application_variables.h"
 
 

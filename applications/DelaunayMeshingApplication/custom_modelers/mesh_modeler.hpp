@@ -23,7 +23,7 @@
 #include "includes/model_part.h"
 #include "containers/variables_list_data_value_container.h"
 #include "spatial_containers/spatial_containers.h"
-
+#include "utilities/openmp_utils.h"
 #include "custom_utilities/modeler_utilities.hpp"
 
 
