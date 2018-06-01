@@ -44,11 +44,6 @@ debugApp.AddConditions([
     ConditionCreator('CustomTestCondition')
 ])
 
-debugApp.AddProcesses([
-    ProcessCreator('CustomTestProcessAlpha'),
-    ProcessCreator('CustomTestProcessDelta')
-])
-
 debugApp.Generate()
 
 print("Your application has been generated in: applications/{}Application".format(appNameCamel))
