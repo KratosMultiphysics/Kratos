@@ -66,7 +66,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
             "skin_parts":[""],
             "no_skin_parts":[""],
             "time_stepping": {
-                "automatic_time_step" : true,
+                "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
@@ -78,6 +78,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def __init__(self, model, custom_settings):
+        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
         super(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
 
         self.element_name = "FractionalStep"
@@ -125,7 +126,7 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
             KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","MPI model reading finished.")
 
     def PrepareModelPart(self):
-        super(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep,self).PrepareModelPart()
+        super(TrilinosNavierStokesSolverFractionalStep,self).PrepareModelPart()
         ## Construct Trilinos the communicators
         self.trilinos_model_part_importer.CreateCommunicators()
 
