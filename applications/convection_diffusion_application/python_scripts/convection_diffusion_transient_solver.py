@@ -27,6 +27,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
         # Set defaults and validate custom settings.
         self.transient_settings = KratosMultiphysics.Parameters("""
         {
+            "solver_type": "ConvectionDiffusionTransientSolver",
             "dynamic_tau": 1.0,
             "time_stepping" : {
                 "theta"    : 1.0
