@@ -44,7 +44,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
         # Calling base class of ImplicitMonolithicSolver it is ok.
         super(BaseSolver.ImplicitMonolithicSolver, self).__init__(custom_settings)
 
-        print("::[Static_Scheme]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
+        print("::[---Static_Solver---]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
     #### Solver internal methods ####
 
