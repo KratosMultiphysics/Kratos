@@ -52,7 +52,7 @@ namespace Kratos
 /// Evaluates the term  \f$ \overline{q_n} = q_n - \varepsilon \sigma (T^4 - T_0^4) - \alpha_c (T - T_0)\f$ .
 /** Detail class definition.
 */
-class ThermalFace2D
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) ThermalFace2D
     : public Condition
 {
 public:
