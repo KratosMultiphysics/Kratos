@@ -235,16 +235,7 @@ class ConvectionDiffusionBaseSolver(object):
 
     def AddDofs(self):
         # this can safely be called also for restarts, it is internally checked if the dofs exist already
-        settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
-        print("***********************************")
-        print(self.main_model_part)
-        print(self.main_model_part.ProcessInfo)
-        for node in self.main_model_part.Nodes:
-            print(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-        print(KratosMultiphysics.TEMPERATURE)
-        print(settings.GetUnknownVariable())
-        print(settings.GetReactionVariable())
-        
+        settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]                     
         if settings.IsDefinedReactionVariable():
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
         else:
