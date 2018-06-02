@@ -47,6 +47,7 @@ class ConvectionDiffusionBaseSolver(object):
     def __init__(self, main_model_part, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "solver_type" : "SolverName - please provide a proper one",
             "echo_level": 0,
             "buffer_size": 2,
             "analysis_type": "non_linear",
@@ -228,12 +229,13 @@ class ConvectionDiffusionBaseSolver(object):
         
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Variables ADDED")
 
+
     def GetMinimumBufferSize(self):
         return 2
 
     def AddDofs(self):
         # this can safely be called also for restarts, it is internally checked if the dofs exist already
-        settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
+        settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]                     
         if settings.IsDefinedReactionVariable():
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
         else:
@@ -247,14 +249,19 @@ class ConvectionDiffusionBaseSolver(object):
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
         if self.is_restarted():
             self.get_restart_utility().LoadRestart()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Finished reading model part from mdpa file.")
-            self.PrepareModelPartForSolver()
+        elif(self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part"): #TODO: change this once a proper way is agreed
+            self.PrepareModelPartForSolver() 
+            
         else:
-            raise Exception("Other model part input options are not yet implemented.")
+            if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+                # Import model part from mdpa file.
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+                KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "Finished reading model part from mdpa file.")
+                self.PrepareModelPartForSolver()
+                    
+            else:
+                raise Exception("Other model part input options are not yet implemented.")
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]:: ", "Finished importing model part.")
 
@@ -316,7 +323,7 @@ class ConvectionDiffusionBaseSolver(object):
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Finished initialization.")
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part #.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
     def GetOutputVariables(self):
         pass
