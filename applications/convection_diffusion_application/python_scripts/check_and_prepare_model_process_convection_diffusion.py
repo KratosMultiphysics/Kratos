@@ -36,7 +36,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             #problem_domain_sub_model_parts.append(self.main_model_part.GetSubModelPart(self.problem_domain_sub_model_part_list[i].GetString()))
         
         processes_parts = []
-        print(self.processes_model_part_names)
+        
         for i in range(self.processes_model_part_names.size()):
             name = self.processes_model_part_names[i].GetString()
             if(name != ""):
