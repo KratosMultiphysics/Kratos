@@ -92,7 +92,7 @@ namespace Kratos
  * @author Jordi Cotela
  * @see KratosApplication
 */
-class KratosConvectionDiffusionApplication : public KratosApplication
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) KratosConvectionDiffusionApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
