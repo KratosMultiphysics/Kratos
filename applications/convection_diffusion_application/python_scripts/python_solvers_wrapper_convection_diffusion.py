@@ -35,9 +35,6 @@ def CreateSolverByParameters(main_model_part, solver_settings, parallelism):
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
-    # Remove settings that are not needed any more
-    solver_settings.RemoveValue("solver_type")
-    solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
     solver_module = __import__(solver_module_name)
     solver = solver_module.CreateSolver(main_model_part, solver_settings)
@@ -53,7 +50,7 @@ def CreateSolver(main_model_part, custom_settings):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-    solver_settings = custom_settings["solver_settings"]["solver_type"]   
+    solver_settings = custom_settings["solver_settings"]  
     
     return CreateSolverByParameters(main_model_part, solver_settings, parallelism)
     
