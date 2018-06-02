@@ -105,7 +105,7 @@ class ConvergenceCriterion:
         echo_level = self.settings["echo_level"].GetInt()
 
         if(echo_level >= 1):
-            print("::[Mechanical_Solver]:: Convergence criterion [", self.settings["convergence_criterion"].GetString(),"]")
+            print("::[-----Criterion-----]::", self.settings["convergence_criterion"].GetString(),)
 
         convergence_criterion = None
         if(self.settings["convergence_criterion"].GetString() == "Variable_criterion"):

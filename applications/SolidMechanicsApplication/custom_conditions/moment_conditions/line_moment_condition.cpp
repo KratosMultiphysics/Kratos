@@ -238,10 +238,10 @@ namespace Kratos
     KRATOS_TRY
 
     unsigned int MatSize = this->GetDofsSize();
-    if(rLeftHandSideMatrix.size1() != MatSize )
+    if(rLeftHandSideMatrix.size1() != MatSize ){
       rLeftHandSideMatrix.resize(MatSize,MatSize,false);
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
+      noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
+    }
       
     KRATOS_CATCH( "" )
   }

@@ -289,7 +289,7 @@ void AxisymmetricUpdatedLagrangianUPElement::FinalizeStepVariables( ElementVaria
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
 {
 
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
@@ -311,7 +311,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemCompo
 
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
@@ -1131,7 +1131,7 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateTotalMass( double& rTot
 	double PointVolumeChange = 0;
 	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
 
-	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Variables.CurrentRadius * IntegrationWeight;
+	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * Globals::Pi * Variables.CurrentRadius * IntegrationWeight;
 
       }
 
@@ -1176,7 +1176,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
       this->CalculateKinematics( Variables, PointNumber );
 
       //getting informations for integration
-      double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ * 2.0 * 3.141592654 * Variables.CurrentRadius;
+      double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ * 2.0 * Globals::Pi * Variables.CurrentRadius;
 
 
       //compute point volume change

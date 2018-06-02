@@ -143,7 +143,7 @@ class MonolithicSolver(object):
 
         self.Check()
 
-        print("::[Solver]:: Ready")
+        print("::[-------Solver------]:: Ready")
 
     def GetVariables(self):
 
@@ -298,8 +298,8 @@ class MonolithicSolver(object):
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, dof_variables, dof_reactions)
         AddDofsProcess.Execute()
         if( self.echo_level > 1 ):
-            print(self.dof_variables + self.dof_reactions)
-            print("::[Solver]:: DOF's ADDED")
+            print(dof_variables + dof_reactions)
+            print("::[-------Solver------]:: DOF's ADDED")
 
 
     def _set_scheme_parameters(self):
@@ -347,11 +347,12 @@ class MonolithicSolver(object):
             if( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) and (not scalar_dof_method_set) ):
                 scalar_integration_methods[dof].CalculateParameters(self.process_info)
                 scalar_dof_method_set = True
-                print("::[Integration]:: ",scalar_integration_methods[dof],"(",dof,")")
+
+                print("::[----Integration----]::",scalar_integration_methods[dof],"(",dof,")")
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) and (not vector_dof_method_set) ):
                 component_integration_methods[dof+"_X"].CalculateParameters(self.process_info)
                 vector_dof_method_set = True
-                print("::[Integration]:: ",component_integration_methods[dof+"_X"],"(",dof,")")
+                print("::[----Integration----]::",component_integration_methods[dof+"_X"],"(",dof,")")
 
         return scalar_integration_methods, component_integration_methods
 

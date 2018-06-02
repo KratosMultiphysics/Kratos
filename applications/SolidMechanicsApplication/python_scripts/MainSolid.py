@@ -44,7 +44,7 @@ class Solution(object):
         self._set_parallel_size(num_threads)
 
         print(" ")
-        print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
+        print("::[---KSM Simulation--]::[OMP USING",num_threads,"THREADS ]")
 
 
     def Run(self):
@@ -119,7 +119,7 @@ class Solution(object):
                 print(properties)
 
         print(" ")
-        print("::[KSM Simulation]:: Analysis -START- ")
+        print("::[---KSM Simulation--]:: Analysis -START- ")
 
         sys.stdout.flush()
 
@@ -206,7 +206,7 @@ class Solution(object):
 
         self.processes.ExecuteFinalize()
 
-        print("::[KSM Simulation]:: Analysis -END- ")
+        print("::[---KSM Simulation--]:: Analysis -END- ")
         print(" ")
 
         # Check solving information for any problem
@@ -218,7 +218,7 @@ class Solution(object):
         # Measure wall time
         tfw = timer.time()
 
-        print("::[KSM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
+        print("::[---KSM Simulation--]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
         print(timer.ctime())
 
 
@@ -372,10 +372,10 @@ class Solution(object):
                 problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
             else:
                 print(" problem name not supplied -> generic name used : results_output ")
-            print("::[KSM Simulation]:: Output Ready [File: "+problem_name+".*.post.* ]")
+            print("::[---KSM Simulation--]:: Output Ready [File: "+problem_name+".*.post.* ]")
             return (gid_output_process.GiDOutputProcess(output_model_part,problem_name,self.output_settings))
         else:
-            print("::[KSM Simulation]:: No Output")
+            print("::[---KSM Simulation--]:: No Output")
             return (KratosMultiphysics.Process())
 
     def _set_severity_level(self):
@@ -420,7 +420,7 @@ class Solution(object):
         time_fp = timer.clock()
         if( report ):
             used_time = time_fp - time_ip
-            print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+            print("::[---KSM Simulation--]:: [ %.2f" % round(used_time,2),"s", process," ] ")
 
 
 if __name__ == "__main__":
