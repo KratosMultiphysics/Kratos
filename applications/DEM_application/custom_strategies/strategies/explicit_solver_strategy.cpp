@@ -664,17 +664,14 @@ namespace Kratos {
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts
-            } //loop over particles
-        } // loop over OpenMP threads
+         #pragma omp parallel for if(pElements.size()>100)
+        for (int k = 0; k < (int)pElements.size(); k++) {
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts
+        } //loop over particles
 
         //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
+
 
         KRATOS_CATCH("")
     }
@@ -779,13 +776,13 @@ namespace Kratos {
         Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(0); ////This is Properties 0 ?????
 
         std::string ElementNameString;
-        
+
         if (!submp[FLOATING_OPTION]) {
             ElementNameString = "RigidBodyElement3D";
         } else {
             ElementNameString = "ShipElement3D";
         }
-        
+
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         Element::Pointer RigidBodyElement3D_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
         RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
@@ -852,7 +849,7 @@ namespace Kratos {
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
 
                 Condition::GeometryType& geom = it->GetGeometry();
-                
+
                 //double Element_Area = geom.Area();
 
                 it->CalculateRightHandSide(rhs_cond, r_process_info);

@@ -546,9 +546,7 @@ class ResidualBasedNewtonRaphsonStrategy
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                 BaseType::GetModelPart().Elements(),
-                                                                 BaseType::GetModelPart().Conditions(),
-                                                                 BaseType::GetModelPart().GetProcessInfo());
+                                                                 BaseType::GetModelPart());
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }

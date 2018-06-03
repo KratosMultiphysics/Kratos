@@ -99,8 +99,7 @@ public:
             }
             
             // Compute initial radius (mRadius_0)
-            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(),
-                                                            BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
             TSystemMatrixType& mA = *mpA;
             TSystemVectorType& mDx = *mpDx;
             TSystemVectorType& mb = *mpb;

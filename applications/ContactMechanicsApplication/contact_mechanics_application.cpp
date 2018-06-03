@@ -66,6 +66,9 @@ namespace Kratos {
       Serializer::Register( "EPPointRigidContactPenalty3DCondition", mEPPointRigidContactPenalty3DCondition);
       Serializer::Register( "EPAxisymPointRigidContactPenalty2DCondition", mEPAxisymPointRigidContactPenalty2DCondition);
 
+      Serializer::Register( "HydraulicRigidContactPenalty3DCondition", mHydraulicRigidContactPenalty3DCondition);
+      Serializer::Register( "HydraulicAxisymRigidContactPenalty2DCondition", mHydraulicAxisymRigidContactPenalty2DCondition);
+
       //Register friction laws 
       Serializer::Register( "FrictionLaw", mFrictionLaw );
       Serializer::Register( "CoulombAdhesionFrictionLaw", mCoulombAdhesionFrictionLaw );
@@ -75,6 +78,7 @@ namespace Kratos {
       //Register Variables
       KRATOS_REGISTER_VARIABLE( FRICTION_LAW_NAME )
       KRATOS_REGISTER_VARIABLE( FRICTION_LAW )
+      KRATOS_REGISTER_VARIABLE( HYDRAULIC )
       
       //contact properties
       KRATOS_REGISTER_VARIABLE( FRICTION_ACTIVE )
@@ -88,6 +92,7 @@ namespace Kratos {
       KRATOS_REGISTER_VARIABLE( MU_DYNAMIC )
 
       //contact postprocess
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WATER_CONTACT_FORCE )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CONTACT_STRESS )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_STRESS )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_FORCE )
