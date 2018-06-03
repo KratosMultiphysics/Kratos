@@ -2,49 +2,10 @@ from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics import *
-import ctypes
-import io
-import os, sys
-import tempfile
-import h5py
-from contextlib import contextmanager
-
-@contextmanager
-def stdout_redirector( stream, c_stdout, libc ):
-    # The original fd stdout points to. Usually 1 on POSIX systems.
-    original_stdout_fd = sys.stdout.fileno()
-
-    def _redirect_stdout(to_fd):
-        """Redirect stdout to the given file descriptor."""
-        # Flush the C-level buffer stdout
-        libc.fflush(c_stdout)
-        # Flush and close sys.stdout - also closes the file descriptor (fd)
-        sys.stdout.close()
-        # Make original_stdout_fd point to the same file as to_fd
-        os.dup2(to_fd, original_stdout_fd)
-        # Create a new sys.stdout that points to the redirected fd
-        sys.stdout = io.TextIOWrapper(os.fdopen(original_stdout_fd, 'wb'))
-
-    # Save a copy of the original stdout fd in saved_stdout_fd
-    saved_stdout_fd = os.dup(original_stdout_fd)
-    try:
-        # Create a temporary file and redirect stdout to it
-        tfile = tempfile.TemporaryFile(mode='w+b')
-        _redirect_stdout(tfile.fileno())
-        # Yield to caller, then redirect stdout back to the saved fd
-        yield
-        _redirect_stdout(saved_stdout_fd)
-        # Copy contents of temporary file to the given stream
-        tfile.flush()
-        tfile.seek(0, io.SEEK_SET)
-        stream.write(str(tfile.read()).replace('\\n', '\n' ))
-    finally:
-        tfile.close()
-        os.close(saved_stdout_fd)
+import os, sys, localimport
 
 def CreateResponseFunction(response_id, response_settings, model_part):
     return AnalysisDriverBasedResponseFunction(response_id, response_settings, model_part)
-
 class ResponseFunctionBase(object):
     """The base class for structural response functions. Each response function
     is able to calculate its response value and gradient.
@@ -96,11 +57,8 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
         self.analysis_driver_name = response_settings["analysis_driver"].GetString()
         self.log_file = "%s.log" % self.analysis_driver_name
         self.results_file = "%s.results.h5" % self.analysis_driver_name
-
         self.analysis_driver = __import__(self.analysis_driver_name)
-
         self.is_analysis_step_completed = False
-
 
     def InitializeSolutionStep(self):
         self.is_analysis_step_completed = self.__IsAnalysisCompleted()
@@ -116,14 +74,9 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
     def CalculateValue(self):
         if not self.is_analysis_step_completed:
             self.response_data = {}
-            libc = ctypes.CDLL(None)
-            c_stdout = ctypes.c_void_p.in_dll(libc, 'stdout')
-            std_io_out = io.StringIO()           
-            with stdout_redirector( std_io_out, c_stdout, libc ):
-                self.analysis_driver.Run(self.model_part, self.response_data)
-            std_file_out = open(self.log_file , "w")
-            std_file_out.write(std_io_out.getvalue())
-            std_file_out.close()
+            # with localimport.localimport(".", os.getcwd()) as _importer:
+            #     self.analysis_driver = __import__(self.analysis_driver_name)
+            self.analysis_driver.Run(self.model_part, self.response_data)
 
     def GetValue(self):
         return self.response_data["response_value"]
@@ -135,38 +88,57 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
         if not self.is_analysis_step_completed:
             # write the final results to have restart capabilities
             self.__WriteResults()
-            log_file = open(self.log_file, "a")
-            log_file.write("\n\nKRATOS RESPONSE VALUE SUCCESSFULLY CALCULATED.\n")
-            log_file.close()
 
     def __ReadResults(self):
-        results_file = h5py.File(self.results_file, "r")
-        self.response_data = {}
-        self.response_data["response_value"] = results_file["ResponseValue"]
-        _temp_results = results_file["ResponseGradients"]
-        print(_temp_results)
-        self.response_data["response_gradients"] = {}
-        for i in range(0, len(_temp_results)):
-            _node = int(_temp_results[i][0])
-            _gradient = Vector(3)
-            _gradient[0] = _temp_results[i][1]
-            _gradient[1] = _temp_results[i][2]
-            _gradient[2] = _temp_results[i][3]
-            self.response_data["response_gradients"][_node] = _gradient
+        with open(self.results_file, "r") as results_file:
+            lines = results_file.readlines()
         results_file.close()
 
+        self.response_data = {}
+        found_gradients = False
+        index = 0
+        while (index < len(lines)):
+            line = lines[index]
+            if line=="Response Value:\n":
+                self.response_data["response_value"] = float(lines[index+1][:-1])
+                index+=1
+
+            if line=="Response Gradients:\n":
+                found_gradients = True
+                index += 2
+                self.response_data["response_gradients"] = {}
+                continue
+            
+            if line=="KRATOS RESPONSE VALUE SUCCESSFULLY CALCULATED.":
+                found_gradients==False
+                index += 1
+                continue
+
+            if found_gradients:
+                line = lines[index].strip().split()
+                _node = int(line[0])
+                _gradient = Vector(3)
+                _gradient[0] = float(line[1])
+                _gradient[1] = float(line[2])
+                _gradient[2] = float(line[3])
+                self.response_data["response_gradients"][_node] = _gradient
+            
+            index += 1
+
     def __WriteResults(self):
-        results_file = h5py.File(self.results_file, "w")
-        results_file["ResponseValue"] = self.GetValue()
-        _response_gradients = []
+        results_file = open(self.results_file, "w")
+        results_file.write("Response Value:\n")
+        results_file.write("%23.18e" % self.GetValue())
+        results_file.write("\nResponse Gradients:\n")
+        results_file.write("  NodeId       ResponseGradient_X       ResponseGradient_Y       ResponseGradient_Z")
         for _node in self.GetShapeGradient():
-            _response_gradients.append([_node, self.GetShapeGradient()[_node][0], self.GetShapeGradient()[_node][1], self.GetShapeGradient()[_node][2]])
-        results_file["ResponseGradients"] = _response_gradients
+            results_file.write("\n%8d %23.18e %23.18e %23.18e" % (_node, self.GetShapeGradient()[_node][0], self.GetShapeGradient()[_node][1], self.GetShapeGradient()[_node][2]))
+        results_file.write("\nKRATOS RESPONSE VALUE SUCCESSFULLY CALCULATED.")
         results_file.close()
 
     def __IsAnalysisCompleted(self):
-        if os.path.isfile(self.log_file):
-            with open(self.log_file, "r") as file_input:
+        if os.path.isfile(self.results_file):
+            with open(self.results_file, "r") as file_input:
                 _lines = file_input.readlines()
             file_input.close()
 
