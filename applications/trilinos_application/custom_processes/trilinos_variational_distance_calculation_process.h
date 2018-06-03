@@ -103,7 +103,7 @@ public:
             "Missing DISTANCE variable on solution step data" << std::endl;
 
         KRATOS_ERROR_IF(NNode > 0 && base_model_part.NodesBegin()->SolutionStepsDataHas(FLAG_VARIABLE) == false) << 
-            "Missing DISTANCE variable on solution step data" << std::endl;
+            "Missing FLAG_VARIABLE variable on solution step data" << std::endl;
 
         if(NElem > 0){
             if(TDim == 2){
