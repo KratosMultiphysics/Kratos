@@ -655,19 +655,19 @@ public:
 
     /** Creates a new master-slave constraint in the current modelpart.
      */
-    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType Id, DofsVectorType& rMasterDofsVector,
+    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(const std::string ConstraintName, IndexType Id, DofsVectorType& rMasterDofsVector,
                                                                                     DofsVectorType& rSlaveDofsVector,
                                                                                     MatrixType RelationMatrix,
                                                                                     VectorType ConstantVector);
 
-    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
+    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(const std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
                                                                                     DoubleVariableType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
                                                                                     DoubleVariableType& rSlaveVariable,
                                                                                     double Weight,
                                                                                     double Constant);
 
-    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
+    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(const std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
                                                                                     VariableComponentType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
                                                                                     VariableComponentType& rSlaveVariable,
