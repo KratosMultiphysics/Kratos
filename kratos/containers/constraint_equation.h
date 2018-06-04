@@ -47,12 +47,12 @@ class MasterSlaveRelation : public IndexedObject
   public:
     typedef std::size_t IndexType;
     typedef Matrix MatrixType;
-    typedef Vector VectorType;    
+    typedef Vector VectorType;
+    typedef std::vector<IndexType> EquationIdVectorType;    
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveRelation);
-    typedef MasterData::Pointer MasterDataPointerType;
 
     // empty constructor and methods to add master and slave independently.
-    MasterSlaveRelation() : IndexedObject(0), mSlaveDofId(0)
+    MasterSlaveRelation() : IndexedObject(0), mSlaveEquationId(0)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
@@ -77,7 +77,7 @@ class MasterSlaveRelation : public IndexedObject
         auto res = mMasterDataSet.find(MasterEquationId);
         if (res != mMasterDataSet.end())
         {
-            (*res)->MasterWeight() += Weight;
+            (*res).second += Weight;
         }
         else
         {
@@ -126,21 +126,19 @@ class MasterSlaveRelation : public IndexedObject
       }
     }
 
-    void PrintInfo(std::ostream& Output) const override
+    void PrintInfo(std::ostream& rOutput) const override
     {
-        Output << "##############################" << std::endl;
-        Output << "SlaveDofID :: " << SlaveDofId() << std::endl;
-        Output << "SlaveDofKey :: " << SlaveDofKey() << std::endl;
-        Output << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
-        Output << "Constant :: " << Constant() << std::endl;
+        rOutput << "##############################" << std::endl;
+        rOutput << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
+        rOutput << "Constant :: " << Constant() << std::endl;
         int index = 0;
-        Output << "############################## :: Masters" << std::endl;
+        rOutput << "############################## :: Masters" << std::endl;
         for (auto &master : mMasterDataSet)
         {
-            Output << index << " Master  ID :: " << (*master).MasterDofId() << ", weight :: " << (*master).MasterWeight() << std::endl;
+            rOutput << index << " Master  equation id :: " << master.first << ", weight :: " << master.second << std::endl;
             index++;
         }
-        Output << "##############################" << std::endl;
+        rOutput << "##############################" << std::endl;
     }
 
     void Clear()
@@ -165,7 +163,7 @@ class MasterSlaveRelation : public IndexedObject
     ///@}
 
   private:
-    std::unordered_set<IndexType, double> mMasterDataSet;
+    std::unordered_map<IndexType, double> mMasterDataSet;
 
     IndexType mSlaveEquationId;
     double mConstant;

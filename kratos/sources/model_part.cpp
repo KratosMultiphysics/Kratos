@@ -963,9 +963,9 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
 }
 
 ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
-                                                                                                      VariableType& rMasterVariable,
+                                                                                                      DoubleVariableType& rMasterVariable,
                                                                                                       NodeType& rSlaveNode,
-                                                                                                      VariableType& rSlaveVariable,
+                                                                                                      DoubleVariableType& rSlaveVariable,
                                                                                                       double Weight,
                                                                                                       double Constant)
 {

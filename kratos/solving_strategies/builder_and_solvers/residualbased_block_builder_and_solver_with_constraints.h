@@ -578,12 +578,12 @@ private:
                     auto& global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
                     if(global_constraint == mGlobalMasterSlaveRelations.end())
                     {
-                        mGlobalMasterSlaveRelations.insert(Kratos::make_shared<MasterSlaveRelationType>(slave_equation_id))
+                        mGlobalMasterSlaveRelations.insert(mGlobalMasterSlaveRelations.begin(), Kratos::make_shared<MasterSlaveRelationType>(slave_equation_id));
                         global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
                     }
                     for(auto& master_equation_id : master_equation_ids)
                     {
-                        global_constraint.AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
+                        global_constraint->AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
                         master_count++;
                     }
                     slave_count++;

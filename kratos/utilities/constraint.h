@@ -90,13 +90,13 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         mConstantVector.resize(1,false);
 
         // Obtaining the dofs from the variables
-        DofType::Pointer &pointer_slave_dof  = rSlaveNode.pGetDof(rSlaveVariable);
+        DofType::Pointer pointer_slave_dof  = rSlaveNode.pGetDof(rSlaveVariable);
         mSlaveDofsVector.push_back(pointer_slave_dof);
-        DofType::Pointer &pointer_master_dof = rMasterNode.pGetDof(rMasterVariable);
+        DofType::Pointer pointer_master_dof = rMasterNode.pGetDof(rMasterVariable);
         mMasterDofsVector.push_back(pointer_master_dof);
 
         mRelationMatrix(0,0) = Weight;
-        rConstantVector(0) = Constant;
+        mConstantVector(0) = Constant;
 
         // Setting the slave flag on the node
         rSlaveNode.Set(SLAVE);
@@ -117,13 +117,13 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         mConstantVector.resize(1,false);
 
         // Obtaining the dofs from the variables
-        DofType::Pointer &pointer_slave_dof  = rSlaveNode.pGetDof(rSlaveVariable);
+        DofType::Pointer pointer_slave_dof  = rSlaveNode.pGetDof(rSlaveVariable);
         mSlaveDofsVector.push_back(pointer_slave_dof);
-        DofType::Pointer &pointer_master_dof = rMasterNode.pGetDof(rMasterVariable);
+        DofType::Pointer pointer_master_dof = rMasterNode.pGetDof(rMasterVariable);
         mMasterDofsVector.push_back(pointer_master_dof);
 
         mRelationMatrix(0,0) = Weight;
-        rConstantVector(0) = Constant;
+        mConstantVector(0) = Constant;
 
         // Setting the slave flag on the node
         rSlaveNode.Set(SLAVE);

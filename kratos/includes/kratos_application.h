@@ -330,6 +330,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Condition mSurfaceCondition3D8N;
     const Condition mSurfaceCondition3D9N;
 
+
+    // Master-Slave base constraint
+    const MasterSlaveConstraint mMasterSlaveConstraint;
+
     // Deprecated conditions start
     const Condition mCondition;
     const Condition mCondition2D;
@@ -362,10 +366,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Element mElement3D8N;
     const Element mElement3D10N;
 
-    // Master-Slave base constraint
-    const MasterSlaveConstraint mMasterSlaveConstraint;
 
-    
+
     const ConstitutiveLaw mConstitutiveLaw;
 
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
