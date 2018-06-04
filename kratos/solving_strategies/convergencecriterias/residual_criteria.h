@@ -156,7 +156,7 @@ public:
 
             TDataType ratio;
 //             mCurrentResidualNorm = TSparseSpace::TwoNorm(b); // NOTE: This doesn't take into account the reaction dofs
-            GetResidualNorm(mInitialResidualNorm, size_residual, rDofSet, b);
+            GetResidualNorm(mCurrentResidualNorm, size_residual, rDofSet, b);
 
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
                 ratio = 0.0;
