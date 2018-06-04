@@ -43,13 +43,6 @@ namespace Kratos
  *   This equation is imposed on the linear system of equations either element wise or on the global system.
  * @author Aditya Ghantasala
  */
-
-
-/*
-*
-
-*
-*/
 class MasterSlaveRelation : public IndexedObject
 {
     typedef std::size_t IndexType;
