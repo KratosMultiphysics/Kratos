@@ -172,11 +172,13 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
         .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
         .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
         .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
     class_<LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
         .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
         .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
         .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
