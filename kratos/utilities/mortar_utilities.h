@@ -128,7 +128,7 @@ public:
      * @return Distance The distance between surfaces
      */
 
-    static inline double FastProjectDirection(
+    KRATOS_DEPRECATED_MESSAGE("Method moved to geometrical_projection_utilities.h. Please update your declaration") static inline double FastProjectDirection(
         const GeometryType& Geom,
         const PointType& PointDestiny,
         PointType& PointProjected,
@@ -170,7 +170,7 @@ public:
      * @return PointProjected The point pojected over the plane
      */
     
-    static inline PointType FastProject(
+    KRATOS_DEPRECATED_MESSAGE("Method moved to geometrical_projection_utilities.h. Please update your declaration") static inline PointType FastProject(
         const PointType& PointOrigin,
         const PointType& PointDestiny,
         const array_1d<double,3>& Normal,
@@ -195,7 +195,7 @@ public:
      * @return Inside True is inside, false not
      */
     
-    static inline bool ProjectIterativeLine2D(
+    KRATOS_DEPRECATED_MESSAGE("Method moved to geometrical_projection_utilities.h. Please update your declaration") static inline bool ProjectIterativeLine2D(
         GeometryType& GeomOrigin,
         const GeometryType::CoordinatesArrayType& PointDestiny,
         GeometryType::CoordinatesArrayType& ResultingPoint,

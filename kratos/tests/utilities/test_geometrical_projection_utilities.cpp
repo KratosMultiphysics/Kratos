@@ -13,17 +13,17 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "utilities/mortar_utilities.h"
+#include "utilities/geometrical_projection_utilities.h"
 
-#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
 
 namespace Kratos
 {
 namespace Testing
 {
 
-using NodeType = typename MortarUtilities::NodeType;
-using GeometryType = typename MortarUtilities::GeometryType;
+using NodeType = typename GeometricalProjectionUtilities::NodeType;
+using GeometryType = typename GeometricalProjectionUtilities::GeometryType;
 
 GeometryType::Pointer CreateTriangle2D3NForTest()
 {
@@ -32,10 +32,10 @@ GeometryType::Pointer CreateTriangle2D3NForTest()
     points.push_back(Kratos::make_shared<NodeType>(1.1, 0.03, 0.0));
     points.push_back(Kratos::make_shared<NodeType>(1.08, 1.0, 0.0));
 
-    return GeometryType::Pointer(new Triangle2D3<NodeType>(points));
+    return GeometryType::Pointer(new Triangle3D3<NodeType>(points));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilities_FastProjectDirection, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirection, KratosCoreFastSuite)
 {
     GeometryType::Pointer p_geom = CreateTriangle2D3NForTest();
 
@@ -59,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilities_FastProjectDirection, K
 
     Point projected_point;
 
-    double proj_distance = MortarUtilities::FastProjectDirection(
+    double proj_distance = GeometricalProjectionUtilities::FastProjectDirection(
         *p_geom,
         point_to_proj,
         projected_point,
@@ -72,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilities_FastProjectDirection, K
     KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilities_FastProject, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreFastSuite)
 {
     double expected_proj_dist = 1.258;
 
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilities_FastProject, KratosCore
 
     double proj_distance;
 
-    Point projected_point = MortarUtilities::FastProject(
+    Point projected_point = GeometricalProjectionUtilities::FastProject(
         point_in_plane,
         point_to_proj,
         normal_vector,
