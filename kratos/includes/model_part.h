@@ -109,7 +109,7 @@ public:
 
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofsVectorType;
-    typedef Kratos::Variable<double> VariableType;
+    typedef Kratos::Variable<double> DoubleVariableType;
     typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
@@ -230,7 +230,7 @@ public:
 
     /** Iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
-    Table by * operator and not a pointer for more convenient
+    MasterSlaveConstraint by * operator and not a pointer for more convenient
     usage. */
     typedef MasterSlaveConstraintContainerType::iterator MasterSlaveConstraintIteratorType;
 
@@ -618,7 +618,7 @@ public:
         return Kratos::shared_ptr<MasterSlaveConstraintContainerType>(&mMasterSlaveConstraints);
     }
 
-    void SetMasterSlaveConstraints(MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
+    void SetMasterSlaveConstraints(MasterSlaveConstraintContainerType::Pointer& pOtherMasterSlaveConstraints)
     {
         mMasterSlaveConstraints = *pOtherMasterSlaveConstraints;
     }
@@ -661,9 +661,9 @@ public:
                                                                                     VectorType ConstantVector);
 
     MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
-                                                                                    VariableType& rMasterVariable,
+                                                                                    DoubleVariableType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
-                                                                                    VariableType& rSlaveVariable,
+                                                                                    DoubleVariableType& rSlaveVariable,
                                                                                     double Weight,
                                                                                     double Constant);
 

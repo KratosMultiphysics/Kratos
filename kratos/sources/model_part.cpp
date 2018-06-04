@@ -1064,7 +1064,7 @@ void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveCons
 */
 void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint)
 {
-    mMasterSlaveConstraints.erase(ThisMasterSlaveConstraint.Id());
+    this->RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint.Id());
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
         i_sub_model_part->RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint.Id());
 }
