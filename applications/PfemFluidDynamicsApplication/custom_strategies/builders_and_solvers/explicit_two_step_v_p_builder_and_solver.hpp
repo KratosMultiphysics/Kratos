@@ -93,8 +93,7 @@ namespace Kratos
 
     /** Constructor.
      */
-    ExplicitTwoStepVPBuilderAndSolver(
-				      typename TLinearSolver::Pointer pNewLinearSystemSolver)
+    ExplicitTwoStepVPBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
       : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
     {
       std::cout<<"ExplicitTwoStepVPBuilderAndSolver "<<std::endl;
@@ -315,8 +314,6 @@ namespace Kratos
 
       }
 
-      unsigned int index = 0;
-
       //Calculate and assemble Mass Matrix on nodes
       bool CalculateLumpedMassMatrix = false;
       if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
@@ -341,7 +338,7 @@ namespace Kratos
 
 	    const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
-	    index = 0;
+	    unsigned int index = 0;
 	    for (unsigned int i = 0; i <geometry.size(); i++)
 	      {
 		index = i*dimension;

@@ -104,9 +104,9 @@ namespace Kratos
 
     /// Default constructors    
     FirstOrderForwardEulerScheme(const double  rMaximumDeltaTime,
-				     const double  rDeltaTimeFraction,
-				     const double  rDeltaTimePredictionLevel,
-				     const bool    rRayleighDamping = false)
+				 const double  rDeltaTimeFraction,
+				 const double  rDeltaTimePredictionLevel,
+				 const bool    rRayleighDamping = false)
       : Scheme<TSparseSpace,TDenseSpace>()
     {
 
@@ -418,8 +418,6 @@ namespace Kratos
      */    
     virtual int Check(ModelPart& rModelPart) override
     {
-      KRATOS_TRY
-
       BaseType::Check(rModelPart);
       
       // Check for variables keys
@@ -487,7 +485,6 @@ namespace Kratos
         }
       
       return 0;
-      KRATOS_CATCH( "" );
     }
 
     ///@}

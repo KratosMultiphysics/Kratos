@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import os
+#import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
@@ -16,10 +16,8 @@ def CreateSolver(main_model_part, custom_settings):
 class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
 
     def __init__(self, main_model_part, custom_settings):
-        
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part          
         ##settings string in json format
         explicit_solver_settings = KratosMultiphysics.Parameters("""
         {  

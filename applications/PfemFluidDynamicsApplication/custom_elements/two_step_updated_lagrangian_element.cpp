@@ -2293,8 +2293,8 @@ namespace Kratos {
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-    double coeff=1.0+TDim;
     if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
+      double coeff=1.0+TDim;
       for (SizeType i = 0; i < NumNodes; ++i)
 	{
 	  // LHS contribution
