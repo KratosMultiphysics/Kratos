@@ -113,12 +113,14 @@ protected:
         if (prop.Has(C_SMAGORINSKY)) {
             const double csmag = prop[C_SMAGORINSKY];
             if (csmag > 0.0) {
+                double density;
+                EvaluateInPoint(density, DENSITY, rParameters);
                 const double strain_rate = EquivalentStrainRate(rParameters);
                 const BoundedMatrix<double, 4, 3>& DN_DX = rParameters.GetShapeFunctionsDerivatives();
                 const double elem_size = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
                 double length_scale = csmag * elem_size;
                 length_scale *= length_scale;
-                viscosity += 2.0*length_scale * strain_rate;
+                viscosity += 2.0*length_scale * strain_rate * density;
             }
         }
         return viscosity;
