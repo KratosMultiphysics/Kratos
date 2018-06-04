@@ -129,14 +129,14 @@ public:
         if( norm_2( rVector ) < zero_tolerance && norm_2( rNormal ) > zero_tolerance ) {
             distance = inner_prod(vector_points, rNormal)/norm_2(rNormal);
 
-            rPointProjected.Coordinates() = rPointDestiny.Coordinates() + rVector * distance;
+            noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
             KRATOS_WARNING("Warning: Zero projection vector.") << " Projection using the condition vector instead." << std::endl;
         } else if (std::abs(inner_prod(rVector, rNormal) ) > zero_tolerance) {
             distance = inner_prod(vector_points, rNormal)/inner_prod(rVector, rNormal);
 
-            rPointProjected.Coordinates() = rPointDestiny.Coordinates() + rVector * distance;
+            noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
         } else {
-            rPointProjected.Coordinates() = rPointDestiny.Coordinates();
+            noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates();
             KRATOS_WARNING("Warning: The line and the plane are coplanar.")  << " Something wrong happened " << std::endl;
         }
 
