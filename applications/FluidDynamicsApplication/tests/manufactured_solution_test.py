@@ -82,10 +82,6 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
                 den *= 2
 
             # Compute average convergence slopes
-            print(err_p[0])
-            print(err_p[-1])
-            print(h[0])
-            print(h[-1])
             average_slope_pressure = (math.log(err_p[0])-math.log(err_p[-1]))/(math.log(h[0])-math.log(h[-1]))
             average_slope_velocity = (math.log(err_v[0])-math.log(err_v[-1]))/(math.log(h[0])-math.log(h[-1]))
 
@@ -144,7 +140,7 @@ class ManufacturedSolutionProblem:
     def __init__(self, ProjectParameters, input_file_name, print_output, problem_type, analytical_solution_type):
 
         self.problem_type = problem_type
-        self.print_output = True #print_output
+        self.print_output = print_output
         self.input_file_name = input_file_name
         self.ProjectParameters = ProjectParameters
         self.analytical_solution_type = analytical_solution_type
@@ -207,7 +203,6 @@ class ManufacturedSolutionProblem:
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
         time = 0.0
-        step = 0
 
         if (self.print_output):
             self.gid_output.ExecuteBeforeSolutionLoop()
@@ -227,7 +222,7 @@ class ManufacturedSolutionProblem:
                 self.SetManufacturedSolutionValues(fix=True, set_only_boundaries=True)
                 self.SetManufacturedSolutionSourceValues()
 
-            if (step < 3):
+            if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] < 3):
                 self.SetManufacturedSolutionValues(False) # Set the analytical solution in the two first steps
             else:
                 if (self.problem_type != "analytical_solution"):
