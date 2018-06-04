@@ -44,7 +44,12 @@ namespace Kratos
         else
             CreateMapperLocalSystemsFromGeometries(rpLocalSystem);
 
-        // TODO check if MapperLocalSystems were created!
+        int num_local_systems = mpMapperLocalSystems->size(); // int bcs of MPI
+        mrModelPartDestination.GetCommunicator().SumAll(num_local_systems);
+
+        KRATOS_ERROR_IF_NOT(num_local_systems > 0)
+            << "No mapper local systems were created in Destination-ModelPart \""
+            << mrModelPartDestination.Name() << "\"!" << std::endl;
     }
     /***********************************************************************************/
     /* PROTECTED Methods */
