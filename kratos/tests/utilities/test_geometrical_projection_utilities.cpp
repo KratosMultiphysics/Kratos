@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirection, Kr
     const double x_coord = 0.325;
     const double y_coord = 0.147;
 
-    Point point_to_proj(x_coord, y_coord, expected_proj_dist);
+    const Point point_to_proj(x_coord, y_coord, expected_proj_dist);
 
     array_1d<double,3> dir_vector;
     array_1d<double,3> normal_vector;
@@ -75,13 +75,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirection, Kr
 
 KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreFastSuite)
 {
-    double expected_proj_dist = 1.258;
+    const double expected_proj_dist = 1.258;
 
     const double x_coord = 0.325;
     const double y_coord = 0.147;
 
-    Point point_in_plane(-1.274, 10.478, 0.0);
-    Point point_to_proj(x_coord, y_coord, expected_proj_dist);
+    const Point point_in_plane(-1.274, 10.478, 0.0);
+    const Point point_to_proj(x_coord, y_coord, expected_proj_dist);
 
     array_1d<double,3> normal_vector;
 
