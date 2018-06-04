@@ -125,7 +125,6 @@ namespace Kratos {
         // 5. Finalize Solution Step
         //BaseType::FinalizeSolutionStep();
 
-        //KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
         KRATOS_CATCH("")
     }// Initialize()
 

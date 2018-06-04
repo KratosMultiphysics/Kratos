@@ -32,7 +32,6 @@ void  AddTrilinosCommunicatorToPython(pybind11::module& m)
 {
     class_<MPICommunicator,Communicator>(m,"MPICommunicator")
     .def("__repr__",[](const MPICommunicator& self){
-        KRATOS_WATCH("yyyyyyyyyyyyyyyyyyyyyyyy")
             std::stringstream ss;
             self.PrintInfo(ss);
             return ss.str();

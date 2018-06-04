@@ -38,6 +38,7 @@ namespace Python {
 	  class_<Kratos@{APP_NAME_CAMEL}Application,
 			  Kratos@{APP_NAME_CAMEL}Application::Pointer,
 			  KratosApplication>(m, "Kratos@{APP_NAME_CAMEL}Application")
+			  .def(init<>())
 			;
 
 	AddCustomStrategiesToPython(m);

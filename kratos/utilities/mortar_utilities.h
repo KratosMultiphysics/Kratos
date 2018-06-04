@@ -66,6 +66,9 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Pointer definition of MortarUtilities
+    KRATOS_CLASS_POINTER_DEFINITION( MortarUtilities );
+
     // Some geometrical definitions
     typedef Node<3>                                              NodeType;
     typedef Point                                               PointType;
@@ -417,9 +420,12 @@ public:
         NodesArrayType& nodes_array = rModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) 
-            noalias((nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL)) = ZeroVector(3);
+            noalias((nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL)) = zero_array;
         
         // Sum all the nodes normals
         ConditionsArrayType& conditions_array = rModelPart.Conditions();
@@ -428,7 +434,7 @@ public:
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
             GeometryType& this_geometry = it_cond->GetGeometry();
-            
+
             // Aux coordinates
             CoordinatesArrayType aux_coords;
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
@@ -456,7 +462,7 @@ public:
             array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
             const double norm_normal = norm_2(normal);
             if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
-            else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
+            else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
     

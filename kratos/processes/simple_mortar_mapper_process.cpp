@@ -100,7 +100,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     for(IndexType i = 0; i < destination_conditions_array.size(); ++i) {
         auto it_cond = destination_conditions_array.begin() + i;
 
-        if (!it_cond->Has( INDEX_SET )) {
+        if (!(it_cond->Has( INDEX_SET ) || it_cond->Has( INDEX_MAP ))) {
             search_exists = false; 
             break;
         }

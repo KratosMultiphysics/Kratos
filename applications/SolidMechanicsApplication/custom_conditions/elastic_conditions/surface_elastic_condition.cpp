@@ -277,9 +277,9 @@ namespace Kratos
 	{
 	  ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
 	  
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+	  BoundedMatrix<double, 3, 3 > Kij;
+	  BoundedMatrix<double, 3, 3 > Cross_ge;
+	  BoundedMatrix<double, 3, 3 > Cross_gn;
 
 	  double coeff;
 	  const unsigned int number_of_nodes = GetGeometry().PointsNumber();

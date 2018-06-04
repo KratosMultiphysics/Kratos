@@ -76,9 +76,10 @@ class TwoStepVPStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinea
 public:
     ///@name Type Definitions
     ///@{
+    KRATOS_CLASS_POINTER_DEFINITION(TwoStepVPStrategy);
 
     /// Counted pointer of TwoStepVPStrategy
-    typedef boost::shared_ptr< TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+    //typedef boost::shared_ptr< TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -178,7 +179,7 @@ public:
     /// Destructor.
     virtual ~TwoStepVPStrategy(){}
 
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY;
 
@@ -217,7 +218,7 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual double Solve()
+    double Solve() override
     {
       // Initialize BDF2 coefficients
       ModelPart& rModelPart = BaseType::GetModelPart();
@@ -306,11 +307,13 @@ public:
       return NormDp;
     }
 
-    virtual void FinalizeSolutionStep(){
+    void FinalizeSolutionStep() override
+    {
       /* this->UpdateStressStrain(); */
     }
 
-    virtual void InitializeSolutionStep(){
+    void InitializeSolutionStep() override
+    {
     }
 
 
@@ -482,7 +485,7 @@ public:
 
    }
 
-    virtual void Clear()
+   void Clear() override
     {
         mpMomentumStrategy->Clear();
         mpPressureStrategy->Clear();
@@ -493,7 +496,7 @@ public:
     ///@name Access
     ///@{
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         int StrategyLevel = Level > 0 ? Level - 1 : 0;

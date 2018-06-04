@@ -62,7 +62,7 @@ class LineSearchSolutionStrategy
   
   typedef typename BaseType::SystemVectorType                           SystemVectorType;
   
-  typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>        ConvergenceCriterionType;
+  typedef ConvergenceCriterion<TSparseSpace, TDenseSpace>       ConvergenceCriterionType;
 
   typedef typename BaseType::BuilderAndSolverType                   BuilderAndSolverType;
 

@@ -55,6 +55,7 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
 
     Attributes
     ----------
+    primal_model_part : Model part of the primal analysis object
     primal_analysis : Primal analysis object of the response function
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
@@ -67,26 +68,32 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
 
-        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
-        self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+
+        self.primal_model_part = model_part
+        model = Model()
+        model.AddModelPart(self.primal_model_part)
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
+        self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.response_function_utility.Initialize()
 
     def InitializeSolutionStep(self):
-        self.primal_analysis.InitializeTimeStep()
+        self.primal_analysis.time = self.primal_analysis.solver.AdvanceInTime(self.primal_analysis.time)
+        self.primal_analysis.InitializeSolutionStep()
 
     def CalculateValue(self):
         Logger.PrintInfo("\n> Starting primal analysis for response", self.identifier)
 
         startTime = timer.time()
-        self.primal_analysis.SolveTimeStep()
+        self.primal_analysis.solver.Predict()
+        self.primal_analysis.solver.SolveSolutionStep()
         Logger.PrintInfo("> Time needed for solving the primal analysis",round(timer.time() - startTime,2),"s")
 
         startTime = timer.time()
         value = self.response_function_utility.CalculateValue()
-        self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
         Logger.PrintInfo("> Time needed for calculating the response value",round(timer.time() - startTime,2),"s")
 
     def CalculateGradient(self):
@@ -97,17 +104,18 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         Logger.PrintInfo("> Time needed for calculating gradients",round(timer.time() - startTime,2),"s")
 
     def FinalizeSolutionStep(self):
-        self.primal_analysis.FinalizeTimeStep()
+        self.primal_analysis.FinalizeSolutionStep()
+        self.primal_analysis.OutputSolutionStep()
 
     def Finalize(self):
         self.primal_analysis.Finalize()
 
     def GetValue(self):
-        return self.primal_analysis.GetModelPart().ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
+        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
     def GetShapeGradient(self):
         gradient = {}
-        for node in self.primal_analysis.GetModelPart().Nodes:
+        for node in self.primal_model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
         return gradient
 
@@ -120,13 +128,15 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
     Attributes
     ----------
+    primal_model_part : Model part of the primal analysis object
     primal_analysis : Primal analysis object of the response function
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
 
-    def __init__(self, identifier, response_settings, model_part = None):
+    def __init__(self, identifier, response_settings, model_part):
         self.identifier = identifier
 
+        self.primal_model_part = model_part
         self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(model_part, response_settings)
 
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
@@ -151,8 +161,10 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
             print("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
             print("  Primal parameters were adjusted accordingly!\n")
 
-        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal, model_part)
-        self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+        model = Model()
+        model.AddModelPart(self.primal_model_part)
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
+        self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
 # ==============================================================================
 class MassResponseFunction(ResponseFunctionBase):

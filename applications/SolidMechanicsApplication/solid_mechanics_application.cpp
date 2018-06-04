@@ -35,9 +35,7 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
 
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
-
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/line_gauss_lobatto_3d_2.h"
@@ -488,9 +486,12 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
 
     //integration methods
-    KRATOS_REGISTER_VARIABLE( TIME_INTEGRATION_METHODS )  
+    KRATOS_REGISTER_VARIABLE(VECTOR_TIME_INTEGRATION_METHODS)  
+    KRATOS_REGISTER_VARIABLE(SCALAR_TIME_INTEGRATION_METHODS)  
+    KRATOS_REGISTER_VARIABLE(COMPONENT_TIME_INTEGRATION_METHODS)  
         
     //explicit schemes
+    KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)        
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
     //solution
@@ -557,6 +558,9 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS)
 
     //nodal dofs
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_REACTION)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ROTATION_REACTION)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_REACTION)        
     KRATOS_REGISTER_VARIABLE(PRESSURE_REACTION)
 
     //explicit beam

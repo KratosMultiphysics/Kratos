@@ -23,6 +23,7 @@
 
 #include "../custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "../custom_constitutive/DEM_D_Linear_confined_CL.h"
+#include "../custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
 
 #include "../custom_constitutive/DEM_Dempack_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_CL.h"
@@ -116,6 +117,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     class_<DEM_D_Hertz_viscous_Coulomb_Nestle, DEM_D_Hertz_viscous_Coulomb_Nestle::Pointer, DEM_D_Hertz_viscous_Coulomb>(m, "DEM_D_Hertz_viscous_Coulomb_Nestle")
         .def(init<>())
         ;
+
+    class_<DEM_D_Linear_HighStiffness, DEM_D_Linear_HighStiffness::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_HighStiffness")
+        .def(init<>())
+        ;
+    // DEM Continuum Constitutive Laws:
 
     // DEM Continuum Constitutive Laws:
 

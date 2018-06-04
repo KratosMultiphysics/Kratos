@@ -131,7 +131,7 @@ namespace Kratos
 
       }
 
-    if( HasRotationDofs() ){
+    if( this->HasVariableDof(ROTATION) ){
 
       // external load
       Vector ExternalLoad(3);
