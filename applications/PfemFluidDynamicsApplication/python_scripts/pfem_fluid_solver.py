@@ -110,8 +110,10 @@ class PfemFluidSolver:
                                                               self.settings["time_order"].GetInt(),
                                                               self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
+        echo_level = self.settings["echo_level"].GetInt()
+
         # Set echo_level
-        self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.fluid_solver.SetEchoLevel(echo_level)
 
         # Set initialize flag
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
