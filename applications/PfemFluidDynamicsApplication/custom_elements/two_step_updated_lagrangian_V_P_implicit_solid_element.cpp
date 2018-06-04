@@ -392,10 +392,8 @@ namespace Kratos {
     rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
     double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-    double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
-
-    double CurrFirstLame  = 0;
-    CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    // double CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
@@ -451,10 +449,8 @@ namespace Kratos {
     rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
     double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-    double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
-
-    double CurrFirstLame   = 0;
-    CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    // double CurrFirstLame = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
   
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
@@ -472,12 +468,12 @@ namespace Kratos {
     double sigmaDev_xz= 2*CurrSecondLame*DefXZ;
     double sigmaDev_yz= 2*CurrSecondLame*DefYZ;
 
-    double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
-    double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
-    double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
-    double sigmaTot_xy= 2*CurrSecondLame*DefXY;
-    double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
-    double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
+    // double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
+    // double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
+    // double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
+    // double sigmaTot_xy= 2*CurrSecondLame*DefXY;
+    // double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
+    // double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
 
     sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
     sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
@@ -486,12 +482,12 @@ namespace Kratos {
     sigmaDev_xz+=rElementalVariables.CurrentDeviatoricCauchyStress[4];
     sigmaDev_yz+=rElementalVariables.CurrentDeviatoricCauchyStress[5];
 
-    sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
-    sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
-    sigmaTot_zz= sigmaDev_zz + rElementalVariables.MeanPressure;
-    sigmaTot_xy= sigmaDev_xy;
-    sigmaTot_xz= sigmaDev_xz;
-    sigmaTot_yz= sigmaDev_yz;
+    double sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
+    double sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
+    double sigmaTot_zz= sigmaDev_zz + rElementalVariables.MeanPressure;
+    double sigmaTot_xy= sigmaDev_xy;
+    double sigmaTot_xz= sigmaDev_xz;
+    double sigmaTot_yz= sigmaDev_yz;
 
     rElementalVariables.UpdatedDeviatoricCauchyStress[0]=sigmaDev_xx;
     rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;

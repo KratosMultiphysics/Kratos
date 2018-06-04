@@ -129,19 +129,19 @@ namespace Kratos
 
     ///Copy constructor
     FirstOrderForwardEulerScheme(FirstOrderForwardEulerScheme& rOther)
-        :BaseType(rOther)
-        ,mMatrix(rOther.mMatrix)
-        ,mVector(rOther.mVector)
-	,mDeltaTime(rOther.mDeltaTime)
-	,mRayleighDamping(rOther.mRayleighDamping)
-	,mSchemeIsInitialized(rOther.mSchemeIsInitialized)	 
+    :BaseType(rOther)
+    ,mMatrix(rOther.mMatrix)
+    ,mVector(rOther.mVector)
+    ,mDeltaTime(rOther.mDeltaTime)
+    ,mRayleighDamping(rOther.mRayleighDamping)
+    ,mSchemeIsInitialized(rOther.mSchemeIsInitialized)	 
     {
     }
 
     /// Clone
     BaseTypePointer Clone() override
     {
-        return BaseTypePointer( new FirstOrderForwardEulerScheme(*this) );
+      return BaseTypePointer( new FirstOrderForwardEulerScheme(*this) );
     }
 
     /// Destructor
@@ -160,10 +160,10 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      if( (mDeltaTime.PredictionLevel>0) && (mSchemeIsInitialized==false) )
-	{
-	  this->CalculateDeltaTime(rModelPart);
-	}
+	if( (mDeltaTime.PredictionLevel>0) && (mSchemeIsInitialized==false) )
+	  {
+	    this->CalculateDeltaTime(rModelPart);
+	  }
 
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -186,7 +186,7 @@ namespace Kratos
       mSchemeIsInitialized = true;
 
       KRATOS_CATCH("")
-    }
+	}
 
 
     /**
@@ -204,7 +204,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
+	BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
 
       // if(mDeltaTime.PredictionLevel>1)
       // 	{
@@ -215,9 +215,9 @@ namespace Kratos
       this->InitializeResidual(rModelPart);       
 	
       KRATOS_CATCH("")
-    }
+	}
 
-     /**
+    /**
      * Performing the update of the solution.
      * incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
      * @param rModelPart
@@ -236,7 +236,7 @@ namespace Kratos
 
 	// std::cout<<"Update in forward euler"<<std::endl;
       
-      ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
+	ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
 
       //Step Update
       mTime.Current   = rCurrentProcessInfo[TIME];  //the first step is (time = initial_time + delta time )
@@ -251,7 +251,7 @@ namespace Kratos
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
       NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
-      #pragma omp parallel for firstprivate(NodeBegin)
+#pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
 
@@ -335,7 +335,7 @@ namespace Kratos
       mTime.PreviousMiddle = mTime.Middle;
 
       KRATOS_CATCH("")
-    }
+	}
 
 
 
@@ -355,7 +355,7 @@ namespace Kratos
 
       KRATOS_TRY
 
-      int thread = OpenMPUtils::ThisThread();
+	int thread = OpenMPUtils::ThisThread();
 
       //basic operations for the element considered
       (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
@@ -371,7 +371,7 @@ namespace Kratos
       (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
 
       KRATOS_CATCH( "" )
-    }
+	}
 
     /**
      * Functions that calculates the RHS of a "condition" object
@@ -388,10 +388,10 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      //int thread = OpenMPUtils::ThisThread();
+	//int thread = OpenMPUtils::ThisThread();
 
-      //basic operations for the element considered
-      (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+	//basic operations for the element considered
+	(rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
           
       // if(mRayleighDamping)
       //    {
@@ -406,7 +406,7 @@ namespace Kratos
 
 
       KRATOS_CATCH( "" )
-    }
+	}
 
     
     /**
@@ -434,11 +434,11 @@ namespace Kratos
         {
 	  KRATOS_ERROR << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
         }
-     if(NODAL_MASS.Key() == 0)
+      if(NODAL_MASS.Key() == 0)
         {
 	  KRATOS_ERROR << "NODAL_MASS has Key zero! (check if the application is correctly registered" << std::endl;
         }
-     if(NODAL_ERROR.Key() == 0)
+      if(NODAL_ERROR.Key() == 0)
         {
      	  KRATOS_ERROR << "NODAL_ERROR has Key zero! (check if the application is correctly registered" << std::endl;
         }
@@ -539,7 +539,7 @@ namespace Kratos
     {
       KRATOS_TRY
 	
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
       
       OpenMPUtils::PartitionVector NodePartition;
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -547,7 +547,7 @@ namespace Kratos
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
       NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
-      #pragma omp parallel for firstprivate(NodeBegin)
+#pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;
@@ -556,7 +556,7 @@ namespace Kratos
         }
 
       KRATOS_CATCH("")
-    }
+	}
     
     //*********************************************************************************
     // Custom initialization
@@ -567,7 +567,7 @@ namespace Kratos
 
       KRATOS_TRY
 
-      ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
+	ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
 
       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
@@ -585,7 +585,7 @@ namespace Kratos
       const int nelements = static_cast<int>(rModelPart.Elements().size());
       ElementsArrayType::iterator ElementBegin = rModelPart.Elements().begin();
 
-      #pragma omp parallel for firstprivate(ElementBegin) private(stable_delta_time)
+#pragma omp parallel for firstprivate(ElementBegin) private(stable_delta_time)
       for(int i = 0;  i < nelements; i++)
         {
 	  ElementsArrayType::iterator itElement = ElementBegin + i;
@@ -620,7 +620,7 @@ namespace Kratos
       
       if(stable_delta_time < mDeltaTime.Maximum){
        	rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;	  
-       }
+      }
       else{
        	if( current_delta_time > mDeltaTime.Maximum/safety_factor )
        	  rCurrentProcessInfo[DELTA_TIME] = mDeltaTime.Maximum;
@@ -630,7 +630,7 @@ namespace Kratos
       // std::cout<< "  Using  = "<< rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
         
       KRATOS_CATCH("")
-    }
+	}
 
 
     // void CalculateDeltaTime(ModelPart& rModelPart)
@@ -717,7 +717,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
       
       OpenMPUtils::PartitionVector NodePartition;
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -725,7 +725,7 @@ namespace Kratos
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
       NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
-      #pragma omp parallel for firstprivate(NodeBegin)
+#pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;
@@ -741,7 +741,7 @@ namespace Kratos
 	}
       
       KRATOS_CATCH("")
-    }
+	}
 
     //*********************************************************************************
     // Custom initialization
@@ -751,7 +751,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
       
       OpenMPUtils::PartitionVector NodePartition;
       OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -759,7 +759,7 @@ namespace Kratos
       const int nnodes = static_cast<int>(rModelPart.Nodes().size());
       NodesArrayType::iterator NodeBegin = rModelPart.Nodes().begin();
 
-      #pragma omp parallel for firstprivate(NodeBegin)
+#pragma omp parallel for firstprivate(NodeBegin)
       for(int i = 0;  i < nnodes; i++)
         {
 	  NodesArrayType::iterator itNode = NodeBegin + i;
@@ -833,7 +833,7 @@ namespace Kratos
       mTime.PreviousMiddle = mTime.Middle;
 
       KRATOS_CATCH("")
-    }
+	}
     
 
     
@@ -983,13 +983,13 @@ namespace Kratos
     ///@{
     ///@}
   }; /* Class FirstOrderForwardEulerScheme */
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
-///@}  
+  ///@}
+  ///@name Type Definitions
+  ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
+  ///@}  
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_FIRST_ORDER_FORWARD_EULER_SCHEME  defined */

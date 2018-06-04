@@ -56,10 +56,10 @@ namespace Kratos {
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeMaterialParameters(double& Density,
-									       double& DeviatoricCoeff,
-									       double& VolumetricCoeff,
-									       ProcessInfo &currentProcessInfo,
-									       ElementalVariables &rElementalVariables)
+										       double& DeviatoricCoeff,
+										       double& VolumetricCoeff,
+										       ProcessInfo &currentProcessInfo,
+										       ElementalVariables &rElementalVariables)
   {
     double FluidBulkModulus=0;
     double FluidYieldShear=0;
@@ -138,7 +138,7 @@ namespace Kratos {
     double exponent=-FluidAdaptiveExponent*equivalentStrainRate;
     if(equivalentStrainRate!=0){
       FluidViscosity+=(FluidYieldShear/equivalentStrainRate)*(1-exp(exponent));
-   }
+    }
     if(equivalentStrainRate<0.00001 && FluidYieldShear!=0 && FluidAdaptiveExponent!=0){
       // for gamma_dot very small the limit of the Papanastasiou viscosity is mu=m*tau_yield
       FluidViscosity=FluidAdaptiveExponent*FluidYieldShear;
@@ -149,10 +149,10 @@ namespace Kratos {
 
   template< unsigned int TDim>
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeMaterialParametersGranularGas(double& Density,
-											  double& DeviatoricCoeff,
-											  double& VolumetricCoeff,
-											  ProcessInfo &currentProcessInfo,
-											  ElementalVariables &rElementalVariables)
+												  double& DeviatoricCoeff,
+												  double& VolumetricCoeff,
+												  ProcessInfo &currentProcessInfo,
+												  ElementalVariables &rElementalVariables)
   {
 
     this->EvaluatePropertyFromANotRigidNode(Density,DENSITY);
@@ -300,11 +300,11 @@ namespace Kratos {
       meanPressure=0.0000001;
     }
     
-     double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
-     double inertialNumber=0;
-     if(meanPressure!=0){
-       inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
-     }
+    double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+    double inertialNumber=0;
+    if(meanPressure!=0){
+      inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
+    }
     
     if(rElementalVariables.EquivalentStrainRate!=0 && fabs(meanPressure)!=0){
       double firstViscousTerm=staticFrictionCoefficient / sqrt(pow(rElementalVariables.EquivalentStrainRate,2)+pow(regularizationCoefficient,2));
@@ -343,8 +343,8 @@ namespace Kratos {
     
     double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
     double inertialNumber=0;
-      if(rElementalVariables.MeanPressure!=0){
-	inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(pressure)/grainDensity);
+    if(rElementalVariables.MeanPressure!=0){
+      inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(pressure)/grainDensity);
     }
     
     double exponent=-rElementalVariables.EquivalentStrainRate/regularizationCoefficient;
@@ -649,9 +649,8 @@ namespace Kratos {
   {
 
     double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-    double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
- 
-    double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient; 
+    // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
@@ -726,28 +725,28 @@ namespace Kratos {
 
   }
 
-//    template< unsigned int TDim >
-//   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-// 									      std::vector<ConstitutiveLaw::Pointer>& rValues,
-// 									      const ProcessInfo& rCurrentProcessInfo )
-//   {
+  //    template< unsigned int TDim >
+  //   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+  // 									      std::vector<ConstitutiveLaw::Pointer>& rValues,
+  // 									      const ProcessInfo& rCurrentProcessInfo )
+  //   {
 
-//     if(rVariable == YIELDED)
-//     {
+  //     if(rVariable == YIELDED)
+  //     {
 
-//       rValues[0] = 1.5
-//         // if ( rValues.size() != mConstitutiveLawVector.size() )
-//         // {
-//         //     rValues.resize(mConstitutiveLawVector.size());
-//         // }
+  //       rValues[0] = 1.5
+  //         // if ( rValues.size() != mConstitutiveLawVector.size() )
+  //         // {
+  //         //     rValues.resize(mConstitutiveLawVector.size());
+  //         // }
 
-//         // for(unsigned int i=0; i<rValues.size(); i++)
-//         // {
-//         //     rValues[i] = 1.5;
-//         // }
-//     }
+  //         // for(unsigned int i=0; i<rValues.size(); i++)
+  //         // {
+  //         //     rValues[i] = 1.5;
+  //         // }
+  //     }
 
-// }
+  // }
 
 
   
@@ -759,9 +758,8 @@ namespace Kratos {
   {
 
     double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-    double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
-
-    double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
    
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
@@ -779,13 +777,12 @@ namespace Kratos {
     double sigmaDev_xz= 2*CurrSecondLame*DefXZ;
     double sigmaDev_yz= 2*CurrSecondLame*DefYZ;
 
-    double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
-    double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
-    double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
-    double sigmaTot_xy= 2*CurrSecondLame*DefXY;
-    double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
-    double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
-
+    // double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
+    // double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
+    // double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
+    // double sigmaTot_xy= 2*CurrSecondLame*DefXY;
+    // double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
+    // double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
 
     // sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
     // sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
@@ -794,12 +791,12 @@ namespace Kratos {
     // sigmaDev_xz+=rElementalVariables.CurrentDeviatoricCauchyStress[4];
     // sigmaDev_yz+=rElementalVariables.CurrentDeviatoricCauchyStress[5];
 
-    sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
-    sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
-    sigmaTot_zz= sigmaDev_zz + rElementalVariables.MeanPressure;
-    sigmaTot_xy= sigmaDev_xy;
-    sigmaTot_xz= sigmaDev_xz;
-    sigmaTot_yz= sigmaDev_yz;
+    double sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
+    double sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
+    double sigmaTot_zz= sigmaDev_zz + rElementalVariables.MeanPressure;
+    double sigmaTot_xy= sigmaDev_xy;
+    double sigmaTot_xz= sigmaDev_xz;
+    double sigmaTot_yz= sigmaDev_yz;
 
     // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
     // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
@@ -835,7 +832,7 @@ namespace Kratos {
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitFluidElement<TDim>::ComputeBulkMatrixRHS(Matrix& BulkMatrix,
-									     const double Weight)
+										  const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     for (SizeType i = 0; i < NumNodes; ++i)

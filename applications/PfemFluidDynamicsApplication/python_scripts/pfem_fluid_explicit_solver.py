@@ -113,7 +113,6 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
                                                                          0)
         import linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
-        
         #self.fluid_solver = KratosPfemFluid.ExplicitStrategy(self.computing_model_part,
         #                                                     mechanical_scheme,
         #                                                     linear_solver,

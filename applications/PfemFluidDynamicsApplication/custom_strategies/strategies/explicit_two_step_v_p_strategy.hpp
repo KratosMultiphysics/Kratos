@@ -1,4 +1,3 @@
-
 //
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:           MSantasusana $

@@ -22,52 +22,52 @@ namespace Kratos {
    * public TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim> functions
    */
   
-template< unsigned int TDim >
-Element::Pointer TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
-{
-  // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
-  TwoStepUpdatedLagrangianVPExplicitSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+  template< unsigned int TDim >
+  Element::Pointer TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  {
+    // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
+    TwoStepUpdatedLagrangianVPExplicitSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
-  if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
-    NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
+    if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
+      NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
 
-  for(unsigned int i=0; i<this->mCurrentTotalCauchyStress.size(); i++)
-    {
-      NewElement.mCurrentTotalCauchyStress[i] = this->mCurrentTotalCauchyStress[i];
-    }
-
-
-  if ( NewElement.mCurrentDeviatoricCauchyStress.size() != this->mCurrentDeviatoricCauchyStress.size() )
-    NewElement.mCurrentDeviatoricCauchyStress.resize(this->mCurrentDeviatoricCauchyStress.size());
-
-  for(unsigned int i=0; i<this->mCurrentDeviatoricCauchyStress.size(); i++)
-    {
-      NewElement.mCurrentDeviatoricCauchyStress[i] = this->mCurrentDeviatoricCauchyStress[i];
-    }
+    for(unsigned int i=0; i<this->mCurrentTotalCauchyStress.size(); i++)
+      {
+	NewElement.mCurrentTotalCauchyStress[i] = this->mCurrentTotalCauchyStress[i];
+      }
 
 
-  if ( NewElement.mUpdatedTotalCauchyStress.size() != this->mUpdatedTotalCauchyStress.size() )
-    NewElement.mUpdatedTotalCauchyStress.resize(this->mUpdatedTotalCauchyStress.size());
+    if ( NewElement.mCurrentDeviatoricCauchyStress.size() != this->mCurrentDeviatoricCauchyStress.size() )
+      NewElement.mCurrentDeviatoricCauchyStress.resize(this->mCurrentDeviatoricCauchyStress.size());
 
-  for(unsigned int i=0; i<this->mUpdatedTotalCauchyStress.size(); i++)
-    {
-      NewElement.mUpdatedTotalCauchyStress[i] = this->mUpdatedTotalCauchyStress[i];
-    }
+    for(unsigned int i=0; i<this->mCurrentDeviatoricCauchyStress.size(); i++)
+      {
+	NewElement.mCurrentDeviatoricCauchyStress[i] = this->mCurrentDeviatoricCauchyStress[i];
+      }
 
 
-  if ( NewElement.mUpdatedDeviatoricCauchyStress.size() != this->mUpdatedDeviatoricCauchyStress.size() )
-    NewElement.mUpdatedDeviatoricCauchyStress.resize(this->mUpdatedDeviatoricCauchyStress.size());
+    if ( NewElement.mUpdatedTotalCauchyStress.size() != this->mUpdatedTotalCauchyStress.size() )
+      NewElement.mUpdatedTotalCauchyStress.resize(this->mUpdatedTotalCauchyStress.size());
 
-  for(unsigned int i=0; i<this->mUpdatedDeviatoricCauchyStress.size(); i++)
-    {
-      NewElement.mUpdatedDeviatoricCauchyStress[i] = this->mUpdatedDeviatoricCauchyStress[i];
-    }
+    for(unsigned int i=0; i<this->mUpdatedTotalCauchyStress.size(); i++)
+      {
+	NewElement.mUpdatedTotalCauchyStress[i] = this->mUpdatedTotalCauchyStress[i];
+      }
 
-  NewElement.SetData(this->GetData());
-  NewElement.SetFlags(this->GetFlags());
 
-  return Element::Pointer( new TwoStepUpdatedLagrangianVPExplicitSolidElement(NewElement) );
-}
+    if ( NewElement.mUpdatedDeviatoricCauchyStress.size() != this->mUpdatedDeviatoricCauchyStress.size() )
+      NewElement.mUpdatedDeviatoricCauchyStress.resize(this->mUpdatedDeviatoricCauchyStress.size());
+
+    for(unsigned int i=0; i<this->mUpdatedDeviatoricCauchyStress.size(); i++)
+      {
+	NewElement.mUpdatedDeviatoricCauchyStress[i] = this->mUpdatedDeviatoricCauchyStress[i];
+      }
+
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
+
+    return Element::Pointer( new TwoStepUpdatedLagrangianVPExplicitSolidElement(NewElement) );
+  }
 
 
   template< unsigned int TDim >
@@ -110,7 +110,7 @@ Element::Pointer TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Clone( In
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
   {
-   KRATOS_TRY;
+    KRATOS_TRY;
 
     const GeometryType& rGeom = this->GetGeometry();
     SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
@@ -133,10 +133,10 @@ Element::Pointer TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Clone( In
 
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::ComputeMaterialParameters(double& Density,
-									       double& DeviatoricCoeff,
-									       double& VolumetricCoeff,
-									       ProcessInfo &currentProcessInfo,
-									       ElementalVariables& rElementalVariables)
+										       double& DeviatoricCoeff,
+										       double& VolumetricCoeff,
+										       ProcessInfo &currentProcessInfo,
+										       ElementalVariables& rElementalVariables)
   {
 
     Density=this->GetProperties()[DENSITY];
@@ -291,19 +291,19 @@ Element::Pointer TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Clone( In
  
 
 
-// template< unsigned int TDim>
-// bool TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
-// 									const ProcessInfo& rCurrentProcessInfo,
-// 									const ShapeFunctionDerivativesType& rDN_DX,
-// 									unsigned int g)
-// {
+  // template< unsigned int TDim>
+  // bool TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+  // 									const ProcessInfo& rCurrentProcessInfo,
+  // 									const ShapeFunctionDerivativesType& rDN_DX,
+  // 									unsigned int g)
+  // {
 
-//   double theta=this->GetThetaMomentum();
-//   bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-//   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-//   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-//   return computeElement;
-// } 
+  //   double theta=this->GetThetaMomentum();
+  //   bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+  //   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+  //   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
+  //   return computeElement;
+  // } 
 
 
   template<>
@@ -352,14 +352,14 @@ Element::Pointer TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Clone( In
 
 
 
-template <  unsigned int TDim> 
-void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
- {
+  template <  unsigned int TDim> 
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
+  {
     unsigned int voigtsize  = 3;
     if( TDim == 3 )
-    {
+      {
         voigtsize  = 6;
-    }
+      }
     rElementalVariables.voigtsize=voigtsize;
 
     rElementalVariables.DetFgrad=1;
@@ -381,198 +381,196 @@ void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: InitializeElementalV
     rElementalVariables.CurrentDeviatoricCauchyStress.resize(voigtsize);
     rElementalVariables.UpdatedDeviatoricCauchyStress.resize(voigtsize);
 
- }
+  }
 
 
-template < > 
-void TwoStepUpdatedLagrangianVPExplicitSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
-{
-  // std::cout<<"CalcElasticPlasticCauchySplitted "<<std::endl;
+  template < > 
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+  {
+    // std::cout<<"CalcElasticPlasticCauchySplitted "<<std::endl;
   
-  rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
-  rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
+    rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
+    rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
-  double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-  double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
 
-  double CurrFirstLame  = 0;
-  CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    // double CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
-  double DefX=rElementalVariables.SpatialDefRate[0];
-  double DefY=rElementalVariables.SpatialDefRate[1];
-  double DefXY=rElementalVariables.SpatialDefRate[2];
+    double DefX=rElementalVariables.SpatialDefRate[0];
+    double DefY=rElementalVariables.SpatialDefRate[1];
+    double DefXY=rElementalVariables.SpatialDefRate[2];
 
-  double DefVol=rElementalVariables.VolumetricDefRate;
+    double DefVol=rElementalVariables.VolumetricDefRate;
 
-  double sigmaDev_xx= 2*CurrSecondLame*(DefX - DefVol/3.0);
-  double sigmaDev_yy= 2*CurrSecondLame*(DefY - DefVol/3.0);
-  double sigmaDev_xy= 2*CurrSecondLame*DefXY;
+    double sigmaDev_xx= 2*CurrSecondLame*(DefX - DefVol/3.0);
+    double sigmaDev_yy= 2*CurrSecondLame*(DefY - DefVol/3.0);
+    double sigmaDev_xy= 2*CurrSecondLame*DefXY;
 
-  // double sigmaTot_xx= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefX;
-  // double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
-  // double sigmaTot_xy= 2.0*CurrSecondLame*DefXY;
+    // double sigmaTot_xx= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefX;
+    // double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
+    // double sigmaTot_xy= 2.0*CurrSecondLame*DefXY;
 
-  // sigmaTot_xx=rElementalVariables.CurrentTotalCauchyStress[0] + rElementalVariables.MeanPressure + sigmaDev_xx;
-  // sigmaTot_yy=rElementalVariables.CurrentTotalCauchyStress[1] + rElementalVariables.MeanPressure + sigmaDev_yy;
-  // sigmaTot_xy=rElementalVariables.CurrentTotalCauchyStress[2] + sigmaDev_xy;
+    // sigmaTot_xx=rElementalVariables.CurrentTotalCauchyStress[0] + rElementalVariables.MeanPressure + sigmaDev_xx;
+    // sigmaTot_yy=rElementalVariables.CurrentTotalCauchyStress[1] + rElementalVariables.MeanPressure + sigmaDev_yy;
+    // sigmaTot_xy=rElementalVariables.CurrentTotalCauchyStress[2] + sigmaDev_xy;
 
-  sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
-  sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
-  sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
+    sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
+    sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
+    sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
 
-  double sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
-  double sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
-  double sigmaTot_xy= sigmaDev_xy;
+    double sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
+    double sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
+    double sigmaTot_xy= sigmaDev_xy;
 
-  // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
-  // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
-  // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
+    // sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
+    // sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
+    // sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
 
-  rElementalVariables.UpdatedDeviatoricCauchyStress[0]=sigmaDev_xx;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[2]=sigmaDev_xy;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[0]=sigmaDev_xx;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[2]=sigmaDev_xy;
 
-  rElementalVariables.UpdatedTotalCauchyStress[0]=sigmaTot_xx;
-  rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
-  rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_xy;
+    rElementalVariables.UpdatedTotalCauchyStress[0]=sigmaTot_xx;
+    rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
+    rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_xy;
 
-  // this->mCurrentTotalCauchyStress[g]=rElementalVariables.CurrentTotalCauchyStress;
-  this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
-  // this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
-  this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
+    // this->mCurrentTotalCauchyStress[g]=rElementalVariables.CurrentTotalCauchyStress;
+    this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
+    // this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
+    this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
 
 
-}
+  }
 
-template < > 
-void TwoStepUpdatedLagrangianVPExplicitSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
-{
+  template < > 
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+  {
 
-  rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
-  rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
+    rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
+    rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
-  double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
-  double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
 
-  double CurrFirstLame   = 0;
-  CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
+    // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
+    // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
   
-  double DefX=rElementalVariables.SpatialDefRate[0];
-  double DefY=rElementalVariables.SpatialDefRate[1];
-  double DefZ=rElementalVariables.SpatialDefRate[2];
-  double DefXY=rElementalVariables.SpatialDefRate[3];
-  double DefXZ=rElementalVariables.SpatialDefRate[4];
-  double DefYZ=rElementalVariables.SpatialDefRate[5];
+    double DefX=rElementalVariables.SpatialDefRate[0];
+    double DefY=rElementalVariables.SpatialDefRate[1];
+    double DefZ=rElementalVariables.SpatialDefRate[2];
+    double DefXY=rElementalVariables.SpatialDefRate[3];
+    double DefXZ=rElementalVariables.SpatialDefRate[4];
+    double DefYZ=rElementalVariables.SpatialDefRate[5];
 
-  double DefVol=rElementalVariables.VolumetricDefRate;
+    double DefVol=rElementalVariables.VolumetricDefRate;
 
-  double sigmaDev_xx= 2*CurrSecondLame*(DefX - DefVol/3.0);
-  double sigmaDev_yy= 2*CurrSecondLame*(DefY - DefVol/3.0);
-  double sigmaDev_zz= 2*CurrSecondLame*(DefZ - DefVol/3.0);
-  double sigmaDev_xy= 2*CurrSecondLame*DefXY;
-  double sigmaDev_xz= 2*CurrSecondLame*DefXZ;
-  double sigmaDev_yz= 2*CurrSecondLame*DefYZ;
+    double sigmaDev_xx= 2*CurrSecondLame*(DefX - DefVol/3.0);
+    double sigmaDev_yy= 2*CurrSecondLame*(DefY - DefVol/3.0);
+    double sigmaDev_zz= 2*CurrSecondLame*(DefZ - DefVol/3.0);
+    double sigmaDev_xy= 2*CurrSecondLame*DefXY;
+    double sigmaDev_xz= 2*CurrSecondLame*DefXZ;
+    double sigmaDev_yz= 2*CurrSecondLame*DefYZ;
 
-  double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
-  double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
-  double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
-  double sigmaTot_xy= 2*CurrSecondLame*DefXY;
-  double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
-  double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
+    // double sigmaTot_xx= CurrFirstLame*DefVol + 2*CurrSecondLame*DefX;
+    // double sigmaTot_yy= CurrFirstLame*DefVol + 2*CurrSecondLame*DefY;
+    // double sigmaTot_zz= CurrFirstLame*DefVol + 2*CurrSecondLame*DefZ;
+    // double sigmaTot_xy= 2*CurrSecondLame*DefXY;
+    // double sigmaTot_xz= 2*CurrSecondLame*DefXZ;
+    // double sigmaTot_yz= 2*CurrSecondLame*DefYZ;
 
-  sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
-  sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
-  sigmaDev_zz+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
-  sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[3];
-  sigmaDev_xz+=rElementalVariables.CurrentDeviatoricCauchyStress[4];
-  sigmaDev_yz+=rElementalVariables.CurrentDeviatoricCauchyStress[5];
+    sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
+    sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
+    sigmaDev_zz+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
+    sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[3];
+    sigmaDev_xz+=rElementalVariables.CurrentDeviatoricCauchyStress[4];
+    sigmaDev_yz+=rElementalVariables.CurrentDeviatoricCauchyStress[5];
 
-  sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
-  sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
-  sigmaTot_zz= sigmaDev_zz + rElementalVariables.MeanPressure;
-  sigmaTot_xy= sigmaDev_xy;
-  sigmaTot_xz= sigmaDev_xz;
-  sigmaTot_yz= sigmaDev_yz;
+    double sigmaTot_xx= sigmaDev_xx + rElementalVariables.MeanPressure;
+    double sigmaTot_yy= sigmaDev_yy + rElementalVariables.MeanPressure;
+    double sigmaTot_zz= sigmaDev_zz + rElementalVariables.MeanPressure;
+    double sigmaTot_xy= sigmaDev_xy;
+    double sigmaTot_xz= sigmaDev_xz;
+    double sigmaTot_yz= sigmaDev_yz;
 
-  rElementalVariables.UpdatedDeviatoricCauchyStress[0]=sigmaDev_xx;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[2]=sigmaDev_zz;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[3]=sigmaDev_xy;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[4]=sigmaDev_xz;
-  rElementalVariables.UpdatedDeviatoricCauchyStress[5]=sigmaDev_yz;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[0]=sigmaDev_xx;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[2]=sigmaDev_zz;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[3]=sigmaDev_xy;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[4]=sigmaDev_xz;
+    rElementalVariables.UpdatedDeviatoricCauchyStress[5]=sigmaDev_yz;
 
-  rElementalVariables.UpdatedTotalCauchyStress[0]=sigmaTot_xx;
-  rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
-  rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_zz;
-  rElementalVariables.UpdatedTotalCauchyStress[3]=sigmaTot_xy;
-  rElementalVariables.UpdatedTotalCauchyStress[4]=sigmaTot_xz;
-  rElementalVariables.UpdatedTotalCauchyStress[5]=sigmaTot_yz;
+    rElementalVariables.UpdatedTotalCauchyStress[0]=sigmaTot_xx;
+    rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
+    rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_zz;
+    rElementalVariables.UpdatedTotalCauchyStress[3]=sigmaTot_xy;
+    rElementalVariables.UpdatedTotalCauchyStress[4]=sigmaTot_xz;
+    rElementalVariables.UpdatedTotalCauchyStress[5]=sigmaTot_yz;
 
-  this->mCurrentTotalCauchyStress[g]=rElementalVariables.CurrentTotalCauchyStress;
-  this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
-  this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
-  this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
+    this->mCurrentTotalCauchyStress[g]=rElementalVariables.CurrentTotalCauchyStress;
+    this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
+    this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
+    this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
 
-}
+  }
 
 
 
-template < unsigned int TDim > 
-void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
-{
+  template < unsigned int TDim > 
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
+  {
    
-  double theta=this->GetThetaContinuity();
-  ElementalVariables rElementalVariables;
-  this->InitializeElementalVariables(rElementalVariables);
-  ShapeFunctionDerivativesArrayType DN_DX;
-  Matrix NContainer;
-  VectorType GaussWeights;
-  this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-  // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-  if(computeElement==true){
-    this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
+    double theta=this->GetThetaContinuity();
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+    const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+    // bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+    bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
+    const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+    if(computeElement==true){
+      this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
+    }
+
+    // std::cout<<"  UpdateCauchyStress ";
+    this->mCurrentTotalCauchyStress[g]=this->mUpdatedTotalCauchyStress[g];
+    this->mCurrentDeviatoricCauchyStress[g]=this->mUpdatedDeviatoricCauchyStress[g];
+
   }
 
-  // std::cout<<"  UpdateCauchyStress ";
-  this->mCurrentTotalCauchyStress[g]=this->mUpdatedTotalCauchyStress[g];
-  this->mCurrentDeviatoricCauchyStress[g]=this->mUpdatedDeviatoricCauchyStress[g];
-
-}
-
-template < unsigned int TDim > 
-void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::ComputeBulkMatrixRHS(Matrix& BulkMatrix,
+  template < unsigned int TDim > 
+  void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::ComputeBulkMatrixRHS(Matrix& BulkMatrix,
 										  const double Weight)
-{
-  const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-  double coeff=1.0+TDim;
-  if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	// LHS contribution
-	double Mij  = Weight /coeff;
-	BulkMatrix(i,i) +=  Mij;
-      }
-  }else{
-    std::cout<<"... ComputeBulkMatrixLump TO IMPLEMENT"<<std::endl;
-  }
+    double coeff=1.0+TDim;
+    if((NumNodes==3 && TDim==2) || (NumNodes==4 && TDim==3)){
+      for (SizeType i = 0; i < NumNodes; ++i)
+	{
+	  // LHS contribution
+	  double Mij  = Weight /coeff;
+	  BulkMatrix(i,i) +=  Mij;
+	}
+    }else{
+      std::cout<<"... ComputeBulkMatrixLump TO IMPLEMENT"<<std::endl;
+    }
     
-  // const SizeType NumNodes = this->GetGeometry().PointsNumber();
-  // for (SizeType i = 0; i < NumNodes; ++i)
-  //   {
-  // 	for (SizeType j = 0; j < NumNodes; ++j)
-  // 	  {
-  // 	    // LHS contribution
-  // 	    double Mij  = Weight/12.0;
-  // 	    if(i==j)
-  // 	      Mij  *= 2.0;
-  // 	    BulkMatrix(i,j) +=  Mij;
-  // 	  }
-  //   }
-}
+    // const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    // for (SizeType i = 0; i < NumNodes; ++i)
+    //   {
+    // 	for (SizeType j = 0; j < NumNodes; ++j)
+    // 	  {
+    // 	    // LHS contribution
+    // 	    double Mij  = Weight/12.0;
+    // 	    if(i==j)
+    // 	      Mij  *= 2.0;
+    // 	    BulkMatrix(i,j) +=  Mij;
+    // 	  }
+    //   }
+  }
 
 
   // template< unsigned int TDim >
