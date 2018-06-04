@@ -41,7 +41,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
     typedef std::size_t IndexType;
     typedef Dof<double> DofType;
-    typedef std::vector< DofType::Pointer > DofsVectorType;
+    typedef std::vector< DofType::Pointer > DofPointerVectorType;
     typedef Node<3> NodeType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     typedef std::vector<std::size_t> EquationIdVectorType;
@@ -64,15 +64,19 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     /*
     * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
     */
-    MasterSlaveConstraint(IndexType Id, DofsVectorType& rMasterDofsVector,
-                                        DofsVectorType& rSlaveDofsVector,
-                                        MatrixType RelationMatrix,
-                                        VectorType ConstantVector):IndexedObject(Id), Flags()
+    MasterSlaveConstraint(IndexType Id, DofPointerVectorType& rMasterDofsVector,
+                                        DofPointerVectorType& rSlaveDofsVector,
+                                        MatrixType& rRelationMatrix,
+                                        VectorType& rConstantVector):IndexedObject(Id), Flags()
     {
+        mSlaveDofsVector = rSlaveDofsVector;
+        mMasterDofsVector = rMasterDofsVector;
+        mRelationMatrix = rRelationMatrix;
+        mConstantVector = rConstantVector;
     }
 
     /*
-    * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
+    * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a double variable
     */
     MasterSlaveConstraint(IndexType Id, NodeType& rMasterNode,
                                         VariableType& rMasterVariable,
@@ -81,10 +85,25 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
                                         double Weight,
                                         double Constant):IndexedObject(Id), Flags()
     {
+        // Resizing the memeber variables
+        mRelationMatrix.resize(1,1,false);
+        mConstantVector.resize(1,false);
+
+        // Obtaining the dofs from the variables
+        DofType::Pointer &pointer_slave_dof  = rSlaveNode.pGetDof(rSlaveVariable);
+        mSlaveDofsVector.push_back(pointer_slave_dof);
+        DofType::Pointer &pointer_master_dof = rMasterNode.pGetDof(rMasterVariable);
+        mMasterDofsVector.push_back(pointer_master_dof);
+
+        mRelationMatrix(0,0) = Weight;
+        rConstantVector(0) = Constant;
+
+        // Setting the slave flag on the node
+        rSlaveNode.Set(SLAVE);
     }
 
     /*
-    * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
+    * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
     MasterSlaveConstraint(IndexType Id, NodeType& rMasterNode,
                                         VariableComponentType& rMasterVariable,
@@ -93,6 +112,21 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
                                         double Weight,
                                         double Constant):IndexedObject(Id), Flags()
     {
+        // Resizing the memeber variables
+        mRelationMatrix.resize(1,1,false);
+        mConstantVector.resize(1,false);
+
+        // Obtaining the dofs from the variables
+        DofType::Pointer &pointer_slave_dof  = rSlaveNode.pGetDof(rSlaveVariable);
+        mSlaveDofsVector.push_back(pointer_slave_dof);
+        DofType::Pointer &pointer_master_dof = rMasterNode.pGetDof(rMasterVariable);
+        mMasterDofsVector.push_back(pointer_master_dof);
+
+        mRelationMatrix(0,0) = Weight;
+        rConstantVector(0) = Constant;
+
+        // Setting the slave flag on the node
+        rSlaveNode.Set(SLAVE);
     }
 
     /// Destructor.
@@ -105,7 +139,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    virtual Pointer Create(IndexType Id, DofsVectorType& MasterDofsVector, DofsVectorType& SlaveDofsVector, MatrixType RelationMatrix, VectorType ConstantVector) const
+    virtual Pointer Create(IndexType Id, DofPointerVectorType& MasterDofsVector, DofPointerVectorType& SlaveDofsVector, MatrixType RelationMatrix, VectorType ConstantVector) const
     {
         KRATOS_TRY
         auto new_pointer = Kratos::make_shared<MasterSlaveConstraint>(Id, MasterDofsVector, SlaveDofsVector, RelationMatrix, ConstantVector);
@@ -264,7 +298,10 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
   private:
     ///@}
-
+    DofPointerVectorType mSlaveDofsVector;
+    DofPointerVectorType mMasterDofsVector;
+    MatrixType mRelationMatrix;
+    VectorType mConstantVector;
     ///@}
 };
 
