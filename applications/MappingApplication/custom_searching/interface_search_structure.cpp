@@ -38,20 +38,6 @@ namespace Kratos
                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                         InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
-
-    }
-
-    void InterfaceSearchStructure::FinalizeSearch()
-    {
-
-    }
-
-
-
-    void InterfaceSearchStructure::PrepareSearchIteration(const Kratos::Flags& rOptions,
-                                                    const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                                    InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
-    {
         if (mpInterfaceObjectsOrigin == nullptr || rOptions.Is(MapperFlags::REMESHED))
             CreateInterfaceObjectsOrigin(InterfaceObjectTypeOrigin);
         else
@@ -59,18 +45,26 @@ namespace Kratos
 
         if (mpLocalBinStructure == nullptr || !rOptions.Is(MapperFlags::DESTINATION_ONLY))
             InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
+    }
 
-        if (mpMapperInterfaceInfos == nullptr || rOptions.Is(MapperFlags::REMESHED))
-            CreateInterfaceInfos(rpRefInterfaceInfo);
-        else
-            UpdateInterfaceInfos();
+    void InterfaceSearchStructure::FinalizeSearch()
+    {
+        mpMapperInterfaceInfos->clear();
+    }
+
+
+    void InterfaceSearchStructure::PrepareSearchIteration(const Kratos::Flags& rOptions,
+                                                    const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                                    InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+    {
+        CreateInterfaceInfos(rpRefInterfaceInfo);
     }
 
     void InterfaceSearchStructure::FinalizeSearchIteration()
     {
         const int num_interface_infos = mpMapperInterfaceInfos->size();
 
-        // This is threadsafe bcs there will never be more than one InterfaceInfo per LocalSystem
+        // This is threadsafe bcs there will never be more than one InterfaceInfo per LocalSystem (only true in serial!)
         #pragma omp parallel for
         for (int i = 0; i<num_interface_infos; ++i)
         {
@@ -91,32 +85,21 @@ namespace Kratos
     /***********************************************************************************/
     void InterfaceSearchStructure::CreateInterfaceInfos(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
     {
-        const int num_objects = mpMapperLocalSystems->size();
+        const SizeType num_objects = mpMapperLocalSystems->size();
 
-        mpMapperInterfaceInfos = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>(num_objects);
+        // Recreate the vector, preallocate with the max number of elements
+        mpMapperInterfaceInfos = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
+        mpMapperInterfaceInfos->reserve(num_objects);
 
-        #pragma omp parallel for
-        for (int i = 0; i<num_objects; ++i)
+        IndexType local_sys_idx = 0;
+        for (const auto& r_local_sys : (*mpMapperLocalSystems))
         {
-            const auto& r_coords = (*mpMapperLocalSystems)[i]->GetCoordinates();
-            (*mpMapperInterfaceInfos)[i] = rpRefInterfaceInfo->Create(r_coords, i);
-        }
-
-        // Making sure that the data-structure was correctly initialized, should be ensured anyways...
-        // This is in serial so I can do this directly
-        KRATOS_ERROR_IF_NOT(mpMapperInterfaceInfos->size() > 0)
-            << "No MapperInterfaceInfos were created in Destination-ModelPart!" << std::endl;
-    }
-
-    void InterfaceSearchStructure::UpdateInterfaceInfos()
-    {
-        const int num_objects = mpMapperLocalSystems->size();
-
-        #pragma omp parallel for
-        for (int i = 0; i<num_objects; ++i)
-        {
-            const auto& r_coords = (*mpMapperLocalSystems)[i]->GetCoordinates();
-            (*mpMapperInterfaceInfos)[i]->UpdateCoordinates(r_coords);
+            if (!r_local_sys->HasInterfaceInfo())
+            {
+                const auto& r_coords = r_local_sys->GetCoordinates();
+                (*mpMapperInterfaceInfos).push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx));
+            }
+            ++local_sys_idx;
         }
     }
 

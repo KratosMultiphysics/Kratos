@@ -37,7 +37,7 @@ namespace Kratos
         // mMaxSearchIterations = MaxSearchIterations;
         const int increase_factor = 4;
         int num_iteration = 1;
-        bool last_iteration = (mMaxSearchIterations == 1) ? true : false; // true in case only one search iteration is conducted
+        bool last_iteration = (mMaxSearchIterations == 1) ? true : false; // true in case only one search iteration is conducted // TODO needed???
 
         PrepareSearch(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
