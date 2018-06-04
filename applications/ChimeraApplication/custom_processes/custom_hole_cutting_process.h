@@ -303,7 +303,6 @@ class CustomHoleCuttingProcess
 			for (j = 0; j < geom.size(); j++)
 			{
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
-
 				if (elementDistance > 0)
 				{
 					numPointsOutside++;
@@ -359,6 +358,91 @@ class CustomHoleCuttingProcess
 		if (n_nodes == 3)
 		{
 			ExtractBoundaryMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
+		}
+
+		else if (n_nodes == 4)
+		{
+			ExtractSurfaceMesh(rExtractedModelPart, rExtractedBoundaryModelPart);
+		}
+
+		else
+			std::cout << "Hole cutting process is only supported for tetrahedral and triangular elements" << std::endl;
+
+		KRATOS_CATCH("");
+	}
+
+
+	void RemoveOutOfDomainPatchAndReturnModifiedPatch(ModelPart &rModelPart,ModelPart &rInsideBoundary, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart)
+	{
+		KRATOS_TRY;
+
+		std::cout << "\n:: Removing Out Of Domain Patch with Inside boundary Given ::" << std::endl;
+		std::vector<std::size_t> vector_of_node_ids;
+
+		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
+		{
+
+			double elementDistance = 0.0;
+			std::size_t numPointsOutside = 0;
+			std::size_t j = 0;
+			Geometry<Node<3>> &geom = it->GetGeometry();
+
+			for (j = 0; j < geom.size(); j++)
+			{
+				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
+				if (elementDistance > 0)
+				{
+					numPointsOutside++;
+				}
+			}
+
+			//if (numPointsOutside == geom.size())
+			if (numPointsOutside > 0 )
+			{
+				it->Set(ACTIVE, false);
+				Element::Pointer pElem = *(it.base());
+				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
+				for (j = 0; j <numNodesPerElem; j++)
+				{
+					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
+					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
+					if(numNodesPerElem-1 > 2)
+						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
+					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+					pElem->GetGeometry()[j].GetDof(VELOCITY_X).GetSolutionStepValue(1) = 0.0;
+					pElem->GetGeometry()[j].GetDof(VELOCITY_Y).GetSolutionStepValue(1) = 0.0;
+					if(numNodesPerElem-1 > 2)
+						pElem->GetGeometry()[j].GetDof(VELOCITY_Z).GetSolutionStepValue(1) = 0.0;
+					pElem->GetGeometry()[j].GetDof(PRESSURE).GetSolutionStepValue(1) = 0.0;
+				}
+			}
+			 else
+			{
+				Element::Pointer pElem = *(it.base());
+				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
+				rExtractedModelPart.Elements().push_back(pElem);
+				for (j = 0; j <numNodesPerElem; j++)
+					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
+			}
+		}
+
+		//sorting and making unique list of node ids
+		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+		vector_of_node_ids.assign(s.begin(), s.end());
+
+		// Add unique nodes in the ModelPart
+		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
+		{
+
+			Node<3>::Pointer pnode = rModelPart.Nodes()(*it);
+			rExtractedModelPart.AddNode(pnode);
+		}
+
+		std::size_t n_nodes = rModelPart.ElementsBegin()->GetGeometry().size();
+
+		if (n_nodes == 3)
+		{
+			ExtractOutsideBoundaryMesh(rInsideBoundary,rExtractedModelPart, rExtractedBoundaryModelPart);
 		}
 
 		else if (n_nodes == 4)
@@ -552,6 +636,139 @@ class CustomHoleCuttingProcess
 				// Fill the map
 				n_edges_map[ids] += 1;
 			}
+		}
+
+		// Create a map to get nodes of skin edge in original order for given set of node ids representing that edge
+		// The given set of node ids may have a different node order
+		hashmap_vec ordered_skin_edge_nodes_map;
+
+		// Fill map that gives original node order for set of nodes
+		for (ModelPart::ElementIterator itElem = rSurfaceModelPart.ElementsBegin(); itElem != rSurfaceModelPart.ElementsEnd(); itElem++)
+		{
+			Element::GeometryType::GeometriesArrayType edges = itElem->GetGeometry().Edges();
+
+			for (std::size_t edge = 0; edge < edges.size(); edge++)
+			{
+				// Create vector that stores all node is of current edge
+				vector<std::size_t> ids(edges[edge].size());
+				vector<std::size_t> unsorted_ids(edges[edge].size());
+
+				// Store node ids
+				for (std::size_t i = 0; i < edges[edge].size(); i++)
+				{
+					ids[i] = edges[edge][i].Id();
+					unsorted_ids[i] = edges[edge][i].Id();
+				}
+
+				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+				std::sort(ids.begin(), ids.end());
+
+				if (n_edges_map[ids] == 1)
+					ordered_skin_edge_nodes_map[ids] = unsorted_ids;
+			}
+		}
+		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
+		std::size_t id_condition = 1;
+		//rExtractedBoundaryModelPart.Nodes() = rSurfaceModelPart.Nodes();
+
+		// Add skin edges as triangles to skin-model-part (loop over all node sets)
+		std::cout << "  Extracting boundary mesh and computing normals" << std::endl;
+		std::vector<std::size_t> vector_of_node_ids;
+		for (typename hashmap::const_iterator it = n_edges_map.begin(); it != n_edges_map.end(); it++)
+		{
+			// If given node set represents edge that is not overlapping with a edge of another element, add it as skin element
+			if (it->second == 1)
+			{
+				// If skin edge is a triangle store triangle in with its original orientation in new skin model part
+				//std::cout<<"size of the ordered pair : "<<it->first.size()<<std::endl;
+				if (it->first.size() == 2)
+				{
+					// Getting original order is important to properly reproduce skin edge including its normal orientation
+					vector<std::size_t> original_nodes_order = ordered_skin_edge_nodes_map[it->first];
+
+					//std::cout<<"First Node: "<<original_nodes_order[0]<<std::endl;
+					//std::cout<<"Second Node: "<<original_nodes_order[1]<<std::endl;
+
+					Node<3>::Pointer pnode1 = rSurfaceModelPart.Nodes()(original_nodes_order[0]);
+					Node<3>::Pointer pnode2 = rSurfaceModelPart.Nodes()(original_nodes_order[1]);
+
+					//Storing the node ids list
+					vector_of_node_ids.push_back(original_nodes_order[0]);
+					vector_of_node_ids.push_back(original_nodes_order[1]);
+
+					Properties::Pointer properties = rExtractedBoundaryModelPart.rProperties()(0);
+					Condition const &rReferenceLineCondition = KratosComponents<Condition>::Get("Condition2D");
+
+					// Skin edges are added as conditions
+					Line2D2<Node<3>> line1(pnode1, pnode2);
+					Condition::Pointer p_condition1 = rReferenceLineCondition.Create(id_condition++, line1, properties);
+					rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
+				}
+			}
+		}
+
+		//sorting and making unique list of node ids
+
+		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
+		vector_of_node_ids.assign(s.begin(), s.end());
+
+		for (auto it = vector_of_node_ids.begin(); it != vector_of_node_ids.end(); it++)
+
+		{
+			//Adding the nodes to the rExtractedSurfaceModelPart
+			Node<3>::Pointer pnode = rSurfaceModelPart.Nodes()(*it);
+			rExtractedBoundaryModelPart.AddNode(pnode);
+		}
+
+		std::cout << "Successful extraction of the Boundary " << rExtractedBoundaryModelPart.GetMesh() << std::endl;
+
+		KRATOS_CATCH("");
+	}
+
+
+	void ExtractOutsideBoundaryMesh(ModelPart &rInsideBoundaryModelPart,ModelPart &rSurfaceModelPart, ModelPart &rExtractedBoundaryModelPart)
+	{
+		KRATOS_TRY;
+
+		std::cout << "::[Boundary Mesh Extraction rishith]::" << std::endl;
+
+		// Some type-definitions
+		typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
+		typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
+
+		// Create map to ask for number of edges for the given set of node ids representing on edge in the model part
+		hashmap n_edges_map;
+
+		// Fill map that counts number of edges for given set of nodes
+		for (ModelPart::ElementIterator itElem = rSurfaceModelPart.ElementsBegin(); itElem != rSurfaceModelPart.ElementsEnd(); itElem++)
+		{
+			Element::GeometryType::GeometriesArrayType edges = itElem->GetGeometry().Edges();
+
+			for (std::size_t edge = 0; edge < edges.size(); edge++)
+			{
+				// Create vector that stores all node ids of current edge
+				vector<std::size_t> ids(edges[edge].size());
+
+				// Store node ids
+				for (std::size_t i = 0; i < edges[edge].size(); i++)
+					ids[i] = edges[edge][i].Id();
+
+				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+				std::sort(ids.begin(), ids.end());
+
+				// Fill the map
+				n_edges_map[ids] += 1;
+			}
+		}
+
+		for (ModelPart::ConditionIterator itCond = rInsideBoundaryModelPart.ConditionsBegin(); itCond != rInsideBoundaryModelPart.ConditionsEnd(); ++itCond)
+		{
+			vector<std::size_t> ids(itCond->GetGeometry().size());
+			for (std::size_t i = 0; i < itCond->GetGeometry().size();i++)
+				ids[i] = itCond->GetGeometry()[i].Id();
+
+			std::sort(ids.begin(), ids.end());
+			n_edges_map[ids] += 1;
 		}
 
 		// Create a map to get nodes of skin edge in original order for given set of node ids representing that edge

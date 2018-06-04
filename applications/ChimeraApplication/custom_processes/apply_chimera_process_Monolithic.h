@@ -156,6 +156,7 @@ class ApplyChimeraProcessMonolithic : public Process
 					"pressure_coupling_node" : 0.0,
                     "patch_boundary_model_part_name":"GENERIC_patchBoundary",
 					"domain_boundary_model_part_name":"GENERIC_DomainBoundary",
+					"patch_inside_boundary_model_part_name":"GENERIC_StrctureOne",
 					"overlap_distance":0.045
             })");
 
@@ -163,6 +164,7 @@ class ApplyChimeraProcessMonolithic : public Process
 		m_patch_model_part_name = m_parameters["patch"]["model_part_name"].GetString();
 		m_patch_boundary_model_part_name = m_parameters["patch_boundary_model_part_name"].GetString();
 		m_domain_boundary_model_part_name = m_parameters["domain_boundary_model_part_name"].GetString();
+		m_patch_inside_boundary_model_part_name = m_parameters["patch_inside_boundary_model_part_name"].GetString();
 		m_type = m_parameters["type"].GetString();
 		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
 
@@ -437,6 +439,7 @@ class ApplyChimeraProcessMonolithic : public Process
 		ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
 		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
 		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
+		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
 
 		this->pBinLocatorForBackground->UpdateSearchDatabase();
 		this->pBinLocatorForPatch->UpdateSearchDatabase();
@@ -458,19 +461,21 @@ class ApplyChimeraProcessMonolithic : public Process
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
-			ModelPart::Pointer pOutOfDomainPatchModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
-			ModelPart::Pointer pOutOfDomainPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
-			ModelPart::Pointer pModifiedPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
+			ModelPart::Pointer pOutOfDomainPatchModelPart = ModelPart::Pointer(new ModelPart("OutOfDomainPatch"));
+			ModelPart::Pointer pOutOfDomainPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("OutOfDomainPatchBoundary"));
+			ModelPart::Pointer pModifiedPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("ModifiedPatchBoundary"));
+			ModelPart::Pointer pModifiedPatchModelPart = ModelPart::Pointer(new ModelPart("ModifiedPatch"));
 
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
-			this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pOutOfDomainPatchModelPart, *pOutOfDomainPatchBoundaryModelPart);
+			//this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pOutOfDomainPatchModelPart, *pOutOfDomainPatchBoundaryModelPart);
+			this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart);
 
-			CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
+			//CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
 
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
 			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
 
-			//*pOutOfDomainPatchBoundaryModelPart  rPatchBoundaryModelPart
+			//*pOutOfDomainPatchBoundaryModelPart  rPatchBoundaryModelPart   *pModifiedPatchBoundaryModelPart
 			//for multipatch
 			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
 				it->Set(VISITED, true);
@@ -485,7 +490,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
 			if (m_type == "nearest_element")
 			{
-				ApplyMpcConstraint(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
+				ApplyMpcConstraint( *pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpc, pr_coupling_patch);
 				ApplyMpcConstraint(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
 				std::cout << "Patch boundary coupled with background & HoleBoundary  coupled with patch" << std::endl;
 			}
@@ -1031,6 +1036,7 @@ Parameters m_parameters;
 std::string m_background_model_part_name;
 std::string m_patch_boundary_model_part_name;
 std::string m_domain_boundary_model_part_name;
+std::string m_patch_inside_boundary_model_part_name;
 std::string m_patch_model_part_name;
 std::string m_type;
 
