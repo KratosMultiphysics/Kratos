@@ -224,8 +224,8 @@ public:
                 const array_1d<double,3>& v_old = mvold[i_node];
 
                 it_node->FastGetSolutionStepValue(VELOCITY) = Nold * v_old + Nnew * v;
-                it_node->FastGetSolutionStepValue(VELOCITY,1) = Nold_before * v_old + Nnew_before * v;
-                it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+                it_node->FastGetSolutionStepValue(VELOCITY, 1) = Nold_before * v_old + Nnew_before * v;
+                it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
             }
             
             mp_solving_strategy->Solve();
