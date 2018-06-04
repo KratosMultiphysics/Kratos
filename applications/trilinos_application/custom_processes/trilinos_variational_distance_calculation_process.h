@@ -99,11 +99,10 @@ public:
         int NNode = base_model_part.Nodes().size();
         int NElem = base_model_part.Elements().size();
 
-        KRATOS_ERROR_IF(NNode > 0 && base_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false) << 
-            "Missing DISTANCE variable on solution step data" << std::endl;
-
-        KRATOS_ERROR_IF(NNode > 0 && base_model_part.NodesBegin()->SolutionStepsDataHas(FLAG_VARIABLE) == false) << 
-            "Missing DISTANCE variable on solution step data" << std::endl;
+        if (NNode > 0){
+            VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, base_model_part.Nodes());
+            VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, base_model_part.Nodes());
+        }
 
         if(NElem > 0){
             if(TDim == 2){
@@ -118,10 +117,8 @@ public:
         base_model_part.GetCommunicator().SumAll(NNode);
         base_model_part.GetCommunicator().SumAll(NElem);
 
-        if( base_model_part.GetCommunicator().MyPID() == 0 ){
-            KRATOS_ERROR_IF(NNode == 0) << "The model has no nodes" << std::endl;
-            KRATOS_ERROR_IF(NElem == 0) << "The model has no elements" << std::endl;
-        }
+        KRATOS_ERROR_IF(NNode == 0) << "The model has no nodes" << std::endl;
+        KRATOS_ERROR_IF(NElem == 0) << "The model has no elements" << std::endl;
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         this->ReGenerateDistanceModelPart(base_model_part);
@@ -142,7 +139,7 @@ public:
         const bool ReformDofAtEachIteration = false;
         const bool CalculateNormDxFlag = false;
 
-        (this->mp_solving_strategy) = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+        (this->mp_solving_strategy) = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             *(this->mp_distance_model_part), 
             pscheme, 
             plinear_solver, 
@@ -202,9 +199,9 @@ protected:
         KRATOS_TRY
 
         // Generate distance model part
-        ModelPart::Pointer pAuxModelPart = Kratos::make_shared<ModelPart>("DistancePart");
+        ModelPart::UniquePointer pAuxModelPart = Kratos::make_unique<ModelPart>("DistancePart");
 
-        ModelPart::Pointer& p_distance_model_part = this->mp_distance_model_part;
+        ModelPart::UniquePointer& p_distance_model_part = this->mp_distance_model_part;
         p_distance_model_part.swap(pAuxModelPart);
 
         p_distance_model_part->Nodes().clear();

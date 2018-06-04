@@ -155,7 +155,7 @@ public:
         bool CalculateNormDxFlag = false;
         BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-        mp_solving_strategy = Kratos::make_shared<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
+        mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             *mp_distance_model_part,
             pscheme,
             plinear_solver,
@@ -394,10 +394,10 @@ protected:
 
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
-    ModelPart::Pointer mp_distance_model_part;
+    ModelPart::UniquePointer mp_distance_model_part;
     ModelPart& mr_base_model_part;
 
-    typename SolvingStrategyType::Pointer mp_solving_strategy;
+    typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
     ///@}
     ///@name Protected Operators
@@ -412,7 +412,7 @@ protected:
         KRATOS_TRY
 
         // Generate
-        ModelPart::Pointer pAuxModelPart = Kratos::make_shared<ModelPart>("DistancePart",1);
+        ModelPart::UniquePointer pAuxModelPart = Kratos::make_unique<ModelPart>("DistancePart",1);
         mp_distance_model_part.swap(pAuxModelPart);
 
         mp_distance_model_part->Nodes().clear();
