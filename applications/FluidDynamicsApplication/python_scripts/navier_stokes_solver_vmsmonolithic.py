@@ -131,7 +131,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
-                "solver_type" : "AMGCL_Solver"
+                "solver_type" : "AMGCL"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],

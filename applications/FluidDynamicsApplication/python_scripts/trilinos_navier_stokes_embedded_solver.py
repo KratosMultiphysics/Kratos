@@ -22,8 +22,9 @@ def CreateSolver(model, custom_settings):
 class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
 
-    def _ValidateSettings(self, settings):default_settings = KratosMultiphysics.Parameters("""
-        {
+    def _ValidateSettings(self, settings):
+
+        default_settings = KratosMultiphysics.Parameters("""{
             "solver_type": "Embedded",
             "model_part_name": "FluidModelPart",
             "domain_size": 2,
@@ -73,7 +74,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
     def __init__(self, model, custom_settings):
         # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
-        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
+        super(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver, self).__init__(model,custom_settings)
 
         self.element_name = "EmbeddedNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
