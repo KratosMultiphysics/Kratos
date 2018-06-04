@@ -72,7 +72,11 @@ public:
                                                                 SourceRank);
     }
 
-    void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+                             const double NeighborDistance) override;
+
+    void ProcessSearchResultForApproximation(const InterfaceObject::Pointer& rpInterfaceObject,
+                                             const double NeighborDistance) override;
 
     void GetValue(std::vector<std::size_t>& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {

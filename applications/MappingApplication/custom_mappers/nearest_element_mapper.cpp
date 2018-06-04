@@ -27,7 +27,8 @@ namespace Kratos
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance)
+void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+                                                      const double NeighborDistance)
 {
     const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
 
@@ -43,6 +44,18 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
                 // if it is closer, then we update the members to make this geometry the closest projection
                 // Store SF-values
                 // Store INTERFACE_EQUATION_ID s of the nodes of the geometry
+}
+
+
+
+void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject::Pointer& rpInterfaceObject,
+                                                                      const double NeighborDistance)
+{
+    const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
+
+    // looping the points of the geometry and finding the nearest neighbor
+
+    // SetIsApproximation()
 }
 
 void NearestElementLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeights,

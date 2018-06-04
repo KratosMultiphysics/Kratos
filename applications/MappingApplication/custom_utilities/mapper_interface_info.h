@@ -113,6 +113,9 @@ public:
 
     virtual void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) = 0;
 
+    virtual void ProcessSearchResultForApproximation(
+        const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) {}
+
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,
                                                 const IndexType SourceRank=0) const = 0;
@@ -120,6 +123,7 @@ public:
     virtual void Clear()
     {
         mLocalSearchWasSuccessful = false;
+        mIsApproximation = false;
     }
 
     IndexType GetLocalSystemIndex() const { return mSourceLocalSystemIndex; }
@@ -127,10 +131,13 @@ public:
     IndexType GetSourceRank() const { return mSourceRank; }
 
     bool GetLocalSearchWasSuccessful() const { return mLocalSearchWasSuccessful; }
+    void SetLocalSearchWasSuccessful() { mLocalSearchWasSuccessful = true; }
 
-    void SetLocalSearchWasSuccessful()
+    bool GetIsApproximation() const { return mIsApproximation; }
+    void SetIsApproximation()
     {
-        mLocalSearchWasSuccessful = true;
+        mLocalSearchWasSuccessful = true; // If an approximation is found also means that the local search has been successful!
+        mIsApproximation = true;
     }
 
     void UpdateCoordinates(const CoordinatesArrayType& rCoordinates)
@@ -242,8 +249,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mLocalSearchWasSuccessful = false; // this is not being serialized since it is not needed after mpi-data-exchange!
+    bool mIsApproximation = false;
 
+    bool mLocalSearchWasSuccessful = false; // this is not being serialized since it is not needed after mpi-data-exchange!
 
     ///@}
     ///@name Private Operators
@@ -264,11 +272,13 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         rSerializer.save("LocalSysIdx", mSourceLocalSystemIndex);
+        rSerializer.save("IsApproximation", mIsApproximation);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         rSerializer.load("LocalSysIdx", mSourceLocalSystemIndex);
+        rSerializer.load("IsApproximation", mIsApproximation);
     }
 
     ///@}

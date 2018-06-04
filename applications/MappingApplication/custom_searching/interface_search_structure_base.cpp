@@ -156,7 +156,7 @@ namespace Kratos
             std::vector<double> neighbor_distances(num_interface_obj_bin);
             auto interface_obj = Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0));
 
-            // #pragma omp parallel for / TODO this requires to make some things thread-local!
+            // #pragma omp parallel for // TODO this requires to make some things thread-local!
             for (SizeType i = 0; i < mpMapperInterfaceInfos->size(); ++i)
             {
                 const auto& r_interface_info = (*mpMapperInterfaceInfos)[i];
@@ -174,6 +174,16 @@ namespace Kratos
 
                 for (SizeType j=0; j<number_of_results; ++j)
                     r_interface_info->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
+
+                // If the search did not result in a "valid" results we try to compute an approximation
+                if (!r_interface_info->GetLocalSearchWasSuccessful())
+                {
+                    for (SizeType j=0; j<number_of_results; ++j)
+                    {
+                        r_interface_info->ProcessSearchResultForApproximation(
+                            neighbor_results[j], neighbor_distances[j]);
+                    }
+                }
             }
         }
     }
