@@ -801,7 +801,7 @@ namespace Kratos {
                 }
 
                 rigid_body_element->Initialize(r_process_info);
-                // rigid_body_element->CustomInitialize(submp);
+                rigid_body_element->CustomInitialize(submp);
             }
         }
 
@@ -1182,7 +1182,7 @@ namespace Kratos {
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE];
             }
 
-            rigid_body_element.CustomInitialize(*sub_model_part);
+            // rigid_body_element.CustomInitialize(*sub_model_part);
 
             rigid_body_elements_counter++;
         }
