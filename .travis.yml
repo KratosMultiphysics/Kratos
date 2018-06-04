@@ -28,16 +28,12 @@ addons:
       - libboost-dev
       - libblas-dev
       - liblapack-dev
-      - python3-pip
-      - libhdf5-dev
 
 before_script:
 - export PYTHONPATH=${PYTHONPATH}:${TRAVIS_BUILD_DIR}
 - export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${TRAVIS_BUILD_DIR}/libs
 
 script:
-- python3 -m pip install --user numpy
-- python3 -m pip install --user h5py
 - cp scripts/build/travis/configure_travis_trusty.sh cmake_build/configure.sh
 - cd cmake_build
 - bash configure.sh
