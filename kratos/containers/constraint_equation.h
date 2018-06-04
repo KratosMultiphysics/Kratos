@@ -22,7 +22,6 @@
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
-#include <boost/functional/hash.hpp>
 
 namespace Kratos
 {
@@ -45,12 +44,12 @@ namespace Kratos
  */
 class MasterSlaveRelation : public IndexedObject
 {
-    typedef std::size_t IndexType;
   public:
+    typedef std::size_t IndexType;
+    typedef Matrix MatrixType;
+    typedef Vector VectorType;    
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveRelation);
     typedef MasterData::Pointer MasterDataPointerType;
-
-  public:
 
     // empty constructor and methods to add master and slave independently.
     MasterSlaveRelation() : IndexedObject(0), mSlaveDofId(0)
@@ -90,6 +89,41 @@ class MasterSlaveRelation : public IndexedObject
     std::size_t GetNumberOfMasters() const
     {
         return mMasterDataSet.size();
+    }
+
+
+    /**
+     * this determines the master equation IDs connected to this constraint
+     * @param rResult the elemental equation ID vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
+                                  EquationIdVectorType& rMasterEquationIds,
+                                  ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rSlaveEquationIds.size() != 0)
+            rSlaveEquationIds.resize(0);
+
+        if (rMasterEquationIds.size() != 0)
+            rMasterEquationIds.resize(0);
+    }
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate all elemental contributions to the global system
+     * matrix and the right hand side
+     * @param rTransformationMatrix the elemental left hand side matrix
+     * @param rConstant the elemental right hand side
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateLocalSystem(MatrixType& rTransformationMatrix,
+                                      VectorType& rConstantVector,
+                                      ProcessInfo& rCurrentProcessInfo)
+    {
+      if (rTransformationMatrix.size1() != 0)
+      {
+    	rTransformationMatrix.resize(0, 0, false);
+      }
     }
 
     void PrintInfo(std::ostream& Output) const override
