@@ -235,12 +235,13 @@ protected:
     {
         KRATOS_TRY
 
+        if(Kernel::GetModel().HasModelPart("DistancePart"))
+            Kernel::GetModel().DeleteModelPart("DistancePart"); //wipe out the aux modelpart if it exists already
         //generate
-        ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
+        this->mp_distance_model_part = &(Kernel::GetModel().CreateModelPart("DistancePart",1) );
 
-        ModelPart::Pointer& p_distance_model_part = this->mp_distance_model_part;
-        p_distance_model_part.swap(pAuxModelPart);
-
+        ModelPart*& p_distance_model_part = this->mp_distance_model_part;
+        
         p_distance_model_part->Nodes().clear();
         p_distance_model_part->Conditions().clear();
         p_distance_model_part->Elements().clear();

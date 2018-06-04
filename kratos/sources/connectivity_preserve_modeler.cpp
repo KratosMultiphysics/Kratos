@@ -37,6 +37,11 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 {
     KRATOS_TRY;
 
+    if(rOriginModelPart.IsSubModelPart() == true) 
+        KRATOS_ERROR << "ConnectivityPreserveModeler expects to work on root modelparts. This is not the case for the ORIGIN model part named: " << rOriginModelPart << std::endl;
+    if(rDestinationModelPart.IsSubModelPart() == true) 
+        KRATOS_ERROR << "ConnectivityPreserveModeler expects to work on root modelparts. This is not the case for the DESTINATION model part named: " << rDestinationModelPart << std::endl;
+    
     this->ResetModelPart(rDestinationModelPart);
 
     this->CopyCommonData(rOriginModelPart, rDestinationModelPart);

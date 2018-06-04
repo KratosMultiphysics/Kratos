@@ -2,6 +2,7 @@
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
+from KratosMultiphysics import Model
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 

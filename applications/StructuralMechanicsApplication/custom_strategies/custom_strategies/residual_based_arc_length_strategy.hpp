@@ -23,6 +23,8 @@
 /* Project includes */
 // #include "structural_mechanics_application.h"
 #include "includes/define.h"
+#include "includes/kernel.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -102,9 +104,13 @@ public:
             bool ReformDofSetAtEachStep = true,
             bool MoveMeshFlag           = true
             )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag),
+         mAuxElementModelPart(Kernel::GetModel().CreateModelPart("ResidualBasedArcLengthStrategy_AuxElementModelPart")),
+         mAuxConditionModelPart(Kernel::GetModel().CreateModelPart("ResidualBasedArcLengthStrategy_AuxConditionModelPart"))
     {
         KRATOS_TRY;
+        
+        
 
         // Set flags to default values
         SetMaxIterationNumber(MaxIterations);
@@ -156,7 +162,11 @@ public:
     /************************************* DESTRUCTOR **********************************/
     /***********************************************************************************/
     
-    ~ResidualBasedArcLengthStrategy() override {}
+    ~ResidualBasedArcLengthStrategy() override 
+    {
+        Kernel::GetModel().DeleteModelPart("ResidualBasedArcLengthStrategy_AuxElementModelPart");
+        Kernel::GetModel().DeleteModelPart("ResidualBasedArcLengthStrategy_AuxConditionModelPart");
+    }
 
     /************************************* OPERATIONS **********************************/
     /***********************************************************************************/
@@ -1197,8 +1207,8 @@ private:
     RealType mlambda_old;
     RealType mdelta_lambda;
     RealType mdelta_lambda_old;
-    ModelPart mAuxElementModelPart;
-    ModelPart mAuxConditionModelPart;
+    ModelPart& mAuxElementModelPart;
+    ModelPart& mAuxConditionModelPart;
 
     /*@} */
     /**@name Private Operators*/

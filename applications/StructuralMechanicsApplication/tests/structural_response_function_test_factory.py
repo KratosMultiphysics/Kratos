@@ -60,6 +60,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
             self.response_function.FinalizeSolutionStep()
 
     def tearDown(self):
+        KratosMultiphysics.Model().Reset()
         # Within this location context:
         with controlledExecutionScope(self.path):
             self.response_function.Finalize()

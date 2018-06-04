@@ -30,9 +30,7 @@ class WorkFolderScope:
 @KratosUnittest.skipUnless(have_external_solvers, "Missing required application: ExternalSolversApplication")
 class ManufacturedSolutionTest(KratosUnittest.TestCase):
     def testManufacturedSolution(self):
-        self.setUp()
         self.runTest()
-        self.tearDown()
 
     def setUp(self):
         self.print_output = False
@@ -73,6 +71,7 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
             for mesh_name in self.meshes_list:
                 # Solve the problem imposing the previously obtained values
                 CaseProjectParameters = self.OriginalProjectParameters.Clone()
+                KratosMultiphysics.Model().Reset()
                 FluidProblem = ManufacturedSolutionProblem(CaseProjectParameters, mesh_name, self.print_output, self.problem_type, self.analytical_solution_type)
                 FluidProblem.SetFluidProblem()
                 FluidProblem.SolveFluidProblem()
@@ -158,6 +157,7 @@ class ManufacturedSolutionProblem:
         self.ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.input_file_name)
 
         ## Fluid model part definition
+        print(KratosMultiphysics.Model())
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 

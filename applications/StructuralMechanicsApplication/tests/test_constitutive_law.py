@@ -9,6 +9,9 @@ import math
 class TestConstitutiveLaw(KratosUnittest.TestCase):
     def setUp(self):
         pass
+    
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
 
     @staticmethod
     def _create_geometry(model_part, dim):

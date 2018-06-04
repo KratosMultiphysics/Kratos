@@ -14,6 +14,8 @@
 // External includes
 
 // Project includes
+#include "includes/kernel.h"
+#include "containers/model.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/model_part_io.h"
@@ -57,7 +59,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
 
     // Auxiliar model part where to store new nodes and elements
-    ModelPart auxiliar_model_part;
+    ModelPart& auxiliar_model_part = Kernel::GetModel().CreateModelPart("AuxiliarModelPart");
 
     // Auxiliar values
     NodesArrayType& nodes_array = geometry_model_part.Nodes();
@@ -192,6 +194,8 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
         ModelPartIO model_part_io(output_name, IO::WRITE);
         model_part_io.WriteModelPart(mrThisModelPart);
     }
+    
+    Kernel::GetModel().DeleteModelPart("AuxiliarModelPart");
 
     KRATOS_CATCH("")
 }

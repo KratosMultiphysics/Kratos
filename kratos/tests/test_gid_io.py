@@ -13,6 +13,7 @@ def GetFilePath(fileName):
 
 class TestGidIO(KratosUnittest.TestCase):
 
+
     def __WriteOutput(self, model_part, output_file):
 
         gid_output = GiDOutputProcess(model_part,
@@ -72,7 +73,7 @@ class TestGidIO(KratosUnittest.TestCase):
         params["reference_file_name"].SetString(GetFilePath(reference_file))
         params["output_file_name"].SetString(output_file)
 
-        cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(KratosMultiphysics.ModelPart(), params)
+        cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(params)
 
         cmp_process.ExecuteInitialize()
         cmp_process.ExecuteBeforeSolutionLoop()

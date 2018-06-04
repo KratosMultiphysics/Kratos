@@ -14,9 +14,14 @@ class TestModel(KratosUnittest.TestCase):
         outlet = model_part.CreateSubModelPart("Outlet")
 
         model = KratosMultiphysics.Model()
-        model.AddModelPart(model_part)
+        #model.AddModelPart(model_part)
+        print("----------------")
 
         aaa = model["Main.Outlet"].CreateSubModelPart("aaa")
+        print(" Main -->",model["Main"])
+        print("---------------------")
+        print(" Main.Outlet -->",model["Main.Outlet"])
+        print(aaa)
 
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp

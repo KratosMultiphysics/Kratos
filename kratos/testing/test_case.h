@@ -24,6 +24,8 @@
 
 // Project includes
 #include "testing/tester.h"
+#include "includes/kernel.h"
+#include "containers/model.h"
 #include "testing/test_case_result.h"
 
 namespace Kratos

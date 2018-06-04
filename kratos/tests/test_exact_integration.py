@@ -8,6 +8,7 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
+    
 
     # Test exact integration in 2D
     # LINE

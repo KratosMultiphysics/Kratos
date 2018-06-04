@@ -50,7 +50,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSimpleMortarMapper1, KratosCoreMortarMapperFastSuite)
         {
-            ModelPart this_model_part("Main");
+            ModelPart& this_model_part = Kernel::GetModel().CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             this_model_part.CreateSubModelPart("SlaveModelPart");
             ModelPart& slave_model_part = this_model_part.GetSubModelPart("SlaveModelPart");
@@ -134,7 +134,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSimpleMortarMapper2, KratosCoreMortarMapperFastSuite)
         {
-            ModelPart this_model_part("Main");
+            ModelPart& this_model_part = Kernel::GetModel().CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             this_model_part.CreateSubModelPart("SlaveModelPart");
             ModelPart& slave_model_part = this_model_part.GetSubModelPart("SlaveModelPart");
@@ -226,7 +226,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSimpleMortarMapper3, KratosCoreMortarMapperFastSuite)
         {
-            ModelPart this_model_part("Main");
+            ModelPart& this_model_part = Kernel::GetModel().CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             this_model_part.CreateSubModelPart("SlaveModelPart");
             ModelPart& slave_model_part = this_model_part.GetSubModelPart("SlaveModelPart");

@@ -17,6 +17,8 @@
 
 // Project includes
 #include "move_mesh_utilities.h"
+#include "includes/kernel.h"
+#include "containers/model.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -43,7 +45,7 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 //******************************************************************************
 //******************************************************************************
 
-void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
+void CalculateMeshVelocities(ModelPart* pMeshModelPart,
                              const int TimeOrder, const double DeltaTime) {
 
     CalculateMeshVelocities(*pMeshModelPart, TimeOrder, DeltaTime);
@@ -124,12 +126,11 @@ void SetMeshToInitialConfiguration(
 
 //******************************************************************************
 //******************************************************************************
-ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
+ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName) {
   KRATOS_TRY;
 
-  ModelPart::Pointer pmesh_model_part;
-  pmesh_model_part = Kratos::make_shared<ModelPart>("MeshPart", 1);
+  ModelPart* pmesh_model_part = &(Kernel::GetModel().CreateModelPart("MeshPart", 1));
 
   // initializing mesh nodes and variables
   pmesh_model_part->Nodes() = rModelPart.Nodes();

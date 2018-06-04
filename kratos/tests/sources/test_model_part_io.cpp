@@ -120,7 +120,7 @@ KRATOS_TEST_CASE_IN_SUITE(
         conditions_partitions, nodes_all_partitions, elements_all_partitions,
         conditions_all_partitions);
 
-    ModelPart model_part_0("Partition 0");
+    ModelPart& model_part_0 = Kernel::GetModel().CreateModelPart("Partition 0");
     model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_0.AddNodalSolutionStepVariable(FORCE);
     model_part_0.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(
     KRATOS_CHECK_EQUAL(
         model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
 
-    ModelPart model_part_1("Partition 1");
+    ModelPart& model_part_1 = Kernel::GetModel().CreateModelPart("Partition 1");
     model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_1.AddNodalSolutionStepVariable(FORCE);
     model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -176,7 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     
     // Create a model part to write
-    ModelPart main_model_part("MainModelPart");
+    ModelPart& main_model_part = Kernel::GetModel().CreateModelPart("MainModelPart");
     main_model_part.SetBufferSize(1);
     Properties::Pointer p_properties_1(new Properties(1));
     p_properties_1->SetValue(DENSITY, 1000.0);
@@ -220,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.GetMesh().GetCondition(1).SetValue(TEMPERATURE, temperature);
     main_model_part.GetMesh().GetCondition(1).SetValue(DISPLACEMENT_X, displacement_x);
 
-    ModelPart::Pointer p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
+    ModelPart* p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
     std::vector<ModelPart::IndexType> sub_model_part_nodes = {1,2,4};
     std::vector<ModelPart::IndexType> sub_model_part_elems = {1};
     std::vector<ModelPart::IndexType> sub_model_part_conds = {1,3};
@@ -240,7 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
 
     // Read and check the written .mdpa file
     ModelPartIO * model_part_io_output = new ModelPartIO(output_file_name);
-    ModelPart main_model_part_output("MainModelPartOutput");
+    ModelPart& main_model_part_output = Kernel::GetModel().CreateModelPart("MainModelPartOutput");
     model_part_io_output->ReadModelPart(main_model_part_output);
 
     // Assert results

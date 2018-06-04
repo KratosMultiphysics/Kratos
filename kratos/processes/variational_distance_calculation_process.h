@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 
@@ -30,9 +30,11 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
+#include "includes/kernel.h"
 #include "includes/kratos_flags.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
 #include "geometries/geometry_data.h"
 
 #include "spaces/ublas_space.h"
@@ -84,10 +86,10 @@ class VariationalDistanceCalculationProcess
     : public Process
 {
 public:
-    
+
     KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
     KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -213,7 +215,7 @@ public:
         //TODO: check flag    PERFORM_STEP1
         //step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
         mp_distance_model_part->pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
-        
+
         //unfix the distances
         const int nnodes = static_cast<int>(mp_distance_model_part->Nodes().size());
         #pragma omp parallel for
@@ -221,11 +223,11 @@ public:
         {
             auto it = mp_distance_model_part->NodesBegin() + iii;
             it->Free(DISTANCE);
-            
-            
+
+
             double& d = it->FastGetSolutionStepValue(DISTANCE);
             it->SetValue(DISTANCE, d); //save the distances
-              
+
             if(d == 0){
                 it->Fix(DISTANCE);
                 d = 1e-15;
@@ -236,48 +238,48 @@ public:
                 else
                     d = -1.015;
             }
-            
-            
+
+
         }
-        
-        
+
+
         const int nelem = static_cast<int>(mp_distance_model_part->Elements().size());
-        
+
         #pragma omp parallel for
         for(int iii=0; iii<nelem; iii++)
         {
             auto it = mp_distance_model_part->ElementsBegin() + iii;
             array_1d<double,TDim+1> distances;
             auto& geom = it->GetGeometry();
-            
+
             for(unsigned int i=0; i<TDim+1; i++)
                 distances[i] = geom[i].GetValue(DISTANCE);
-            
+
             array_1d<double,TDim+1> original_distances = distances;
-            
+
             unsigned int positives = 0, negatives=0;
             for(unsigned int i=0; i<TDim+1; i++)
             {
                 if(distances[i] >= 0) positives++;
                 else negatives++;
             }
-        
+
             if(positives> 0  && negatives>0) //the element is cut by the interface
             {
                 if(TDim==3)
                     GeometryUtils::CalculateTetrahedraDistances(geom, distances);
                 else
                     GeometryUtils::CalculateTriangleDistances(geom,distances);
-                
-                //assign the sign 
+
+                //assign the sign
                 for(unsigned int i=0; i<TDim+1; i++)
                 {
                     if(original_distances[i] < 0) distances[i] = -distances[i];
                 }
-               
+
                 for(unsigned int i=0; i<TDim+1; i++)
                 {
-                    
+
                     double& d = geom[i].FastGetSolutionStepValue(DISTANCE);
                     geom[i].SetLock();
                     if(std::abs(d) > std::abs(distances[i])) d = distances[i];
@@ -286,7 +288,7 @@ public:
                 }
             }
         }
-        
+
         //compute the maximum and minimum distance for the fixed nodes
         double max_dist = 0.0;
         double min_dist = 0.0;
@@ -301,8 +303,8 @@ public:
                 if(d<min_dist)
                     min_dist = d;
             }
-        }        
-        
+        }
+
         //assign the max dist to all of the non-fixed positve nodes and the minimum one to the non-fixed negatives
         #pragma omp parallel for
         for(int iii=0; iii<nnodes; iii++)
@@ -316,8 +318,8 @@ public:
                 else
                     d = min_dist;
             }
-        }  
-        
+        }
+
         //
         if(mp_distance_model_part->GetCommunicator().TotalProcesses() != 1) //MPI case
         {
@@ -327,9 +329,9 @@ public:
                 auto it = mp_distance_model_part->NodesBegin() + iii;
                 it->FastGetSolutionStepValue(DISTANCE) = std::abs(it->FastGetSolutionStepValue(DISTANCE));
             }
-            
+
             mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
-            
+
             #pragma omp parallel for
             for(int iii=0; iii<nnodes; iii++)
             {
@@ -338,8 +340,8 @@ public:
                     it->FastGetSolutionStepValue(DISTANCE) = -it->FastGetSolutionStepValue(DISTANCE);
             }
         }
-        
-        
+
+
         mp_solving_strategy->Solve();
 
 
@@ -349,7 +351,7 @@ public:
         {
              mp_solving_strategy->Solve();
         }
-        
+
         //unfix the distances
         for(auto it = mp_distance_model_part->NodesBegin(); it!=mp_distance_model_part->NodesEnd(); ++it)
             it->Free(DISTANCE);
@@ -425,7 +427,7 @@ protected:
     ///@{
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
-    ModelPart::Pointer mp_distance_model_part;
+    ModelPart* mp_distance_model_part;
     ModelPart& mr_base_model_part;
 
     typename SolvingStrategyType::Pointer mp_solving_strategy;
@@ -439,8 +441,9 @@ protected:
         KRATOS_TRY
 
         //generate
-        ModelPart::Pointer pAuxModelPart = ModelPart::Pointer( new ModelPart("DistancePart",1) );
-        mp_distance_model_part.swap(pAuxModelPart);
+        mp_distance_model_part = &(Kernel::GetModel().CreateModelPart("DistancePart"));
+        mp_distance_model_part->SetBufferSize(1);
+//         mp_distance_model_part.swap(pAuxModelPart);
 
         mp_distance_model_part->Nodes().clear();
         mp_distance_model_part->Conditions().clear();
@@ -472,7 +475,7 @@ protected:
 
             //assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = iii->pGetGeometry();
-            
+
             mp_distance_model_part->Elements().push_back(p_element);
         }
 
@@ -605,6 +608,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined 
+#endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined
 
 

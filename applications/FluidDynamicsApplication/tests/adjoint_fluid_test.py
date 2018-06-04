@@ -42,7 +42,8 @@ class WorkFolderScope:
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
 
-@UnitTest.skipUnless(have_required_applications," ".join(missing_applications_message))
+#@UnitTest.skipUnless(have_required_applications," ".join(missing_applications_message))
+@UnitTest.skip("Test disabled until HDF5Application is updated.")
 class AdjointFluidTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -85,7 +86,8 @@ class AdjointFluidTest(UnitTest.TestCase):
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
                 },
                 "output_time_settings" : {
-                    "output_step_frequency": 1
+                    "output_step_frequency": 1,
+                    "file_name"            :"test"
                 }
             }
         }'''))
@@ -116,8 +118,8 @@ class AdjointFluidTest(UnitTest.TestCase):
 
         primal_analysis = FluidDynamicsAnalysis(model,settings["primal_settings"])
         primal_analysis.Run()
-        adjoint_model = km.Model()
-        adjoint_analysis = AdjointFluidAnalysis(adjoint_model,settings["adjoint_settings"])
+
+        adjoint_analysis = AdjointFluidAnalysis(model,settings["adjoint_settings"])
         adjoint_analysis.Run()
 
 

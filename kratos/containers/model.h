@@ -30,7 +30,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
+  ///@addtogroup KratosCore
   ///@{
 
   ///@name Kratos Globals
@@ -52,8 +52,12 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Short class definition.
-  /** Detail class definition.
+  /** 
+   * @class Model
+   * @ingroup KratosCore
+   * @brief This class aims to manage different model parts across multi-physics simulations
+   * @details The class behaves as a manager of the different model parts. It uses unordered_maps of the variables and the model parts for that pourpose
+   * @author Riccardo Rossi
   */
   class KRATOS_API(KRATOS_CORE)  Model
     {
@@ -72,12 +76,27 @@ namespace Kratos
       Model(){};
 
       /// Destructor.
-      virtual ~Model(){};
+      virtual ~Model()
+      {
+          mRootModelPartMap.clear();
+          mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
+      }
+      
+      Model & operator=(const Model&) = delete;
+      Model(const Model&) = delete;
 
 
       ///@}
       ///@name Operators
       ///@{
+      void Reset();
+      
+      ModelPart& CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize=1 );
+      
+      void DeleteModelPart( const std::string ModelPartName );
+      
+      void RenameModelPart( const std::string OldName, const std::string NewName );
+      
       void AddModelPart(ModelPart::Pointer pModelPart); //TODO: change this conveniently
 
       ModelPart& GetModelPart(const std::string& rFullModelPartName);
@@ -165,8 +184,57 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-      std::unordered_map< std::string, ModelPart* > mflat_map; //TODO: deprecate this
-      std::unordered_map< std::string, ModelPart* > mRootModelPartMap;
+      std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap;
+      std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
+      
+      friend class Serializer;
+      
+      void save(Serializer& rSerializer) const
+      {
+          //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
+          std::vector<VariablesList* > aux_var_lists;
+          std::vector<std::string> aux_names;
+          std::vector<ModelPart* > aux_model_part_pointers;
+          aux_var_lists.reserve(mListOfVariablesLists.size());
+          aux_names.reserve(mRootModelPartMap.size());
+          aux_model_part_pointers.reserve(mRootModelPartMap.size());
+          
+          for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
+          {
+              aux_names.push_back(it->first);
+              aux_model_part_pointers.push_back((it->second).get());
+          }
+          
+          for(auto it = mListOfVariablesLists.begin(); it!=mListOfVariablesLists.end(); ++it)
+              aux_var_lists.push_back(it->get());
+          
+          rSerializer.save("ListOfVariablesLists", aux_var_lists);
+          rSerializer.save("ModelPartNames", aux_names);
+          rSerializer.save("ModelPartPointers", aux_model_part_pointers);
+      }
+
+      void load(Serializer& rSerializer)
+      {
+          //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
+          std::vector<VariablesList* > aux_var_lists;
+          std::vector<std::string> aux_names;
+          std::vector<ModelPart* > aux_model_part_pointers;
+          
+          rSerializer.save("ListOfVariablesLists", aux_var_lists);
+          rSerializer.save("ModelPartNames", aux_names);
+          rSerializer.save("ModelPartPointers", aux_model_part_pointers);   
+
+          for(unsigned int i=0; i<aux_var_lists.size(); ++i)
+              mListOfVariablesLists.insert(std::move(std::unique_ptr<VariablesList>(aux_var_lists[i]))); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
+          
+          for(unsigned int i=0; i<aux_names.size(); ++i)
+          {
+              mRootModelPartMap.insert(std::make_pair(aux_names[i],aux_model_part_pointers[i]));
+//               mRootModelPartMap[aux_names[i]] = aux_model_part_pointers[i];              
+          }
+          
+          
+      }
 
 
       ///@}
@@ -177,7 +245,8 @@ namespace Kratos
       ///@}
       ///@name Private Operations
       ///@{
-
+      ModelPart* RecursiveSearchByName(const std::string& ModelPartName, ModelPart* pModelPart);
+      
       void GetSubPartsList(const std::string& rFullModelPartName,
                            std::vector<std::string>& rSubPartsList);
 

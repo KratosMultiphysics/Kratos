@@ -85,7 +85,7 @@ namespace Kratos {
             rModelPart.CreateNewCondition("NavierStokesWallCondition2D2N", 1, cond_nodes, p_elem_prop);
 
             // Set the drag computation submodelpart
-            ModelPart::Pointer p_sub_model_part = rModelPart.CreateSubModelPart("DragModelPart");
+            ModelPart* p_sub_model_part = rModelPart.CreateSubModelPart("DragModelPart");
             std::vector<ModelPart::IndexType> sub_model_part_nodes = {1, 2};
             std::vector<ModelPart::IndexType> sub_model_part_conds = {1};
             p_sub_model_part->AddNodes(sub_model_part_nodes);
@@ -140,7 +140,7 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(ComputeBodyFittedDrag, FluidDynamicsApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
-			ModelPart model_part("Main", 3);
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -173,7 +173,7 @@ namespace Kratos {
             bool is_embedded = true;
 
             // Create a test element inside a modelpart
-			ModelPart model_part("Main", 3);
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part, is_embedded);
             Element::Pointer p_element = model_part.pGetElement(1);
 

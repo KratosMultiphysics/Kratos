@@ -1,7 +1,7 @@
 {
     "problem_data"                     : {
         "problem_name"    : "cylinder_2d",
-        "model_part_name" : "MainModelPart",
+        "model_part_name" : "AdjointModelPart",
         "domain_size"     : 2,
         "start_step"      : 1.1,
         "nsteps"          : 10,
@@ -96,13 +96,14 @@
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
-	        "model_part_name" : "MainModelPart",
+	        "model_part_name" : "AdjointModelPart",
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
             "nodal_results_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-            }
+            },
+            "file_name": "test"
         }
     },{
         "kratos_module"   : "KratosMultiphysics",

@@ -22,7 +22,7 @@ class PythonSolver(object):
         model -- The Model to be used
         settings -- The solver settings used
         """
-        if (type(model) != KratosMultiphysics.Model):
+        if (type(model) != KratosMultiphysics.ModelInterface):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
         if (type(settings) != KratosMultiphysics.Parameters):

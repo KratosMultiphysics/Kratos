@@ -50,8 +50,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
             self.solver.ImportModelPart()
             self.solver.AddDofs()
 
-        self.model.AddModelPart(self.main_model_part)
-
         # this should let eventual derived stages modify the model after reading.
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()

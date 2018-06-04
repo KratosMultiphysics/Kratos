@@ -9,6 +9,9 @@ from math import sqrt, cos, sin
 class DynamicSchemesTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
+    
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
 
     def _base_spring_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2, dt = 5.0e-3):
         mp = KratosMultiphysics.ModelPart("sdof")

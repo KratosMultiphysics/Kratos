@@ -47,7 +47,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(VariableChecks, KratosCoreFastSuite)
         {
-            ModelPart model_part("TestModelPart");
+            ModelPart& model_part = Kernel::GetModel().CreateModelPart("TestModelPart");
 
             model_part.AddNodalSolutionStepVariable(VELOCITY);
             model_part.AddNodalSolutionStepVariable(PRESSURE);

@@ -50,7 +50,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestNodalH1, KratosNodalHFastSuite)
         {
-            ModelPart this_model_part("Main");
+            ModelPart& this_model_part = Kernel::GetModel().CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
@@ -120,7 +120,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestNodalH2, KratosNodalHFastSuite)
         {
-            ModelPart this_model_part("Main");
+            ModelPart& this_model_part = Kernel::GetModel().CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);

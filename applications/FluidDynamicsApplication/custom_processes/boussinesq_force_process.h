@@ -83,7 +83,7 @@ namespace Kratos
       ///@{
 
       /// Constructor
-      BoussinesqForceProcess(ModelPart::Pointer pModelPart, Parameters& rParameters);
+      BoussinesqForceProcess(ModelPart* pModelPart, Parameters& rParameters);
 
       /// Destructor.
       ~BoussinesqForceProcess() override;

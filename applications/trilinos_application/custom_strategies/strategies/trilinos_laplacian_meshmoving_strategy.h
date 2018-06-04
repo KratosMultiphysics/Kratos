@@ -332,7 +332,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpmesh_model_part;
+    ModelPart* mpmesh_model_part;
 
     typename BaseType::Pointer mstrategy;
 
@@ -353,7 +353,7 @@ private:
     void GenerateMeshPart()
     {
         // Initialize auxiliary model part storing the mesh elements
-        mpmesh_model_part = ModelPart::Pointer(new ModelPart("MeshPart", 1));
+        mpmesh_model_part = &(Kernel::GetModel().CreateModelPart("MeshPart", 1));
 
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();

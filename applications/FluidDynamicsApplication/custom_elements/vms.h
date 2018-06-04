@@ -301,7 +301,8 @@ public:
         this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
 
         // For OSS: Add projection of residuals to RHS
-        if (rCurrentProcessInfo[OSS_SWITCH] == 1)
+        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
+        if (r_const_process_info[OSS_SWITCH] == 1)
         {
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
@@ -353,7 +354,8 @@ public:
          These terms are not used in OSS, as they belong to the finite element
          space and cancel out with their projections.
          */
-        if (rCurrentProcessInfo[OSS_SWITCH] != 1)
+        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
+        if (r_const_process_info[OSS_SWITCH] != 1)
         {
             double ElemSize = this->ElementSize(Area);
             double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);

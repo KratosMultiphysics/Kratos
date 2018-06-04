@@ -11,6 +11,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
+    
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)    
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)

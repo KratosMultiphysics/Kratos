@@ -20,6 +20,8 @@
 #include "testing/testing.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+#include "includes/kernel.h"
+#include "containers/model.h"
 #include "custom_elements/compressible_navier_stokes.h"
 
 namespace Kratos {
@@ -35,7 +37,7 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NConstant, FluidDynamicsApplicationFastSuite)
 		{
             std::cout<<"\n\nSupersonic Test For Constant Variables"<<std::endl;
-			ModelPart modelPart("Main");
+			ModelPart& modelPart = Kernel::GetModel().CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -139,7 +141,7 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NStationarySupersonic, FluidDynamicsApplicationFastSuite)
 		{
             std::cout<<"\n\nSupersonic Test For Stationary Rigid Movements"<<std::endl;
-			ModelPart modelPart("Main");
+			ModelPart& modelPart = Kernel::GetModel().CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -310,7 +312,7 @@ namespace Kratos {
 		 */	    KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NStationarySubsonic, FluidDynamicsApplicationFastSuite)
 		{
             std::cout<<"\n\nSubsonic Test For Stationary Rigid Movements"<<std::endl;
-			ModelPart modelPart("Main");
+			ModelPart& modelPart = Kernel::GetModel().CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
@@ -482,7 +484,7 @@ namespace Kratos {
 		 KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes3D4NConstant, FluidDynamicsApplicationFastSuite)
 		 {
 			 std::cout<<"\n\nSupersonic Test For 3D Constant Variables"<<std::endl;
-			 ModelPart modelPart("Main");
+			 ModelPart& modelPart = Kernel::GetModel().CreateModelPart("Main");
 			 modelPart.SetBufferSize(3);
  
 			 // Variables addition
@@ -587,7 +589,7 @@ namespace Kratos {
 		 KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes3D4NStationarySupersonic, FluidDynamicsApplicationFastSuite)
 		 {
 			 std::cout<<"\n\nSupersonic Test For 3D Stationary Rigid Movements"<<std::endl;
-			 ModelPart modelPart("Main");
+			 ModelPart& modelPart = Kernel::GetModel().CreateModelPart("Main");
 			 modelPart.SetBufferSize(3);
  
 			 // Variables addition

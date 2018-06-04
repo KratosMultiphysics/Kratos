@@ -64,7 +64,8 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         #self.assertAlmostEqual(rhs[9],Nodal_Moments)
         #self.assertAlmostEqual(rhs[10],-Nodal_Moments)
         #self.assertAlmostEqual(rhs[11],Nodal_Moments)
-
+    def tearDown(self):
+        KratosMultiphysics.Model().Reset()
 
     def test_LineLoadCondition2D2N(self):
         dim = 2

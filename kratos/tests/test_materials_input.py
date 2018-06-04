@@ -31,7 +31,6 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         # Define a Model
         Model = KratosMultiphysics.Model()
-        Model.AddModelPart(model_part)
 
         test_settings = KratosMultiphysics.Parameters("""
         {

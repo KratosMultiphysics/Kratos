@@ -18,6 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
+#include "includes/kernel.h"
 #include "includes/kratos_parameters.h"
 
 // Application includes
@@ -40,15 +41,15 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
         })");
     auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
 
-    ModelPart read_model_part("test_read");
-    ModelPart write_model_part("test_write");
-    TestModelPartFactory::CreateModelPart(write_model_part, {{"Element2D3N"}});
-    TestModelPartFactory::CreateModelPart(read_model_part, {{"Element2D3N"}});
-    
-    read_model_part.SetBufferSize(2);
-    write_model_part.SetBufferSize(2);
+    ModelPart& r_read_model_part = Kernel::GetModel().CreateModelPart("test_read");
+    ModelPart& r_write_model_part = Kernel::GetModel().CreateModelPart("test_write");
+    TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}});
+    TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}});
 
-    for (auto& r_element : write_model_part.Elements())
+    r_read_model_part.SetBufferSize(2);
+    r_write_model_part.SetBufferSize(2);
+
+    for (auto& r_element : r_write_model_part.Elements())
     {
         r_element.SetValue(DISPLACEMENT, array_1d<double, 3>(3, r_element.Id() + 0.2345));
         r_element.SetValue(PRESSURE, r_element.Id() + 0.2345);
@@ -62,12 +63,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
         })");
 
     HDF5::ElementSolutionStepDataIO data_io(io_params, p_test_file);
-    data_io.WriteElementResults(write_model_part.Elements());
-    data_io.ReadElementResults(read_model_part.Elements());
+    data_io.WriteElementResults(r_write_model_part.Elements());
+    data_io.ReadElementResults(r_read_model_part.Elements());
 
-    for (auto& r_write_element : write_model_part.Elements())
+    for (auto& r_write_element : r_write_model_part.Elements())
     {
-        HDF5::ElementType& r_read_element = read_model_part.Elements()[r_write_element.Id()];
+        HDF5::ElementType& r_read_element = r_read_model_part.Elements()[r_write_element.Id()];
 
         KRATOS_CHECK(r_read_element.GetValue(DISPLACEMENT_X) ==
                      r_write_element.GetValue(DISPLACEMENT_X));

@@ -256,7 +256,10 @@ namespace Kratos
 			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 			{
+                                
 				if (i_test->second->IsSelected()) {
+                                        Kernel::GetModel().Reset();
+                                        
 					StartShowProgress(test_number, number_of_run_tests, i_test->second);
 					if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS) {
 						std::stringstream output_stream;
@@ -268,6 +271,7 @@ namespace Kratos
 					else
 						i_test->second->Run();
 					EndShowProgress(++test_number, number_of_run_tests, i_test->second);
+                                        
 				}
 			}
 
@@ -290,6 +294,7 @@ namespace Kratos
 			i_test != GetInstance().mTestCases.end(); i_test++)
 			{
 				if (i_test->second->IsSelected()) {
+                                        Kernel::GetModel().Reset();
 					StartShowProgress(test_number, number_of_run_tests, i_test->second);
 					i_test->second->Profile();
 					EndShowProgress(++test_number, number_of_run_tests, i_test->second);

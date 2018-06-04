@@ -94,7 +94,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess1, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            ModelPart& this_model_part =  Kernel::GetModel().CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             ShellToSolidShellProcessCreateModelPart(this_model_part);
@@ -123,7 +123,7 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestShellToSolidShellProcess2, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
+            ModelPart& this_model_part =  Kernel::GetModel().CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
 
             ShellToSolidShellProcessCreateModelPart(this_model_part);

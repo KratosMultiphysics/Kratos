@@ -71,7 +71,6 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
 
         self.primal_model_part = model_part
         model = Model()
-        model.AddModelPart(self.primal_model_part)
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
@@ -190,7 +189,7 @@ class MassResponseFunction(ResponseFunctionBase):
         import read_materials_process
         # Create a dictionary of model parts.
         model = Model()
-        model.AddModelPart(self.model_part)
+        #model.AddModelPart(self.model_part)
         # Add constitutive laws and material properties from json file to model parts.
         read_materials_process.ReadMaterialsProcess(model, self.response_settings["material_import_settings"])
         self.response_function_utility.Initialize()

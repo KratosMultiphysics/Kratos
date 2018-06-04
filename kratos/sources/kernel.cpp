@@ -14,6 +14,8 @@
 #include "includes/kernel.h"
 #include "includes/kratos_version.h"
 #include "input_output/logger.h"
+#include "containers/model.h"
+
 
 namespace Kratos {
 Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
@@ -34,6 +36,13 @@ std::unordered_set<std::string> &Kernel::GetApplicationsList() {
   static std::unordered_set<std::string> application_list;
   return application_list;
 }
+
+Model& Kernel::GetModel()
+{
+    static Model smodel;
+    return smodel;
+}
+
 
 bool Kernel::IsImported(std::string ApplicationName) const {
     if (GetApplicationsList().find(ApplicationName) !=

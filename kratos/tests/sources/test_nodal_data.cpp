@@ -22,7 +22,7 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(NodalSolutionStepData, KratosCoreFastSuite)
 		{
 			const int repeat = 10;
-			ModelPart model_part("test");
+			ModelPart& model_part = Kernel::GetModel().CreateModelPart("test");
 			model_part.AddNodalSolutionStepVariable(DISTANCE);
 			model_part.AddNodalSolutionStepVariable(VELOCITY);
 
@@ -49,7 +49,7 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(FluidNodalSolutionStepData, KratosCoreFastSuite)
 		{
 			const int repeat = 10;
-			ModelPart model_part("test");
+			ModelPart& model_part = Kernel::GetModel().CreateModelPart("test");
 			model_part.AddNodalSolutionStepVariable(PRESSURE);
 			model_part.AddNodalSolutionStepVariable(VELOCITY);
 			model_part.AddNodalSolutionStepVariable(FRACT_VEL);

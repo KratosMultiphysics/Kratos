@@ -70,11 +70,11 @@ namespace Kratos {
 
         ~ExplicitSolverSettings() {
         }
-        ModelPart::Pointer r_model_part;
-        ModelPart::Pointer contact_model_part;
-        ModelPart::Pointer fem_model_part;
-        ModelPart::Pointer cluster_model_part;
-        ModelPart::Pointer inlet_model_part;
+        ModelPart* r_model_part;
+        ModelPart* contact_model_part;
+        ModelPart* fem_model_part;
+        ModelPart* cluster_model_part;
+        ModelPart* inlet_model_part;
     };
 
     class KRATOS_API(DEM_APPLICATION) ExplicitSolverStrategy {

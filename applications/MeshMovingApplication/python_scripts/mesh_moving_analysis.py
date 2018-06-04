@@ -72,7 +72,7 @@ class MeshMovingAnalysis(object): # TODO in the future this could derive from a 
         if external_model_part != None:
             # This is a temporary solution until the importing of the ModelPart
             # is removed from the solver (needed e.g. for Optimization)
-            if (type(external_model_part) != KratosMultiphysics.ModelPart):
+            if (type(external_model_part) != KratosMultiphysics.ModelPartInterface):
                 raise Exception("Input is expected to be provided as a Kratos ModelPart object")
             self.using_external_model_part = True
         else:
@@ -136,7 +136,6 @@ class MeshMovingAnalysis(object): # TODO in the future this could derive from a 
 
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
         self.model = KratosMultiphysics.Model()
-        self.model.AddModelPart(self.main_model_part)
 
         ## Print model_part and properties
         if self.is_printing_rank and (self.echo_level > 1):

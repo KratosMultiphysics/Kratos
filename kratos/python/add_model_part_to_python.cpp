@@ -21,6 +21,8 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "includes/kernel.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "python/add_model_part_to_python.h"
 #include "includes/process_info.h"
@@ -610,9 +612,9 @@ void AddModelPartToPython(pybind11::module& m)
         
         ;
 
-	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart")
-		.def(init<std::string const&>())
-		.def(init<>())
+        //NOTE: name changed to ModelPartInterface to allow using a function as constructor, and to call the function ModelPart()
+	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPartInterface") 
+// 		.def(init<std::string const&>()) //this constructor is deliberately removed
 		.def_property("Name", GetModelPartName, SetModelPartName)
 		//  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
 		.def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
@@ -708,9 +710,15 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels2)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
-		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart)
+// 		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart)
+                .def("CreateSubModelPart", [](ModelPart& self, const std::string& Name) -> ModelPart& //TODO: this is a chapuza to avoid returning a ModelPart::Pointer
+                    {
+                        auto p_new = self.CreateSubModelPart(Name);
+                        return *p_new;
+                    }, return_value_policy::reference_internal)
 		.def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
-		.def("GetSubModelPart", &ModelPart::pGetSubModelPart)
+// 		.def("GetSubModelPart", &ModelPart::pGetSubModelPart)
+                .def("GetSubModelPart", &ModelPart::GetSubModelPart, return_value_policy::reference_internal)
 		.def("RemoveSubModelPart", RemoveSubModelPart1)
 		.def("RemoveSubModelPart", RemoveSubModelPart2)
 		.def("HasSubModelPart", &ModelPart::HasSubModelPart)
@@ -742,6 +750,10 @@ void AddModelPartToPython(pybind11::module& m)
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; }) 
  		.def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
 		;
+                
+        //defining the "constructor"
+        m.def("ModelPart", [](std::string const& name) -> ModelPart& { return Kernel::GetModel().CreateModelPart(name);}, return_value_policy::reference);
+
 }
 
 } // namespace Python.

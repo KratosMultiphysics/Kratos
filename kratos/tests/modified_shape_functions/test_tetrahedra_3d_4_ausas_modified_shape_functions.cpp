@@ -15,6 +15,7 @@
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
+#include "includes/kernel.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
 
@@ -26,7 +27,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(AusasModifiedShapeFunctionsTetrahedra3D4Horizontal, KratosCoreFastSuite)
         {
             // Generate a model part with the previous
-            ModelPart base_model_part("Tetrahedra");
+            ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Tetrahedra");
             base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
             // Fill the model part geometry data
@@ -564,7 +565,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(AusasModifiedShapeFunctionsTetrahedra3D4Oblique, KratosCoreFastSuite)
         {
             // Generate a model part with the previous
-            ModelPart base_model_part("Tetrahedra");
+            ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Tetrahedra");
             base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
             // Fill the model part geometry data
@@ -1214,7 +1215,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(AusasModifiedShapeFunctionsTetrahedra3D4Volumes, KratosCoreFastSuite)
         {
             // Generate a model part with the previous
-            ModelPart base_model_part("Tetrahedra");
+            ModelPart& base_model_part = Kernel::GetModel().CreateModelPart("Tetrahedra");
             base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
             // Fill the model part geometry data

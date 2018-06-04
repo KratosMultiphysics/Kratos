@@ -140,8 +140,10 @@ class TestRestart(KratosUnittest.TestCase):
 
         serializer_save = KratosMultiphysics.Serializer(file_name, serializer_flag)
         serializer_save.Save(model_part.Name, model_part)
+        
 
     def __execute_restart_load(self, file_name, serializer_flag):
+        KratosMultiphysics.Model().Reset()
         model_part_name = "MainRestart"
 
         loaded_model_part = KratosMultiphysics.ModelPart(model_part_name)
@@ -155,7 +157,6 @@ class TestRestart(KratosUnittest.TestCase):
         file_name = "test_restart_file"
         self.__execute_restart_save(file_name, serializer_flag)
         model_part = self.__execute_restart_load(file_name, serializer_flag)
-
         self._check_modelpart(model_part)
 
     def __execute_restart_utility_save(self, model_part_name, restart_time):
@@ -176,6 +177,7 @@ class TestRestart(KratosUnittest.TestCase):
         rest_utility.SaveRestart()
 
     def __execute_restart_utility_load(self, model_part_name, restart_time):
+        KratosMultiphysics.Model().Reset()
         loaded_model_part = KratosMultiphysics.ModelPart(model_part_name)
 
         restart_parameters = KratosMultiphysics.Parameters("""
@@ -191,7 +193,6 @@ class TestRestart(KratosUnittest.TestCase):
         rest_utility = restart_utility.RestartUtility(loaded_model_part, restart_parameters)
 
         rest_utility.LoadRestart()
-
         return loaded_model_part
 
 
