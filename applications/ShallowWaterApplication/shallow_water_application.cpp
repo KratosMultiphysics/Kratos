@@ -19,7 +19,7 @@
 // Project includes
 #include "geometries/triangle_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "geometries/line_2d.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/point_2d.h"
 #include "includes/define.h"
 #include "includes/variables.h"
