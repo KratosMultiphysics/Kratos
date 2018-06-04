@@ -68,7 +68,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedEliminationBuilderAndSolver
+ * @class ResidualBasedBlockBuilderAndSolverWithConstraints
  * @ingroup KratosCore
  * @brief Current class provides an implementation for standard builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
@@ -527,7 +527,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    MasterSlaveRelationContainerType mGlobalMasterSlaveRelations; //This can be changed to more efficient implementation lateron.
+
+    // This is the set of condenced global constraints.
+    MasterSlaveRelationContainerType mGlobalMasterSlaveRelations; //This can be changed to more efficient implementation later on.
 
     ///@}
     ///@name Private Operators
@@ -544,7 +546,7 @@ private:
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.ConditionsBegin();
-
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         //contributions to the system
         LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType constraint_vector = LocalSystemVectorType(0);
@@ -563,9 +565,29 @@ private:
 
             if (constraint_is_active)
             {
-                //calculate elemental contribution
+                //get the equation Ids of the constraint
+                (*it).EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                //calculate constraint's T and b matrices
+                (*it).CalculateLocalSystem(relation_matrix,constraint_vector,r_current_process_info);
 
                 //assemble the Constraint contribution
+                int slave_count = 0;
+                for (auto& slave_equation_id : slave_equation_ids)
+                {
+                    int master_count = 0;
+                    auto& global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
+                    if(global_constraint == mGlobalMasterSlaveRelations.end())
+                    {
+                        mGlobalMasterSlaveRelations.insert(Kratos::make_shared<MasterSlaveRelationType>(slave_equation_id))
+                        global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
+                    }
+                    for(auto& master_equation_id : master_equation_ids)
+                    {
+                        global_constraint.AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
+                        master_count++;
+                    }
+                    slave_count++;
+                }
             }
         }
     }
