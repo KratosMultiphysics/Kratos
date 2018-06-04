@@ -232,12 +232,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
 
 
-    def ImportModelPart(self):
-        super(NavierStokesSolverMonolithic, self).ImportModelPart()
-
-        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
+    def PrepareModelPart(self):
         self._set_physical_properties()
-
+        super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
     def Initialize(self):
 

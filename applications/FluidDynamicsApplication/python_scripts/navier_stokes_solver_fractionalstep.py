@@ -132,12 +132,9 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
-    def ImportModelPart(self):
-        super(NavierStokesSolverFractionalStep, self).ImportModelPart()
-
-        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
+    def PrepareModelPart(self):
         self._set_physical_properties()
-
+        super(NavierStokesSolverFractionalStep, self).PrepareModelPart()
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
