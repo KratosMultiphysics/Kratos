@@ -10,8 +10,8 @@
 //  Main authors:    Daniel Diez
 //
 
-#if !defined (KRATOS_NEWTONIAN_LAW_NODAL_PROPERTIES_3D_H_INCLUDED)
-#define  KRATOS_NEWTONIAN_LAW_NODAL_PROPERTIES_3D_H_INCLUDED
+#if !defined (KRATOS_NEWTONIAN_TWO_FLUID_3D_H_INCLUDED)
+#define  KRATOS_NEWTONIAN_TWO_FLUID_3D_H_INCLUDED
 
 // System includes
 
@@ -32,7 +32,7 @@ namespace Kratos
  * 1) DYNAMIC_VISCOSITY (read from the nodes!!)
  * 2) C_SMAGORINSKY
  */
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NewtonianNodalProperties3DLaw : public Newtonian3DLaw
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NewtonianTwoFluid3DLaw : public Newtonian3DLaw
 {
 public:
     /**
@@ -41,10 +41,10 @@ public:
     typedef std::size_t             SizeType;
     
     /**
-     * Counted pointer of NewtonianNodalProperties3DLaw
+     * Counted pointer of NewtonianTwoFluid3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(NewtonianNodalProperties3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(NewtonianTwoFluid3DLaw);
 
     /**
      * Life Cycle
@@ -53,7 +53,7 @@ public:
     /**
      * Default constructor.
      */
-    NewtonianNodalProperties3DLaw()
+    NewtonianTwoFluid3DLaw()
         : Newtonian3DLaw()  {}
 
     /**
@@ -61,20 +61,20 @@ public:
      * @return a pointer to a new instance of this constitutive law
      */
     ConstitutiveLaw::Pointer Clone() const override {
-        return Kratos::make_shared<NewtonianNodalProperties3DLaw>(*this);
+        return Kratos::make_shared<NewtonianTwoFluid3DLaw>(*this);
     }
 
     /**
      * Copy constructor.
      */
-    NewtonianNodalProperties3DLaw (const NewtonianNodalProperties3DLaw& rOther)
+    NewtonianTwoFluid3DLaw (const NewtonianTwoFluid3DLaw& rOther)
         : Newtonian3DLaw()  {}
 
 
     /**
      * Destructor.
      */
-    ~NewtonianNodalProperties3DLaw() override {}
+    ~NewtonianTwoFluid3DLaw() override {}
 
 
     /**
@@ -85,7 +85,7 @@ public:
      * Turn back information as a string.
      */
     std::string Info() const override {
-        return "NewtonianNodalProperties3DLaw";
+        return "NewtonianTwoFluid3DLaw";
     }
 
 protected:
@@ -219,6 +219,6 @@ private:
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Newtonian3DLaw )
 }
 
-}; // Class NewtonianNodalProperties3DLaw
+}; // Class NewtonianTwoFluid3DLaw
 }  // namespace Kratos.
 #endif // KRATOS_NEWTONIAN_LAW_NODAL_PROPERTIES_3D_H_INCLUDED  defined 
