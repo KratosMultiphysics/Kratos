@@ -27,96 +27,47 @@
 namespace Kratos
 {
 
-// MasterSlaveRelation class start
+
+/**
+ * @class MasterSlaveRelation
+ * @ingroup KratosCore
+ * @brief This class stores the information regarding the MasterSlaveRelation equation. Naming convenction is defined like this. (each object of this class will store one equation in the given form
+ * @details *   SlaveEquationId = w_1*MasterEquationId_1 + w_2*MasterEquationId_2 + ..... + w_n*MasterEquationId_n
+ *
+ *   each slaveDOF and each of its masterDOF have the following attributes
+ *   a. dof ID
+ *   b. dof KEY
+ *   c. equation ID
+ *
+ *   one should be able to access the constraint equation both with (dofID , dofKEY) pair and/or equationID of the slave.
+ *   This equation is imposed on the linear system of equations either element wise or on the global system.
+ * @author Aditya Ghantasala
+ */
+
+
 /*
-*   This class stores the information regarding the MasterSlaveRelation equation. Naming convenction is defined like this.
-*   (each object of this class will store one equation in the given form)
 *
-*   slaveDOF = w_1*masterDOF_1 + w_2*masterDOF_2 + ..... + w_n*masterDOF_n
-*
-*   each slaveDOF and each of its masterDOF have the following attributes
-*   a. dof ID
-*   b. dof KEY
-*   c. equation ID
-*
-*   one should be able to access the constraint equation both with (dofID , dofKEY) pair and/or equationID of the slave.
-*   This equation is imposed on the linear system of equations either element wise or on the global system.
+
 *
 */
 class MasterSlaveRelation : public IndexedObject
 {
-  private:
-    typedef Dof<double> DofType;
-    struct MasterData
-    {
-        KRATOS_CLASS_POINTER_DEFINITION(MasterData);
-        MasterData(DofType const &rMasterDof, double Weight = 0.0) : mMasterWeight(Weight), mMasterDofId(rMasterDof.Id()), mMasterDofKey(rMasterDof.GetVariable().Key())
-        {
-        }
-        // This is only for serializer. This is not meant to be used anywhere else
-        MasterData(std::size_t Id, std::size_t Key, double Weight = 0.0) : mMasterWeight(Weight), mMasterDofId(Id), mMasterDofKey(Key)
-        {
-        }
-        std::size_t MasterDofKey() { return mMasterDofKey; }
-        double MasterWeight() const { return mMasterWeight; }
-        double &MasterWeight() { return mMasterWeight; }
-        std::size_t MasterDofId() { return mMasterDofId; }
-        std::size_t MasterEqId() { return mMasterEquationId; }
-        void SetMasterEqId(std::size_t Id) { mMasterEquationId = Id; }
-
-      private:
-        double mMasterWeight;
-        const std::size_t mMasterDofId;
-        const std::size_t mMasterDofKey;
-        std::size_t mMasterEquationId;
-    };
-
+    typedef std::size_t IndexType;
   public:
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveRelation);
     typedef MasterData::Pointer MasterDataPointerType;
 
-  private:
-    // Custom hash function to store MasterData objects in a unordered_set
-    struct MasterHasher
-    {
-        std::size_t
-        operator()(const MasterDataPointerType &rObj) const
-        {
-            std::size_t seed = 0;
-            boost::hash_combine(seed, rObj->MasterDofId());
-            boost::hash_combine(seed, rObj->MasterDofKey());
-            return seed;
-        }
-    };
-
-    // Custom comparator that compares the MasterData objects by their key and ID
-    struct MasterComparator
-    {
-        bool
-        operator()(const MasterDataPointerType &rObj1, const MasterDataPointerType &rObj2) const
-        {
-            return (rObj1->MasterDofId() == rObj2->MasterDofId()) && (rObj1->MasterDofKey() == rObj2->MasterDofKey());
-        }
-    };
-
   public:
 
     // empty constructor and methods to add master and slave independently.
-    MasterSlaveRelation() : IndexedObject(0), mSlaveDofId(0), mSlaveDofKey(0)
+    MasterSlaveRelation() : IndexedObject(0), mSlaveDofId(0)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
 
 
-    MasterSlaveRelation(DofType const &rSlaveDof) : IndexedObject(rSlaveDof.Id()), mSlaveDofId(rSlaveDof.Id()), mSlaveDofKey(rSlaveDof.GetVariable().Key())
-    {
-        SetConstant(0.0);
-        SetConstantUpdate(0.0);
-    }
-
-    // This is only for serializer. This is not meant to be used anywhere else
-    MasterSlaveRelation(std::size_t Id, std::size_t Key) : IndexedObject(Id), mSlaveDofId(Id), mSlaveDofKey(Key)
+    MasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId), mSlaveEquationId(rSlaveEquationId)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
@@ -126,45 +77,19 @@ class MasterSlaveRelation : public IndexedObject
     void SetConstantUpdate(double ConstantUpdate) { mConstantUpdate = ConstantUpdate; }
     double Constant() const { return mConstant; }
     double ConstantUpdate() const { return mConstantUpdate; }
-    std::size_t SlaveDofId() const { return mSlaveDofId; }
-    std::size_t SlaveDofKey() const { return mSlaveDofKey; }
-    std::size_t SlaveEquationId() const { return mSlaveEquationId; }
-    void SetSlaveEquationId(std::size_t Id) { mSlaveEquationId = Id; }
-
-    // Add a master or update a master(if already present) to this slave given are the masterDofId, masterDofKey, weight
-    void AddMaster(DofType const &rMasterDof, double Weight)
-    {
-        MasterDataPointerType master_data = Kratos::make_shared<MasterData>(rMasterDof, Weight);
-        auto res = mMasterDataSet.find(master_data);
-        if (res != mMasterDataSet.end())
-        {
-            (*res)->MasterWeight() += Weight;
-        }
-        else
-        {
-            mMasterDataSet.insert(master_data);
-        }
-    }
-
-    // Add Slave to the current constraint. Currently only one Slave can be added.
-    void AddSlave(DofType const &rSlaveDof)
-    {
-        this->mSlaveDofId  = rSlaveDof.Id();
-        this->mSlaveDofKey = rSlaveDof.GetVariable().Key();
-    }
+    IndexType SlaveEquationId() const { return mSlaveEquationId; }
 
     // This is only for serializer. Not to be used outside
-    void AddMaster(std::size_t MasterDofId, std::size_t MasterDofKey, double Weight)
+    void AddMaster(std::size_t MasterEquationId, double Weight)
     {
-        MasterDataPointerType master_data = Kratos::make_shared<MasterData>(MasterDofId, MasterDofKey, Weight);
-        auto res = mMasterDataSet.find(master_data);
+        auto res = mMasterDataSet.find(MasterEquationId);
         if (res != mMasterDataSet.end())
         {
             (*res)->MasterWeight() += Weight;
         }
         else
         {
-            mMasterDataSet.insert(master_data);
+            mMasterDataSet[MasterEquationId] = Weight;
         }
     }
 
@@ -203,47 +128,19 @@ class MasterSlaveRelation : public IndexedObject
 
     virtual void save(Serializer &rSerializer) const override
     {
-        rSerializer.save("slave_id", mSlaveDofId);            // saving the vector of the slave id
-        rSerializer.save("slave_key", mSlaveDofKey);          // saving the vector of the slave key
-        rSerializer.save("constant", mConstant);              // saving the id of the master
-        rSerializer.save("constant_update", mConstantUpdate); // saving the id of the master
-        rSerializer.save("num_masters", GetNumberOfMasters());    // Writint number of masters for this slave
-        for (const auto &master_data : mMasterDataSet)
-        {
-            rSerializer.save("master_id", master_data->MasterDofId());   // saving the id of the master
-            rSerializer.save("master_key", master_data->MasterDofKey()); // saving the id of the master
-            rSerializer.save("weight", master_data->MasterWeight());     // saving the id of the master
-        }
+
     }
 
     virtual void load(Serializer &rSerializer) override
     {
-        std::size_t slave_id(0), slave_key(0), num_masters(0);
-        double constant(0.0), constant_update(0.0);
-        rSerializer.load("slave_id", slave_id);
-        rSerializer.load("slave_key", slave_key);
-        rSerializer.load("constant", constant);
-        rSerializer.load("constant_update", constant_update);
-        rSerializer.load("num_masters", num_masters);
 
-        for (std::size_t j = 0; j < num_masters; j++)
-        {
-            std::size_t master_id(0), master_key(0);
-            double weight(0);
-            rSerializer.load("master_id", master_id);
-            rSerializer.load("master_key", master_key);
-            rSerializer.load("weight", weight);
-            this->AddMaster(master_id, master_key, weight);
-        }
     }
     ///@}
 
   private:
-    std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator> mMasterDataSet;
+    std::unordered_set<IndexType, double> mMasterDataSet;
 
-    std::size_t mSlaveDofId;
-    std::size_t mSlaveDofKey;
-    std::size_t mSlaveEquationId;
+    IndexType mSlaveEquationId;
     double mConstant;
     double mConstantUpdate;
 
