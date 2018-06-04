@@ -8,13 +8,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Ruben Zorrilla
 //
-
 
 #if !defined(KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED )
 #define  KRATOS_LEVELSET_CONVECTION_PROCESS_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -22,36 +20,25 @@
 #include <algorithm>
 
 // External includes
-#include "includes/kratos_flags.h"
-
-
 
 // Project includes
-#include "includes/define.h"
-#include "processes/process.h"
 #include "includes/convection_diffusion_settings.h"
+#include "includes/define.h"
 #include "includes/kratos_flags.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
+#include "elements/levelset_convection_element_simplex.h"
 #include "geometries/geometry_data.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "elements/levelset_convection_element_simplex.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
 ///@}
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name  Enum's
@@ -65,17 +52,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-
-
-
 /// Short class definition.
 /**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and convects a level set distance
  * on the top of it
-
-
 */
-
-template< unsigned int TDim >
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver >
 class LevelSetConvectionProcess
     : public Process
 {
@@ -86,19 +67,16 @@ public:
     
     ///@name Type Definitions
     ///@{
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef Scheme< SparseSpaceType,  LocalSpaceType > SchemeType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
 
-///@}
+    typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
+    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+
+    ///@}
     ///@name Pointer Definitions
+    ///@{
+
     /// Pointer definition of LevelSetConvectionProcess
     KRATOS_CLASS_POINTER_DEFINITION(LevelSetConvectionProcess);
-
-
-
 
     ///@}
     ///@name Life Cycle
@@ -106,19 +84,21 @@ public:
 
     /**
      */
-    LevelSetConvectionProcess(Variable<double>& rLevelSetVar,
-                              ModelPart& base_model_part,
-                                          typename LinearSolverType::Pointer plinear_solver,
-                                          double max_cfl = 1.0,
-                                          double cross_wind_stabilization_factor = 0.7,
-										  int max_substeps=0
-                                         )
-        :mr_base_model_part(base_model_part), mrLevelSetVar(rLevelSetVar), mmax_allowed_cfl(max_cfl), mMaxSubsteps(max_substeps)
+    LevelSetConvectionProcess(
+        Variable<double>& rLevelSetVar,
+        ModelPart& base_model_part,
+        typename TLinearSolver::Pointer plinear_solver,
+        double max_cfl = 1.0,
+        double cross_wind_stabilization_factor = 0.7,
+        int max_substeps = 0)
+        : mr_base_model_part(base_model_part), 
+        mrLevelSetVar(rLevelSetVar), 
+        mmax_allowed_cfl(max_cfl), 
+        mMaxSubsteps(max_substeps)
     {
         KRATOS_TRY
-
         
-        //check that there is at least one element and node in the model
+        // Check that there is at least one element and node in the model
         if(base_model_part.Nodes().size() == 0) KRATOS_THROW_ERROR(std::logic_error, "the model has no Nodes","");
         if(base_model_part.Elements().size() == 0) KRATOS_THROW_ERROR(std::logic_error, "the model has no Elements","");
         if(base_model_part.NodesBegin()->SolutionStepsDataHas(rLevelSetVar) == false) KRATOS_THROW_ERROR(std::invalid_argument,"missing rLevelSetVar variable on solution step data","");
@@ -150,15 +130,15 @@ public:
         ReGenerateConvectionModelPart(base_model_part);
 
         //generate a linear strategy
-        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType,LocalSpaceType >() );
-        typedef typename BuilderAndSolver<SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer BuilderSolverTypePointer;
+        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
+        typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
 
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
 
-        BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<SparseSpaceType,LocalSpaceType,LinearSolverType>(plinear_solver) );
-        mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType >(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
+        BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+        mp_solving_strategy = typename SolvingStrategyType::UniquePointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
 
         mp_solving_strategy->SetEchoLevel(0);
         
@@ -172,10 +152,7 @@ public:
     }
 
     /// Destructor.
-    ~LevelSetConvectionProcess() override
-    {
-    }
-
+    ~LevelSetConvectionProcess() override {}
 
     ///@}
     ///@name Operators
@@ -185,7 +162,6 @@ public:
     {
         Execute();
     }
-
 
     ///@}
     ///@name Operations
@@ -274,7 +250,7 @@ public:
         mp_distance_model_part->Nodes().clear();
         mp_distance_model_part->Conditions().clear();
         mp_distance_model_part->Elements().clear();
-//        mp_distance_model_part->GetProcessInfo().clear();
+        // mp_distance_model_part->GetProcessInfo().clear();
         mdistance_part_is_initialized = false;
 
         mp_solving_strategy->Clear();
@@ -284,49 +260,41 @@ public:
         mvold.clear();
 
     }
+
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
+    std::string Info() const override {
         return "LevelSetConvectionProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
+    void PrintInfo(std::ostream& rOStream) const override {
         rOStream << "LevelSetConvectionProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
+    void PrintData(std::ostream& rOStream) const override {
     }
-
 
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
@@ -346,12 +314,16 @@ protected:
     std::vector< array_1d<double,3> > mv, mvold;
 
 
-    SolvingStrategyType::Pointer mp_solving_strategy;
-
+    typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
     ///@}
     ///@name Protected Operators
     ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
     void ReGenerateConvectionModelPart(ModelPart& base_model_part)
     {
         KRATOS_TRY
@@ -478,33 +450,22 @@ protected:
         return nsteps;
     }
 
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -518,16 +479,13 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -539,38 +497,33 @@ private:
     /// Copy constructor.
     //LevelSetConvectionProcess(LevelSetConvectionProcess const& rOther);
 
-
     ///@}
-
 }; // Class LevelSetConvectionProcess
 
-//avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< unsigned int TDim > const Kratos::Flags LevelSetConvectionProcess<TDim>::PERFORM_STEP1(Kratos::Flags::Create(0));
-template< unsigned int TDim > const Kratos::Flags LevelSetConvectionProcess<TDim>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
-
-
+// Avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver > const Kratos::Flags LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::PERFORM_STEP1(Kratos::Flags::Create(0));
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver > const Kratos::Flags LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
+/// Input stream function
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+inline std::istream& operator >> (
+    std::istream& rIStream,
+    LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
 
-/// input stream function
-template< unsigned int TDim>
-inline std::istream& operator >> (std::istream& rIStream,
-                                  LevelSetConvectionProcess<TDim>& rThis);
+/// Output stream function
+template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+inline std::ostream& operator << (
+    std::ostream& rOStream,
+    const LevelSetConvectionProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>& rThis){
 
-/// output stream function
-template< unsigned int TDim>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const LevelSetConvectionProcess<TDim>& rThis)
-{
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
@@ -578,7 +531,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 
