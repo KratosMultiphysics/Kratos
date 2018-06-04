@@ -95,6 +95,7 @@ public:
           mpMapperLocalSystems(pMapperLocalSystems)
     {
         // mEchoLevel = EchoLevel;
+        mpMapperInterfaceInfos = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
     }
 
 

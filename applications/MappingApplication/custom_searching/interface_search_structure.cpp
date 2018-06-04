@@ -85,11 +85,8 @@ namespace Kratos
     /***********************************************************************************/
     void InterfaceSearchStructure::CreateInterfaceInfos(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
     {
-        const SizeType num_objects = mpMapperLocalSystems->size();
-
-        // Recreate the vector, preallocate with the max number of elements
-        mpMapperInterfaceInfos = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
-        mpMapperInterfaceInfos->reserve(num_objects);
+        mpMapperInterfaceInfos->clear();
+        mpMapperInterfaceInfos->reserve(mpMapperLocalSystems->size());
 
         IndexType local_sys_idx = 0;
         for (const auto& r_local_sys : (*mpMapperLocalSystems))

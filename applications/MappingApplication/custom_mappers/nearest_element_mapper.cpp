@@ -20,7 +20,7 @@
 // Project includes
 #include "nearest_element_mapper.h"
 #include "custom_utilities/mapper_typedefs.h"
-#include "utilities/mortar_utilities.h" // for projections
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
