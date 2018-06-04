@@ -9,8 +9,8 @@
 //  Main authors:   Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_TANGENT_OPERATOR_CALCULATOR_PROCESS_H_INCLUDED )
-#define  KRATOS_TANGENT_OPERATOR_CALCULATOR_PROCESS_H_INCLUDED
+#if !defined(KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED )
+#define  KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED
 
 // System includes
 
@@ -43,43 +43,39 @@ namespace Kratos
 ///@{
 
 /**
- * @class TangentOperatorCalculatorProcess
+ * @class TangentOperatorCalculatorUtility
  * @ingroup StructuralMechanicsApplication
  * @brief An algorithm that derives numerically the constitutive tangent tensor at one GP
  * @details The procedure is defined in the PAPER "Caracterización de la delaminación en materiales
  compuestos mediante la teoría de mezclas serie/paralelo" X. Martinez, S. Oller y E. Barbero.
- * @author Alejandro Cornejo & Lucia Barbu
+ * @authors Alejandro Cornejo & Lucia Barbu
  */
 
-template <class TConstitutiveLawType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorProcess
-    : public Process
+
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtility
 {
 public:
 
-    /// Pointer definition of TangentOperatorCalculatorProcess
-    KRATOS_CLASS_POINTER_DEFINITION(TangentOperatorCalculatorProcess);
+    /// Pointer definition of TangentOperatorCalculatorUtility
+    KRATOS_CLASS_POINTER_DEFINITION(TangentOperatorCalculatorUtility);
 
     /// Constructor
-    TangentOperatorCalculatorProcess(
-        ConstitutiveLaw::Parameters& rValues
-    )
+    TangentOperatorCalculatorUtility()
     {
-        mValues = rValues;
     }
 
     /// Destructor.
-    virtual ~TangentOperatorCalculatorProcess() {}
+    virtual ~TangentOperatorCalculatorUtility() {}
 
-    void Execute()
+    static void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw::Pointer pConstitutiveLaw
+    )
     {
-        Matrix C;
-        TConstitutiveLawType::CalculateElasticMatrix(C, mMaterialProperties);
+        const Vector& StrainVectorGP = rValues.GetStrainVector();
+        const Vector& StressVectorGP = rValues.GetStressVector();
 
-        const Vector& StrainVectorGP = mValues.GetStrainVector();
-        const Vector& StressVectorGP = mValues.GetStressVector();
-
-        Matrix& TangentTensor = mValues.GetConstitutiveMatrix();
+        Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
         TangentTensor.clear();
 
         const int NumComp = StrainVectorGP.size();
@@ -87,22 +83,21 @@ public:
         // Loop over components of the strain
         for (int Component = 0; Component < NumComp; Component++)
         {
-            ConstitutiveLaw::Parameters PerturbedValues = mValues;
+            ConstitutiveLaw::Parameters PerturbedValues = rValues;
             Vector& PerturbedStrain = PerturbedValues.GetStrainVector();
             
-
             double Perturbation;
-            this->CalculatePerturbation(PerturbedStrain, Component, Perturbation);
-            this->PerturbateStrainVector(PerturbedStrain, StrainVectorGP, Perturbation, Component);
-            this->IntegratePerturbedStrain(PerturbedValues);
+            CalculatePerturbation(PerturbedStrain, Component, Perturbation);
+            PerturbateStrainVector(PerturbedStrain, StrainVectorGP, Perturbation, Component);
+            IntegratePerturbedStrain(PerturbedValues, pConstitutiveLaw);
 
             Vector& PerturbedIntegratedStress = PerturbedValues.GetStressVector(); // now integrated
             const Vector& DeltaStress = PerturbedIntegratedStress - StressVectorGP; 
-            this->AssignComponentsToTangentTensor(TangentTensor, DeltaStress, Perturbation, Component);
+            AssignComponentsToTangentTensor(TangentTensor, DeltaStress, Perturbation, Component);
         }
     }
 
-    void CalculatePerturbation(
+    static void CalculatePerturbation(
         const Vector& StrainVector, 
         const int Component,
         double& Perturbation
@@ -111,22 +106,22 @@ public:
         double Pert1, Pert2;
         if (StrainVector[Component] != 0.0)
         {
-            Pert1 = 1e-5*StrainVector[Component];
+            Pert1 = 1.0e-5 * StrainVector[Component];
         }
         else
         {
             double MinStrainComp;
-            this->GetMinAbsValue(StrainVector, MinStrainComp);
-            Pert1 = 1e-5*MinStrainComp;
+            GetMinAbsValue(StrainVector, MinStrainComp);
+            Pert1 = 1.0e-5 * MinStrainComp;
         }
         double MaxStrainComp;
-        this->GetMaxAbsValue(StrainVector, MaxStrainComp);
+        GetMaxAbsValue(StrainVector, MaxStrainComp);
         Pert2 = 1e-10*MaxStrainComp;
 
         Perturbation = std::max(Pert1, Pert2);
     }
 
-    void PerturbateStrainVector(
+    static void PerturbateStrainVector(
         Vector& PerturbedStrainVector, 
         const Vector& StrainVectorGP,
         const double Perturbation,
@@ -137,12 +132,15 @@ public:
         PerturbedStrainVector[Component] += Perturbation;
     }
 
-    void IntegratePerturbedStrain(ConstitutiveLaw::Parameters& rValues)
+    static void IntegratePerturbedStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw::Pointer pConstitutiveLaw
+    )
     {
-        TConstitutiveLawType::CalculateMaterialResponseCauchy(rValues);
+        pConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
     }
 
-    void GetMaxAbsValue(
+    static void GetMaxAbsValue(
         const Vector& ArrayValues, 
         double& MaxValue
     )
@@ -156,7 +154,7 @@ public:
         }
     }
 
-    void GetMinAbsValue(
+    static void GetMinAbsValue(
         const Vector& ArrayValues, 
         double& MaxValue
     )
@@ -170,7 +168,7 @@ public:
         }
     }
 
-    void AssignComponentsToTangentTensor(
+    static void AssignComponentsToTangentTensor(
         Matrix& TangentTensor, 
         const Vector& DeltaStress,
         const double Perturbation,
@@ -220,11 +218,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    // Matrix& mTangentTensor; 
-    // const Vector mStressVectorGP;
-    // const Vector mStrainVectorGP;
-    // const Properties& mMaterialProperties;
-    ConstitutiveLaw::Parameters& mValues;
 
     ///@}
     ///@name Private Operators
@@ -247,7 +240,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    TangentOperatorCalculatorProcess& operator=(TangentOperatorCalculatorProcess const& rOther);
+    TangentOperatorCalculatorUtility& operator=(TangentOperatorCalculatorUtility const& rOther);
 
 };
 }// namespace Kratos.

@@ -45,7 +45,8 @@ namespace Kratos
 /**
  * @class GenericConstitutiveLawIntegratorPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief
+ * @brief: This object integrates the predictive stress using the plasticity theory by means of 
+ * linear/exponential softening or hardening+softening up to now
  * @details
  * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo & Lucia Barbu

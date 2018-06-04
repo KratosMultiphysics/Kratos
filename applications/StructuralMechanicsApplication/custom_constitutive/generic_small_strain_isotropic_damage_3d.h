@@ -21,7 +21,7 @@
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
-#include "custom_processes/tangent_operator_calculator_process.h"
+#include "custom_utilities/tangent_operator_calculator_utility.h"
 
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
@@ -198,7 +198,7 @@ public:
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
     {
-        TangentOperatorCalculatorProcess <GenericSmallStrainIsotropicDamage3D> (rValues).Execute();
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
     }
 
     void FinalizeSolutionStep(

@@ -93,14 +93,14 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
+    template <class TDim>
     static void CalculateEquivalentStress(  
         const Vector& StressVector,
         const Vector& StrainVector, 
         double& rEqStress, 
         const Properties& rMaterialProperties
     )
-    {  
+    {
 		const double YieldCompression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 		const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
 		const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
@@ -143,10 +143,12 @@ public:
         rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_COMPRESSION]);
     }
 
+
     static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
     {
         rI1 = StressVector[0] + StressVector[1] + StressVector[2];
     }
+
 
     static void CalculateI2Invariant(const Vector& StressVector, double& rI2)
     {
@@ -154,6 +156,7 @@ public:
             - StressVector[3]*StressVector[3] - StressVector[4]*StressVector[4] - StressVector[5]*StressVector[5];
     }
 
+  
     static void CalculateI3Invariant(const Vector& StressVector, double& rI3)
     {
         rI3 = (StressVector[1]*StressVector[2] - StressVector[4]*StressVector[4])*StressVector[0] -
@@ -161,26 +164,21 @@ public:
             2.0*StressVector[3]*StressVector[4]*StressVector[5];
     }
 
+    
     static void CalculateJ2Invariant(const Vector& StressVector, const double& I1, Vector& rDeviator, double& rJ2)
     {
-        if (TVoigtSize == 6)
-        {
-            rDeviator = StressVector;
-            const double Pmean = I1 / 3.0;
+        rDeviator = StressVector;
+        const double Pmean = I1 / 3.0;
 
-            rDeviator[0] -= Pmean;
-            rDeviator[1] -= Pmean;
-            rDeviator[2] -= Pmean;
+        rDeviator[0] -= Pmean;
+        rDeviator[1] -= Pmean;
+        rDeviator[2] -= Pmean;
 
-            rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + rDeviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
-                (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
-        }
-        else
-        {
-            // 2d
-        }
-
+        rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + rDeviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
+            (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
+        
     }
+
 
     static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
     {
@@ -360,6 +358,11 @@ public:
     ///@{
 
     ///@}
+    //template class CalculateI1Invariant<3>;
+    //template class CalculateI2Invariant<3>;
+    //template class CalculateI3Invariant<3>;
+    //template class CalculateJ2Invariant<3>;
+    //template class CalculateJ3Invariant<3>;
 
 protected:
     ///@name Protected static Member Variables

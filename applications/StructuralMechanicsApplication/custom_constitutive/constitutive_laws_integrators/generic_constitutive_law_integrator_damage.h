@@ -45,7 +45,8 @@ namespace Kratos
 /**
  * @class GenericConstitutiveLawIntegratorDamage
  * @ingroup StructuralMechanicsApplication
- * @brief
+ * @brief: This object integrates the predictive stress using the damage theory by means of 
+ * linear/exponential softening
  * @details
  * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo & Lucia Barbu
@@ -153,7 +154,7 @@ public:
         double& Damage
     )
     {
-        // todo
+        // TODO
     }
 
 

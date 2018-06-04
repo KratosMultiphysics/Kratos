@@ -25,6 +25,8 @@
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
 
+#include "custom_utilities/tangent_operator_calculator_utility.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -201,7 +203,7 @@ public:
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
     {
-        TangentOperatorCalculatorProcess <GenericSmallStrainIsotropicPlasticity3D> (rValues).Execute();
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
     }
 
     void FinalizeSolutionStep(
