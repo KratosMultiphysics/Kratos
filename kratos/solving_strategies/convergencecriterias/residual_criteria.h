@@ -81,6 +81,10 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    typedef std::size_t IndexType;
+
+    typedef std::size_t SizeType;
+
     ///@} 
     ///@name Life Cycle
     
@@ -138,10 +142,10 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        const std::size_t size_b = b.size();
+        const SizeType size_b = b.size();
         if (size_b != 0) { //if we are solving for something
 
-            std::size_t size_residual;
+            SizeType size_residual;
             if (mInitialResidualIsSet == false) {
 //                 mInitialResidualNorm = TSparseSpace::TwoNorm(b); // NOTE: This doesn't take into account the reaction dofs
                 GetResidualNorm(mInitialResidualNorm, size_residual, rDofSet, b);
