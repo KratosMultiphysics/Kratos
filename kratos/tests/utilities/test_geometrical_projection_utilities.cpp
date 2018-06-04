@@ -13,7 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "utilities/geometrical_projection_utilities.h"
+#include "utilities/mortar_utilities.h"
 
 #include "geometries/triangle_2d_3.h"
 
@@ -22,8 +22,8 @@ namespace Kratos
 namespace Testing
 {
 
-using NodeType = typename GeometricalProjectionUtilities::NodeType;
-using GeometryType = typename GeometricalProjectionUtilities::GeometryType;
+using NodeType = typename MortarUtilities::NodeType;
+using GeometryType = typename MortarUtilities::GeometryType;
 
 GeometryType::Pointer CreateTriangle2D3NForTest()
 {
@@ -59,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilities_FastProjectDirection, K
 
     Point projected_point;
 
-    double proj_distance = GeometricalProjectionUtilities::FastProjectDirection(
+    double proj_distance = MortarUtilities::FastProjectDirection(
         *p_geom,
         point_to_proj,
         projected_point,
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilities_FastProject, KratosCore
 
     double proj_distance;
 
-    Point projected_point = GeometricalProjectionUtilities::FastProject(
+    Point projected_point = MortarUtilities::FastProject(
         point_in_plane,
         point_to_proj,
         normal_vector,
