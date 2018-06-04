@@ -8,6 +8,7 @@
 //  			 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -50,12 +51,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProjectDirection, Kr
     array_1d<double,3> normal_vector;
 
     dir_vector[0] = 0.0;
-    dir_vector[0] = 0.0;
-    dir_vector[0] = 1.0;
+    dir_vector[1] = 0.0;
+    dir_vector[2] = -1.0;
 
     normal_vector[0] = 0.0;
-    normal_vector[0] = 0.0;
-    normal_vector[0] = 1.0;
+    normal_vector[1] = 0.0;
+    normal_vector[2] = 1.0;
 
     Point projected_point;
 
@@ -85,8 +86,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreF
     array_1d<double,3> normal_vector;
 
     normal_vector[0] = 0.0;
-    normal_vector[0] = 0.0;
-    normal_vector[0] = 1.0;
+    normal_vector[1] = 0.0;
+    normal_vector[2] = 1.0;
 
     double proj_distance;
 
