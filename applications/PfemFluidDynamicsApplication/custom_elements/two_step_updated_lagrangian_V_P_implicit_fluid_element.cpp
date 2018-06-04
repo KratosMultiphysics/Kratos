@@ -71,7 +71,7 @@ namespace Kratos {
     double FluidYieldShear=0;
     double staticFrictionCoefficient=0;
     double regularizationCoefficient=0;
-    double inertialNumberThreshold=0;
+    // double inertialNumberThreshold=0;
     double timeStep=currentProcessInfo[DELTA_TIME];
 
     this->EvaluatePropertyFromANotRigidNode(Density,DENSITY);
@@ -79,7 +79,7 @@ namespace Kratos {
     this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
     this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
     this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
-    this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
+    // this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
 
     if(FluidBulkModulus==0){
       FluidBulkModulus = 1000000000.0;
@@ -91,16 +91,18 @@ namespace Kratos {
       // std::cout<<"For a Newtonian fluid I should not enter here"<<std::endl;
       DeviatoricCoeff=this->ComputeNonLinearViscosity(rElementalVariables.EquivalentStrainRate);
     }else if(staticFrictionCoefficient!=0){
-      if(regularizationCoefficient!=0 && inertialNumberThreshold==0){
-    	// DeviatoricCoeff=this->ComputeBercovierMuIrheologyViscosity(rElementalVariables);
-	DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables); 
-      }else if(regularizationCoefficient==0 && inertialNumberThreshold!=0){
-	DeviatoricCoeff=this->ComputeBarkerMuIrheologyViscosity(rElementalVariables);
-      }else if(regularizationCoefficient!=0 && inertialNumberThreshold!=0){
-    	DeviatoricCoeff=this->ComputeBarkerBercovierMuIrheologyViscosity(rElementalVariables);
-      }else{
-	DeviatoricCoeff=this->ComputeJopMuIrheologyViscosity(rElementalVariables);
-      }
+      DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables); 
+      // if(regularizationCoefficient!=0 && inertialNumberThreshold==0){
+      // 	// DeviatoricCoeff=this->ComputeBercovierMuIrheologyViscosity(rElementalVariables);
+      // 	DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables); 
+      // }
+      // else if(regularizationCoefficient==0 && inertialNumberThreshold!=0){
+      // 	DeviatoricCoeff=this->ComputeBarkerMuIrheologyViscosity(rElementalVariables);
+      // }else if(regularizationCoefficient!=0 && inertialNumberThreshold!=0){
+      // 	DeviatoricCoeff=this->ComputeBarkerBercovierMuIrheologyViscosity(rElementalVariables);
+      // }else{
+      // 	DeviatoricCoeff=this->ComputeJopMuIrheologyViscosity(rElementalVariables);
+      // }
     }else{
       // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
       this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);

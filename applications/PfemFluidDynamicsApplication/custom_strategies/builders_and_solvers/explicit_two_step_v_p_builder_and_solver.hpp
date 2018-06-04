@@ -338,10 +338,9 @@ namespace Kratos
 
 	    const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
-	    unsigned int index = 0;
 	    for (unsigned int i = 0; i <geometry.size(); i++)
 	      {
-		index = i*dimension;
+		unsigned int index = i*dimension;
 		double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
 
 		geometry(i)->SetLock();

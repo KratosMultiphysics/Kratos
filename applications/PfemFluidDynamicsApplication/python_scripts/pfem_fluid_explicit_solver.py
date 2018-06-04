@@ -125,8 +125,7 @@ class PfemFluidExplicitSolver(BaseSolver.PfemFluidSolver):
                                                              linear_solver,
                                                              False,
                                                              True,
-                                                             True)
-                
+                                                             True)   
         # Set echo_level
         self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 

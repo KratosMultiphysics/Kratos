@@ -326,6 +326,10 @@ private:
       if(inletNodes>0){
       	penalization=0.9;
       }
+    }else if(rigidNodes>0 && freesurfaceNodes>0){
+      penalization=0;
+    }else if(freesurfaceNodes>0){
+      penalization=0.7;
     }
 
     double ElementalVolume =  Element.Area();

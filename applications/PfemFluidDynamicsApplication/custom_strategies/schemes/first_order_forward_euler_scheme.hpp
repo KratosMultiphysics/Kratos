@@ -449,7 +449,7 @@ namespace Kratos
 
       // Check that variables are correctly allocated
       for(ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin();
-	  it!=rModelPart.NodesEnd(); it++)
+	  it!=rModelPart.NodesEnd(); ++it)
         {
 	  if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
             {
