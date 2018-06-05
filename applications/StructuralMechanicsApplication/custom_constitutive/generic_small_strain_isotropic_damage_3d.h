@@ -64,6 +64,8 @@ public:
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage3D);
 
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -107,7 +109,7 @@ public:
     ///@name Operations
     ///@{
 
-    int GetVoigtSize(){return 6;}
+    int GetVoigtSize() {return 6;}
     int GetWorkingSpaceDimension() {return 3;}
 
     double GetThreshold() {return mThreshold;}
@@ -121,20 +123,20 @@ public:
     void SetNonConvDamage(const double& toDamage) {mNonConvDamage = toDamage;}
 
 
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
 
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
     {
         // Integrate Stress Damage
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
@@ -148,7 +150,7 @@ public:
 
         double Threshold, Damage;
         // In the 1st step must be set
-        if (this->GetThreshold() == 0.0) 
+        if (std::abs(this->GetThreshold()) < tolerance)
         {
             ConstLawIntegratorType::YieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, Threshold);
             this->SetThreshold(Threshold);
@@ -168,17 +170,14 @@ public:
 
         const double F = UniaxialStress - Threshold; 
 
-        if (F <= 0.0) 
-        {   // Elastic case
+        if (F <= 0.0) {   // Elastic case
             noalias(IntegratedStressVector) = PredictiveStressVector;
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
             
             noalias(TangentTensor) = (1 - Damage)*C;
-        }
-        else // Damage case
-        {
-            const double CharacteristicLength = rValues.GetGeometry().Length();
+        } else { // Damage case
+            const double CharacteristicLength = rValues.GetElementGeometry().Length();
 
             // This routine updates the PredictiveStress to verify the yield surf
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
@@ -206,7 +205,7 @@ public:
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo
-    ) override
+        ) override
     {
         this->SetDamage(this->GetNonConvDamage());
         this->SetThreshold(this->GetNonConvThreshold());

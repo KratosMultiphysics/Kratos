@@ -148,7 +148,7 @@ public:
         const int VoigtSize = this->GetVoigtSize();
         Vector& IntegratedStressVector = rValues.GetStressVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-        const double CharacteristicLength = rValues.GetGeometry().Length(); 
+        const double CharacteristicLength = rValues.GetElementGeometry().Length();
 
         // Elastic Matrix
         Matrix C;

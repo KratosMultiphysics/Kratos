@@ -109,31 +109,31 @@ public:
     int GetVoigtSize(){return 6;}
     int GetWorkingSpaceDimension() {return 3;}
 
-	Vector GetPreviousStressVector() { return mPrevStressVector; }
-	void SetPreviousStressVector(Vector toStress) { mPrevStressVector = toStress; }
-	Vector GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
-	void SetNonConvPreviousStressVector(Vector toStress) { mNonConvPrevStressVector = toStress; }
+    Vector GetPreviousStressVector() { return mPrevStressVector; }
+    void SetPreviousStressVector(Vector toStress) { mPrevStressVector = toStress; }
+    Vector GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
+    void SetNonConvPreviousStressVector(Vector toStress) { mNonConvPrevStressVector = toStress; }
 
-	Vector GetPreviousInelasticStrainVector() { return mPrevInelasticStrainVector; }
-	void SetPreviousInelasticStrainVector(Vector toStrain) { mPrevInelasticStrainVector = toStrain; }
-	Vector GetNonConvPreviousInelasticStrainVector() { return mNonConvPrevInelasticStrainVector; }
-	void SetNonConvPreviousInelasticStrainVector(Vector toStrain) { mNonConvPrevInelasticStrainVector = toStrain; }
+    Vector GetPreviousInelasticStrainVector() { return mPrevInelasticStrainVector; }
+    void SetPreviousInelasticStrainVector(Vector toStrain) { mPrevInelasticStrainVector = toStrain; }
+    Vector GetNonConvPreviousInelasticStrainVector() { return mNonConvPrevInelasticStrainVector; }
+    void SetNonConvPreviousInelasticStrainVector(Vector toStrain) { mNonConvPrevInelasticStrainVector = toStrain; }
 
 
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
 
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
     {
         // Integrate Stress Damage
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
