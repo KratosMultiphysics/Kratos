@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
 
@@ -46,10 +46,9 @@ public:
     ///@name Life Cycle
     ///@{
     ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part);
-    
+
     /// Destructor.
-    ~ReplaceElementsAndConditionsForAdjointProblemProcess() override
-    = default;
+    ~ReplaceElementsAndConditionsForAdjointProblemProcess() override {};
 
     ///@}
     ///@name Operators
@@ -86,13 +85,13 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override;
-    
+
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
-   
+
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override;
-    
+
     ///@}
     ///@name Friends
     ///@{
@@ -100,7 +99,7 @@ public:
 
     ///@}
 protected:
-    
+
     ModelPart& mr_model_part;
 
 private:
@@ -109,10 +108,10 @@ private:
 
     ///@}
     ///@name Un accessible methods
-    ///@{    
+    ///@{
     ModelPart& ObtainRootModelPart( ModelPart& r_model_part );
 
-    
+
     void UpdateSubModelPart(ModelPart& r_model_part, ModelPart& r_root_model_part);
 
     bool GetNewElementName(const Element& rElement, std::string& rName);
@@ -154,6 +153,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_FOR_ADJOINT_PROBLEM_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_REPLACE_ELEMENTS_AND_CONDITIONS_FOR_ADJOINT_PROBLEM_PROCESS_H_INCLUDED  defined
 
 

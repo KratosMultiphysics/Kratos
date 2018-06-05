@@ -22,15 +22,8 @@ namespace Kratos
     ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
-        
+
         KRATOS_CATCH("")
-    }
-
-
-    /// Destructor.
-    ReplaceElementsAndConditionsForAdjointProblemProcess::~ReplaceElementsAndConditionsForAdjointProblemProcess()
-    {
-
     }
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::Execute()
