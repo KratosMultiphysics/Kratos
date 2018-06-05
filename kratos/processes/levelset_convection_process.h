@@ -124,11 +124,12 @@ public:
 
         // Allocate if needed the variable CONVECTION_DIFFUSION_SETTINGS of the process info, and create it if it does not exist
         if( base_model_part.GetProcessInfo().Has(CONVECTION_DIFFUSION_SETTINGS) == false){
-            ConvectionDiffusionSettings::Pointer psettings( new ConvectionDiffusionSettings() );
-            base_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, psettings);
-            psettings->SetUnknownVariable(rLevelSetVar);
-            psettings->SetConvectionVariable(VELOCITY);
+            ConvectionDiffusionSettings::Pointer p_conv_diff_settings = Kratos::make_unique<ConvectionDiffusionSettings>();
+            base_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
+            p_conv_diff_settings->SetUnknownVariable(rLevelSetVar);
+            p_conv_diff_settings->SetConvectionVariable(VELOCITY);
         }
+
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         mdistance_part_is_initialized = false;
         ReGenerateConvectionModelPart(base_model_part);
@@ -328,7 +329,8 @@ protected:
         KRATOS_TRY
 
         // Generate
-        ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart",1);
+        const auto base_buffer_size = base_model_part.GetBufferSize();
+        ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart", base_buffer_size);
         mp_distance_model_part.swap(p_aux_model_part);
 
         mp_distance_model_part->Nodes().clear();
@@ -347,9 +349,8 @@ protected:
         VariableUtils().AddDof< Variable < double> >(mrLevelSetVar, base_model_part);
 
         // Generating the elements
-        mp_distance_model_part->Elements().reserve(base_model_part.Elements().size());
+        mp_distance_model_part->Elements().reserve(base_model_part.NumberOfElements());
         for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem){
-            Properties::Pointer properties = it_elem->pGetProperties();
             Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
