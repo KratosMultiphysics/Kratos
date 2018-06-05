@@ -206,8 +206,12 @@ public:
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(mrLevelSetVar);
 
+        const int rank = mr_base_model_part.GetCommunicator().MyPID();
+
         for(unsigned int step = 1; step <= n_substep; ++step){
-            std::cout << "Doing step "<< step << " of " << n_substep << std::endl;
+
+            KRATOS_INFO_IF("LevelSetConvectionProcess", mp_solving_strategy->GetEchoLevel() > 0 && rank == 0) << 
+                "Doing step "<< step << " of " << n_substep << std::endl;
 
             // Compute shape functions of old and new step
             const double Nold = 1.0 - static_cast<double>(step) / static_cast<double>(n_substep);
