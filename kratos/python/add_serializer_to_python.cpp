@@ -73,9 +73,9 @@ void  AddSerializerToPython(pybind11::module& m)
     .def(init<std::string const&>())
     .def(init<Serializer::TraceType>())
     .def(init<std::string const&, Serializer::TraceType>())
-    .def("Load",SerializerLoad<ModelPart>)
-    .def("Save",SerializerSave<ModelPart>)
-    .def("Print", SerializerPrint)
+    .def("Load",&SerializerLoad<ModelPart>)
+    .def("Save",&SerializerSave<ModelPart>)
+    .def("Print", &SerializerPrint)
     ;
 
     enum_<Serializer::TraceType>(m,"SerializerTraceType")

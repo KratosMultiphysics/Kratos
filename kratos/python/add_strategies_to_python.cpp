@@ -223,7 +223,7 @@ namespace Kratos
                     .def("CalculateOutputData", &BaseSchemeType::CalculateOutputData)
                     .def("Clean", &BaseSchemeType::Clean)
                     .def("Clear",&BaseSchemeType::Clear)
-                    .def("MoveMesh", MoveMesh)
+                    .def("MoveMesh", &MoveMesh)
                     .def("Check", &BaseSchemeType::Check)
                     ;
 
@@ -394,25 +394,25 @@ namespace Kratos
 
             class_< SparseSpaceType>(m,"UblasSparseSpace")
                     .def(init<>())
-                    .def("ClearMatrix", ClearMatrix)
-                    .def("ClearVector", ClearVector)
-                    .def("ResizeMatrix", ResizeMatrix)
-                    .def("ResizeVector", ResizeVector)
-                    .def("SetToZeroMatrix", SetToZeroMatrix)
-                    .def("SetToZeroVector", SetToZeroVector)
-                    .def("TwoNorm", TwoNorm)
+                    .def("ClearMatrix", &ClearMatrix)
+                    .def("ClearVector", &ClearVector)
+                    .def("ResizeMatrix", &ResizeMatrix)
+                    .def("ResizeVector", &ResizeVector)
+                    .def("SetToZeroMatrix", &SetToZeroMatrix)
+                    .def("SetToZeroVector", &SetToZeroVector)
+                    .def("TwoNorm", &TwoNorm)
                     //the dot product of two vectors
-                    .def("Dot", Dot)
+                    .def("Dot", &Dot)
                     //the matrix-vector multiplication
-                    .def("Mult", Mult)
-                    .def("TransposeMult", TransposeMult)
-                    .def("Size", Size)
-                    .def("Size1", Size1)
-                    .def("Size2", Size2)
-                    .def("UnaliasedAdd", UnaliasedAdd)
-                    .def("ScaleAndAdd", ScaleAndAdd)
-                    .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
-                    .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
+                    .def("Mult", &Mult)
+                    .def("TransposeMult", &TransposeMult)
+                    .def("Size", &Size)
+                    .def("Size1", &Size1)
+                    .def("Size2", &Size2)
+                    .def("UnaliasedAdd", &UnaliasedAdd)
+                    .def("ScaleAndAdd", &ScaleAndAdd)
+                    .def("CreateEmptyMatrixPointer", &CreateEmptyMatrixPointer)
+                    .def("CreateEmptyVectorPointer", &CreateEmptyVectorPointer)
                     ;
                     
             //********************************************************************

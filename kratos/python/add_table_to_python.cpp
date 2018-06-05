@@ -48,7 +48,7 @@ void  AddTableToPython(pybind11::module& m)
     .def(init<Matrix const&>())
     .def("GetValue", &DoubleTableType::GetValue)
     .def("GetDerivative",&DoubleTableType::GetDerivative)
-    .def("GetNearestValue", TableGetNearestValue)
+    .def("GetNearestValue", &TableGetNearestValue)
     .def("AddRow", &DoubleTableType::PushBack)
     .def("__repr__", &DoubleTableType::Info)
     ;

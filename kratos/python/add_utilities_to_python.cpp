@@ -414,7 +414,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
     .def(init<>())
     .def(init< bool >())
-    .def("SetOnProcessInfo",SetOnProcessInfo)
+    .def("SetOnProcessInfo",&SetOnProcessInfo)
     ;
 
     // Exact integration (for testing)
