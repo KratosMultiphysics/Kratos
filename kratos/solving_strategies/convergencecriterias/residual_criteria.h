@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //                    
 
-#if !defined(KRATOS_NEW_RESIDUAL_CRITERIA )
-#define  KRATOS_NEW_RESIDUAL_CRITERIA
+#if !defined(KRATOS_RESIDUAL_CRITERIA )
+#define  KRATOS_RESIDUAL_CRITERIA
 
 // System includes 
 
@@ -148,15 +148,15 @@ public:
             SizeType size_residual;
             if (mInitialResidualIsSet == false) {
 //                 mInitialResidualNorm = TSparseSpace::TwoNorm(b); // NOTE: This doesn't take into account the reaction dofs
-                GetResidualNorm(mInitialResidualNorm, size_residual, rDofSet, b);
+                CalculateResidualNorm(mInitialResidualNorm, size_residual, rDofSet, b);
                 mInitialResidualIsSet = true;
 
                 //KRATOS_INFO("RESIDUAL CRITERION") << "Initial Residual: " << mInitialResidualNorm <<std::endl;
             }
 
-            TDataType ratio;
+            TDataType ratio = 0.0;
 //             mCurrentResidualNorm = TSparseSpace::TwoNorm(b); // NOTE: This doesn't take into account the reaction dofs
-            GetResidualNorm(mCurrentResidualNorm, size_residual, rDofSet, b);
+            CalculateResidualNorm(mCurrentResidualNorm, size_residual, rDofSet, b);
 
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
                 ratio = 0.0;
@@ -170,7 +170,7 @@ public:
 //             const TDataType float_size_residual = static_cast<TDataType>(size_b);
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
-            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: Ratio = "<< ratio  << ";  Norm = " << absolute_norm << std::endl;
+            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
@@ -334,7 +334,7 @@ private:
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param b RHS vector (residual + reactions)
      */
-    void GetResidualNorm(
+    void CalculateResidualNorm(
         TDataType& rResidualSolutionNorm,
         IndexType& rDofNum,
         DofsArrayType& rDofSet,
@@ -342,7 +342,7 @@ private:
         )
     {
         // Initialize
-        rResidualSolutionNorm = 0.0;
+        rResidualSolutionNorm = TDataType();
         rDofNum = 0;
 
         // Loop over Dofs
@@ -356,8 +356,6 @@ private:
             if (it_dof->IsFree()) {
                 dof_id = it_dof->EquationId();
                 residual_dof_value = b[dof_id];
-
-                const auto curr_var = it_dof->GetVariable();
                 rResidualSolutionNorm += residual_dof_value * residual_dof_value;
                 rDofNum++;
             }
