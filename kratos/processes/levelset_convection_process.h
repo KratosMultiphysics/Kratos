@@ -92,9 +92,9 @@ public:
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)
-        : mr_base_model_part(base_model_part), 
+        : mrBaseModelPart(base_model_part), 
         mrLevelSetVar(rLevelSetVar), 
-        mmax_allowed_cfl(max_cfl), 
+        mMaxAllowedCFL(max_cfl), 
         mMaxSubsteps(max_substeps)
     {
         KRATOS_TRY
@@ -131,7 +131,7 @@ public:
         }
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
-        mdistance_part_is_initialized = false;
+        mDistancePartIsInitialized = false;
         ReGenerateConvectionModelPart(base_model_part);
 
         // Generate a linear strategy
@@ -143,8 +143,8 @@ public:
         bool CalculateNormDxFlag = false;
 
         BuilderSolverTypePointer pBuilderSolver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver > >(plinear_solver);
-        mp_solving_strategy = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
-            *mp_distance_model_part,
+        mpSolvingStrategy = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
+            *mpDistanceModelPart,
             pscheme,
             plinear_solver,
             pBuilderSolver,
@@ -152,12 +152,12 @@ public:
             ReformDofAtEachIteration,
             CalculateNormDxFlag);
 
-        mp_solving_strategy->SetEchoLevel(0);
+        mpSolvingStrategy->SetEchoLevel(0);
         
         base_model_part.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_stabilization_factor);
         
         //TODO: check flag DO_EXPENSIVE_CHECKS
-        mp_solving_strategy->Check();
+        mpSolvingStrategy->Check();
 
         KRATOS_CATCH("")
     }
@@ -181,36 +181,36 @@ public:
     {
         KRATOS_TRY;
 
-        if(mdistance_part_is_initialized == false){
-            ReGenerateConvectionModelPart(mr_base_model_part);
+        if(mDistancePartIsInitialized == false){
+            ReGenerateConvectionModelPart(mrBaseModelPart);
         }
 
         // Evaluate steps needed to achieve target max_cfl
         const auto n_substep = EvaluateNumberOfSubsteps();
 
         // Save the variables to be employed so that they can be restored after the solution
-        ProcessInfo& rCurrentProcessInfo = mp_distance_model_part->GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
         const auto & r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
         // Save current level set value and current and previous step velocity values
         #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mp_distance_model_part->NumberOfNodes()); ++i_node){
-            const auto it_node = mp_distance_model_part->NodesBegin() + i_node;
-            mv[i_node] = it_node->FastGetSolutionStepValue(VELOCITY);
-            mvold[i_node] = it_node->FastGetSolutionStepValue(VELOCITY,1);
-            mold_dist[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
+        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+            const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+            mVelocity[i_node] = it_node->FastGetSolutionStepValue(VELOCITY);
+            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(VELOCITY,1);
+            mOldDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
         }
 
         const double dt = previous_delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(mrLevelSetVar);
 
-        const int rank = mr_base_model_part.GetCommunicator().MyPID();
+        const int rank = mrBaseModelPart.GetCommunicator().MyPID();
 
         for(unsigned int step = 1; step <= n_substep; ++step){
 
-            KRATOS_INFO_IF("LevelSetConvectionProcess", mp_solving_strategy->GetEchoLevel() > 0 && rank == 0) << 
+            KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0 && rank == 0) << 
                 "Doing step "<< step << " of " << n_substep << std::endl;
 
             // Compute shape functions of old and new step
@@ -222,18 +222,18 @@ public:
             
             // Emulate clone time step by copying the new distance onto the old one
             #pragma omp parallel for
-            for (int i_node = 0; i_node < static_cast<int>(mp_distance_model_part->NumberOfNodes()); ++i_node){
-                auto it_node = mp_distance_model_part->NodesBegin() + i_node;
+            for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+                auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
 
-                const array_1d<double,3>& v = mv[i_node];
-                const array_1d<double,3>& v_old = mvold[i_node];
+                const array_1d<double,3>& v = mVelocity[i_node];
+                const array_1d<double,3>& v_old = mVelocityOld[i_node];
 
                 it_node->FastGetSolutionStepValue(VELOCITY) = Nold * v_old + Nnew * v;
                 it_node->FastGetSolutionStepValue(VELOCITY, 1) = Nold_before * v_old + Nnew_before * v;
                 it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = it_node->FastGetSolutionStepValue(mrLevelSetVar);
             }
             
-            mp_solving_strategy->Solve();
+            mpSolvingStrategy->Solve();
         }
 
         // Reset the processinfo to the original settings 
@@ -242,28 +242,28 @@ public:
         
         // Reset the velocities and levelset values to the one saved before the solution process
         #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(mp_distance_model_part->NumberOfNodes()); ++i_node){
-            auto it_node = mp_distance_model_part->NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(VELOCITY) = mv[i_node];
-            it_node->FastGetSolutionStepValue(VELOCITY,1) = mvold[i_node];
-            it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mold_dist[i_node];
+        for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
+            auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
+            it_node->FastGetSolutionStepValue(VELOCITY) = mVelocity[i_node];
+            it_node->FastGetSolutionStepValue(VELOCITY,1) = mVelocityOld[i_node];
+            it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
         
         KRATOS_CATCH("")
     }
 
     virtual void Clear(){
-        mp_distance_model_part->Nodes().clear();
-        mp_distance_model_part->Conditions().clear();
-        mp_distance_model_part->Elements().clear();
-        // mp_distance_model_part->GetProcessInfo().clear();
-        mdistance_part_is_initialized = false;
+        mpDistanceModelPart->Nodes().clear();
+        mpDistanceModelPart->Conditions().clear();
+        mpDistanceModelPart->Elements().clear();
+        // mpDistanceModelPart->GetProcessInfo().clear();
+        mDistancePartIsInitialized = false;
 
-        mp_solving_strategy->Clear();
+        mpSolvingStrategy->Clear();
         
-        mv.clear();
-        mvold.clear();
-        mold_dist.clear();
+        mVelocity.clear();
+        mVelocityOld.clear();
+        mOldDistance.clear();
     }
 
     ///@}
@@ -305,21 +305,21 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mr_base_model_part;
-    ModelPart::UniquePointer mp_distance_model_part;
+    ModelPart& mrBaseModelPart;
+    ModelPart::UniquePointer mpDistanceModelPart;
 
     Variable<double>& mrLevelSetVar;
 
-    const double mmax_allowed_cfl;
+    const double mMaxAllowedCFL;
     
-    bool mdistance_part_is_initialized;
+    bool mDistancePartIsInitialized;
 
 	const unsigned int mMaxSubsteps;
 
-    std::vector< double > mold_dist;
-    std::vector< array_1d<double,3> > mv, mvold;
+    std::vector< double > mOldDistance;
+    std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
 
-    typename SolvingStrategyType::UniquePointer mp_solving_strategy;
+    typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     ///@}
     ///@name Protected Operators
@@ -329,31 +329,45 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ReGenerateConvectionModelPart(ModelPart& base_model_part){
+    /// Constructor without linear solver for derived classes
+    LevelSetConvectionProcess(
+        Variable<double>& rLevelSetVar,
+        ModelPart& rBaseModelPart,
+        const double MaxCFL = 1.0,
+        const unsigned int MaxSubSteps = 0)
+        : mrLevelSetVar(rLevelSetVar),
+        mrBaseModelPart(rBaseModelPart),
+        mMaxAllowedCFL(MaxCFL),
+        mMaxSubsteps(MaxSubSteps)
+    {
+        mDistancePartIsInitialized = false;
+    }
+
+    virtual void ReGenerateConvectionModelPart(ModelPart& base_model_part){
+
         KRATOS_TRY
 
         // Generate
-        const auto base_buffer_size = base_model_part.GetBufferSize();
-        ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart", base_buffer_size);
-        mp_distance_model_part.swap(p_aux_model_part);
+        ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
+        mpDistanceModelPart.swap(p_aux_model_part);
 
-        mp_distance_model_part->Nodes().clear();
-        mp_distance_model_part->Conditions().clear();
-        mp_distance_model_part->Elements().clear();
+        mpDistanceModelPart->Nodes().clear();
+        mpDistanceModelPart->Conditions().clear();
+        mpDistanceModelPart->Elements().clear();
 
-        mp_distance_model_part->SetProcessInfo(  base_model_part.pGetProcessInfo() );
-        mp_distance_model_part->SetBufferSize(base_model_part.GetBufferSize());
-        mp_distance_model_part->SetProperties(base_model_part.pProperties());
-        mp_distance_model_part->Tables() = base_model_part.Tables();
+        mpDistanceModelPart->SetProcessInfo(  base_model_part.pGetProcessInfo() );
+        mpDistanceModelPart->SetBufferSize(base_model_part.GetBufferSize());
+        mpDistanceModelPart->SetProperties(base_model_part.pProperties());
+        mpDistanceModelPart->Tables() = base_model_part.Tables();
 
         // Assigning the nodes to the new model part
-        mp_distance_model_part->Nodes() = base_model_part.Nodes();
+        mpDistanceModelPart->Nodes() = base_model_part.Nodes();
 
         // Ensure that the nodes have distance as a DOF
         VariableUtils().AddDof< Variable < double> >(mrLevelSetVar, base_model_part);
 
         // Generating the elements
-        mp_distance_model_part->Elements().reserve(base_model_part.NumberOfElements());
+        mpDistanceModelPart->Elements().reserve(base_model_part.NumberOfElements());
         for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem){
             Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
@@ -363,20 +377,20 @@ protected:
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
             
-            mp_distance_model_part->Elements().push_back(p_element);
+            mpDistanceModelPart->Elements().push_back(p_element);
         }
 
         // Next is for mpi (but mpi would also imply calling an mpi strategy)
         Communicator::Pointer pComm = base_model_part.GetCommunicator().Create();
-        mp_distance_model_part->SetCommunicator(pComm);
+        mpDistanceModelPart->SetCommunicator(pComm);
         
         // Resize the arrays
-        const auto n_nodes = mp_distance_model_part->NumberOfNodes();
-        mv.resize(n_nodes);
-        mvold.resize(n_nodes);
-        mold_dist.resize(n_nodes);
+        const auto n_nodes = mpDistanceModelPart->NumberOfNodes();
+        mVelocity.resize(n_nodes);
+        mVelocityOld.resize(n_nodes);
+        mOldDistance.resize(n_nodes);
 
-        mdistance_part_is_initialized = true;
+        mDistancePartIsInitialized = true;
 
         KRATOS_CATCH("")
     }
@@ -384,8 +398,8 @@ protected:
 
     unsigned int EvaluateNumberOfSubsteps(){
         // First of all compute the cfl number 
-        const auto n_elem = mp_distance_model_part->NumberOfElements();
-        const double dt = mp_distance_model_part->GetProcessInfo()[DELTA_TIME];
+        const auto n_elem = mpDistanceModelPart->NumberOfElements();
+        const double dt = mpDistanceModelPart->GetProcessInfo()[DELTA_TIME];
         
 		// Vector where each thread will store its maximum (VS does not support OpenMP reduce max)
 		int NumThreads = OpenMPUtils::GetNumThreads();
@@ -394,7 +408,7 @@ protected:
         //TODO: Update this loop to avoid using thread id
         #pragma omp parallel shared(list_of_max_local_cfl)
         for(int i_elem = 0; i_elem < static_cast<int>(n_elem); i_elem++){
-            const auto it_elem = mp_distance_model_part->ElementsBegin() + i_elem;
+            const auto it_elem = mpDistanceModelPart->ElementsBegin() + i_elem;
             Geometry< Node<3> >& r_geom = it_elem->GetGeometry();
 
             double vol;
@@ -438,9 +452,9 @@ protected:
         max_cfl_found *= dt;
 
         // Synchronize maximum CFL between processes
-        mp_distance_model_part->GetCommunicator().MaxAll(max_cfl_found);
+        mpDistanceModelPart->GetCommunicator().MaxAll(max_cfl_found);
         
-        int n_steps = static_cast<unsigned int>(max_cfl_found / mmax_allowed_cfl); 
+        int n_steps = static_cast<unsigned int>(max_cfl_found / mMaxAllowedCFL); 
         if(n_steps < 1){
             n_steps = 1;
         }
