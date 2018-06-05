@@ -33,7 +33,7 @@ endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 
 ## generate variables with the sources
-set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
+set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application_variables.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_element.cpp
