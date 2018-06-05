@@ -423,27 +423,34 @@ protected:
             }
 
             double cfl_local = norm_2(vgauss) / h;
-            if(cfl_local > max_cfl)
+            if(cfl_local > max_cfl){
                 max_cfl = cfl_local;
+            }
         }
 
 		// Now we get the maximum at each thread level
         double max_cfl_found = 0.0;
-		for (int k=0; k < NumThreads;k++) 
-		    if (max_cfl_found < list_of_max_local_cfl[k])
+		for (int k=0; k < NumThreads;k++){
+		    if (max_cfl_found < list_of_max_local_cfl[k]){
                 max_cfl_found = list_of_max_local_cfl[k];
-		
+            }
+        }
         max_cfl_found *= dt;
+
+        // Synchronize maximum CFL between processes
+        mp_distance_model_part->GetCommunicator().MaxAll(max_cfl_found);
         
-        int nsteps = static_cast<unsigned int>(max_cfl_found / mmax_allowed_cfl); 
-        if(nsteps < 1) 
-            nsteps = 1;
+        int n_steps = static_cast<unsigned int>(max_cfl_found / mmax_allowed_cfl); 
+        if(n_steps < 1){
+            n_steps = 1;
+        }
 
 		// Now we compare with the maximum set
-		if (mMaxSubsteps > 0 && mMaxSubsteps < nsteps) 
-            nsteps = mMaxSubsteps;
+		if (mMaxSubsteps > 0 && mMaxSubsteps < n_steps){
+            n_steps = mMaxSubsteps;
+        }
         
-        return nsteps;
+        return n_steps;
     }
 
     ///@}
