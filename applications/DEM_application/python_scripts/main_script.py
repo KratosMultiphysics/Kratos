@@ -427,7 +427,7 @@ class Solution(object):
 
             self.AfterSolveOperations()
 
-            #self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
+            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.dt)
             #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
             ##### adding DEM elements by the inlet ######
