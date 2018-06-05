@@ -249,7 +249,7 @@ public:
         }
 
 
-//         size_t n = rA.size1();
+//         std::size_t n = rA.size1();
 
         amgcl::make_solver<
         amgcl::preconditioner::schur_pressure_correction<USolver, PSolver>,
@@ -261,7 +261,7 @@ public:
 //             > solve(boost::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() ), mprm);
 
 
-        size_t iters;
+        std::size_t iters;
         double resid;
         boost::tie(iters, resid) = solve(rB, rX);
 

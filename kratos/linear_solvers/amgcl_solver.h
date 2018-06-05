@@ -494,7 +494,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "verobsity = 4 prints the matrix and exits","")
         }
         
-        size_t iters;
+        std::size_t iters;
         double resid;
         {
             if(mfallback_to_gmres==true) mprm.put("solver.type", "bicgstab"); //first we need to try with bicgstab
@@ -699,7 +699,7 @@ private:
         boost::tie(iters, resid) = solve(rB, rX);
     }
 
-    template< size_t TBlockSize>
+    template< std::size_t TBlockSize>
     void BlockSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB, size_t& iters, double& resid)
     {
         mprm.put("precond.coarsening.aggr.block_size",1);
@@ -708,7 +708,7 @@ private:
         typedef amgcl::static_matrix<double, TBlockSize, 1> rhs_type;
         typedef amgcl::backend::builtin<value_type> Backend;
 
-        size_t n = rA.size1();
+        std::size_t n = rA.size1();
 
         amgcl::make_solver<
         amgcl::runtime::amg<Backend>,
