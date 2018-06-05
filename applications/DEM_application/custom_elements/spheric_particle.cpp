@@ -268,7 +268,6 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
 
     array_1d<double,3>& total_forces = this_node.FastGetSolutionStepValue(TOTAL_FORCES);
     array_1d<double,3>& total_moment = this_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
-    int cohesive_group = this_node.FastGetSolutionStepValue(COHESIVE_GROUP);
 
     total_forces[0] = contact_force[0] + additional_forces[0];
     total_forces[1] = contact_force[1] + additional_forces[1];
@@ -278,7 +277,7 @@ void SphericParticle::CalculateRightHandSide(ProcessInfo& r_process_info, double
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
 
-    if (cohesive_group) ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
+    ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
 
     #ifdef KRATOS_DEBUG
     DemDebugFunctions::CheckIfNan(total_forces, "NAN in Total Forces in RHS of Ball");

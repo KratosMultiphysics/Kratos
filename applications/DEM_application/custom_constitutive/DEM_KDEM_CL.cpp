@@ -28,10 +28,9 @@ namespace Kratos {
     void DEM_KDEM::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
 
         KRATOS_TRY
-//         double radius_sum = radius + other_radius;
+        double radius_sum = radius + other_radius;
 //         double equiv_radius = radius * other_radius / radius_sum;
-//         double equiv_radius = 0.5 * radius_sum;
-        double equiv_radius = std::min(radius, other_radius);
+        double equiv_radius = 0.5 * radius_sum;
         calculation_area = Globals::Pi * equiv_radius * equiv_radius;
         KRATOS_CATCH("")
     }
@@ -101,11 +100,10 @@ namespace Kratos {
 
         const double my_radius = element1->GetRadius();
         const double other_radius = element2->GetRadius();
-        // double calculation_area = 0;
-        double calculation_area = 77.45e-4;
+        double calculation_area = 0;
 
         Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
-        // GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
+        GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
 
         double radius_sum = my_radius + other_radius;
         double initial_delta = element1->GetInitialDelta(i);
@@ -360,8 +358,7 @@ namespace Kratos {
         const double neighbor_mass = neighbor->GetMass();
         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
         const double equiv_shear   = equiv_young / (2.0 * (1 + equiv_poisson));
-        // const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
-        const double Inertia_I     = 3217.0e-8;
+        const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
 
         const double my_gamma    = element->GetProperties()[DAMPING_GAMMA];

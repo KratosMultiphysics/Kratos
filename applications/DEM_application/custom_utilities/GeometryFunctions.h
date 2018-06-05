@@ -29,7 +29,7 @@ namespace Kratos {
         new_vec[1] = axis[1] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[1] * cang + ( axis[2] * old_vec[0] - axis[0] * old_vec[2]) * sang;
         new_vec[2] = axis[2] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[2] * cang + (-axis[1] * old_vec[0] + axis[0] * old_vec[1]) * sang;
     }
-/*
+
     static inline void TranslateGridOfNodes(const double time, const double velocity_start_time, const double velocity_stop_time, array_1d<double, 3>& center_position,
                                             const array_1d<double, 3>& initial_center, array_1d<double, 3>& previous_displ, array_1d<double, 3>& linear_velocity_changed,
                                             const double linear_period, const double dt, const array_1d<double, 3>& linear_velocity) {
@@ -57,7 +57,7 @@ namespace Kratos {
             }
         }
     }
-*/
+
     static inline int sign(const double a)
     {
         return (0.0 < a) - (a < 0.0);
@@ -444,7 +444,7 @@ namespace Kratos {
             RotateRightHandedBasisAroundAxis(e1, e2, rotation_axis, ang, new_axes1, new_axes2, new_axes3);
         }
     }
-/*
+
     static inline void UpdateKinematicVariablesOfAGridOfNodes(double mod_angular_velocity, const array_1d<double, 3>& linear_velocity,
                                                               const array_1d<double, 3>& initial_center, array_1d<double, 3>& new_axes1, array_1d<double, 3>& new_axes2,
                                                               array_1d<double, 3>& new_axes3, array_1d<double, 3>& angular_velocity_changed,
@@ -484,7 +484,7 @@ namespace Kratos {
             }
         }
     }
-*/
+
     //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (the one proposed by F. Chun was for a more generalized case)
 
     static inline void ComputeContactLocalCoordSystem(array_1d<double, 3> NormalDirection, const double& distance, double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
