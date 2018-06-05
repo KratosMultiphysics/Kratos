@@ -21,6 +21,7 @@
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -60,7 +61,7 @@ public:
 
 
     /// The type of yield surface
-    typedef typename TYieldSurfaceType YieldSurfaceType;
+    typedef TYieldSurfaceType YieldSurfaceType;
 
     /// The type of plastic potential 
     typedef typename YieldSurfaceType::TPlasticPotentialType PlasticPotentialType;
@@ -106,18 +107,18 @@ public:
         const double CharacteristicLength
     )
     {
-        const std::string& SofteningType = rMaterialProperties[SOFTENING_TYPE];
+        const std::size_t softening_type = rMaterialProperties[SOFTENING_TYPE];
         double DamageParameter;
         TYieldSurfaceType::CalculateDamageParameter(rMaterialProperties, DamageParameter, CharacteristicLength);
 
-        switch(SofteningType)
+        switch(softening_type)
         {
-            case "Linear":
+            case static_cast<std::size_t>(SofteningType::Linear):
                 CalculateLinearDamage(UniaxialStress, Threshold, DamageParameter,
                     CharacteristicLength, rMaterialProperties, Damage);
                 break;
 
-            case "Exponential":
+            case static_cast<std::size_t>(SofteningType::Exponential):
                 CalculateExponentialDamage(UniaxialStress, Threshold, DamageParameter,
                     CharacteristicLength, rMaterialProperties, Damage);
                 break;
@@ -142,7 +143,7 @@ public:
         double InitialThreshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
 
-        Damage = 1 - (InitialThreshold / UniaxialStress)*std::exp(DamageParameter*(1 - UniaxialStress / InitialThreshold)); 
+        Damage = 1 - (InitialThreshold / UniaxialStress)*std::exp(DamageParameter*(1.0 - UniaxialStress / InitialThreshold));
     }
 
     static void CalculateLinearDamage(
@@ -156,22 +157,6 @@ public:
     {
         // TODO
     }
-
-
-    static void CalculateDeviatorVector(const Vector& StressVector, Vector& rDeviator, const double rJ2)
-    {
-        rDeviator = StressVector;
-        const double I1 = StressVector[0] + StressVector[1] + StressVector[2];
-        const double Pmean = I1 / 3.0;
-
-        rDeviator[0] -= Pmean;
-        rDeviator[1] -= Pmean;
-        rDeviator[2] -= Pmean;
-
-        rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + Deviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
-            (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
-    }
-
 
     ///@}
     ///@name Access
