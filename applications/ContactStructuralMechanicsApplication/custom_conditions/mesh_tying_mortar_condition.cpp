@@ -10,15 +10,14 @@
 //
 
 // System includes
+#include <algorithm>
 
 // External includes
 
 // Project includes
+#include "utilities/geometrical_projection_utilities.h"
 /* Mortar includes */
 #include "custom_conditions/mesh_tying_mortar_condition.h"
-
-/* Additional includes */
-#include <algorithm>
 
 namespace Kratos 
 {
@@ -507,7 +506,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::MasterShapeFunctionVa
     
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
-    MortarUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, NormalMaster, -gp_normal ); // The opposite direction
+    GeometricalProjectionUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, NormalMaster, -gp_normal ); // The opposite direction
     
     GeometryType::CoordinatesArrayType projected_gp_local;
     
