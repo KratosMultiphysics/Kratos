@@ -87,12 +87,12 @@ public:
      */
     LevelSetConvectionProcess(
         Variable<double>& rLevelSetVar,
-        ModelPart& base_model_part,
+        ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer plinear_solver,
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)
-        : mrBaseModelPart(base_model_part), 
+        : mrBaseModelPart(rBaseModelPart), 
         mrLevelSetVar(rLevelSetVar), 
         mMaxAllowedCFL(max_cfl), 
         mMaxSubsteps(max_substeps)
@@ -100,39 +100,39 @@ public:
         KRATOS_TRY
         
         // Check that there is at least one element and node in the model
-        const auto n_nodes = base_model_part.NumberOfNodes();
-        const auto n_elems = base_model_part.NumberOfElements();
+        const auto n_nodes = rBaseModelPart.NumberOfNodes();
+        const auto n_elems = rBaseModelPart.NumberOfElements();
 
         KRATOS_ERROR_IF(n_nodes == 0) << "The model has no nodes." << std::endl;
         KRATOS_ERROR_IF(n_elems == 0) << "The model has no elements." << std::endl;
 
-        VariableUtils().CheckVariableExists< Variable< double > >(rLevelSetVar, base_model_part.Nodes());
-        VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(VELOCITY, base_model_part.Nodes());
+        VariableUtils().CheckVariableExists< Variable< double > >(rLevelSetVar, rBaseModelPart.Nodes());
+        VariableUtils().CheckVariableExists< Variable< array_1d < double, 3 > > >(VELOCITY, rBaseModelPart.Nodes());
 
         if(TDim == 2){
-            KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) << 
+            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) << 
                 "In 2D the element type is expected to be a triangle" << std::endl;
         } else if(TDim == 3) {
-            KRATOS_ERROR_IF(base_model_part.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) << 
+            KRATOS_ERROR_IF(rBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) << 
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
         
         // Allocate if needed the variable DYNAMIC_TAU of the process info, and if it does not exist, set it to zero
-        if( base_model_part.GetProcessInfo().Has(DYNAMIC_TAU) == false){
-            base_model_part.GetProcessInfo().SetValue(DYNAMIC_TAU,0.0);
+        if( rBaseModelPart.GetProcessInfo().Has(DYNAMIC_TAU) == false){
+            rBaseModelPart.GetProcessInfo().SetValue(DYNAMIC_TAU,0.0);
         }
 
         // Allocate if needed the variable CONVECTION_DIFFUSION_SETTINGS of the process info, and create it if it does not exist
-        if( base_model_part.GetProcessInfo().Has(CONVECTION_DIFFUSION_SETTINGS) == false){
+        if( rBaseModelPart.GetProcessInfo().Has(CONVECTION_DIFFUSION_SETTINGS) == false){
             ConvectionDiffusionSettings::Pointer p_conv_diff_settings = Kratos::make_unique<ConvectionDiffusionSettings>();
-            base_model_part.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
+            rBaseModelPart.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(rLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(VELOCITY);
         }
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         mDistancePartIsInitialized = false;
-        ReGenerateConvectionModelPart(base_model_part);
+        ReGenerateConvectionModelPart(rBaseModelPart);
 
         // Generate a linear strategy
         typename SchemeType::Pointer pscheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -154,7 +154,7 @@ public:
 
         mpSolvingStrategy->SetEchoLevel(0);
         
-        base_model_part.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_stabilization_factor);
+        rBaseModelPart.GetProcessInfo().SetValue(CROSS_WIND_STABILIZATION_FACTOR, cross_wind_stabilization_factor);
         
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mpSolvingStrategy->Check();
@@ -343,9 +343,14 @@ protected:
         mDistancePartIsInitialized = false;
     }
 
-    virtual void ReGenerateConvectionModelPart(ModelPart& base_model_part){
+    virtual void ReGenerateConvectionModelPart(ModelPart& rBaseModelPart){
 
         KRATOS_TRY
+
+        // Check buffer size
+        const auto base_buffer_size = rBaseModelPart.GetBufferSize();
+        KRATOS_ERROR_IF(base_buffer_size < 2) << 
+            "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
         // Generate
         ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
@@ -355,20 +360,20 @@ protected:
         mpDistanceModelPart->Conditions().clear();
         mpDistanceModelPart->Elements().clear();
 
-        mpDistanceModelPart->SetProcessInfo(  base_model_part.pGetProcessInfo() );
-        mpDistanceModelPart->SetBufferSize(base_model_part.GetBufferSize());
-        mpDistanceModelPart->SetProperties(base_model_part.pProperties());
-        mpDistanceModelPart->Tables() = base_model_part.Tables();
+        mpDistanceModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
+        mpDistanceModelPart->SetBufferSize(base_buffer_size);
+        mpDistanceModelPart->SetProperties(rBaseModelPart.pProperties());
+        mpDistanceModelPart->Tables() = rBaseModelPart.Tables();
 
         // Assigning the nodes to the new model part
-        mpDistanceModelPart->Nodes() = base_model_part.Nodes();
+        mpDistanceModelPart->Nodes() = rBaseModelPart.Nodes();
 
         // Ensure that the nodes have distance as a DOF
-        VariableUtils().AddDof< Variable < double> >(mrLevelSetVar, base_model_part);
+        VariableUtils().AddDof< Variable < double> >(mrLevelSetVar, rBaseModelPart);
 
         // Generating the elements
-        mpDistanceModelPart->Elements().reserve(base_model_part.NumberOfElements());
-        for (auto it_elem = base_model_part.ElementsBegin(); it_elem != base_model_part.ElementsEnd(); ++it_elem){
+        mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
+        for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
             Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
@@ -381,7 +386,7 @@ protected:
         }
 
         // Next is for mpi (but mpi would also imply calling an mpi strategy)
-        Communicator::Pointer pComm = base_model_part.GetCommunicator().Create();
+        Communicator::Pointer pComm = rBaseModelPart.GetCommunicator().Create();
         mpDistanceModelPart->SetCommunicator(pComm);
         
         // Resize the arrays

@@ -233,6 +233,11 @@ protected:
 
         KRATOS_TRY
 
+        // Check buffer size
+        const auto base_buffer_size = rBaseModelPart.GetBufferSize();
+        KRATOS_ERROR_IF(base_buffer_size < 2) << 
+            "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
+
         // Generate
         ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
         (this->mpDistanceModelPart).swap(p_aux_model_part);
@@ -242,7 +247,7 @@ protected:
         (this->mpDistanceModelPart)->Elements().clear();
 
         (this->mpDistanceModelPart)->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
-        (this->mpDistanceModelPart)->SetBufferSize(rBaseModelPart.GetBufferSize());
+        (this->mpDistanceModelPart)->SetBufferSize(base_buffer_size);
         (this->mpDistanceModelPart)->SetProperties(rBaseModelPart.pProperties());
         (this->mpDistanceModelPart)->Tables() = rBaseModelPart.Tables();
 
