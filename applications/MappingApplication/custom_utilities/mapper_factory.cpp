@@ -21,7 +21,7 @@
 #include "spaces/ublas_space.h"
 
 #include "mapper_factory.h"
-#include "custom_utilities/mapper_utilities.h"
+// #include "custom_utilities/mapper_utilities.h"
 
 
 namespace Kratos

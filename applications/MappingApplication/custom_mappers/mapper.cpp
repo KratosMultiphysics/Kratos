@@ -20,6 +20,7 @@
 // Project includes
 #include "mapper.h"
 #include "custom_utilities/mapper_typedefs.h"
+#include "custom_utilities/mapper_utilities.h"
 #include "custom_searching/interface_search_structure.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "custom_searching/interface_search_structure_mpi.h"
@@ -175,32 +176,9 @@ void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags Ma
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::AssignInterfaceEquationIds()
 {
-    AssignInterfaceEquationIds(mrModelPartOrigin.GetCommunicator());
-    AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
+    MapperUtilities::AssignInterfaceEquationIds(mrModelPartOrigin.GetCommunicator());
+    MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
 }
-
-template<class TSparseSpace, class TDenseSpace>
-void Mapper<TSparseSpace, TDenseSpace>::AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
-    {
-        const int num_nodes_local = rModelPartCommunicator.LocalMesh().NumberOfNodes();
-
-        int num_nodes_accumulated;
-
-        rModelPartCommunicator.ScanSum(num_nodes_local, num_nodes_accumulated);
-
-        const int start_equation_id = num_nodes_accumulated - num_nodes_local;
-
-        const auto nodes_begin = rModelPartCommunicator.LocalMesh().NodesBegin();
-
-        #pragma omp parallel for
-        for (int i=0; i<num_nodes_local; ++i)
-        {
-            // TODO this should be working in omp, not usre though
-            ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
-        }
-
-        rModelPartCommunicator.SynchronizeVariable(INTERFACE_EQUATION_ID);
-    }
 
 // /// input stream function
 // inline std::istream & operator >> (std::istream& rIStream, Mapper& rThis);
