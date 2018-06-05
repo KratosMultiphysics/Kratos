@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 
 /* Utilities */
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/derivatives_utilities.h"
@@ -241,7 +242,7 @@ namespace Kratos
 
                                     GeometryType::CoordinatesArrayType slave_gp_global;
                                     slave_geometry_0.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    MortarUtilities::FastProjectDirection( master_geometry_0, slave_gp_global, projected_gp_global, normal_master_0, -gp_normal ); // The opposite direction
+                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_0, slave_gp_global, projected_gp_global, normal_master_0, -gp_normal ); // The opposite direction
 
                                     GeometryType::CoordinatesArrayType projected_gp_local;
 
@@ -267,7 +268,7 @@ namespace Kratos
                                     gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, slave_geometry_1);
 
                                     slave_geometry_1.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    MortarUtilities::FastProjectDirection( master_geometry_1, slave_gp_global, projected_gp_global, normal_master_1, -gp_normal ); // The opposite direction
+                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_1, slave_gp_global, projected_gp_global, normal_master_1, -gp_normal ); // The opposite direction
 
                                     master_geometry_1.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
