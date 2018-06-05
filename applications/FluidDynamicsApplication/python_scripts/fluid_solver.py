@@ -147,10 +147,10 @@ class FluidSolver(PythonSolver):
         return self._is_printing_rank
 
     def _ValidateSettings(self, settings):
-        raise Exception("Please define the default solver settings in the derived solver class")
-
-        settings.ValidateAndAssignDefaults(KratosMultiphysics.Parameters(r'{}'))
-        return settings
+        raise Exception("Please define the _ValidateSettings() method in your derived solver class to validate the Kratos::Parameters configuration.")
+        # Suggested implementation:
+        #settings.ValidateAndAssignDefaults(KratosMultiphysics.Parameters(r'{}'))
+        #return settings
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
