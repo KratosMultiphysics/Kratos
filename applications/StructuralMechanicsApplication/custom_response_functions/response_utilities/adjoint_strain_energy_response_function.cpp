@@ -25,8 +25,8 @@
 namespace Kratos
 {
     /// Default constructor.
-    AdjointStrainEnergyResponseFunction::AdjointStrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
-    : AdjointStructuralResponseFunction(model_part, responseSettings)
+    AdjointStrainEnergyResponseFunction::AdjointStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
         // Initialize member variables to NULL
         mCurrentResponseValue = 0.0;

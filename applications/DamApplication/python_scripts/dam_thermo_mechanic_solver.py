@@ -40,7 +40,6 @@ class DamThermoMechanicSolver(object):
             },
             "echo_level": 0,
             "buffer_size": 2,
-            "reference_temperature" : 10.0,
             "processes_sub_model_part_list": [""],
             "thermal_solver_settings":{
                 "echo_level": 0,
@@ -141,8 +140,8 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_JOINT_WIDTH)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_JOINT_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_YOUNG_MODULUS)
 
         ## Thermal variables
@@ -162,6 +161,7 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_REFERENCE_TEMPERATURE)
         # This Variable is used for computing heat source according Azenha Formulation
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.ALPHA_HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.TIME_ACTIVATION)
@@ -213,7 +213,6 @@ class DamThermoMechanicSolver(object):
     def Initialize(self):
 
         # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.REFERENCE_TEMPERATURE, self.settings["reference_temperature"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosConvDiff.THETA, self.settings["thermal_solver_settings"]["theta_scheme"].GetDouble())
 
         # Get the computing model parts
@@ -410,19 +409,19 @@ class DamThermoMechanicSolver(object):
         echo_level = self.settings["mechanical_solver_settings"]["echo_level"].GetInt()
 
         if(convergence_criterion == "Displacement_criterion"):
-            convergence_criterion = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion == "Residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion == "And_criterion"):
-            Displacement = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
         elif(convergence_criterion == "Or_criterion"):
-            Displacement = KratosSolid.DisplacementConvergenceCriterion(D_RT, D_AT)
+            Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)

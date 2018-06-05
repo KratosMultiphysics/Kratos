@@ -62,13 +62,13 @@ namespace Kratos
  * @class EmbeddedSkinVisualizationProcess
  * @ingroup FluidDynamicsApplication
  * @brief This process saves the intersected elements in a different model part for its visualization.
- * @details For a given model part, this process checks if its elements are intersected. If they are, 
+ * @details For a given model part, this process checks if its elements are intersected. If they are,
  * calls the corresponding splitting utility to get the subgeometries that conform the splitting
  * pattern. Then, it saves that subgeometries in another model part for its visualization.
  * It has to be mentioned that all the origin model part nodes are kept. Then, the unique nodes
  * that are created are that ones in the intersection edge points.
- * Finally, the values in the visualization model part are computed using the corresponding 
- * modify shape functions utility. 
+ * Finally, the values in the visualization model part are computed using the corresponding
+ * modify shape functions utility.
  * @author Ruben Zorrilla
  */
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) EmbeddedSkinVisualizationProcess : public Process
@@ -94,10 +94,10 @@ public:
     /// Pointer definition of EmbeddedSkinVisualizationProcess
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinVisualizationProcess);
 
-    typedef std::unordered_map< 
-        Node<3>::Pointer, 
-        std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >, 
-        SharedPointerHasher<Node<3>::Pointer>, 
+    typedef std::unordered_map<
+        Node<3>::Pointer,
+        std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >,
+        SharedPointerHasher<Node<3>::Pointer>,
         SharedPointerComparator<Node<3>::Pointer> > CutNodesMapType;
 
     ///@}
@@ -249,7 +249,7 @@ private:
      * @param rNodalDistances Vector containing the distance values
      * @return True if it is split and false if not
      */
-    const bool ElementIsSplit(
+    bool ElementIsSplit(
         Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
@@ -259,12 +259,12 @@ private:
      * @param rNodalDistances Vector containing the distance values
      * @return True if it is split and false if not
      */
-    const bool ElementIsPositive(
+    bool ElementIsPositive(
         Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
-     * Sets the distance values. If Ausas shape functions are used, 
+     * Sets the distance values. If Ausas shape functions are used,
      * it takes the ELEMENTAL_DISTANCES. Otherwise, the nodal ones
      * @param ItElem Element iterator
      * @return Vector containing the distance values
@@ -283,9 +283,9 @@ private:
         const Vector &rNodalDistances);
 
     /**
-     * Sets the new interface condition geometry 
+     * Sets the new interface condition geometry
      * @param rOriginGeometryType Interface subgeometry type
-     * @param rNewNodesArray Nodes that conform the new interface geometry 
+     * @param rNewNodesArray Nodes that conform the new interface geometry
      * @return A pointer to the new geometry
      */
     Geometry< Node<3> >::Pointer SetNewConditionGeometry(
@@ -293,7 +293,7 @@ private:
         const Condition::NodesArrayType &rNewNodesArray);
 
     /**
-     * Sets the visualization properties (one for the positive side 
+     * Sets the visualization properties (one for the positive side
      * and one for the negative)
      * @return Tuple containing two properties pointers
      */

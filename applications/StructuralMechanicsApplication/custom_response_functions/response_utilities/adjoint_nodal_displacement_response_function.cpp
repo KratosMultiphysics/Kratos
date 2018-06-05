@@ -25,18 +25,23 @@
 
 namespace Kratos
 {
-    AdjointNodalDisplacementResponseFunction::AdjointNodalDisplacementResponseFunction(ModelPart& model_part, Parameters& responseSettings)
-    : AdjointStructuralResponseFunction(model_part, responseSettings)
+    AdjointNodalDisplacementResponseFunction::AdjointNodalDisplacementResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
         ModelPart& r_model_part = this->GetModelPart();
+        
+        // This response function currently only works in 3D!
+        ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+        const unsigned int domain_size =
+            static_cast<unsigned int>(r_current_process_info[DOMAIN_SIZE]);
+        KRATOS_ERROR_IF(domain_size != 3) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
 
         // Get id of node where a displacement should be traced
-        mIdOfTracedNode = responseSettings["traced_node"].GetInt();
+        mIdOfTracedNode = ResponseSettings["traced_node_id"].GetInt();
 
         // Get the corresponding dof to the displacement which should be traced
-        // By this response function e.g. DISPLACEMENT_X, ROTATION_X,...
-        mTracedDofLabel = responseSettings["traced_dof"].GetString();
-
+        // by this response function e.g. DISPLACEMENT_X, ROTATION_X,...
+        mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
 
         // Get pointer to traced node
         mpTracedNode = r_model_part.pGetNode(mIdOfTracedNode);

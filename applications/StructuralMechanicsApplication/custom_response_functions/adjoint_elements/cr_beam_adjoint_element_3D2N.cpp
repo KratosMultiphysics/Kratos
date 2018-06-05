@@ -180,7 +180,7 @@ namespace Kratos
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
         delta *= correction_factor;
 
-        if(rDesignVariable == SHAPE_SENSITIVITY)
+        if(rDesignVariable == SHAPE)
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
             const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -240,34 +240,34 @@ namespace Kratos
   
             switch (traced_stress_type)  
             { 
-                case MX:
+                case TracedStressType::MX:
                 {
                     direction_1 = 0; 
                     break;
                 }
-                case MY:
+                case TracedStressType::MY:
                 {
                     direction_1 = 1; 
                     break; 
                 }
-                case MZ:
+                case TracedStressType::MZ:
                 {
                     direction_1 = 2; 
                     break; 
                 }
-                case FX:
+                case TracedStressType::FX:
                 {
                     direction_1 = 0; 
                     stress_is_moment = false;
                     break;
                 }	
-                case FY:
+                case TracedStressType::FY:
                 {
                     direction_1 = 1; 
                     stress_is_moment = false;
                     break;
                 }
-                case FZ:
+                case TracedStressType::FZ:
                 {
                     direction_1 = 2; 
                     stress_is_moment = false;
@@ -443,38 +443,13 @@ namespace Kratos
         KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
         << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 
-        // verify that the variables are correctly initialized
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-        KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-        KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
+        CheckVariables();
         KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
         KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 
-        // check properties
-        KRATOS_ERROR_IF(this->GetProperties().Has(CROSS_AREA) == false || this->GetProperties()[CROSS_AREA] == 0)
-        << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF(this->GetProperties().Has(YOUNG_MODULUS) == false || this->GetProperties()[YOUNG_MODULUS] == 0)
-        << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(DENSITY) )
-        << "DENSITY not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(POISSON_RATIO) )
-        << "POISSON_RATIO not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(TORSIONAL_INERTIA) )
-        << "TORSIONAL_INERTIA not provided for this element" << this->Id() << std::endl;
-    
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I22) )
-        << "I22 not provided for this element" << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
-        << "I33 not provided for this element" << this->Id() << std::endl;
-
-        // Check dofs
+        CheckProperties();
+        
+        // check dofs
         GeometryType& r_geom = GetGeometry();
         for (unsigned int i = 0; i < r_geom.size(); i++)
         {
@@ -517,7 +492,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(rDesignVariable == SHAPE_SENSITIVITY)
+        if(rDesignVariable == SHAPE)
         {
             double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
             double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
@@ -668,7 +643,7 @@ namespace Kratos
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
         delta *= correction_factor;
 
-        if(rDesignVariable == SHAPE_SENSITIVITY)
+        if(rDesignVariable == SHAPE)
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
             const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);

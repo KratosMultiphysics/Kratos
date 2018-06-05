@@ -46,6 +46,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -106,7 +107,8 @@ set( KRATOS_PYTHON_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_memory_info_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 )
 

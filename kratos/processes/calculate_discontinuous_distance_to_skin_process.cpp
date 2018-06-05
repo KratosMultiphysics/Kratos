@@ -209,7 +209,7 @@ namespace Kratos
 	}
 
 	unsigned int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgesIntersections(
-		Element& rElement1, 
+		Element& rElement1,
 		const PointerVector<GeometricalObject>& rIntersectedObjects,
 		std::vector<unsigned int> &rCutEdgesVector,
       	std::vector<array_1d <double,3> > &rIntersectionPointsArray){
@@ -224,7 +224,7 @@ namespace Kratos
 		rCutEdgesVector = std::vector<unsigned int>(n_edges, 0);
 
 		// Check wich edges are intersected
-		for (auto i_edge = 0; i_edge < n_edges; ++i_edge){
+		for (std::size_t i_edge = 0; i_edge < n_edges; ++i_edge){
 			array_1d<double,3> avg_pt = ZeroVector(3);
 			std::vector<array_1d<double,3> > aux_pts;
 			// Check against all candidates to count the number of current edge intersections
@@ -233,7 +233,7 @@ namespace Kratos
 				Point int_pt;
 				const auto &r_int_obj_geom = r_int_obj.GetGeometry();
 				const int int_id = ComputeEdgeIntersection(r_int_obj_geom, r_edges_container[i_edge][0], r_edges_container[i_edge][1], int_pt);
-				
+
 				// There is intersection
 				if (int_id == 1){
 
@@ -274,9 +274,9 @@ namespace Kratos
 	}
 
 	int CalculateDiscontinuousDistanceToSkinProcess::ComputeEdgeIntersection(
-		const Element::GeometryType& rIntObjGeometry, 
-		const Element::NodeType& rEdgePoint1, 
-		const Element::NodeType& rEdgePoint2, 
+		const Element::GeometryType& rIntObjGeometry,
+		const Element::NodeType& rEdgePoint1,
+		const Element::NodeType& rEdgePoint2,
 		Point& rIntersectionPoint){
 
 		int intersection_flag = 0;
@@ -310,11 +310,11 @@ namespace Kratos
 				rNormal(comp) += DN_DX(i_node,comp)*rElementalDistances[i_node];
 			}
 		}
-		rNormal /= norm_2(rNormal);		
+		rNormal /= norm_2(rNormal);
 	}
 
 	void CalculateDiscontinuousDistanceToSkinProcess::ComputePlaneApproximation(
-		const Element& rElement1, 
+		const Element& rElement1,
 		const std::vector< array_1d<double,3> >& rPointsCoord,
 		array_1d<double,3>& rPlaneBasePointCoords,
 		array_1d<double,3>& rPlaneNormal){
@@ -348,7 +348,7 @@ namespace Kratos
 			array_1d<double, 3> r_int_obj_normal;
 			MathUtils<double>::CrossProduct(r_int_obj_normal, r_int_obj_geom[1]-r_int_obj_geom[0], r_int_obj_geom[2]-r_int_obj_geom[0]);
 			r_int_obj_normal /= norm_2(r_int_obj_normal);
-			
+
 			if (inner_prod(r_int_obj_normal, distance_normal) < 0.0){
 				n_neg++;
 			} else {

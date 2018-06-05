@@ -103,7 +103,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
         #TODO this should be generic
         # initialize GiD  I/O
         self.output = self._SetUpGiDOutput()
-        self.list_of_processes += [self.output,]
+        if self.output is not None:
+            self.list_of_processes += [self.output,]
 
     def _SetUpAnalysis(self):
         '''
@@ -144,7 +145,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
                                    self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                    self.project_parameters["output_configuration"])
 
-        return output
+            return output
 
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""

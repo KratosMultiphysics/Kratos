@@ -62,7 +62,7 @@ public:
     /// Pointer definition of TubeBoundingBox
     KRATOS_CLASS_POINTER_DEFINITION( TubeBoundingBox );
 
-    //typedef bounded_vector<double, 3>                     PointType;
+    //typedef BoundedVector<double, 3>                     PointType;
     typedef array_1d<double, 3>                             PointType;
     typedef Node<3>                                          NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;

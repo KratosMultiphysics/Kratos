@@ -40,7 +40,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToEntitiesProcess);
 
     enum EntityType { NODES, CONDITIONS, ELEMENTS};
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -49,10 +49,10 @@ public:
                                        const std::string& pPyMethodName,
                                        const bool SpatialFieldFunction,
                                        Parameters rParameters
-                                       ) : Process(Flags()), mrModelPart(rModelPart), mPyObject(pPyObject), mPyMethodName(pPyMethodName), mIsSpatialField(SpatialFieldFunction) 
+                                       ) : Process(Flags()), mrModelPart(rModelPart), mPyObject(pPyObject), mPyMethodName(pPyMethodName), mIsSpatialField(SpatialFieldFunction)
     {
         KRATOS_TRY
-			 
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -67,10 +67,10 @@ public:
 
         mvariable_name = rParameters["variable_name"].GetString();
 
-	// Admissible values for local axes, are "empty" or 
+	// Admissible values for local axes, are "empty" or
         //"local_axes" :{
         //    "origin" : [0.0, 0.0, 0.0]
-        //    "axes"   : [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ] 
+        //    "axes"   : [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
         //    }
 
 	mHasLocalOrigin = false;
@@ -86,7 +86,7 @@ public:
 	if( rParameters["local_axes"].Has("axes") ){
 	  mHasLocalAxes = true;
 	  mTransformationMatrix.resize(3,3,false);
-	  noalias(mTransformationMatrix) = ZeroMatrix(3,3);	  
+	  noalias(mTransformationMatrix) = ZeroMatrix(3,3);
 	  for( unsigned int i=0; i<3; i++)
 	    for( unsigned int j=0; j<3; j++)
 	      mTransformationMatrix(i,j) = rParameters["local_axes"]["axes"][i][j].GetDouble();
@@ -98,13 +98,16 @@ public:
         else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
           mEntity = CONDITIONS;
         }
+        else if(  rParameters["entity_type"].GetString() == "ELEMENTS" ){
+          mEntity = ELEMENTS;
+        }
         else{
           KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() <<" is not supported "<<std::endl;
         }
-          
-        
+
+
         if( mEntity == NODES ){
-        
+
           if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
           {
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
@@ -120,7 +123,7 @@ public:
           {
             if( rModelPart.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
             {
-              KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl; 
+              KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
             }
 
           }
@@ -129,22 +132,22 @@ public:
             KRATOS_ERROR << "Not able to set the variable type/name. Attempting to set variable:" << mvariable_name << std::endl;
           }
         }
-        else if( mEntity == CONDITIONS ){
+        else if( mEntity == CONDITIONS || mEntity == ELEMENTS ){
 
           if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) == false ) //case of double variable
           {
-            KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl; 
+            KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
           }
           else
           {
             KRATOS_ERROR << "Not able to set the variable type/name. Attempting to set variable:" << mvariable_name << std::endl;
           }
-          
+
         }
         else{
           KRATOS_ERROR << " Assignment to " << mEntity << " not implemented "<< std::endl;
         }
-        
+
 
         KRATOS_CATCH("")
     }
@@ -159,7 +162,7 @@ public:
         KRATOS_TRY
         KRATOS_CATCH("")
     }
-    
+
     /// Destructor.
     virtual ~AssignScalarFieldToEntitiesProcess() {}
 
@@ -189,24 +192,40 @@ public:
         ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
-	
-        if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
-        {
+
+        if( mEntity == NODES || mEntity == CONDITIONS ){
+
+          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
+          {
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
             component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-            AssignValueToNodes< component_type>(var_component, rCurrentTime);
+            AssignValueToNodes<component_type>(var_component, rCurrentTime);
+          }
+          else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+          {
+            AssignValueToNodes<>(KratosComponents< Variable<double> >::Get(mvariable_name), rCurrentTime);
+          }
+          else if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
+          {
+            AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), rCurrentTime);
+          }
+          else
+          {
+            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
+          }
+
         }
-        else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
-        {
-	  AssignValueToNodes<>(KratosComponents< Variable<double> >::Get(mvariable_name), rCurrentTime);
-        }
-        else if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
-        {
-	  AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), rCurrentTime);
-        }
-        else
-        {
-          KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
+        else if( mEntity == ELEMENTS ){
+
+          if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
+          {
+            AssignValueToElements<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), rCurrentTime);
+          }
+          else
+          {
+            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
+          }
+
         }
 
         KRATOS_CATCH("");
@@ -253,11 +272,11 @@ public:
     /// right after reading the model and the groups
     void ExecuteFinalize() override
     {
-      
+
       KRATOS_TRY
-          
+
       if( mEntity == CONDITIONS ){
-      
+
       	if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
         {
 	  Vector Value(3);
@@ -269,9 +288,9 @@ public:
           KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
         }
       }
-      
+
       KRATOS_CATCH("")
-      
+
     }
 
 
@@ -319,24 +338,24 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ModelPart& mrModelPart;
     std::string mvariable_name;
 
-    pybind11::object mPyObject;  
+    pybind11::object mPyObject;
     std::string mPyMethodName;
 
     Vector mLocalOrigin;
     Matrix mTransformationMatrix;
 
     bool mIsSpatialField;
-    
+
     bool mHasLocalOrigin;
     bool mHasLocalAxes;
-    
+
     EntityType mEntity;
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -356,7 +375,7 @@ protected:
       rz_local = rZ_global;
 
       if( mHasLocalOrigin  || mHasLocalAxes ){
-      
+
 	//implement global to local axes transformation
 	Vector GlobalPosition(3);
 	GlobalPosition[0] = rX_global;
@@ -381,41 +400,41 @@ protected:
 
     void CallFunction(const Node<3>::Pointer& pNode, const double& time, double& rValue)
     {
-      
+
       if( mIsSpatialField ){
 
 	double x = 0.0, y = 0.0, z = 0.0;
-	
+
 	LocalAxesTransform(pNode->X(), pNode->Y(), pNode->Z(), x, y, z);
  	rValue = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
-        
+
       }
       else{
-	
+
        rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
       }
-      
+
     }
 
 
     void CallFunction(const Condition::Pointer& pCondition, const double& time, Vector& rValue)
     {
-      
+
       Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
       unsigned int size = rConditionGeometry.size();
-      
+
       rValue.resize(size,false);
-            
+
       if( mIsSpatialField ){
-	
+
 	double x = 0, y = 0, z = 0;
-	  
+
 	for(unsigned int i=0; i<size; i++)
 	  {
-	    LocalAxesTransform(rConditionGeometry[i].X(), rConditionGeometry[i].Y(), rConditionGeometry[i].Z(), x, y, z);    
+	    LocalAxesTransform(rConditionGeometry[i].X(), rConditionGeometry[i].Y(), rConditionGeometry[i].Z(), x, y, z);
             rValue[i] = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
 	  }
-	
+
       }
       else{
 
@@ -424,20 +443,52 @@ protected:
 	  {
 	    rValue[i] = value;
 	  }
-	
+
       }
-      
+
     }
-    
+
+
+    void CallFunction(const Element::Pointer& pElement, const double& time, Vector& rValue)
+    {
+
+      Element::GeometryType& rElementGeometry = pElement->GetGeometry();
+      unsigned int size = rElementGeometry.size();
+
+      rValue.resize(size,false);
+
+      if( mIsSpatialField ){
+
+	double x = 0, y = 0, z = 0;
+
+	for(unsigned int i=0; i<size; i++)
+	  {
+	    LocalAxesTransform(rElementGeometry[i].X(), rElementGeometry[i].Y(), rElementGeometry[i].Z(), x, y, z);
+            rValue[i] = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
+	  }
+
+      }
+      else{
+
+        double value = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
+	for(unsigned int i=0; i<size; i++)
+	  {
+	    rValue[i] = value;
+	  }
+
+      }
+
+    }
+
     template< class TVarType >
     void AssignValueToNodes(TVarType& rVariable, const double& rTime)
     {
       if( mEntity == NODES ){
-        
+
         const int nnodes = mrModelPart.GetMesh().Nodes().size();
 
 	double Value = 0;
-	
+
         if(nnodes != 0)
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
@@ -448,11 +499,11 @@ protected:
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
 		this->CallFunction(*(it.base()), rTime, Value);
-				
+
 		it->FastGetSolutionStepValue(rVariable) = Value;
             }
         }
-        
+
       }
     }
 
@@ -464,7 +515,7 @@ protected:
         const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
 	Vector Value;
-	
+
         if(nconditions != 0)
         {
           ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
@@ -475,11 +526,11 @@ protected:
             ModelPart::ConditionsContainerType::iterator it = it_begin + i;
 
             this->CallFunction(*(it.base()), rTime, Value);
-		
+
             it->SetValue(rVariable, Value);
           }
         }
-        
+
       }
     }
 
@@ -503,11 +554,64 @@ protected:
             it->SetValue(rVariable, Value);
           }
         }
-        
+
       }
-      
+
     }
-    
+
+
+    template< class TVarType >
+    void AssignValueToElements(TVarType& rVariable, const double& rTime)
+    {
+      if( mEntity == ELEMENTS ){
+
+        const int nelements = mrModelPart.GetMesh().Elements().size();
+
+	Vector Value;
+
+        if(nelements != 0)
+        {
+          ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.GetMesh().ElementsBegin();
+
+          //#pragma omp parallel for //it does not work in parallel
+          for(int i = 0; i<nelements; i++)
+          {
+            ModelPart::ElementsContainerType::iterator it = it_begin + i;
+
+            this->CallFunction(*(it.base()), rTime, Value);
+
+            it->SetValue(rVariable, Value);
+          }
+        }
+
+      }
+    }
+
+    // template< class TVarType, class TDataType >
+    // void AssignValueToElements(TVarType& rVariable, const TDataType Value)
+    // {
+
+    //   if( mEntity == ELEMENTS ){
+
+    //     const int nelements = mrModelPart.GetMesh().Elements().size();
+
+    //     if(nelements != 0)
+    //     {
+    //       ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.GetMesh().ElementsBegin();
+
+    //       #pragma omp parallel for
+    //       for(int i = 0; i<nelements; i++)
+    //       {
+    //         ModelPart::ElementsContainerType::iterator it = it_begin + i;
+
+    //         it->SetValue(rVariable, Value);
+    //       }
+    //     }
+
+    //   }
+
+    // }
+
     ///@}
     ///@name Protected  Access
     ///@{

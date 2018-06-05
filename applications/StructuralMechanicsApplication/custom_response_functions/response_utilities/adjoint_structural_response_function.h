@@ -55,7 +55,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters& rParameters);
+    AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
     virtual ~AdjointStructuralResponseFunction();
@@ -132,7 +132,7 @@ protected:
     ///@name Protected Operations
     ///@{
     template <typename TDataType>
-    void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable);
+    void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
     template <typename TDataType>
     void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
     template <typename TDataType>
@@ -185,6 +185,9 @@ protected:
     void AssembleConditionSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
                                               Element::GeometryType& rGeom);
+
+    void ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables, 
+        std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings); 
     ///@}
 
 private:
@@ -192,20 +195,24 @@ private:
     ///@{
 
     std::string mSensitivityModelPartName;
-    std::vector<std::string> mNodalSensitivityVariables;
-    std::vector<std::string> mElementSensitivityVariables;
-    std::vector<std::string> mConditionSensitivityVariables;
     unsigned int mGradientMode;
     double mDelta;
 
+    std::vector<std::vector<Variable<double>>> mNodalSensitivityScalarVariables;
+    std::vector<std::vector<Variable<double>>> mElementSensitivityScalarVariables;
+    std::vector<std::vector<Variable<double>>> mConditionSensitivityScalarVariables;
+    std::vector<std::vector<Variable<array_1d<double,3>>>> mNodalSensitivityVectorVariables;
+    std::vector<std::vector<Variable<array_1d<double,3>>>> mElementSensitivityVectorVariables;
+    std::vector<std::vector<Variable<array_1d<double,3>>>> mConditionSensitivityVectorVariables;
+
     ///@}
     ///@name Private Operators
-    ///@{
+    ///@{  
 
     ///@}
     ///@name Private Operations
     ///@{
-
+    
     ///@}
 };
 

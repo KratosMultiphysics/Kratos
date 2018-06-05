@@ -1,6 +1,4 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import os
-os.environ['OMP_NUM_THREADS'] = "1"
 #import kratos core and applications
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
@@ -24,18 +22,30 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
     def _solve_primal_problem(self):
         with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_parameters.json",'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read())
-        parameter_file.close()
-        primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal)
+
+        problem_name = ProjectParametersPrimal["problem_data"]["problem_name"].GetString()
+        self.primal_model_part = ModelPart(problem_name)
+        model_primal = Model()
+        model_primal.AddModelPart(self.primal_model_part)
+
+        primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
 
         primal_analysis.Run()
 
     def test_local_stress_response(self):
         # Solve primal problem (only in one test case necessary)
         self._solve_primal_problem()
-        # Create the adjoint solver
+        #Create the adjoint solver
         with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
-        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
+
+        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
+        model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
+        adjoint_model_part = ModelPart(problem_name)
+        model_adjoint = Model()
+        model_adjoint.AddModelPart(adjoint_model_part)
+
+        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
         # Check sensitivities for the parameter I22
@@ -43,7 +53,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         sensitivities_to_check = []
         element_list = [1,6,10]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(I22_SENSITIVITY))
+            sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
@@ -53,7 +63,14 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         # Create the adjoint solver
         with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_nodal_disp_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
-        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
+
+        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
+        model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
+        adjoint_model_part = ModelPart(problem_name)
+        model_adjoint = Model()
+        model_adjoint.AddModelPart(adjoint_model_part)
+
+        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
 
         adjoint_analysis.Run()
 
@@ -62,7 +79,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         sensitivities_to_check = []
         element_list = [1,6,10]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(I22_SENSITIVITY))
+            sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
@@ -72,7 +89,14 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         # Create the adjoint solver
         with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_strain_energy_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
-        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
+        
+        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
+        model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
+        adjoint_model_part = ModelPart(problem_name)
+        model_adjoint = Model()
+        model_adjoint.AddModelPart(adjoint_model_part)
+
+        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
 
         adjoint_analysis.Run()
 
@@ -81,7 +105,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         sensitivities_to_check = []
         element_list = [1,6,10]
         for element_id in element_list:
-            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(I22_SENSITIVITY))
+            sensitivities_to_check.append(model_adjoint.GetModelPart(model_part_name).Elements[element_id].GetValue(I22_SENSITIVITY))
 
         self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
         self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)

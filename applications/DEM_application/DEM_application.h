@@ -88,19 +88,20 @@ private:
     const SphericParticle mSphericParticle3D;
     const NanoParticle mNanoParticle3D;
     const AnalyticSphericParticle mAnalyticSphericParticle3D;
-    const SphericContinuumParticle mSphericContinuumParticle3D; 
-    const IceContinuumParticle mIceContinuumParticle3D; 
-    const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;  
-    const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;  
+    const SphericContinuumParticle mSphericContinuumParticle3D;
+    const IceContinuumParticle mIceContinuumParticle3D;
+    const ThermalSphericParticle<SphericContinuumParticle> mThermalSphericContinuumParticle3D;
+    const ThermalSphericParticle<SphericParticle> mThermalSphericParticle3D;
     const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle3D;
     const BondingSphericContinuumParticle mBondingSphericContinuumParticle3D;
     const ParticleContactElement mParticleContactElement;
     const SolidFace3D  mSolidFace3D3N;
     const SolidFace3D  mSolidFace3D4N;
     const RigidFace3D  mRigidFace3D3N;
-    const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
+    const RigidFace3D  mRigidFace3D2N;
     const RigidEdge3D  mRigidEdge3D2N;
+    const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
     const RigidBodyElement3D mRigidBodyElement3D;
     const ShipElement3D mShipElement3D;
     const Cluster3D  mCluster3D;
@@ -117,6 +118,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DEM_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_DEM_APPLICATION_H_INCLUDED  defined
 
 

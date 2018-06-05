@@ -69,6 +69,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
             },
+            "time_scheme": "bossak",
             "alpha":-0.3,
             "move_mesh_strategy": 0,
             "periodic": "periodic",

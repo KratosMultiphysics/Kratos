@@ -112,7 +112,7 @@ public:
             return mXYDeriv;
         }
 
-        inline const double Determinant()const
+        inline double Determinant()const
         {
             return mDet;
         }

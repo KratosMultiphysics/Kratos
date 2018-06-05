@@ -84,11 +84,11 @@ For example the ```solver_settings``` can look like this (Hints for the ```respo
                 "response_type"     : "adjoint_nodal_displacement",
                 "gradient_mode"     : "semi_analytic",
                 "sensitivity_model_part_name" : "Parts_Beam",
-                "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+                "nodal_sensitivity_variables"  : ["SHAPE"],
                 "element_sensitivity_variables"  : ["I22"],
                 "condition_sensitivity_variables"  : [],
                 "step_size"         : 1e-6,
-                "traced_node"       : 6,
+                "traced_node_id"       : 6,
                 "traced_dof"        : "DISPLACEMENT_Z"
 
             },
@@ -155,7 +155,7 @@ Independet from the chosen response function the following definitions are alway
 - ```gradient_mode```: Currently there is only ```semi_analytic``` available.
 - ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic apporach. 
 - ```sensitivity_model_part_name```: Add here the name of the model part for which components sensitivities has to be computed (e.g. if the chosen design parameter is ```THICKNESS``` then for each element in this model part the sensitivity w.r.t. this variable is calculated).
-- ```nodal_sensitivity_variables```: Currently only ```SHAPE_SENSITIVITY``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
+- ```nodal_sensitivity_variables```: Currently only ```SHAPE``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
 - ```element_sensitivity_variables```: Here are sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
 - ```condition_sensitivity_variables```: Here are sensitivities with respect to the properties of the conditions are computed. Currenty there is only ```POINT_LOAD``` available.
 
@@ -164,13 +164,13 @@ In order to use an element or condition design variable one has to ensure that a
 
 There are currently three different types of response functions available which can be chosen as ```response_type```. For each of them specific settings are necessary:
 - ```adjoint_nodal_displacement```: The response is the displacement or rotation of a single node. Necessary additional settings are:
-    * ```traced_node```: ID of the traced node
+    * ```traced_node_id```: ID of the traced node
     * ```traced_dof```: Define the traced DOF (e.g. ```DISPLACEMENT_Z``` or ```ROTATION_X```)
 
 - ```adjoint_strain_energy```: The response is the linear strain energy. No additional settings are necessary.
 
 - ```adjoint_local_stress```: The response is the stress or stress-resultant of a single element. Necessary additional settings are:
-    * ```traced_element```: ID of the element which should be traced
+    * ```traced_element_id```: ID of the element which should be traced
     * ```stress_type```: Stress type which should be traced (e.g. FX, MY, FXX or MXX)
     * ```stress_treatment```: There are three possibilities: ```node``` (Takes the response value at the position of a defined node of the element. Only available for beam element.), ```GP``` (Takes the response value at a defined Gauss-Point of the element.) and ```mean``` (The response is the mean value of all Gauss-Point results of the traced stress type.)
     * ```stress_location```: Only necessary if ```node``` or ```GP``` is chosen as ```stress_treatment```. Define here the local ID of the position where the stress has to be traced (e.g. if the stress resultant of a beam element should be traced at one of his two nodes ```stress_location``` has to be 1 or 2)
@@ -181,11 +181,11 @@ Examples:
             "response_type"     : "adjoint_nodal_displacement",
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" : "Parts_Beam",
-            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : ["I22"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6,
-            "traced_node"       : 6,
+            "traced_node_id"       : 6,
             "traced_dof"        : "DISPLACEMENT_Z"
         }
 ```   
@@ -195,7 +195,7 @@ Examples:
             "response_type"     : "adjoint_strain_energy",
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" : "Parts_Beam",
-            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : ["I22"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6
@@ -207,11 +207,11 @@ Examples:
             "response_type"     : "adjoint_local_stress",
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" : "Parts_Beam",
-            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : ["I22"],
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6,
-            "traced_element"    : 6,
+            "traced_element_id"    : 6,
             "stress_type"       : "MY",
             "stress_treatment"  : "node",
             "stress_location"   : 1

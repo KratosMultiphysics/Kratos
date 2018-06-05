@@ -53,7 +53,7 @@ namespace Kratos
         * Test triangle 
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestLevelSetMetricProcess1, KratosMetricProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestLevelSetMetricProcess1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -142,7 +142,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestLevelSetMetricProcess2, KratosMetricProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestLevelSetMetricProcess2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -311,7 +311,7 @@ namespace Kratos
         * Test triangle 
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestHessianMetricProcess1, KratosMetricProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestHessianMetricProcess1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -396,7 +396,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestHessianMetricProcess2, KratosMetricProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestHessianMetricProcess2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);

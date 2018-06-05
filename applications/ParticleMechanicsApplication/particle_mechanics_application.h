@@ -85,6 +85,7 @@ typedef array_1d<double,6> Vector6;
 KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, COUNTER )
 KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, MP_NUMBER )
 KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, MP_BOOL )
+KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, int, MP_MATERIAL_ID )
 KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, WEIGHT )
 KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, MP_MASS )
 KRATOS_DEFINE_APPLICATION_VARIABLE( PARTICLE_MECHANICS_APPLICATION, double, MP_DENSITY )
@@ -301,40 +302,38 @@ private:
     //const UpdatedLagrangianUP mUpdatedLagrangianUP3D4N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
     //const UpdatedLagrangianUPQuadrilateral mUpdatedLagrangianUP2D4N;
-
     //const TotalLagrangian mTotalLagrangian2D3N;
     //const TotalLagrangian mTotalLagrangian3D4N;
     
     //conditions
     //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D2N;
     //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D3N;
-
     //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D2N;
     //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D3N;
 
     //constitutive laws
-
     const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
     const HyperElasticViscoplasticPlaneStrain2DLaw     mHyperElasticViscoplasticPlaneStrain2DLaw;
-
-    const HenckyMCPlastic3DLaw                mHenckyMCPlastic3DLaw;
-    const HenckyMCPlasticPlaneStrain2DLaw     mHenckyMCPlasticPlaneStrain2DLaw;
-    const HenckyMCPlasticUP3DLaw              mHenckyMCPlasticUP3DLaw;
-    const HenckyMCPlasticPlaneStrainUP2DLaw   mHenckyMCPlasticPlaneStrainUP2DLaw;
+    const HenckyMCPlastic3DLaw                         mHenckyMCPlastic3DLaw;
+    const HenckyMCPlasticPlaneStrain2DLaw              mHenckyMCPlasticPlaneStrain2DLaw;
+    const HenckyMCPlasticUP3DLaw                       mHenckyMCPlasticUP3DLaw;
+    const HenckyMCPlasticPlaneStrainUP2DLaw            mHenckyMCPlasticPlaneStrainUP2DLaw;
 
     //Flow Rules
+    const ViscoplasticFlowRule                      mViscoplasticFlowRule;
+    const BinghamViscoplasticFlowRule               mBinghamViscoplasticFlowRule;
+    const MCPlasticFlowRule                         mMCPlasticFlowRule;
     //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
     //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
     //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
-    const ViscoplasticFlowRule                    mViscoplasticFlowRule;
-    const BinghamViscoplasticFlowRule             mBinghamViscoplasticFlowRule;
-    const MCPlasticFlowRule                         mMCPlasticFlowRule;
     //const DruckerPragerFlowRule                   mDruckerPragerFlowRule;
+
     //Yield Criteria
+    const MCYieldCriterion                          mMCYieldCriterion;
     //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
     //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
     //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;
-    const MCYieldCriterion                   mMCYieldCriterion;
+
     //Hardening Laws
     //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
     //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;

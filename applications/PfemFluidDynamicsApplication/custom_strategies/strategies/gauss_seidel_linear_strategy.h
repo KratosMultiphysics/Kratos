@@ -570,7 +570,7 @@ private:
     	pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
 
     	//setting up the Vectors involved to the correct size
-    	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+    	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
         if (BaseType::GetEchoLevel() > 1 && rank == 0)
     	  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 

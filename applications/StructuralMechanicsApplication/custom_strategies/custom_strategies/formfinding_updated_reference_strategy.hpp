@@ -570,7 +570,7 @@ namespace Kratos
             {
                 //setting up the Vectors involved to the correct size
                 double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
-                pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+                pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
                 //pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
                 if (this->GetEchoLevel() > 0 && rank == 0)
                 {

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/hyper_elastic_model.hpp"
 
 namespace Kratos
 {
@@ -134,7 +134,7 @@ namespace Kratos
       HyperElasticDataType Variables;
       this->CalculateStrainData(rValues,Variables);
 
-      // bounded_matrix<double,6,6> ConstitutiveTensor;
+      // BoundedMatrix<double,6,6> ConstitutiveTensor;
       // this->CalculateAndAddConstitutiveMatrix(Variables,ConstitutiveTensor);
 
       // VectorType StrainVector;
@@ -170,7 +170,7 @@ namespace Kratos
       HyperElasticDataType Variables;
       this->CalculateStrainData(rValues,Variables);
 
-      bounded_matrix<double,6,6> ConstitutiveTensor;
+      BoundedMatrix<double,6,6> ConstitutiveTensor;
       this->CalculateAndAddConstitutiveMatrix(Variables,ConstitutiveTensor);
       
       rConstitutiveMatrix = ConstitutiveModelUtilities::ConstitutiveTensorToMatrix(ConstitutiveTensor,rConstitutiveMatrix);
@@ -195,7 +195,7 @@ namespace Kratos
       HyperElasticDataType Variables;
       this->CalculateStrainData(rValues,Variables);
 
-      bounded_matrix<double,6,6> ConstitutiveTensor;
+      BoundedMatrix<double,6,6> ConstitutiveTensor;
       this->CalculateAndAddConstitutiveMatrix(Variables,ConstitutiveTensor);
 
       // VectorType StrainVector;
@@ -391,7 +391,7 @@ namespace Kratos
     }
 
 
-    void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, bounded_matrix<double,6,6>& rConstitutiveTensor, VectorType& rStrainVector, VectorType& rStressVector)
+    void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, BoundedMatrix<double,6,6>& rConstitutiveTensor, VectorType& rStrainVector, VectorType& rStressVector)
     {
       KRATOS_TRY
 
@@ -430,7 +430,7 @@ namespace Kratos
     }
 
     
-    void CalculateAndAddConstitutiveMatrix(HyperElasticDataType& rVariables, bounded_matrix<double,6,6>& rConstitutiveTensor)
+    void CalculateAndAddConstitutiveMatrix(HyperElasticDataType& rVariables, BoundedMatrix<double,6,6>& rConstitutiveTensor)
     {
       KRATOS_TRY
               

@@ -200,7 +200,7 @@ public:
 		TLocalVectorType Tmp(this->GetDomainSize());
 
 		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-#pragma omp parallel for firstprivate(displacement,Tmp)
+		#pragma omp parallel for firstprivate(displacement,Tmp)
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;
@@ -239,7 +239,7 @@ public:
 		TLocalVectorType Tmp(this->GetDomainSize());
 
 		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-#pragma omp parallel for firstprivate(displacement,Tmp)
+		#pragma omp parallel for firstprivate(displacement,Tmp)
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;

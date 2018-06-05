@@ -139,46 +139,11 @@ int ShellThinAdjointElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     GeometryType& r_geom = GetGeometry();
 
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
+    this->CheckVariables();
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
 
-    // check properties
-    KRATOS_ERROR_IF(this->pGetProperties() == nullptr) << "Properties not provided for element " << this->Id() << std::endl;
-
-    const PropertiesType & props = this->GetProperties();    
-
-    if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
-    {
-        const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
-        KRATOS_ERROR_IF(section == nullptr) << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
-
-        section->Check(props, r_geom, rCurrentProcessInfo);
-    }
-    else // ... allow the automatic creation of a homogeneous section from a material and a thickness
-    {
-        KRATOS_ERROR_IF_NOT(props.Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-        const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
-        KRATOS_ERROR_IF(claw == nullptr) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT(props.Has(THICKNESS)) <<  "THICKNESS not provided for element " <<  this->Id() << std::endl;
-        KRATOS_ERROR_IF(props[THICKNESS] <= 0.0) << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
-
-        ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
-        dummySection->BeginStack();
-        dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
-        dummySection->EndStack();
-        dummySection->SetSectionBehavior(ShellCrossSection::Thin);
-        dummySection->Check(props, r_geom, rCurrentProcessInfo);
-    }
+    this->CheckProperties(rCurrentProcessInfo);
 
     // Check dofs
     for (unsigned int i = 0; i < r_geom.size(); i++)
@@ -302,7 +267,7 @@ void ShellThinAdjointElement3D3N::CalculateSensitivityMatrix(const Variable<arra
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
         delta *= correction_factor;	
 
-        if(rDesignVariable == SHAPE_SENSITIVITY) 
+        if(rDesignVariable == SHAPE) 
         {
             const int number_of_nodes = GetGeometry().PointsNumber();
             const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -369,117 +334,117 @@ void ShellThinAdjointElement3D3N::Calculate(const Variable<Vector >& rVariable,
 
         switch (traced_stress_type)  
         { 
-            case MXX:
+            case TracedStressType::MXX:
             {
                 direction_1 = 0; 
                 direction_2 = 0; 
                 break;
             }
-            case MXY:
+            case TracedStressType::MXY:
             {
                 direction_1 = 0; 
                 direction_2 = 1;
                 break; 
             }
-            case MXZ:
+            case TracedStressType::MXZ:
             {
                 direction_1 = 0; 
                 direction_2 = 2;
                 break; 
             }
-            case MYX:
+            case TracedStressType::MYX:
             {
                 direction_1 = 1; 
                 direction_2 = 0; 
                 break;
             }
-            case MYY :
+            case TracedStressType::MYY :
             {
                 direction_1 = 1; 
                 direction_2 = 1; 
                 break;
             }
-            case MYZ:
+            case TracedStressType::MYZ:
             {
                 direction_1 = 1; 
                 direction_2 = 2; 
                 break;
             }
-            case MZX:
+            case TracedStressType::MZX:
             {
                 direction_1 = 2; 
                 direction_2 = 0; 
                 break;
             }
-            case MZY:
+            case TracedStressType::MZY:
             {
                 direction_1 = 2; 
                 direction_2 = 1; 
                 break;
             }
-            case MZZ :
+            case TracedStressType::MZZ :
             {
                 direction_1 = 2; 
                 direction_2 = 2; 
                 break;
             }
-            case FXX :
+            case TracedStressType::FXX :
             {
                 direction_1 = 0; 
                 direction_2 = 0; 
                 stress_is_moment = false;
                 break;
             }
-            case FXY:
+            case TracedStressType::FXY:
             {
                 direction_1 = 0; 
                 direction_2 = 1;
                 stress_is_moment = false;
                 break; 
             }
-            case FXZ:
+            case TracedStressType::FXZ:
             {
                 direction_1 = 0; 
                 direction_2 = 2;
                 stress_is_moment = false;
                 break; 
             }
-            case FYX:
+            case TracedStressType::FYX:
             {
                 direction_1 = 1; 
                 direction_2 = 0; 
                 stress_is_moment = false;
                 break;
             }
-            case FYY:
+            case TracedStressType::FYY:
             {
                 direction_1 = 1; 
                 direction_2 = 1; 
                 stress_is_moment = false;
                 break;
             }
-            case FYZ:
+            case TracedStressType::FYZ:
             {
                 direction_1 = 1; 
                 direction_2 = 2; 
                 stress_is_moment = false;
                 break;
             }
-            case FZX:
+            case TracedStressType::FZX:
             {
                 direction_1 = 2; 
                 direction_2 = 0; 
                 stress_is_moment = false;
                 break;
             }
-            case FZY:
+            case TracedStressType::FZY:
             {
                 direction_1 = 2; 
                 direction_2 = 1; 
                 stress_is_moment = false;
                 break;
             }
-            case FZZ:
+            case TracedStressType::FZZ:
             {
                 direction_1 = 2; 
                 direction_2 = 2; 
@@ -616,7 +581,7 @@ double ShellThinAdjointElement3D3N::GetDisturbanceMeasureCorrectionFactor(const 
 {
     KRATOS_TRY;
 
-    if(rDesignVariable == SHAPE_SENSITIVITY) 
+    if(rDesignVariable == SHAPE) 
     {
         double dx, dy, dz, L = 0.0;
    
@@ -782,7 +747,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDesignVariableDerivative(const 
     double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
     delta *= correction_factor;	
 
-    if(rDesignVariable == SHAPE_SENSITIVITY) 
+    if(rDesignVariable == SHAPE) 
     {
         const int number_of_nodes = GetGeometry().PointsNumber();
         const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);

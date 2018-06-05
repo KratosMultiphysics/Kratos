@@ -50,13 +50,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-
- */
-
-//template<class TDenseSpace>
-
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointNodalDisplacementResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
@@ -65,7 +58,7 @@ public:
 
     typedef AdjointStructuralResponseFunction BaseType;
     typedef Element::DofsVectorType DofsVectorType;
-    typedef Node<3>::Pointer PointTypePointer; //try to ensure that this response function also works for 2D
+    typedef Node<3>::Pointer PointTypePointer;
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
 
 
@@ -77,7 +70,7 @@ public:
     ///@{
 
     /// Default constructor.
-    AdjointNodalDisplacementResponseFunction(ModelPart& model_part, Parameters& responseSettings);
+    AdjointNodalDisplacementResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
     ~AdjointNodalDisplacementResponseFunction() override;
@@ -192,7 +185,7 @@ private:
     Element::Pointer mpNeighboringElement;
 
     ///@}
-///@name Private Operators
+    ///@name Private Operators
     ///@{
 
     ///@}
@@ -207,15 +200,9 @@ private:
     ///@name Private Inquiry
     ///@{
 
-    ///@}
+    ///@}    
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    //      AdjointNodalDisplacementResponseFunction& operator=(SAdjointNodalDisplacementResponseFunction const& rOther);
-
-    /// Copy constructor.
-    //      AdjointNodalDisplacementResponseFunction(AdjointNodalDisplacementResponseFunction const& rOther);
 
     ///@}
 

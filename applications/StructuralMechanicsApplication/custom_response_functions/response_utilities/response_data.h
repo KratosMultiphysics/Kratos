@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-    enum TracedStressType
+    enum class TracedStressType
     {
         FX,
         FY,
@@ -56,7 +56,7 @@ namespace Kratos
         StressTypeNotAvailable
     };
 
-    enum StressTreatment
+    enum class StressTreatment
     {
         mean,
         node,

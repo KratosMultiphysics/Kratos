@@ -40,7 +40,7 @@ namespace Kratos
         /**
          * Checks the correct refining utility with triangles
          */
-        KRATOS_TEST_CASE_IN_SUITE(UniformRefineTrianglesUtility, MeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(UniformRefineTrianglesUtility, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
 
@@ -174,7 +174,7 @@ namespace Kratos
         /**
          * Checks the correct refining utility with quadrilaterals
          */
-        KRATOS_TEST_CASE_IN_SUITE(UniformRefineQuadrilateralsUtility, MeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(UniformRefineQuadrilateralsUtility, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
 

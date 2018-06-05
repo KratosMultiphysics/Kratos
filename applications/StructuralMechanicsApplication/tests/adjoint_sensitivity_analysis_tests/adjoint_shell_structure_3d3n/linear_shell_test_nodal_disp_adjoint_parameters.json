@@ -22,11 +22,11 @@
             "use_kratos"        : true,
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" :"Parts_AREAS",
-            "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_sensitivity_variables"  : ["SHAPE"],
             "element_sensitivity_variables"  : ["THICKNESS"],
             "condition_sensitivity_variables"  : [],
             "step_size"         : 1.0e-6,
-            "traced_node"       : 5,
+            "traced_node_id"       : 5,
             "traced_dof"        : "DISPLACEMENT_Z"
         },
         "echo_level"                   : 0,

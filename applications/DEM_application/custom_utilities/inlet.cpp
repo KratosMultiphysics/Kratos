@@ -630,7 +630,6 @@ namespace Kratos {
                         }
 
                         else {
-                            KRATOS_WATCH(new_component_spheres.size())
                             for (unsigned int i = 0; i < new_component_spheres.size(); ++i) {
                                 mOriginInletSubmodelPartIndexes[new_component_spheres[i]->Id()] = smp_it->Name();
                                 UpdateInjectedParticleVelocity(*new_component_spheres[i], *p_injector_element);
@@ -815,3 +814,4 @@ namespace Kratos {
 
 
 } // namespace Kratos
+

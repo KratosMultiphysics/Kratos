@@ -867,9 +867,7 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     )
     {
         KRATOS_TRY
@@ -902,7 +900,7 @@ public:
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
         {
             A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,false);
-            ConstructMatrixStructure(pScheme, A,rElements,rConditions,CurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, A,rModelPart.Elements(),rModelPart.Conditions(),rModelPart.GetProcessInfo());
         }
         else
         {
@@ -910,7 +908,7 @@ public:
             {
                 KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
                 A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
-                ConstructMatrixStructure(pScheme, A,rElements,rConditions,CurrentProcessInfo);
+                ConstructMatrixStructure(pScheme, A,rModelPart.Elements(),rModelPart.Conditions(),rModelPart.GetProcessInfo());
             }
         }
         if(Dx.size() != BaseType::mEquationSystemSize)
