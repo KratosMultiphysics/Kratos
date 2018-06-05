@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-  // specilization to array_1d
+  // other types
   template<class TVariableType, class TValueType>
   void StaticStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
   {
@@ -29,7 +29,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
   }
 
-  
+  // specilization to array_1d 
   template<>
   void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode)
   {
@@ -78,8 +78,11 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>, double>;
-    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< Variable<array_1d<double,3>>, array_1d<double,3>>;
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>, double >;
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< Variable<array_1d<double,3>>, array_1d<double,3> >;
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< Variable<double>, double >;
+
+
 
 }  // namespace Kratos.
 

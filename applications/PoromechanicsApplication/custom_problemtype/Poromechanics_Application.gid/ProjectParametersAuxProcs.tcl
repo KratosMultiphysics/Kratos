@@ -1,6 +1,6 @@
 proc AppendGroupNames {String CondName} {
     upvar $String MyString
-    
+
     set Groups [GiD_Info conditions $CondName groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         append MyString \" [lindex [lindex $Groups $i] 1] \" ,
@@ -12,7 +12,7 @@ proc AppendGroupNames {String CondName} {
 proc AppendGroupNamesWithNum {String GroupNum CondName} {
     upvar $String MyString
     upvar $GroupNum MyGroupNum
-    
+
     set Groups [GiD_Info conditions $CondName groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
@@ -24,7 +24,7 @@ proc AppendGroupNamesWithNum {String GroupNum CondName} {
 
 proc AppendGroupVariables {String CondName VarName} {
     upvar $String MyString
-    
+
     set Groups [GiD_Info conditions $CondName groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         append MyString \" $VarName \" ,
@@ -36,7 +36,7 @@ proc AppendGroupVariables {String CondName VarName} {
 proc AppendOutputVariables {String GroupNum QuestionName VarName} {
     upvar $String MyString
     upvar $GroupNum MyGroupNum
-    
+
     if {[GiD_AccessValue get gendata $QuestionName] eq true} {
         incr MyGroupNum
         append MyString \" $VarName \" ,
@@ -238,7 +238,7 @@ proc WritePeriodicInterfaceProcess {FileVar GroupNum Groups NumGroups} {
             puts $MyFileVar "        \"Parameters\":    \{"
             puts $MyFileVar "            \"model_part_name\": \"Periodic_Bars_[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"dimension\":       [GiD_AccessValue get gendata Domain_Size],"
-            puts $MyFileVar "            \"von_mises_limit\": [lindex [lindex $Groups $i] 21]"
+            puts $MyFileVar "            \"stress_limit\": [lindex [lindex $Groups $i] 21]"
             puts $MyFileVar "        \}"
             if {$MyGroupNum < $NumGroups} {
                 puts $MyFileVar "    \},\{"

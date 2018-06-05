@@ -254,7 +254,7 @@ public:
         SphericParticle* p_particle = static_cast<SphericParticle*>(&*rObj_2);
         const double Radius = p_particle->GetSearchRadius();
 
-        int facet_size = FE_Geom.size();
+        int facet_size = FE_Geom.WorkingSpaceDimension();
 
         if (facet_size==2) {
            return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
@@ -269,7 +269,7 @@ public:
       const GeometryType& DE_Geom = rObj_1->GetGeometry();
       const GeometryType& FE_Geom = rObj_2->GetGeometry();
 
-      int facet_size = FE_Geom.size();
+      int facet_size = FE_Geom.WorkingSpaceDimension();
 
       if (facet_size==2) {
          return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);
@@ -282,7 +282,7 @@ public:
     //Copy of the Intersection function accessible with geometry
     static inline bool FastIntersection(const GeometryType& DE_Geom, const GeometryType& FE_Geom,  const double& Radius) { //rObj_1 is sphere, rObj_2 is FE
 
-      int facet_size = FE_Geom.size();
+      int facet_size = FE_Geom.WorkingSpaceDimension();
 
       if (facet_size==2) {
          return FastIntersection2D(DE_Geom, FE_Geom, Radius);//, NewContactType);

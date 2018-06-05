@@ -33,8 +33,8 @@ Begin Conditions RigidFace3D4N // GUI DEM-FEM-Wall group identifier: Floor
 6  0  5 6 7 8
 End Conditions
 
-Begin SubModelPart 1 // GUI DEM-FEM-Wall group identifier: Floor
-  Begin SubModelPartData // GUI DEM-FEM-Wall group identifier: Floor
+Begin SubModelPart 1 // DEM-FEM-Wall. Group name: Floor 
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: Floor
   LINEAR_VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,0.0,0.0)

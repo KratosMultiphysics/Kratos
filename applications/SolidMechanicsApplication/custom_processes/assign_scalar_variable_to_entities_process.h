@@ -48,7 +48,7 @@ public:
                                           Parameters rParameters) : Process(Flags()) , mrModelPart(rModelPart)
     {
         KRATOS_TRY
-			 
+
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
@@ -69,12 +69,15 @@ public:
         else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
           mEntity = CONDITIONS;
         }
+        else if(  rParameters["entity_type"].GetString() == "ELEMENTS" ){
+          mEntity = ELEMENTS;
+        }
         else{
           KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() << " is not supported " << std::endl;
         }
 
         if( mEntity == NODES ){
-        
+
           if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
           {
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
@@ -117,8 +120,8 @@ public:
           }
 
         }
-        else if( mEntity == CONDITIONS ){
-          
+        else if( mEntity == CONDITIONS || mEntity == ELEMENTS ){
+
           if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
             mdouble_value = rParameters["value"].GetDouble();
@@ -132,11 +135,11 @@ public:
             mbool_value = rParameters["value"].GetBool();
           }
           else{
-            KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl; 
+            KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
           }
-          
+
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -191,10 +194,10 @@ public:
           {
             KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
           }
-          
+
         }
         else if( mEntity == CONDITIONS ) {
-          
+
           if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
             AssignValueToConditions<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
@@ -211,7 +214,27 @@ public:
           {
             KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
           }
-          
+
+        }
+        else if( mEntity == ELEMENTS ) {
+
+          if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+          {
+            AssignValueToElements<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
+          }
+          else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
+          {
+            AssignValueToElements<>(KratosComponents< Variable<int> >::Get(mvariable_name) , mint_value);
+          }
+          else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
+          {
+            AssignValueToElements<>(KratosComponents< Variable<bool> >::Get(mvariable_name), mbool_value);
+          }
+          else
+          {
+            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
+          }
+
         }
         
         KRATOS_CATCH("");
@@ -262,7 +285,7 @@ public:
         KRATOS_TRY
 
         if( mEntity == CONDITIONS ){
-         
+
           if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
           {
             double double_value = 0;
@@ -283,9 +306,9 @@ public:
             KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
           }
         }
-        
+
         KRATOS_CATCH("")
-      
+
     }
 
 
@@ -368,7 +391,7 @@ private:
     int mint_value;
     bool mbool_value;
     EntityType mEntity;
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -382,7 +405,7 @@ private:
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
 
-             #pragma omp parallel for
+            #pragma omp parallel for
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -401,7 +424,7 @@ private:
         {
             ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
-             #pragma omp parallel for
+            #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)
             {
                 ModelPart::ConditionsContainerType::iterator it = it_begin + i;
@@ -410,7 +433,26 @@ private:
             }
         }
     }
-    
+
+    template< class TVarType, class TDataType >
+    void AssignValueToElements(TVarType& rVar, const TDataType value)
+    {
+      const int nelements = mrModelPart.GetMesh().Elements().size();
+
+        if(nelements != 0)
+        {
+            ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.GetMesh().ElementsBegin();
+
+            #pragma omp parallel for
+            for(int i = 0; i<nelements; i++)
+            {
+                ModelPart::ElementsContainerType::iterator it = it_begin + i;
+
+                it->SetValue(rVar, value);
+            }
+        }
+    } 
+
     ///@}
     ///@name Private Operations
     ///@{

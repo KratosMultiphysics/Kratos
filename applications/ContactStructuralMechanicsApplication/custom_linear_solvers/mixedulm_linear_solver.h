@@ -28,7 +28,7 @@
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
-#include "custom_utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 #include "custom_utilities/logging_settings.hpp"
 
 namespace Kratos
@@ -493,7 +493,7 @@ public:
             mWhichBlockType.resize(tot_active_dofs, false);
 
         // Size check
-        KRATOS_ERROR_IF_NOT(n_lm_active_dofs == n_slave_active_dofs) << "The number of active LM dofs: " << n_slave_active_dofs << " and active slave nodes dofs: " << n_slave_active_dofs << " does not coincide" << std::endl;
+        KRATOS_ERROR_IF_NOT(n_lm_active_dofs == n_slave_active_dofs) << "The number of active LM dofs: " << n_lm_active_dofs << " and active slave nodes dofs: " << n_slave_active_dofs << " does not coincide" << std::endl;
 
         /**
          * Construct aux_lists as needed
@@ -954,8 +954,8 @@ protected:
 
         // Compute the P and C operators
         if (slave_active_size > 0) {
-            MatrixMatrixProd(KMLMA,   mKLMAModified, mPOperator);
-            MatrixMatrixProd(KLMALMA, mKLMAModified, mCOperator);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(KMLMA,   mKLMAModified, mPOperator);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(KLMALMA, mKLMAModified, mCOperator);
         }
 
         // We proceed with the auxiliar products for the master blocks
@@ -965,11 +965,11 @@ protected:
         SparseMatrixType master_auxKSASA(master_size, slave_active_size);
 
         if (slave_active_size > 0) {
-            MatrixMatrixProd(mPOperator, mKSAN, master_auxKSAN);
-            MatrixMatrixProd(mPOperator, mKSAM, master_auxKSAM);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSAN, master_auxKSAN);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSAM, master_auxKSAM);
             if (slave_inactive_size > 0)
-                MatrixMatrixProd(mPOperator, mKSASI, master_auxKSASI);
-            MatrixMatrixProd(mPOperator, mKSASA, master_auxKSASA);
+                SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSASI, master_auxKSASI);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSASA, master_auxKSASA);
         }
 
         // We proceed with the auxiliar products for the active slave blocks
@@ -979,11 +979,11 @@ protected:
         SparseMatrixType aslave_auxKSASA(slave_active_size, slave_active_size);
 
         if (slave_active_size > 0) {
-            MatrixMatrixProd(mCOperator, mKSAN, aslave_auxKSAN);
-            MatrixMatrixProd(mCOperator, mKSAM, aslave_auxKSAM);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSAN, aslave_auxKSAN);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSAM, aslave_auxKSAM);
             if (slave_inactive_size > 0)
-                MatrixMatrixProd(mCOperator, mKSASI, aslave_auxKSASI);
-            MatrixMatrixProd(mCOperator, mKSASA, aslave_auxKSASA);
+                SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSASI, aslave_auxKSASI);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(mCOperator, mKSASA, aslave_auxKSASA);
         }
 
         // Auxiliar indexes
@@ -1806,33 +1806,6 @@ private:
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(ResidualLMI.size()); i++)
             rTotalResidual[mLMInactiveIndices[i]] = ResidualLMI[i];
-    }
-
-    /**
-     * @brief Matrix-matrix product C = A·B
-     * @detail This method uses a template for each matrix
-     * @param rA The first matrix
-     * @param rB The second matrix
-     * @param rC The resulting matrix
-     */
-    template <class AMatrix, class BMatrix, class CMatrix>
-    void MatrixMatrixProd(
-        const AMatrix& rA,
-        const BMatrix& rB,
-        CMatrix& rC
-        )
-    {
-    #ifdef _OPENMP
-        const int nt = omp_get_max_threads();
-    #else
-        const int nt = 1;
-    #endif
-
-        if (nt > 16) {
-            SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge(rA, rB, rC);
-        } else {
-            SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad(rA, rB, rC);
-        }
     }
 
     /**

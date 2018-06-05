@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-class PouliotFlowField2D : public VelocityField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) PouliotFlowField2D : public VelocityField
 {
 public:
 

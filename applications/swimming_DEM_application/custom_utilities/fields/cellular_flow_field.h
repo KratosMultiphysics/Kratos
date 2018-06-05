@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-class CellularFlowField : public VelocityField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) CellularFlowField : public VelocityField
 {
 public:
 

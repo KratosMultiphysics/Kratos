@@ -29,86 +29,63 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
 
     It can be imported and used as "black-box"
     """
-    def __init__(self, project_parameters, external_model_part=None):
+    def __init__(self, model, project_parameters):
 
         # Construct the base analysis.
-        super().__init__(project_parameters, external_model_part)
+        super(ContactStructuralMechanicsAnalysis, self).__init__(model, project_parameters)
+
+    def Initialize(self):
+        """ Initializing the Analysis """
+        super(ContactStructuralMechanicsAnalysis, self).Initialize()
+        self.solver.SetEchoLevel(self.echo_level)
 
     #### Internal functions ####
     def _CreateSolver(self, external_model_part=None):
-        """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
-        if external_model_part != None:
-            # This is a temporary solution until the importing of the ModelPart
-            # is removed from the solver (needed e.g. for Optimization)
-            if (type(external_model_part) != KM.ModelPart):
-                raise Exception("Input is expected to be provided as a Kratos ModelPart object")
-            self.using_external_model_part = True
-        else:
-            self.using_external_model_part = False
+        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
-        ## Get echo level and parallel type
-        self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
-        self.parallel_type = self.ProjectParameters["problem_data"]["parallel_type"].GetString()
-
-        # To avoid many prints # TODO leave this?
+        # To avoid many prints
         if (self.echo_level == 0):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
-        ## Import parallel modules if needed
-        if (self.parallel_type == "MPI"):
-            import KM.mpi as KratosMPI
-            import KM.MetisApplication as MetisApplication
-            import KM.TrilinosApplication as TrilinosApplication
-            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
-
-        ## Structure model part definition
-        if self.using_external_model_part:
-            self.main_model_part = external_model_part
-        else:
-            main_model_part_name = self.ProjectParameters["problem_data"]["model_part_name"].GetString()
-            self.main_model_part = KM.ModelPart(main_model_part_name)
-            self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE,
-                                                      self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
         ## Solver construction
         import python_solvers_wrapper_contact_structural
-        self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.main_model_part, self.ProjectParameters)
+        self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.model, self.project_parameters)
 
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
 
-        if not self.using_external_model_part:
-            ## Read the model - note that SetBufferSize is done here
-            self.solver.ReadModelPart() # TODO move to global instance
+        self.solver.ImportModelPart() # TODO move to global instance
 
-    def _ExecuteInitialize(self):
-        """ Initializing the Analysis """
+    def _SetUpListOfProcesses(self):
+        """ Set up the list of processes """
 
-        super()._ExecuteInitialize()
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(self.model)
+        self.list_of_processes = factory.ConstructListOfProcesses(self.project_parameters["constraints_process_list"])
+        self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["loads_process_list"])
+        if (self.project_parameters.Has("list_other_processes") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["list_other_processes"])
+        if (self.project_parameters.Has("json_output_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_output_process"])
+        # Processes for tests
+        if (self.project_parameters.Has("json_check_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["json_check_process"])
+        if (self.project_parameters.Has("check_analytic_results_process") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["check_analytic_results_process"])
+        if (self.project_parameters.Has("contact_process_list") is True):
+            self.list_of_processes += factory.ConstructListOfProcesses(self.project_parameters["contact_process_list"])
 
-        ## Processes construction
-        import process_factory
-        if (self.ProjectParameters.Has("contact_process_list") is True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["contact_process_list"])
+        #TODO this should be generic
+        # initialize GiD  I/O
+        self._SetUpGiDOutput()
+        if self.have_output:
+            self.list_of_processes += [self.output,]
 
-            #if self.is_printing_rank and self.echo_level > 1: # FIXME
-                #KM.Logger.PrintInfo("Process " + str(len(self.list_of_processes)), self.list_of_processes[-1])
-
-            self.list_of_processes[-1].ExecuteInitialize()
-
-        ## Add the processes to the solver
-        self.solver.AddProcessesList(self.list_of_processes)
-        if (self.output_post is True):
-            self.solver.AddPostProcess(self.gid_output)
-
-        # Initialize the solver (again)
-        self.solver.Initialize()
-
-        # Setting the echo level
-        echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
-        self.solver.SetEchoLevel(echo_level)
+        if self.is_printing_rank and self.echo_level > 1:
+            count = 0
+            for process in self.list_of_processes:
+                count += 1
+                # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
 
     def _GetSimulationName(self):
         return "::[KCSM Simulation]:: "

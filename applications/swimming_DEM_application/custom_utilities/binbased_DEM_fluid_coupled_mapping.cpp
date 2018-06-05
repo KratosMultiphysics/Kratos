@@ -1,5 +1,6 @@
 #include "binbased_DEM_fluid_coupled_mapping.h"
 #include "swimming_DEM_application.h"
+#include "swimming_dem_application_variables.h"
 
 namespace Kratos
 {

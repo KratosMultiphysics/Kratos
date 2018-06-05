@@ -8,6 +8,8 @@ import main_script
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+this_working_dir_backup = os.getcwd()
+
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
@@ -33,6 +35,8 @@ class AnalyticsTestSolution(main_script.Solution):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
 
     def GetProblemNameWithPath(self):
+        #print("GetProblemNameWithPath in test_analytics")
+        #print(os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString()))
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeTimeStep(self, time):
@@ -96,6 +100,89 @@ class AnalyticsTestSolution(main_script.Solution):
         super(AnalyticsTestSolution, self).Finalize()
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
+
+class GhostsTestSolution(main_script.Solution):
+
+    def GetParametersFileName(self):
+        return os.path.join(self.main_path, "ProjectParametersDEM_single_layer_ghost.json")
+
+    def GetMainPath(self):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+
+    def GetProblemNameWithPath(self):
+        return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+
+    def RunAnalytics(self, time, is_time_to_print=True):
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:  # or IsCountStep()
+            self.FaceAnalyzerClass.CreateNewFile()
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+                self.CheckTotalNumberOfCrossingParticles()
+
+            self.FaceAnalyzerClass.RemoveOldFile()
+
+    def CheckTotalNumberOfCrossingParticles(self):
+        import h5py
+
+        if self.time > 0.145:
+            input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
+            n_accum_h5 = input_data.get('1/n_accum')
+
+            if n_accum_h5[-1] != -4:
+                print(n_accum_h5[-1])
+                raise ValueError('The total value of crossing particles was not the expected!')
+
+    def Finalize(self):
+        super(GhostsTestSolution, self).Finalize()
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+
+
+
+
+class MultiGhostsTestSolution(main_script.Solution):
+
+    def GetParametersFileName(self):
+        return os.path.join(self.main_path, "ProjectParametersDEM_multi_layer_ghost.json")
+
+    def GetMainPath(self):
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
+
+    def GetProblemNameWithPath(self):
+        return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+
+    def RunAnalytics(self, time, is_time_to_print=True):
+        self.MakeAnalyticsMeasurements()
+        if is_time_to_print:  # or IsCountStep()
+            self.FaceAnalyzerClass.CreateNewFile()
+            for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
+                self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
+
+                if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
+                    self.CheckTotalNumberOfCrossingParticles()
+
+            self.FaceAnalyzerClass.RemoveOldFile()
+
+    def CheckTotalNumberOfCrossingParticles(self):
+        import h5py
+
+        if self.time > 1.9:
+            input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
+            n_accum_h5 = input_data.get('2/n_accum')
+
+            if n_accum_h5[-1] != -4:
+                print(n_accum_h5[-1])
+                raise ValueError('The total value of crossing particles was not the expected!')
+
+    def Finalize(self):
+        super(MultiGhostsTestSolution, self).Finalize()
+        self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
+
+
+
+
+
+
 class TestAnalytics(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -106,12 +193,20 @@ class TestAnalytics(KratosUnittest.TestCase):
         AnalyticsTestSolution().Run()
 
     @classmethod
+    @KratosUnittest.expectedFailure
     def test_Analytics_2(self):
-        pass
+        GhostsTestSolution().Run()
+
+    @classmethod
+    @KratosUnittest.expectedFailure
+    def test_Analytics_3(self):
+        MultiGhostsTestSolution().Run()
 
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
+
+        os.chdir(this_working_dir_backup)
 
 
 if __name__ == "__main__":

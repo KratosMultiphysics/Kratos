@@ -124,7 +124,7 @@ for normalvar in range(normal_combs):
             Dw1Mw2 = DOperator * w1 - MOperator * w2
 
             for node in range(nnodes):
-                NormalGap[node] = Dx1Mx2.row(node).dot(NormalSlave.row(node))
+                NormalGap[node] = - Dx1Mx2.row(node).dot(NormalSlave.row(node))
 
             # Define dofs & test function vector
             dofs = Matrix( zeros(number_dof, 1) )
@@ -160,9 +160,9 @@ for normalvar in range(normal_combs):
                 if (active == 1):
                     augmented_contact_pressure = (ScaleFactor * LMNormal[node] + PenaltyParameter[node] * NormalGap[node])
                     rv_galerkin += DynamicFactor[node] * (augmented_contact_pressure * NormalSlave.row(node)).dot(Dw1Mw2.row(node))
-                    rv_galerkin += ScaleFactor * NormalGap[node] * wLMNormal[node]
+                    rv_galerkin -= ScaleFactor * NormalGap[node] * wLMNormal[node]
                 else:
-                    rv_galerkin += - ScaleFactor**2.0/PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
+                    rv_galerkin -= ScaleFactor**2/PenaltyParameter[node] * LMNormal[node] * wLMNormal[node]
 
             if(do_simplifications):
                 rv_galerkin = simplify(rv_galerkin)

@@ -93,18 +93,39 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   
-  bool BoundaryCondition::HasRotationDofs()
+  bool BoundaryCondition::HasVariableDof(VariableVectorType& rVariable)
   {
     KRATOS_TRY
+     
+    typedef VectorComponentAdaptor<array_1d<double,3> >  VectorComponentType;
+    const VariableComponent<VectorComponentType>& var_x  = KratosComponents<VariableComponent<VectorComponentType> >::Get(rVariable.Name()+"_X");
 
     //usually if the dofs do not exist condition adds them, standard conditions do not work like this  
-    if( GetGeometry()[0].HasDofFor(ROTATION_Z) == true )
+    if( GetGeometry()[0].HasDofFor(var_x) == true )
       return true;
 
     return false;      
     
     KRATOS_CATCH( "" )
   }
+
+
+  //************************************************************************************
+  //************************************************************************************
+  
+  bool BoundaryCondition::HasVariableDof(VariableScalarType& rVariable)
+  {
+    KRATOS_TRY
+        
+    //usually if the dofs do not exist condition adds them, standard conditions do not work like this  
+    if( GetGeometry()[0].HasDofFor(rVariable) == true )
+      return true;
+
+    return false;      
+    
+    KRATOS_CATCH( "" )
+  }
+  
   
   //************************************************************************************
   //************************************************************************************
@@ -118,7 +139,7 @@ namespace Kratos
 
     unsigned int size = number_of_nodes * dimension;
 	
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
       if(dimension == 2){
 	size += number_of_nodes;
       }
@@ -146,13 +167,20 @@ namespace Kratos
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	if( dimension == 3 )
-	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-
-
-	if( HasRotationDofs() ){
+        if( HasVariableDof(DISPLACEMENT) ){
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+          if( dimension == 3 )
+            rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        }
+        else if( HasVariableDof(VELOCITY) ){
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
+          if( dimension == 3 )
+            rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
+        }
+        
+	if( HasVariableDof(ROTATION) ){
 	  if( dimension == 2 ){
 	    rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	  }
@@ -186,7 +214,7 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) && HasVariableDof(DISPLACEMENT) ){
       if( dimension == 2 ){
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {	
@@ -210,7 +238,7 @@ namespace Kratos
 	  }
       }
     }
-    else{
+    else if( HasVariableDof(DISPLACEMENT) ){
 
       for (unsigned int i = 0; i < number_of_nodes; i++)
 	{
@@ -221,7 +249,18 @@ namespace Kratos
 	    rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
 	}
     }
+    else if( HasVariableDof(VELOCITY) ){
 
+      for (unsigned int i = 0; i < number_of_nodes; i++)
+	{
+	  index = i * dimension;
+	  rResult[index]     = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+	  rResult[index + 1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+	  if( dimension == 3)
+	    rResult[index + 2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
+	}
+    }
+    
     KRATOS_CATCH( "" )
   }
 
@@ -242,7 +281,7 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -301,7 +340,7 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -361,7 +400,7 @@ namespace Kratos
 
     unsigned int index = 0;
     
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
       
@@ -426,7 +465,7 @@ namespace Kratos
 	  GetGeometry()[i].UnSetLock();
 	}
 	
-	if( HasRotationDofs() ){
+	if( HasVariableDof(ROTATION) ){
 
 	  if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_MOMENT) && GetGeometry()[i].SolutionStepsDataHas(MOMENT_RESIDUAL) ){
 	  
@@ -499,7 +538,7 @@ namespace Kratos
       }
 
 
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_MOMENT )
 	{

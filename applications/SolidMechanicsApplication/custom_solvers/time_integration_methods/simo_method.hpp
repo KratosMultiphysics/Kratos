@@ -80,6 +80,15 @@ namespace Kratos
     /// Default Constructor.
     SimoMethod() : DerivedType() {}
 
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    SimoMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
+
     /// Copy Constructor.
     SimoMethod(SimoMethod& rOther) : DerivedType(rOther) {}
 
@@ -159,7 +168,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    void PredictFromVariable(NodeType& rNode) override
+    void AssignFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -167,7 +176,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     } 
     
-    void PredictFromFirstDerivative(NodeType& rNode) override
+    void AssignFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -182,7 +191,7 @@ namespace Kratos
       KRATOS_CATCH( "" )      
     }
 
-    void PredictFromSecondDerivative(NodeType& rNode) override
+    void AssignFromSecondDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 	
@@ -238,7 +247,15 @@ namespace Kratos
       KRATOS_CATCH( "" )              
     }
     
-
+    void UpdateFromFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+          
+      KRATOS_ERROR << " Calling UpdateFromSecondDerivative for Simo time integration method : NOT IMPLEMENTED " <<std::endl;
+       
+      KRATOS_CATCH( "" )
+    }
+    
     void UpdateVariable(NodeType& rNode) override
     {
       KRATOS_TRY

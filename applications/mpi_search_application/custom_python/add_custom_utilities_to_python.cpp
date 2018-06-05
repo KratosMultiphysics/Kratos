@@ -40,53 +40,45 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 
+#if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
-#include "spaces/ublas_space.h"
 #include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 // Application includes
-#include "custom_utilities/bins_dynamic_mpi.h"
-#include "custom_utilities/bins_dynamic_objects_mpi.h"
-#include "custom_utilities/mpi_discrete_particle_configure.h"
 #include "custom_utilities/mpi_dem_search.h"
-#include "custom_utilities/mpi_utilities.h" 
+#include "custom_utilities/mpi_utilities.h"
 
-// Linear solvers
-#include "linear_solvers/linear_solver.h"
+namespace Kratos {
+namespace Python {
 
-namespace Kratos
+using namespace pybind11;
+
+void AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    namespace Python
-    {
-        using namespace boost::python;
-                    
-        void AddCustomUtilitiesToPython()
-        {
-            typedef MPI_DEMSearch   DemSearchType;
-            typedef MpiUtilities    MpiUtilitiesType;
+    typedef MPI_DEMSearch   DemSearchType;
+    typedef MpiUtilities    MpiUtilitiesType;
 
-            class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
-                    ("MPI_DEMSearch", init< Communicator& >())
-                    ;
-                    
-            class_<MpiUtilitiesType, boost::noncopyable>
-                    ("MpiUtilities", init<>())
-                    .def("Repart",                  &MpiUtilitiesType::ParallelPartitioning)
-                    .def("TransferModelElements",   &MpiUtilitiesType::MigrateElements)
-                    .def("TransferModelNodes",      &MpiUtilitiesType::MigrateNodes)
-                    .def("CalculateModelNewIds",    &MpiUtilitiesType::CalculateModelNewIds)
-                    .def("CalculateElementsNewId",  &MpiUtilitiesType::CalculateElementsNewId)
-                    .def("CalculateNodesNewId",     &MpiUtilitiesType::CalculateNodesNewId)
-                    .def("CalculateConditionsNewId",&MpiUtilitiesType::CalculateConditionsNewId)
-                    ;
-        }
+    class_<DemSearchType, DemSearchType::Pointer, SpatialSearch>(m, "MPI_DEMSearch")
+        .def(init<Communicator&>())
+        ;
 
-    }  // namespace Python.
-    
+    class_<MpiUtilitiesType, MpiUtilitiesType::Pointer>(m, "MpiUtilities")
+        .def(init<>())
+        .def("Repartition",             &MpiUtilitiesType::ParallelPartitioning)
+        .def("TransferModelElements",   &MpiUtilitiesType::MigrateElements)
+        .def("TransferModelNodes",      &MpiUtilitiesType::MigrateNodes)
+        .def("CalculateModelNewIds",    &MpiUtilitiesType::CalculateModelNewIds)
+        .def("CalculateElementsNewId",  &MpiUtilitiesType::CalculateElementsNewId)
+        .def("CalculateNodesNewId",     &MpiUtilitiesType::CalculateNodesNewId)
+        .def("CalculateConditionsNewId",&MpiUtilitiesType::CalculateConditionsNewId)
+        ;
+}
+
+}  // namespace Python.
 } // Namespace Kratos
 
+#endif // KRATOS_PYTHON defined

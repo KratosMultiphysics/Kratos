@@ -100,7 +100,7 @@ namespace Kratos
 
   template class KRATOS_API(SOLID_MECHANICS_APPLICATION) EmcStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>, double>;
   template class KRATOS_API(SOLID_MECHANICS_APPLICATION) EmcStepRotationMethod< Variable<array_1d<double,3>>, array_1d<double,3>>;
-
+  template class KRATOS_API(SOLID_MECHANICS_APPLICATION) EmcStepRotationMethod< Variable<double>, double >;
 
 }  // namespace Kratos.
 

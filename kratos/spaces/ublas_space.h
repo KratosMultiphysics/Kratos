@@ -35,7 +35,7 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/matrix_market_interface.h"
-
+#include "utilities/dof_updater.h"
 
 namespace Kratos
 {
@@ -128,6 +128,9 @@ public:
 
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+
+    typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
+    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -276,7 +279,7 @@ public:
 #endif
         return std::sqrt(aux_sum);
     }
-    
+
     /**
      * This method computes the Jacobi norm
      * @param rA The matrix to compute the Jacobi norm
@@ -285,13 +288,13 @@ public:
     static TDataType JacobiNorm(MatrixType const& rA)
     {
         TDataType aux_sum = TDataType();
-        
+
 #ifndef _OPENMP
         for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
             for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
-                if (i != j) 
+                if (i != j)
                 {
                     aux_sum += std::abs(rA(i,j));
                 }
@@ -303,7 +306,7 @@ public:
         {
             for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
-                if (i != j) 
+                if (i != j)
                 {
                     aux_sum += std::abs(rA(i,j));
                 }
@@ -716,13 +719,13 @@ public:
 
     //***********************************************************************
 
-    inline static double GetValue(const VectorType& x, std::size_t I)
+    inline static TDataType GetValue(const VectorType& x, std::size_t I)
     {
         return x[I];
     }
     //***********************************************************************
 
-    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, double* pValues)
+    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, TDataType* pValues)
     {
         KRATOS_TRY
 
@@ -744,6 +747,12 @@ public:
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketVector(FileName,V);
+    }
+
+    static DofUpdaterPointerType CreateDofUpdater()
+    {
+        DofUpdaterType tmp;
+        return tmp.Create();
     }
 
     ///@}

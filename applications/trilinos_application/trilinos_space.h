@@ -44,6 +44,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "custom_utilities/trilinos_dof_updater.h"
 
 
 namespace Kratos
@@ -94,6 +95,9 @@ public:
 
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+
+    typedef TrilinosDofUpdater< TrilinosSpace<TMatrixType,TVectorType> > DofUpdaterType;
+    typedef typename DofUpdater<TrilinosSpace<TMatrixType,TVectorType> >::UniquePointer DofUpdaterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -533,7 +537,7 @@ public:
 
 
         int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
-        
+
         if(error_code != 0)
             KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
 
@@ -573,7 +577,7 @@ public:
         }
 
         paux->GlobalAssemble();
-        
+
         delete [] MyGlobalElements;
         delete pp;
 
@@ -632,6 +636,12 @@ public:
         KRATOS_CATCH("");
     }
 
+
+    static DofUpdaterPointerType CreateDofUpdater()
+    {
+        DofUpdaterType tmp;
+        return tmp.Create();
+    }
 
     ///@}
     ///@name Friends

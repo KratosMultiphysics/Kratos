@@ -229,7 +229,7 @@ public:
     // 3 -> Print of debug informations:
     //		Echo of stiffness matrix, Dx, b...
 
-    void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         GetBuilderAndSolver()->SetEchoLevel(Level);
@@ -278,7 +278,7 @@ public:
     //**********************************************************************
 
 
-    double Solve()
+    double Solve() override
     {
         KRATOS_TRY
 
@@ -363,7 +363,7 @@ public:
     }
     //*********************************************************************************
 
-    double GetResidualNorm()
+    double GetResidualNorm() override
     {
         if (TSparseSpace::Size(*mpb) != 0)
             return TSparseSpace::TwoNorm(*mpb);
@@ -380,7 +380,7 @@ public:
 
       This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
-    void CalculateOutputData()
+    void CalculateOutputData() override
     {
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
@@ -507,7 +507,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -540,7 +540,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -570,7 +570,7 @@ private:
     	pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
 
     	//setting up the Vectors involved to the correct size
-    	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+    	pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
         if (BaseType::GetEchoLevel() > 1 && rank == 0)
     	  std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 
@@ -604,7 +604,7 @@ private:
     //**********************************************************************
     //**********************************************************************
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY;
         // if the preconditioner is saved between solves, it
@@ -630,7 +630,7 @@ private:
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    int Check()
+    int Check() override
     {
         KRATOS_TRY
 

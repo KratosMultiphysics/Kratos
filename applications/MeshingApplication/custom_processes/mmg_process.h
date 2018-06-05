@@ -58,42 +58,14 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// Node containers definition
-    typedef ModelPart::NodesContainerType                        NodesArrayType;
-    /// Elements containers definition
-    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
-    /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
-    
-    /// Node definition
-    typedef Node <3>                                                   NodeType;
-    // Geometry definition
-    typedef Geometry<NodeType>                                     GeometryType;
-    /// Properties definition
-    typedef Properties                                           PropertiesType;
-    /// Element definition
-    typedef Element                                                 ElementType;
-    /// Condition definition
-    typedef Condition                                             ConditionType;
-    
     /// Index definition
     typedef std::size_t                                               IndexType;
+
     /// Size definition
     typedef std::size_t                                                SizeType;
-    
-    /// DoF definition
-    typedef Dof<double>                                                 DofType;
-    
-    /// Mesh definition
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
-    /// Properties container definition
-    typedef MeshType::PropertiesContainerType           PropertiesContainerType;
-    /// Nodes container definition
-    typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
-    /// Conditions container definition
-    typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
-    /// Elements container definition
-    typedef MeshType::ElementConstantIterator           ElementConstantIterator;
+
+    /// Index vector
+    typedef std::vector<IndexType>                              IndexVectorType;
 
 ///@}
 ///@name  Enum's
@@ -115,7 +87,7 @@ namespace Kratos
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
  * @author Vicente Mataix Ferrandiz
  */
-template<unsigned int TDim>  
+template<SizeType TDim>
 class MmgProcess 
     : public Process
 {
@@ -127,12 +99,56 @@ public:
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
     
+    /// Node containers definition
+    typedef ModelPart::NodesContainerType                        NodesArrayType;
+    /// Elements containers definition
+    typedef ModelPart::ElementsContainerType                  ElementsArrayType;
+    /// Conditions containers definition
+    typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
+
+    /// Node definition
+    typedef Node <3>                                                   NodeType;
+    // Geometry definition
+    typedef Geometry<NodeType>                                     GeometryType;
+    /// Properties definition
+    typedef Properties                                           PropertiesType;
+    /// Element definition
+    typedef Element                                                 ElementType;
+    /// Condition definition
+    typedef Condition                                             ConditionType;
+
+    /// DoF definition
+    typedef Dof<double>                                                 DofType;
+
+    /// Mesh definition
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    /// Properties container definition
+    typedef MeshType::PropertiesContainerType           PropertiesContainerType;
+    /// Nodes container definition
+    typedef MeshType::NodeConstantIterator                 NodeConstantIterator;
+    /// Conditions container definition
+    typedef MeshType::ConditionConstantIterator       ConditionConstantIterator;
+    /// Elements container definition
+    typedef MeshType::ElementConstantIterator           ElementConstantIterator;
+
     /// Conditions array size
-    static constexpr unsigned int ConditionsArraySize = (TDim == 2) ? 1 : 2;
+    static constexpr SizeType ConditionsArraySize = (TDim == 2) ? 1 : 2;
     
     /// Elements array size
-    static constexpr unsigned int ElementsArraySize = (TDim == 2) ? 1 : 2;
- 
+    static constexpr SizeType ElementsArraySize = (TDim == 2) ? 1 : 2;
+
+    /// Double vector
+    typedef std::vector<double> DoubleVectorType;
+
+    /// Double vector map
+    typedef std::unordered_map<DoubleVectorType, IndexType, KeyHasherRange<DoubleVectorType>, KeyComparorRange<DoubleVectorType> > DoubleVectorMapType;
+
+    /// Index vector map
+    typedef std::unordered_map<IndexVectorType, IndexType, KeyHasherRange<IndexVectorType>, KeyComparorRange<IndexVectorType> > IndexVectorMapType;
+
+    /// Colors map
+    typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -265,20 +281,20 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrThisModelPart;                                   /// The model part to compute           
-    Parameters mThisParameters;                                   /// The parameters (can be used for general pourposes)
-    NodeType::DofsContainerType  mDofs;                           /// Storage for the dof of the node
+    ModelPart& mrThisModelPart;                                      /// The model part to compute           
+    Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
+    NodeType::DofsContainerType  mDofs;                              /// Storage for the dof of the node
     
-    char* mFilename;                                              /// I/O file name
-    std::string mStdStringFilename;                               /// I/O file name (string)
-    unsigned int mEchoLevel;                                      /// The echo level
+    char* mFilename;                                                 /// I/O file name
+    std::string mStdStringFilename;                                  /// I/O file name (string)
+    IndexType mEchoLevel;                                            /// The echo level
 
-    FrameworkEulerLagrange mFramework;                            /// The framework
+    FrameworkEulerLagrange mFramework;                               /// The framework
     
-    std::unordered_map<int,std::vector<std::string>> mColors;     /// Where the sub model parts IDs are stored
+    std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
     
-    std::unordered_map<int,Element::Pointer>   mpRefElement;      /// Reference condition
-    std::unordered_map<int,Condition::Pointer> mpRefCondition;    /// Reference element
+    std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference condition
+    std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference element
 
     ///@}
     ///@name Private Operators
@@ -305,7 +321,7 @@ private:
         else
             return FrameworkEulerLagrange::EULERIAN;
     }
-    
+
     /**
      * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
      */
@@ -340,38 +356,38 @@ private:
      * @brief It checks if the nodes are repeated and remove the repeated ones
      */
     
-    std::vector<unsigned int> CheckNodes();
+    IndexVectorType CheckNodes();
     
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
     
-    std::vector<unsigned int> CheckConditions0();
+    IndexVectorType CheckConditions0();
     
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
         
-    std::vector<unsigned int> CheckConditions1();
+    IndexVectorType CheckConditions1();
     
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
     
-    std::vector<unsigned int> CheckElements0();
+    IndexVectorType CheckElements0();
     
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
         
-    std::vector<unsigned int> CheckElements1();
+    IndexVectorType CheckElements1();
     
     /**
      * @brief It blocks certain nodes before remesh the model
      * @param iNode The index of the noode
      */
     
-    void BlockNode(unsigned int iNode);
+    void BlockNode(IndexType iNode);
     
     /**
      * @brief It creates the new node
@@ -382,7 +398,7 @@ private:
      */
     
     NodeType::Pointer CreateNode(
-        unsigned int iNode,
+        IndexType iNode,
         int& Ref, 
         int& IsRequired
         );
@@ -396,7 +412,7 @@ private:
      */
     
     ConditionType::Pointer CreateCondition0(
-        const unsigned int CondId,
+        const IndexType CondId,
         int& PropId, 
         int& IsRequired,
         bool SkipCreation
@@ -411,7 +427,7 @@ private:
      */
     
     ConditionType::Pointer CreateCondition1(
-        const unsigned int CondId,
+        const IndexType CondId,
         int& PropId, 
         int& IsRequired,
         bool SkipCreation
@@ -426,7 +442,7 @@ private:
      */
     
     ElementType::Pointer CreateElement0(
-        const unsigned int ElemId,
+        const IndexType ElemId,
         int& PropId, 
         int& IsRequired,
         bool SkipCreation
@@ -441,7 +457,7 @@ private:
      */
     
     ElementType::Pointer CreateElement1(
-        const unsigned int ElemId,
+        const IndexType ElemId,
         int& PropId, 
         int& IsRequired,
         bool SkipCreation
@@ -483,7 +499,7 @@ private:
      * @param VerbosityMMG The equivalent verbosity level in the MMG API
      */
         
-    void InitVerbosityParameter(const int& VerbosityMMG);
+    void InitVerbosityParameter(const IndexType VerbosityMMG);
     
     /**
      * @brief This sets the size of the mesh
@@ -494,8 +510,8 @@ private:
     
     void SetMeshSize(
         const SizeType NumNodes,
-        const array_1d<SizeType, ElementsArraySize> NumArrayElements,
-        const array_1d<SizeType, ConditionsArraySize> NumArrayConditions 
+        const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
+        const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
         );
     
     /**
@@ -503,21 +519,21 @@ private:
      * @param NumNodes Number of nodes
      */
     
-    void SetSolSizeScalar(const int NumNodes);
+    void SetSolSizeScalar(const SizeType NumNodes);
     
     /**
      * @brief This sets the size of the solution for the vector case
      * @param NumNodes Number of nodes
      */
     
-    void SetSolSizeVector(const int NumNodes);
+    void SetSolSizeVector(const SizeType NumNodes);
     
     /**
      * @brief This sets the size of the solution for the tensor case
      * @param NumNodes Number of nodes
      */
     
-    void SetSolSizeTensor(const int NumNodes);
+    void SetSolSizeTensor(const SizeType NumNodes);
     
     /**
      * @brief This checks the mesh data and prints if it is OK
@@ -533,7 +549,7 @@ private:
     
     void OutputMesh(
         const bool PostOutput, 
-        const unsigned int Step
+        const IndexType Step
         );
     
     /**
@@ -549,7 +565,7 @@ private:
     
     void OutputSol(
         const bool PostOutput, 
-        const unsigned int Step
+        const IndexType Step
         );
     
     /**
@@ -577,8 +593,8 @@ private:
         const double X,
         const double Y,
         const double Z,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -590,8 +606,8 @@ private:
     
     void SetConditions(
         GeometryType& Geom,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -603,8 +619,8 @@ private:
     
     void SetElements(
         GeometryType& Geom,
-        const int Color,
-        const int Index
+        const IndexType Color,
+        const IndexType Index
         );
     
     /**
@@ -613,8 +629,8 @@ private:
      */
 
     void SetMetricScalar(
-        const double& Metric,
-        const int NodeId 
+        const double Metric,
+        const IndexType NodeId 
         );
     
     /**
@@ -624,7 +640,7 @@ private:
 
     void SetMetricVector(
         const array_1d<double, 3>& Metric,
-        const int NodeId 
+        const IndexType NodeId 
         );
     
     /**
@@ -634,8 +650,20 @@ private:
 
     void SetMetricTensor(
         const Vector& Metric,
-        const int NodeId 
+        const IndexType NodeId 
         );
+
+    /**
+     * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
+     */
+
+    void CreateAuxiliarSubModelPartForFlags();
+
+    /**
+     * @brief This function assigns the flags and clears the auxiliar sub model part for flags
+     */
+
+    void AssignAndClearAuxiliarSubModelPartForFlags();
 
     ///@}
     ///@name Private  Access
@@ -671,19 +699,21 @@ private:
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   MmgProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const MmgProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
+template<SizeType TDim>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MmgProcess<TDim>& rThis);
+
+/// output stream function
+template<SizeType TDim>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MmgProcess<TDim>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 }// namespace Kratos.
 #endif /* KRATOS_MMG_PROCESS defined */

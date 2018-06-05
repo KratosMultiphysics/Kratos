@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_solvers/solution_builders_and_solvers/solution_builder_and_solver.hpp"
-
+#include "includes/key_hash.h"
 
 #ifdef USE_GOOGLE_HASH
 #include "sparsehash/dense_hash_set" //included in external libraries
@@ -90,8 +90,8 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     size_t operator()(const Node<3>::DofType::Pointer& it) const
     {
       std::size_t seed = 0;
-      boost::hash_combine(seed, it->Id());
-      boost::hash_combine(seed, (it->GetVariable()).Key());
+      HashCombine(seed, it->Id());
+      HashCombine(seed, (it->GetVariable()).Key());
       return seed;
     }
   };

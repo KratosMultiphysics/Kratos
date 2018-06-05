@@ -22,6 +22,7 @@
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "utilities/geometrical_sensitivity_utility.h"
 
 namespace Kratos
 {
@@ -680,7 +681,9 @@ protected:
         const unsigned int PointNumber,
         const double detJ
         );
-    
+
+    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
+
     ///@}
     ///@name Protected  Access
     ///@{

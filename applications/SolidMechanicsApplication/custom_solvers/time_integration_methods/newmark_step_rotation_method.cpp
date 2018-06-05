@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-  // specilization to array_1d
+  // other types 
   template<class TVariableType, class TValueType>
   void NewmarkStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
   {
@@ -28,7 +28,8 @@ namespace Kratos
 	
       KRATOS_CATCH( "" )
   }
-  
+
+  // specilization to array_1d  
   template<>
   void NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode)
   {
@@ -83,7 +84,7 @@ namespace Kratos
 
     template class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewmarkStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>, double>;
     template class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewmarkStepRotationMethod< Variable<array_1d<double, 3>>, array_1d<double,3>>;
-
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewmarkStepRotationMethod< Variable<double>, double >;
   
 }  // namespace Kratos.
 

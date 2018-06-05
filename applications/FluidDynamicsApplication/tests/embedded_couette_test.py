@@ -286,7 +286,6 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-
                 self.solver.Solve()
 
                 for process in self.list_of_processes:
@@ -367,7 +366,7 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
                             self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
 
 if __name__ == '__main__':
-    test = EmbeddedAusasCouetteTest()
+    test = EmbeddedCouetteTest()
     test.setUp()
     test.distance = 0.25
     test.slip_flag = False

@@ -372,11 +372,6 @@ void UpdatedLagrangianQuadrilateral::SetGeneralVariables(GeneralVariables& rVari
 
     rVariables.detFT = rVariables.detF * rVariables.detF0;
     rVariables.FT    = prod( rVariables.F, rVariables.F0 );
-    //if (this->Id() == 541 || this->Id() == 534 || this->Id() == 538)
-    //{
-    //std::cout<<" Total Deformation Gradient "<< rVariables.FT  <<std::endl;
-    //std::cout<<" Total Deformation Gradient determinant "<< rVariables.detFT  <<std::endl;
-    //}
 
     rValues.SetDeterminantF(rVariables.detFT);
     rValues.SetDeformationGradientF(rVariables.FT);
@@ -450,21 +445,12 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
 
     //std::cout<<"in CalculateElementalSystem 5"<<std::endl;
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
 
     //auxiliary terms
     Vector VolumeForce;
 
-
-    //compute element kinematics B, F, DN_DX ...
-    //if (this->Id() == 541 || this->Id() == 534 || this->Id() == 538)
-    //{
-    //std::cout<<" in calculate elemental system "<<std::endl;
-    //}
     this->CalculateKinematics(Variables,rCurrentProcessInfo);
 
     //set general variables to constitutivelaw parameters
@@ -517,10 +503,6 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
     }
     //the MP density is updated
     double MP_Density = (GetProperties()[DENSITY]) / Variables.detFT;
-    //if(this->Id() == 1786 || this->Id() == 1836)
-    //{
-    //std::cout<<"density "<<this->Id() << GetProperties()[DENSITY]<<std::endl;
-    //}
         
     //the integration weight is evaluated
     double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
@@ -593,32 +575,11 @@ void UpdatedLagrangianQuadrilateral::CalculateKinematics(GeneralVariables& rVari
 
     ////REMEMBER THAT USING JUST ONLY THE FIRST ORDER TERM SOME ISSUES CAN COME UP WHEN FOR PROBLEMS WITH LOTS OF ROTATIONAL MOTION(slender cantilever beam??)
     //noalias( rVariables.F ) = (I + GradientDisp);
-    //if (this->Id() == 541 || this->Id() == 534 || this->Id() == 538)
-    //{
-    ////std::cout<<" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA "<<std::endl;
-    ////std::cout<<"rVariables.CurrentDisp in calculate kinematic "<<rVariables.CurrentDisp<<std::endl;
-    ////std::cout<<" AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA "<<std::endl;
-    //std::cout<<" Delta Deformation Gradient "<< rVariables.F <<std::endl;
-    //}
-
-
-
-
 
     //Determinant of the Deformation Gradient F_n
 
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
-
-    //if(this->Id() == 365)
-    //{
-
-    //std::cout<<"rVariables.DN_DX "<<this->Id()<<rVariables.DN_DX<<std::endl;
-    //std::cout<<"rVariables.DN_De "<<this->Id()<<rVariables.DN_De<<std::endl;
-    //std::cout<<"rVariables.J "<<this->Id()<<rVariables.J<<std::endl;
-    //std::cout<<"rVariables.j "<<this->Id()<<rVariables.j<<std::endl;
-    //std::cout<<"Invj "<<this->Id()<<Invj<<std::endl;
-    //}
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
@@ -652,10 +613,6 @@ void UpdatedLagrangianQuadrilateral::CalculateDeformationMatrix(Matrix& rB,
             rB( 2, index + 1 ) = rDN_DX( i, 0 );
 
         }
-        //if(this->Id() == 365)
-        //{
-        //std::cout<<"rB "<< this->Id()<< rB<<std::endl;
-        //}
 
     }
 
@@ -766,10 +723,6 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddExternalForces(VectorType& r
 
         }
 
-    }
-    if(this->Id() == 875)
-    {
-        std::cout<<"rRightHandSideVector "<<rRightHandSideVector<<std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -916,10 +869,6 @@ Vector& UpdatedLagrangianQuadrilateral::CalculateVolumeForce( Vector& rVolumeFor
 
     rVolumeForce = ZeroVector(dimension);
 
-    //if (this->Id() == 18274)
-    //{
-    //std::cout<<"volume acceleration "<<this->GetValue(MP_VOLUME_ACCELERATION)<<std::endl;
-    //}
     rVolumeForce = this->GetValue(MP_VOLUME_ACCELERATION)* this->GetValue(MP_MASS);
 
 
@@ -1155,14 +1104,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
             AUX_MP_Acceleration[k] += Variables.N[j] * NodalAcceleration[k];
         }
     }
-    //if(this->Id() == 8371)
-    //{
-    //std::cout<<" AUX_MP_Velocity " <<  AUX_MP_Velocity<<std::endl;
-    //std::cout<<" AUX_MP_Acceleration " <<  AUX_MP_Acceleration<<std::endl;
-    //}
-    //std::cout<<" AUX_MP_Velocity "<<AUX_MP_Velocity<<std::endl;
-    //std::cout<<" AUX_MP_Acceleration "<<AUX_MP_Acceleration<<std::endl;
-
 
     //for (unsigned int k = 0; k < 3; k++)
     //{
@@ -1170,14 +1111,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     //MP_Inertia[k] = (MP_Acceleration[k] - AUX_MP_Acceleration[k]) * MP_Mass;
     //}
 
-    // Here MP contribution in terms of momentum, inertia and mass are added
-    //if(this->Id() == 12156)
-    //{
-    //std::cout<<" AUX_MP_Velocity"<< AUX_MP_Velocity<<std::endl;
-    //std::cout<<" AUX_MP_Acceleration"<< AUX_MP_Acceleration<<std::endl;
-    //std::cout<<" error velocity"<< MP_Velocity - AUX_MP_Velocity<<std::endl;
-    //std::cout<<" error acceleration"<< MP_Acceleration - AUX_MP_Acceleration<<std::endl;
-    //}
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for (unsigned int j = 0; j < dimension; j++)
@@ -1209,11 +1142,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     //}
     //MP_Velocity = MP_Velocity - AUX_MP_Velocity;
     //MP_Acceleration = MP_Acceleration - AUX_MP_Acceleration;
-    //if(this->Id() == 8371)
-    //{
-    //std::cout<<" MP_Velocity " <<  MP_Velocity<<std::endl;
-    //std::cout<<" MP_Acceleration " <<  MP_Acceleration<<std::endl;
-    //}
     AUX_MP_Velocity.clear();
     AUX_MP_Acceleration.clear();
 
@@ -1229,11 +1157,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     ////this->SetValue(PREVIOUS_MP_CAUCHY_STRESS_VECTOR, Variables.StressVector);
     ////this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
     ////this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
-    //if(this->Id() == 6261 || this->Id() == 1836)
-    //{
-    //std::cout<<"density "<<this->Id() << GetProperties()[DENSITY]<<std::endl;
-    //}
 
     //Matrix J0 = ZeroMatrix(dimension, dimension);
 
@@ -1253,12 +1176,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
 
     //array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
     //array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
-    //if(this->Id() == 8371)
-    //{
-    //std::cout<<" MP_Velocity at iteration 0"<< MP_Velocity<<std::endl;
-    //std::cout<<" MP_Acceleration at iteration 0"<< MP_Acceleration<<std::endl;
-
-    //}
+    
     //double MP_Mass = this->GetValue(MP_MASS);
     //array_1d<double,3> MP_Momentum;
     //array_1d<double,3> MP_Inertia;
@@ -1290,13 +1208,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     ////if(GetGeometry()[i].pGetDof(DISPLACEMENT_X)->IsFixed() == false)
     ////{
     //GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
-    ////}
-    ////if(this->Id() == 18274)
-    ////{
-    ////std::cout<<"GetGeometry()[i].Id()"<<GetGeometry()[i].Id()<<std::endl;
-    ////std::cout<<"GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0)"<<GetGeometry()[i].GetSolutionStepValue(NODAL_MASS, 0)<<std::endl;
-    ////std::cout<<"GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) "<<GetGeometry()[i].GetSolutionStepValue(NODAL_MOMENTUM, 0) <<std::endl;
-    ////std::cout<<"GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) "<<GetGeometry()[i].GetSolutionStepValue(NODAL_INERTIA, 0) <<std::endl;
     ////}
     //}
     ////for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1368,11 +1279,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     //AUX_MP_Acceleration[k] += Variables.N[j] * NodalAcceleration[k];
     //}
     //}
-    //if(this->Id() == 8371)
-    //{
-    //std::cout<<" AUX_MP_Velocity " <<  AUX_MP_Velocity<<std::endl;
-    //std::cout<<" AUX_MP_Acceleration " <<  AUX_MP_Acceleration<<std::endl;
-    //}
     ////std::cout<<" AUX_MP_Velocity "<<AUX_MP_Velocity<<std::endl;
     ////std::cout<<" AUX_MP_Acceleration "<<AUX_MP_Acceleration<<std::endl;
 
@@ -1384,13 +1290,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     ////}
 
     //// Here MP contribution in terms of momentum, inertia and mass are added
-    ////if(this->Id() == 12156)
-    ////{
-    ////std::cout<<" AUX_MP_Velocity"<< AUX_MP_Velocity<<std::endl;
-    ////std::cout<<" AUX_MP_Acceleration"<< AUX_MP_Acceleration<<std::endl;
-    ////std::cout<<" error velocity"<< MP_Velocity - AUX_MP_Velocity<<std::endl;
-    ////std::cout<<" error acceleration"<< MP_Acceleration - AUX_MP_Acceleration<<std::endl;
-    ////}
     //for ( unsigned int i = 0; i < number_of_nodes; i++ )
     //{
     //for (unsigned int j = 0; j < dimension; j++)
@@ -1422,11 +1321,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     ////}
     ////MP_Velocity = MP_Velocity - AUX_MP_Velocity;
     ////MP_Acceleration = MP_Acceleration - AUX_MP_Acceleration;
-    ////if(this->Id() == 8371)
-    ////{
-    ////std::cout<<" MP_Velocity " <<  MP_Velocity<<std::endl;
-    ////std::cout<<" MP_Acceleration " <<  MP_Acceleration<<std::endl;
-    ////}
     //AUX_MP_Velocity.clear();
     //AUX_MP_Acceleration.clear();
     //}
@@ -1623,10 +1517,6 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep( ProcessInfo& rCurrent
 ////Vector NodalStress3 = GetGeometry()[3].GetSolutionStepValue(STRESSES, 0);
 
 ////SmoothMPStress = NodalStress0 * Variables.N[0] + NodalStress1 * Variables.N[1] + NodalStress2 * Variables.N[2] + NodalStress3 * Variables.N[3];
-////if (this->Id() == 541 || this->Id() == 534 || this->Id() == 538)
-////{
-////std::cout<<" GetGeometry()[0].GetSolutionStepValue(STRESSES, 0); "<< " Id "<< GetGeometry()[0].GetSolutionStepValue(STRESSES, 0)<<std::endl;
-////}
 
 //for ( unsigned int i = 0; i < number_of_nodes; i++ )
 //{
@@ -1637,10 +1527,6 @@ void UpdatedLagrangianQuadrilateral::FinalizeSolutionStep( ProcessInfo& rCurrent
 //}
 //}
 //this->SetValue(MP_CAUCHY_STRESS_VECTOR, SmoothMPStress);
-////if (this->Id() == 541 || this->Id() == 534 || this->Id() == 538)
-////{
-////std::cout<<" MP_CAUCHY_STRESS_VECTOR "<< " Id "<< this->GetValue(MP_CAUCHY_STRESS_VECTOR)<<std::endl;
-////}
 
 //}
 //KRATOS_CATCH( "" )
@@ -1719,19 +1605,6 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
             array_1d<double,3> NodalMomentum = NodalMass * NodalVelocity;
             array_1d<double,3> NodalInertia = NodalMass * NodalAcceleration;
 
-            //if (this->Id() == 469)// || this->Id() == 1513)
-            //{
-            //std::cout<< "Nodal ID "<< GetGeometry()[i].Id()<<std::endl;
-            //std::cout<< "NodalAcceleration "<<NodalAcceleration<<std::endl;
-            //std::cout<< "NodalVelocity "<<NodalVelocity<<std::endl;
-            //std::cout<< "NodalMass "<<NodalMass<<std::endl;
-
-            //std::cout<< "rVariables.N "<<rVariables.N<<std::endl;
-            //}
-
-
-
-
             for ( unsigned int j = 0; j < dimension; j++ )
             {
 
@@ -1743,17 +1616,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
                 //MP_Velocity[j] += NodalMomentum[j]/(rVariables.N[i] * MP_Mass * MP_number);
                 //MP_Velocity[j] += DeltaTime * rVariables.N[i] * NodalAcceleration[j];////
 
-
-
-
             }
-            //if (this->Id() == 14716)// || this->Id() == 1513)
-            //{
-            //std::cout<< "Nodal ID "<< GetGeometry()[i].Id()<<std::endl;
-            //std::cout<< "rVariables.CurrentDisp(i,0) "<<rVariables.CurrentDisp(i,0)<<std::endl;
-            //std::cout<< "rVariables.N[i] "<<rVariables.N[i]<<std::endl;
-            //std::cout<< "delta_xg[0] "<<delta_xg[0]<<std::endl;
-            //}
         }
 
     }
@@ -1784,22 +1647,6 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
 
     //Update the MP Displacement
     this -> SetValue(MP_DISPLACEMENT,MP_Displacement );
-
-
-
-    //if (this->Id() == 14716)// || this->Id() == 1513)
-
-    //{
-    //std::cout<<" rVariables.N "<<this->Id()<<rVariables.N<<std::endl;
-    //std::cout<<" GetGeometry() "<<this->Id()<<GetGeometry()<<std::endl;
-
-    //std::cout<<" delta_xg "<<this->Id()<<delta_xg<<std::endl;
-
-    //std::cout<<" MP_Velocity "<<this->Id()<<this -> GetValue(MP_VELOCITY)<<std::endl;
-
-    //std::cout<<" MP_Acceleration "<<this->Id()<<this -> GetValue(MP_ACCELERATION)<<std::endl;
-
-    //}
 
     KRATOS_CATCH( "" )
 }
@@ -2375,12 +2222,6 @@ Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rRe
 
         //rResult = GetGeometry().ShapeFunctionsValues(rResult, rPointLocal);
 
-        //if (this->Id() == 14716)// || this->Id() == 1513)
-        //{
-        //std::cout<<" *********LOCAL COORDINATES*********"<< rPointLocal<<std::endl;
-        //}
-
-
         //Shape Functions (if the first node of the connettivity is the node at the bottom left)
         rResult( 0 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
         rResult( 1 ) = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
@@ -2555,13 +2396,8 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix&
         //rResult( 3, 0 ) = -0.25 * (1 - rPointLocal[1]);
         //rResult( 3, 1 ) = -0.25 * (1 - rPointLocal[0]);
 
-
-
     }
-    //if (this->Id() == 541 || this->Id() == 534 || this->Id() == 538)
-    //{
-    //std::cout<<" rPointLocal "<< " Id "<< this->Id()<<rPointLocal<<std::endl;
-    //}
+
     else if(dimension == 3)
     {
         rResult = ZeroMatrix( 4, 3 );

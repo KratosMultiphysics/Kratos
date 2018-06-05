@@ -29,7 +29,7 @@
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
-#include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp" 
+#include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -74,9 +74,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
-    
+
     // Custom strategy types
-    typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
+    // typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
@@ -87,7 +87,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
-    
+
 
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
@@ -98,18 +98,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
-    
-    // Residual Based Arc Length Strategy      
-    class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
-    .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
-                                                                unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
-            ;
+
+    // Residual Based Arc Length Strategy
+    // Currently not woking
+    // class_< ResidualBasedArcLengthStrategyType,typename ResidualBasedArcLengthStrategyType::Pointer, BaseSolvingStrategyType >(m,"ResidualBasedArcLengthStrategy")
+    // .def(init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
+    //                                                             unsigned int, unsigned int, unsigned int,long double,bool, bool, bool>() )
+    //        ;
 
     // Eigensolver Strategy
     class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
     .def(init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
             ;
-             
+
 
     class_< FormfindingUpdatedReferenceStrategyType,typename FormfindingUpdatedReferenceStrategyType::Pointer, BaseSolvingStrategyType >(m,"FormfindingUpdatedReferenceStrategy")
         .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool >())
@@ -140,7 +141,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
-    
+
     // Residual Based Relaxation Scheme Type
     class_< ResidualBasedRelaxationSchemeType,typename ResidualBasedRelaxationSchemeType::Pointer, BaseSchemeType >(m,"ResidualBasedRelaxationScheme")
     .def(init< double , double >() )
@@ -151,7 +152,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
     .def(init<>() )
             ;
-    
+
     // Explicit Central Differences Scheme Type
     class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
     .def(init< const double, const double, const double>() );
@@ -159,19 +160,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-            
+
     // Displacement and other DoF Convergence Criterion
     class_< DisplacementAndOtherDoFCriteriaType,typename DisplacementAndOtherDoFCriteriaType::Pointer,ConvergenceCriteriaType>(m,"DisplacementAndOtherDoFCriteria")
             .def(init< double, double, std::string >())
             .def(init< double, double>())
             ;
-            
+
     // Displacement and other DoF residual Convergence Criterion
     class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
     .def( init< double, double, std::string >())
             .def(init< double, double>())
             ;
-            
+
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************

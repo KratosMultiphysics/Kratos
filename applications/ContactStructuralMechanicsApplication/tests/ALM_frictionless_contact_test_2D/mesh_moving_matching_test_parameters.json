@@ -182,6 +182,7 @@
             "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
             "input_file_name"     : "ALM_frictionless_contact_test_2D/mesh_moving_matching_test_results.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
+            "tolerance"            : 3e-3,
             "time_frequency"       : 1.0
         }
     }

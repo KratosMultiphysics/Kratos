@@ -845,42 +845,6 @@ public:
         return c;
     }
 
-    //this function is deprecated since instead of giving back vec x Tuple it gives back Tuple x Vec ( = -Vec x Tuple)
-    //THAT IS -- THIS FUNCTION GIVES BACK THE OPPOSITE SIGN OF THE PRODUCT
-    //please use instead CrossProd(c,a,b) which is also in general more optimal since it never creates tmp on return
-    KRATOS_DEPRECATED static inline array_1d<double, 3> UnitCrossProduct(
-        const array_1d<double, 3>& vec, 
-        const array_1d<double, 3>& Tuple
-        )
-    {
-        array_1d<double, 3> cross;
-
-        cross[0] =  Tuple[1]*vec[2] - Tuple[2]*vec[1];
-        cross[1] =  Tuple[2]*vec[0] - Tuple[0]*vec[2];
-        cross[2] =  Tuple[0]*vec[1] - Tuple[1]*vec[0];
-
-        const double length = std::sqrt(inner_prod(cross, cross));
-        cross = (1.00/length) * cross;
-        return cross;
-    }
-
-    //this function is deprecated since instead of giving back vec x Tuple it gives back Tuple x Vec ( = -Vec x Tuple)
-    //THAT IS -- THIS FUNCTION GIVES BACK THE OPPOSITE SIGN OF THE PRODUCT
-    //please use instead CrossProd(c,a,b) which is also in general more optimal since it never creates tmp on return
-    KRATOS_DEPRECATED static inline array_1d<double, 3> CrossProduct(
-        const array_1d<double, 3>& vec, 
-        const array_1d<double, 3>& Tuple
-        )
-    {
-        array_1d<double, 3> cross;
-
-        cross[0] =  Tuple[1]*vec[2] - Tuple[2]*vec[1];
-        cross[1] =  Tuple[2]*vec[0] - Tuple[0]*vec[2];
-        cross[2] =  Tuple[0]*vec[1] - Tuple[1]*vec[0];
- 
-        return cross;
-    }
-
     /**
      * This auxiliar struct helps to checl if the values have the same adress
      * If the direction is the same we have aliasing

@@ -37,8 +37,13 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
             self.modify_parameters(ProjectParameters)
 
+            # To avoid many prints
+            if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
             # Creating the test
-            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParameters)
+            model = KratosMultiphysics.Model()
+            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -50,7 +55,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.RunMainTemporalLoop()
+            self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:

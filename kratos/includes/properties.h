@@ -236,7 +236,7 @@ public:
         mData.GetValue(rV) = rValue;
     }
 
-    bool const HasVariables()
+    bool HasVariables()
     {
         return !mData.IsEmpty();
     }
@@ -259,12 +259,12 @@ public:
 		mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
     }
 
-    bool const HasTables()
+    bool HasTables()
     {
         return !mTables.empty();
     }
 
-    bool const IsEmpty()
+    bool IsEmpty()
     {
         return !( HasVariables() || HasTables() );
     }

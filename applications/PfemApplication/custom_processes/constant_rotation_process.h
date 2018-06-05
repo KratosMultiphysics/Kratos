@@ -1,5 +1,5 @@
 //
-//  Main authors:    Miguel Ángel Celigueta 
+//  Main authors:    Miguel Ángel Celigueta
 //
 //
 
@@ -33,8 +33,8 @@ public:
     typedef Geometry<NodeType>      GeometryType;
 
     /// Constructor.
-    ConstantRotationProcess(ModelPart& rModelPart, 
-                    const double angular_velocity_x, 
+    ConstantRotationProcess(ModelPart& rModelPart,
+                    const double angular_velocity_x,
                     const double angular_velocity_y,
                     const double angular_velocity_z,
                     const double center_x,
@@ -46,10 +46,10 @@ public:
         mW[2] = angular_velocity_z;
         mCenter[0] = center_x;
         mCenter[1] = center_y;
-        mCenter[2] = center_z;       
+        mCenter[2] = center_z;
     }
-    
-    ConstantRotationProcess(ModelPart& rModelPart, 
+
+    ConstantRotationProcess(ModelPart& rModelPart,
                     Parameters rParameters): Process(), mrModelPart(rModelPart)
     {
         Parameters default_parameters( R"(
@@ -63,16 +63,16 @@ public:
                 "center_z":0.0,
                 "interval": [0,"End"]
             }  )" );
-        
+
         rParameters.ValidateAndAssignDefaults(default_parameters);
-                
+
         mW[0] = rParameters["angular_velocity_x"].GetDouble();
         mW[1] = rParameters["angular_velocity_y"].GetDouble();
         mW[2] = rParameters["angular_velocity_z"].GetDouble();
         mCenter[0] = rParameters["center_x"].GetDouble();
         mCenter[1] = rParameters["center_y"].GetDouble();
-        mCenter[2] = rParameters["center_z"].GetDouble();  
-        
+        mCenter[2] = rParameters["center_z"].GetDouble();
+
         if(rParameters.Has("interval")) {
             if(rParameters["interval"][1].IsString()) {
                 if(rParameters["interval"][1].GetString() == "End") rParameters["interval"][1].SetDouble(1e30);
@@ -92,30 +92,30 @@ public:
         KRATOS_TRY;
         ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
-        
+
         if(rCurrentTime < mInitialTime || rCurrentTime > mFinalTime) {
             SetAllNodesVelocityToZero();
             return;
         }
-                   
+
         array_1d<double,3> current_local_axis_1;
         array_1d<double,3> current_local_axis_2;
         array_1d<double,3> current_local_axis_3;
-        
+
         const double modulus_omega = sqrt(mW[0]*mW[0] + mW[1]*mW[1] + mW[2]*mW[2]);
         const double rotated_angle = modulus_omega * rCurrentTime;
 
-        array_1d<double,3> unitary_omega; 
+        array_1d<double,3> unitary_omega;
         noalias(unitary_omega) = mW / modulus_omega;
-        
+
         array_1d<double,3> initial_local_axis_1; initial_local_axis_1[0] = 1.0; initial_local_axis_1[1] = 0.0; initial_local_axis_1[2] = 0.0; //(local axes are assumed oriented as global axes at the beginning)
         array_1d<double,3> initial_local_axis_2; initial_local_axis_2[0] = 0.0; initial_local_axis_2[1] = 1.0; initial_local_axis_2[2] = 0.0; //(local axes are assumed oriented as global axes at the beginning)
         array_1d<double,3> initial_local_axis_3; initial_local_axis_2[0] = 0.0; initial_local_axis_3[1] = 0.0; initial_local_axis_3[2] = 1.0; //(local axes are assumed oriented as global axes at the beginning)
-        
+
         RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_1, unitary_omega, rotated_angle, current_local_axis_1);
-        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_2, unitary_omega, rotated_angle, current_local_axis_2);        
-        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_3, unitary_omega, rotated_angle, current_local_axis_3);        
-        
+        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_2, unitary_omega, rotated_angle, current_local_axis_2);
+        RotateAVectorAGivenAngleAroundAUnitaryVector(initial_local_axis_3, unitary_omega, rotated_angle, current_local_axis_3);
+
         //UPDATE POSITION AND VELOCITY OF ALL NODES
         for (ModelPart::NodesContainerType::iterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); node_i++) {
             //Get local coordinates at the beginning (local axes are assumed oriented as global axes at the beginning)
@@ -123,21 +123,21 @@ public:
             local_coordinates[0] = node_i->X0() - mCenter[0];
             local_coordinates[1] = node_i->Y0() - mCenter[1];
             local_coordinates[2] = node_i->Z0() - mCenter[2];
-            
+
             //Use local coordinates with the updated local axes
             array_1d<double,3> new_from_center_to_node;
             new_from_center_to_node = local_coordinates[0] * current_local_axis_1 + local_coordinates[1] * current_local_axis_2 + local_coordinates[2] * current_local_axis_3;
-            
-            array_1d<double,3>& current_node_position = node_i->Coordinates();     
+
+            array_1d<double,3>& current_node_position = node_i->Coordinates();
             noalias(current_node_position) = mCenter + new_from_center_to_node;
-            
+
             node_i->pGetDof(VELOCITY_X)->FixDof();
             node_i->pGetDof(VELOCITY_Y)->FixDof();
             node_i->pGetDof(VELOCITY_Z)->FixDof();
             array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
-            noalias(current_node_velocity) = MathUtils<double>::CrossProduct(new_from_center_to_node, mW);            
+            MathUtils<double>::CrossProduct(current_node_velocity, mW, new_from_center_to_node);
         }//end of loop over nodes
-        KRATOS_CATCH("");                  
+        KRATOS_CATCH("");
     }
 
     /// Turn back information as a string.
@@ -168,7 +168,7 @@ protected:
     array_1d<double,3>                             mCenter;
     double                                    mInitialTime;
     double                                      mFinalTime;
-    
+
     void RotateAVectorAGivenAngleAroundAUnitaryVector(const array_1d<double, 3>& old_vec, const array_1d<double, 3>& axis,
                                                                 const double ang, array_1d<double, 3>& new_vec) {
         double cang = cos(ang);
@@ -179,13 +179,13 @@ protected:
         new_vec[2] = axis[2] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[2] * cang + (-axis[1] * old_vec[0] + axis[0] * old_vec[1]) * sang;
     }
 
- 
+
 
 private:
 
     /// Assignment operator.
     ConstantRotationProcess& operator=(ConstantRotationProcess const& rOther){return *this;}
-    
+
     void SetAllNodesVelocityToZero(){
         KRATOS_TRY;
         for (ModelPart::NodesContainerType::iterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); node_i++) {
@@ -197,8 +197,8 @@ private:
             current_node_velocity[1] = 0.0;
             current_node_velocity[2] = 0.0;
         }//end of loop over nodes
-        KRATOS_CATCH("");          
-        
+        KRATOS_CATCH("");
+
     }
 
 }; // Class ConstantRotationProcess
