@@ -8,7 +8,7 @@ from contact_structural_mechanics_analysis import ContactStructuralMechanicsAnal
 
 """
 For user-scripting it is intended that a new class is derived
-from StructuralMechanicsAnalysis to do modifications
+from ContactStructuralMechanicsAnalysis to do modifications
 """
 
 if __name__ == "__main__":
