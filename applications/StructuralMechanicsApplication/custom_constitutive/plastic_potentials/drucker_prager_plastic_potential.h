@@ -14,14 +14,9 @@
 #define  KRATOS_DRUCKER_PRAGER_PLASTIC_POTENTIAL_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
-#include "utilities/math_utils.h"
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
 
 namespace Kratos
 {
@@ -108,9 +103,9 @@ public:
     {
         Vector FirstVector, SecondVector, ThirdVector;
 
-        CalculateFirstVector(FirstVector);
-        CalculateSecondVector(Deviator, J2, SecondVector);
-        CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
+        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
+        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
 
         double c1, c2, c3;
         c3 = 0.0;
@@ -124,64 +119,6 @@ public:
         c2 = CFL;
 
         noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
-    }
-
-    static void CalculateFirstVector(Vector& FirstVector)
-    {
-        FirstVector = ZeroVector(6);
-        FirstVector[0] = 1.0;
-        FirstVector[1] = 1.0;
-        FirstVector[2] = 1.0;
-
-    }
-
-    static void CalculateSecondVector(
-        const Vector Deviator, 
-        const double J2, 
-        Vector& SecondVector
-    )
-    {
-        const double twosqrtJ2 = 2.0*std::sqrt(J2);
-        for (int i = 0; i < 6; i++)
-        {
-            SecondVector[i] = Deviator[i] / (twosqrtJ2);
-        }
-
-        SecondVector[3] *= 2.0;
-        SecondVector[4] *= 2.0;
-        SecondVector[5] *= 2.0;
-    }
-
-    static void CalculateThirdVector(
-        const Vector Deviator, 
-        const double J2, 
-        Vector& ThirdVector
-    )
-    {
-        ThirdVector.resize(6);
-        const double J2thirds = J2 / 3.0;
-
-        ThirdVector[0] = Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4] + J2thirds;
-        ThirdVector[1] = Deviator[0]*Deviator[2] - Deviator[5]*Deviator[5] + J2thirds;
-        ThirdVector[2] = Deviator[0]*Deviator[1] - Deviator[3]*Deviator[3] + J2thirds;
-        ThirdVector[3] = 2.0*(Deviator[4]*Deviator[5] - Deviator[3]*Deviator[2]);
-        ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
-        ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
-    }
-
-    static void CalculateLodeAngle(const double J2, const double J3, double& LodeAngle)
-    {
-		double sint3 = (-3.0*std::sqrt(3.0)*J3) / (2.0*J2*std::sqrt(J2));
-		if (sint3 < -0.95) sint3 = -1;
-		if (sint3 > 0.95)  sint3 = 1; 
-		LodeAngle = std::asin(sint3) / 3.0;
-    }
-
-    static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
-    {
-        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
-			Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
-			Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
     }
 
     ///@}

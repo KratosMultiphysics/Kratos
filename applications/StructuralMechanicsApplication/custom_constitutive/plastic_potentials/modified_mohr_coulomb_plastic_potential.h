@@ -14,16 +14,9 @@
 #define  KRATOS_MODIFIED_MOHR_COULOMB_PLASTIC_POTENTIAL_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
-#include "utilities/math_utils.h"
-#include "includes/global_variables.h"
-
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
 
 namespace Kratos
 {
@@ -110,13 +103,13 @@ public:
     {
         Vector FirstVector, SecondVector, ThirdVector;
 
-        CalculateFirstVector(FirstVector);
-        CalculateSecondVector(Deviator, J2, SecondVector);
-        CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
+        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
+        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
 
         double J3, LodeAngle;
-        CalculateJ3Invariant(Deviator, J3);
-        CalculateLodeAngle(J2, J3, LodeAngle);
+        ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
+        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, LodeAngle);
 
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
@@ -132,7 +125,7 @@ public:
         const double Root3     = std::sqrt(3.0);
 
         const double ComprYield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-		const double TensiYield = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double TensiYield = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = ComprYield / TensiYield;
 
         const double AnglePhi = (Globals::Pi * 0.25) + Dilatancy * 0.5;
@@ -140,20 +133,17 @@ public:
 
         const double CFL = 2.0 * std::tan(AnglePhi) / CosDil;
 
-		const double K1 = 0.5*(1 + alpha) - 0.5*(1 - alpha)*SinDil;
-		const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / SinDil;
-		const double K3 = 0.5*(1 + alpha)*SinDil - 0.5*(1 - alpha);
+        const double K1 = 0.5*(1 + alpha) - 0.5*(1 - alpha)*SinDil;
+        const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / SinDil;
+        const double K3 = 0.5*(1 + alpha)*SinDil - 0.5*(1 - alpha);
 
         if (SinDil != 0.0) c1 = CFL * K3 / 3.0;
         else c1 = 0.0; // check
 
-        if (Checker < 29.0)
-        {
+        if (Checker < 29.0) {
             c2 = CosTheta * CFL * (K1*(1+TanTheta*Tan3Theta) + K2*SinDil*(Tan3Theta-TanTheta) / Root3);
             c3 = CFL*(K1*Root3*SinTheta + K2*SinDil*CosTheta) / (2.0*J2*Cos3Theta);
-        }
-        else
-        {
+        } else {
             c3 = 0.0;
             double Aux = 1.0;
             if (LodeAngle > 0.0) Aux = -1.0;
@@ -161,64 +151,6 @@ public:
         }
 
         noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
-    }
-
-    static void CalculateFirstVector(Vector& FirstVector)
-    {
-        FirstVector = ZeroVector(6);
-        FirstVector[0] = 1.0;
-        FirstVector[1] = 1.0;
-        FirstVector[2] = 1.0;
-
-    }
-
-    static void CalculateSecondVector(
-        const Vector Deviator, 
-        const double J2, 
-        Vector& SecondVector
-    )
-    {
-        const double twosqrtJ2 = 2.0*std::sqrt(J2);
-        for (int i = 0; i < 6; i++)
-        {
-            SecondVector[i] = Deviator[i] / (twosqrtJ2);
-        }
-
-        SecondVector[3] *= 2.0;
-        SecondVector[4] *= 2.0;
-        SecondVector[5] *= 2.0;
-    }
-
-    static void CalculateThirdVector(
-        const Vector Deviator, 
-        const double J2, 
-        Vector& ThirdVector
-    )
-    {
-        ThirdVector.resize(6);
-        const double J2thirds = J2 / 3.0;
-
-        ThirdVector[0] = Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4] + J2thirds;
-        ThirdVector[1] = Deviator[0]*Deviator[2] - Deviator[5]*Deviator[5] + J2thirds;
-        ThirdVector[2] = Deviator[0]*Deviator[1] - Deviator[3]*Deviator[3] + J2thirds;
-        ThirdVector[3] = 2.0*(Deviator[4]*Deviator[5] - Deviator[3]*Deviator[2]);
-        ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
-        ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
-    }
-
-    static void CalculateLodeAngle(const double J2, const double J3, double& LodeAngle)
-    {
-		double sint3 = (-3.0*std::sqrt(3.0)*J3) / (2.0*J2*std::sqrt(J2));
-		if (sint3 < -0.95) sint3 = -1;
-		if (sint3 > 0.95)  sint3 = 1; 
-		LodeAngle = std::asin(sint3) / 3.0;
-    }
-
-    static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
-    {
-        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
-			Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
-			Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
     }
 
     ///@}
