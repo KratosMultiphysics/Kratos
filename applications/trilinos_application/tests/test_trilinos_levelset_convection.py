@@ -83,15 +83,14 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         self.model_part.CloneTimeStep(40.0)
 
         # Convect the distance field
-        max_iterations = 2
         TrilinosApplication.TrilinosLevelSetConvectionProcess2D(
             epetra_comm,
             KratosMultiphysics.DISTANCE,
-            self.model_part, 
+            self.model_part,
             trilinos_linear_solver).Execute()
 
         # Check the obtained values
-        max_distance = -1.0;
+        max_distance = -1.0
         min_distance = +1.0
         for node in self.model_part.Nodes:
             d =  node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -102,7 +101,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
         max_distance = self.model_part.GetCommunicator().MaxAll(max_distance)
 
         self.assertAlmostEqual(max_distance, 0.7904255118014996)
-        self.assertAlmostEqual(min_distance,-0.11710292469993094)   
+        self.assertAlmostEqual(min_distance,-0.11710292469993094)
         
 if __name__ == '__main__':
     KratosUnittest.main()

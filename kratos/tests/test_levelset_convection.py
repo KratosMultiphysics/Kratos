@@ -1,8 +1,7 @@
 ﻿from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-import math
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
 def GetFilePath(fileName):
@@ -49,13 +48,12 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
 
         model_part.CloneTimeStep(40.0)
 
-        max_iterations = 2
         KratosMultiphysics.LevelSetConvectionProcess2D(
             KratosMultiphysics.DISTANCE,
-            model_part, 
+            model_part,
             linear_solver).Execute()
 
-        max_distance = -1.0;
+        max_distance = -1.0
         min_distance = +1.0
         for node in model_part.Nodes:
             d =  node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
@@ -64,7 +62,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(max_distance, 0.7904255118014996)
         self.assertAlmostEqual(min_distance,-0.11710292469993094)
-        
-        
+
+
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -92,10 +92,10 @@ public:
         const double max_cfl = 1.0,
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)
-        : mrBaseModelPart(rBaseModelPart), 
-        mrLevelSetVar(rLevelSetVar), 
-        mMaxAllowedCFL(max_cfl), 
-        mMaxSubsteps(max_substeps)
+        : mrBaseModelPart(rBaseModelPart),
+          mrLevelSetVar(rLevelSetVar),
+          mMaxAllowedCFL(max_cfl),
+          mMaxSubsteps(max_substeps)
     {
         KRATOS_TRY
         
@@ -331,14 +331,14 @@ protected:
 
     /// Constructor without linear solver for derived classes
     LevelSetConvectionProcess(
-        Variable<double>& rLevelSetVar,
-        ModelPart& rBaseModelPart,
+        Variable<double> &rLevelSetVar,
+        ModelPart &rBaseModelPart,
         const double MaxCFL = 1.0,
         const unsigned int MaxSubSteps = 0)
-        : mrLevelSetVar(rLevelSetVar),
-        mrBaseModelPart(rBaseModelPart),
-        mMaxAllowedCFL(MaxCFL),
-        mMaxSubsteps(MaxSubSteps)
+        : mrBaseModelPart(rBaseModelPart),
+          mrLevelSetVar(rLevelSetVar),
+          mMaxAllowedCFL(MaxCFL),
+          mMaxSubsteps(MaxSubSteps)
     {
         mDistancePartIsInitialized = false;
     }
@@ -459,7 +459,7 @@ protected:
         // Synchronize maximum CFL between processes
         mpDistanceModelPart->GetCommunicator().MaxAll(max_cfl_found);
         
-        int n_steps = static_cast<unsigned int>(max_cfl_found / mMaxAllowedCFL); 
+        unsigned int n_steps = static_cast<unsigned int>(max_cfl_found / mMaxAllowedCFL); 
         if(n_steps < 1){
             n_steps = 1;
         }
