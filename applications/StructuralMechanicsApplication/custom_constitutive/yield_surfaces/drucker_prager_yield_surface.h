@@ -13,15 +13,9 @@
 #define  KRATOS_DRUCKER_PRAGER_YIELD_SURFACE_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
-#include "utilities/math_utils.h"
-#include "includes/global_variables.h"
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
 {
@@ -48,10 +42,11 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @tparam TPlasticPotentialType 
+ * @tparam TPlasticPotentialType The plastic potential considered
+ * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TPlasticPotentialType , class TVoigtSize>
+template <class TPlasticPotentialType , std::size_t TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerYieldSurface
 {
 public:
@@ -59,10 +54,12 @@ public:
     ///@{
 
     /// The type of potential plasticity
-    typedef typename TPlasticPotentialType PlasticPotentialType;
+    typedef TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of DruckerPragerYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(DruckerPragerYieldSurface);
+
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -101,32 +98,33 @@ public:
         const Properties& rMaterialProperties
     )
     {   
-		const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double SinPhi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
-		// Check input variables 
-        double tol = std::numeric_limits<double>::epsilon();
-		if (friction_angle < tol) { friction_angle = 32.0 * Globals::Pi / 180.0; std::cout << "Friction Angle not defined, assumed equal to 32 " << std::endl; }
-		
-		double I1, J2; 
-		CalculateI1Invariant(StressVector, I1);
-		Vector Deviator = ZeroVector(TVoigtSize);
-		CalculateJ2Invariant(StressVector,I1, Deviator, J2);
+        // Check input variables
+        if (friction_angle < tolerance) {
+            friction_angle = 32.0 * Globals::Pi / 180.0;
+            KRATOS_WARNING("DruckerPragerYieldSurface") << "Friction Angle not defined, assumed equal to 32 " << std::endl;
+        }
 
-		if (I1 == 0.0) { rEqStress = 0; }
-		else
-		{
-			const double CFL = -Root3*(3.0 - SinPhi) / (3.0 * SinPhi - 3.0);
-			const double TEN0 = 6.0 * I1*SinPhi / (Root3*(3.0 - SinPhi)) + std::sqrt(J2);
-			rEqStress = std::abs(CFL*TEN0);
-		}
+        double I1, J2;
+        ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
+        Vector Deviator = ZeroVector(TVoigtSize);
+        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector,I1, Deviator, J2);
+
+        if (I1 == 0.0) { rEqStress = 0; }
+        else {
+            const double CFL = -Root3*(3.0 - SinPhi) / (3.0 * SinPhi - 3.0);
+            const double TEN0 = 6.0 * I1*SinPhi / (Root3*(3.0 - SinPhi)) + std::sqrt(J2);
+            rEqStress = std::abs(CFL*TEN0);
+        }
     }
 
     static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
     {
         const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
-        const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        const double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double SinPhi = std::sin(friction_angle);
         
         rThreshold = std::abs(YieldTension*(3.0 + SinPhi) / (3.0*SinPhi - 3.0));
@@ -136,67 +134,18 @@ public:
         const Properties& rMaterialProperties, 
         double& AParameter, 
         const double CharacteristicLength
-    )
+        )
     {
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
         const double E  = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
-        if (rMaterialProperties[SOFTENING_TYPE] == "Exponential")
-        {
-            AParameter = 1.00 / (Gt*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-        }
-        else
-        {
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
+            AParameter = 1.00 / (Gf*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        } else {
             
         }
         
-    }
-
-    static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
-    {
-        rI1 = StressVector[0] + StressVector[1] + StressVector[2];
-    }
-
-    static void CalculateI2Invariant(const Vector& StressVector, double& rI2)
-    {
-        rI2 = (StressVector[0] + StressVector[2])*StressVector[1] + StressVector[0]*StressVector[2] +
-            - StressVector[3]*StressVector[3] - StressVector[4]*StressVector[4] - StressVector[5]*StressVector[5];
-    }
-
-    static void CalculateI3Invariant(const Vector& StressVector, double& rI3)
-    {
-        rI3 = (StressVector[1]*StressVector[2] - StressVector[4]*StressVector[4])*StressVector[0] -
-            StressVector[1]*StressVector[5]*StressVector[5] - StressVector[2]*StressVector[3]*StressVector[3] +
-            2.0*StressVector[3]*StressVector[4]*StressVector[5];
-    }
-
-    static void CalculateJ2Invariant(const Vector& StressVector, const double& I1, Vector& rDeviator, double& rJ2)
-    {
-        if (TVoigtSize == 6)
-        {
-            rDeviator = StressVector;
-            double Pmean = I1 / 3.0;
-
-            rDeviator[0] -= Pmean;
-            rDeviator[1] -= Pmean;
-            rDeviator[2] -= Pmean;
-
-            rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + rDeviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
-                (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
-        }
-        else
-        {
-            // 2d
-        }
-
-    }
-
-    static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
-    {
-        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
-			Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
-			Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
     }
 
     // Computes dG/dS
@@ -209,14 +158,6 @@ public:
     )
     {
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
-    }
-
-    static void CalculateLodeAngle(const double J2, const double J3, double& LodeAngle)
-    {
-		const double sint3 = (-3.0*std::sqrt(3.0)*J3) / (2.0*J2*std::sqrt(J2));
-		if (sint3 < -0.95) sint3 = -1;
-		if (sint3 > 0.95)  sint3 = 1; 
-		LodeAngle = asin(sint3) / 3.0;
     }
 
     /*
@@ -235,14 +176,14 @@ public:
     {
         Vector FirstVector, SecondVector, ThirdVector;
 
-        CalculateFirstVector(FirstVector);
-        CalculateSecondVector(Deviator, J2, SecondVector);
-        CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
+        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
+        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
 
         double c1, c2, c3;
         c3 = 0.0;
 
-        const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE];
+        const double FrictionAngle = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
         const double SinPhi    = std::sin(FrictionAngle);
         const double Root3     = std::sqrt(3.0);
 
@@ -252,53 +193,6 @@ public:
 
         noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }
-
-    static void CalculateFirstVector(Vector& FirstVector)
-    {
-        FirstVector = ZeroVector(6);
-        FirstVector[0] = 1.0;
-        FirstVector[1] = 1.0;
-        FirstVector[2] = 1.0;
-
-    }
-
-    static void CalculateSecondVector(
-        const Vector Deviator, 
-        const double J2, 
-        Vector& SecondVector
-    )
-    {
-        const double twosqrtJ2 = 2.0*std::sqrt(J2);
-        for (int i = 0; i < 6; i++)
-        {
-            SecondVector[i] = Deviator[i] / (twosqrtJ2);
-        }
-
-        SecondVector[3] *= 2.0;
-        SecondVector[4] *= 2.0;
-        SecondVector[5] *= 2.0;
-    }
-
-    static void CalculateThirdVector(
-        const Vector Deviator, 
-        const double J2, 
-        Vector& ThirdVector
-    )
-    {
-        ThirdVector.resize(6);
-        const double J2thirds = J2 / 3.0;
-
-        ThirdVector[0] = Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4] + J2thirds;
-        ThirdVector[1] = Deviator[0]*Deviator[2] - Deviator[5]*Deviator[5] + J2thirds;
-        ThirdVector[2] = Deviator[0]*Deviator[1] - Deviator[3]*Deviator[3] + J2thirds;
-        ThirdVector[3] = 2.0*(Deviator[4]*Deviator[5] - Deviator[3]*Deviator[2]);
-        ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
-        ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
-    }
-
-
-
-
 
     ///@}
     ///@name Access

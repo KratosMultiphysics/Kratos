@@ -13,14 +13,9 @@
 #define  KRATOS_TRESCA_YIELD_SURFACE_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
-#include "utilities/math_utils.h"
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 
 namespace Kratos
 {
@@ -47,10 +42,11 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @tparam TPlasticPotentialType 
+ * @tparam TPlasticPotentialType The plastic potential considered
+ * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TPlasticPotentialType , class TVoigtSize>
+template <class TPlasticPotentialType , std::size_t TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
 {
 public:
@@ -58,7 +54,7 @@ public:
     ///@{
 
     /// The type of potential plasticity
-    typedef typename TPlasticPotentialType PlasticPotentialType;
+    typedef TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of TrescaYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( TrescaYieldSurface );
@@ -104,10 +100,10 @@ public:
         double I1, J2, J3, LodeAngle;
         Vector Deviator = ZeroVector(TVoigtSize);
 
-        CalculateI1Invariant(StressVector, I1);
-        CalculateJ2Invariant(StressVector, I1, Deviator, J2);
-        CalculateJ3Invariant(Deviator, J3);
-        CalculateLodeAngle(J2, J3, LodeAngle);
+        ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
+        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, Deviator, J2);
+        ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
+        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, LodeAngle);
 
         rEqStress = 2.0*std::cos(LodeAngle)*std::sqrt(J2);
     }
@@ -127,60 +123,11 @@ public:
         const double E  = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
-        if (rMaterialProperties[SOFTENING_TYPE] == "Exponential")
-        {
-            AParameter = 1.00 / (Gt*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-        }
-        else
-        {
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
+            AParameter = 1.00 / (Gf*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        } else {
             
         }
-    }
-
-    static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
-    {
-        rI1 = StressVector[0] + StressVector[1] + StressVector[2];
-    }
-
-    static void CalculateI2Invariant(const Vector& StressVector, double& rI2)
-    {
-        rI2 = (StressVector[0] + StressVector[2])*StressVector[1] + StressVector[0]*StressVector[2] +
-            - StressVector[3]*StressVector[3] - StressVector[4]*StressVector[4] - StressVector[5]*StressVector[5];
-    }
-
-    static void CalculateI3Invariant(const Vector& StressVector, double& rI3)
-    {
-        rI3 = (StressVector[1]*StressVector[2] - StressVector[4]*StressVector[4])*StressVector[0] -
-            StressVector[1]*StressVector[5]*StressVector[5] - StressVector[2]*StressVector[3]*StressVector[3] +
-            2.0*StressVector[3]*StressVector[4]*StressVector[5];
-    }
-
-    static void CalculateJ3Invariant(const Vector& Deviator, double& rJ3)
-    {
-        rJ3 = Deviator[0]*(Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4])  +
-			Deviator[3]*(-Deviator[3]*Deviator[2]  + Deviator[5]*Deviator[4])  +
-			Deviator[5]*(Deviator[3]*Deviator[4] - Deviator[5]*Deviator[1]);
-    }
-
-    static void CalculateJ2Invariant(const Vector& StressVector, const double& I1, Vector& rDeviator, double& rJ2)
-    {
-        if (TVoigtSize == 6)
-        {
-            rDeviator = StressVector;
-            const double Pmean = I1 / 3.0;
-
-            rDeviator[0] -= Pmean;
-            rDeviator[1] -= Pmean;
-            rDeviator[2] -= Pmean;
-
-            rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + rDeviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
-                (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
-        }
-        else
-        {
-            // 2d
-        }
-
     }
 
     // Computes dG/dS
@@ -193,14 +140,6 @@ public:
     )
     {
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
-    }
-
-    static void CalculateLodeAngle(const double J2, const double J3, double& LodeAngle)
-    {
-		const double sint3 = (-3.0*std::sqrt(3.0)*J3) / (2.0*J2*std::sqrt(J2));
-		if (sint3 < -0.95) sint3 = -1;
-		if (sint3 > 0.95)  sint3 =  1; 
-		LodeAngle = asin(sint3) / 3.0;
     }
 
     /*
@@ -219,26 +158,23 @@ public:
     {
         Vector FirstVector, SecondVector, ThirdVector;
 
-        CalculateFirstVector(FirstVector);
-        CalculateSecondVector(Deviator, J2, SecondVector);
-        CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
+        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
+        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
 
         double J3, LodeAngle;
-        CalculateJ3Invariant(Deviator, J3);
-        CalculateLodeAngle(J2, J3, LodeAngle);
+        ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
+        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, LodeAngle);
 
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
         double c1, c2, c3;
         c1 = 0.0;
 
-        if (Checker < 29.0)
-        {
+        if (Checker < 29.0) {
             c2 = 2.0*(std::cos(LodeAngle) + std::sin(LodeAngle)*std::tan(3.0*LodeAngle));
             c3 = std::sqrt(3.0)*std::sin(LodeAngle) / (J2*std::cos(3.0*LodeAngle));
-        }
-        else
-        {
+        } else {
             c2 = std::sqrt(3.0);
             c3 = 0.0;
         }
@@ -246,48 +182,6 @@ public:
         noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }
 
-    static void CalculateFirstVector(Vector& FirstVector)
-    {
-        FirstVector = ZeroVector(6);
-        FirstVector[0] = 1.0;
-        FirstVector[1] = 1.0;
-        FirstVector[2] = 1.0;
-
-    }
-
-    static void CalculateSecondVector(
-        const Vector Deviator, 
-        const double J2, 
-        Vector& SecondVector
-    )
-    {
-        const double twosqrtJ2 = 2.0*std::sqrt(J2);
-        for (int i = 0; i < 6; i++)
-        {
-            SecondVector[i] = Deviator[i] / (twosqrtJ2);
-        }
-
-        SecondVector[3] *= 2.0;
-        SecondVector[4] *= 2.0;
-        SecondVector[5] *= 2.0;
-    }
-
-    static void CalculateThirdVector(
-        const Vector Deviator, 
-        const double J2, 
-        Vector& ThirdVector
-    )
-    {
-        ThirdVector.resize(6);
-        const double J2thirds = J2 / 3.0;
-
-        ThirdVector[0] = Deviator[1]*Deviator[2] - Deviator[4]*Deviator[4] + J2thirds;
-        ThirdVector[1] = Deviator[0]*Deviator[2] - Deviator[5]*Deviator[5] + J2thirds;
-        ThirdVector[2] = Deviator[0]*Deviator[1] - Deviator[3]*Deviator[3] + J2thirds;
-        ThirdVector[3] = 2.0*(Deviator[4]*Deviator[5] - Deviator[3]*Deviator[2]);
-        ThirdVector[4] = 2.0*(Deviator[3]*Deviator[4] - Deviator[1]*Deviator[5]);
-        ThirdVector[5] = 2.0*(Deviator[5]*Deviator[3] - Deviator[0]*Deviator[4]);
-    }
     ///@}
     ///@name Access
     ///@{

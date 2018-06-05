@@ -21,6 +21,8 @@
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
+#include "custom_utilities/constitutive_law_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -47,10 +49,11 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief
  * @details
- * @tparam TPlasticPotentialType 
+ * @tparam TPlasticPotentialType The plastic potential considered
+ * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TPlasticPotentialType , class TVoigtSize>
+template <class TPlasticPotentialType , std::size_t TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 {
 public:
@@ -58,10 +61,14 @@ public:
     ///@{
 
     /// The type of potential plasticity
-    typedef typename TPlasticPotentialType PlasticPotentialType;
+    typedef TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION( GenericYieldSurface );
+
+    ///@}
+    ///@name  Enum's
+    ///@{
 
     ///@}
     ///@name Life Cycle
@@ -99,37 +106,6 @@ public:
         // Implement for each yield surf
     }
 
-    static void CalculateI1Invariant(const Vector& StressVector, double& rI1)
-    {
-        rI1 = StressVector[0] + StressVector[1] + StressVector[2];
-    }
-
-    static void CalculateI2Invariant(const Vector& StressVector, double& rI2)
-    {
-        rI2 = (StressVector[0] + StressVector[2])*StressVector[1] + StressVector[0]*StressVector[2] +
-            - StressVector[3]*StressVector[3] - StressVector[4]*StressVector[4] - StressVector[5]*StressVector[5];
-    }
-
-    static void CalculateI3Invariant(const Vector& StressVector, double& rI3)
-    {
-        rI3 = (StressVector[1]*StressVector[2] - StressVector[4]*StressVector[4])*StressVector[0] -
-            StressVector[1]*StressVector[5]*StressVector[5] - StressVector[2]*StressVector[3]*StressVector[3] +
-            2.0*StressVector[3]*StressVector[4]*StressVector[5];
-    }
-
-    static void CalculateJ2Invariant(const Vector& StressVector, const double& I1, Vector& rDeviator, double& rJ2)
-    {
-        rDeviator = StressVector;
-        double Pmean = I1 / 3.0;
-
-        rDeviator[0] -= Pmean;
-        rDeviator[1] -= Pmean;
-        rDeviator[2] -= Pmean;
-
-        rJ2 = 0.5*(rDeviator[0]*rDeviator[0] + rDeviator[1]*rDeviator[1] + rDeviator[2]*rDeviator[2]) +
-            (rDeviator[3]*rDeviator[3] + rDeviator[4]*rDeviator[4] + rDeviator[5]*rDeviator[5]);
-    }
-
     // Computes dG/dS
     static void CalculatePlasticPotentialDerivative(
         const Vector& StressVector,
@@ -146,7 +122,7 @@ public:
         const Properties& rMaterialProperties, 
         double& AParameter, 
         const double CharacteristicLength
-    )
+        )
     {
     }
 
