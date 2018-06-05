@@ -1,13 +1,13 @@
 //
 //   Project Name:        KratosFluidDynamicsApplication $
 //   Last modified by:    $Author:               AFranci $
-//   Date:                $Date:            January 2016 $
+//   Date:                $Date:              April 2018 $
 //   Revision:            $Revision:                 0.0 $
 //
 //
 
-#if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_ELEMENT_H_INCLUDED )
-#define  KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#define  KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
 #include <string>
@@ -60,7 +60,7 @@ namespace Kratos
    */
 
   template< unsigned int TDim >
-    class TwoStepUpdatedLagrangianVPElement : public Element
+    class TwoStepUpdatedLagrangianElement : public Element
     {
   
     protected:
@@ -103,8 +103,8 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of TwoStepUpdatedLagrangianVPElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPElement);
+      /// Pointer definition of TwoStepUpdatedLagrangianElement
+      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianElement);
 
       /// Node type (default is: Node<3>)
       typedef Node <3> NodeType;
@@ -156,7 +156,7 @@ namespace Kratos
       /**
        * @param NewId Index number of the new element (optional)
        */
-    TwoStepUpdatedLagrangianVPElement(IndexType NewId = 0) :
+    TwoStepUpdatedLagrangianElement(IndexType NewId = 0) :
       Element(NewId)
       {}
 
@@ -165,7 +165,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param ThisNodes An array containing the nodes of the new element
        */
-    TwoStepUpdatedLagrangianVPElement(IndexType NewId, const NodesArrayType& ThisNodes) :
+    TwoStepUpdatedLagrangianElement(IndexType NewId, const NodesArrayType& ThisNodes) :
       Element(NewId, ThisNodes)
         {}
 
@@ -174,7 +174,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
        */
-    TwoStepUpdatedLagrangianVPElement(IndexType NewId, GeometryType::Pointer pGeometry) :
+    TwoStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry) :
       Element(NewId, pGeometry)
         {}
 
@@ -184,7 +184,7 @@ namespace Kratos
        * @param pGeometry Pointer to a geometry object
        * @param pProperties Pointer to the element's properties
        */
-    TwoStepUpdatedLagrangianVPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+    TwoStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
       Element(NewId, pGeometry, pProperties)
         {}
 
@@ -192,10 +192,10 @@ namespace Kratos
 
       /// copy constructor
 
-      TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement const& rOther);
+      TwoStepUpdatedLagrangianElement(TwoStepUpdatedLagrangianElement const& rOther);
       
       /// Destructor.
-      virtual ~TwoStepUpdatedLagrangianVPElement()
+      virtual ~TwoStepUpdatedLagrangianElement()
         {}
 
 
@@ -210,51 +210,49 @@ namespace Kratos
 
       /// Create a new element of this type
       /**
-       * Returns a pointer to a new TwoStepUpdatedLagrangianVPElement element, created using given input
+       * Returns a pointer to a new TwoStepUpdatedLagrangianElement element, created using given input
        * @param NewId: the ID of the new element
        * @param ThisNodes: the nodes of the new element
        * @param pProperties: the properties assigned to the new element
        * @return a Pointer to the new element
        */
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties) const  override
+			      PropertiesType::Pointer pProperties) const override
         {
-	  return Element::Pointer(new TwoStepUpdatedLagrangianVPElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+	  return Element::Pointer(new TwoStepUpdatedLagrangianElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         }
 
 
-      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const  override;
+      Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override ;
 
-      void Initialize() override {};
+      void Initialize() override{};
 
       /// Initializes the element and all geometric information required for the problem.
       void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override{};
 
 
-      void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override {};
+      void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override{};
 
       /// Calculate the element's local contribution to the system for the current step.
       void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-					VectorType& rRightHandSideVector,
-					ProcessInfo& rCurrentProcessInfo) override;
+				VectorType& rRightHandSideVector,
+				ProcessInfo& rCurrentProcessInfo) override{};
 
 
       void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-					 ProcessInfo& rCurrentProcessInfo) override 
+				 ProcessInfo& rCurrentProcessInfo) override
       {
 	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPElement::CalculateLeftHandSide not implemented","");
+	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
       void CalculateRightHandSide(VectorType& rRightHandSideVector,
-					  ProcessInfo& rCurrentProcessInfo) override 
-      {
-	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPElement::CalculateRightHandSide not implemented","");
-	KRATOS_CATCH("");
-      }
+				  ProcessInfo& rCurrentProcessInfo) override{};
 
+      
+      /* virtual void CalculateRightHandSideMomentum(VectorType& rRightHandSideVector, */
+      /* 						  ProcessInfo& rCurrentProcessInfo){}; */
  
       // The following methods have different implementations depending on TDim
       /// Provides the global indices for each one of this element's local rows
@@ -265,7 +263,7 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info object (unused)
        */
       void EquationIdVector(EquationIdVectorType& rResult,
-				    ProcessInfo& rCurrentProcessInfo) override ;
+			    ProcessInfo& rCurrentProcessInfo) override;
 
       /// Returns a list of the element's Dofs
       /**
@@ -273,21 +271,26 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info instance
        */
       void GetDofList(DofsVectorType& rElementalDofList,
-			      ProcessInfo& rCurrentProcessInfo) override ;
+		      ProcessInfo& rCurrentProcessInfo) override;
 
     
       GeometryData::IntegrationMethod GetIntegrationMethod() const override;
     
       virtual void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo){};
 
-      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables){
-	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"InitializeElementalVariables","");
-	KRATOS_CATCH("");
-      };
+      virtual void InitializeElementalVariables(ElementalVariables & rElementalVariables){};
 
       void CalculateDeltaPosition (Matrix & rDeltaPosition);
 
+      void AddExplicitContribution(const VectorType& rRHSVector, 
+				   const Variable<VectorType>& rRHSVariable, 
+				   Variable<array_1d<double,3> >& rDestinationVariable, 
+				   const ProcessInfo& rCurrentProcessInfo) override{};
+
+      void AddExplicitContribution(const VectorType& rRHSVector, 
+				   const Variable<VectorType>& rRHSVariable, 
+				   Variable<double > & rDestinationVariable, 
+				   const ProcessInfo& rCurrentProcessInfo) override {};
       ///@}
       ///@name Access
       ///@{
@@ -305,7 +308,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-      int Check(const ProcessInfo& rCurrentProcessInfo) override ;
+      int Check(const ProcessInfo& rCurrentProcessInfo) override {return 0;};
 
       ///@}
       ///@name Inquiry
@@ -317,18 +320,15 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      std::string Info() const override 
+      std::string Info() const override
 	{
 	  std::stringstream buffer;
-	  buffer << "TwoStepUpdatedLagrangianVPElement #" << Id();
+	  buffer << "TwoStepUpdatedLagrangianElement #" << Id();
 	  return buffer.str();
 	}
 
       /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream) const override 
-      {
-	rOStream << "TwoStepUpdatedLagrangianVPElement" << TDim << "D";
-      }
+      void PrintInfo(std::ostream& rOStream) const  override{}
 
       //        /// Print object's data.
       //        virtual void PrintData(std::ostream& rOStream) const;
@@ -370,15 +370,20 @@ namespace Kratos
 
       void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 					std::vector<double>& rValues,
-					const ProcessInfo& rCurrentProcessInfo ) override;
+					const ProcessInfo& rCurrentProcessInfo ) override{};
       
-      void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
-					   VectorType& rRightHandSideVector,
-					   ProcessInfo& rCurrentProcessInfo);
+      virtual void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
+						   VectorType& rRightHandSideVector,
+						   ProcessInfo& rCurrentProcessInfo){};
 
       virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
 							 ProcessInfo& rCurrentProcessInfo){};
+      
+      virtual void CalculateExplicitContinuityEquation(MatrixType& rLeftHandSideMatrix,
+						       VectorType& rRightHandSideVector,
+						       ProcessInfo& rCurrentProcessInfo){};
+
 
       virtual void ComputeMaterialParameters (double& Density,
 					      double& DeviatoricCoeff,
@@ -392,9 +397,15 @@ namespace Kratos
 							 ProcessInfo& rCurrentProcessInfo,
 							 ElementalVariables& rElementalVariables){};
 
-      virtual double GetThetaMomentum (){return 1.0;};
+      virtual double GetThetaMomentum (){
+	std::cout<<"I SHOULD NOT ENTER HERE!"<<std::endl;
+	return 0.0;
+      };
 
-      virtual double GetThetaContinuity (){return 1.0;};
+      virtual double GetThetaContinuity (){
+	std::cout<<"I SHOULD NOT ENTER HERE!"<<std::endl;
+	return 0.0;
+      };
       
       void VelocityEquationIdVector(EquationIdVectorType& rResult,
 				    ProcessInfo& rCurrentProcessInfo);
@@ -415,9 +426,11 @@ namespace Kratos
       void CalcMeanPressure(double& meanPressure,
 			    const int Step);
       
-
       void GetPressureValues(Vector& rValues,
 			     const int Step = 0);
+      
+      void GetDensityValues(Vector& rValues,
+			    const int Step = 0);
 
       void GetVelocityValues(Vector& rValues,
 			     const int Step = 0);
@@ -442,6 +455,7 @@ namespace Kratos
 				 Matrix& rNContainer,
 				 Vector& rGaussWeights);
 
+      void CalculateGeometryData(Vector& rGaussWeights);
       double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
 
@@ -464,6 +478,16 @@ namespace Kratos
        * @param rN Elemental shape functions.
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
+      void CalculateMassMatrix(Matrix& rMassMatrix,
+			       ProcessInfo& rCurrentProcessInfo) override{};
+      
+      /* virtual void CalculateMassMatrixMomentum(Matrix& rMassMatrix, */
+      /* 				       ProcessInfo& rCurrentProcessInfo){}; */
+      
+      /* void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix, */
+      /* 				    VectorType& rRightHandSideVector, */
+      /* 				    Flags& rCalculationFlags); */
+
       void ComputeMassMatrix(Matrix& rMassMatrix,
 			     const ShapeFunctionsType& rN,
 			     const double Weight,
@@ -484,57 +508,19 @@ namespace Kratos
 			      ElementalVariables& rElementalVariables,
 			      const double Weight);
 
-
-      virtual void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables,
-						 double& MeanValue,
-						 const ShapeFunctionDerivativesType& rShapeDeriv,
-						 const double secondLame,
-						 double& bulkModulus,
-						 const double Weight,
-						 double& MeanValueMass,
-						 const double TimeStep){};
-
-      virtual void ComputeBulkReductionCoefficient(MatrixType MassMatrix,
-						   MatrixType StiffnessMatrix,
-						   double& meanValueStiff,
-						   double& bulkCoefficient,
-						   double timeStep){};
-
-      void ComputeCompleteTangentTerm(ElementalVariables& rElementalVariables,
-				      MatrixType& rDampingMatrix,
-				      const ShapeFunctionDerivativesType& rShapeDeriv,
-				      const double secondLame,
-				      const double bulkModulus,
-				      const double theta,
-				      const double Weight);
-	
-      virtual void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
-						   const double Weight){};
+      void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
+				 const double Weight);
       
-      virtual void ComputeBulkMatrixForPressureAccLump(MatrixType& BulkAccMatrix,
-						   const double Weight){};
-
-      virtual void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix,
-						   const ShapeFunctionsType& rN,
-						   const double Weight){};
+      void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix,
+				       const double Weight);
       
-      virtual void ComputeBulkMatrixForPressureAcc(MatrixType& BulkAccMatrix,
-						   const ShapeFunctionsType& rN,
-						   const double Weight){};
-
-      virtual void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix,
-					 const ShapeFunctionsType& rN,
-					 const double Weight){};
-
-      virtual void ComputeBoundRHSVector(VectorType& BoundRHSVector,
-					 const ShapeFunctionsType& rN,
-					 const double TimeStep,
-					 const double BoundRHSCoeffAcc,
-					 const double BoundRHSCoeffDev){};
-
-      virtual void ComputeStabLaplacianMatrix(MatrixType& StabLaplacianMatrix,
-					      const ShapeFunctionDerivativesType& rShapeDeriv,
-					      const double Weight){};
+      void ComputeBulkMatrix(MatrixType& BulkMatrix,
+			     const ShapeFunctionsType& rN,
+			     const double Weight);
+       
+      virtual void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
+					const double Weight){};
+       
       
       bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
 				const ProcessInfo& rCurrentProcessInfo,
@@ -608,29 +594,6 @@ namespace Kratos
 						    double TimeStep,
 						    unsigned int g){};
 
-      virtual void CalculateTauFIC(double& TauOne,
-				   double ElemSize,
-				   const double Density,
-				   const double Viscosity,
-				   const ProcessInfo& rCurrentProcessInfo){};
-
-      virtual void AddStabilizationMatrixLHS(MatrixType& rLeftHandSideMatrix,
-					     Matrix& BulkAccMatrix,
-					     const ShapeFunctionsType& rN,
-					     const double Weight){};
-
-      virtual void AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
-						 const double Tau,
-						 const double Weight,
-						 const ShapeFunctionDerivativesType& rDN_DX,
-						 const SizeType i){};
-
-      virtual void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
-						 const double Tau,
-						 const double Density,
-						 const double Weight,
-						 const ShapeFunctionDerivativesType& rDN_DX,
-						 const SizeType i){};
 
       /// Write the value of a variable at a point inside the element to a double
       /**
@@ -663,14 +626,17 @@ namespace Kratos
 	{
 	  GeometryType& rGeom = this->GetGeometry();
 	  const SizeType NumNodes = rGeom.PointsNumber();
-
+	  bool found=false;
 	  for(SizeType i = 0; i < NumNodes; i++)
 	    {
 	      if(rGeom[i].IsNot(RIGID)){
 		rResult = rGeom[i].FastGetSolutionStepValue(Var);
+		found=true;
 		break;
 	      }
 	    }
+	  if(found==false)
+	    std::cout<<"ATTENTION! NO PROPERTIES HAVE BEEN FOUNDED FOR THIS ELEMENT! X,Y "<<rGeom[1].X()<<","<<rGeom[1].Y()<<std::endl;
 	}
 
 
@@ -757,7 +723,7 @@ namespace Kratos
 	    with associated value of 0.0). This is catastrophic if the variable referenced
 	    goes out of scope.
 	  */
-	  const TwoStepUpdatedLagrangianVPElement<TDim>* const_this = static_cast<const TwoStepUpdatedLagrangianVPElement<TDim>*> (this);
+	  const TwoStepUpdatedLagrangianElement<TDim>* const_this = static_cast<const TwoStepUpdatedLagrangianElement<TDim>*> (this);
 	  const TValueType& Val = const_this->GetValue(rVariable);
 
 	  for (unsigned int i = 0; i < NumValues; i++){
@@ -830,14 +796,14 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      TwoStepUpdatedLagrangianVPElement & operator=(TwoStepUpdatedLagrangianVPElement const& rOther);
+      TwoStepUpdatedLagrangianElement & operator=(TwoStepUpdatedLagrangianElement const& rOther);
 
       /* /// Copy constructor. */
-      /* TwoStepUpdatedLagrangianVPElement(TwoStepUpdatedLagrangianVPElement const& rOther); */
+      /* TwoStepUpdatedLagrangianElement(TwoStepUpdatedLagrangianElement const& rOther); */
 
       ///@}
 
-    }; // Class TwoStepUpdatedLagrangianVPElement
+    }; // Class TwoStepUpdatedLagrangianElement
 
   ///@}
 
@@ -853,7 +819,7 @@ namespace Kratos
   /// input stream function
   template< unsigned int TDim >
     inline std::istream& operator >>(std::istream& rIStream,
-                                     TwoStepUpdatedLagrangianVPElement<TDim>& rThis)
+                                     TwoStepUpdatedLagrangianElement<TDim>& rThis)
     {
       return rIStream;
     }
@@ -861,7 +827,7 @@ namespace Kratos
   /// output stream function
   template< unsigned int TDim >
     inline std::ostream& operator <<(std::ostream& rOStream,
-                                     const TwoStepUpdatedLagrangianVPElement<TDim>& rThis)
+                                     const TwoStepUpdatedLagrangianElement<TDim>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -872,4 +838,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_ELEMENT  defined
+#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT  defined
