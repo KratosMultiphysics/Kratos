@@ -11,7 +11,7 @@ import os
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
-import KratosMultiphysics.PfemApplication
+import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemFluidDynamicsApplication     
 import KratosMultiphysics.SolidMechanicsApplication
 

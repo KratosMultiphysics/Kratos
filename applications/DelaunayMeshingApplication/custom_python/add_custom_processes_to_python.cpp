@@ -74,13 +74,13 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //***************NEIGHBOURS**************//
       
-  class_<NodalNeighboursSearchProcess, Process>
+  class_<NodalNeighboursSearchProcess, NodalNeighboursSearchProcess::Pointer, Process>
       (m,"NodalNeighboursSearch")
       .def(init<ModelPart&, int, int, int>())
       .def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
       ;
       
-  class_<ElementalNeighboursSearchProcess, Process>
+  class_<ElementalNeighboursSearchProcess, ElementalNeighboursSearchProcess::Pointer, Process>
       (m,"ElementalNeighboursSearch")
       .def(init<ModelPart&, int, int, int>())
       .def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
@@ -89,7 +89,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //***************BOUNDARY**************//
 
-  class_<BuildModelPartBoundaryProcess, Process>
+  class_<BuildModelPartBoundaryProcess, BuildModelPartBoundaryProcess::Pointer, Process>
       (m,"BuildModelPartBoundary")
       .def(init<ModelPart&, std::string, int>())
       .def("SearchConditionMasters", &BuildModelPartBoundaryProcess::SearchConditionMasters)
@@ -98,61 +98,61 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //**********MESH MODELLER PROCESS*********//
 
-  class_<ModelStartEndMeshingProcess, Process>
+  class_<ModelStartEndMeshingProcess, ModelStartEndMeshingProcess::Pointer, Process>
       (m,"ModelMeshing")
       .def(init<ModelPart&, Flags, int>())
       ;
 
 
-  class_<RefineMeshElementsOnThresholdProcess, Process>
+  class_<RefineMeshElementsOnThresholdProcess, RefineMeshElementsOnThresholdProcess::Pointer, Process>
       (m,"SetElementNodesToRefineOnThreshold")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RefineMeshElementsInEdgesProcess, Process>
+  class_<RefineMeshElementsInEdgesProcess, RefineMeshElementsInEdgesProcess::Pointer, Process>
       (m,"SetElementEdgesToRefine")
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
       ;
       
-  class_<RefineMeshElementsOnSizeProcess, Process>
+  class_<RefineMeshElementsOnSizeProcess, RefineMeshElementsOnSizeProcess::Pointer, Process>
       (m,"SetElementsToRefineOnSize")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RefineMeshBoundaryProcess, Process>
+  class_<RefineMeshBoundaryProcess, RefineMeshBoundaryProcess::Pointer, Process>
       (m,"RefineMeshBoundary")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RemoveMeshNodesProcess, Process>
+  class_<RemoveMeshNodesProcess, RemoveMeshNodesProcess::Pointer, Process>
       (m,"RemoveMeshNodes")
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
       ;
 
 
-  class_<GenerateNewNodesProcess, Process>
+  class_<GenerateNewNodesProcess, GenerateNewNodesProcess::Pointer, Process>
       (m,"GenerateNewNodes")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;
 
-  class_<SelectMeshElementsProcess, Process>
+  class_<SelectMeshElementsProcess, SelectMeshElementsProcess::Pointer, Process>
       (m,"SelectMeshElements")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;
 
-  class_<BuildMeshElementsProcess, Process>
+  class_<BuildMeshElementsProcess, BuildMeshElementsProcess::Pointer, Process>
       (m,"BuildMeshElements")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;
 
 
-  class_<BuildMeshBoundaryProcess, BuildModelPartBoundaryProcess>
+  class_<BuildMeshBoundaryProcess, BuildMeshBoundaryProcess::Pointer, BuildModelPartBoundaryProcess>
       (m,"BuildMeshBoundary")
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
       ;
 
 
-  class_<PrintOutputMeshProcess, Process>
+  class_<PrintOutputMeshProcess, PrintOutputMeshProcess::Pointer, Process>
       (m,"PrintOutputMeshProcess")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, std::string, int>())
       ;
@@ -160,7 +160,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //********MODEL VOLUME CALCULATION*********//
 
-  class_<ModelVolumeCalculationProcess, Process>
+  class_<ModelVolumeCalculationProcess, ModelVolumeCalculationProcess::Pointer, Process>
       (m,"ModelVolumeCalculation")
       .def(init<ModelPart&, bool, int>())
       .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
@@ -169,7 +169,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       
   //********MODEL VOLUME CALCULATION*********//
 
-  class_<ConstantRotationProcess, Process>
+  class_<ConstantRotationProcess, ConstantRotationProcess::Pointer, Process>
       (m,"ConstantRotationProcess")
       .def(init<ModelPart&, const double, const double, const double, const double, const double, const double>())	 
       .def(init< ModelPart&, Parameters& >())

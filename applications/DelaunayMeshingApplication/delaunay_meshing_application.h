@@ -75,65 +75,55 @@ namespace Kratos
 
     ///@name Type Definitions
     ///@{
-		
 
     /// Pointer definition of KratosDelaunayMeshingApplication    
     KRATOS_CLASS_POINTER_DEFINITION(KratosDelaunayMeshingApplication);
-
 
     ///@}
     ///@name Life Cycle 
     ///@{ 
 
     /// Default constructor.
-    KratosDelaunayMeshingApplication    ();
+    KratosDelaunayMeshingApplication();
 
     /// Destructor.
-    virtual ~KratosDelaunayMeshingApplication    (){}
+    virtual ~KratosDelaunayMeshingApplication(){}
 
 
     ///@}
     ///@name Operators 
     ///@{
-
-
     ///@}
     ///@name Operations
     ///@{
 
-    virtual void Register();
-
-
+    void Register() override;
 
     ///@}
     ///@name Access
     ///@{ 
-
-
     ///@}
     ///@name Inquiry
     ///@{
-
-
     ///@}      
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
       {
-	return "KratosDelaunayMeshingApplication    ";
+	return "KratosDelaunayMeshingApplication";
       }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << Info();
       PrintData(rOStream);
     }
 
-    ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
     {
       KRATOS_WATCH( "in KratosDelaunayMeshingApplication" ) 
       KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
@@ -155,48 +145,32 @@ namespace Kratos
   protected:
     ///@name Protected static Member Variables 
     ///@{ 
-
-
     ///@} 
     ///@name Protected member Variables 
     ///@{ 
-
-
     ///@} 
     ///@name Protected Operators
     ///@{ 
-
-
     ///@} 
     ///@name Protected Operations
     ///@{ 
-
-
     ///@} 
     ///@name Protected  Access 
     ///@{ 
-
-
     ///@}      
     ///@name Protected Inquiry 
     ///@{ 
-
-
     ///@}    
     ///@name Protected LifeCycle 
     ///@{ 
-
-
     ///@}
 
   private:
     ///@name Static Member Variables 
     ///@{ 
-
     ///@} 
     ///@name Member Variables 
     ///@{ 
-
 
     const CompositeCondition mCompositeCondition2D2N;
     const CompositeCondition mCompositeCondition3D3N;
@@ -204,23 +178,15 @@ namespace Kratos
     ///@} 
     ///@name Private Operators
     ///@{ 
-
-
     ///@} 
     ///@name Private Operations
     ///@{ 
-
-
     ///@} 
     ///@name Private  Access 
     ///@{ 
-
-
     ///@}    
     ///@name Private Inquiry 
     ///@{ 
-
-
     ///@}    
     ///@name Un accessible methods 
     ///@{ 
@@ -231,7 +197,6 @@ namespace Kratos
     /// Copy constructor.
     KratosDelaunayMeshingApplication(KratosDelaunayMeshingApplication const& rOther);
 
-
     ///@}    
 
   }; // Class KratosDelaunayMeshingApplication     
@@ -241,12 +206,9 @@ namespace Kratos
 
   ///@name Type Definitions       
   ///@{ 
-
-
   ///@} 
   ///@name Input and output 
   ///@{ 
-
   ///@} 
 
 

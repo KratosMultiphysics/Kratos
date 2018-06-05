@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemApplication as KratosPfem
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
 # Check that KratosMultiphysics was imported in the main script
@@ -23,16 +23,16 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
         # set execution flags: to set the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
 
-        execution_options.Set(KratosPfem.ModelerUtilities.INITIALIZE_MESHER_INPUT, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.FINALIZE_MESHER_INPUT, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.INITIALIZE_MESHER_INPUT, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.FINALIZE_MESHER_INPUT, False)
 
-        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, False)
 
-        execution_options.Set(KratosPfem.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.KEEP_ISOLATED_NODES, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
         
@@ -85,16 +85,16 @@ class FluidMeshModeler(mesh_modeler.MeshModeler):
         execution_options = KratosMultiphysics.Flags()
         
         # all flags
-        execution_options.Set(KratosPfem.ModelerUtilities.INITIALIZE_MESHER_INPUT, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.FINALIZE_MESHER_INPUT, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.INITIALIZE_MESHER_INPUT, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.FINALIZE_MESHER_INPUT, False)
 
-        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.TRANSFER_KRATOS_NODES_TO_MESHER, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.TRANSFER_KRATOS_ELEMENTS_TO_MESHER, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.TRANSFER_KRATOS_NEIGHBOURS_TO_MESHER, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, False)
 
-        execution_options.Set(KratosPfem.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, False)
-        execution_options.Set(KratosPfem.ModelerUtilities.KEEP_ISOLATED_NODES, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, False)
+        execution_options.Set(KratosDelaunay.ModelerUtilities.KEEP_ISOLATED_NODES, False)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
 
