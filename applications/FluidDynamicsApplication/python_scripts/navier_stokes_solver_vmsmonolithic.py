@@ -34,7 +34,6 @@ class StabilizedFormulation(object):
             raise RuntimeError("Argument \'formulation\' not found in stabilization settings.")
 
     def SetProcessInfo(self,model_part):
-        print(self.process_data)
         for variable,value in self.process_data.items():
             model_part.ProcessInfo[variable] = value
 
