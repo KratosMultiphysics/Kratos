@@ -30,11 +30,28 @@
 
 namespace Kratos
 {
-typedef array_1d<double, 3> Vector3;
-typedef MpcData::Pointer MpcDataPointerType;
-typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>> MpcDataSharedPointerVectorType;
-typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
+///@name Kratos Globals
+///@{
 
+///@}
+///@name Type Definitions
+///@{
+
+    typedef array_1d<double, 3> Vector3;
+    typedef MpcData::Pointer MpcDataPointerType;
+    typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>> MpcDataSharedPointerVectorType;
+    typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
+    typedef std::size_t IndexType;
+
+///@}
+///@name  Enum's
+///@{
+
+    enum class SofteningType {Linear = 0, Exponential = 1};
+
+///@}
+///@name  Functions
+///@{
 
     // Generalized eigenvalue problem
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, int, BUILD_LEVEL )
@@ -189,10 +206,12 @@ typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
     KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, YIELD_STRESS_TENSION)
     KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, YIELD_STRESS_COMPRESSION)
     KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, DILATANCY_ANGLE)
-    KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, SOFTENING_TYPE)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, IndexType, SOFTENING_TYPE)
     KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, HARDENING_CURVE)
     KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, VISCOUS_PARAMETER)
     KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, DELAY_TIME)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, MAXIMUM_STRESS)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, MAXIMUM_STRESS_POSITION)
 }
 
 #endif /* KRATOS_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */
