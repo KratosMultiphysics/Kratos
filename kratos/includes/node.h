@@ -625,7 +625,17 @@ public:
         return mSolutionStepsNodalData;
     }
 
+    const VariablesListDataValueContainer& SolutionStepData() const
+    {
+        return mSolutionStepsNodalData;
+    }
+
     DataValueContainer& Data()
+    {
+        return mData;
+    }
+
+    const DataValueContainer& Data() const
     {
         return mData;
     }
@@ -851,7 +861,7 @@ public:
         }
     }
 
-    IndexType GetBufferSize()
+    IndexType GetBufferSize() const
     {
         return mSolutionStepsNodalData.QueueSize();
     }
@@ -919,6 +929,11 @@ public:
         return mSolutionStepsNodalData.pGetVariablesList();
     }
 
+    const VariablesList * pGetVariablesList() const
+    {
+        return mSolutionStepsNodalData.pGetVariablesList();
+    }
+
 
     /// TODO: remove this function when removing data_file_io object.
 //        IndexType& DepricatedIdAccess()
@@ -932,9 +947,9 @@ public:
 
     //advanced functions by Riccardo
     template<class TVariableType>
-    inline unsigned int GetDofPosition(TVariableType const& rDofVariable)
+    inline unsigned int GetDofPosition(TVariableType const& rDofVariable) const
     {
-        typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
+        typename DofsContainerType::const_iterator it=mDofs.find(rDofVariable.Key());
         return it - mDofs.begin();
     }
 
