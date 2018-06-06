@@ -385,6 +385,11 @@ public:
         return GetMesh(ThisIndex).GetNode(NodeId);
     }
 
+    const NodeType& GetNode(IndexType NodeId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetNode(NodeId);
+    }
+
     /** Remove the node with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveNode(IndexType NodeId, IndexType ThisIndex = 0);
@@ -447,6 +452,11 @@ public:
     }
 
     NodesContainerType& Nodes(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Nodes();
+    }
+
+    const NodesContainerType& Nodes(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Nodes();
     }
@@ -785,6 +795,11 @@ public:
         return GetMesh(ThisIndex).GetElement(ElementId);
     }
 
+    const ElementType& GetElement(IndexType ElementId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetElement(ElementId);
+    }
+
     /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveElement(IndexType ElementId, IndexType ThisIndex = 0);
@@ -844,6 +859,11 @@ public:
     }
 
     ElementsContainerType& Elements(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Elements();
+    }
+
+    const ElementsContainerType& Elements(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Elements();
     }
@@ -953,6 +973,11 @@ public:
         return GetMesh(ThisIndex).GetCondition(ConditionId);
     }
 
+    const ConditionType& GetCondition(IndexType ConditionId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetCondition(ConditionId);
+    }
+
     /**  Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveCondition(IndexType ConditionId, IndexType ThisIndex = 0);
@@ -1012,6 +1037,11 @@ public:
     }
 
     ConditionsContainerType& Conditions(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Conditions();
+    }
+
+    const ConditionsContainerType& Conditions(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Conditions();
     }
@@ -1233,7 +1263,7 @@ public:
 
     void SetBufferSize(IndexType NewBufferSize);
 
-    IndexType GetBufferSize()
+    IndexType GetBufferSize() const
     {
         return mBufferSize;
     }
