@@ -61,6 +61,14 @@ namespace Kratos
         KRATOS_INFO("Read materials") << "Finished" << std::endl;
     }
 
+    std::string CleanVariableName(std::string);
+    std::string CleanVariableName(std::string line){
+        std::stringstream ss(line);
+        std::string variable_name;
+        while (std::getline(ss, variable_name, '.')){}
+        return variable_name;
+    }
+
     void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     {
         // Get the properties for the specified model part.
@@ -69,6 +77,7 @@ namespace Kratos
         IndexType mesh_id = 0;
         Properties::Pointer prop = model_part.pGetProperties(property_id, mesh_id);
 
+        /*
         //TODO(marcelo): Implement the "keys()" part? Not sure if this check is necessary
         //if (data["Material"]["Variables"].end() - data["Material"]["Variables"].begin())
         //    KRATOS_INFO("::[Reading materials process DEBUG]::")
@@ -80,6 +89,7 @@ namespace Kratos
         if (prop->HasTables())
             KRATOS_INFO("Read materials")
                 << "Property " << property_id << " already has tables." << std::endl;
+        */
 
         // Assign the properties to the model part's elements and conditions.
         for (auto elem = model_part.ElementsBegin(); elem != model_part.ElementsEnd(); elem++)
@@ -89,63 +99,79 @@ namespace Kratos
             cond->SetProperties(prop);
 
         //Set the CONSTITUTIVE_LAW for the current properties.
-        std::string constitutive_law_name = data["Material"]["constitutive_law"]["name"].GetString();
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
-        prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+        if (data["Material"].Has("constitutive_law")) {
+            std::string constitutive_law_name = data["Material"]["constitutive_law"]["name"].GetString();
+
+            // Remove application info from consitutive law name.
+            // Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
+            constitutive_law_name = CleanVariableName(constitutive_law_name);
+
+            auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
+            prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+        }
+        else {
+            KRATOS_INFO("Read materials") << "Not consitutive law defined for material ID: "
+                                          << property_id << std::endl;
+        }
 
         // Add / override the values of material parameters in the properties
         auto variables = data["Material"]["Variables"];
         for(auto iter = variables.begin(); iter != variables.end(); iter++)
         {
             auto value = variables.GetValue(iter.name());
+
+            // Remove application info from variable name.
+            // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
+            std::string variable_name = CleanVariableName(iter.name());
+
             if (value.IsDouble()){
-                auto variable = KratosComponents<Variable<double>>().Get(iter.name());
+                auto variable = KratosComponents<Variable<double>>().Get(variable_name);
                 prop->SetValue(variable, value.GetDouble());
             }
             else if (value.IsInt()){
-                auto variable = KratosComponents<Variable<int>>().Get(iter.name());
+                auto variable = KratosComponents<Variable<int>>().Get(variable_name);
                 prop->SetValue(variable, value.GetInt());
             }
             else if (value.IsBool()){
-                auto variable = KratosComponents<Variable<bool>>().Get(iter.name());
+                auto variable = KratosComponents<Variable<bool>>().Get(variable_name);
                 prop->SetValue(variable, value.GetBool());
             }
             else if (value.IsString()){
-                auto variable = KratosComponents<Variable<std::string>>().Get(iter.name());
+                auto variable = KratosComponents<Variable<std::string>>().Get(variable_name);
                 prop->SetValue(variable, value.GetString());
             }
             else if (value.IsVector()){
-                auto variable = KratosComponents<Variable<Vector>>().Get(iter.name());
+                auto variable = KratosComponents<Variable<Vector>>().Get(variable_name);
                 prop->SetValue(variable, value.GetVector());
             }
             else if (value.IsMatrix()){
-                auto variable = KratosComponents<Variable<Matrix>>().Get(iter.name());
+                auto variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
                 prop->SetValue(variable, value.GetMatrix());
             }
-                //TODO(marcelo): Add error here
             else {
-                KRATOS_INFO("Read materials")
-                        << "Type of value is not available" << std::endl;
+                KRATOS_ERROR << "Type of value is not available";
             }
         }
 
         // Add / override tables in the properties
         auto tables = data["Material"]["Tables"];
-        for(auto iter = tables.begin(); iter != tables.end(); iter++)
-        {
+        for(auto iter = tables.begin(); iter != tables.end(); iter++) {
             auto table_param = tables.GetValue(iter.name());
             // Case table is double, double. How is it defined? How to check?
-                Table<double> table;
-                auto input_var = KratosComponents<Variable<double>>().Get(
-                    table_param["input_variable"].GetString());
-                auto output_var = KratosComponents<Variable<double>>().Get(
-                    table_param["output_variable"].GetString());
-                for (auto i = 0; i < table_param["data"].size(); i++) {
-                    table.insert(table_param["data"][i][0].GetDouble(),
-                                 table_param["data"][i][1].GetDouble());
-                }
-                prop->SetTable(input_var, output_var, table);
-    //            KRATOS_WATCH(table);
+            Table<double> table;
+
+            // Remove application info from variable name.
+            // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
+            std::string input_var_name = CleanVariableName(table_param["input_variable"].GetString());
+            std::string output_var_name = CleanVariableName(table_param["output_variable"].GetString());
+
+            auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
+            auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
+            for (auto i = 0; i < table_param["data"].size(); i++) {
+                table.insert(table_param["data"][i][0].GetDouble(),
+                             table_param["data"][i][1].GetDouble());
+            }
+            prop->SetTable(input_var, output_var, table);
         }
     }
 
