@@ -58,7 +58,6 @@ NodalScalarData NodalDynamicViscosity;
 
 double Density;
 double DynamicViscosity;
-double CorrectedViscosity; // Includes smagorinsky contribution at gauss point
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double SmagorinskyConstant;
@@ -281,38 +280,24 @@ double ComputeStrainNorm()
     return strain_rate_norm;
 }
 
-void CalculateMaterialPropertiesAtGaussPoint()
+void CalculateDensityAtGaussPoint()
 {
     double dist = 0.0;
     for (unsigned int i = 0; i < TNumNodes; i++)
         dist += this->N[i] * Distance[i];
 
-    double navg = 0.0;
+    int navg = 0;
     double density = 0.0;
-    double viscosity = 0.0;
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         if (dist * Distance[i] > 0.0)
         {
-            navg += 1.0;
+            navg += 1;
             density += NodalDensity[i];
-            viscosity += NodalDynamicViscosity[i];
         }
     }
 
     Density = density / navg;
-    DynamicViscosity = viscosity / navg;
-
-    if (SmagorinskyConstant > 0.0)
-    {
-        ComputeStrain();
-        const double strain_rate_norm = ComputeStrainNorm();
-
-        double length_scale = SmagorinskyConstant*ElementSize;
-        length_scale *= length_scale; // square
-        CorrectedViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
-    }
-    else CorrectedViscosity = DynamicViscosity;
 }
 ///@}
 
