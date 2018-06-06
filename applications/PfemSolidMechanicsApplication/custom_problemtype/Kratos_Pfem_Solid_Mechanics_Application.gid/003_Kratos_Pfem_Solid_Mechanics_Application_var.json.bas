@@ -839,6 +839,16 @@
              "velocity":         *GenData(CPT_Velocity)
          }
 *endif
+*if(strcmp(GenData(Ploughing_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes restart files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "ploughing_utility",
+        "process_name"    : "PloughingUtility",
+        "Parameters": {
+         }
+*endif
     }],
     "output_configuration"     : {
         "result_file_configuration" : {
@@ -902,6 +912,9 @@
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-J")==0)
+				      "JACOBIAN",
 *endif
 *if(strcmp(GenData(DOFS),"U-J-wP")==0)
 				      "WATER_PRESSURE",

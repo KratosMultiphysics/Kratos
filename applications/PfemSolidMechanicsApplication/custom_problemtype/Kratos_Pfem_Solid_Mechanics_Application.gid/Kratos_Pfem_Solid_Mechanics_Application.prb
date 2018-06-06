@@ -169,5 +169,7 @@ QUESTION: CPT_Velocity
 VALUE: 0.02
 QUESTION: CPT_radius
 VALUE: 0.01784
+QUESTION: Ploughing_PostProcess#CB#(False,True)
+VALUE: False
 # Properties
 END GENERAL DATA

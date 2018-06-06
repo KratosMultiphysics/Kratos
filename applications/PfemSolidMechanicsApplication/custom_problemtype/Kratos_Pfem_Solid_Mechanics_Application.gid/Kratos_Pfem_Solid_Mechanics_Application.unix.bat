@@ -37,10 +37,13 @@ elif [ $script_type == "Copy_From" ]; then
  cp "$script_path" "${2}/script.py"
 fi
 
+export PYTHONPATH=~/kratos/:$PYTHONPATH
+export LD_LIBRARY_PATH=~/kratos/libs:$LD_LIBRARY_PATH
+export PATH=~/kratos/:$PATH
+
 # Launch the script
 if [ -f "${2}/script.py" ]; then
  python3 -u "${2}/MainKratos.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
- #python3 -u "${2}/script.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
 fi
 
 
