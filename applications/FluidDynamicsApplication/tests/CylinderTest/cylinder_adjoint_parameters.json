@@ -16,9 +16,9 @@
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "sensitivity_model_part_name" : "NoSlip2D_cylinder",
             "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
+                "sensitivity_model_part_name" : "NoSlip2D_cylinder",
                 "structure_model_part_name" : "NoSlip2D_cylinder",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
@@ -52,7 +52,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "VelocityConstraints2D_inlet",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
 	        "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -62,7 +62,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_cylinder",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
 	        "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -72,7 +72,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "VelocityConstraints2D_walls",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "constrained"     : [false,true,true],
 	        "value"           : [0.0, 0.0, 0.0]
         }
@@ -114,7 +114,7 @@
             "position"         : [4.0, 4.709493, 0.0],
             "model_part_name"  : "Parts_fluid",
             "output_file_name" : "cylinder_adjoint_test_probe1.dat",
-            "output_variables" : ["ADJOINT_VELOCITY_X", "ADJOINT_VELOCITY_Y"]
+            "output_variables" : ["ADJOINT_FLUID_VECTOR_1_X", "ADJOINT_FLUID_VECTOR_1_Y"]
         }
      },{
         "kratos_module"   : "KratosMultiphysics",
@@ -125,7 +125,7 @@
             "position"         : [3.150768, 4.043068, 0.0],
             "model_part_name"  : "Parts_fluid",
             "output_file_name" : "cylinder_adjoint_test_probe2.dat",
-            "output_variables" : ["ADJOINT_PRESSURE"]
+            "output_variables" : ["ADJOINT_FLUID_SCALAR_1"]
         }
      },{
         "kratos_module"   : "KratosMultiphysics",

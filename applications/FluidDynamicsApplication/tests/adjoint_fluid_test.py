@@ -109,7 +109,7 @@ class AdjointFluidTest(UnitTest.TestCase):
                     "node_output"         : false,
                     "skin_output"         : false,
                     "plane_output"        : [],
-                    "nodal_results"       : ["VELOCITY","PRESSURE","ADJOINT_VELOCITY","ADJOINT_PRESSURE","SHAPE_SENSITIVITY"],
+                    "nodal_results"       : ["VELOCITY","PRESSURE","ADJOINT_FLUID_VECTOR_1","ADJOINT_FLUID_SCALAR_1","SHAPE_SENSITIVITY"],
                     "gauss_point_results" : []
                 },
                 "point_data_configuration"  : []
