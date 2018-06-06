@@ -20,7 +20,7 @@ def ConvectionVelocity(x, y, z):
     vel[0] = 1.0
     return vel
 
-class TestLevelSetConvection(KratosUnittest.TestCase):
+class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
     def tearDown(self):
         my_pid = self.model_part.GetCommunicator().MyPID()
