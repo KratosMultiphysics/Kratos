@@ -39,11 +39,6 @@ namespace Kratos {
         rigid_body_element->UpdateLinearDisplacementAndVelocityOfNodes();
     }
 
-    void DEMIntegrationScheme::MoveFixedRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
-        CalculateTranslationalMotionOfFixedNode(i, delta_t, force_reduction_factor, StepFlag);
-        rigid_body_element->UpdateLinearDisplacementAndVelocityOfNodes();
-    }
-
     void DEMIntegrationScheme::RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         CalculateRotationalMotionOfRigidBodyElementNode(i, delta_t, moment_reduction_factor, StepFlag);
         rigid_body_element->UpdateAngularDisplacementAndVelocityOfNodes();
@@ -70,26 +65,6 @@ namespace Kratos {
         Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
 
         UpdateTranslationalVariables(StepFlag, i, coor, displ, delta_displ, vel, initial_coor, force, force_reduction_factor, mass, delta_t, Fix_vel);
-    }
-
-    void DEMIntegrationScheme::CalculateTranslationalMotionOfFixedNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
-        array_1d<double, 3 >& vel = i.FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3 >& delta_displ = i.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-        array_1d<double, 3 >& force = i.FastGetSolutionStepValue(TOTAL_FORCES);
-
-        #ifdef KRATOS_DEBUG
-            DemDebugFunctions::CheckIfNan(force, "NAN in Force in Integration Scheme");
-        #endif
-
-        double mass = i.FastGetSolutionStepValue(NODAL_MASS);
-
-        bool Fix_vel[3] = {false, false, false};
-
-        Fix_vel[0] = i.Is(DEMFlags::FIXED_VEL_X);
-        Fix_vel[1] = i.Is(DEMFlags::FIXED_VEL_Y);
-        Fix_vel[2] = i.Is(DEMFlags::FIXED_VEL_Z);
-
-        UpdateTranslationalVariables(StepFlag, i, delta_displ, vel, force, force_reduction_factor, mass, delta_t, Fix_vel);
     }
 
     void DEMIntegrationScheme::CalculateRotationalMotionOfSphereNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
@@ -142,20 +117,6 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_displ,
                 array_1d<double, 3 >& vel,
                 const array_1d<double, 3 >& initial_coor,
-                const array_1d<double, 3 >& force,
-                const double force_reduction_factor,
-                const double mass,
-                const double delta_t,
-                const bool Fix_vel[3])
-    {
-        KRATOS_THROW_ERROR(std::runtime_error, "This function (DEMIntegrationScheme::UpdateTranslationalVariables) shouldn't be accessed, use derived class instead", 0);
-    }
-
-    void DEMIntegrationScheme::UpdateTranslationalVariables(
-                int StepFlag,
-                Node < 3 >& i,
-                array_1d<double, 3 >& delta_displ,
-                array_1d<double, 3 >& vel,
                 const array_1d<double, 3 >& force,
                 const double force_reduction_factor,
                 const double mass,

@@ -30,20 +30,6 @@ namespace Kratos {
         KRATOS_THROW_ERROR(std::runtime_error, "This scheme (RungeKuttaScheme) should not calculate translational motion, so the function (RungeKuttaScheme::UpdateTranslationalVariables) shouldn't be accessed", 0);
     }
 
-    void RungeKuttaScheme::UpdateTranslationalVariables(
-            int StepFlag,
-            Node < 3 >& i,
-            array_1d<double, 3 >& delta_displ,
-            array_1d<double, 3 >& vel,
-            const array_1d<double, 3 >& force,
-            const double force_reduction_factor,
-            const double mass,
-            const double delta_t,
-            const bool Fix_vel[3])
-    {
-        KRATOS_THROW_ERROR(std::runtime_error, "This scheme (RungeKuttaScheme) should not calculate translational motion, so the function (RungeKuttaScheme::UpdateTranslationalVariables) shouldn't be accessed", 0);
-    }
-
     void RungeKuttaScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,

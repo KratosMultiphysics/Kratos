@@ -53,39 +53,6 @@ namespace Kratos {
         } // dimensions
     }
 
-    void VelocityVerletScheme::UpdateTranslationalVariables(
-            int StepFlag,
-            Node < 3 >& i,
-            array_1d<double, 3 >& delta_displ,
-            array_1d<double, 3 >& vel,
-            const array_1d<double, 3 >& force,
-            const double force_reduction_factor,
-            const double mass,
-            const double delta_t,
-            const bool Fix_vel[3]) {
-
-        double mass_inv = 1.0 / mass;
-        if(StepFlag == 1) //PREDICT
-        {
-            for (int k = 0; k < 3; k++) {
-                if (Fix_vel[k] == false) {
-                    delta_displ[k] = vel[k] * delta_t + 0.5 * force[k] * mass_inv * delta_t * delta_t ;
-                    vel[k] += 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
-                } else {
-                    delta_displ[k] = delta_t * vel[k];
-                }
-            }
-        }
-        else if(StepFlag == 2) //CORRECT
-        {
-            for (int k = 0; k < 3; k++) {
-                if (Fix_vel[k] == false) {
-                    vel[k] += 0.5 * force_reduction_factor * force[k] * mass_inv * delta_t ;
-                }
-            }
-        } // dimensions
-    }
-
     void VelocityVerletScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,

@@ -42,9 +42,9 @@
         <Container id="ProjectConfiguration" pid="Project configuration" state="hidden" help="Project configuration" open="0">
             <Item id="KratosPath" pid="Kratos path" dv="D:\Kratos" state="hidden" help="Kratos path"/>
         </Container>
-        <Container id="Domain" pid="Domain Options" state="hidden" open="0" help="Domain options">
-            <Item id="SpatialDimension" pid="Select 2D|3D" class="nDim" dv="3D" ivalues="3D,2D" values="3D,2D" state="hidden" help="Choose between 2D and 3D problem. It is strongly recommended to work in the XY plane when in 2D"/>
-            <Item id="Axisymmetric" pid="Axi-Symmetric" nDim="2D" class="axiSym" dv="No" ivalues="Yes,No" values="Yes,No" state="hidden" help="Axisymmetric Problem"/>
+        <Container id="Domain" pid="Domain" state="hidden" help="Helptext" open="0">
+            <Item id="SpatialDimension" pid="Spatial dimension" class="nDim" dv="3D" ivalues="3D,2D" values="3D,2D" state="hidden" help="Spatial Dimension"/>
+            <Item id="Axisymmetric" pid="Axi-Symmetric" nDim="2D" class="axiSym" dv="No" ivalues="Yes,No" values="Yes,No" help="Axisymmetric Problem"/>
         </Container>
         <Container id="ApplicationTypes" pid="Application types" state="hidden" icon="aplicationTree.gif" help="Application types" open="1">
             <Item id="StructuralAnalysis" pid="Structural analysis" class="application" state="hidden" dv="No" ivalues="No,Yes" values="No,Yes" help="Structural analysis" icon="aplicationTree.gif" open="0"/>
@@ -204,7 +204,7 @@
             <Item id="StressTensor" pid="Cauchy stress tensor" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Cauchy stress tensor"/>
             <Item id="VonMises" pid="VonMises" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Von Mises Criterion"/>
         </Container>
-    </Container>
+        </Container>
     </RootData>
     <RootData id="DEM" pid="DEM" state="normal" class="application" icon="dem.gif" help="DEM application" open="1">
         <Container id="DEM-Elements" pid="Elements" help="Elements assignation" open="0" icon="demelements.gif">
@@ -597,81 +597,20 @@
         </Template>
         <Template id="DEM-FEM-Wall" help="DEM-FEM wall boundary condition">
             <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>
-            <Item id="DEM-RBMotion" pid="Rigid Body Motion" class="DEM-RBMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Yes for moving bodies and No for fixed walls"/>
-            <Item id="Mass" pid="Mass(Kg)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="1.0" help="If all DoFs are imposed leave the default value, it does not affect the calculation"/>
-            <Container id="Centroid" pid="Centroid" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" help="">
-                <Item id="CX" pid="Cx(m)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help="If angular velocity DoFs are imposed leave the default value, it does not affect the calculation"/>
-                <Item id="CY" pid="Cy(m)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help="If angular velocity DoFs are imposed leave the default value, it does not affect the calculation"/>
-                <Item id="CZ" pid="Cz(m)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help="If angular velocity DoFs are imposed leave the default value, it does not affect the calculation"/>
-            </Container>
-            <Container id="DEM-Inertias" pid="Inertias" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" help="">
-                <Item id="IX" pid="Ix(Kg*m2)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="1.0" help="If angular velocity DoFs are imposed leave the default value, it does not affect the calculation"/>
-                <Item id="IY" pid="Iy(Kg*m2)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="1.0" help="If angular velocity DoFs are imposed leave the default value, it does not affect the calculation"/>
-                <Item id="IZ" pid="Iz(Kg*m2)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="1.0" help="If angular velocity DoFs are imposed leave the default value, it does not affect the calculation"/>
-            </Container>
-            <Container id="ExternalForces" pid="ExternalForces" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" help="">
-                <Item id="FX" pid="Fx(N)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-                <Item id="FY" pid="Fy(N)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-                <Item id="FZ" pid="Fz(N)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-            </Container>
-            <Container id="ExternalMoments" pid="ExternalMoments" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" help="">
-                <Item id="MX" pid="Mx(N*m)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-                <Item id="MY" pid="My(N*m)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-                <Item id="MZ" pid="Mz(N*m)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
-            </Container>
-            <Container id="DEM-RBE-DOFS" pid="Degrees of Freedom" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" help="">
-                <Item id="Ax" pid="Fix Velocity X" class="DEM-RBE-FixVelocityX" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Velocity X"/>
-                <Item id="Vx" pid="   Value (m/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityX="Yes" dv="0.0" help="X Velocity"/>
-                <Item id="Ay" pid="Fix Velocity Y" class="DEM-RBE-FixVelocityY" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Velocity Y"/>
-                <Item id="Vy" pid="   Value (m/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityY="Yes" dv="0.0" help="Y Velocity"/>
-                <Item id="Az" pid="Fix Velocity Z" class="DEM-RBE-FixVelocityZ" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Velocity Z"/>
-                <Item id="Vz" pid="   Value (m/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-FixVelocityZ="Yes" dv="0.0" help="Z Velocity"/>
-                <Item id="LinearPeriodic" pid="Periodic" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicLinear" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
-                <Item id="LinearPeriod" pid="Period (s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-IsPeriodicLinear="Yes" help="in seconds" dv="5.0"/>
-                <Item id="VStart" pid="Linear velocity start time (s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help="Linear velocity start time"/>
-                <Item id="VEnd" pid="Linear velocity end time (s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="100.0" help="Linear velocity end time"/>
-                <Item id="Bx" pid="Fix Angular Velocity X" class="DEM-RBE-FixAngularVelocityX" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Angular Velocity X"/>
-                <Item id="AVx" pid="   Value (rad/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityX="Yes" dv="0.0" help="X Angular Velocity"/>
-                <Item id="By" pid="Fix Angular Velocity Y" class="DEM-RBE-FixAngularVelocityY" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Angular Velocity Y"/>
-                <Item id="AVy" pid="   Value (rad/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityY="Yes" dv="0.0" help="Y Angular Velocity"/>
-                <Item id="Bz" pid="Fix Angular Velocity Z" class="DEM-RBE-FixAngularVelocityZ" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Fix Angular Velocity Z"/>
-                <Item id="AVz" pid="   Value (rad/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-FixAngularVelocityZ="Yes" dv="0.0" help="Z Angular Velocity"/>
-                <Item id="AngularPeriodic" pid="Periodic" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicAngular" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
-                <Item id="AngularPeriod" pid="Period (s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-IsPeriodicAngular="Yes" help="in seconds" dv="5.0"/>
-                <Item id="AngVStart" pid="Angular velocity start time (s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0.0" help="Angular velocity start time"/>
-                <Item id="AngVEnd" pid="Angular velocity end time (s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="100.0" help="Angular velocity end time"/>
-            </Container>
-            <Container id="DEM-RBE-InitialVelocities" pid="Initial Velocities" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" help="">
-                <Item id="Ax" pid="Set Initial Velocity X" class="DEM-RBE-SetInitialVelocityX" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Velocity X"/>
-                <Item id="Vx" pid="   Value (m/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialVelocityX="Yes" dv="0.0" help="X Velocity"/>
-                <Item id="Ay" pid="Set Initial Velocity Y" class="DEM-RBE-SetInitialVelocityY" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Velocity Y"/>
-                <Item id="Vy" pid="   Value (m/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialVelocityY="Yes" dv="0.0" help="Y Velocity"/>
-                <Item id="Az" pid="Set Initial Velocity Z" class="DEM-RBE-SetInitialVelocityZ" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Velocity Z"/>
-                <Item id="Vz" pid="   Value (m/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialVelocityZ="Yes" dv="0.0" help="Z Velocity"/>
-                <Item id="Bx" pid="Set Initial Angular Velocity X" class="DEM-RBE-SetInitialAngularVelocityX" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Ang Velocity X"/>
-                <Item id="AVx" pid="   Value (rad/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityX="Yes" dv="0.0" help="X Angular Velocity"/>
-                <Item id="By" pid="Set Initial Angular Velocity Y" class="DEM-RBE-SetInitialAngularVelocityY" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Ang Velocity Y"/>
-                <Item id="AVy" pid="   Value (rad/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityY="Yes" dv="0.0" help="Y Angular Velocity"/>
-                <Item id="Bz" pid="Set Initial Angular Velocity Z" class="DEM-RBE-SetInitialAngularVelocityZ" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Ang Velocity Z"/>
-                <Item id="AVz" pid="   Value (rad/s)" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityZ="Yes" dv="0.0" help="Z Angular Velocity"/>
-            </Container>
-            <Container id="IceSettings" pid="IceSettings" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" help="">
-                <Item id="Buoyancy" pid="Subjected to Buoyancy" DEM-RBMotion="Yes" DEM-GeneralActivation="Yes" dv="0" ivalues="0,1" values="No,Yes" help="Choose if the body feels the action of water or not."/>
-            </Container>
+            <Container id="Rigid_Body_Motion" pid="Rigid_Body_Motion" class="Groups" idTemplate="RigidBodyMotion" help="" open="0"/>
             <Container id="Options" pid="Settings" DEM-GeneralActivation="Yes" help="Options that will affect the behaviour during the contact bewteen Discrete Elements and this wall">
-                <Item id="AnalyticProps" pid="Ghost Wall" class="DEM-GhostWall" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will compute data related to particles crossing it"/>
-                <Item id="fixed_wall" pid="Update velocity, not displacements" DEM-GhostWall="No" DEM-RBMotion="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will not move and will just have an imposed velocity field"/>
-                <Item id="friction_coeff" pid="Friction angle (deg)" DEM-GhostWall="No" DEM-GeneralActivation="Yes" dv="30.0" help="Coulomb friction coefficient"/>
-                <Item id="CohesiveWall" pid="Cohesive Wall" class="DEM-CohesiveWall" DEM-GhostWall="No" DEM-GeneralActivation="Yes" help="Specify if the wall presents a cohesive behaviour" dv="No" values="No,Yes"/>
-                <Item id="WallCohesion" pid="Wall Cohesion (Pa)" DEM-CohesiveWall="Yes" DEM-GhostWall="No" DEM-GeneralActivation="Yes" help="JKR or DMT energy surface" dv="0.0"/>
-                <Item id="DEM_Wear" pid="Compute Wear" class="DEM-Wear" DEM-GhostWall="No" DEM-GeneralActivation="Yes" help="If activated, wear will be computed on this wall. It can increase computation time" dv="No" values="No,Yes"/>
-                <Item id="K_Abrasion" pid="Severity of Abrasion" DEM-GhostWall="No" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's abrasion K parameter" dv="0.001"/>
-                <Item id="K_Impact" pid="Severity of Impact" DEM-GhostWall="No" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's impact K parameter" dv="0.001"/>
-                <Item id="H_Brinell" pid="Brinell Hardness (HB)" DEM-GhostWall="No" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Brinell hardness value" dv="200.0"/>
-                <Item id="is-embedded-in-fluid" pid="Embed this Wall in the fluid" DEM-GhostWall="No" DebugOrRel="Debug" state="hidden" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the fluid will also feel this group as a wall. This option is at the moment only compatible with the fractional step solver."/>
-                <Item id="RigidPlane" pid="Rigid Structure" class="DEM-RigidWall" DEM-GhostWall="No" DEM-GeneralActivation="Yes" help="Give this DEM-FEM group an ideally rigid behaviour or an elastic response with a particular Young Modulus" dv="Yes" values="Yes,No"/>
-                <Item id="YoungModulus" pid="Young Modulus (Pa)" DEM-GhostWall="No" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="1e20" help=""/>
-                <Item id="PoissonRatio" pid="Poisson Ratio" DEM-GhostWall="No" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="0.25" help=""/>
+                <Item id="fixed_wall" pid="Update velocity, not displacements" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will not move and will just have an imposed velocity field"/>
+                <Item id="friction_coeff" pid="Friction angle (deg)" DEM-GeneralActivation="Yes" dv="30.0" help="Coulomb friction coefficient"/>
+                <Item id="CohesiveWall" pid="Cohesive Wall" class="DEM-CohesiveWall" DEM-GeneralActivation="Yes" help="Specify if the wall presents a cohesive behaviour" dv="No" values="No,Yes"/>
+                <Item id="WallCohesion" pid="Wall Cohesion (Pa)" DEM-CohesiveWall="Yes" DEM-GeneralActivation="Yes" help="JKR or DMT energy surface" dv="0.0"/>
+                <Item id="DEM_Wear" pid="Compute Wear" class="DEM-Wear" DEM-GeneralActivation="Yes" help="If activated, wear will be computed on this wall. It can increase computation time" dv="No" values="No,Yes"/>
+                <Item id="K_Abrasion" pid="Severity of Abrasion" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's abrasion K parameter" dv="0.001"/>
+                <Item id="K_Impact" pid="Severity of Impact" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Archard's impact K parameter" dv="0.001"/>
+                <Item id="H_Brinell" pid="Brinell Hardness (HB)" DEM-Wear="Yes" DEM-GeneralActivation="Yes" help="Brinell hardness value" dv="200.0"/>
+                <Item id="is-embedded-in-fluid" pid="Embed this Wall in the fluid" DEM-GeneralActivation="Yes" state="hidden" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the fluid will also feel this group as a wall"/>
+                <Item id="RigidPlane" pid="Rigid Structure" class="DEM-RigidWall" DEM-GeneralActivation="Yes" help="Give this DEM-FEM group an ideally rigid behaviour or an elastic response with a particular Young Modulus" dv="Yes" values="Yes,No"/>
+                <Item id="YoungModulus" pid="Young Modulus (Pa)" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="1e20" help=""/>
+                <Item id="PoissonRatio" pid="Poisson Ratio" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="0.25" help=""/>
             </Container>
         </Template>
         <Template id="DEM-FEM-Solid-Wall" help="DEM-FEM wall boundary condition">
@@ -682,26 +621,39 @@
             <Item id="poisson_ratio" pid="Poisson ratio" state="hidden" DEM-FEMSOLIDActivation="Yes" dv="0.25" help="Poisson factor of the contact"/>
         </Template>
         <Template id="RigidBodyMotion" pid="Rigid Body Motion" help="Imposes a rigid body motion to the group">
-            <Container id="LinearVelocity" pid="Linear velocity" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Values">
-                <Item id="LinearVelocityX" pid="Vx (m/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearVelocityY" pid="Vy (m/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearVelocityZ" pid="Vz (m/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the Linear Velocity" dv="0.0"/>
-                <Item id="LinearPeriodic" pid="Periodic" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicLinear" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
-                <Item id="LinearPeriod" pid="Period (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" DEM-IsPeriodicLinear="Yes" help="in seconds" dv="5.0"/>
-                <Item id="LinearStartTime" pid="Start time (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
-                <Item id="LinearEndTime" pid="End time (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
+            <Item id="DEM-RBImposedMotion" pid="Impose Motion" class="DEM-RBImposedMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Yes to impose a predefined motion to the group"/>
+            <Container id="LinearVelocity" pid="Linear velocity" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Values">
+                <Item id="LinearVelocityX" pid="Vx (m/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component X of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearVelocityY" pid="Vy (m/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Y of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearVelocityZ" pid="Vz (m/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Z of the Linear Velocity" dv="0.0"/>
+                <Item id="LinearPeriodic" pid="Periodic" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicLinear" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
+                <Item id="LinearPeriod" pid="Period (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" DEM-IsPeriodicLinear="Yes" help="in seconds" dv="5.0"/>
+                <Item id="LinearStartTime" pid="Start time (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
+                <Item id="LinearEndTime" pid="End time (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
             </Container>
-            <Container id="AngularVelocity" pid="Angular velocity" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Values">
-                <Item id="AngularVelocityX" pid="Wx (rad/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the Angular Velocity" dv="0.0"/>
-                <Item id="AngularVelocityY" pid="Wy (rad/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the Angular Velocity" dv="0.0"/>
-                <Item id="AngularVelocityZ" pid="Wz (rad/s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the Angular Velocity" dv="0.0"/>
-                <Item id="CenterOfRotationX" pid="CenterX (m)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component X of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
-                <Item id="CenterOfRotationY" pid="CenterY (m)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Y of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"  sbi="PickCoordinates" sbp="Pick" sbxp="CenterOfRotationX,CenterOfRotationY,CenterOfRotationZ"/>
-                <Item id="CenterOfRotationZ" pid="CenterZ (m)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="Component Z of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
-                <Item id="AngularPeriodic" pid="Periodic" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicAngular" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
-                <Item id="AngularPeriod" pid="Period (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" DEM-IsPeriodicAngular="Yes" help="in seconds" dv="5.0"/>
-                <Item id="AngularStartTime" pid="Start time (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
-                <Item id="AngularEndTime" pid="End time (s)" DEM-RBImposedMotion="LinearPeriodic" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
+            <Container id="AngularVelocity" pid="Angular velocity" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Values">
+                <Item id="AngularVelocityX" pid="Wx (rad/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component X of the Angular Velocity" dv="0.0"/>
+                <Item id="AngularVelocityY" pid="Wy (rad/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Y of the Angular Velocity" dv="0.0"/>
+                <Item id="AngularVelocityZ" pid="Wz (rad/s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Z of the Angular Velocity" dv="0.0"/>
+                <Item id="CenterOfRotationX" pid="CenterX (m)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component X of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
+                <Item id="CenterOfRotationY" pid="CenterY (m)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Y of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"  sbi="PickCoordinates" sbp="Pick" sbxp="CenterOfRotationX,CenterOfRotationY,CenterOfRotationZ"/>
+                <Item id="CenterOfRotationZ" pid="CenterZ (m)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="Component Z of the position of the Rotation Center. If a linear velocity is imposed to this group, it will affect this center" dv="0.0"/>
+                <Item id="AngularPeriodic" pid="Periodic" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" class="DEM-IsPeriodicAngular" dv="No" values="No,Yes" help="If activated, the imposed velocity values are the maximum during a harmonic oscillation with a given period"/>
+                <Item id="AngularPeriod" pid="Period (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" DEM-IsPeriodicAngular="Yes" help="in seconds" dv="5.0"/>
+                <Item id="AngularStartTime" pid="Start time (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="in seconds" dv="0.0"/>
+                <Item id="AngularEndTime" pid="End time (s)" DEM-RBImposedMotion="Yes" DEM-GeneralActivation="Yes" help="in seconds" dv="1000.0"/>
+            </Container>
+        </Template>
+        <Template id="PrescribedVelocity" icon="groupsTree.gif" help="Activation">
+            <Container id="Activation" pid="Fix" help="Fix coordinates">
+                <Item id="Ax" pid="X fix" dv="1" ivalues="1,0" values="1,0" help="X coordinate"/>
+                <Item id="Ay" pid="Y fix" dv="1" ivalues="1,0" values="1,0" help="Y coordinate"/>
+                <Item id="Az" pid="Z fix" dv="0" nDim="3D" ivalues="1,0" values="1,0" help="Z coordinate"/>
+            </Container>
+            <Container id="Values" pid="Values" help="Values">
+                <Item id="Vx" pid="X" dv="0.0" help="X Velocity"/>
+                <Item id="Vy" pid="Y" dv="0.0" help="Y Velocity"/>
+                <Item id="Vz" pid="Z" dv="0.0" nDim="3D" help="Z Velocity"/>
             </Container>
         </Template>
         <Template id="PropertiesStruct" icon="propsTree.gif" help="Property">
@@ -935,14 +887,10 @@
         <Class>,DEM-InletElementType,DEM-RigidWall,DEM-AdvancedMeshingFeatures,</Class>
         <Class>,DEM-VelocityBCMotionType,DEM-InletImposedMotion,DEM-FEMImposedMotion,</Class>
         <Class>,DEM-FEMWallActivation,DEM-VelocityBCActivation,DEM-InletBCActivation,</Class>
-        <Class>,DEM-ElementActivation,DEM-FEMtoDEMAlgorithm,DEM-RBImposedMotion,DEM-RBMotion,</Class>
+        <Class>,DEM-ElementActivation,DEM-FEMtoDEMAlgorithm,DEM-RBImposedMotion,</Class>
         <Class>,DEM-GeneralActivation,DEM-FixVelocityX,DEM-FixVelocityY,</Class>
-        <Class>,DEM-FixVelocityZ,DEM-FixAngularVelocityX,DEM-FixAngularVelocityY,DEM-FixAngularVelocityZ,</Class>
-        <Class>,DEM-TestType,DEM-MeshType,DEM-MaterialModel,DEM-CompressionTest,DEM-MaterialTestLab,DEM-ShowBondElements,</Class>
-        <Class>,DEM-Cluster,DEM-AdvancedMeshingFeaturesAlgorithmType,DEM-PrintSeaSurface,DEM-RBE-FixVelocityX,DEM-RBE-FixVelocityY,DEM-RBE-FixVelocityZ,</Class>
-        <Class>,DEM-RBE-FixAngularVelocityX,DEM-RBE-FixAngularVelocityY,DEM-RBE-FixAngularVelocityZ,</Class>
-        <Class>,DEM-RBE-SetInitialVelocityX,DEM-RBE-SetInitialVelocityY,DEM-RBE-SetInitialVelocityZ,DEM-GhostWall,</Class>
-        <Class>,DEM-RBE-SetInitialAngularVelocityX,DEM-RBE-SetInitialAngularVelocityY,DEM-RBE-SetInitialAngularVelocityZ,</Class>
-        <Class>,DEM-Inlet_measurement_type</Class>
+        <Class>,DEM-FixVelocityZ,DEM-FixAngularVelocityX,DEM-FixAngularVelocityY,</Class>
+        <Class>,DEM-TestType,DEM-MeshType,DEM-MaterialModel,DEM-CompressionTest,DEM-MaterialTestLab,DEM-ShowBondElements</Class>
+        <Class>,DEM-FixAngularVelocityZ,DEM-Inlet_measurement_type</Class>
     </ClassConfiguration>
 </Kratos_Data>

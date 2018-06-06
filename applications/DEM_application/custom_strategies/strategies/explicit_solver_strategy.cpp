@@ -589,14 +589,14 @@ namespace Kratos {
             for (int k = 0; k < (int) pLocalClusters.size(); k++) {
                 ElementsArrayType::iterator it = pLocalClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-                cluster_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+                cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
 
             #pragma omp for nowait
             for (int k = 0; k < (int) pGhostClusters.size(); k++) {
                  ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-                cluster_element.Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+                cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
 
             #pragma omp for nowait
@@ -1045,6 +1045,8 @@ namespace Kratos {
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
 
+            rigid_body_elements_counter++;
+
             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
@@ -1052,74 +1054,26 @@ namespace Kratos {
             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
             rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
 
-            if (!submp[RIGID_BODY_MOTION]) {
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = 0.0;
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = 0.0;
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = 0.0;
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = 0.0;
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = 0.0;
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = 0.0;
+            if (!submp[FREE_BODY_MOTION]) continue;
+
+            double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
+            if (submp.Has(VELOCITY_START_TIME)) vel_start = submp[VELOCITY_START_TIME];
+            if (submp.Has(VELOCITY_STOP_TIME)) vel_stop = submp[VELOCITY_STOP_TIME];
+
+            if (time > vel_start && time < vel_stop) {
+                if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE];
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+                if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE];
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+                if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE];
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+                if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+                if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
+                else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
             }
-
-            else {
-                double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
-                if (submp.Has(VELOCITY_START_TIME)) vel_start = submp[VELOCITY_START_TIME];
-                if (submp.Has(VELOCITY_STOP_TIME)) vel_stop = submp[VELOCITY_STOP_TIME];
-
-                if (time > vel_start && time < vel_stop) {
-
-                    double aux_vel = 1.0;
-
-                    if (submp.Has(VELOCITY_PERIOD)) {
-                        if (submp[VELOCITY_PERIOD] > 0.0) {
-                            double linear_omega = 2.0 * Globals::Pi / submp[VELOCITY_PERIOD];
-                            aux_vel = std::cos(linear_omega * (time - vel_start));
-                        }
-                    }
-
-                    if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE] * aux_vel;
-                    else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
-                    if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE] * aux_vel;
-                    else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
-                    if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE] * aux_vel;
-                    else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
-                }
-
-                else {
-                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = 0.0;
-                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = 0.0;
-                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = 0.0;
-                }
-
-                double ang_vel_start = 0.0, ang_vel_stop = std::numeric_limits<double>::max();
-                if (submp.Has(ANGULAR_VELOCITY_START_TIME)) ang_vel_start = submp[ANGULAR_VELOCITY_START_TIME];
-                if (submp.Has(ANGULAR_VELOCITY_STOP_TIME)) ang_vel_stop = submp[ANGULAR_VELOCITY_STOP_TIME];
-
-                if (time > ang_vel_start && time < ang_vel_stop) {
-
-                    double aux_ang_vel = 1.0;
-
-                    if (submp.Has(ANGULAR_VELOCITY_PERIOD)) {
-                        if (submp[ANGULAR_VELOCITY_PERIOD] > 0.0) {
-                            double angular_omega = 2.0 * Globals::Pi / submp[ANGULAR_VELOCITY_PERIOD];
-                            aux_ang_vel = std::cos(angular_omega * (time - ang_vel_start));
-                        }
-                    }
-                    if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE] * aux_ang_vel;
-                    else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
-                    if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE] * aux_ang_vel;
-                    else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
-                    if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE] * aux_ang_vel;
-                    else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
-                }
-
-                else {
-                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = 0.0;
-                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = 0.0;
-                    rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = 0.0;
-                }
-            }
-            rigid_body_elements_counter++;
         }
         KRATOS_CATCH("")
     }
@@ -1181,8 +1135,6 @@ namespace Kratos {
             if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_Z_VALUE)) {
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE];
             }
-
-            // rigid_body_element.CustomInitialize(*sub_model_part);
 
             rigid_body_elements_counter++;
         }

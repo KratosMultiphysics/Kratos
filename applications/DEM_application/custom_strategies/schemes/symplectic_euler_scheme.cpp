@@ -45,28 +45,6 @@ namespace Kratos {
         } // dimensions
     }
 
-    void SymplecticEulerScheme::UpdateTranslationalVariables(
-            int StepFlag,
-            Node < 3 >& i,
-            array_1d<double, 3 >& delta_displ,
-            array_1d<double, 3 >& vel,
-            const array_1d<double, 3 >& force,
-            const double force_reduction_factor,
-            const double mass,
-            const double delta_t,
-            const bool Fix_vel[3]) {
-
-        double mass_inv = 1.0 / mass;
-        for (int k = 0; k < 3; k++) {
-            if (Fix_vel[k] == false) {
-                vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
-                delta_displ[k] = delta_t * vel[k];
-            } else {
-                delta_displ[k] = delta_t * vel[k];
-            }
-        } // dimensions
-    }
-
     void SymplecticEulerScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,

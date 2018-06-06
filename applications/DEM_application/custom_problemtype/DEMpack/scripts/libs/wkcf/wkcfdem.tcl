@@ -3386,32 +3386,45 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	if {[llength $nlist]} {
 
 	    set cproperty "dv"
-	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.LinearPeriodic"
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.LinearVelocity//i.LinearVelocityX"
+	    set LinearVelocityX [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.LinearVelocity//i.LinearVelocityY"
+	    set LinearVelocityY [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.LinearVelocity//i.LinearVelocityZ"
+	    set LinearVelocityZ [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.LinearVelocity//i.LinearPeriodic"
 	    set IsPeriodic [::xmlutils::setXml $cxpath $cproperty]
 	    if {$IsPeriodic=="Yes"} {
-		set cxpath "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.LinearPeriod"
+		set cxpath "${basexpath}//c.[list ${cgroupid}]//c.LinearVelocity//i.LinearPeriod"
 		set Period [::xmlutils::setXml $cxpath $cproperty]
 	    } else {
 		set Period "0.0"
 	    }
-	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VStart"
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.LinearVelocity//i.LinearStartTime"
 	    set LinearVelocityStartTime [::xmlutils::setXml $cxpath $cproperty]
-	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VEnd"
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.LinearVelocity//i.LinearEndTime"
 	    set LinearVelocityEndTime [::xmlutils::setXml $cxpath $cproperty]
 
-	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AngularPeriodic"
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularVelocityX"
+	    set AngularVelocityX [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularVelocityY"
+	    set AngularVelocityY [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularVelocityZ"
+	    set AngularVelocityZ [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.CenterOfRotationX"
+	    set CenterOfRotationX [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.CenterOfRotationY"
+	    set CenterOfRotationY [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.CenterOfRotationZ"
+	    set CenterOfRotationZ [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularPeriodic"
 	    set AngularIsPeriodic [::xmlutils::setXml $cxpath $cproperty]
 	    if {$AngularIsPeriodic=="Yes"} {
-		set cxpath "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AngularPeriod"
+		set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularPeriod"
 		set AngularPeriod [::xmlutils::setXml $cxpath $cproperty]
 	    } else {
 		set AngularPeriod "0.0"
 	    }
-	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AngVStart"
-	    set AngularVelocityStartTime [::xmlutils::setXml $cxpath $cproperty]
-	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AngVEnd"
-	    set AngularVelocityEndTime [::xmlutils::setXml $cxpath $cproperty]
-
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.fixed_wall"
             set fixed_wall [::xmlutils::setXml $cxpath $cproperty]
 	    if {$fixed_wall=="Yes"} {
@@ -3426,16 +3439,26 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    } else {
 		set ghost_wall_value 0
 	    }
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularStartTime"
+	    set AngularVelocityStartTime [::xmlutils::setXml $cxpath $cproperty]
+	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularEndTime"
+	    set AngularVelocityEndTime [::xmlutils::setXml $cxpath $cproperty]
 	    set RigidBodyMotionOption 1
 	    set TableNumber 0
 	    set TableVelocityComponent 0
-	    foreach {RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0.0 0.0 0.0 1.0 1.0 1.0 "No"} {}
-	    set rigid_body_motion [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.DEM-RBMotion" dv]
-	    if {$rigid_body_motion=="No"} {
+	    foreach {FreeBodyMotion RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0 0.0 0.0 0.0 1.0 1.0 1.0 "No"} {}
+	    set type_of_motion [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.DEM-RBImposedMotion" dv]
+	    if {$type_of_motion=="None"} {
 		foreach {LinearVelocityX LinearVelocityY LinearVelocityZ AngularVelocityX AngularVelocityY AngularVelocityZ RigidBodyMotionOption} {0.0 0.0 0.0 0.0 0.0 0.0 0} {}
 	    }
-	if {$rigid_body_motion=="Yes"} {
-	    set RigidBodyMotionOption 1
+	if {$type_of_motion=="FromATable"} {
+	    set TableNumber $dem_group_mesh_property_number
+	    set TableVelocityComponent [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.TableVelocityComponent" dv]
+	    set RigidBodyMotionOption 0
+	}
+	if {$type_of_motion=="FreeMotion"} {
+	    set RigidBodyMotionOption 0
+	    set FreeBodyMotion 1
 	    set RigidBodyMass [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.Mass" dv]
 	    set CentroidX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.Centroid//i.CX" dv]
 	    set CentroidY [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.Centroid//i.CY" dv]
@@ -3477,8 +3500,24 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "%s" "Begin SubModelPart $demfem_ref_to_props_number \/\/ DEM-FEM-Wall. Group name: $cgroupid"
 	    GiD_File fprintf $demfemchannel "  Begin SubModelPartData // DEM-FEM-Wall. Group name: $cgroupid"
 	    GiD_File fprintf $demfemchannel "  PROPERTIES_ID $demfem_ref_to_props_number"
-
-	    if {$rigid_body_motion=="Yes"} {
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
+	    GiD_File fprintf $demfemchannel "  FREE_BODY_MOTION $FreeBodyMotion"
+	    if {$type_of_motion=="LinearPeriodic"} {
+	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
+	    GiD_File fprintf $demfemchannel "  LINEAR_VELOCITY \[3\] ($LinearVelocityX,$LinearVelocityY,$LinearVelocityZ)"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_PERIOD $Period"
+	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY \[3\] ($AngularVelocityX,$AngularVelocityY,$AngularVelocityZ)"
+	    GiD_File fprintf $demfemchannel "  ROTATION_CENTER \[3\] ($CenterOfRotationX,$CenterOfRotationY,$CenterOfRotationZ)"
+	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_PERIOD $AngularPeriod"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME $LinearVelocityStartTime"
+	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME $LinearVelocityEndTime"
+	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_START_TIME $AngularVelocityStartTime"
+	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_STOP_TIME $AngularVelocityEndTime"
+	    }
+	    if {$type_of_motion=="FreeMotion"} {
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
 	    #Imposed velocities
 	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Ax" "dv"] eq "Yes"} {
 		GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_X_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vx" "dv"]"
@@ -3519,10 +3558,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    }
 	    GiD_File fprintf $demfemchannel "  VELOCITY_START_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VStart" "dv"]"
 	    GiD_File fprintf $demfemchannel "  VELOCITY_STOP_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.VEnd" "dv"]"
-		GiD_File fprintf $demfemchannel "  VELOCITY_PERIOD $Period"
-	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_START_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AngVStart" "dv"]"
-	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_STOP_TIME [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.AngVEnd" "dv"]"
-	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_PERIOD $AngularPeriod"
 	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE \[3\] ($ExternalFX,$ExternalFY,$ExternalFZ)"
 	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT \[3\] ($ExternalMX,$ExternalMY,$ExternalMZ)"
 	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
@@ -3536,11 +3571,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Z $dragconstantz"
 	    }
 	    }
-	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
         GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER $TableNumber"
 	    GiD_File fprintf $demfemchannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
@@ -3578,6 +3608,16 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "End SubModelPart"
 	    GiD_File fprintf $demfemchannel ""
 	    incr demfem_ref_to_props_number
+	    if {$type_of_motion=="FromATable"} {
+	    set filename [::xmlutils::setXml "$rootid//c.DEM-Conditions//c.DEM-FEM-Wall//c.[list ${cgroupid}]//i.VelocitiesFilename" dv]
+	    GiD_File fprintf $demfemchannel "Begin Table $TableNumber TIME VELOCITY"
+	    set file_open [open [file native [file join [::KUtils::GetPaths "PDir"] $filename]] r]
+	    set file_data [read $file_open]
+	    close $file_open
+	    GiD_File fprintf -nonewline $demfemchannel $file_data
+	    GiD_File fprintf $demfemchannel "End Table"
+	    GiD_File fprintf $demfemchannel ""
+	}
 	}
     }
     GiD_File fprintf $demfemchannel "Begin Table 0 TIME VELOCITY"

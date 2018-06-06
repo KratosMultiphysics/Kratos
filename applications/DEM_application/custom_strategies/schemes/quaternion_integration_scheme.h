@@ -61,17 +61,6 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_vel[3]) override;
 
-        void UpdateTranslationalVariables(
-                int StepFlag,
-                Node < 3 >& i,
-                array_1d<double, 3 >& delta_displ,
-                array_1d<double, 3 >& vel,
-                const array_1d<double, 3 >& force,
-                const double force_reduction_factor,
-                const double mass,
-                const double delta_t,
-                const bool Fix_vel[3]) override;
-
         void CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
                 Node < 3 >& i,
