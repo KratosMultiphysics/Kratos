@@ -902,9 +902,7 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& rCurrentProcessInfo
+        ModelPart& rModelPart
     )
     {
         KRATOS_WATCH("in ResizeAndInitializeVectors, line 885");
@@ -1024,8 +1022,8 @@ public:
             Kaa.resize( mAirPressureFreeDofs, mAirPressureFreeDofs, false );
 
 
-            ConstructMatrixStructure(pScheme,  Kuu, Kuw, Kua, Kwu, Kww, Kwa, Kau, Kaw, Kaa, rElements, rConditions, rCurrentProcessInfo );
-            ConstructMatrixStructure(pScheme,  A, rElements, rConditions, rCurrentProcessInfo );
+            ConstructMatrixStructure(pScheme,  Kuu, Kuw, Kua, Kwu, Kww, Kwa, Kau, Kaw, Kaa, rModelPart.Elements(), rModelPart.Conditions(), rModelPart.GetProcessInfo() );
+            ConstructMatrixStructure(pScheme,  A, rModelPart.Elements(), rModelPart.Conditions(), rModelPart.GetProcessInfo() );
             A.resize( BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false );
             AllocateSystemMatrix( A );
             ConstructSystemMatrix( A );

@@ -72,7 +72,7 @@ class FluidAnalysisTest(UnitTest.TestCase):
         analysis.Run()
 
 if __name__ == '__main__':
-    test_case = AnalysisTest()
+    test_case = FluidAnalysisTest()
     test_case.setUp()
     test_case.testFluidDynamicsAnalysis()
     test_case.tearDown()
