@@ -48,7 +48,6 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds_InMPI, Krat
 
     for (const auto& r_node : model_part/*.GetCommunicator().LocalMesh()*/.Nodes())
     {
-        KRATOS_INFO("Rank") << rank << " , idx = " << idx << " , EdId: " << r_node.GetValue(INTERFACE_EQUATION_ID) << std::endl;
         KRATOS_CHECK_EQUAL(idx, r_node.GetValue(INTERFACE_EQUATION_ID));
         idx += 1;
     }

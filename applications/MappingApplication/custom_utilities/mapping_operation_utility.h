@@ -22,8 +22,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapper_flags.h"
 

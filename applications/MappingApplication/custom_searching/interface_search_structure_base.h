@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/communicator.h"
+#include "includes/kratos_parameters.h"
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_searching/custom_configures/interface_object_configure.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -90,7 +91,8 @@ public:
     ///@{
 
     InterfaceSearchStructureBase(ModelPart& rModelPartOrigin,
-                             MapperLocalSystemPointerVectorPointer pMapperLocalSystems)
+                             MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
+                             Parameters SearchSettings)
         : mrModelPartOrigin(rModelPartOrigin),
           mpMapperLocalSystems(pMapperLocalSystems)
     {

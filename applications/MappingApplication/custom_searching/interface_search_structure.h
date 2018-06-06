@@ -87,9 +87,11 @@ public:
     ///@{
 
     InterfaceSearchStructure(ModelPart& rModelPartOrigin,
-                             MapperLocalSystemPointerVectorPointer pMapperLocalSystems) :
+                             MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
+                             Parameters SearchSettings) :
         InterfaceSearchStructureBase(rModelPartOrigin,
-                                 pMapperLocalSystems)
+                                 pMapperLocalSystems,
+                                 SearchSettings)
     {
         // mEchoLevel = EchoLevel;
     }
