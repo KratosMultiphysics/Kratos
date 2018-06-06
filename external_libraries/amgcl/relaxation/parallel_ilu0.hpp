@@ -97,8 +97,8 @@ struct parallel_ilu0 {
 
         const size_t n = backend::rows(A);
 
-        boost::shared_ptr<build_matrix> Lh = boost::make_shared<build_matrix>();
-        boost::shared_ptr<build_matrix> Uh = boost::make_shared<build_matrix>();
+        std::shared_ptr<build_matrix> Lh = std::make_shared<build_matrix>();
+        std::shared_ptr<build_matrix> Uh = std::make_shared<build_matrix>();
 
         Lh->ncols = Lh->nrows = n;
         Uh->ncols = Uh->nrows = n;
@@ -301,9 +301,9 @@ struct parallel_ilu0 {
     }
 
     private:
-        boost::shared_ptr<matrix> L, U;
-        boost::shared_ptr<matrix_diagonal> D;
-        boost::shared_ptr<vector> t1, t2;
+        std::shared_ptr<matrix> L, U;
+        std::shared_ptr<matrix_diagonal> D;
+        std::shared_ptr<vector> t1, t2;
 
         template <class VectorX>
         void solve(VectorX &x, const params &prm) const

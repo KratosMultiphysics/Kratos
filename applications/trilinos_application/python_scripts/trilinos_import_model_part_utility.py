@@ -39,7 +39,7 @@ class TrilinosImportModelPartUtility():
                 # Partition of the original .mdpa file
                 number_of_partitions = KratosMPI.mpi.size # Number of partitions equals the number of processors
                 domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-                verbosity = 1
+                verbosity = self.settings["echo_level"].GetInt()
                 sync_conditions = True # Make sure that the condition goes to the same partition as the element is a face of
                 partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                 partitioner.Execute()

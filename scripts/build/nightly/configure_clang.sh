@@ -11,9 +11,8 @@ cmake .. \
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 -fopenmp"                                              \
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 -std=c++11 -fopenmp"                               \
 -DBOOST_ROOT="${BOOST_DIR}"                                                                     \
--DPYTHON_LIBRARY="/usr/lib/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}/config-${PYTHON_VERSION_S}.${PYTHON_VERSION_M}m-x86_64-linux-gnu/libpython${PYTHON_VERSION_S}.${PYTHON_VERSION_M}m.so"                            \
--DPYTHON_INCLUDE_DIR="/usr/include/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"               \
--DALE_APPLICATION=ON                                                                            \
+-DPYTHON_EXECUTABLE="/usr/bin/python${PYTHON_VERSION_S}.${PYTHON_VERSION_M}"                    \
+-DMESH_MOVING_APPLICATION=ON                                                                            \
 -DADJOINT_FLUID_APPLICATION=OFF                                                                 \
 -DCONVECTION_DIFFUSION_APPLICATION=ON                                                           \
 -DDAM_APPLICATION=ON                                                                            \
@@ -34,11 +33,12 @@ cmake .. \
 -DSOLID_MECHANICS_APPLICATION=ON                                                                \
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                                            \
 -DSTRUCTURAL_MECHANICS_APPLICATION=ON                                                           \
--DSWIMMING_DEM_APPLICATION=ON                                                                   \
+-DSWIMMING_DEM_APPLICATION=OFF                                                                  \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
 -DMAPPING_APPLICATION=ON                                                                        \
 -DMETIS_APPLICATION=OFF                                                                         \
+-DCOMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=ON                                                    \
 -DPARMETIS_ROOT_DIR=\"UNSET\"                                                                   \
 -DTRILINOS_APPLICATION=OFF                                                                      \
 -DTRILINOS_ROOT=\"UNSET\"                                                                       \

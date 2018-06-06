@@ -207,6 +207,37 @@ class NodalSolutionStepData(Attribute):
         else:
             raise Exception("Invalid dimensions.")
 
+class ElementSolutionStepData(Attribute):
+    """Represents element solution step data."""
+
+    def __init__(self, name, data):
+        #assert isinstance(name, str)
+        #assert isinstance(data, DataItem)
+        self._name = name
+        self._data = data
+    
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag())
+        e.set("Name", self.name())
+        e.set("Center", "Cell")
+        e.set("AttributeType", self.attribute_type())
+        e.append(self._data.create_xml_element())
+        return e
+
+    def name(self):
+        return self._name
+
+    def center(self):
+        return "Cell"
+
+    def attribute_type(self):
+        if len(self._data.dimensions()) == 1:
+            return "Scalar"
+        elif len(self._data.dimensions()) == 2:
+            return "Vector"
+        else:
+            raise Exception("Invalid dimensions.")
+
 
 class SpatialGrid(Grid):
     """Represents a collection of uniform grids with results data."""

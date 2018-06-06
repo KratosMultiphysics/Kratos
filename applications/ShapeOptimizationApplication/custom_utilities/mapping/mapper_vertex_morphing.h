@@ -19,27 +19,12 @@
 #include <algorithm>
 
 // ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
-
-// ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "spatial_containers/spatial_containers.h"
-#include "utilities/timer.h"
-#include "processes/node_erase_process.h"
-#include "utilities/binbased_fast_point_locator.h"
-#include "utilities/normal_calculation_utils.h"
+#include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "filter_function.h"
@@ -135,7 +120,7 @@ public:
     // --------------------------------------------------------------------------
     void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
     {
-        boost::timer mapping_time;
+        BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
 
         RecomputeMappingMatrixIfGeometryHasChanged();
@@ -146,13 +131,13 @@ public:
             MultiplyVectorsWithTransposeMappingMatrix();
         AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
 
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
     {
-        boost::timer mapping_time;
+        BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
 
         RecomputeMappingMatrixIfGeometryHasChanged();
@@ -160,7 +145,7 @@ public:
         MultiplyVectorsWithMappingMatrix();
         AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
 
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
     }
     // --------------------------------------------------------------------------
 
@@ -328,13 +313,13 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
-        boost::timer timer;
+        BuiltinTimer timer;
         std::cout << "> Computing mapping matrix to perform mapping..." << std::endl;
 
         CreateSearchTreeWithAllNodesOnDesignSurface();
         ComputeEntriesOfMappingMatrix();
 
-        std::cout << "> Mapping matrix computed in: " << timer.elapsed() << " s" << std::endl;
+        std::cout << "> Mapping matrix computed in: " << timer.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -519,7 +504,7 @@ private:
         for(auto& node_i : mrDesignSurface.Nodes())
         {
             array_3d& coord = node_i.Coordinates();
-            sumOfAllCoordinates += coord[0] + coord[1] + coord[2];
+            sumOfAllCoordinates += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
         }
 
         if (mControlSum == sumOfAllCoordinates)

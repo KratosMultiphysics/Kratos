@@ -117,7 +117,7 @@ struct nullspace_params {
  * \see \cite Vanek2001
  */
 template <class Matrix>
-boost::shared_ptr<Matrix> tentative_prolongation(
+std::shared_ptr<Matrix> tentative_prolongation(
         size_t n,
         size_t naggr,
         const std::vector<ptrdiff_t> aggr,
@@ -127,7 +127,7 @@ boost::shared_ptr<Matrix> tentative_prolongation(
 {
     typedef typename backend::value_type<Matrix>::type value_type;
 
-    boost::shared_ptr<Matrix> P = boost::make_shared<Matrix>();
+    std::shared_ptr<Matrix> P = std::make_shared<Matrix>();
 
     AMGCL_TIC("tentative");
     if (nullspace.cols > 0) {

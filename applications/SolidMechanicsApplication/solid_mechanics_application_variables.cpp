@@ -15,8 +15,21 @@ namespace Kratos
   ///@{
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
-  typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >   VariableComponentType;
-  typedef TimeIntegrationMethod<VariableComponentType, double>     TimeIntegrationMethodComponentType;
+
+  typedef array_1d<double, 3>                                                                      VectorType;
+  typedef Variable<VectorType>                                                             VariableVectorType;
+  typedef Variable<double>                                                                 VariableScalarType;
+  typedef VariableComponent<VectorComponentAdaptor<VectorType>>                         VariableComponentType;
+
+  typedef TimeIntegrationMethodsContainer<VariableVectorType, double>      VectorTimeIntegrationContainerType;
+  typedef VectorTimeIntegrationContainerType::Pointer               VectorTimeIntegrationContainerPointerType;
+
+  typedef TimeIntegrationMethodsContainer<VariableScalarType, double>      ScalarTimeIntegrationContainerType;
+  typedef ScalarTimeIntegrationContainerType::Pointer               ScalarTimeIntegrationContainerPointerType;
+
+  typedef TimeIntegrationMethodsContainer<VariableComponentType, double> ComponentTimeIntegrationContainerType;
+  typedef ComponentTimeIntegrationContainerType::Pointer          ComponentTimeIntegrationContainerPointerType;
+
   ///@}
 
   ///@name Kratos Globals
@@ -28,17 +41,22 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( int, BUILD_LEVEL )
   KRATOS_CREATE_VARIABLE( Vector, EIGENVALUE_VECTOR)
   KRATOS_CREATE_VARIABLE( Matrix , EIGENVECTOR_MATRIX )
+  
+  //integration methods
+  KRATOS_CREATE_VARIABLE( VectorTimeIntegrationContainerPointerType, VECTOR_TIME_INTEGRATION_METHODS )  
+  KRATOS_CREATE_VARIABLE( ScalarTimeIntegrationContainerPointerType, SCALAR_TIME_INTEGRATION_METHODS )  
+  KRATOS_CREATE_VARIABLE( ComponentTimeIntegrationContainerPointerType, COMPONENT_TIME_INTEGRATION_METHODS )  
 
   //explicit schemes
-  KRATOS_CREATE_VARIABLE( TimeIntegrationMethodComponentType::Pointer, TIME_INTEGRATION_METHOD )
-  KRATOS_CREATE_VARIABLE( TimeIntegrationMethodComponentType::Pointer, ANGULAR_TIME_INTEGRATION_METHOD )
+  KRATOS_CREATE_VARIABLE(bool, COMPUTE_CONSISTENT_MASS_MATRIX)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
   //solution
   KRATOS_CREATE_VARIABLE( int, WRITE_ID )
+  KRATOS_CREATE_VARIABLE( int, TIME_INTEGRATION_ORDER )  
   KRATOS_CREATE_VARIABLE( double, RAYLEIGH_ALPHA )
   KRATOS_CREATE_VARIABLE( double, RAYLEIGH_BETA )
-  
+
   //geometrical
   KRATOS_CREATE_VARIABLE( Matrix ,GEOMETRIC_STIFFNESS )
 
@@ -63,54 +81,43 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix, SHELL_MOMENT )
   KRATOS_CREATE_VARIABLE( Matrix, SHELL_MOMENT_GLOBAL )
   
-  //nodal load variables
+  //nodal load variable (legacy)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_LOAD )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LINE_LOAD )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( SURFACE_LOAD )
+  
+  //force loads
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_LOAD )
+  KRATOS_CREATE_VARIABLE( Vector, FORCE_LOAD_VECTOR )
+  
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FOLLOWER_FORCE_LOAD )
+  KRATOS_CREATE_VARIABLE( Vector, FOLLOWER_FORCE_LOAD_VECTOR )
+  
+  //moment loads
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MOMENT_LOAD )
+  KRATOS_CREATE_VARIABLE( Vector, MOMENT_LOAD_VECTOR )
+   
+  //elastic loads
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ELASTIC_LOAD )
+  KRATOS_CREATE_VARIABLE( Vector, ELASTIC_LOAD_VECTOR )  
 
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FOLLOWER_POINT_LOAD )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FOLLOWER_LINE_LOAD )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FOLLOWER_SURFACE_LOAD )
-  
-  //nodal moment variables
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_MOMENT )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LINE_MOMENT )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( SURFACE_MOMENT )
-
-  KRATOS_CREATE_VARIABLE( double, PLANE_POINT_MOMENT )
-  KRATOS_CREATE_VARIABLE( double, PLANE_LINE_MOMENT )
-  KRATOS_CREATE_VARIABLE( double, BALLAST_COEFFICIENT )
-  
-  //nodal elastic variables
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_STIFFNESS )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LINE_STIFFNESS )
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( SURFACE_STIFFNESS )
-  
-  //condition load variables
-  KRATOS_CREATE_VARIABLE( Vector, POINT_LOAD_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, LINE_LOAD_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, SURFACE_LOAD_VECTOR )
+  //force pressure
   KRATOS_CREATE_VARIABLE( Vector, POSITIVE_FACE_PRESSURE_VECTOR )
   KRATOS_CREATE_VARIABLE( Vector, NEGATIVE_FACE_PRESSURE_VECTOR )
-
-  //condition moment variables
-  KRATOS_CREATE_VARIABLE( Vector, POINT_MOMENT_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, LINE_MOMENT_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, SURFACE_MOMENT_VECTOR )
   
-  KRATOS_CREATE_VARIABLE( Vector, PLANE_POINT_MOMENT_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, PLANE_LINE_MOMENT_VECTOR )
+  //moment pressures
+  KRATOS_CREATE_VARIABLE( double, PLANE_MOMENT_LOAD )
+  KRATOS_CREATE_VARIABLE( Vector, PLANE_MOMENT_LOAD_VECTOR )
   
-  //condition elastic variables
-  KRATOS_CREATE_VARIABLE( Vector, POINT_STIFFNESS_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, LINE_STIFFNESS_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, SURFACE_STIFFNESS_VECTOR )
+  //elastic pressures
+  KRATOS_CREATE_VARIABLE( double, BALLAST_COEFFICIENT )
   KRATOS_CREATE_VARIABLE( Vector, BALLAST_COEFFICIENT_VECTOR )
   
   //element
   KRATOS_CREATE_VARIABLE( double, VON_MISES_STRESS )
 
   //nodal dofs
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_REACTION )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ROTATION_REACTION )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( VELOCITY_REACTION )
   KRATOS_CREATE_VARIABLE( double, PRESSURE_REACTION )
   
   //explicit beam

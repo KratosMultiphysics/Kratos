@@ -7,8 +7,8 @@
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Klaus B. Sautter
-//                   
-//                   
+//
+//
 //
 
 #if !defined(KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED )
@@ -26,11 +26,11 @@
 
 namespace Kratos
 {
-	/** 
+	/**
      * @class CrBeamElement3D2N
-     * 
+     *
      * @brief This is a 3D-2node beam element with 3 translational dofs and 3 rotational dof per node
-     * 
+     *
      * @author Klaus B Sautter
      */
 
@@ -85,32 +85,32 @@ namespace Kratos
 		/**
          * @brief This function calculates the elastic part of the total stiffness matrix
          */
-		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material();
+		BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material();
 
 		/**
          * @brief This function calculates the geometric part of the total stiffness matrix
          */
-		bounded_matrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
+		BoundedMatrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
 
 		/**
          * @brief This function calculates the element stiffness w.r.t. deformation modes
          */
-		virtual bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
+		virtual BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
 
 		/**
          * @brief This function calculates a transformation matrix from deformation modes to real deformations
          */
-		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+		BoundedMatrix<double,msElementSize,msLocalSize> CalculateTransformationS();
 
 		/**
          * @brief This function calculates the current nodal position
          */
-		bounded_vector<double,msLocalSize> GetCurrentNodalPosition();
+		BoundedVector<double,msLocalSize> GetCurrentNodalPosition();
 
 		/**
          * @brief This function calculates the internal element forces
          */
-		bounded_vector<double,msLocalSize> CalculateElementForces(const Vector& Bisectrix,const Vector& VectorDifference);
+		BoundedVector<double,msLocalSize> CalculateElementForces(const Vector& Bisectrix,const Vector& VectorDifference);
 
 
 		/**
@@ -118,20 +118,20 @@ namespace Kratos
 		 * @param rRotationMatrix The current transformation matrix
          */
 		void CalculateTransformationMatrix(
-			bounded_matrix<double,msElementSize,msElementSize>& rRotationMatrix,
+			BoundedMatrix<double,msElementSize,msElementSize>& rRotationMatrix,
 			Vector& Bisectrix, Vector& VectorDifference);
 
 
 		/**
          * @brief This function calculates the initial transformation matrix to globalize/localize vectors and/or matrices
          */
-		bounded_matrix<double,msElementSize,msElementSize> CalculateInitialLocalCS();
+		BoundedMatrix<double,msElementSize,msElementSize> CalculateInitialLocalCS();
 
 
 		/**
          * @brief This function updates constantly the transformation matrix
          */
-		bounded_matrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference);
+		BoundedMatrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference);
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
@@ -210,7 +210,7 @@ namespace Kratos
 		 * @param SmallMatrix The local transformation matrix
 		 * @param BigMatrix The total global rotation matrix
          */
-		void AssembleSmallInBigMatrix(Matrix SmallMatrix, bounded_matrix<double,
+		void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
 			msElementSize,msElementSize>& BigMatrix);
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
@@ -247,7 +247,7 @@ namespace Kratos
 		/**
          * @brief This function calculates self-weight forces
          */
-		bounded_vector<double,msElementSize> CalculateBodyForces();  
+		BoundedVector<double,msElementSize> CalculateBodyForces();
 
 		void CalculateOnIntegrationPoints(
 			const Variable<array_1d<double, 3 > >& rVariable,
@@ -278,30 +278,30 @@ namespace Kratos
 		 * @param ForceInput The self-weight line load vector
 		 * @param rRightHandSideVector The right hand side of the problem
 		 * @param GeometryLength The element length
-         */		
+         */
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-			const bounded_vector<double,msDimension> ForceInput,
-			bounded_vector<double,msElementSize>& rRightHandSideVector,
+			const BoundedVector<double,msDimension> ForceInput,
+			BoundedVector<double,msElementSize>& rRightHandSideVector,
 			const double GeometryLength);
 
 
 		/**
          * @brief This function calculates the symmetric deformation modes
 		 * @param VectorDifference The vector differences of the quaternions
-         */		
-		Vector CalculateSymmetricDeformationMode(const Vector& VectorDifference); 
+         */
+		Vector CalculateSymmetricDeformationMode(const Vector& VectorDifference);
 
 		/**
          * @brief This function calculates the antisymmetric deformation modes
 		 * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
-         */		
-		Vector CalculateAntiSymmetricDeformationMode(const Vector& Bisectrix); 
+         */
+		Vector CalculateAntiSymmetricDeformationMode(const Vector& Bisectrix);
 
 		/**
          * @brief This function calculates the local nodal forces
 		 * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
 		 * @param VectorDifference The vector differences of the quaternions
-         */		
+         */
 		void CalculateLocalNodalForces(const Vector& Bisectrix,const Vector& VectorDifference);
 
 	private:
@@ -317,7 +317,7 @@ namespace Kratos
 
 
 
-	
+
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;

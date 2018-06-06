@@ -17,7 +17,7 @@
 //
 //
 
-#if !defined(KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED )
+#if !defined(KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED)
 #define  KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED
 
 // System includes
@@ -48,6 +48,8 @@
 
 #include "custom_elements/solid_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
+
+#include "custom_elements/solid_elements/updated_lagrangian_V_element.hpp"
 
 //beam elements
 #include "custom_elements/beam_elements/beam_element.hpp"
@@ -156,7 +158,7 @@ typedef array_1d<double,6> Vector6;
 /// Short class definition.
 /** Detail class definition.
  */
- class KratosSolidMechanicsApplication : public KratosApplication
+ class KRATOS_API(SOLID_MECHANICS_APPLICATION) KratosSolidMechanicsApplication : public KratosApplication
  {
  public:
 
@@ -189,7 +191,7 @@ typedef array_1d<double,6> Vector6;
    ///@name Operations
    ///@{
 
-   virtual void Register();
+   void Register() override;
 
 
 
@@ -208,20 +210,20 @@ typedef array_1d<double,6> Vector6;
    ///@{
 
    /// Turn back information as a string.
-   virtual std::string Info() const
+   std::string Info() const override
    {
      return "KratosSolidMechanicsApplication";
    }
 
    /// Print information about this object.
-   virtual void PrintInfo(std::ostream& rOStream) const
+   void PrintInfo(std::ostream& rOStream) const override
    {
      rOStream << Info();
      PrintData(rOStream);
    }
 
    ///// Print object's data.
-   virtual void PrintData(std::ostream& rOStream) const
+   void PrintData(std::ostream& rOStream) const override
    {
      KRATOS_WATCH( "in KratosSolidMechanicsApplication" )
      KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
@@ -374,6 +376,22 @@ typedef array_1d<double,6> Vector6;
    const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D8N;
    const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D9N;
 
+   //velocity based elements
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D3N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D4N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D6N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D8N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement2D9N;
+
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D4N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D6N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D8N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D10N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D15N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D20N;
+   const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D27N;
+   
+   //mixed elements UP
    const UpdatedLagrangianUPElement         mUpdatedLagrangianUPElement2D3N;
    const AxisymmetricUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
    const UpdatedLagrangianUPElement         mUpdatedLagrangianUPElement3D4N;
@@ -383,6 +401,7 @@ typedef array_1d<double,6> Vector6;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D3N;
    const LargeDisplacementBeamEMCElement    mLargeDisplacementBeamEMCElement3D2N;
+   const LargeDisplacementBeamEMCElement    mLargeDisplacementBeamEMCElement3D3N;
    const LargeDisplacementBeamSEMCElement   mLargeDisplacementBeamSEMCElement3D2N;
    const GeometricallyExactRodElement       mGeometricallyExactRodElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement2D2N;

@@ -31,7 +31,7 @@ namespace Kratos
  * 4) POWER_LAW_N
  */
 
-class HerschelBulkley3DLaw : public FluidConstitutiveLaw
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) HerschelBulkley3DLaw : public FluidConstitutiveLaw
 {
 public:
     /**

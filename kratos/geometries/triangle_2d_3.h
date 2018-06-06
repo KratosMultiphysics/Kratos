@@ -724,7 +724,7 @@ public:
         const TPointType& point_0 = this->GetPoint(0);
 
         // Compute the Jacobian matrix and its determinant
-        bounded_matrix<double, 2, 2> J;
+        BoundedMatrix<double, 2, 2> J;
         J(0,0) = this->GetPoint(1).X() - this->GetPoint(0).X();
         J(0,1) = this->GetPoint(2).X() - this->GetPoint(0).X();
         J(1,0) = this->GetPoint(1).Y() - this->GetPoint(0).Y();
@@ -791,7 +791,7 @@ public:
 
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 3 )
             NumberNodesInFaces.resize(3,false);
@@ -802,7 +802,7 @@ public:
 
     }
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(3,3,false);
@@ -827,9 +827,6 @@ public:
     ///@name Shape Function
     ///@{
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -901,7 +898,7 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        BoundedMatrix<double,3,2> DN_DX;
         double x10 = this->Points()[1].X() - this->Points()[0].X();
         double y10 = this->Points()[1].Y() - this->Points()[0].Y();
 
@@ -944,7 +941,7 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        BoundedMatrix<double,3,2> DN_DX;
         double x10 = this->Points()[1].X() - this->Points()[0].X();
         double y10 = this->Points()[1].Y() - this->Points()[0].Y();
 
@@ -1257,7 +1254,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1334,9 +1331,6 @@ private:
     ///@{
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
      * @param ThisMethod the current integration method
@@ -1370,9 +1364,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the local gradients of all shape functions
      * in all integration points.

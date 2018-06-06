@@ -107,7 +107,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
       KRATOS_TRY
 
@@ -149,19 +149,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "BuildContactModelPartProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "BuildContactModelPartProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -362,8 +362,8 @@ namespace Kratos
     
       //*******************************************************************
       //set holes (inside point of the contact domains):
-      std::vector<bounded_vector<double, 3> > Holes;
-      bounded_vector<double, 3> Point;
+      std::vector<BoundedVector<double, 3> > Holes;
+      BoundedVector<double, 3> Point;
 
       for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
 	{

@@ -44,13 +44,13 @@ public:
     ModifiedMisesNonlocalDamagePlaneStrain2DLaw (const ModifiedMisesNonlocalDamagePlaneStrain2DLaw& rOther);
 
     /// Destructor
-    virtual ~ModifiedMisesNonlocalDamagePlaneStrain2DLaw();
+    ~ModifiedMisesNonlocalDamagePlaneStrain2DLaw() override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
     
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -66,12 +66,12 @@ private:
     
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }

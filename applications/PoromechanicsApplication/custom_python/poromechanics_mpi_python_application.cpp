@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:              March 2017 $
@@ -7,8 +7,12 @@
 
 #if defined(KRATOS_PYTHON)
 
-// External includes 
-#include <boost/python.hpp>
+// System includes
+#include <pybind11/pybind11.h>
+
+// Project includes
+#include "includes/define.h"
+#include "includes/define_python.h"
 
 // Application includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -17,51 +21,55 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "poromechanics_application.h"
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-using namespace boost::python;
-  
-BOOST_PYTHON_MODULE(KratosPoromechanicsApplication)
-{
-    class_<KratosPoromechanicsApplication, 
-    KratosPoromechanicsApplication::Pointer, 
-    bases<KratosApplication>, boost::noncopyable >("KratosPoromechanicsApplication");
+using namespace pybind11;
 
-    AddCustomStrategiesToPython();
-    AddCustomMPIStrategiesToPython();
-    AddCustomConstitutiveLawsToPython();
-    AddCustomProcessesToPython();
-    AddCustomUtilitiesToPython();
+PYBIND11_MODULE(KratosPoromechanicsApplication, m)
+{
+    class_<KratosPoromechanicsApplication,
+    KratosPoromechanicsApplication::Pointer,
+    KratosApplication>(m, "KratosPoromechanicsApplication")
+    .def(init<>());
+
+    AddCustomStrategiesToPython(m);
+    AddCustomMPIStrategiesToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
+    AddCustomProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //Registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DT_WATER_PRESSURE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_FLUID_FLUX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, DT_WATER_PRESSURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NORMAL_FLUID_FLUX )
 
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( FLUID_FLUX_VECTOR )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LOCAL_FLUID_FLUX_VECTOR )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LOCAL_STRESS_VECTOR )
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LOCAL_RELATIVE_DISPLACEMENT_VECTOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PERMEABILITY_MATRIX )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOCAL_PERMEABILITY_MATRIX )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TOTAL_STRESS_TENSOR )
-    
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_CONVERGED )
-    
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ARC_LENGTH_LAMBDA )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ARC_LENGTH_RADIUS_FACTOR )
-    
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_UNIT_CONVERTER )
-    
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( JOINT_WIDTH )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( m, FLUID_FLUX_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( m, LOCAL_FLUID_FLUX_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( m, LOCAL_STRESS_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( m, LOCAL_RELATIVE_DISPLACEMENT_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PERMEABILITY_MATRIX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, LOCAL_PERMEABILITY_MATRIX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, TOTAL_STRESS_TENSOR )
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_SMOOTHING )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_CAUCHY_STRESS_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_VON_MISES_STRESS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, IS_CONVERGED )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, ARC_LENGTH_LAMBDA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, ARC_LENGTH_RADIUS_FACTOR )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, TIME_UNIT_CONVERTER )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, JOINT_WIDTH )
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_SMOOTHING )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_CAUCHY_STRESS_TENSOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_DAMAGE_VARIABLE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_AREA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_WIDTH )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_DAMAGE )
 }
 
 }  // namespace Python.

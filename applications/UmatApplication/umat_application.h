@@ -34,13 +34,13 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
-// ConstitutiveLaw interfaces
-//#include "custom_laws/small_strain_umat_3D_law.hpp"
-//#include "custom_laws/large_strain_umat_3D_law.hpp"
-
+// Constitutive models
 #include "custom_models/von_mises_umat_small_strain_model.hpp"
 #include "custom_models/hypoplastic_umat_small_strain_model.hpp"
 #include "custom_models/von_mises_umat_large_strain_model.hpp"
+
+// Core applications
+#include "umat_application_variables.h"
 
 namespace Kratos {
 
@@ -95,7 +95,7 @@ public:
 	///@name Operations
 	///@{
 
-	virtual void Register();
+        void Register() override;
 
 
 
@@ -114,18 +114,18 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	virtual std::string Info() const {
+	std::string Info() const override {
 		return "KratosUmatApplication";
 	}
 
 	/// Print information about this object.
-	virtual void PrintInfo(std::ostream& rOStream) const {
+	void PrintInfo(std::ostream& rOStream) const override {
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	///// Print object's data.
-	virtual void PrintData(std::ostream& rOStream) const {
+	void PrintData(std::ostream& rOStream) const override {
   		KRATOS_WATCH("in UmatApplication");
   		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 		rOStream << "Variables:" << std::endl;

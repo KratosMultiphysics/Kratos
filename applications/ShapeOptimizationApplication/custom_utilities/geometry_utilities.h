@@ -17,24 +17,14 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-
-// ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <unordered_map>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
+#include "includes/key_hash.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -79,28 +69,6 @@ public:
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
 
-	// Structs needed for operations related to surface extraction
-	struct KeyComparor
-	{
-		bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
-		{
-			if(lhs.size() != rhs.size())
-				return false;
-
-			for(unsigned int i=0; i<lhs.size(); i++)
-				if(lhs[i] != rhs[i]) return false;
-
-			return true;
-		}
-	};
-	struct KeyHasher
-	{
-		std::size_t operator()(const vector<int>& k) const
-		{
-			return boost::hash_range(k.begin(), k.end());
-		}
-	};
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -132,6 +100,8 @@ public:
         KRATOS_TRY;
 
         const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
+            "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
         CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
         CalculateUnitNormals();
 
@@ -158,7 +128,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ExtractSurfaceNodes( std::string const& NewSubModelPartName )
+    void ExtractBoundaryNodes( std::string const& NewSubModelPartName )
     {
     	KRATOS_TRY;
 
@@ -172,49 +142,55 @@ public:
     	mrModelPart.CreateSubModelPart(NewSubModelPartName);
 
     	// Some type-definitions
-    	typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasherRange<vector<unsigned int>>, KeyComparorRange<vector<unsigned int>> > hashmap;
 
     	// Create map to ask for number of faces for the given set of node ids representing one face in the model part
-    	hashmap n_faces_map;
+    	hashmap n_boundaries_map;
+
+        unsigned int domain_size = static_cast<unsigned int>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
 
     	// Fill map that counts number of faces for given set of nodes
     	for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
     	{
-    		Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+            Element::GeometryType::GeometriesArrayType boundaries;
+            if (domain_size==3)
+                boundaries = itElem->GetGeometry().Faces();
+            else if (domain_size == 2)
+                boundaries = itElem->GetGeometry().Edges();
 
-    		for(unsigned int face=0; face<faces.size(); face++)
-    		{
-    			// Create vector that stores all node is of current face
-    			vector<unsigned int> ids(faces[face].size());
+            for(unsigned int boundary=0; boundary<boundaries.size(); boundary++)
+            {
+                // Create vector that stores all node is of current face
+                DenseVector<unsigned int> ids(boundaries[boundary].size());
 
-    			// Store node ids
-    			for(unsigned int i=0; i<faces[face].size(); i++)
-    				ids[i] = faces[face][i].Id();
+                // Store node ids
+                for(unsigned int i=0; i<boundaries[boundary].size(); i++)
+                    ids[i] = boundaries[boundary][i].Id();
 
-    			//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-    			std::sort(ids.begin(), ids.end());
+                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                std::sort(ids.begin(), ids.end());
 
-    			// Fill the map
-    			n_faces_map[ids] += 1;
-    		}
+                // Fill the map
+                n_boundaries_map[ids] += 1;
+            }
     	}
 
     	// Vector to store all nodes on surface. Node ids may be listed several times
-    	std::vector<std::size_t> temp_surface_node_ids;
+    	std::vector<std::size_t> temp_boundary_node_ids;
 
     	// Add surface nodes to sub-model part
-    	for(hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
+    	for(auto it=n_boundaries_map.begin(); it!=n_boundaries_map.end(); it++)
     	{
     		// If given node set represents face that is not overlapping with a face of another element, add it as skin element
     		if(it->second == 1)
     		{
     			for(unsigned int i=0; i<it->first.size(); i++)
-    				temp_surface_node_ids.push_back(it->first[i]);
+    				temp_boundary_node_ids.push_back(it->first[i]);
     		}
     	}
 
     	// Add nodes and remove double entries
-    	mrModelPart.GetSubModelPart(NewSubModelPartName).AddNodes(temp_surface_node_ids);
+    	mrModelPart.GetSubModelPart(NewSubModelPartName).AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
     }

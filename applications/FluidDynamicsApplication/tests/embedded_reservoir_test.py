@@ -1,6 +1,11 @@
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    have_external_solvers = True
+except ImportError as e:
+    have_external_solvers = False
+
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
@@ -17,59 +22,41 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
 class EmbeddedReservoirTest(UnitTest.TestCase):
     def testEmbeddedReservoir2D(self):
         self.distance = 0.5
         self.slip_level_set = False
-        self.work_folder = "EmbeddedReservoirTest"   
+        self.work_folder = "EmbeddedReservoirTest"
         self.reference_file = "reference_reservoir_2D"
         self.settings = "EmbeddedReservoir2DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedReservoir3D(self):
         self.distance = 0.5
         self.slip_level_set = False
-        self.work_folder = "EmbeddedReservoirTest"   
+        self.work_folder = "EmbeddedReservoirTest"
         self.reference_file = "reference_reservoir_3D"
         self.settings = "EmbeddedReservoir3DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedSlipReservoir2D(self):
         self.distance = 0.5
         self.slip_level_set = True
-        self.work_folder = "EmbeddedReservoirTest"   
+        self.work_folder = "EmbeddedReservoirTest"
         self.reference_file = "reference_slip_reservoir_2D"
         self.settings = "EmbeddedReservoir2DTest_parameters.json"
-
-        with WorkFolderScope(self.work_folder):
-            self.setUp()
-            self.setUpProblem()
-            self.setUpDistanceField()
-            self.runTest()
-            self.tearDown()
-            self.checkResults()
+        self.ExecuteEmbeddedReservoirTest()
 
     def testEmbeddedSlipReservoir3D(self):
         self.distance = 0.5
         self.slip_level_set = True
-        self.work_folder = "EmbeddedReservoirTest"   
+        self.work_folder = "EmbeddedReservoirTest"
         self.reference_file = "reference_slip_reservoir_3D"
         self.settings = "EmbeddedReservoir3DTest_parameters.json"
+        self.ExecuteEmbeddedReservoirTest()
 
+    def ExecuteEmbeddedReservoirTest(self):
         with WorkFolderScope(self.work_folder):
             self.setUp()
             self.setUpProblem()
@@ -136,11 +123,11 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
 
     def setUpDistanceField(self):
         # Set the distance function
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             for node in self.main_model_part.Nodes:
                 distance = node.Y-self.distance
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
-        elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+        elif (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
             for node in self.main_model_part.Nodes:
                 distance = node.Z-self.distance
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
@@ -248,11 +235,11 @@ if __name__ == '__main__':
     test.print_output = False
     test.print_reference_values = False
     test.work_folder = "EmbeddedReservoirTest"
-    test.reference_file = "reference_slip_reservoir_2D"   
+    test.reference_file = "reference_slip_reservoir_2D"
     test.settings = "EmbeddedReservoir2DTest_parameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
     test.runTest()
     test.tearDown()
     test.checkResults()
-    
+

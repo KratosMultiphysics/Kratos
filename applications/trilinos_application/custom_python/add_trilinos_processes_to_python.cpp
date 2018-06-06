@@ -1,7 +1,5 @@
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
-
 #include "custom_python/add_trilinos_processes_to_python.h"
 
 //Trilinos includes
@@ -39,47 +37,54 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
-void AddProcesses()
+void AddProcesses(pybind11::module& m)
 {
     typedef SpalartAllmarasTurbulenceModel<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSpAlModelType;
 
-    class_ < BaseSpAlModelType,bases< Process >, boost::noncopyable >
-    ( "TrilinosBaseSpAlModel",no_init );
+    class_<BaseSpAlModelType, BaseSpAlModelType::Pointer, Process>(m, "TrilinosBaseSpAlModel" );
 
     // Turbulence models
-    class_< TrilinosSpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, bases<BaseSpAlModelType>, boost::noncopyable >
-    ("TrilinosSpalartAllmarasTurbulenceModel", init < Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
+    typedef TrilinosSpalartAllmarasTurbulenceModel<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosSpAlModelType;
+    class_<TrilinosSpAlModelType, TrilinosSpAlModelType::Pointer, BaseSpAlModelType >
+    (m,"TrilinosSpalartAllmarasTurbulenceModel")
+    .def(init < Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::AdaptForFractionalStep)
     ;
 
     typedef StokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseStokesInitializationType;
 
-    class_ < BaseStokesInitializationType,bases< Process >, boost::noncopyable >
-            ( "TrilinosBaseStokesInitialization",no_init )
+    class_<BaseStokesInitializationType, BaseStokesInitializationType::Pointer, Process>
+            (m, "TrilinosBaseStokesInitialization" )
             .def("SetConditions",&BaseStokesInitializationType::SetConditions);
 
-    class_< TrilinosStokesInitializationProcess< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, bases<BaseStokesInitializationType>, boost::noncopyable >
-            ("TrilinosStokesInitializationProcess",init<Epetra_MpiComm&, ModelPart::Pointer,TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
+    typedef TrilinosStokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosStokesInitializationType;
+    class_<TrilinosStokesInitializationType, TrilinosStokesInitializationType::Pointer, BaseStokesInitializationType >
+            (m,"TrilinosStokesInitializationProcess")
+            .def(init<Epetra_MpiComm&, ModelPart::Pointer,TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
             ;
 
     typedef VariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseDistanceCalculationType2D;
     typedef VariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseDistanceCalculationType3D;
 
-    class_< BaseDistanceCalculationType2D, bases< Process >, boost::noncopyable >("BaseDistanceCalculation2D",no_init);
-    class_< BaseDistanceCalculationType3D, bases< Process >, boost::noncopyable >("BaseDistanceCalculation3D",no_init);
+    class_<BaseDistanceCalculationType2D, BaseDistanceCalculationType2D::Pointer, Process>(m,"BaseDistanceCalculation2D");
+    class_<BaseDistanceCalculationType3D, BaseDistanceCalculationType3D::Pointer, Process>(m,"BaseDistanceCalculation3D");
 
-    class_< TrilinosVariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>,
-            bases< BaseDistanceCalculationType2D >, boost::noncopyable >("TrilinosVariationalDistanceCalculationProcess2D",init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int>() );
+    typedef TrilinosVariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosDistanceCalculationType2D;
+    class_<TrilinosDistanceCalculationType2D, TrilinosDistanceCalculationType2D::Pointer,
+            BaseDistanceCalculationType2D >(m,"TrilinosVariationalDistanceCalculationProcess2D")
+            .def(init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int>() );
 
-    class_< TrilinosVariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType>,
-            bases< BaseDistanceCalculationType3D >, boost::noncopyable >("TrilinosVariationalDistanceCalculationProcess3D",init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int>() );
+    typedef TrilinosVariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosDistanceCalculationType3D;
+    class_<TrilinosDistanceCalculationType3D, TrilinosDistanceCalculationType3D::Pointer,
+            BaseDistanceCalculationType3D >(m,"TrilinosVariationalDistanceCalculationProcess3D")
+            .def(init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int>() );
 }
 
 }

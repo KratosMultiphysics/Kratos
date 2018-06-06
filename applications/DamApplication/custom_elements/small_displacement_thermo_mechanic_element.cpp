@@ -176,10 +176,10 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
         else if(NumNodes == 4)
         {
             // Quadrilateral_2d_4 with GI_GAUSS_2
-            boost::numeric::ublas::bounded_matrix<double,4,4> ExtrapolationMatrix;
+            BoundedMatrix<double,4,4> ExtrapolationMatrix;
             ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
             
-            boost::numeric::ublas::bounded_matrix<double,4,3> AuxNodalStress;
+            BoundedMatrix<double,4,3> AuxNodalStress;
             noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
             /* INFO:
@@ -223,10 +223,10 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
         else if(NumNodes == 8)
         {
             // Hexahedra_3d_8 with GI_GAUSS_2
-            boost::numeric::ublas::bounded_matrix<double,8,8> ExtrapolationMatrix;
+            BoundedMatrix<double,8,8> ExtrapolationMatrix;
             ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
             
-            boost::numeric::ublas::bounded_matrix<double,8,6> AuxNodalStress;
+            BoundedMatrix<double,8,6> AuxNodalStress;
             noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
             for(unsigned int i = 0; i < 8; i++) //TNumNodes

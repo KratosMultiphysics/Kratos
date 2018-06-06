@@ -31,7 +31,7 @@ class TimeDependantPorosityField: public RealField
       //***************************************************************************************************************
       //***************************************************************************************************************
 
-      double Evaluate(const double time, const array_1d<double, 3>& coor)
+      double Evaluate(const double time, const array_1d<double, 3>& coor) override
       {
         return ((coor[1] - 2) / (2 * time - mC));
       }
@@ -39,7 +39,7 @@ class TimeDependantPorosityField: public RealField
       //***************************************************************************************************************
       //***************************************************************************************************************
 
-      double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+      double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor) override
       {
         return (2 * (2 - coor[1]) / ((2 * time - 4) * (2 * time - mC)));
       }
@@ -47,7 +47,7 @@ class TimeDependantPorosityField: public RealField
       //***************************************************************************************************************
       //***************************************************************************************************************
 
-      void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
+      void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient) override
       {
         gradient[0] = 0.0;
         gradient[1] = 1.0 / (2 * time - mC);
@@ -57,7 +57,7 @@ class TimeDependantPorosityField: public RealField
       //***************************************************************************************************************
       //***************************************************************************************************************
 
-      void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
+      void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian) override
       {
         laplacian[0] = 0.0;
         laplacian[1] = 0.0;
@@ -78,20 +78,20 @@ class TimeDependantPorosityField: public RealField
 
         /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-        virtual std::string Info() const
+        virtual std::string Info() const override
         {
             return "";
         }
 
         /// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const
+        virtual void PrintInfo(std::ostream& rOStream) const override
         {
         }
 
         /// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const
+        virtual void PrintData(std::ostream& rOStream) const override
         {
         }
 
@@ -185,6 +185,8 @@ class TimeDependantForceField: public VectorField<3>
 {
 
 public:
+
+KRATOS_CLASS_POINTER_DEFINITION(TimeDependantForceField);
 
 TimeDependantForceField(const double max_time): mAlpha(max_time){}
 

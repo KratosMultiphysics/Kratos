@@ -223,8 +223,8 @@ namespace Kratos
     //STIFFNESS CONDITION:
     
     //defined on condition
-    if( this->Has( SURFACE_STIFFNESS ) ){
-      array_1d<double, 3 > & SurfaceStiffness = this->GetValue( SURFACE_STIFFNESS );
+    if( this->Has( ELASTIC_LOAD ) ){
+      array_1d<double, 3 > & SurfaceStiffness = this->GetValue( ELASTIC_LOAD );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
@@ -233,8 +233,8 @@ namespace Kratos
     }
 
     //defined on condition nodes
-    if( this->Has( SURFACE_STIFFNESS_VECTOR ) ){
-      Vector& SurfaceStiffnesss = this->GetValue( SURFACE_STIFFNESS_VECTOR );
+    if( this->Has( ELASTIC_LOAD_VECTOR ) ){
+      Vector& SurfaceStiffnesss = this->GetValue( ELASTIC_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
@@ -249,8 +249,8 @@ namespace Kratos
     //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_STIFFNESS ) ){
-	  array_1d<double, 3 > & SurfaceStiffness = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_STIFFNESS );
+	if( GetGeometry()[i].SolutionStepsDataHas( ELASTIC_LOAD ) ){
+	  array_1d<double, 3 > & SurfaceStiffness = GetGeometry()[i].FastGetSolutionStepValue( ELASTIC_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(SurfaceStiffness[k]);
 	}
@@ -277,9 +277,9 @@ namespace Kratos
 	{
 	  ElasticCondition::CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
 	  
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+	  BoundedMatrix<double, 3, 3 > Kij;
+	  BoundedMatrix<double, 3, 3 > Cross_ge;
+	  BoundedMatrix<double, 3, 3 > Cross_gn;
 
 	  double coeff;
 	  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -331,8 +331,8 @@ namespace Kratos
     KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT);
     KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT_VECTOR);
     
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_STIFFNESS);
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_STIFFNESS_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD_VECTOR);
         
     return ErrorCode;
 

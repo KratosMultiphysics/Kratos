@@ -191,16 +191,10 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __translateGradientToStandardForm( self, response_id, gradient ):
-        response = self.list_of_responses[response_id]
-        response_type = response["type"]
+        response_type = self.list_of_responses[response_id]["type"]
         if response_type == "maximization" or response_type == ">" or response_type == ">=":
-            for local_gradient in gradient.values():
-                local_gradient[0] = -local_gradient[0]
-                local_gradient[1] = -local_gradient[1]
-                local_gradient[2] = -local_gradient[2]
-            return gradient
-        else:
-            return gradient
+            gradient.update({key: [-value[0],-value[1],-value[2]] for key, value in gradient.items()})
+        return gradient
 
     # --------------------------------------------------------------------------
     def __storeValue( self, response_id, value ):

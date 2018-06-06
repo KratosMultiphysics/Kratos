@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_HARDENING_LAW_H_INCLUDED )
+#if !defined(KRATOS_HARDENING_LAW_H_INCLUDED)
 #define  KRATOS_HARDENING_LAW_H_INCLUDED
 
 // System includes

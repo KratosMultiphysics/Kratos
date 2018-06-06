@@ -58,7 +58,7 @@ namespace Kratos
     ///@{
     using VoigtIndexType = const unsigned int(*)[2];
     using SizeType       = std::size_t;
-    using MatrixType     = bounded_matrix<double,3,3>;
+    using MatrixType     = BoundedMatrix<double,3,3>;
     using VectorType     = array_1d<double,6>;
 
     //state flags

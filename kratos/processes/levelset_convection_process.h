@@ -429,7 +429,7 @@ protected:
             
             Geometry< Node<3> >& geom = iii->GetGeometry();
 
-            boost::numeric::ublas::bounded_matrix<double, TDim+1, TDim > DN_DX;
+            BoundedMatrix<double, TDim+1, TDim > DN_DX;
             array_1d<double, TDim+1 > N;
             double vol;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, vol);

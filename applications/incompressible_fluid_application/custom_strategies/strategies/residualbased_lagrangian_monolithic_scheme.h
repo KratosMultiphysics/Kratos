@@ -130,7 +130,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedLagrangianMonolithicScheme);
 
-    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -184,17 +184,11 @@ public:
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
-    )
+    ) override
     {
         KRATOS_TRY
         //update of unknowns (by DOF)
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
-        {
-            if(i_dof->IsFree())
-            {
-                i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
-            }
-        }
+        BaseType::Update(r_model_part,rDofSet,A,Dx,b);
 
         //Define mesh velocity
         for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd(); ind++)
@@ -256,7 +250,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemVectorType& b) override
     {
         KRATOS_TRY
         double K1 = 2070000000;

@@ -8,7 +8,7 @@
 //
 
 
-#if !defined(EICR_H_INCLUDED )
+#if !defined(EICR_H_INCLUDED)
 #define  EICR_H_INCLUDED
 
 #include "utilities/quaternion.h"
@@ -22,14 +22,14 @@ namespace Kratos
  * This class implements methods that do not depend on the element type,
  * and so they can be used by any implementation of a corotational coordinate transformation.
  */
-class EICR
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
 {
 
  public:
 
   typedef double RealType;
 
-  typedef bounded_matrix<RealType, 3, 3> TransformationMatrixType;
+  typedef BoundedMatrix<RealType, 3, 3> TransformationMatrixType;
 
   typedef array_1d<RealType, 3> Vector3Type;
 		

@@ -13,6 +13,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_trilinos_linear_solvers
 import test_mpi_communicator
+import test_trilinos_matrix
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -33,16 +34,19 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_trilinos_linear_solvers.TestLinearSolvers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_communicator.TestMPICommunicator]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_trilinos_matrix.TestTrilinosMatrix]))
     
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_trilinos_linear_solvers.TestLinearSolvers]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mpi_communicator.TestMPICommunicator]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_trilinos_matrix.TestTrilinosMatrix]))
     
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_trilinos_linear_solvers.TestLinearSolvers,
-                                                                          test_mpi_communicator.TestMPICommunicator
+                                                                          test_mpi_communicator.TestMPICommunicator,
+                                                                          test_trilinos_matrix.TestTrilinosMatrix
                                                                          ]))
 
     return suites

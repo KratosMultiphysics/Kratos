@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED )
+#if !defined(KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED)
 #define  KRATOS_NON_LINEAR_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED
 
 
@@ -83,17 +83,17 @@ namespace Kratos
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this flow rule
      */
-    virtual FlowRule::Pointer Clone() const;
+    FlowRule::Pointer Clone() const override;
    
     ///@}
     ///@name Operations
     ///@{
     
-    virtual bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix );
+    bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix ) override;
 
-    virtual void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
+    void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors ) override;
 
-    virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
+    bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables ) override;
     
 
     ///@}
@@ -146,7 +146,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm );
+    double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm ) override;
 
 	  
     virtual void SetCriterionParameters( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters );
@@ -217,9 +217,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry

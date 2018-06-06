@@ -513,7 +513,7 @@ namespace Kratos
 
 			ie->Set(BOUNDARY);
 		
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -530,7 +530,7 @@ namespace Kratos
 	      }
 	      else if( rGeometry.FacesNumber() == 2 ){
 
-		//vector of the 3 faces around the given face
+		//vector of the 2 faces around the given face
 		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 2 )
 		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
 		
@@ -551,7 +551,7 @@ namespace Kratos
 
 			ie->Set(BOUNDARY);
 			
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -605,7 +605,7 @@ namespace Kratos
 		
 			ie->Set(BOUNDARY);
 
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -648,7 +648,7 @@ namespace Kratos
 
 			Geometry<Node<3> >& rGeometry = (ie)->GetGeometry();
 			
-			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			DenseMatrix<unsigned int> lpofa; //points that define the faces
 			rGeometry.NodesInFaces(lpofa);
 			
 			for(unsigned int i = 0; i < rGeometry.FacesNumber(); i++)
@@ -721,8 +721,8 @@ namespace Kratos
       unsigned int nnofj=0;
       unsigned int nface=0;
 
-      boost::numeric::ublas::vector<unsigned int> lnofa; //number of nodes per face
-      boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+      DenseVector<unsigned int> lnofa; //number of nodes per face
+      DenseMatrix<unsigned int> lpofa; //points that define the faces
 
       Element::GeometryType& pGeom = rElems.begin()->GetGeometry(); // the first element is taken as reference
       unsigned int Nf= pGeom.FacesNumber();     //number of faces
@@ -732,9 +732,9 @@ namespace Kratos
       pGeom.NodesInFaces(lpofa);
 
       //Auxiliary vectors
-      boost::numeric::ublas::vector<unsigned int> lhelp (Nf-1); //can be only 2 or 3 nodes per face : Triangles(faces of 2 nodes) Tetrahedra(faces of 3 nodes)
+      DenseVector<unsigned int> lhelp (Nf-1); //can be only 2 or 3 nodes per face : Triangles(faces of 2 nodes) Tetrahedra(faces of 3 nodes)
       lhelp.clear();
-      boost::numeric::ublas::vector<unsigned int> lpoin (Np+1);
+      DenseVector<unsigned int> lpoin (Np+1);
       lpoin.clear();
 
 

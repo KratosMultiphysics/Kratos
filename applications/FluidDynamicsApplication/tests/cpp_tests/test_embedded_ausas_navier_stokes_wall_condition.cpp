@@ -131,10 +131,10 @@ namespace Kratos {
 			pCondition->CalculateLocalSystem(condLHS, condRHS, modelPart.GetProcessInfo());
 
 			const double tolerance = 1e-10;
-			KRATOS_CHECK_NEAR(condRHS(0), -2.0/3.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(0), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(1), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(2), 0.0, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(3), 1.0/6.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(3), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(4), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(5), 2.0/30.0, tolerance);
 	    }
@@ -247,13 +247,13 @@ namespace Kratos {
 			KRATOS_CHECK_NEAR(condRHS(1),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(2),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(3),  0.0034375, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(4),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(5),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(6),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(4), -0.00583333, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(5),  0.0141667, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(6), -0.0025, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(7),  0.0115625, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(8),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(9),  0.0, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(10), 0.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(8), -0.0065625, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(9),  0.0159375, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(10), -0.0028125, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(11), 0.0111458, tolerance);
 		}
 	} // namespace Testing

@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class QuaternionIntegrationScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) QuaternionIntegrationScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;

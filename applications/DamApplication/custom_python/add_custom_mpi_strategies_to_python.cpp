@@ -5,16 +5,11 @@
 //   Revision:            $Revision: $
 //
 
-// External includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+// External includes
+#include "spaces/ublas_space.h"
 
 // Project includes
-#include "includes/define.h"
-#include "containers/flags.h"
 #include "custom_python/add_custom_mpi_strategies_to_python.h"
-#include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
 //Trilinos includes
@@ -40,9 +35,9 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomMPIStrategiesToPython()
+void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 {
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
@@ -55,10 +50,12 @@ void  AddCustomMPIStrategiesToPython()
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// Schemes
-    class_< TrilinosIncrementalUpdateStaticDampedSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosIncrementalUpdateStaticDampedScheme", 
-        init< double >() );
-	class_< TrilinosDamUPSchemeType, bases< TrilinosBaseSchemeType >,  boost::noncopyable >("TrilinosDamUPScheme",
-        init< double, double, double, double >());
+    class_< TrilinosIncrementalUpdateStaticDampedSchemeType, typename TrilinosIncrementalUpdateStaticDampedSchemeType::Pointer, TrilinosBaseSchemeType>
+    (m,  "TrilinosIncrementalUpdateStaticDampedScheme")
+    .def(init< double >());
+	class_< TrilinosDamUPSchemeType, typename TrilinosDamUPSchemeType::Pointer, TrilinosBaseSchemeType >
+    (m, "TrilinosDamUPScheme")
+    .def(init< double, double, double, double >());
 }
 
 }  // namespace Python.

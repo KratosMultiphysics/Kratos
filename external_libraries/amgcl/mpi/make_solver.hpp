@@ -90,7 +90,7 @@ class make_solver {
         {}
 
         make_solver(
-                MPI_Comm comm, boost::shared_ptr<build_matrix> A,
+                MPI_Comm comm, std::shared_ptr<build_matrix> A,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 ) :

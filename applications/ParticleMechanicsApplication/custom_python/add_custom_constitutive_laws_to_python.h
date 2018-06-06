@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:            Duan Wenjie $
-//   Date:                $Date:                March 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ilaria Iaconeta
 //
 //
 
@@ -14,7 +19,7 @@
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 #include "boost/smart_ptr.hpp"
@@ -29,8 +34,8 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomConstitutiveLawsToPython();
-void  AddCustomPropertiesToPython();
+void  AddCustomConstitutiveLawsToPython(pybind11::module& m);
+void  AddCustomPropertiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 

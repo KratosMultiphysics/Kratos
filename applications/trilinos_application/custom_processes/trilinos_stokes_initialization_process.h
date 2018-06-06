@@ -13,7 +13,7 @@
 #include "includes/mpi_communicator.h"
 
 // Application includes
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 //#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_utilities/parallel_fill_communicator.h"
@@ -87,7 +87,7 @@ public:
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
-        pStokesModelPart = ModelPart::Pointer(new ModelPart("StokesModelPart"));
+        pStokesModelPart = Kratos::make_shared<ModelPart>("StokesModelPart");
         pStokesModelPart->GetNodalSolutionStepVariablesList() = pReferenceModelPart->GetNodalSolutionStepVariablesList();
         pStokesModelPart->SetBufferSize(1);
         pStokesModelPart->SetNodes( pReferenceModelPart->pNodes() );
@@ -96,7 +96,7 @@ public:
 
         // Create a communicator for the new model part and copy the partition information about nodes.
         Communicator& rReferenceComm = pReferenceModelPart->GetCommunicator();
-        typename Communicator::Pointer pStokesMPIComm = typename Communicator::Pointer( new MPICommunicator( &(pReferenceModelPart->GetNodalSolutionStepVariablesList()) ) );
+        typename Communicator::Pointer pStokesMPIComm = Kratos::make_shared<MPICommunicator>( &(pReferenceModelPart->GetNodalSolutionStepVariablesList()) );
         pStokesMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
         pStokesMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
         pStokesMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
@@ -127,52 +127,29 @@ public:
             pStokesModelPart->GetCommunicator().LocalMesh().Elements().push_back(pElem);
         }
 
-        /*int rank;
-        int size;
-        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-        MPI_Comm_size(MPI_COMM_WORLD,&size);
-        for (int r = 0; r < size; r++)
-        {
-            if (rank == r)
-            {
-                std::cout << std::endl << "Original Comm, rank" << rank << std::endl;
-                rReferenceComm.PrintData(std::cout);
-                std::cout << std::endl << "Stokes Comm, rank" << rank << std::endl;
-                pStokesMPIComm->PrintData(std::cout);
-                std::cout.flush();
-            }
-            MPI_Barrier(MPI_COMM_WORLD);
-        }*/
-
-        // pointer types for the solution strategy construcion
-        typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
-        typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
-
         // Solution scheme: Linear static scheme
-        SchemePointerType pScheme = SchemePointerType( new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > () );
+        auto pScheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > >();
 
         // Builder and solver
         int guess_row_size;
         if(DomainSize == 2) guess_row_size = 15;
         else guess_row_size = 40;
 
-        //BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,pLinearSolver));
-        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,pLinearSolver,mrPeriodicVar));
+        auto pBuildAndSolver = Kratos::make_shared<TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> >(mrComm,guess_row_size,pLinearSolver,mrPeriodicVar);
 
         // Strategy
         bool ReactionFlag = false;
         bool ReformDofSetFlag = false;
         bool CalculateNormDxFlag = false;
         bool MoveMeshFlag = false;
-        pSolutionStrategy = StrategyPointerType( new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(*pStokesModelPart,
-                                                                                                                           pScheme,
-                                                                                                                           pLinearSolver,
-                                                                                                                           pBuildAndSolver,
-                                                                                                                           ReactionFlag,
-                                                                                                                           ReformDofSetFlag,
-                                                                                                                           CalculateNormDxFlag,
-                                                                                                                           MoveMeshFlag) );
+        pSolutionStrategy = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(*pStokesModelPart,
+                                                                                                                         pScheme,
+                                                                                                                         pLinearSolver,
+                                                                                                                         pBuildAndSolver,
+                                                                                                                         ReactionFlag,
+                                                                                                                         ReformDofSetFlag,
+                                                                                                                         CalculateNormDxFlag,
+                                                                                                                         MoveMeshFlag);
 
 
         pSolutionStrategy->SetEchoLevel(0);
@@ -217,7 +194,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << " TrilinosStokesInitializationProcess";
@@ -226,14 +203,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << " TrilinosStokesInitializationProcess";
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

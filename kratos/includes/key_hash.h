@@ -10,6 +10,13 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+/* System includes */
+
+/* External includes */
+
+/* Project includes */
+#include "includes/node.h"
+
 #ifndef KRATOS_KEY_HASH_H_INCLUDED
 #define KRATOS_KEY_HASH_H_INCLUDED
 
@@ -30,6 +37,9 @@ namespace Kratos
 
     /// The definition of the hash type
     typedef std::size_t HashType;
+
+    // The node definition
+    typedef Node<3> NodeType;
 
 ///@}
 ///@name  Enum's
@@ -216,7 +226,42 @@ namespace Kratos
         }
     };
 
-    
+    /**
+     * @brief This is a hasher for a dof pointers
+     * @details Used for example for the B&S
+     */
+    struct DofPointerHasher
+    {
+        /**
+         * @brief The () operator
+         * @param pDoF The DoF pointer
+         */
+        HashType operator()(const NodeType::DofType::Pointer& pDoF) const
+        {
+            HashType seed = 0;
+            HashCombine(seed, pDoF->Id());
+            HashCombine(seed, (pDoF->GetVariable()).Key());
+            return seed;
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two dof pointers
+     * @details Used for example for the B&S
+     */
+    struct DofPointerComparor
+    {
+        /**
+         * @brief The () operator
+         * @param pDoF1 The first DoF pointer
+         * @param pDoF2 The second DoF pointer
+         */
+        bool operator()(const NodeType::DofType::Pointer& pDoF1, const NodeType::DofType::Pointer& pDoF2) const
+        {
+            return (((pDoF1->Id() == pDoF2->Id() && (pDoF1->GetVariable()).Key()) == (pDoF2->GetVariable()).Key()));
+        }
+    };
+
 ///@}
 ///@name Kratos Classes
 ///@{

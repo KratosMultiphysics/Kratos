@@ -13,13 +13,12 @@
 
 
 // System includes
-#include <boost/python.hpp>
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/constitutive_law.h"
 
 //Application includes
@@ -30,6 +29,7 @@
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
+#include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 
 // 2D constitutive laws
 #include "custom_constitutive/euler_2d_law.h"
@@ -41,23 +41,32 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
 
-void  AddCustomConstitutiveLawsToPython()
+void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
 
-    class_< Euler2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Euler2DLaw",  init<>() );
+    class_< Euler2DLaw, Euler2DLaw::Pointer, ConstitutiveLaw >(m,"Euler2DLaw")
+    .def(  init<>() );
 
-    class_< Euler3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Euler3DLaw",  init<>() );
+    class_< Euler3DLaw, Euler3DLaw::Pointer, ConstitutiveLaw >(m,"Euler3DLaw")
+    .def( init<>() );
     
-    class_< Bingham3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Bingham3DLaw",init<>() );
+    class_< Bingham3DLaw, Bingham3DLaw::Pointer, ConstitutiveLaw >(m,"Bingham3DLaw")
+    .def( init<>() );
 
-    class_< Newtonian2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian2DLaw",  init<>() );
+    class_< Newtonian2DLaw, Newtonian2DLaw::Pointer, ConstitutiveLaw >(m,"Newtonian2DLaw")
+    .def( init<>() );
      
-    class_< Newtonian3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian3DLaw",  init<>() );
+    class_< Newtonian3DLaw, Newtonian3DLaw::Pointer, ConstitutiveLaw >(m,"Newtonian3DLaw")
+    .def( init<>() );
   
-    class_< HerschelBulkley3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "HerschelBulkley3DLaw",  init<>() );
+    class_< HerschelBulkley3DLaw, HerschelBulkley3DLaw::Pointer, ConstitutiveLaw >(m,"HerschelBulkley3DLaw")
+    .def( init<>() );
+
+    class_< NewtonianTwoFluid3DLaw, NewtonianTwoFluid3DLaw::Pointer, ConstitutiveLaw >(m,"NewtonianTwoFluid3DLaw")
+    .def( init<>() );
     
 }
 

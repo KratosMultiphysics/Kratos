@@ -90,11 +90,11 @@ Element::Pointer AxisymmetricUpdatedLagrangianElement::Clone( IndexType NewId, N
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
       {
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
+
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
       }
-    
+
 
     for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
       {
@@ -116,7 +116,7 @@ Element::Pointer AxisymmetricUpdatedLagrangianElement::Clone( IndexType NewId, N
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-        
+
     return Element::Pointer( new AxisymmetricUpdatedLagrangianElement(NewElement) );
 }
 
@@ -144,7 +144,7 @@ void AxisymmetricUpdatedLagrangianElement::SetValueOnIntegrationPoints( const Va
 
     const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
-    
+
     for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
       {
 	mDeterminantF0[PointNumber] = rValues[PointNumber];
@@ -180,7 +180,7 @@ void AxisymmetricUpdatedLagrangianElement::GetValueOnIntegrationPoints( const Va
 
     if ( rValues.size() != integration_points_number )
       rValues.resize( integration_points_number );
-    
+
     for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
       {
 	rValues[PointNumber] = mDeterminantF0[PointNumber];
@@ -231,11 +231,11 @@ void AxisymmetricUpdatedLagrangianElement::Initialize()
 void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-      
+
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = 4;
-    
+
     rVariables.Initialize(voigt_size, dimension, number_of_nodes);
 
     rVariables.F.resize(3,3,false);
@@ -243,6 +243,8 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVa
     rVariables.F0.resize(3,3,false);
     rVariables.F0 = IdentityMatrix(3);
 
+    rVariables.H.resize(3,3,false);
+    
     //set variables including all integration points values
 
     //reading shape functions
@@ -250,6 +252,9 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVa
 
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+
+    //set process info
+    rVariables.SetProcessInfo(rCurrentProcessInfo);
 
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
@@ -268,7 +273,7 @@ void AxisymmetricUpdatedLagrangianElement::InitializeElementVariables (ElementVa
 ////************************************************************************************
 
 void AxisymmetricUpdatedLagrangianElement::FinalizeStepVariables( ElementVariables & rVariables, const double& rPointNumber )
-{ 
+{
     //update internal (historical) variables
     mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
     noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
@@ -331,14 +336,14 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateTotalMass( double& rTotal
       {
 	//compute element kinematics
 	this->CalculateKinematics(Variables,PointNumber);
-	
+
 	//getting informations for integration
         double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume change
 	double PointVolumeChange = 0;
 	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
-	
+
 	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Variables.CurrentRadius * IntegrationWeight;
 
       }
@@ -383,7 +388,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateKinematics(ElementVariables&
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
 
     //Current Deformation Gradient [dx_n+1/dx_n]
-    CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
+    CalculateDeformationGradient (rVariables.F, rVariables.DN_DX, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
 
     //Determinant of the deformation gradient F
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
@@ -444,7 +449,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateRadius(double & rCurrentRadi
 
 	    rCurrentRadius   += rN[i] * GetGeometry()[i].X();
 	    rReferenceRadius += rN[i] * (GetGeometry()[i].X() + GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X,1) - GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X));
-	  
+
         }
     }
 
@@ -460,11 +465,11 @@ void AxisymmetricUpdatedLagrangianElement::CalculateRadius(double & rCurrentRadi
 //*************************COMPUTE DEFORMATION GRADIENT*******************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianElement::CalculateDeformationGradient(const Matrix& rDN_DX,
-        Matrix&  rF,
-        Matrix&  rDeltaPosition,
-        double & rCurrentRadius,
-        double & rReferenceRadius)
+void AxisymmetricUpdatedLagrangianElement::CalculateDeformationGradient(Matrix&  rF,
+                                                                        const Matrix& rDN_DX,
+                                                                        const Matrix& rDeltaPosition,
+                                                                        const double & rCurrentRadius,
+                                                                        const double & rReferenceRadius)
 {
     KRATOS_TRY
 
@@ -509,9 +514,9 @@ void AxisymmetricUpdatedLagrangianElement::CalculateDeformationGradient(const Ma
 
 
 void AxisymmetricUpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rDN_DX,
-        Vector& rN,
-        double & rCurrentRadius)
+                                                                      const Matrix& rDN_DX,
+                                                                      const Vector& rN,
+                                                                      const double & rCurrentRadius)
 {
     KRATOS_TRY
 
@@ -564,7 +569,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateGreenLagrangeStrain(const Ma
 
     //Right Cauchy-Green Calculation
     Matrix C ( 3, 3 );
-    noalias( C ) = prod( trans( rF ), rF );
+    noalias ( C )  = prod( trans( rF ), rF );
 
     if( dimension == 2 )
     {
@@ -719,7 +724,7 @@ void AxisymmetricUpdatedLagrangianElement::GetHistoricalVariables( ElementVariab
 double& AxisymmetricUpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
 {
     KRATOS_TRY
-      
+
     rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
 
     return rVolumeChange;
@@ -730,23 +735,38 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateVolumeChange( double& rVo
 
 //************************************************************************************
 //************************************************************************************
-  
+
 int AxisymmetricUpdatedLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     // Perform base element checks
     int ErrorCode = 0;
-    ErrorCode = LargeDisplacementElement::Check(rCurrentProcessInfo);     
+    ErrorCode = LargeDisplacementElement::Check(rCurrentProcessInfo);
+
+    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
+    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+      {
+	// Nodal data
+	Node<3> &rNode = this->GetGeometry()[i];
+	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+
+	// Nodal dofs
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
+	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
+	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3)
+	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
+      }
 
     return ErrorCode;
 
     KRATOS_CATCH( "" );
 }
- 
+
 //************************************************************************************
 //************************************************************************************
-  
+
 void AxisymmetricUpdatedLagrangianElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
@@ -763,5 +783,3 @@ void AxisymmetricUpdatedLagrangianElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

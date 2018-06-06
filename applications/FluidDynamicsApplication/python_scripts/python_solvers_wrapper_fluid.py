@@ -27,6 +27,9 @@ def CreateSolver(main_model_part, custom_settings):
         elif (solver_type == "EmbeddedAusas"):
             solver_module_name = "navier_stokes_embedded_ausas_solver"
 
+        elif (solver_type == "Compressible"):
+            solver_module_name = "navier_stokes_compressible_solver"
+
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper")
 
@@ -43,7 +46,7 @@ def CreateSolver(main_model_part, custom_settings):
 
         elif (solver_type == "EmbeddedAusas"):
             solver_module_name = "trilinos_navier_stokes_embedded_ausas_solver"
-
+  
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper")
     else:

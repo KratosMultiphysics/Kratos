@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED )
+#if !defined(KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED)
 #define  KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED
 
 
@@ -85,28 +85,28 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
 	 * Clone function (has to be implemented by any derived class)
 	 * @return a pointer to a new instance of this yield criterion
 	 */
-        virtual YieldCriterion::Pointer Clone() const;
+        YieldCriterion::Pointer Clone() const override;
 
         ///@}
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const Parameters& rValues);
+        double& CalculateYieldCondition(double & rStateFunction, const Parameters& rValues) override;
 
 
-	double& CalculateStateFunction(double & rStateFunction, const Parameters& rValues);
+	double& CalculateStateFunction(double & rStateFunction, const Parameters& rValues) override;
 
-	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rValues);
-
-
-        double& CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rValues);
-
-        double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues);
+	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rValues) override;
 
 
-        double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues);
+        double& CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rValues) override;
 
-        double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues);
+        double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues) override;
+
+
+        double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues) override;
+
+        double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues) override;
 
           
         ///@}
@@ -209,9 +209,9 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
 
 	// A private default constructor necessary for serialization
 
-	virtual void save(Serializer& rSerializer) const;
+	void save(Serializer& rSerializer) const override;
 
-	virtual void load(Serializer& rSerializer);
+	void load(Serializer& rSerializer) override;
 
         ///@}
         ///@name Private Inquiry

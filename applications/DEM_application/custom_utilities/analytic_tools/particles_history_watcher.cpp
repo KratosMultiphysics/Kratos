@@ -34,13 +34,6 @@ void ParticlesHistoryWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 
 }
 
-void ParticlesHistoryWatcher::ClearList(boost::python::list& my_list)
-{
-    while (len(my_list)){
-        my_list.pop(); // only way I found to remove all entries
-    }
-}
-
 void ParticlesHistoryWatcher::Record(SphericParticle* p_particle, ModelPart& r_model_part)
 {
     Node<3>& node = p_particle->GetGeometry()[0];
@@ -53,29 +46,28 @@ void ParticlesHistoryWatcher::Record(SphericParticle* p_particle, ModelPart& r_m
 }
 
 
-void ParticlesHistoryWatcher::GetNewParticlesData(boost::python::list ids,
-                                                  boost::python::list X0s,
-                                                  boost::python::list Y0s,
-                                                  boost::python::list Z0s,
-                                                  boost::python::list radii,
-                                                  boost::python::list times_of_creation)
+void ParticlesHistoryWatcher::GetNewParticlesData(std::list<int> ids,
+                                                  std::list<double> X0s,
+                                                  std::list<double> Y0s,
+                                                  std::list<double> Z0s,
+                                                  std::list<double> radii,
+                                                  std::list<double> times_of_creation)
 {
-    ParticlesHistoryWatcher::ClearList(ids);
-    ParticlesHistoryWatcher::ClearList(X0s);
-    ParticlesHistoryWatcher::ClearList(Y0s);
-    ParticlesHistoryWatcher::ClearList(Z0s);
-    ParticlesHistoryWatcher::ClearList(radii);
-    ParticlesHistoryWatcher::ClearList(times_of_creation);
-
+    ids.clear();
+    X0s.clear();
+    Y0s.clear();
+    Z0s.clear();
+    radii.clear();
+    times_of_creation.clear();
 
     const int n_particles = mIds.size();
     for (int i = 0; i < n_particles; ++i){
-        ids.append(mIds[i]);
-        X0s.append(mX0s[i]);
-        Y0s.append(mY0s[i]);
-        Z0s.append(mZ0s[i]);
-        radii.append(mRadii[i]);
-        times_of_creation.append(mTimesOfCreation[i]);
+        ids.push_back(mIds[i]);
+        X0s.push_back(mX0s[i]);
+        Y0s.push_back(mY0s[i]);
+        Z0s.push_back(mZ0s[i]);
+        radii.push_back(mRadii[i]);
+        times_of_creation.push_back(mTimesOfCreation[i]);
     }
 
     ClearData();

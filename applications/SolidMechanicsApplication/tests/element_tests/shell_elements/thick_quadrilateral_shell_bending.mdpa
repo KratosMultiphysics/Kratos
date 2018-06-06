@@ -5,10 +5,6 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 1
-    THICKNESS 0.025
-    DENSITY 0.0
-    YOUNG_MODULUS 200000000000.0
-    POISSON_RATIO 0
 End Properties
 
 Begin Nodes

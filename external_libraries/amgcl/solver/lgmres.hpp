@@ -297,7 +297,7 @@ class lgmres {
 
                     vector &v_new = *vs[j+1];
 
-                    boost::shared_ptr<vector> z;
+                    std::shared_ptr<vector> z;
                     if (j < outer_v.size()) {
                         z = outer_v[j];
                     } else if (j == outer_v.size()) {
@@ -411,11 +411,11 @@ class lgmres {
 
         mutable boost::multi_array<coef_type, 2> H, H0;
         mutable std::vector<coef_type> s, cs, sn, y;
-        boost::shared_ptr<vector> r;
-        mutable std::vector< boost::shared_ptr<vector> > vs, ws;
-        mutable std::vector< boost::shared_ptr<vector> > outer_v_data, outer_Av_data;
-        mutable boost::circular_buffer< boost::shared_ptr<vector> > outer_v;
-        mutable boost::circular_buffer< boost::shared_ptr<vector> > outer_Av;
+        std::shared_ptr<vector> r;
+        mutable std::vector< std::shared_ptr<vector> > vs, ws;
+        mutable std::vector< std::shared_ptr<vector> > outer_v_data, outer_Av_data;
+        mutable boost::circular_buffer< std::shared_ptr<vector> > outer_v;
+        mutable boost::circular_buffer< std::shared_ptr<vector> > outer_Av;
 
 
         InnerProduct inner_product;

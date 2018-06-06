@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_LOAD_CONDITION_H_INCLUDED )
+#if !defined(KRATOS_LOAD_CONDITION_H_INCLUDED)
 #define  KRATOS_LOAD_CONDITION_H_INCLUDED
 
 // System includes
@@ -140,12 +140,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
     /**
-     * Check condition rotation dofs
+     * Check dof for a vector variable
      */    
-    virtual bool HasRotationDofs() override {return false;};
-
+    bool HasVariableDof(VariableVectorType& rVariable) override
+    {
+      if(rVariable == ROTATION)
+        return false;
+      else
+        return BoundaryCondition::HasVariableDof(rVariable);
+    };
     
     /**
      * Initialize General Variables

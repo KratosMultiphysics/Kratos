@@ -7,8 +7,8 @@
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Klaus B. Sautter
-//                   
-//                   
+//
+//
 //
 
 #if !defined(KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED )
@@ -25,11 +25,11 @@
 
 namespace Kratos
 {
-	/** 
+	/**
      * @class TrussElement3D2N
-     * 
+     *
      * @brief This is a 3D-2node truss element with 3 translational dofs per node
-     * 
+     *
      * @author Klaus B Sautter
      */
 
@@ -57,7 +57,7 @@ namespace Kratos
 
 
 		TrussElement3D2N() {};
-		TrussElement3D2N(IndexType NewId, 
+		TrussElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry);
 		TrussElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry,
@@ -85,7 +85,7 @@ namespace Kratos
 		/**
          * @brief This function calculates the total stiffness matrix for the element
          */
-		virtual bounded_matrix<double,msLocalSize,msLocalSize>
+		virtual BoundedMatrix<double,msLocalSize,msLocalSize>
 		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
@@ -107,13 +107,13 @@ namespace Kratos
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
          */
-		virtual void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces);
+		virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces);
 
 		/**
          * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
          * @param rRotationMatrix The transformation matrix
          */
-		void CreateTransformationMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
+		void CreateTransformationMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<Vector>& rVariable,
@@ -128,7 +128,7 @@ namespace Kratos
 		void CalculateOnIntegrationPoints(
 			const Variable<array_1d<double, 3 > >& rVariable,
 			std::vector< array_1d<double, 3 > >& rOutput,
-			const ProcessInfo& rCurrentProcessInfo) override; 
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
@@ -192,14 +192,14 @@ namespace Kratos
 		/**
          * @brief This function calculates self-weight forces
          */
-		bounded_vector<double,msLocalSize> CalculateBodyForces();  
-		
+		BoundedVector<double,msLocalSize> CalculateBodyForces();
+
 		/**
          * @brief This function assembles the geometric stiffness part of the total stiffness matrix
          * @param rGeometricStiffnessMatrix The geometric stiffness matrix
          * @param rCurrentProcessInfo The current process information
          */
-		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
+		void CalculateGeometricStiffnessMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
 		/**
@@ -207,7 +207,7 @@ namespace Kratos
          * @param rElasticStiffnessMatrix The elastic stiffness matrix
          * @param rCurrentProcessInfo The current process information
          */
-		void CalculateElasticStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
+		void CalculateElasticStiffnessMatrix(BoundedMatrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
 		/**
@@ -215,7 +215,7 @@ namespace Kratos
          * @param rReferenceCoordinates The current coordinates
          */
 		virtual void WriteTransformationCoordinates(
-			bounded_vector<double,msLocalSize>& rReferenceCoordinates);
+			BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
 
 	private:

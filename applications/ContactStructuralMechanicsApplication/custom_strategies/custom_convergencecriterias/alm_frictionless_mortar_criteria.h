@@ -80,6 +80,8 @@ public:
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
     typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    
+    typedef std::size_t                                                        IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -87,11 +89,9 @@ public:
     
     /// Default constructors
     ALMFrictionlessMortarConvergenceCriteria(
-        TablePrinterPointerType pTable = nullptr,
         const bool PrintingOutput = false,
         const bool GiDIODebug = false
         ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(GiDIODebug),
-        mpTable(pTable),
         mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
@@ -100,7 +100,6 @@ public:
     ///Copy constructor 
     ALMFrictionlessMortarConvergenceCriteria( ALMFrictionlessMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
-      ,mpTable(rOther.mpTable)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
@@ -158,21 +157,21 @@ public:
         BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
         // Defining the convergence
-        unsigned int is_converged = 0;
+        IndexType is_converged = 0;
         
-//         const double epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
-        const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR]; 
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+//         const double epsilon = r_process_info[INITIAL_PENALTY];
+        const double scale_factor = r_process_info[SCALE_FACTOR];
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
         #pragma omp parallel for reduction(+:is_converged)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
-        {
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             
             const double epsilon = it_node->GetValue(INITIAL_PENALTY);
             
-            const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
+            const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
             it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
@@ -191,11 +190,12 @@ public:
         
         // We save to the process info if the active set has converged
         const bool active_set_converged = (is_converged == 0 ? true : false);
-        rModelPart.GetProcessInfo()[ACTIVE_SET_CONVERGED] = active_set_converged;
+        r_process_info[ACTIVE_SET_CONVERGED] = active_set_converged;
         
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
-            if (mpTable != nullptr) {
-                auto& table = mpTable->GetTable();
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                auto& table = p_table->GetTable();
                 if (active_set_converged) {
                     if (mPrintingOutput == false)
                         table << BOLDFONT(FGRN("       Achieved"));
@@ -210,12 +210,12 @@ public:
             } else {
                 if (active_set_converged) {
                     if (mPrintingOutput == false)
-                        std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
+                        KRATOS_INFO("ALMFrictionlessMortarConvergenceCriteria")  << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                 } else {
                     if (mPrintingOutput == false)
-                        std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
+                        KRATOS_INFO("ALMFrictionlessMortarConvergenceCriteria")  << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     else
-                        std::cout << "\tActive set convergence is not achieved" << std::endl;
+                        KRATOS_INFO("ALMFrictionlessMortarConvergenceCriteria")  << "\tActive set convergence is not achieved" << std::endl;
                 }
             }
         }
@@ -232,8 +232,10 @@ public:
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
         
-        if (mpTable != nullptr && mTableIsInitialized == false) {
-            auto& table = mpTable->GetTable();
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+            auto& table = p_table->GetTable();
             table.AddColumn("ACTIVE SET CONV", 15);
             mTableIsInitialized = true;
         }
@@ -293,7 +295,7 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable; /// Pointer to the fancy table 
+    TablePrinterPointerType p_table; /// Pointer to the fancy table
     bool mPrintingOutput;            /// If the colors and bold are printed
     bool mTableIsInitialized;        /// If the table is already initialized
     

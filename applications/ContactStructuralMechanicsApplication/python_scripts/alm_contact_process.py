@@ -1,10 +1,14 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+import KratosMultiphysics as KM
+
+# Check that applications were imported in the main script
+KM.CheckRegisteredApplications("StructuralMechanicsApplication")
+KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
+
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
-
-KM.CheckForPreviousImport()
 
 def Factory(settings, Model):
     if(type(settings) != KM.Parameters):
@@ -55,7 +59,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
-            "contact_model_part"          : "Contact_Part",
+            "contact_model_part"          : "",
             "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
             "interval"                    : [0.0,"End"],
@@ -86,8 +90,7 @@ class ALMContactProcess(python_process.PythonProcess):
                 "max_gap_factor"              : 1.0e-3
             },
             "alternative_formulations" : {
-                "axisymmetric"                : false,
-                "double_formulation"          : false
+                "axisymmetric"                : false
             }
         }
         """)
@@ -101,7 +104,13 @@ class ALMContactProcess(python_process.PythonProcess):
 
         self.dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
-        self.contact_model_part = model_part[self.settings["contact_model_part"].GetString()]
+        contact_model_part_name = self.settings["contact_model_part"].GetString()
+        # In case no model part is assigned we detect the skin
+        if contact_model_part_name == "":
+            detect_skin = KM.SkinDetectionProcess3D(model_part)
+            detect_skin.Execute()
+            contact_model_part_name = "SkinModelPart"
+        self.contact_model_part = model_part[contact_model_part_name]
 
         # A check necessary for axisymmetric cases (the domain can not be 3D)
         if (self.settings["alternative_formulations"]["axisymmetric"].GetBool() is True) and (self.dimension == 3):
@@ -129,6 +138,12 @@ class ALMContactProcess(python_process.PythonProcess):
             self.predefined_master_slave = False
         else:
             self.predefined_master_slave = True
+
+        # If we compute a frictional contact simulation
+        if self.settings["contact_type"].GetString() == "Frictional":
+            self.is_frictional = True
+        else:
+            self.is_frictional = False
 
         # Debug
         if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
@@ -164,12 +179,6 @@ class ALMContactProcess(python_process.PythonProcess):
             preprocess = True
             interface_model_part = computing_model_part.CreateSubModelPart("Contact")
 
-        # We consider frictional contact (We use the SLIP flag because was the easiest way)
-        if self.settings["contact_type"].GetString() == "Frictional":
-            computing_model_part.Set(KM.SLIP, True)
-        else:
-            computing_model_part.Set(KM.SLIP, False)
-
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
 
@@ -182,10 +191,6 @@ class ALMContactProcess(python_process.PythonProcess):
         process_info[CSMA.ADAPT_PENALTY] = self.settings["advance_ALM_parameters"]["adapt_penalty"].GetBool()
         process_info[CSMA.MAX_GAP_FACTOR] = max_gap_factor
         process_info[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
-
-        # We set the value that scales in the tangent direction the penalty and scale parameter
-        if self.settings["contact_type"].GetString() == "Frictional":
-            process_info[CSMA.TANGENT_FACTOR] = self.settings["tangent_factor"].GetDouble()
 
         # We set the interface flag
         KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.contact_model_part.Nodes)
@@ -352,11 +357,14 @@ class ALMContactProcess(python_process.PythonProcess):
 
         # We set the CONTACT flag
         computing_model_part.Set(KM.CONTACT, True)
+        self.contact_model_part.Set(KM.CONTACT, True)
         # We consider frictional contact (We use the SLIP flag because was the easiest way)
-        if self.settings["contact_type"].GetString() == "Frictional":
+        if self.is_frictional is True:
             computing_model_part.Set(KM.SLIP, True)
+            self.contact_model_part.Set(KM.SLIP, True)
         else:
             computing_model_part.Set(KM.SLIP, False)
+            self.contact_model_part.Set(KM.SLIP, False)
 
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
@@ -366,8 +374,8 @@ class ALMContactProcess(python_process.PythonProcess):
         process_info[CSMA.CONSIDER_NORMAL_VARIATION] = self.normal_variation
 
         # We set the value that scales in the tangent direction the penalty and scale parameter
-        if self.settings["contact_type"].GetString() == "Frictional":
-            process_info[CSMA.TANGENT_FACTOR] = self.settings["tangent_factor"].GetDouble()
+        if self.is_frictional is True:
+            process_info[KM.TANGENT_FACTOR] = self.settings["tangent_factor"].GetDouble()
 
         # Setting the integration order and active check factor
         for prop in self.contact_model_part.GetProperties():
@@ -405,7 +413,7 @@ class ALMContactProcess(python_process.PythonProcess):
             process_info[KM.INITIAL_PENALTY] = 1.0e0
         if (process_info[KM.SCALE_FACTOR] < sys.float_info.epsilon):
             process_info[KM.SCALE_FACTOR] = 1.0e0
-            
+
         # We print the parameters considered
         KM.Logger.PrintInfo("SCALE_FACTOR: ", "{:.2e}".format(process_info[KM.SCALE_FACTOR]))
         KM.Logger.PrintInfo("INITIAL_PENALTY: ", "{:.2e}".format(process_info[KM.INITIAL_PENALTY]))
@@ -425,21 +433,17 @@ class ALMContactProcess(python_process.PythonProcess):
                     condition_name = "ALMNVFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "ALMNVFrictionlessMortarContact"
-                    if self.settings["alternative_formulations"]["double_formulation"].GetBool():
-                        condition_name = "D" + condition_name
             else:
                 if self.settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
                     condition_name = "ALMFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "ALMFrictionlessMortarContact"
-                    if self.settings["alternative_formulations"]["double_formulation"].GetBool():
-                        condition_name = "D" + condition_name
         elif self.settings["contact_type"].GetString() == "FrictionlessComponents":
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
                 condition_name = "ALMNVFrictionlessComponentsMortarContact"
             else:
                 condition_name = "ALMFrictionlessComponentsMortarContact"
-        elif self.settings["contact_type"].GetString() == "Frictional":
+        elif self.is_frictional is True:
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
                 if self.settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
                     condition_name = "ALMNVFrictionalAxisymMortarContact"
@@ -456,7 +460,6 @@ class ALMContactProcess(python_process.PythonProcess):
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
         search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
-        search_parameters.AddValue("double_formulation", self.settings["alternative_formulations"]["double_formulation"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
         search_parameters["condition_name"].SetString(condition_name)
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
@@ -534,8 +537,8 @@ class ALMContactProcess(python_process.PythonProcess):
 
         mortar_mapping.Execute()
 
-        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to NORMAL_CONTACT_STRESS
-        KM.VariableUtils().CopyScalarVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, KM.NORMAL_CONTACT_STRESS, interface_model_part.Nodes)
+        # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to LAGRANGE_MULTIPLIER_CONTACT_PRESSURE
+        KM.VariableUtils().CopyScalarVar(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, interface_model_part.Nodes)
 
         self._reset_search()
 
@@ -587,6 +590,7 @@ class ALMContactProcess(python_process.PythonProcess):
 
         gid_io.WriteNodalFlags(KM.INTERFACE, "INTERFACE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KM.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
+        gid_io.WriteNodalFlags(KM.SLIP, "SLIP", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KM.ISOLATED, "ISOLATED", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KM.SLAVE, "SLAVE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KM.NORMAL, self.main_model_part.Nodes, label, 0)
@@ -596,8 +600,8 @@ class ALMContactProcess(python_process.PythonProcess):
         if (self.main_model_part.Nodes[1].SolutionStepsDataHas(KM.VELOCITY_X) is True):
             gid_io.WriteNodalResults(KM.VELOCITY, self.main_model_part.Nodes, label, 0)
             gid_io.WriteNodalResults(KM.ACCELERATION, self.main_model_part.Nodes, label, 0)
-        if (self.main_model_part.Nodes[1].SolutionStepsDataHas(KM.NORMAL_CONTACT_STRESS) is True):
-            gid_io.WriteNodalResults(KM.NORMAL_CONTACT_STRESS, self.main_model_part.Nodes, label, 0)
+        if (self.main_model_part.Nodes[1].SolutionStepsDataHas(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) is True):
+            gid_io.WriteNodalResults(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, self.main_model_part.Nodes, label, 0)
         else:
             gid_io.WriteNodalResults(KM.VECTOR_LAGRANGE_MULTIPLIER, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResults(CSMA.WEIGHTED_GAP, self.main_model_part.Nodes, label, 0)

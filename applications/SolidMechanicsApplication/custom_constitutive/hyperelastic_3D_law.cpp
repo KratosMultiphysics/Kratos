@@ -255,7 +255,7 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     
   //6.-Inverse of the Right Cauchy-Green tensor C: (stored in the CauchyGreenMatrix)
   ElasticVariables.traceCG = 0;
-  ElasticVariables.CauchyGreenMatrix( 3, 3 );
+  ElasticVariables.CauchyGreenMatrix.resize(3,3,false);
   MathUtils<double>::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
     
   //7.-Green-Lagrange Strain:

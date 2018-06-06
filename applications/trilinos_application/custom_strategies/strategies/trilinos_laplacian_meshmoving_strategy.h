@@ -17,17 +17,16 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
-#include "includes/ale_variables.h"
+#include "includes/mesh_moving_variables.h"
 #include "includes/model_part.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
@@ -116,7 +115,7 @@ public:
 
         typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
-            new TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
+            new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
 
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 

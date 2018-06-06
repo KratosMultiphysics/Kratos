@@ -639,7 +639,7 @@ public:
 
 
     //Connectivities of faces required
-    void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const override
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 2 )
             NumberNodesInFaces.resize(2,false);
@@ -649,7 +649,7 @@ public:
 
     }
 
-    void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const override
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
         if(NodesInFaces.size1() != 2 || NodesInFaces.size2() != 2)
             NodesInFaces.resize(2,2,false);

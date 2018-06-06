@@ -820,7 +820,7 @@ public:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb  = *mpb;
 
-        if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
         {
             GetBuilderAndSolver()->BuildRHS(GetScheme(),BaseType::GetModelPart(),mb);
         }
@@ -1238,7 +1238,7 @@ private:
         }
 
         // Initialisation of the convergence criteria
-        if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+        if (mpConvergenceCriteria->IsInitialized() == false)
         {
             pConvergenceCriteria->Initialize(BaseType::GetModelPart());
         }
@@ -1271,7 +1271,7 @@ private:
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
 
         // Setting up the Vectors involved to the correct size with value cero
-        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart());
         InitializeAuxVectors(mpDelta_p);
         InitializeAuxVectors(mpDelta_pold);
         InitializeAuxVectors(mpX_old);

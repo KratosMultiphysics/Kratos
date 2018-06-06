@@ -214,8 +214,8 @@ namespace Kratos
     //STIFFNESS CONDITION:
     
     //defined on condition
-    if( this->Has( LINE_STIFFNESS ) ){
-      array_1d<double, 3 > & LineStiffness = this->GetValue( LINE_STIFFNESS );
+    if( this->Has( ELASTIC_LOAD ) ){
+      array_1d<double, 3 > & LineStiffness = this->GetValue( ELASTIC_LOAD );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
@@ -224,8 +224,8 @@ namespace Kratos
     }
 
     //defined on condition nodes
-    if( this->Has( LINE_STIFFNESS_VECTOR ) ){
-      Vector& LineStiffness = this->GetValue( LINE_STIFFNESS_VECTOR );
+    if( this->Has( ELASTIC_LOAD_VECTOR ) ){
+      Vector& LineStiffness = this->GetValue( ELASTIC_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
@@ -241,8 +241,8 @@ namespace Kratos
     //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( LINE_STIFFNESS ) ){
-	  array_1d<double, 3 > & LineStiffness = GetGeometry()[i].FastGetSolutionStepValue( LINE_STIFFNESS );
+	if( GetGeometry()[i].SolutionStepsDataHas( ELASTIC_LOAD ) ){
+	  array_1d<double, 3 > & LineStiffness = GetGeometry()[i].FastGetSolutionStepValue( ELASTIC_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * fabs(LineStiffness[k]);
 	}
@@ -276,8 +276,8 @@ namespace Kratos
 	    
 	    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	
-	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > Kij;
-	    boost::numeric::ublas::bounded_matrix<double, 2, 2 > SkewSymmMatrix;
+	    BoundedMatrix<double, 2, 2 > Kij;
+	    BoundedMatrix<double, 2, 2 > SkewSymmMatrix;
 	
 	    //Compute the K sub matrix
 	    SkewSymmMatrix( 0, 0 ) =  0.0;
@@ -335,8 +335,8 @@ namespace Kratos
     KRATOS_CHECK_VARIABLE_KEY(BALLAST_COEFFICIENT_VECTOR);    
 
     
-    KRATOS_CHECK_VARIABLE_KEY(LINE_STIFFNESS);
-    KRATOS_CHECK_VARIABLE_KEY(LINE_STIFFNESS_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(ELASTIC_LOAD_VECTOR);
         
     return ErrorCode;
     

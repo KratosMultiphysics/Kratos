@@ -89,7 +89,8 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)               # TODO: To be removed once we do not take the values from the nodes
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
@@ -104,7 +105,6 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)     # TODO: To be removed once we do not take the values from the nodes
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
@@ -166,21 +166,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
 
     def InitializeSolutionStep(self):
-        (self.bdf_process).Execute()
-        (self.solver).InitializeSolutionStep()
-
-
-    def SolveSolutionStep(self):
-        # Note that the first two time steps are dropped to fill the BDF buffer
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
-            (self.solver).SolveSolutionStep()
-
-
-    def Solve(self):
-        (self.bdf_process).Execute()
-        # Note that the first two time steps are dropped to fill the BDF buffer
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
-            (self.solver).Solve()
+        if self._TimeBufferIsInitialized():
+            (self.bdf_process).Execute()
+            (self.solver).InitializeSolutionStep()
 
 
     def _set_physical_properties(self):
@@ -202,6 +190,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
             break
 
+        # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
 

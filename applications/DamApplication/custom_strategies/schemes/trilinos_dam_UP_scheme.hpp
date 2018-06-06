@@ -9,7 +9,6 @@
 #define  KRATOS_TRILINOS_DAM_UP_SCHEME
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "Epetra_Import.h"
 
 // Application includes
@@ -174,7 +173,7 @@ protected:
         Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,Dx.Comm() );
 
         // Defining the importer class
-        Kratos::shared_ptr<Epetra_Import> pDofImporter( new Epetra_Import(dof_update_map,Dx.Map()) );
+        Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map,Dx.Map());
         mpDofImporter.swap(pDofImporter);
 
         mImporterIsInitialized = true;

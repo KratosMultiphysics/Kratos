@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 PeriodicConditionLM2D2N::PeriodicConditionLM2D2N(IndexType NewId, GeometryType::Pointer pGeometry)
 	: MyBase(NewId, pGeometry)
 {
@@ -76,7 +76,7 @@ PeriodicConditionLM2D2N::PeriodicConditionLM2D2N(IndexType NewId, GeometryType::
 	: MyBase(NewId, pGeometry, pProperties)
 {
 }
-	
+
 PeriodicConditionLM2D2N::PeriodicConditionLM2D2N(const PeriodicConditionLM2D2N& rOther)
 	: MyBase(rOther)
 {
@@ -100,7 +100,7 @@ void PeriodicConditionLM2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatr
 	noalias( rRightHandSideVector ) = ZeroVector(6);
 
 	// Nodal IDs = [slave ID, master ID]
-	
+
 	GeometryType& geom = GetGeometry();
 
 	// get current values and form the system matrix
@@ -112,7 +112,7 @@ void PeriodicConditionLM2D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatr
 	currentValues(3) = 0.0; // geom[1].FastGetSolutionStepValue(DISPLACEMENT_Y);
 	currentValues(4) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_LAGRANGE_X);
 	currentValues(5) = geom[0].FastGetSolutionStepValue(DISPLACEMENT_LAGRANGE_Y);
-	
+
 	//KRATOS_WATCH(currentValues);
 
 	rLeftHandSideMatrix(4,0) =  1.0;
@@ -142,13 +142,13 @@ void PeriodicConditionLM2D2N::EquationIdVector(EquationIdVectorType& rResult, Pr
 {
 	if(rResult.size() != 6) rResult.resize(6);
 	GeometryType& geom = GetGeometry();
-	
+
 	rResult[0] = geom[0].GetDof( DISPLACEMENT_X ).EquationId();
 	rResult[1] = geom[0].GetDof( DISPLACEMENT_Y ).EquationId();
-	
+
 	rResult[2] = geom[1].GetDof( DISPLACEMENT_X ).EquationId();
 	rResult[3] = geom[1].GetDof( DISPLACEMENT_Y ).EquationId();
-	
+
 	rResult[4] = geom[0].GetDof( DISPLACEMENT_LAGRANGE_X ).EquationId();
 	rResult[5] = geom[0].GetDof( DISPLACEMENT_LAGRANGE_Y ).EquationId();
 }
@@ -157,13 +157,13 @@ void PeriodicConditionLM2D2N::GetDofList(DofsVectorType& ConditionalDofList,Proc
 {
 	if(ConditionalDofList.size() != 6) ConditionalDofList.resize(6);
 	GeometryType& geom = GetGeometry();
-	
+
 	ConditionalDofList[0] = geom[0].pGetDof( DISPLACEMENT_X );
 	ConditionalDofList[1] = geom[0].pGetDof( DISPLACEMENT_Y );
-	
+
 	ConditionalDofList[2] = geom[1].pGetDof( DISPLACEMENT_X );
 	ConditionalDofList[3] = geom[1].pGetDof( DISPLACEMENT_Y );
-	
+
 	ConditionalDofList[4] = geom[0].pGetDof( DISPLACEMENT_LAGRANGE_X );
 	ConditionalDofList[5] = geom[0].pGetDof( DISPLACEMENT_LAGRANGE_Y );
 }
@@ -174,13 +174,13 @@ int PeriodicConditionLM2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	KRATOS_TRY
 
 	GeometryType & geom = this->GetGeometry();
-	
+
 	if(geom.size() != 2) {
 		std::stringstream ss;
 		ss << "PeriodicConditionLM2D2N - The Geometry should have 2 nodes. Condition with ID = " << this->GetId();
 		KRATOS_THROW_ERROR(std::logic_error, ss.str(), "");
 	}
-	
+
 	//verify that the variables are correctly initialized
 	if(DISPLACEMENT.Key() == 0)
 		KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
@@ -192,16 +192,16 @@ int PeriodicConditionLM2D2N::Check(const ProcessInfo& rCurrentProcessInfo)
 	for(unsigned int i = 0; i < 2; i++)
 	{
 		NodeType & iNode = geom[i];
-		
+
 		if(iNode.SolutionStepsDataHas(DISPLACEMENT) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ", iNode.Id());
-			
+
 		if(iNode.HasDofFor(DISPLACEMENT_X) == false || iNode.HasDofFor(DISPLACEMENT_Y) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", iNode.Id());
-			
+
 		if(iNode.SolutionStepsDataHas(DISPLACEMENT_LAGRANGE) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT_LAGRANGE on node ", iNode.Id());
-			
+
 		if(iNode.HasDofFor(DISPLACEMENT_LAGRANGE_X) == false || iNode.HasDofFor(DISPLACEMENT_LAGRANGE_Y) == false)
 			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT_LAGRANGE on node ", iNode.Id());
 	}

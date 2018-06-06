@@ -1,3 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Jordi Cotela
+//                   Carlos Roig
+//
+
 #ifndef KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
 #define KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_IN_MEMORY_PROCESS_H
 
@@ -67,7 +81,7 @@ public:
 
     #ifdef KRATOS_USE_METIS_5
       typedef idx_t idxtype;
-    #else 
+    #else
       typedef int idxtype;
     #endif
 
@@ -123,7 +137,7 @@ public:
     /// Generate a partition using Metis.
     /** Partitioned input is written as <problem name>_<mpi rank>.mdpa
      */
-    virtual void Execute()
+    void Execute() override
     {
         int mpi_rank;
         int mpi_size;
@@ -145,17 +159,17 @@ public:
         }
 
         // Transfer Streams
-        boost::shared_ptr<std::iostream> * streams = new boost::shared_ptr<std::iostream>[mpi_size];
+        Kratos::shared_ptr<std::iostream> * streams = new Kratos::shared_ptr<std::iostream>[mpi_size];
         std::stringbuf * stringbufs = new std::stringbuf[mpi_size];
 
         for(auto i = 0; i < mpi_size; i++) {
-          streams[i] = boost::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
+          streams[i] = Kratos::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
         }
 
         // Calculate the partitions and write the result into temporal streams
         if(mpi_rank == 0) {
           // Read nodal graph from input
-          
+
         IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
 
         SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
@@ -163,9 +177,9 @@ public:
           // Write connectivity data in CSR format
         idxtype* NodeIndices = 0;
         idxtype* NodeConnectivities = 0;
-        
-        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities); 
-        
+
+        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
+
         std::vector<idxtype> NodePartition;
         PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
 
@@ -349,19 +363,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MetisDivideHeterogeneousInputInMemoryProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MetisDivideHeterogeneousInputInMemoryProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -445,7 +459,7 @@ private:
                        idxtype* NodeConnectivities,
                        std::vector<idxtype>& rNodePartition)
     {
-        idxtype n = static_cast<idxtype>(NumNodes);     
+        idxtype n = static_cast<idxtype>(NumNodes);
 
         idxtype nparts = static_cast<idxtype>(BaseType::mNumberOfPartitions);
         idxtype edgecut;
@@ -467,7 +481,7 @@ private:
            METIS_SetDefaultOptions(options);
 
            int metis_return = METIS_PartGraphKway(&n,&ncon,NodeIndices,NodeConnectivities,NULL,NULL,NULL,&nparts,NULL,NULL,&options[0],&edgecut,&rNodePartition[0]);
-           
+
            if(metis_return != 0)
                std::cout << "metis returns the following error code :" << metis_return << std::endl;
 	   /*         int METIS PartGraphKway(

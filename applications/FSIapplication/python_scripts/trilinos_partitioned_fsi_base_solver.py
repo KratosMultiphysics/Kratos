@@ -15,7 +15,7 @@ KratosMultiphysics.CheckRegisteredApplications(
     "TrilinosApplication",
     "MappingApplication",
     "FSIApplication",
-    "ALEApplication",
+    "MeshMovingApplication",
     "FluidDynamicsApplication",
     "StructuralMechanicsApplication")
 
@@ -24,7 +24,7 @@ import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.ALEApplication as KratosALE
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
@@ -84,7 +84,22 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         self.structure_interface_submodelpart_name = self.settings["coupling_solver_settings"]["structure_interfaces_list"][0].GetString()
 
         # Construct the structure solver
-        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_main_model_part,
+        self.structure_model = KratosMultiphysics.Model()
+        structural_solver_settings = project_parameters["structure_solver_settings"]["solver_settings"]
+        if not structural_solver_settings.Has("time_stepping"):
+            KratosMultiphysics.Logger.PrintInfo("TrilinosPartitionedFSIBaseSolver", "Using the old way to pass the time_step, this will be removed!")
+            time_stepping_params = KratosMultiphysics.Parameters("{}")
+            time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
+            solver_settings.AddValue("time_stepping", time_stepping_params)
+        if not structural_solver_settings.Has("domain_size"):
+            KratosMultiphysics.Logger.PrintInfo("TrilinosPartitionedFSIBaseSolver", "Using the old way to pass the domain_size, this will be removed!")
+            structural_solver_settings.AddEmptyValue("domain_size")
+            structural_solver_settings["domain_size"].SetInt(project_parameters["structure_solver_settings"]["problem_data"]["domain_size"].GetInt())
+        if not structural_solver_settings.Has("model_part_name"):
+            KratosMultiphysics.Logger.PrintInfo("TrilinosPartitionedFSIBaseSolver", "Using the old way to pass the model_part_name, this will be removed!")
+            structural_solver_settings.AddEmptyValue("model_part_name")
+            structural_solver_settings["model_part_name"].SetString(project_parameters["structure_solver_settings"]["problem_data"]["model_part_name"].GetString())
+        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_model,
                                                                                project_parameters["structure_solver_settings"])
         if (KratosMPI.mpi.rank == 0) : print("* Structure solver constructed.")
 

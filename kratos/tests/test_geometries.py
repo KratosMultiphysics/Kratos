@@ -8,32 +8,39 @@ class TestGeometry(KratosUnittest.TestCase):
         pass
 
     def test_tetrahedra_3D4N(self):
+        model_part = ModelPart("Main")
         tester = GeometryTesterUtility()
-        self.assertTrue( tester.TestTetrahedra3D4N( ) )
+        self.assertTrue( tester.TestTetrahedra3D4N(model_part) )
 
     def test_tetrahedra_2D3N(self):
+        model_part = ModelPart("Main")
         tester = GeometryTesterUtility()
-        self.assertTrue( tester.TestTriangle2D3N( ) )
+        self.assertTrue( tester.TestTriangle2D3N(model_part) )
 
     def test_tetrahedra_2D6N(self):
+        model_part = ModelPart("Main")
         tester = GeometryTesterUtility()
-        self.assertTrue( tester.TestTriangle2D6N( ) )
+        self.assertTrue( tester.TestTriangle2D6N(model_part) )
 
     def test_tetrahedra_3D10N(self):
+        model_part = ModelPart("Main")
         tester = GeometryTesterUtility()
-        self.assertTrue( tester.TestTetrahedra3D10N( ) )
+        self.assertTrue( tester.TestTetrahedra3D10N(model_part) )
 
     def test_tetrahedra_3D8N(self):
+        model_part = ModelPart("Main")
         tester = GeometryTesterUtility()
-        self.assertTrue( tester.TestHexahedra3D8N( ) )
+        self.assertTrue( tester.TestHexahedra3D8N(model_part) )
 
     def test_tetrahedra_3D27N(self):
+        model_part = ModelPart("Main")
         tester = GeometryTesterUtility()
-        self.assertTrue( tester.TestHexahedra3D27N( ) )
+        self.assertTrue( tester.TestHexahedra3D27N(model_part) )
         
     def test_tetrahedra_3D20N(self):
+        model_part = ModelPart("Main")
         tester = GeometryTesterUtility()
-        self.assertTrue( tester.TestHexahedra3D20N( ) )
+        self.assertTrue( tester.TestHexahedra3D20N(model_part) )
         
 
 

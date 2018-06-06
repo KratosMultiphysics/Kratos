@@ -4,6 +4,9 @@ message("**** configuring KratosPfemApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+################### PYBIND11
+include(pybind11Tools)
+
 ## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
@@ -81,15 +84,10 @@ endif(${INCLUDE_TETGEN} MATCHES ON)
 ##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 
 
-## generate variables with the sources
-set( KRATOS_PFEM_APPLICATION_SOURCES
+## Generate variables with the sources
+set( KRATOS_PFEM_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 
 	##utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/modeler_utilities.cpp
@@ -105,10 +103,17 @@ set( KRATOS_PFEM_APPLICATION_SOURCES
 
 )
 
-###############################################################
-## define library Kratos which defines the basic python interface
-add_library(KratosPfemApplication SHARED ${KRATOS_PFEM_APPLICATION_SOURCES})
+## Generate variables with the sources
+set( KRATOS_PFEM_APPLICATION_PYTHON_INTERFACE
+        # Custom python
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
+)
 
+## matplot lib
 if(${MSVC})
   set(MATLIB "")
 else(${MSVC})
@@ -117,26 +122,26 @@ endif(${MSVC})
 
 ## define the linkage of libraries
 if( ${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON )
-    set(LIBS KratosCore external_triangle external_tetgen ${MATLIB})
-    #set(LIBS KratosCore external_triangle libextet.a ${MATLIB})
+    set(LIBS external_triangle external_tetgen ${MATLIB})
+    #set(LIBS external_triangle libextet.a ${MATLIB})
 elseif(${INCLUDE_TRIANGLE} MATCHES ON)
-    set(LIBS KratosCore external_triangle ${MATLIB})
+    set(LIBS external_triangle ${MATLIB})
 elseif(${INCLUDE_TETGEN} MATCHES ON)
-    set(LIBS KratosCore external_tetgen ${MATLIB})
-    #set(LIBS KratosCore libextet.a ${MATLIB})
+    set(LIBS external_tetgen ${MATLIB})
+    #set(LIBS libextet.a ${MATLIB})
 else(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
-    set(LIBS KratosCore)
+    set(LIBS)
 endif(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
 
-target_link_libraries(KratosPfemApplication ${LIBS})
-##target_link_libraries(KratosPfemApplication KratosCore triangle tetgen msuite)
-##target_link_libraries(KratosPfemApplication KratosCore triangle tetgen msuite tetMeshOpt)
+add_library(KratosPfemCore SHARED ${KRATOS_PFEM_APPLICATION_CORE})
+target_link_libraries(KratosPfemCore PUBLIC KratosCore ${LIBS})
+set_target_properties(KratosPfemCore PROPERTIES COMPILE_DEFINITIONS "PFEM_APPLICATION=EXPORT,API")
 
+###############################################################
+## define library Kratos which defines the basic python interface
+pybind11_add_module(KratosPfemApplication MODULE THIN_LTO ${KRATOS_PFEM_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosPfemApplication PRIVATE KratosPfemCore)
 set_target_properties(KratosPfemApplication PROPERTIES PREFIX "")
-set_target_properties(KratosPfemApplication PROPERTIES COMPILE_DEFINITIONS "PFEM_APPLICATION=EXPORT,API")
-
-install(TARGETS KratosPfemApplication DESTINATION libs )
-
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
@@ -158,6 +163,14 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("PfemApplication subdir inc_dirs = ${inc_dirs}")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosPfemCore)
+    cotire(KratosPfemApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosPfemCore DESTINATION libs )
+install(TARGETS KratosPfemApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PfemApplication.py" DESTINATION KratosMultiphysics )

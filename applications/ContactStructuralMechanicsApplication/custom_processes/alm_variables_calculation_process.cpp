@@ -67,7 +67,7 @@ void ALMVariablesCalculationProcess::Execute()
             total_area_slave += condition_area;
             mean_young_modulus_slave += young_modulus * element_volume;
             
-            for (unsigned int i_node = 0; i_node < num_nodes_geometry; i_node++)
+            for (IndexType i_node = 0; i_node < num_nodes_geometry; i_node++)
                 mean_nodal_h_slave += r_this_geometry[i_node].FastGetSolutionStepValue(mrNodalLengthVariable) * nodal_condition_area;
         }
         
@@ -76,7 +76,7 @@ void ALMVariablesCalculationProcess::Execute()
             total_area_master += condition_area;
             mean_young_modulus_master += young_modulus * element_volume;
             
-            for (unsigned int i_node = 0; i_node < num_nodes_geometry; i_node++)
+            for (IndexType i_node = 0; i_node < num_nodes_geometry; i_node++)
                 mean_nodal_h_master += r_this_geometry[i_node].FastGetSolutionStepValue(mrNodalLengthVariable) * nodal_condition_area;
         }
     }

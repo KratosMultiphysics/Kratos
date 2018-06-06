@@ -130,7 +130,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
@@ -169,7 +169,7 @@ public:
 
     void Initialize(
         ModelPart& r_model_part
-    )
+    ) override
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
     }
@@ -180,7 +180,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
+    ) override
     {
     }
 
@@ -190,7 +190,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) {}
+    )  override {}
 
 
 

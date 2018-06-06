@@ -7,8 +7,8 @@
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Klaus B. Sautter
-//                   
-//                   
+//
+//
 //
 
 #if !defined(KRATOS_CABLE_ELEMENT_3D2N_H_INCLUDED )
@@ -24,12 +24,12 @@
 #include "includes/variables.h"
 
 namespace Kratos
-{	
-	/** 
+{
+	/**
      * @class CableElement3D2N
-     * 
+     *
      * @brief This is a 3D-2node cable element with 3 translational dofs per node inheriting from the TrussElement3D2N
-     * 
+     *
      * @author Klaus B Sautter
      */
 	class CableElement3D2N : public TrussElement3D2N
@@ -41,7 +41,7 @@ namespace Kratos
 
 
 		CableElement3D2N() {};
-		CableElement3D2N(IndexType NewId, 
+		CableElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry);
 		CableElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry,
@@ -61,7 +61,7 @@ namespace Kratos
 			VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo) override;
 
-		bounded_matrix<double,msLocalSize,msLocalSize>
+		BoundedMatrix<double,msLocalSize,msLocalSize>
 		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateRightHandSide(
@@ -72,10 +72,10 @@ namespace Kratos
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
          */
-		void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces) override;
+		void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces) override;
 
 	private:
-		// boolean for the cable --> does not resist to compression 
+		// boolean for the cable --> does not resist to compression
 		bool mIsCompressed;
 
 		friend class Serializer;

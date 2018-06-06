@@ -210,7 +210,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::AddFEMLaplacianStabilizationLH
 
     double Area;
     array_1d<double, TNumNodes> N;
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
     double L;
 
@@ -252,7 +252,7 @@ void ComputeGradientPouliot2012<TDim, TNumNodes>::CalculateStabilizationRHS(cons
     // Get the element's geometric parameters
     double Area;
     array_1d<double, TNumNodes> N;
-    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
     MatrixType NContainer;

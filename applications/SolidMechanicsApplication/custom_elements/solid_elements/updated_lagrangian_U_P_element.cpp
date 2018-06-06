@@ -326,7 +326,7 @@ void UpdatedLagrangianUPElement::CalculateKinematics(ElementVariables& rVariable
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Current Deformation Gradient [dx_n+1/dx_n]
-    //this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition);
+    //this->CalculateDeformationGradient (rVariables.F, rVariables.DN_DX, rVariables.DeltaPosition);
 
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
@@ -357,9 +357,9 @@ void UpdatedLagrangianUPElement::CalculateKinematics(ElementVariables& rVariable
 //*************************COMPUTE DEFORMATION GRADIENT*******************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::CalculateDeformationGradient(const Matrix& rDN_DX,
-        Matrix& rF,
-        Matrix& rDeltaPosition)
+void UpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix& rF,
+                                                              const Matrix& rDN_DX,
+                                                              const Matrix& rDeltaPosition)
 {
     KRATOS_TRY
 
@@ -416,8 +416,8 @@ void UpdatedLagrangianUPElement::CalculateDeformationGradient(const Matrix& rDN_
 
 
 void UpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rF,
-        Matrix& rDN_DX)
+                                                            const Matrix& rF,
+                                                            const Matrix& rDN_DX)
 {
     KRATOS_TRY
 

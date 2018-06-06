@@ -17,8 +17,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -191,17 +189,17 @@ LinearFunction(const double a, const double b): RealFunction(a, b){}
 
 ~LinearFunction(){}
 
-double Evaluate(const double x)
+double Evaluate(const double x) override
 {
     return mA * x + mB;
 }
 
-double CalculateDerivative(const double x)
+double CalculateDerivative(const double x) override
 {
     return mA;
 }
 
-double CalculateSecondDerivative(const double x)
+double CalculateSecondDerivative(const double x) override
 {
     return 0.0;
 }
@@ -219,17 +217,17 @@ PowerFunction(const double a, const double b, const double c):RealFunction(a, b)
 
 ~PowerFunction(){}
 
-double Evaluate(const double x)
+double Evaluate(const double x) override
 {
     return mA * pow(x, mB) + mC;
 }
 
-double CalculateDerivative(const double x)
+double CalculateDerivative(const double x) override
 {
     return mA * mB * pow(x, mB - 1.0);
 }
 
-double CalculateSecondDerivative(const double x)
+double CalculateSecondDerivative(const double x) override
 {
     return mA * mB * (mB - 1.0) * pow(x, mB - 2.0);
 }
@@ -250,17 +248,17 @@ AdditionFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(
 
 ~AdditionFunction(){}
 
-double Evaluate(const double x)
+double Evaluate(const double x) override
 {
     return mA * (mF.Evaluate(x) + mG.Evaluate(x));
 }
 
-double CalculateDerivative(const double x)
+double CalculateDerivative(const double x) override
 {
     return mA * (mF.CalculateDerivative(x) + mG.CalculateDerivative(x));
 }
 
-double CalculateSecondDerivative(const double x)
+double CalculateSecondDerivative(const double x) override
 {
     return mA * (mF.CalculateSecondDerivative(x) + mG.CalculateSecondDerivative(x));
 }
@@ -282,17 +280,17 @@ ProductFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a
 
 ~ProductFunction(){}
 
-double Evaluate(const double x)
+double Evaluate(const double x) override
 {
     return mA * mF.Evaluate(x) * mG.Evaluate(x);
 }
 
-double CalculateDerivative(const double x)
+double CalculateDerivative(const double x) override
 {
     return mA * (mG.Evaluate(x) * mF.CalculateDerivative(x) + mF.Evaluate(x) * mG.CalculateDerivative(x));
 }
 
-double CalculateSecondDerivative(const double x)
+double CalculateSecondDerivative(const double x) override
 {
     return mA * (mF.CalculateSecondDerivative(x) * mG.Evaluate(x) + mF.Evaluate(x) * mG.CalculateSecondDerivative(x) + 2 * mF.CalculateDerivative(x) * mG.CalculateDerivative(x));
 }
@@ -314,17 +312,17 @@ CompositionFunction(const double a, RealFunction& f, RealFunction& g):RealFuncti
 
 ~CompositionFunction(){}
 
-double Evaluate(const double x)
+double Evaluate(const double x) override
 {
     return mA * mF.Evaluate(mG.Evaluate(x));
 }
 
-double CalculateDerivative(const double x)
+double CalculateDerivative(const double x) override
 {
     return mA * mF.CalculateDerivative(mG.Evaluate(x)) * mG.CalculateDerivative(x);
 }
 
-double CalculateSecondDerivative(const double x)
+double CalculateSecondDerivative(const double x) override
 {
     return mA * (mF.CalculateSecondDerivative(x) * mG.CalculateDerivative(x) * mG.CalculateDerivative(x) + mF.CalculateDerivative(mG.Evaluate(x)) * mG.CalculateSecondDerivative(x));
 }

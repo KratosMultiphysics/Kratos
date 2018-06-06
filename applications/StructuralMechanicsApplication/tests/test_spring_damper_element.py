@@ -24,12 +24,12 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
 
     def _add_dofs(self,node):
-        node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
-        node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
-        node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
-        node.AddDof(KratosMultiphysics.ROTATION_X)
-        node.AddDof(KratosMultiphysics.ROTATION_Y)
-        node.AddDof(KratosMultiphysics.ROTATION_Z)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        node.AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X)
+        node.AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y)
+        node.AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z)
 
     def _add_bcs(self,node):
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)

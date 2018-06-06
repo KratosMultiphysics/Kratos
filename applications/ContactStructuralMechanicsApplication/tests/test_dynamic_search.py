@@ -27,7 +27,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         self.main_model_part.AddNodalSolutionStepVariable(KM.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
 
@@ -38,7 +38,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X,self.main_model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y,self.main_model_part)
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_Z, KM.REACTION_Z,self.main_model_part)
-        KM.VariableUtils().AddDof(KM.NORMAL_CONTACT_STRESS, CSMA.WEIGHTED_GAP, self.main_model_part)
+        KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_GAP, self.main_model_part)
 
         if (self.main_model_part.HasSubModelPart("Contact")):
             interface_model_part = self.main_model_part.GetSubModelPart("Contact")

@@ -74,8 +74,8 @@ struct gauss_seidel {
         : is_serial(prm.serial || num_threads() < 4)
     {
         if(!is_serial) {
-            forward  = boost::make_shared< parallel_sweep<true>  >(A);
-            backward = boost::make_shared< parallel_sweep<false> >(A);
+            forward  = std::make_shared< parallel_sweep<true>  >(A);
+            backward = std::make_shared< parallel_sweep<false> >(A);
         }
     }
 
@@ -339,8 +339,8 @@ struct gauss_seidel {
             }
         };
 
-        boost::shared_ptr< parallel_sweep<true>  > forward;
-        boost::shared_ptr< parallel_sweep<false> > backward;
+        std::shared_ptr< parallel_sweep<true>  > forward;
+        std::shared_ptr< parallel_sweep<false> > backward;
 };
 
 } // namespace relaxation

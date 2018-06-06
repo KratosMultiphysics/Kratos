@@ -615,7 +615,7 @@ public:
             //define a vector oriented as x21
             array_1d<double,3> v1 = x21 / norm_2(x21);
 
-            boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+            BoundedMatrix<double,4,3> DN_DX;
             array_1d<double,4> msN;
             double Area;
             GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
@@ -769,7 +769,7 @@ public:
         Initialize();
 
         // Initialize index table that defines line Edges of fluid Element
-        bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
+        BoundedMatrix<unsigned int,6,2> TetEdgeIndexTable;
         SetIndexTable(TetEdgeIndexTable);
 
         // loop over all fluid Elements
@@ -847,7 +847,7 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void SetIndexTable( bounded_matrix<unsigned int,6,2>& TetEdgeIndexTable )
+    void SetIndexTable( BoundedMatrix<unsigned int,6,2>& TetEdgeIndexTable )
     {
         // Initialize index table to define line Edges of fluid Element
         TetEdgeIndexTable(0,0) = 0;
@@ -868,7 +868,7 @@ public:
     ///******************************************************************************************************************
 
     void CalcElementDistances( ModelPart::ElementsContainerType::iterator& i_fluidElement,
-                               bounded_matrix<unsigned int,6,2>            TetEdgeIndexTable )
+                               BoundedMatrix<unsigned int,6,2>            TetEdgeIndexTable )
     {
         std::vector<OctreeType::cell_type*> leaves;
         std::vector<TetEdgeStruct>          IntersectedTetEdges;
@@ -904,7 +904,7 @@ public:
                                     std::vector<OctreeType::cell_type*>&          leaves,
                                     std::vector<TetEdgeStruct>&                   IntersectedTetEdges,
                                     unsigned int&                                 NumberIntersectionsOnTetCorner,
-                                    bounded_matrix<unsigned int,6,2>              TetEdgeIndexTable,
+                                    BoundedMatrix<unsigned int,6,2>              TetEdgeIndexTable,
                                     int&                                          intersection_counter )
     {
         std::vector<unsigned int> IntersectingStructElemID;
@@ -1605,7 +1605,7 @@ public:
                     //define a vector oriented as x21
                     array_1d<double,3> v1 = x21 / norm_2(x21);
 
-                    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+                    BoundedMatrix<double,4,3> DN_DX;
                     array_1d<double,4> msN;
                     double Area;
                     GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );

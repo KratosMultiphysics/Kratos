@@ -51,11 +51,11 @@ public:
     UPwNormalFluxFICCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwNormalFluxCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
     // Destructor
-    virtual ~UPwNormalFluxFICCondition() {}
+    ~UPwNormalFluxFICCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
  
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -68,16 +68,16 @@ protected:
         double BiotModulusInverse;
         
         array_1d<double,TNumNodes> DtPressureVector;
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> PMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
     };
     
     // Member Variables
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
     
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
     
     void CalculateElementLength(double& rElementLength, const GeometryType& Geom);
     
@@ -103,12 +103,12 @@ private:
     
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }

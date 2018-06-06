@@ -82,7 +82,7 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
     MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY;
-  bounded_matrix<double, msElementSize, msElementSize> transformation_matrix =
+  BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
       this->CalculateInitialLocalCS();
   rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
   noalias(rLeftHandSideMatrix) += this->CreateElementStiffnessMatrix_Material();
@@ -98,7 +98,7 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
   }
   //// end static condensation
 
-  bounded_matrix<double, msElementSize, msElementSize> aux_matrix =
+  BoundedMatrix<double, msElementSize, msElementSize> aux_matrix =
       ZeroMatrix(msElementSize);
   aux_matrix = prod(transformation_matrix, rLeftHandSideMatrix);
   noalias(rLeftHandSideMatrix) =
@@ -125,10 +125,10 @@ void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
     this->CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
   } else {
     this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
-    bounded_matrix<double, msElementSize, msElementSize> rotation_matrix =
+    BoundedMatrix<double, msElementSize, msElementSize> rotation_matrix =
         this->CalculateInitialLocalCS();
- 
-    bounded_matrix<double, msElementSize, msElementSize> aux_matrix =
+
+    BoundedMatrix<double, msElementSize, msElementSize> aux_matrix =
         prod(rotation_matrix, rMassMatrix);
     rMassMatrix = prod(aux_matrix, Matrix(trans(rotation_matrix)));
   }
@@ -137,12 +137,12 @@ void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
 }
 
 
-bounded_matrix<double, CrBeamElement3D2N::msLocalSize,
+BoundedMatrix<double, CrBeamElement3D2N::msLocalSize,
                CrBeamElement3D2N::msLocalSize>
 CrBeamElementLinear3D2N::CalculateDeformationStiffness() {
 
   KRATOS_TRY
-  bounded_matrix<double, msLocalSize, msLocalSize> Kd =
+  BoundedMatrix<double, msLocalSize, msLocalSize> Kd =
       ZeroMatrix(msLocalSize, msLocalSize);
   const double E = this->GetProperties()[YOUNG_MODULUS];
   const double G = this->CalculateShearModulus();
@@ -194,7 +194,7 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
   Vector nodal_deformation = ZeroVector(msElementSize);
   this->GetValuesVector(nodal_deformation);
 
-  bounded_matrix<double, msElementSize, msElementSize> transformation_matrix =
+  BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
       this->CalculateInitialLocalCS();
   nodal_deformation =
       prod(Matrix(trans(transformation_matrix)), nodal_deformation);
@@ -252,7 +252,7 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
   KRATOS_TRY;
 
   if (rVariable == LOCAL_AXES_VECTOR) {
-    bounded_matrix<double, msElementSize, msElementSize> transformation_matrix;
+    BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
     transformation_matrix = this->CalculateInitialLocalCS();
 
     rOutput.resize(3);

@@ -111,6 +111,8 @@ public:
     
     typedef ProcessFactoryUtility::Pointer                                      ProcessesListType;
     
+    typedef std::size_t                                                                 IndexType;
+    
     /**
      * @brief Default constructor 
      * @param rModelPart The model part of the problem
@@ -128,7 +130,7 @@ public:
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
@@ -172,7 +174,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        unsigned int MaxIterations = 30,
+        IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
@@ -216,6 +218,50 @@ public:
     {
         KRATOS_TRY
         
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
+        // Set to zero the weighted gap
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
+        const bool frictional = r_model_part.Is(SLIP);
+
+        // We predict contact pressure in case of contact problem
+        if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+            if (frictional) {
+                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+            }
+
+            ConditionsArrayType& conditions_array = r_model_part.GetSubModelPart("ComputingContact").Conditions();
+
+            KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+                (conditions_array.begin() + i)->AddExplicitContribution(r_model_part.GetProcessInfo());
+
+            // We predict a contact pressure
+            ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+            const std::size_t step = r_process_info[STEP];
+
+            if (step == 1) {
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+                }
+            } else {
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) += (it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1));
+
+                }
+            }
+        }
+
 //         BaseType::Predict();  // NOTE: May cause problems in dynamics!!! 
 // 
 //         // Set to zero the weighted gap // NOTE: This can be done during the search if the predict is deactivated
@@ -240,7 +286,7 @@ public:
 //             const double initial_penalty_parameter = r_process_info[INITIAL_PENALTY];
 //             
 //             // We iterate over the nodes
-//             bool is_components = nodes_array.begin()->SolutionStepsDataHas(NORMAL_CONTACT_STRESS) ? false : true;
+//             bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
 // 
 //             #pragma omp parallel for 
 //             for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
@@ -253,7 +299,7 @@ public:
 //                 if (current_gap < 0.0) {
 //                     it_node->Set(ACTIVE, true);
 //                     if (is_components) {
-//                         it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = penalty * current_gap;
+//                         it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = penalty * current_gap;
 //                     } else {
 //                         const array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
 //                         it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER) = penalty * current_gap * normal;
@@ -275,6 +321,11 @@ public:
 
         BaseType::Initialize();
         mFinalizeWasPerformed = false;
+
+        // Initializing NL_ITERATION_NUMBER
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        r_process_info[NL_ITERATION_NUMBER] = 1;
 
         KRATOS_CATCH("");
     }
@@ -308,7 +359,7 @@ public:
     {
         BaseType::InitializeSolutionStep();
         
-        // TODO: Add something if necessary
+        mFinalizeWasPerformed = false;
     }
     
     /**
@@ -385,7 +436,7 @@ protected:
     double mSplitFactor;               /// Number by one the delta time is split
     ProcessesListType mpMyProcesses;   /// The processes list
     ProcessesListType mpPostProcesses; /// The post processes list
-    unsigned int mMaxNumberSplits;     /// Maximum number of splits
+    IndexType mMaxNumberSplits;     /// Maximum number of splits
     
     // OTHER PARAMETERS
     int mConvergenceCriteriaEchoLevel; /// The echo level of the convergence criteria
@@ -414,7 +465,7 @@ protected:
         TSystemVectorType& b = *BaseType::mpb;
 
         //initializing the parameters of the Newton-Raphson cicle
-        unsigned int iteration_number = 1;
+        IndexType iteration_number = 1;
         r_process_info[NL_ITERATION_NUMBER] = iteration_number;
 
         bool is_converged = false;
@@ -592,7 +643,7 @@ protected:
 
         const double original_delta_time = r_process_info[DELTA_TIME]; // We save the delta time to restore later
         
-        unsigned int split_number = 0;
+        IndexType split_number = 0;
         
         // We iterate until we reach the convergence or we split more than desired
         while (is_converged == false && split_number <= mMaxNumberSplits) {                   
@@ -603,7 +654,7 @@ protected:
             current_time += aux_delta_time;
             
             bool inside_the_split_is_converged = false;
-            unsigned int inner_iteration = 0;
+            IndexType inner_iteration = 0;
             while (current_time <= aux_time) {      
                 inner_iteration += 1;
                 r_process_info[STEP] += 1;
@@ -737,7 +788,7 @@ protected:
             std::vector<Matrix> deformation_gradient_matrices;
             it_elem->GetValueOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
             
-            for (unsigned int i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
+            for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
                 const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);
                 if (det_f < 0.0) {
                     if (mConvergenceCriteriaEchoLevel > 0) {

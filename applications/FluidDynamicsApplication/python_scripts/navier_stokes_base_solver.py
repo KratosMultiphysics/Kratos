@@ -20,6 +20,7 @@ class NavierStokesBaseSolver(object):
         self.element_name = None
         self.condition_name = None
         self.min_buffer_size = 3
+        self.step = 0
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
@@ -94,26 +95,38 @@ class NavierStokesBaseSolver(object):
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+
+        self.main_model_part.CloneTimeStep(new_time)
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+
+        return new_time
+
     def InitializeSolutionStep(self):
-        self.solver.Initialize()
-        self.solver.InitializeSolutionStep()
-        self.solver.Predict()
+        if self._TimeBufferIsInitialized():
+            self.solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.solver.Predict()
+        if self._TimeBufferIsInitialized():
+            self.solver.Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.solver.SolveSolutionStep()
-        if not is_converged and self._IsPrintingRank():
-            msg  = "Navier-Stokes solver did not converge for iteration " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
-            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesBaseSolver",msg)
+        if self._TimeBufferIsInitialized():
+            is_converged = self.solver.SolveSolutionStep()
+            if not is_converged and self._IsPrintingRank():
+                msg  = "Navier-Stokes solver did not converge for iteration " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+                msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesBaseSolver",msg)
 
     def FinalizeSolutionStep(self):
-        (self.solver).FinalizeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            (self.solver).FinalizeSolutionStep()
 
     def Solve(self):
         self.InitializeSolutionStep()
+        self.Predict()
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
 
@@ -214,3 +227,7 @@ class NavierStokesBaseSolver(object):
 
     def _IsPrintingRank(self):
         return self._is_printing_rank
+
+    def _TimeBufferIsInitialized(self):
+        # We always have one extra old step (step 0, read from input)
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()

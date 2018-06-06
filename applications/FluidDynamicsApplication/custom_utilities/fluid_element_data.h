@@ -41,11 +41,11 @@ public:
 
     using NodalScalarData = array_1d<double,TNumNodes>;
 
-    using NodalVectorData = boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>;
+    using NodalVectorData = BoundedMatrix<double,TNumNodes,TDim>;
 
     using ShapeFunctionsType = array_1d<double,TNumNodes>;
 
-    using ShapeDerivativesType = boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>;
+    using ShapeDerivativesType = BoundedMatrix<double,TNumNodes,TDim>;
 
     /// Physical space dimension for the problem.
     constexpr static unsigned int Dim = TDim;
@@ -83,14 +83,18 @@ public:
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo);
 
-    virtual void UpdateGeometryValues(double NewWeight,
+    virtual void UpdateGeometryValues(
+        unsigned int IntegrationPointIndex,
+        double NewWeight,
         const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX);
+        const ShapeDerivativesType& rDN_DX);
 
     ///@}
     ///@name Public Members
     ///@{
-    
+
+    unsigned int IntegrationPointIndex;
+
     double Weight;
 
     ShapeFunctionsType N;
@@ -114,7 +118,7 @@ public:
 
     /// Effective viscosity (in dynamic units) produced by the constitutive law
     double EffectiveViscosity;
-    
+
     ///@}
 protected:
 

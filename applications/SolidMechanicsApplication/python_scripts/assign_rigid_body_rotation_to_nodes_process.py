@@ -159,7 +159,7 @@ class AssignRigidBodyRotationToNodesProcess(BaseProcess.AssignScalarToNodesProce
             for dynamic_variable in self.LinearDynamicVariables:
                 counter = 0
                 if dynamic_variable == self.variable_name:
-                    self.variable_name = self.LinearAngularVariables[counter]
+                    self.variable_name = self.LinearDynamicVariables[counter]
                     break
                 counter = counter + 1
 

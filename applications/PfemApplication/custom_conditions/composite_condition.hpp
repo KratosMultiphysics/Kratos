@@ -194,7 +194,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties) const;
+			      PropertiesType::Pointer pProperties) const override;
 
     /**
      * creates a new condition pointer
@@ -205,7 +205,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      GeometryType::Pointer pGeom,
-			      PropertiesType::Pointer pProperties) const;
+			      PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected condition variables, creating a new one
@@ -214,7 +214,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //************* GETTING METHODS
@@ -223,32 +223,32 @@ public:
      * Returns the currently selected integration method
      * @return current integration method selected
      */
-    IntegrationMethod GetIntegrationMethod();
+    IntegrationMethod GetIntegrationMethod() override;
 
     /**
      * Sets on rConditionalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
 
@@ -268,28 +268,28 @@ public:
     /**
      * Set a Vector Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set a Matrix Value on the Condition Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     //GET:
     /**
      * Set on rVariable a double Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set on rVariable a Vector Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set on rVariable a Matrix Value from the Condition Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -299,23 +299,23 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    void Initialize() override;
 
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
 
     //************* COMPUTING  METHODS
@@ -329,7 +329,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -337,7 +337,7 @@ public:
       * @param rRightHandSideVector: the elemental right hand side vector
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -345,7 +345,7 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this function provides a more general interface to the condition.
@@ -360,7 +360,7 @@ public:
 			      const std::vector< Variable< MatrixType > >& rLHSVariables,
 			      std::vector< VectorType >& rRightHandSideVectors,
 			      const std::vector< Variable< VectorType > >& rRHSVariables,
-			      ProcessInfo& rCurrentProcessInfo);
+			      ProcessInfo& rCurrentProcessInfo) override;
 
 
    /**
@@ -372,7 +372,7 @@ public:
      */
     void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
 				const std::vector< Variable< VectorType > >& rRHSVariables,
-				ProcessInfo& rCurrentProcessInfo);
+				ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -380,7 +380,7 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * this is called during the assembling process in order
@@ -388,7 +388,7 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
@@ -402,27 +402,27 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable,
 				 Variable<array_1d<double,3> >& rDestinationVariable,
-				 const ProcessInfo& rCurrentProcessInfo);
+				 const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //on integration points:
     /**
      * Calculate a double Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Vector Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate a Matrix Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
     //************************************************************************************
@@ -433,7 +433,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     //std::string Info() const;
 
@@ -450,7 +450,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Condition CompositeCondition #" << Id();
@@ -459,7 +459,7 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Condition CompositeCondition #" << Id();
     }
@@ -542,11 +542,9 @@ private:
     {
     }
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
-
-
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

@@ -332,13 +332,18 @@ namespace Kratos
  
     } 
     
-    //6.- Finalize hyperelastic model parameters    
-    this->FinalizeModelData(rValues,rModelValues);
-
     if(rOptions.Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY))
       {
 	     
-      }  
+      }
+
+
+    //6.- Finalize hyperelastic model parameters    
+    this->FinalizeModelData(rValues,rModelValues);
+
+    // std::cout<<" StrainVector "<<rValues.GetStrainVector()<<std::endl;
+    // std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
+    // std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;   
 
     KRATOS_CATCH(" ")      
   }
@@ -461,7 +466,7 @@ namespace Kratos
   void LargeStrain3DLaw::CalculateConstitutiveMatrix(ModelDataType& rModelValues, Matrix& rConstitutiveMatrix)
   {
     KRATOS_TRY
-        
+                
     //Calculate ConstitutiveMatrix   
     if(rModelValues.GetOptions().Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY)){
 

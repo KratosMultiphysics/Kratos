@@ -69,7 +69,7 @@ struct spai1 {
         const size_t n   = backend::rows(A);
         const size_t m   = backend::cols(A);
 
-        boost::shared_ptr<Matrix> Ainv = boost::make_shared<Matrix>(A);
+        std::shared_ptr<Matrix> Ainv = std::make_shared<Matrix>(A);
 
 #pragma omp parallel
         {
@@ -152,7 +152,7 @@ struct spai1 {
     }
 
     private:
-        boost::shared_ptr<typename Backend::matrix> M;
+        std::shared_ptr<typename Backend::matrix> M;
 };
 
 } // namespace relaxation

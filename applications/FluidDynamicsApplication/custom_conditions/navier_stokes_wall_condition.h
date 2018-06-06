@@ -235,7 +235,7 @@ public:
 
         // Allocate memory needed
         array_1d<double,MatrixSize> rhs_gauss;
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_gauss;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_gauss;
 
         // LHS and RHS contributions initialization
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
@@ -490,9 +490,9 @@ protected:
 
     void CalculateNormal(array_1d<double,3>& An);
 
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
-    
+
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
     void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 

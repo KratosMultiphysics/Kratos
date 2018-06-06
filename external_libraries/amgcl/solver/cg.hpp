@@ -216,10 +216,10 @@ class cg {
     private:
         size_t n;
 
-        boost::shared_ptr<vector> r;
-        boost::shared_ptr<vector> s;
-        boost::shared_ptr<vector> p;
-        boost::shared_ptr<vector> q;
+        std::shared_ptr<vector> r;
+        std::shared_ptr<vector> s;
+        std::shared_ptr<vector> p;
+        std::shared_ptr<vector> q;
 
         InnerProduct inner_product;
 

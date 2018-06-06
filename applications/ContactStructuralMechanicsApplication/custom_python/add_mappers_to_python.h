@@ -14,7 +14,7 @@
 #define  KRATOS_ADD_MAPPERS_TO_PYTHON_H_INCLUDED
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -29,7 +29,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomMappersToPython();
+void  AddCustomMappersToPython(pybind11::module& m);
 
 }  // namespace Python.
 

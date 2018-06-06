@@ -27,6 +27,7 @@ class WorkFolderScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipIf(missing_external_dependencies,"Missing required application: "+ missing_application)
 class FSIProblemEmulatorTest(UnitTest.TestCase):
 
     def setUp(self):
@@ -73,6 +74,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 "parallel_type" : "OpenMP"
             },
             "solver_settings" : {
+                "model_part_name"         : "Structure",
+                "domain_size"             : 2,
                 "solver_type"             : "Dynamic",
                 "echo_level"              : 0,
                 "analysis_type"           : "linear",
@@ -106,16 +109,19 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
 
         with WorkFolderScope(self.work_folder):
 
-            self.structure_main_model_part = ModelPart("Structure")
-            self.structure_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, 2)
+            self.model = Model()
 
             # Construct the structure solver
             import python_solvers_wrapper_structural
-            self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_main_model_part, StructureSolverSettings)
+            self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.model, StructureSolverSettings)
 
             self.structure_solver.AddVariables()
 
             self.structure_solver.ImportModelPart()
+
+            self.structure_solver.PrepareModelPart()
+
+            self.structure_main_model_part = self.model["Structure"]
 
             self.structure_solver.AddDofs()
 

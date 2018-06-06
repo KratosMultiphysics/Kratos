@@ -288,6 +288,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
+           "python_module"   : "assign_modulus_and_direction_to_conditions_process",
            "model_part_name" : "MODEL_PART",
            "variable_name"   : "DISPLACEMENT",
            "modulus"         : 0.0,
@@ -310,7 +311,6 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         factory_settings = KratosMultiphysics.Parameters("""
         {
-           "python_module" : "assign_modulus_and_direction_to_conditions_process",
            "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
            "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
            "Parameters"    : {
@@ -318,6 +318,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         }
         """)
 
+        factory_settings.AddValue("python_module", settings["python_module"])
         factory_settings["Parameters"].AddValue("model_part_name", settings["model_part_name"])
         factory_settings["Parameters"].AddValue("variable_name", settings["variable_name"])
         factory_settings["Parameters"].AddValue("modulus", settings["modulus"])
