@@ -84,7 +84,7 @@ ConstitutiveLaw::Pointer ConstitutiveLaw::Clone() const
 ConstitutiveLaw::Pointer ConstitutiveLaw::Create(Kratos::Parameters& NewParameters) const
 {
     const std::string& name = NewParameters["name"].GetString();
-    KratosComponents<ConstitutiveLaw>::Get(name).Clone();
+    return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
 }
 
 /**
