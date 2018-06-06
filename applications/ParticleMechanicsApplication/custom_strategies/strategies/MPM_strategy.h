@@ -213,116 +213,130 @@ public:
         const unsigned int number_nodes = grid_model_part.NumberOfNodes();
         int new_element_id = 0;
 
-        for (ModelPart::ElementIterator i = initial_model_part.ElementsBegin();
-                i != initial_model_part.ElementsEnd(); i++)
+        // Loop over the submodelpart of initial_model_part
+        for (ModelPart::SubModelPartIterator submodelpart_it = initial_model_part.SubModelPartsBegin();
+                submodelpart_it != initial_model_part.SubModelPartsEnd(); submodelpart_it++)
         {
-            if(i->IsDefined(ACTIVE))
+            ModelPart& submodelpart = *submodelpart_it;
+            std::string submodelpart_name = submodelpart.Name();
+
+            mpm_model_part.CreateSubModelPart(submodelpart_name);
+
+            // Loop over the element of submodelpart's submodelpart and generate mpm element to be appended to the mpm_model_part
+            for (ModelPart::ElementIterator i = submodelpart.ElementsBegin();
+                    i != submodelpart.ElementsEnd(); i++)
             {
-                Properties::Pointer properties = i->pGetProperties();
-                int Material_id = i->GetProperties().Id();
-                double Density  = i->GetProperties()[DENSITY];
-
-                Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
-                Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                if (m_GeometryElement == "Triangle")
+                if(i->IsDefined(ACTIVE))
                 {
-                    if(m_NumPar == 1)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                    }
-                    else if(m_NumPar == 3)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    }
-                    else if(m_NumPar == 6)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                    }
-                    else if(m_NumPar == 16)
-                    {
-                        shape_functions_values = this->MP16ShapeFunctions();
-                    }
-                }
-                else if(m_GeometryElement == "Quadrilateral")
-                {
-                    if(m_NumPar == 1)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                    }
-                    else if(m_NumPar == 4)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    }
-                    else if(m_NumPar == 9)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
-                    }
-                    else if(m_NumPar == 16)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                    }
-                }
+                    Properties::Pointer properties = i->pGetProperties();
+                    int Material_id = i->GetProperties().Id();
+                    double Density  = i->GetProperties()[DENSITY];
 
-                //INITIAL NUMBER OF MATERIAL POINTS PER ELEMENT
-                unsigned int integration_point_per_elements = shape_functions_values.size1();
-
-                //evaluation of element area/volume
-                double area = rGeom.Area();
-
-                MP_Mass = area * Density / integration_point_per_elements;
-                MP_Volume = area / integration_point_per_elements;
-
-                //loop over the material points that fall in each grid element
-                for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
-                {
-                    if(number_elements > number_nodes)
+                    Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
+                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                    if (m_GeometryElement == "Triangle")
                     {
-                        new_element_id = (1+PointNumber+number_elements)+(integration_point_per_elements*k);
-                    }
-                    else
-                    {
-                        new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
-                    }
-                    Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
-                    double MP_Density  = Density;
-                    int MP_Material_Id = Material_id;
-
-                    xg.clear();
-
-                    //loop over the nodes of the grid element
-                    for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
-                    {
-                        for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                        if(m_NumPar == 1)
                         {
-
-                            xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                        }
+                        else if(m_NumPar == 3)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                        }
+                        else if(m_NumPar == 6)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                        }
+                        else if(m_NumPar == 16)
+                        {
+                            shape_functions_values = this->MP16ShapeFunctions();
+                        }
+                    }
+                    else if(m_GeometryElement == "Quadrilateral")
+                    {
+                        if(m_NumPar == 1)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                        }
+                        else if(m_NumPar == 4)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                        }
+                        else if(m_NumPar == 9)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                        }
+                        else if(m_NumPar == 16)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                         }
                     }
 
-                    p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
-                    p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
-                    p_element -> SetValue(MP_DENSITY, MP_Density);
-                    p_element -> SetValue(MP_MASS, MP_Mass);
-                    p_element -> SetValue(MP_VOLUME, MP_Volume);
-                    p_element -> SetValue(GAUSS_COORD, xg);
-                    p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
-                    p_element -> SetValue(MP_VELOCITY, MP_Velocity);
+                    //INITIAL NUMBER OF MATERIAL POINTS PER ELEMENT
+                    unsigned int integration_point_per_elements = shape_functions_values.size1();
 
-                    //p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
-                    //p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_AlmansiVector);
-                    //p_element -> SetValue(MP_CONSTITUTIVE_MATRIX, MP_ConstitutiveMatrix);
-                    //p_element -> SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
-                    //p_element -> SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
-                    //push back to model_part
-                    
-                    mpm_model_part.Elements().push_back(p_element);
+                    //evaluation of element area/volume
+                    double area = rGeom.Area();
+
+                    MP_Mass = area * Density / integration_point_per_elements;
+                    MP_Volume = area / integration_point_per_elements;
+
+                    //loop over the material points that fall in each grid element
+                    for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
+                    {
+                        if(number_elements > number_nodes)
+                        {
+                            new_element_id = (1+PointNumber+number_elements)+(integration_point_per_elements*k);
+                        }
+                        else
+                        {
+                            new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
+                        }
+                        Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
+                        double MP_Density  = Density;
+                        int MP_Material_Id = Material_id;
+
+                        xg.clear();
+
+                        //loop over the nodes of the grid element
+                        for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
+                        {
+                            for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                            {
+
+                                xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
+                            }
+                        }
+
+                        p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
+                        p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
+                        p_element -> SetValue(MP_DENSITY, MP_Density);
+                        p_element -> SetValue(MP_MASS, MP_Mass);
+                        p_element -> SetValue(MP_VOLUME, MP_Volume);
+                        p_element -> SetValue(GAUSS_COORD, xg);
+                        p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
+                        p_element -> SetValue(MP_VELOCITY, MP_Velocity);
+
+                        //p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
+                        //p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_AlmansiVector);
+                        //p_element -> SetValue(MP_CONSTITUTIVE_MATRIX, MP_ConstitutiveMatrix);
+                        //p_element -> SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
+                        //p_element -> SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
+
+                        //Add the MP Element to the model part
+                        mpm_model_part.GetSubModelPart(submodelpart_name).AddElement(p_element);
+                    }
+
+                    k +=1;
+
                 }
 
-                k +=1;
 
             }
 
         }
+
         //define a standard static strategy to be used in the calculation
         if(SolutionType == "StaticSolver" || SolutionType == "Static")
         {

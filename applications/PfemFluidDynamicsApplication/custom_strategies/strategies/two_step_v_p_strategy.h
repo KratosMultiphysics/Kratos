@@ -76,9 +76,10 @@ class TwoStepVPStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinea
 public:
     ///@name Type Definitions
     ///@{
+    KRATOS_CLASS_POINTER_DEFINITION(TwoStepVPStrategy);
 
     /// Counted pointer of TwoStepVPStrategy
-    typedef boost::shared_ptr< TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+    //typedef boost::shared_ptr< TwoStepVPStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -178,7 +179,7 @@ public:
     /// Destructor.
     virtual ~TwoStepVPStrategy(){}
 
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY;
 
@@ -217,23 +218,24 @@ public:
         KRATOS_CATCH("");
     }
 
-    virtual double Solve()
+    double Solve() override
     {
       // Initialize BDF2 coefficients
       ModelPart& rModelPart = BaseType::GetModelPart();
       this->SetTimeCoefficients(rModelPart.GetProcessInfo());
-
-      if ( BaseType::GetEchoLevel() > 1)
-	std::cout << "Solve in two_step_vp strategy "  << std::endl;
-
       double NormDp = 0.0;
-
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
       bool timeIntervalChanged=  rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
  
       unsigned int maxNonLinearIterations=mMaxPressureIter;
+      /* if ( BaseType::GetEchoLevel() > 1) */
+      /* 	std::cout << "Solve with two_step_vp strategy "  << std::endl; */
+
+
+      std::cout << "\n                   Solve with two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
+
 
       if(timeIntervalChanged==true && currentTime>10*timeInterval ){
 	maxNonLinearIterations*=2;
@@ -251,7 +253,8 @@ public:
       bool momentumConverged = true;
       bool continuityConverged = false;
       bool fixedTimeStep=false;
-      boost::timer solve_step_time;
+      /* boost::timer solve_step_time; */
+      
       // Iterative solution for pressure
       /* unsigned int timeStep = rCurrentProcessInfo[STEP]; */
       /* if(timeStep==1){ */
@@ -285,7 +288,7 @@ public:
 	    {
 	      rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
 	      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE,false);
-	      if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+	      /* if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) */
 		std::cout << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
 	      break;
 	    }
@@ -298,7 +301,7 @@ public:
       if (!continuityConverged && !momentumConverged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
 	std::cout << "Convergence tolerance not reached." << std::endl;
 
-      std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl;
+      /* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
 
       if (mReformDofSet)
 	this->Clear();
@@ -306,11 +309,13 @@ public:
       return NormDp;
     }
 
-    virtual void FinalizeSolutionStep(){
+    void FinalizeSolutionStep() override
+    {
       /* this->UpdateStressStrain(); */
     }
 
-    virtual void InitializeSolutionStep(){
+    void InitializeSolutionStep() override
+    {
     }
 
 
@@ -482,7 +487,7 @@ public:
 
    }
 
-    virtual void Clear()
+   void Clear() override
     {
         mpMomentumStrategy->Clear();
         mpPressureStrategy->Clear();
@@ -493,7 +498,7 @@ public:
     ///@name Access
     ///@{
 
-    virtual void SetEchoLevel(int Level)
+    void SetEchoLevel(int Level) override
     {
         BaseType::SetEchoLevel(Level);
         int StrategyLevel = Level > 0 ? Level - 1 : 0;
@@ -608,7 +613,7 @@ protected:
       // build momentum system and solve for fractional step velocity increment
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
-      std::cout<<"-------- m o m e n t u m   e q u a t i o n s ----------"<<std::endl;
+      /* std::cout<<"---- m o m e n t u m   e q u a t i o n s ----"<<std::endl; */
       if(it==0){
 	mpMomentumStrategy->InitializeSolutionStep();
       }
@@ -624,6 +629,7 @@ protected:
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
       // Check convergence
       if(it==maxIt-1){
+	std::cout<<"iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
 	fixedTimeStep=this->FixTimeStepMomentum(DvErrorNorm);
       }
 
@@ -644,7 +650,7 @@ protected:
       // 2. Pressure solution 
       rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
 
-      std::cout<<"          -------- c o n t i n u i t y   e q u a t i o n ----------"<<std::endl;
+      /* std::cout<<"     ---- c o n t i n u i t y   e q u a t i o n ----"<<std::endl; */
  
       if(it==0){
 	mpPressureStrategy->InitializeSolutionStep();
@@ -662,6 +668,7 @@ protected:
 
       // Check convergence
       if(it==maxIt-1){
+	std::cout<<"       iteration("<<it<<") Final Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
       	ConvergedContinuity=this->FixTimeStepContinuity(DpErrorNorm);
       }
 
@@ -710,9 +717,10 @@ protected:
 	  std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
 	  std::cout << "The norm of velocity is: " << NormV << std::endl;
 	  std::cout << "Velocity error: " << errorNormDv << "mVelocityTolerance: " << mVelocityTolerance<< std::endl;
-	}else{
-	  std::cout<<"Velocity error: "<< errorNormDv <<" velTol: " << mVelocityTolerance<< std::endl;
 	}
+	/* else{ */
+	/*   std::cout<<"Velocity error: "<< errorNormDv <<" velTol: " << mVelocityTolerance<< std::endl; */
+	/* } */
 	
         if (errorNormDv < mVelocityTolerance)
         {
@@ -756,9 +764,10 @@ protected:
 	  std::cout << "         The norm of pressure increment is: " << NormDp << std::endl;
 	  std::cout << "         The norm of pressure is: " << NormP << std::endl;
             std::cout << "         Pressure error: " <<errorNormDp  << std::endl;
-	}else{
-            std::cout<<"         Pressure error: "<<errorNormDp <<" presTol: "<<mPressureTolerance << std::endl;
 	}
+	/* else{ */
+        /*     std::cout<<"         Pressure error: "<<errorNormDp <<" presTol: "<<mPressureTolerance << std::endl; */
+	/* } */
 
         if ( errorNormDp< mPressureTolerance)
         {
