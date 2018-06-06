@@ -103,6 +103,7 @@ protected:
         double AlphaV;
         double AlphaR;
         double lv;
+        double lsc;
         double OmegaV;
         double SigmaV;
         double LambdaV;
@@ -171,9 +172,9 @@ protected:
     void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
 
-    double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity);
+    double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,2>& rVelocity);
 
-    double AverageElementSize(const Geometry<Node<3> >& rGeometry);
+    //double AverageElementSize(const Geometry<Node<3> >& rGeometry);
 
     void InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer,
                                         const array_1d<array_1d<double,TDim>, TNumNodes>& VariableWithComponents,const unsigned int& GPoint);
