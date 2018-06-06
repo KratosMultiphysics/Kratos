@@ -40,6 +40,15 @@ class FluidAnalysisTest(UnitTest.TestCase):
 
             kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
 
+    def testSteadyAnalysis(self):
+        work_folder = "Cavity"
+        settings_file_name = "steady_cavity5_fluid_parameters.json"
+
+        with WorkFolderScope(work_folder):
+            self._run_test(settings_file_name)
+
+            kratos_utilities.DeleteFileIfExisting("square5.time")
+
     def _run_test(self,settings_file_name):
         model = km.Model()
         with open(settings_file_name,'r') as settings_file:
@@ -74,6 +83,7 @@ class FluidAnalysisTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test_case = FluidAnalysisTest()
     test_case.setUp()
-    test_case.testFluidDynamicsAnalysis()
+    #test_case.testFluidDynamicsAnalysis()
+    test_case.testSteadyAnalysis()
     test_case.tearDown()
 
