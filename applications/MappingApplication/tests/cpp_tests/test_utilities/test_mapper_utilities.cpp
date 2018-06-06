@@ -13,7 +13,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
-#include "includes/mpi_communicator.h"
 #include "mapping_application_variables.h"
 #include "custom_utilities/mapper_utilities.h"
 
@@ -41,30 +40,11 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds_InMPI, Krat
     const int num_nodes = 11;
     ModelPart model_part("ForTest");
 
-// In MPI we replace the Comunicator with the MPICommunicator
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    int mpi_initialized;
-    MPI_Initialized(&mpi_initialized);
-    if (mpi_initialized)   // parallel execution, i.e. mpi imported in python
-    {
-        int comm_size;
-        MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-        if (comm_size > 1)
-        {
-            // Note that this MPICommunicator
-            VariablesList* var_list = &(model_part.GetNodalSolutionStepVariablesList()) ;
-            model_part.SetCommunicator(Communicator::Pointer(new MPICommunicator(var_list)));
-        }
-    }
-#endif
-
     CreateNodesForMapping(model_part, num_nodes);
 
     MapperUtilities::AssignInterfaceEquationIds(model_part.GetCommunicator());
 
-    const int rank = model_part.GetCommunicator().MyPID();
-
-    int idx = num_nodes * rank; // this simulates the ScanSum
+    int idx = 0;
 
     for (const auto& r_node : model_part/*.GetCommunicator().LocalMesh()*/.Nodes())
     {

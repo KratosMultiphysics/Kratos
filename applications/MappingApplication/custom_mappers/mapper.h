@@ -26,8 +26,6 @@
 #include "custom_utilities/matrix_based_mapping_operation_utility.h"
 #include "custom_utilities/interface_preprocessor.h"
 #include "custom_utilities/mapper_local_system.h"
-// #include "custom_utilities/mapper_interface_info.h" // TODO needed?
-// #include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_searching/interface_search_structure_base.h"
 #include "mapping_application_variables.h"
