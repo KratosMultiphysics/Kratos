@@ -42,9 +42,11 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
                     mrModelPartOrigin(rModelPartOrigin),
                     mrModelPartDestination(rModelPartDestination)
 {
+    ValidateInput(MapperSettings);
+
     // TODO throw error in case of MPI-execution with one core
 
-    // ValidateParameters(MapperSettings);
+
     // mEchoLevel = MapperSettings["echo_level"].GetInt();
 }
 
@@ -122,18 +124,22 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
 template<>
 void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
 {
-    // Parameters utility_settings(R"({})"); // TODO fill this
+    // Parameters search_settings(mGeneralMapperSettings.Clone()); // TODO make this work
+    Parameters search_settings(R"({})"); // TODO fill this
     mpSearchStructure = Kratos::make_unique<InterfaceSearchStructure>(mrModelPartOrigin,
-                                                                      mpMapperLocalSystems);
+                                                                      mpMapperLocalSystems,
+                                                                      search_settings);
 }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 template<>
 void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
 {
-    // Parameters utility_settings(R"({})"); // TODO fill this
+    // Parameters search_settings = mGeneralMapperSettings.Clone(); // TODO make this work
+    Parameters search_settings(R"({})"); // TODO fill this
     mpSearchStructure = Kratos::make_unique<InterfaceSearchStructureMPI>(mrModelPartOrigin,
-                                                                         mpMapperLocalSystems);
+                                                                         mpMapperLocalSystems,
+                                                                         search_settings);
 }
 #endif
 
@@ -173,6 +179,24 @@ void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags Ma
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
+
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::ValidateInput(Parameters MapperSettings)
+{
+    MapperUtilities::CheckInterfaceModelParts(0);
+    ValidateParameters(MapperSettings);
+
+    mEchoLevel = MapperSettings["echo_level"].GetInt();
+
+    if (mGeneralMapperSettings["search_radius"].GetDouble() < 0.0)
+    {
+        const double search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
+                                        mrModelPartDestination,
+                                        0);
+        mGeneralMapperSettings["search_radius"].SetDouble(search_radius);
+    }
+}
+
 template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::AssignInterfaceEquationIds()
 {

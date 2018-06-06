@@ -97,9 +97,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~MapperInterfaceInfo() {
-        std::cout << "Destructor of MapperInterfaceInfo called" << std::endl;
-    }
+    virtual ~MapperInterfaceInfo() {}
 
 
     ///@}

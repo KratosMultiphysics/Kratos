@@ -264,7 +264,7 @@ protected:
     Parameters mGeneralMapperSettings = Parameters(R"({})");
     Parameters mGeneralMapperSettingsDefaults = Parameters( R"(
     {
-        "search_radius"     : 0.0,
+        "search_radius"     : -1.0,
         "search_iterations" : 3,
         "echo_level"        : 0
     }  )" );
@@ -278,13 +278,6 @@ protected:
     TSystemMatrixUniquePointerType mpMdo;
     TSystemVectorUniquePointerType mpQo;
     TSystemVectorUniquePointerType mpQd;
-
-    // global, aka of the entire submodel-parts
-    // int mNumConditionsOrigin;
-    // int mNumConditionsDestination;
-
-    // int mNumNodesOrigin;
-    // int mNumNodesDestination;
 
     int mEchoLevel = 0;
 
@@ -457,10 +450,12 @@ private:
         }
     }
 
+    void ValidateInput(Parameters AllMapperSettings);
+
     void ValidateParameters(Parameters AllMapperSettings)
     {
         ValidateMapperSpecificSettings(AllMapperSettings);
-        mGeneralMapperSettings.RecursivelyValidateAndAssignDefaults(mGeneralMapperSettingsDefaults);
+        mGeneralMapperSettings.ValidateAndAssignDefaults(mGeneralMapperSettingsDefaults);
     }
 
     // From outside the user might specify CONSERVATIVE
@@ -476,7 +471,6 @@ private:
     }
 
     void AssignInterfaceEquationIds();
-    void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
     ///@}
     ///@name Private  Access
