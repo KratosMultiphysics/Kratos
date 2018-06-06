@@ -20,7 +20,7 @@
 
 namespace Kratos
 {
-    ReadMaterialsUtility::ReadMaterialsUtility(Parameters parameters, Model &rModel)
+    ReadMaterialsUtility::ReadMaterialsUtility(Parameters& parameters, Model &rModel)
             : mrModel(rModel)
     {
         Parameters default_parameters(R"(
@@ -41,7 +41,7 @@ namespace Kratos
         GetPropertyBlock(materials);
     }
 
-    ReadMaterialsUtility::ReadMaterialsUtility(std::string parameters_str, Model &rModel)
+    ReadMaterialsUtility::ReadMaterialsUtility(const std::string& parameters_str, Model &rModel)
             : mrModel(rModel)
     {
         // receive json string with materials properties, create Parameters
@@ -50,7 +50,7 @@ namespace Kratos
         GetPropertyBlock(materials);
     }
 
-    void ReadMaterialsUtility::GetPropertyBlock(Parameters materials)
+    void ReadMaterialsUtility::GetPropertyBlock(Parameters& materials)
     {
         KRATOS_INFO("Read materials") << "Started" << std::endl;
         for (auto i = 0; i < materials["properties"].size(); ++i)
@@ -69,12 +69,12 @@ namespace Kratos
         return variable_name;
     }
 
-    void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
+    void ReadMaterialsUtility::AssignPropertyBlock(Parameters& data)
     {
         // Get the properties for the specified model part.
         ModelPart& model_part = mrModel.GetModelPart(data["model_part_name"].GetString());
-        IndexType property_id = data["properties_id"].GetInt();
-        IndexType mesh_id = 0;
+        const IndexType property_id = data["properties_id"].GetInt();
+        const IndexType mesh_id = 0;
         Properties::Pointer prop = model_part.pGetProperties(property_id, mesh_id);
 
         /*
@@ -92,11 +92,11 @@ namespace Kratos
         */
 
         // Assign the properties to the model part's elements and conditions.
-        for (auto elem = model_part.ElementsBegin(); elem != model_part.ElementsEnd(); elem++)
-            elem->SetProperties(prop);
+        for (auto& elem : model_part.Elements())
+            elem.SetProperties(prop);
 
-        for (auto cond = model_part.ConditionsBegin(); cond != model_part.ConditionsEnd(); cond++)
-            cond->SetProperties(prop);
+        for (auto& cond : model_part.Conditions())
+            cond.SetProperties(prop);
 
         //Set the CONSTITUTIVE_LAW for the current properties.
         if (data["Material"].Has("constitutive_law")) {
@@ -108,44 +108,37 @@ namespace Kratos
 
             auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
             prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
-        }
-        else {
+        } else {
             KRATOS_INFO("Read materials") << "Not consitutive law defined for material ID: "
                                           << property_id << std::endl;
         }
 
         // Add / override the values of material parameters in the properties
         auto variables = data["Material"]["Variables"];
-        for(auto iter = variables.begin(); iter != variables.end(); iter++)
-        {
-            auto value = variables.GetValue(iter.name());
+        for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+            const auto& value = variables.GetValue(iter.name());
 
             // Remove application info from variable name.
             // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
-            std::string variable_name = CleanVariableName(iter.name());
+            const std::string& variable_name = CleanVariableName(iter.name());
 
             if (value.IsDouble()){
-                auto variable = KratosComponents<Variable<double>>().Get(variable_name);
+                const auto variable = KratosComponents<Variable<double>>().Get(variable_name);
                 prop->SetValue(variable, value.GetDouble());
-            }
-            else if (value.IsInt()){
-                auto variable = KratosComponents<Variable<int>>().Get(variable_name);
+            } else if (value.IsInt()){
+                const auto variable = KratosComponents<Variable<int>>().Get(variable_name);
                 prop->SetValue(variable, value.GetInt());
-            }
-            else if (value.IsBool()){
-                auto variable = KratosComponents<Variable<bool>>().Get(variable_name);
+            } else if (value.IsBool()){
+                const auto variable = KratosComponents<Variable<bool>>().Get(variable_name);
                 prop->SetValue(variable, value.GetBool());
-            }
-            else if (value.IsString()){
-                auto variable = KratosComponents<Variable<std::string>>().Get(variable_name);
+            } else if (value.IsString()){
+                const auto variable = KratosComponents<Variable<std::string>>().Get(variable_name);
                 prop->SetValue(variable, value.GetString());
-            }
-            else if (value.IsVector()){
-                auto variable = KratosComponents<Variable<Vector>>().Get(variable_name);
+            } else if (value.IsVector()){
+                const auto variable = KratosComponents<Variable<Vector>>().Get(variable_name);
                 prop->SetValue(variable, value.GetVector());
-            }
-            else if (value.IsMatrix()){
-                auto variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
+            } else if (value.IsMatrix()){
+                const auto variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
                 prop->SetValue(variable, value.GetMatrix());
             }
             else {
@@ -162,11 +155,11 @@ namespace Kratos
 
             // Remove application info from variable name.
             // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
-            std::string input_var_name = CleanVariableName(table_param["input_variable"].GetString());
-            std::string output_var_name = CleanVariableName(table_param["output_variable"].GetString());
+            const std::string& input_var_name = CleanVariableName(table_param["input_variable"].GetString());
+            const std::string& output_var_name = CleanVariableName(table_param["output_variable"].GetString());
 
-            auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
-            auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
+            const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
+            const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
             for (auto i = 0; i < table_param["data"].size(); i++) {
                 table.insert(table_param["data"][i][0].GetDouble(),
                              table_param["data"][i][1].GetDouble());

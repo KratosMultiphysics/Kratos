@@ -4,9 +4,6 @@
 		"properties_id": 1,
 		"Material": {
 			"name": "steel",
-			"constitutive_law": {
-				"name": "LinearElastic3DLaw"
-			},
 			"Variables": {
 				"KratosMultiphysics.YOUNG_MODULUS": 200.0,
 				"POISSON_RATIO": 0.3,

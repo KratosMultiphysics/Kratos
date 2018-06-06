@@ -71,9 +71,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
     ///@name Life Cycle
     ///@{
 
-    ReadMaterialsUtility(Parameters parameters, Model &rModel);
+    ReadMaterialsUtility(Parameters& rParameters, Model& rModel);
 
-    ReadMaterialsUtility(std::string parameters, Model &rModel);
+    ReadMaterialsUtility(const std::string& rParameters, Model& rModel);
 
     ///@}
     ///@name Operators
@@ -166,8 +166,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
     ///@name Private Operations
     ///@{
     
-    void AssignPropertyBlock(Parameters);
-    void GetPropertyBlock(Parameters);
+    void AssignPropertyBlock(Parameters& rData);
+    void GetPropertyBlock(Parameters& rMaterials);
 
     ///@}
     ///@name Private  Access
