@@ -65,8 +65,8 @@ public:
 
         Parameters default_settings(R"(
         {
-            "structure_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
-            "sensitivity_model_part_name": "PLEASE_SPECIFY_MODEL_PART",
+            "structure_model_part_name": "PLEASE_SPECIFY_STRUCTURE_MODEL_PART",
+            "sensitivity_model_part_name": "PLEASE_SPECIFY_SENSITIVITY_MODEL_PART",
             "nodal_sensitivity_variables": ["SHAPE_SENSITIVITY"],
             "drag_direction": [1.0, 0.0, 0.0],
             "integrate_in_time": true
