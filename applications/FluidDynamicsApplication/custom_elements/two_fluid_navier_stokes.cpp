@@ -88,14 +88,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 		TElementData data;
 		data.Initialize(*this, rCurrentProcessInfo);
 
-		for (unsigned int i = 0; i < NumNodes; i++)
-		{
-		    if(data.Distance[i] > 0)
-				data.NumPositiveNodes++;
-		    else
-				data.NumNegativeNodes++;
-		}
-
 		if (data.IsCut()) {
 
 			std::vector< MatrixType > enriched_shape_derivatives;

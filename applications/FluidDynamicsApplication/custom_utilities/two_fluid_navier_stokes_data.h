@@ -53,8 +53,6 @@ NodalVectorData BodyForce;
 
 NodalScalarData Pressure;
 NodalScalarData Distance;
-NodalScalarData NodalDensity;
-NodalScalarData NodalDynamicViscosity;
 
 double Density;
 double DynamicViscosity;
@@ -100,8 +98,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-    this->FillFromNodalData(NodalDensity, DENSITY, r_geometry);
-    this->FillFromNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
 	this->FillFromNodalData(Distance, DISTANCE, r_geometry);
     this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
@@ -122,8 +118,17 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     noalias(Kee) = ZeroMatrix(TNumNodes, TNumNodes);
     noalias(rhs_ee) = ZeroVector(TNumNodes);
 
-	NumPositiveNodes = 0;
+    NumPositiveNodes = 0;
 	NumNegativeNodes = 0;
+
+    for (unsigned int i = 0; i < TNumNodes; i++){
+        if(Distance[i] > 0)
+            NumPositiveNodes++;
+        else
+            NumNegativeNodes++;
+    }
+
+	
 	NumberOfDivisions = 1;
 	PartitionsSigns.resize(6, false);
 
