@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/model.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/io.h"
@@ -70,11 +71,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
     ///@name Life Cycle
     ///@{
 
-    ReadMaterialsUtility(ModelPart &rModelPart,
-                         Parameters parameters);
+    ReadMaterialsUtility(Parameters parameters, Model &rModel);
 
-    ReadMaterialsUtility(ModelPart &rModelPart,
-                        std::string parameters);
+    ReadMaterialsUtility(std::string parameters, Model &rModel);
 
     ///@}
     ///@name Operators
@@ -157,7 +156,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    Model& mrModel;
 
     ///@}
     ///@name Private Operators

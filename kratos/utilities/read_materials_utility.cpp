@@ -20,9 +20,8 @@
 
 namespace Kratos
 {
-    ReadMaterialsUtility::ReadMaterialsUtility(ModelPart &rModelPart,
-                                               Parameters parameters)
-            : mrModelPart(rModelPart)
+    ReadMaterialsUtility::ReadMaterialsUtility(Parameters parameters, Model &rModel)
+            : mrModel(rModel)
     {
         Parameters default_parameters(R"(
             {
@@ -42,9 +41,8 @@ namespace Kratos
         GetPropertyBlock(materials);
     }
 
-    ReadMaterialsUtility::ReadMaterialsUtility(ModelPart &rModelPart,
-                                               std::string parameters_str)
-            : mrModelPart(rModelPart)
+    ReadMaterialsUtility::ReadMaterialsUtility(std::string parameters_str, Model &rModel)
+            : mrModel(rModel)
     {
         // receive json string with materials properties, create Parameters
         Parameters materials(parameters_str);
@@ -66,11 +64,12 @@ namespace Kratos
     void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     {
         // Get the properties for the specified model part.
+        ModelPart& model_part = mrModel.GetModelPart(data["model_part_name"].GetString());
         IndexType property_id = data["properties_id"].GetInt();
         IndexType mesh_id = 0;
-        Properties::Pointer prop = mrModelPart.pGetProperties(property_id, mesh_id);
+        Properties::Pointer prop = model_part.pGetProperties(property_id, mesh_id);
 
-        //TODO(marcelo): Implement the "keys()" part
+        //TODO(marcelo): Implement the "keys()" part? Not sure if this check is necessary
         //if (data["Material"]["Variables"].end() - data["Material"]["Variables"].begin())
         //    KRATOS_INFO("::[Reading materials process DEBUG]::")
         //            << "Property " << property_id << " is not empty." << std::endl;
@@ -83,10 +82,10 @@ namespace Kratos
                 << "Property " << property_id << " already has tables." << std::endl;
 
         // Assign the properties to the model part's elements and conditions.
-        for (auto elem = mrModelPart.ElementsBegin(); elem != mrModelPart.ElementsEnd(); elem++)
+        for (auto elem = model_part.ElementsBegin(); elem != model_part.ElementsEnd(); elem++)
             elem->SetProperties(prop);
 
-        for (auto cond = mrModelPart.ConditionsBegin(); cond != mrModelPart.ConditionsEnd(); cond++)
+        for (auto cond = model_part.ConditionsBegin(); cond != model_part.ConditionsEnd(); cond++)
             cond->SetProperties(prop);
 
         //Set the CONSTITUTIVE_LAW for the current properties.
