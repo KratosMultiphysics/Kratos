@@ -131,22 +131,24 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 }
 
 void UpdateGeometryValues(
+    unsigned int IntegrationPointIndex,
     double NewWeight,
     const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX) override
 {
-    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(NewWeight,rN,rDN_DX);
+    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight,rN,rDN_DX);
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
 }
 
 void UpdateGeometryValues(
+    unsigned int IntegrationPointIndex,
 	double NewWeight,
 	const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
 	const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
 	const boost::numeric::ublas::matrix_row<Kratos::Matrix> rNenr,
 	const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DXenr)
 {
-	FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(NewWeight, rN, rDN_DX);
+	FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
 	ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
 	noalias(this->Nenr) = rNenr;
 	noalias(this->DN_DXenr) = rDN_DXenr;

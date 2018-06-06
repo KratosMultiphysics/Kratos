@@ -100,7 +100,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
 			std::vector< MatrixType > enriched_shape_derivatives;
 			MatrixType enriched_shape_functions;
-			data.NumberOfDivisions = ComputeSplitting(data, shape_functions, shape_derivatives, enriched_shape_derivatives, enriched_shape_functions);
+			data.NumberOfDivisions = ComputeSplitting(data, shape_functions, shape_derivatives,
+				 enriched_shape_derivatives, enriched_shape_functions);
 
 			if (data.NumberOfDivisions == 1) {
 				//cases exist when the element is not subdivided due to the characteristics of the provided distance
@@ -109,8 +110,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 				for(unsigned int i=0; i<NumNodes; i++) Ncenter[i]=0.25;
 				const double dgauss = inner_prod(data.Distance, Ncenter);
 				for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-					data.UpdateGeometryValues(gauss_weights[g],
-						row(shape_functions, g),
+					data.UpdateGeometryValues(g,gauss_weights[g], row(shape_functions, g),
 						shape_derivatives[g]);
 
                     data.CalculateMaterialPropertiesAtGaussPoint();
@@ -141,11 +141,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 noalias(rhs_ee_tot) = ZeroVector(NumNodes);
 
 				for (unsigned int g = 0; g < data.PartitionsSigns.size(); g++) {
-					data.UpdateGeometryValues(data.PartitionsVolumes[g],
-						row(shape_functions, g),
-						shape_derivatives[0],
-						row(enriched_shape_functions, g),
-						enriched_shape_derivatives[g]);
+					
+					data.UpdateGeometryValues(g , data.PartitionsVolumes[g], row(shape_functions, g),
+						shape_derivatives[0], row(enriched_shape_functions, g), enriched_shape_derivatives[g]);
 					const double dgauss = inner_prod(data.Distance, data.N);
 
                     data.CalculateMaterialPropertiesAtGaussPoint();
@@ -170,7 +168,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 			// Iterate over integration points to evaluate local contribution
 			for (unsigned int g = 0; g < number_of_gauss_points; g++) {
 
-				data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+				data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
 					shape_derivatives[g]);
 
                 data.CalculateMaterialPropertiesAtGaussPoint();
@@ -1296,7 +1294,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 	const auto& vconv = v - vmesh;
 	const auto& f = rData.BodyForce;
 	const auto& p = rData.Pressure;
-	const auto& stress = rData.ShearStress;
 
 	// Get shape function values
 	const auto& N = rData.N;
@@ -1461,7 +1458,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 	const auto& vconv = v - vmesh;
 	const auto& f = rData.BodyForce;
 	const auto& p = rData.Pressure;
-	const auto& stress = rData.ShearStress;
 
 	// Get shape function values
 	const auto& N = rData.N;
@@ -1725,7 +1721,7 @@ unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeSplitt
 	        coords(i, j) = xyz[j];
 	}
 	Vector distances(NumNodes);
-	for (int i = 0; i < NumNodes; i++)
+	for (unsigned int i = 0; i < NumNodes; i++)
 		distances[i] = rData.Distance[i];
 	unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rShapeDerivatives[0], distances, rData.PartitionsVolumes, rShapeFunctions, rData.PartitionsSigns, rEnrichedShapeDerivatives, rEnrichedShapeFunctions);
 	return ndivisions;
@@ -1752,7 +1748,7 @@ unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeSplitt
 	}
 
 	Vector distances(NumNodes);
-	for (int i = 0; i < NumNodes; i++)
+	for (unsigned int i = 0; i < NumNodes; i++)
 		distances[i] = rData.Distance[i];
 	unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rShapeDerivatives[0], distances, rData.PartitionsVolumes, rShapeFunctions, rData.PartitionsSigns, rEnrichedShapeDerivatives, rEnrichedShapeFunctions);
 	return ndivisions;
