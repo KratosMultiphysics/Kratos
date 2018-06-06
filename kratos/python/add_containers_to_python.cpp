@@ -61,6 +61,13 @@ Flags FlagsOr(const Flags& Left, const Flags& Right )
     return (Left|Right);
 }
 
+Flags FlagsAnd(const Flags& Left, const Flags& Right )
+{
+    KRATOS_WARNING("Kratos::Flags Python interface") << "Using deprecated flag & operation, which internally perfms a union (bitwise or)." << std::endl
+                 << "Please use | instead, since this behaviour will be soon deprecated." << std::endl;
+    return (Left|Right);
+}
+
 void FlagsSet1(Flags& ThisFlag, const Flags& OtherFlag )
 {
     ThisFlag.Set(OtherFlag);
@@ -275,7 +282,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Flip", &Flags::Flip)
     .def("Clear", &Flags::Clear)
     .def("__or__", FlagsOr)
-    .def("__and__", FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
+    .def("__and__", FlagsAnd)
     .def("__repr__", &Flags::Info )
     ;
 

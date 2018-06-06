@@ -31,6 +31,23 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
+        solver_settings = project_parameters["solver_settings"]
+        if not solver_settings.Has("time_stepping"):
+            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
+            time_stepping_params = KratosMultiphysics.Parameters("{}")
+            time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
+            solver_settings.AddValue("time_stepping", time_stepping_params)
+
+        if not solver_settings.Has("domain_size"):
+            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            solver_settings.AddEmptyValue("domain_size")
+            solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
+
+        if not solver_settings.Has("model_part_name"):
+            KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            solver_settings.AddEmptyValue("model_part_name")
+            solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
+
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
@@ -64,7 +81,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         super(StructuralMechanicsAnalysis, self).InitializeSolutionStep()
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
         sys.stdout.flush()
 
@@ -89,29 +106,16 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
 
     #### Internal functions ####
-    def _CreateSolver(self, external_model_part=None):
+    def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
-        ## Structure model part definition
-        main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        if self.model.HasModelPart(main_model_part_name):
-            self.main_model_part = self.model[main_model_part_name]
-            self.using_external_model_part = True
-        else:
-            self.main_model_part = KratosMultiphysics.ModelPart(main_model_part_name)
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
-                                                      self.project_parameters["problem_data"]["domain_size"].GetInt())
-            self.using_external_model_part = False
-
         ## Solver construction
         import python_solvers_wrapper_structural
-        self.solver = python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.project_parameters)
+        self.solver = python_solvers_wrapper_structural.CreateSolver(self.model, self.project_parameters)
 
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
 
-        if not self.using_external_model_part:
-            ## Read the model - note that SetBufferSize is done here
-            self.solver.ReadModelPart() # TODO move to global instance
+        self.solver.ImportModelPart() # TODO move to global instance
 
     def _SetUpGiDOutput(self):
         '''Initialize self.output as a GiD output instance.'''
@@ -130,20 +134,10 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def _ExecuteInitialize(self):
         """ Initializing the Analysis """
         ## ModelPart is being prepared to be used by the solver
-        self.solver.PrepareModelPartForSolver()
+        self.solver.PrepareModelPart()
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
-
-        ## Add the Modelpart to the Model if it is not already there
-        if not self.using_external_model_part:
-            self.model.AddModelPart(self.main_model_part)
-
-        ## Print model_part and properties
-        if self.is_printing_rank and self.echo_level > 1:
-            KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
-            for properties in self.main_model_part.Properties:
-                KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
 
     def _SetUpListOfProcesses(self):
         from process_factory import KratosProcessFactory
@@ -185,15 +179,13 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             f.close()
 
         ## Stepping and time settings
-        self.solver.SetDeltaTime(self.project_parameters["problem_data"]["time_step"].GetDouble())
         start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] is True:
-            self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        if self.solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED] is True:
+            self.time = self.solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = start_time
-            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
@@ -230,7 +222,7 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    with open(parameter_file_name,'r') as parameter_file:
+    with open(project_parameters_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     model = KratosMultiphysics.Model()

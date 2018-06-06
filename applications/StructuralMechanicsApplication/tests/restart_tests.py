@@ -69,13 +69,12 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             save_restart_parameters = KratosMultiphysics.Parameters("""{
                 "save_restart" : true
             }""")
-            load_restart_parameters = KratosMultiphysics.Parameters("""{
-                "load_restart"              : true,
-                "restart_load_file_label"   : "3.0"
-            }""")
 
             self.project_parameters_save["solver_settings"].AddValue("restart_settings", save_restart_parameters)
-            self.project_parameters_load["solver_settings"].AddValue("restart_settings", load_restart_parameters)
+            load_mp_import_settings = self.project_parameters_load["solver_settings"]["model_import_settings"]
+            load_mp_import_settings.AddEmptyValue("restart_load_file_label")
+            load_mp_import_settings["input_type"].SetString("rest")
+            load_mp_import_settings["restart_load_file_label"].SetString("3.0")
 
     def test_execution(self):
         # Within this location context:

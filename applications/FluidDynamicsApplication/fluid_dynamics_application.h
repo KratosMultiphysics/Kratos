@@ -83,6 +83,7 @@
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 
 
 namespace Kratos
@@ -373,6 +374,7 @@ private:
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
     const Newtonian2DLaw mNewtonian2DLaw;
     const Newtonian3DLaw mNewtonian3DLaw;
+    const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
 
     ///@}
     ///@name Private Operators

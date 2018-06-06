@@ -9,12 +9,12 @@ KratosMultiphysics.CheckForPreviousImport()
 ## Import base class file
 import navier_stokes_solver_vmsmonolithic
 
-def CreateSolver(main_model_part, custom_settings):
-    return SteadyNavierStokesSolver_VMSMonolithic(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return SteadyNavierStokesSolver_VMSMonolithic(model, custom_settings)
 
 class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
 
         # parse and strip parameters that do not exist in base class. we need to remove
         # extra parameters so base class doesn't throw an error. alternatively a single solver script
@@ -26,7 +26,7 @@ class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.
         base_settings.RemoveValue("pressure_relaxation_factor")
 
         # call base class constructor with remaining parameters
-        super().__init__(main_model_part, base_settings)
+        super().__init__(model, base_settings)
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             raise ValueError("consider_periodic_conditions not supported yet.")
