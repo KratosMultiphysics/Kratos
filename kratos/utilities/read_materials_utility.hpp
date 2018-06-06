@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:
+//  Main authors:    Marcelo Raschi
 //
 
 #if !defined(KRATOS_READ_MATERIALS_H_INCLUDED )
@@ -45,11 +45,15 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Process to read constitutive law and material properties from a json file
-/** This process reads constitutive law and material properties from a json file
+/**
+ * @class ReadMaterialsUtility
+ * @ingroup KratosCore
+ * @brief Process to read constitutive law and material properties from a json file
+ * @details This process reads constitutive law and material properties from a json file
  * and assign them to elements and conditions.
+ * @author Marcelo Raschi
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
+class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
 {
   public:
 
@@ -58,14 +62,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
 
     typedef std::size_t IndexType;
 
-    ///@}
-    ///@name Pointer Definitions
-    /// Pointer definition of ReadMaterialProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);
-
     //typedef std::size_t SizeType;
 
     //typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
+
+    ///@}
+    ///@name Pointer Definitions
+
+    /// Pointer definition of ReadMaterialProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);
     
     ///@}
     ///@name Life Cycle
@@ -156,7 +161,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
     ///@name Member Variables
     ///@{
 
-    Model& mrModel;
+    Model& mrModel; /// The model containing the model parts
 
     ///@}
     ///@name Private Operators
@@ -166,7 +171,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReadMaterialsUtility
     ///@name Private Operations
     ///@{
     
+    /**
+     * @brief This methos assigns the properties to the model parts
+     * @param rData The parameters containing all the configurations of the materials
+     */
     void AssignPropertyBlock(Parameters& rData);
+
+    /**
+     * @brief This method gets the properties of the differents model parts
+     * @param rMaterials The parameters containing the properties of the materials
+     */
     void GetPropertyBlock(Parameters& rMaterials);
 
     ///@}
