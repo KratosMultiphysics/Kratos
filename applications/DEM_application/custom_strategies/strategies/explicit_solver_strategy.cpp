@@ -1047,13 +1047,6 @@ namespace Kratos {
 
             rigid_body_elements_counter++;
 
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-            rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-
             if (!submp[FREE_BODY_MOTION]) continue;
 
             double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
@@ -1073,6 +1066,15 @@ namespace Kratos {
                 else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
                 if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
                 else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+            }
+
+            else {
+                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
             }
         }
         KRATOS_CATCH("")
