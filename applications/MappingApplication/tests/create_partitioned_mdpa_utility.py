@@ -12,7 +12,7 @@ except ImportError:
     warn_msg = "KratosMPI or MetisApplication is ot available, many MPI tests will be skipped!\n"
     Logger.PrintWarning("\nMappingApplication", warn_msg)
 
-def CreatePartitionedMdpaFiles(number_of_partitions):
+def CreatePartitionedMdpaFiles2D(number_of_partitions, mdpa_file_name):
     # Preparations
     folder_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "partitioned_mdpa_files")
     kratos_utils.DeleteDirectoryIfExisting(folder_path)
@@ -20,7 +20,6 @@ def CreatePartitionedMdpaFiles(number_of_partitions):
     if kratos_utils.IsRankZero():
         os.mkdir(folder_path)
 
-    # if kratos_utils.IsRankZero():
         # Create a ModelPart
         node_1 = KratosMultiphysics.Node(1, 0.0, 0.0, 0.0)
         node_2 = KratosMultiphysics.Node(2, 0.0, 1.0, 0.0)
@@ -32,15 +31,17 @@ def CreatePartitionedMdpaFiles(number_of_partitions):
         model_part = KratosMultiphysics.ModelPart("generated")
 
         settings = KratosMultiphysics.Parameters("""{
-            "number_of_divisions" : 3,
+            "number_of_divisions" : 0,
             "element_name"        : "Element2D3N",
             "create_skin_sub_model_part": false
         }""")
 
+        settings["number_of_divisions"].SetInt(number_of_partitions*3)
+
         mesh_generator = KratosMultiphysics.StructuredMeshGeneratorProcess(geometry,model_part, settings)
         mesh_generator.Execute()
 
-        name_out_file = os.path.join(folder_path, "model_part_for_tests")
+        name_out_file = os.path.join(folder_path, mdpa_file_name)
         print(name_out_file)
         file = open(name_out_file + ".mdpa","w")
         file.close()
@@ -64,7 +65,7 @@ def CreatePartitionedMdpaFiles(number_of_partitions):
         partitioner.Execute()
 
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
-    else:
+    elif not metis_available and kratos_utils.IsRankZero():
         print("No partitioning performed")
 
 if __name__ == '__main__':

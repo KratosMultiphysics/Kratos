@@ -32,7 +32,7 @@ def run():
 
         import create_partitioned_mdpa_utility
         num_partitions = KratosMPI.mpi.size
-        create_partitioned_mdpa_utility.CreatePartitionedMdpaFiles(num_partitions)
+        create_partitioned_mdpa_utility.CreatePartitionedMdpaFiles2D(num_partitions, "simple_mdpa_2d")
         # Tester.RunTestSuite("KratosMappingApplicationMPITestSuite")
 
     # This suite contains tests that work both with and without MPI
