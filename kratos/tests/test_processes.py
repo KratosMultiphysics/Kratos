@@ -746,7 +746,8 @@ class TestProcesses(KratosUnittest.TestCase):
         Model = {"Main":model_part}
 
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
+            settings["process_list"] )
 
 
         for process in list_of_processes:
@@ -853,7 +854,8 @@ class TestProcesses(KratosUnittest.TestCase):
         Model = {"Main":model_part}
 
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
+            settings["process_list"] )
 
 
         for process in list_of_processes:

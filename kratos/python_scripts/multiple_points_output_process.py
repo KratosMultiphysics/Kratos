@@ -12,7 +12,9 @@ def Factory(settings, Model):
     return MultiplePointsOutputProcess(Model, settings["Parameters"])
 
 class MultiplePointsOutputProcess(KratosMultiphysics.Process):
-
+    """This process writes several points to a file
+    Internally it holds objects of type "PointOutputProcess"
+    """
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
@@ -28,6 +30,8 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
         positions = params["positions"].GetMatrix()
 
         num_points = positions.Size1()
+        if num_points == 0:
+            raise Exception('No positions were specified"')
         if positions.Size2() != 3:
             raise Exception('The positions have to be provided with 3 coordinates!')
 
