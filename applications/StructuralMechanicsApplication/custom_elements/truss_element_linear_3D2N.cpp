@@ -39,6 +39,14 @@ TrussElementLinear3D2N::Create(IndexType NewId,
       NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
+Element::Pointer
+TrussElementLinear3D2N::Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                               PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<TrussElementLinear3D2N>(
+      NewId, pGeom, pProperties);
+}
+
 TrussElementLinear3D2N::~TrussElementLinear3D2N() {}
 
 BoundedMatrix<double, TrussElement3D2N::msLocalSize,
