@@ -1,0 +1,88 @@
+{
+    "optimization_settings" : {
+        "objectives" : [{
+            "identifier" : "drag",
+            "type"       : "minimization",
+            "use_kratos" : false,
+            "kratos_response_settings":{
+                "response_type"               : "analysis_driver_based",
+                "analysis_driver"             : "response_analysis",
+                "optimization_model_part_name": "cylinder",
+                "response_sub_model_part"     : "NoSlip2D_Cylinder"
+            }
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"                               : "vertex_morphing",
+            "optimization_model_part_name"       : "cylinder",
+            "design_surface_sub_model_part_name" : "NoSlip2D_Cylinder",
+            "domain_size"                        : 2,
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 30.0,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : true
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : true,
+                "solver_settings" : {
+                    "solver_type": "mesh_solver_structural_similarity",
+                    "mesh_motion_linear_solver_settings"  : {
+                        "solver_type"         : "AMGCL",
+                        "max_iteration"       : 500,
+                        "tolerance"           : 1e-7,
+                        "provide_coordinates" : false,
+                        "smoother_type"       : "ilu0",
+                        "krylov_type"         : "bicgstab",
+                        "coarsening_type"     : "aggregation",
+                        "scaling"             : false,
+                        "verbosity"           : 1
+                    },
+                    "compute_reactions"     : true
+                }
+            },
+            "damping" : {
+                "perform_damping" : false,
+                "damping_regions" : []
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                                 : "steepest_descent",
+            "max_iterations"                       : 4,
+            "relative_tolerance"                   : 1e-1,
+            "project_gradients_on_surface_normals" : true
+        },
+        "line_search" : {
+            "line_search_type"           : "manual_stepping",
+            "normalize_search_direction" : true,
+            "step_size"                  : 0.1
+        },
+        "output" : {
+            "output_directory"        : "optimization_results",
+            "response_log_filename"   : "response_log",
+            "design_history_filename" : "design_history",
+            "design_output_mode"      : "WriteOptimizationModelPart",
+            "nodal_results" : [ "NORMALIZED_SURFACE_NORMAL",
+                                "OBJECTIVE_SENSITIVITY",
+                                "CONSTRAINT_SENSITIVITY",
+                                "MAPPED_OBJECTIVE_SENSITIVITY",
+                                "MAPPED_CONSTRAINT_SENSITIVITY",
+                                "CONTROL_POINT_UPDATE",
+                                "CONTROL_POINT_CHANGE",
+                                "SHAPE_UPDATE",
+                                "SHAPE_CHANGE",
+                                "MESH_CHANGE" ],
+            "output_format" : {
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
+            }
+        }
+    }
+}
