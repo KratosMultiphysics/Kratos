@@ -76,9 +76,9 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@name Life Cycle
     ///@{
 
-    ReadMaterialsUtility(Parameters& rParameters, Model& rModel);
+    ReadMaterialsUtility(Parameters Parameters, Model& rModel);
 
-    ReadMaterialsUtility(const std::string& rParameters, Model& rModel);
+    ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
 
     ///@}
     ///@name Operators
@@ -175,13 +175,13 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @brief This methos assigns the properties to the model parts
      * @param rData The parameters containing all the configurations of the materials
      */
-    void AssignPropertyBlock(Parameters& rData);
+    void AssignPropertyBlock(Parameters rData);
 
     /**
      * @brief This method gets the properties of the differents model parts
      * @param rMaterials The parameters containing the properties of the materials
      */
-    void GetPropertyBlock(Parameters& rMaterials);
+    void GetPropertyBlock(Parameters rMaterials);
 
     ///@}
     ///@name Private  Access

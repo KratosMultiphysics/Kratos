@@ -456,7 +456,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     // Read materials utility
     class_<ReadMaterialsUtility, typename ReadMaterialsUtility::Pointer>(m, "ReadMaterialsUtility")
-    .def(init<Parameters&, Model&>())
+    .def(init<Parameters, Model&>())
     ;
 }
 

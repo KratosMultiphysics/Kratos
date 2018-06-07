@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 ReadMaterialsUtility::ReadMaterialsUtility(
-    Parameters& rParameters,
+    Parameters rParameters,
     Model& rModel
     ) : mrModel(rModel)
 {
@@ -48,12 +48,12 @@ ReadMaterialsUtility::ReadMaterialsUtility(
 /***********************************************************************************/
 
 ReadMaterialsUtility::ReadMaterialsUtility(
-    const std::string& rParametersStr,
+    const std::string& rParametersName,
     Model& rModel
     ) : mrModel(rModel)
 {
     // Receive json string with materials properties, create Parameters
-    Parameters materials(rParametersStr);
+    Parameters materials(rParametersName);
 
     GetPropertyBlock(materials);
 }
@@ -61,7 +61,7 @@ ReadMaterialsUtility::ReadMaterialsUtility(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::GetPropertyBlock(Parameters& materials)
+void ReadMaterialsUtility::GetPropertyBlock(Parameters materials)
 {
     KRATOS_INFO("Read materials") << "Started" << std::endl;
     for (auto i = 0; i < materials["properties"].size(); ++i) {
@@ -85,7 +85,7 @@ std::string CleanVariableName(std::string line){
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ReadMaterialsUtility::AssignPropertyBlock(Parameters& data)
+void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
 {
     // Get the properties for the specified model part.
     ModelPart& model_part = mrModel.GetModelPart(data["model_part_name"].GetString());
@@ -138,31 +138,31 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters& data)
     }
 
     // Add / override the values of material parameters in the p_properties
-    auto variables = data["Material"]["Variables"];
+    Parameters variables = data["Material"]["Variables"];
     for(auto iter = variables.begin(); iter != variables.end(); iter++) {
-        const auto& value = variables.GetValue(iter.name());
+        const Parameters value = variables.GetValue(iter.name());
 
         // Remove application info from variable name.
         // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
         const std::string& variable_name = CleanVariableName(iter.name());
 
         if (value.IsDouble()){
-            const auto variable = KratosComponents<Variable<double>>().Get(variable_name);
+            const auto& variable = KratosComponents<Variable<double>>().Get(variable_name);
             p_prop->SetValue(variable, value.GetDouble());
         } else if (value.IsInt()){
-            const auto variable = KratosComponents<Variable<int>>().Get(variable_name);
+            const auto& variable = KratosComponents<Variable<int>>().Get(variable_name);
             p_prop->SetValue(variable, value.GetInt());
         } else if (value.IsBool()){
-            const auto variable = KratosComponents<Variable<bool>>().Get(variable_name);
+            const auto& variable = KratosComponents<Variable<bool>>().Get(variable_name);
             p_prop->SetValue(variable, value.GetBool());
         } else if (value.IsString()){
-            const auto variable = KratosComponents<Variable<std::string>>().Get(variable_name);
+            const auto& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
             p_prop->SetValue(variable, value.GetString());
         } else if (value.IsVector()){
-            const auto variable = KratosComponents<Variable<Vector>>().Get(variable_name);
+            const auto& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
             p_prop->SetValue(variable, value.GetVector());
         } else if (value.IsMatrix()){
-            const auto variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
+            const auto& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
             p_prop->SetValue(variable, value.GetMatrix());
         }
         else {
@@ -171,7 +171,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters& data)
     }
 
     // Add / override tables in the p_properties
-    auto tables = data["Material"]["Tables"];
+    Parameters tables = data["Material"]["Tables"];
     for(auto iter = tables.begin(); iter != tables.end(); iter++) {
         auto table_param = tables.GetValue(iter.name());
         // Case table is double, double. How is it defined? How to check?
