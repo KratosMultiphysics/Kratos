@@ -33,14 +33,18 @@ endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 
 ## generate variables with the sources
-set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_SOURCES
+set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/pfem_fluid_dynamics_application_variables.cpp	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_fluid_element.cpp
-
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_implicit_solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_explicit_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_V_explicit_solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_explicit_fluid_element.cpp
 )
 
 set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_PYTHON_INTERFACE

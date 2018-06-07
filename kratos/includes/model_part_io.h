@@ -152,7 +152,6 @@ public:
 
     void WriteModelPart(ModelPart & rThisModelPart) override;
 
-
     /// Read the input file and create the nodal connectivities graph, stored in CSR format.
     /**
      * This function produces input for Metis' nodal graph partitioning algorithms.
@@ -304,7 +303,7 @@ protected:
     bool CheckEndBlock(std::string const& BlockName, std::string& rWord);
 
     void ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
-    
+
     void WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
 
     template<class TablesContainerType>
@@ -316,7 +315,7 @@ protected:
     void WriteTableBlock(TablesContainerType& rTables);
 
     void WriteTableBlock(ModelPart::TablesContainerType& rTables);
-    
+
     void ReadNodesBlock(NodesContainerType& rThisNodes);
 
     void ReadNodesBlock(ModelPart& rModelPart);
@@ -336,7 +335,7 @@ protected:
 
 
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
-    
+
     void WriteNodalDataBlock(ModelPart& rThisModelPart);
 
     template<class TVariableType>
@@ -393,7 +392,7 @@ protected:
     void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
     void ReadMeshBlock(ModelPart& rModelPart);
-    
+
     void WriteMeshBlock(ModelPart& rModelPart);
 
 
@@ -409,7 +408,7 @@ protected:
     void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
     void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
-    
+
     void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string InitialTabulation);
 
     void ReadSubModelPartDataBlock(ModelPart& rModelPart);
