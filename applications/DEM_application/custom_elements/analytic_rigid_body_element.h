@@ -5,32 +5,32 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cmath>
 
-// External includes 
+// External includes
 
 // Project includes
 #include "rigid_body_element.h"
 
 namespace Kratos {
-    
-    class AnalyticRigidBodyElement : public RigidBodyElement3D {
-        
+
+    class KRATOS_API(DEM_APPLICATION) AnalyticRigidBodyElement : public RigidBodyElement3D {
+
     public:
         /// Pointer definition of AnalyticRigidBodyElement
         KRATOS_CLASS_POINTER_DEFINITION(AnalyticRigidBodyElement);
-       
+
         AnalyticRigidBodyElement();
         AnalyticRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry);
         AnalyticRigidBodyElement(IndexType NewId, NodesArrayType const& ThisNodes);
         AnalyticRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;      
+        //Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
         /// Destructor
         virtual ~AnalyticRigidBodyElement();
-      
+
         using Element::Initialize;
 
         virtual std::string Info() const override
@@ -39,21 +39,21 @@ namespace Kratos {
         buffer << "AnalyticRigidBodyElement #" << Id();
 	    return buffer.str();
         }
-      
+
         /// Print information about this object.
         virtual void PrintInfo(std::ostream& rOStream) const override
         {
         rOStream << "AnalyticRigidBodyElement #" << Id();
         }
-      
+
         /// Print object's data.
         virtual void PrintData(std::ostream& rOStream) const override
         {
 	    //mpGeometry->PrintData(rOStream);
         }
-      
+
     private:
-       
+
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override
@@ -67,7 +67,7 @@ namespace Kratos {
         }
 
     }; // Class AnalyticRigidBodyElement
-   
+
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream, AnalyticRigidBodyElement& rThis);
 
@@ -80,7 +80,7 @@ namespace Kratos {
 
         return rOStream;
     }
- 
+
 } // namespace Kratos
 
 #endif // KRATOS_ANALYTIC_RIGID_BODY_ELEMENT_H_INCLUDED  defined

@@ -18,6 +18,7 @@
 #include "processes/simple_mortar_mapper_process.h"
 
 /* Custom utilities */
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
 
@@ -100,7 +101,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     for(IndexType i = 0; i < destination_conditions_array.size(); ++i) {
         auto it_cond = destination_conditions_array.begin() + i;
 
-        if (!it_cond->Has( INDEX_SET )) {
+        if (!(it_cond->Has( INDEX_SET ) || it_cond->Has( INDEX_MAP ))) {
             search_exists = false; 
             break;
         }
@@ -289,7 +290,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 
                 GeometryType::CoordinatesArrayType slave_gp_global;
                 SlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                MortarUtilities::FastProjectDirection( MasterGeometry, gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
+                GeometricalProjectionUtilities::FastProjectDirection( MasterGeometry, gp_global, projected_gp_global, MasterNormal, -gp_normal ); // The opposite direction
 
                 GeometryType::CoordinatesArrayType projected_gp_local;
 

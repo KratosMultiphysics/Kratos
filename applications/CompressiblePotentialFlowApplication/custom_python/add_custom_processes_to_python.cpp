@@ -32,7 +32,7 @@ namespace Python
   {
 	using namespace pybind11;
 
-        class_<KuttaConditionProcess, Process >
+        class_<KuttaConditionProcess, KuttaConditionProcess::Pointer, Process >
         (m, "KuttaConditionProcess")
         .def(init<ModelPart&>())
         .def("Execute",&KuttaConditionProcess::Execute)

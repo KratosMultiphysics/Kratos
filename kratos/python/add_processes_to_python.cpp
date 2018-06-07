@@ -51,6 +51,7 @@
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
+#include "processes/skin_detection_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -85,7 +86,6 @@ void  AddProcessesToPython(pybind11::module& m)
     
     class_<FindNodalHProcess, FindNodalHProcess::Pointer, Process>(m,"FindNodalHProcess")
     .def(init<ModelPart&>())
-    .def("Execute",&FindNodalHProcess::Execute)
     ;
     
     class_<FindNodalNeighboursProcess, FindNodalNeighboursProcess::Pointer, Process>(m,"FindNodalNeighboursProcess")
@@ -283,7 +283,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<double>, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVectorHistorical")
@@ -293,7 +292,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical>, SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDoubleNonHistorical")
@@ -302,7 +300,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVectorNonHistorical")
@@ -312,7 +309,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical>::Execute)
     ;
 
     // 3D - Triangle
@@ -323,7 +319,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<double>, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVectorHistorical")
@@ -333,7 +328,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical>, SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDoubleNonHistorical")
@@ -343,7 +337,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVectorNonHistorical")
@@ -353,7 +346,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical>::Execute)
     ;
 
     // 3D - Quadrilateral
@@ -364,7 +356,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<double>, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVectorHistorical")
@@ -374,7 +365,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical>, SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDoubleNonHistorical")
@@ -384,7 +374,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVectorNonHistorical")
@@ -394,7 +383,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical>::Execute)
     ;
     
     // 2D 
@@ -405,7 +393,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<double>, Historical, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical, NonHistorical>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVectorHistoricalToNonHistorical")
@@ -415,7 +402,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical, Historical>, SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDoubleNonHistoricalToHistorical")
@@ -425,7 +411,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical, Historical>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVectorNonHistoricalToHistorical")
@@ -435,7 +420,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical, Historical>::Execute)
     ;
 
     // 3D - Triangle
@@ -446,7 +430,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<double>, Historical, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical, NonHistorical>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVectorHistoricalToNonHistorical")
@@ -456,7 +439,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical, Historical>, SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDoubleNonHistoricalToHistorical")
@@ -466,7 +448,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical, Historical>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVectorNonHistoricalToHistorical")
@@ -476,7 +457,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical, Historical>::Execute)
     ;
 
     // 3D - Quadrilateral
@@ -487,7 +467,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<double>, Historical, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical, NonHistorical>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVectorHistoricalToNonHistorical")
@@ -497,7 +476,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical, NonHistorical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical, Historical>, SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDoubleNonHistoricalToHistorical")
@@ -507,7 +485,6 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical, Historical>::Execute)
     ;
 
     class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical, Historical>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVectorNonHistoricalToHistorical")
@@ -517,14 +494,12 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical, Historical>::Execute)
     ;
 
     class_<FastTransferBetweenModelPartsProcess, FastTransferBetweenModelPartsProcess::Pointer, Process> FastTransferBetweenModelPartsProcess_Scope(m, "FastTransferBetweenModelPartsProcess");
     
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
-    FastTransferBetweenModelPartsProcess_Scope.def("Execute",&FastTransferBetweenModelPartsProcess::Execute);
 
     // Adding FastTransferBetweenModelPartsProcess related enums
     enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>(FastTransferBetweenModelPartsProcess_Scope, "EntityTransfered")
@@ -535,7 +510,15 @@ void  AddProcessesToPython(pybind11::module& m)
     .value("ALL", FastTransferBetweenModelPartsProcess::EntityTransfered::ALL)
     ;
 
+    class_<SkinDetectionProcess<2>, SkinDetectionProcess<2>::Pointer, Process>(m, "SkinDetectionProcess2D")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
 
+    class_<SkinDetectionProcess<3>, SkinDetectionProcess<3>::Pointer, Process>(m, "SkinDetectionProcess3D")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
 }
 
 }  // namespace Python.

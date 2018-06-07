@@ -179,12 +179,14 @@ proc ::wkcf::AssignSpecialBoundaries {ndime entitylist} {
 	    set endlinelist [list]
 	    foreach surfid $entitylist {
 		set surfprop [GiD_Geometry get surface $surfid]
-		# set surfacetype [lindex $surfprop 0]
+		set surfacetype [lindex $surfprop 0]
 		set nline [lindex $surfprop 2]
 		set lineprop [list]
-		#if {$surfacetype eq "nurbssurface"} {
+		if {$surfacetype eq "nurbssurface"} {
 		    set lineprop [lrange $surfprop 9 [expr {9+$nline-1}]]
-		    #}
+		} else {
+			set lineprop [lrange $surfprop 3 [expr {3+$nline-1}]]
+		}
 		foreach lprop $lineprop {
 		    lassign $lprop lineid orientation
 		    lappend endlinelist $lineid
@@ -675,7 +677,7 @@ proc ::wkcf::WriteMatTestData {fileid} {
     set cxpath "DEM//c.DEM-MaterialTest//i.DEM-ConfinementPressure"
     set ConfPress [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"ConfinementPressure\"              : $ConfPress,"
-    
+
     set basexpath "DEM//c.DEM-MaterialTest//c.DEM-TopLayerGroup"
     set topgroup [::xmlutils::setXmlContainerIds $basexpath]
     if {[llength $topgroup]} {
@@ -686,7 +688,7 @@ proc ::wkcf::WriteMatTestData {fileid} {
         set LVelt [::xmlutils::setXml $cxpath "dv"]
     }
     }
-    
+
     set basexpath "DEM//c.DEM-MaterialTest//c.DEM-BotLayerGroup"
     set botgroup [::xmlutils::setXmlContainerIds $basexpath]
     if {[llength $botgroup]} {
@@ -697,10 +699,10 @@ proc ::wkcf::WriteMatTestData {fileid} {
         set LVelb [::xmlutils::setXml $cxpath "dv"]
     }
     }
-    
+
     if {$TestTypeOn eq "No"} {set LVelt 0.0}
     if {$TestTypeOn eq "No"} {set LVelb 0.0}
-    puts $fileid "\"LoadingVelocity\"              : [expr ($LVelt-$LVelb)],"    
+    puts $fileid "\"LoadingVelocity\"              : [expr ($LVelt-$LVelb)],"
     set cxpath "DEM//c.DEM-MaterialTest//i.DEM-MeshType"
     set mt [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"MeshType\"                        : \"$mt\","
@@ -3421,11 +3423,18 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		set AngularPeriod "0.0"
 	    }
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.fixed_wall"
-	    set fixed_wall [::xmlutils::setXml $cxpath $cproperty]
+            set fixed_wall [::xmlutils::setXml $cxpath $cproperty]
 	    if {$fixed_wall=="Yes"} {
 		set fixed_wall_value 1
 	    } else {
 		set fixed_wall_value 0
+	    }
+            set ghostpath "${basexpath}//c.[list ${cgroupid}]//c.Options//i.AnalyticProps"
+            set ghost_wall [::xmlutils::setXml $ghostpath $cproperty]
+	    if {$ghost_wall=="Yes"} {
+		set ghost_wall_value 1
+	    } else {
+		set ghost_wall_value 0
 	    }
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularStartTime"
 	    set AngularVelocityStartTime [::xmlutils::setXml $cxpath $cproperty]
@@ -3559,6 +3568,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
 	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
+            GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER $TableNumber"
 	    GiD_File fprintf $demfemchannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
 	    GiD_File fprintf $demfemchannel "  IDENTIFIER $cgroupid"
@@ -3582,6 +3592,16 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		GiD_File fprintf $demfemchannel "  $nodeid"
 	    }
 	    GiD_File fprintf $demfemchannel "  End SubModelPartNodes"
+	    #
+	    set nlist [GiD_EntitiesGroups get $cgroupid elements]
+        if {[llength $nlist]} {
+            GiD_File fprintf $demfemchannel "  Begin SubModelPartConditions"
+            foreach elemid $nlist {
+                GiD_File fprintf $demfemchannel "  $elemid"
+            }
+            GiD_File fprintf $demfemchannel "  End SubModelPartConditions"
+        }
+	    #
 	    GiD_File fprintf $demfemchannel "End SubModelPart"
 	    GiD_File fprintf $demfemchannel ""
 

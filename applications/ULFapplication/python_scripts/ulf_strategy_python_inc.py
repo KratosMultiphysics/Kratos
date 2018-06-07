@@ -183,7 +183,7 @@ class ULFStrategyPythonInc:
             # reorder the list of degrees of freedom to identify fixity and system size
             self.builder_and_solver.SetUpSystem(self.model_part)
             # allocate memory for the system and preallocate the structure of the matrix
-            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.A, self.D, self.Dx, self.b, self.MPconsistent, self.MPinv, self.model_part.Elements, self.model_part.Conditions, self.model_part.ProcessInfo);
+            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.A, self.D, self.Dx, self.b, self.MPconsistent, self.MPinv, self.model_part);
             # auxiliary matrices (structure), needed SPECIFICALLY for the Quasi-Incompressible fluid
 
             self.builder_and_solver.ConstructMatrixStructure(self.A, self.model_part)
