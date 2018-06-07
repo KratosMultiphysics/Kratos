@@ -1573,7 +1573,7 @@ namespace Kratos
         }
         else if(KratosComponents<array_1d_component_type>::Has(variable_name))
         {
-            const bool has_been_added = rThisVariables.Has(KratosComponents<array_1d_component_type>::Get(variable_name)) ;
+            const bool has_been_added = rThisVariables.Has(KratosComponents<array_1d_component_type>::Get(variable_name).GetSourceVariable()) ;
 			if( !has_been_added && mOptions.Is(IGNORE_VARIABLES_ERROR) ) {
                 KRATOS_WARNING("ModelPartIO") <<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;
                 SkipBlock("NodalData");
