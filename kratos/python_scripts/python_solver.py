@@ -142,7 +142,7 @@ class PythonSolver(object):
         if (input_type == "mdpa"):
             import_flags = KratosMultiphysics.ModelPartIO.READ
             if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
-                if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool() == True:
+                if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
                     import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|KratosMultiphysics.ModelPartIO.READ
 
             # Import model part from mdpa file.
