@@ -35,7 +35,7 @@ class TrilinosRestartUtility(restart_utility.RestartUtility):
         return str(KratosMPI.mpi.rank) + '_' + str(file_label)
 
     def _ExecuteAfterLoad(self):
-        self.set_mpi_communicator:
+        if self.set_mpi_communicator:
             KratosTrilinos.ParallelFillCommunicator(self.main_model_part.GetRootModelPart()).Execute()
 
     def _PrintOnRankZero(self, *args):
