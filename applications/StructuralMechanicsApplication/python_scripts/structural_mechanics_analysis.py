@@ -51,13 +51,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
-
-    def OutputSolutionStep(self):
-        # This function is TEMPORARY until restart saving is handled through process
-        super(StructuralMechanicsAnalysis, self).OutputSolutionStep()
-
-        self._GetSolver().SaveRestart()
-
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
