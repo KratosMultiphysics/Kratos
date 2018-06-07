@@ -56,7 +56,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
         self.model_part_filename = response_settings["optimization_model_part_name"].GetString()
         self.analysis_driver_name = response_settings["analysis_driver"].GetString()
         self.log_file = "%s.log" % self.analysis_driver_name
-        self.results_file = "%s.results.h5" % self.analysis_driver_name
+        self.results_file = "%s.results" % self.analysis_driver_name
         self.analysis_driver = __import__(self.analysis_driver_name)
         self.is_analysis_step_completed = False
 
@@ -74,8 +74,6 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
     def CalculateValue(self):
         if not self.is_analysis_step_completed:
             self.response_data = {}
-            # with localimport.localimport(".", os.getcwd()) as _importer:
-            #     self.analysis_driver = __import__(self.analysis_driver_name)
             self.analysis_driver.Run(self.model_part, self.response_data)
 
     def GetValue(self):
