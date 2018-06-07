@@ -41,7 +41,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
         super(FluidDynamicsAnalysis, self).OutputSolutionStep()
 
         if self.save_restart:
-            self.restart_utility.SaveRestart()
+            restart_utility = self._GetRestartUtility()
+            restart_utility.SaveRestart()
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -105,16 +106,29 @@ class FluidDynamicsAnalysis(AnalysisStage):
             restart_settings.RemoveValue("save_restart")
             restart_settings.AddValue("input_filename", self.project_parameters["problem_data"]["problem_name"])
             restart_settings.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
+        else:
+            self.load_restart = False
+            self.save_restart = False
 
+    def _GetRestartUtility(self):
+
+        if self.__restart_utility is not None:
+            return self.__restart_utility
+        else:
             if self.parallel_type == "OpenMP":
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
                 from trilinos_restart_utility import TrilinosRestartUtility as Restart
 
-            self.restart_utility = Restart(self.main_model_part,
-                                           self.project_parameters["restart_settings"])
-        else:
-            self.save_restart = False
+            model_part_name = self.project_parameters["solver_settings"]["model_part_name"].GetString()
+            if self.model.HasModelPart(model_part_name):
+                model_part = self.model.GetModelPart(model_part_name)
+            else:
+                model_part = self.model.CreateModelPart(model_part_name)
+
+            self.__restart_utility = Restart(model_part,
+                                             self.project_parameters["restart_settings"])
+
 
     def _GetSimulationName(self):
         return "Fluid Dynamics Analysis"

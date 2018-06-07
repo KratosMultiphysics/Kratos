@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 
 namespace Kratos {
@@ -42,7 +43,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
     for (IndexType i_slave = 0; i_slave < 2; ++i_slave) {
         const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
 
-        const double distance = MortarUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
 
         if (distance > mDistanceThreshold) {
             ConditionsPointsSlave.clear();
@@ -68,7 +69,7 @@ bool ExactMortarIntegrationUtility<2, 2, false>::GetExactIntegration(
         for (IndexType i_master = 0; i_master < 2; ++i_master) {
             projected_gp_local[0] = (i_master == 0) ? -1.0 : 1.0;
             double delta_xi = (i_master == 0) ? 0.5 : -0.5;
-            const bool is_inside = MortarUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, SlaveNormal, tolerance, delta_xi);
+            const bool is_inside = GeometricalProjectionUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry, OriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, SlaveNormal, tolerance, delta_xi);
 
             if (is_inside)
                 auxiliar_xi.push_back(projected_gp_local[0]);
@@ -160,7 +161,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave[i_node] = Kratos::make_shared<PointType>(aux_point);
 
-        aux_point = MortarUtilities::FastProject( slave_center, OriginalMasterGeometry[i_node], SlaveNormal, distance);
+        aux_point = GeometricalProjectionUtilities::FastProject( slave_center, OriginalMasterGeometry[i_node], SlaveNormal, distance);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
 
@@ -241,12 +242,12 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
         PointType aux_point;
         double distance_slave, distance_master;
 
-        aux_point = MortarUtilities::FastProject(slave_center, OriginalSlaveGeometry[i_node], SlaveNormal, distance_slave);
+        aux_point = GeometricalProjectionUtilities::FastProject(slave_center, OriginalSlaveGeometry[i_node], SlaveNormal, distance_slave);
         points_array_slave_not_rotated[i_node] = Kratos::make_shared<PointType>(aux_point);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave[i_node] = Kratos::make_shared<PointType>(aux_point);
 
-        aux_point = MortarUtilities::FastProject( slave_center, OriginalMasterGeometry[i_node], SlaveNormal, distance_master);
+        aux_point = GeometricalProjectionUtilities::FastProject( slave_center, OriginalMasterGeometry[i_node], SlaveNormal, distance_master);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
 
@@ -320,7 +321,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
     for (unsigned int i_slave = 0; i_slave < 2; ++i_slave) {
         const array_1d<double, 3>& normal = OriginalSlaveGeometry[i_slave].FastGetSolutionStepValue(NORMAL);
 
-        const double distance = MortarUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
+        const double distance = GeometricalProjectionUtilities::FastProjectDirection(OriginalMasterGeometry, OriginalSlaveGeometry[i_slave].Coordinates(), projected_gp_global, MasterNormal, -normal ); // The opposite direction
 
         if (distance > mDistanceThreshold) {
             ConditionsPointsSlave.clear();
@@ -349,7 +350,7 @@ bool ExactMortarIntegrationUtility<2, 2, true>::GetExactIntegration(
         for (IndexType i_master = 0; i_master < 2; ++i_master) {
             projected_gp_local[0] = (i_master == 0) ? -1.0 : 1.0;
             double delta_xi = (i_master == 0) ? 0.5 : -0.5;
-            const bool is_inside = MortarUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry,  OriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, SlaveNormal, tolerance, delta_xi);
+            const bool is_inside = GeometricalProjectionUtilities::ProjectIterativeLine2D(OriginalSlaveGeometry,  OriginalMasterGeometry[i_master].Coordinates(), projected_gp_local, SlaveNormal, tolerance, delta_xi);
 
             if (is_inside) {
                 auxiliar_xi.push_back(projected_gp_local[0]);
@@ -453,7 +454,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave[i_node] = Kratos::make_shared<PointType>(aux_point);
 
-        aux_point = MortarUtilities::FastProject(slave_center, OriginalMasterGeometry[i_node], SlaveNormal, distance);
+        aux_point = GeometricalProjectionUtilities::FastProject(slave_center, OriginalMasterGeometry[i_node], SlaveNormal, distance);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
     }
@@ -529,12 +530,12 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
         PointType aux_point;
         double distance_slave, distance_master;
 
-        aux_point = MortarUtilities::FastProject(slave_center, OriginalSlaveGeometry[i_node], SlaveNormal, distance_slave);
+        aux_point = GeometricalProjectionUtilities::FastProject(slave_center, OriginalSlaveGeometry[i_node], SlaveNormal, distance_slave);
         points_array_slave_not_rotated[i_node] = Kratos::make_shared<PointType>(aux_point);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_slave[i_node] = Kratos::make_shared<PointType>(aux_point);
 
-        aux_point = MortarUtilities::FastProject(slave_center, OriginalMasterGeometry[i_node], SlaveNormal, distance_master);
+        aux_point = GeometricalProjectionUtilities::FastProject(slave_center, OriginalMasterGeometry[i_node], SlaveNormal, distance_master);
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
 
