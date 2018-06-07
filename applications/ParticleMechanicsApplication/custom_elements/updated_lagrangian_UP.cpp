@@ -105,22 +105,9 @@ Element::Pointer UpdatedLagrangianUP::Clone( IndexType NewId, NodesArrayType con
 
     UpdatedLagrangianUP NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
-    //-----------//
-
-
-
-
-
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
-
-
-    //-----------//
-
-
-
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
-
 
     NewElement.mDeterminantF0 = mDeterminantF0;
 
@@ -217,6 +204,7 @@ void UpdatedLagrangianUP::InitializeGeneralVariables (GeneralVariables& rVariabl
     {
         StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     }
+    
     GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
 
     //ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
