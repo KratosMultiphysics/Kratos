@@ -57,6 +57,10 @@ namespace Kratos
 
 /// This is the "Condition" of the Mappers.
 /** Detail class definition.
+In case the mapping matrix is build we need at some point the EquationIDs of the MappingMatrix
+=> To get these we have to compute also the MappingWeights which might be expensive
+(e.g. triangulation, integration, projection)
+=> Therefore we save this to later only querry it
 */
 class MapperLocalSystem
 {
@@ -170,13 +174,10 @@ public:
     virtual void Clear()
     {
         mInterfaceInfos.clear();
-        if (mIsComputed) // TODO I think this "if" is not needed ...
-        {
-            mMappingWeights.clear();
-            mOriginIds.clear();
-            mDestinationIds.clear();
-            mIsComputed = false;
-        }
+        mMappingWeights.clear();
+        mOriginIds.clear();
+        mDestinationIds.clear();
+        mIsComputed = false;
     }
 
 

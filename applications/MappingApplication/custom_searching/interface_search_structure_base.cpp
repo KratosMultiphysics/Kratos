@@ -173,7 +173,8 @@ namespace Kratos
                 for (SizeType j=0; j<number_of_results; ++j)
                     r_interface_info->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
 
-                // If the search did not result in a "valid" results we try to compute an approximation
+                // If the search did not result in a "valid" result (e.g. the projection fails)
+                // we try to compute an approximation
                 if (!r_interface_info->GetLocalSearchWasSuccessful())
                 {
                     for (SizeType j=0; j<number_of_results; ++j)
