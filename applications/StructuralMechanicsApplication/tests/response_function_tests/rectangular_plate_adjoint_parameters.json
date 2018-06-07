@@ -45,7 +45,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_DIR_BC",
+            "model_part_name" : "rectangular_plate_structure.DISPLACEMENT_DIR_BC",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
@@ -66,21 +66,7 @@
             }
         }
      }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_NODES",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"         : 1.0,
-            "direction"       : [0.0,0.0,1],
-            "interval"        : [0.0,"End"]
-        }
-    }],
+    "loads_process_list"       : [],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
