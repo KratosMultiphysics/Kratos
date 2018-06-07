@@ -1575,7 +1575,16 @@ namespace Kratos
         }
         else if(KratosComponents<array_1d_component_type>::Has(variable_name))
         {
-            ReadNodalDofVariableData(rThisNodes, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
+            bool has_been_added = rThisVariables.Has(KratosComponents<array_1d_component_type>::Get(variable_name)) ;
+			if( !has_been_added && mOptions.Is(IGNORE_VARIABLES_ERROR) ) {
+                KRATOS_WARNING("ModelPartIO") <<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;
+                SkipBlock("NodalData");
+            }
+			else if (!has_been_added)
+				KRATOS_THROW_ERROR(std::invalid_argument,"The nodal solution step container deos not have this variable: ", variable_name)
+            else {
+                ReadNodalDofVariableData(rThisNodes, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
+            }
         }
         else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
         {
