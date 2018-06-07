@@ -10,7 +10,7 @@ try:
     number_of_processors = KratosMPI.mpi.size
 except:
     print("MPI not imported!")
-    my_rank = 0   
+    my_rank = 0
     number_of_processors = 1
 import KratosMultiphysics.MappingApplication as KratosMapping
 
@@ -37,7 +37,7 @@ def create_model_part(name, geom_range, number_nodes_per_rank, number_of_process
         x_coord = local_min + dx*i
         # print(my_rank, node_id, x_coord)
         model_part.CreateNewNode(node_id, x_coord, 0.0, 0.0)
-            
+
     p_i = 1
     for node in model_part.Nodes:
         node.SetSolutionStepValue(KratosMultiphysics.PARTITION_INDEX, my_rank)
@@ -149,7 +149,7 @@ model_part_destination = create_model_part("destination", geom_range_destination
 #     print(my_rank, node_id, x_coord)
 #     model_part_origin.CreateNewNode(node_id, x_coord, 0.0, 0.0)
 #     model_part_destination.CreateNewNode(node_id, x_coord, 0.0, 0.0)
-        
+
 # for node in model_part_origin.Nodes:
 #     node.SetSolutionStepValue(KratosMultiphysics.PARTITION_INDEX, my_rank)
 # for node in model_part_destination.Nodes:
@@ -191,7 +191,7 @@ nearest_element_mapper_settings = KratosMultiphysics.Parameters("""
 
 nearest_neighbor_matrix_mapper_settings = KratosMultiphysics.Parameters("""
         {
-            "mapper_type": "NearestNeighborMatrixBased"
+            "mapper_type": "nearest_neighbor"
         }
 """)
 print_custom("\n##### Creating the mappers with the MapperFactory #####\n\n")
@@ -208,8 +208,8 @@ print_custom("\n##### Creating the mappers with the MapperFactory #####\n\n")
 # print_custom("\n\n")
 # barrier_custom()
 
-nearest_neighbor_matrix_mapper = KratosMapping.MapperFactoryNew.CreateMapper(model_part_origin, model_part_destination, nearest_neighbor_matrix_mapper_settings)
-nearest_neighbor_matrix_mapper.Map(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE, KratosMapping.Mapper.CONSERVATIVE)
+nearest_neighbor_matrix_mapper = KratosMapping.MapperFactory.CreateMapper(model_part_origin, model_part_destination, nearest_neighbor_matrix_mapper_settings)
+nearest_neighbor_matrix_mapper.Map(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE)
 # nearest_neighbor_matrix_mapper.InverseMap(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE)
 # nearest_neighbor_matrix_mapper.UpdateInterface()
 # print_custom("\n\n")

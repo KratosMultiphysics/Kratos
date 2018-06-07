@@ -119,6 +119,7 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
 {
     // here we could return the MatrixFree variant in the future
     Parameters utility_settings(R"({})"); // TODO fill this
+    utility_settings.ValidateAndAssignDefaults(mGeneralMapperSettings);
     mpMappingOperationUtility = Kratos::make_unique<MatrixBasedMappingOperationUtility<TSparseSpace, TDenseSpace>>(utility_settings);
 }
 

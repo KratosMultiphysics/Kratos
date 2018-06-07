@@ -24,8 +24,6 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocessor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_local_system.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_interface_info.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_flags.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities.cpp
 )

@@ -202,7 +202,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    int GetEchoLevel() { return mEchoLevel; }
+    int GetEchoLevel() const { return mEchoLevel; }
 
     ///@}
     ///@name Protected  Access

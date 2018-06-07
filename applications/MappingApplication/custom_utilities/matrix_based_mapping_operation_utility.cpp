@@ -41,7 +41,7 @@ namespace Kratos
     void InitializeVector(UtilityType::TSystemVectorUniquePointerType& rpVector,
                          const SizeType VectorSize)
     {
-        // The vectors dont have graphs, that why we don't always have to reinitialie them
+        // The vectors dont have graphs, that why we don't always have to reinitialize them
         if (rpVector == nullptr || rpVector->size() != VectorSize) //if the pointer is not initialized initialize it to an empty vector
         {
             UtilityType::TSystemVectorUniquePointerType p_new_vector = Kratos::make_unique<UtilityType::TSystemVectorType>(VectorSize);
@@ -136,7 +136,7 @@ namespace Kratos
         // ConstructMatrixStructure(rpMdo, rMapperLocalSystems);
 
         TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(
-            num_nodes_origin,num_nodes_destination, num_non_zeros);
+            num_nodes_destination, num_nodes_origin, num_non_zeros);
         rpMdo.swap(p_Mdo);
 
         // TODO do I also have to set to zero the contents?
@@ -173,6 +173,9 @@ namespace Kratos
 
             r_local_sys->Clear();
         }
+
+        if (GetEchoLevel() > 2)
+            SparseSpaceType::WriteMatrixMarketMatrix("MappingMatrix", rMdo, false);
     }
 
     // The "Solve" function
