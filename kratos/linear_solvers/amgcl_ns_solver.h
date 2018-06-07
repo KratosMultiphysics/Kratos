@@ -265,8 +265,7 @@ public:
         double resid;
         boost::tie(iters, resid) = solve(rB, rX);
 
-        if (mTol < resid)
-            KRATOS_WARNING("AMGCL NS Linear Solver")<<"Non converged linear solution. ["<< resid << " > "<< mTol << "]" << std::endl;
+        KRATOS_WARNING_IF("AMGCL NS Linear Solver", mTol < resid)<<"Non converged linear solution. ["<< resid << " > "<< mTol << "]" << std::endl;
 
         if(mverbosity > 1)
         {
