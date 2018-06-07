@@ -1555,7 +1555,7 @@ namespace Kratos
                 SkipBlock("NodalData");
             }
 			else {
-                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container deos not have this variable: " << variable_name << "." << std::endl;
+                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
                 ReadNodalScalarVariableData(rThisNodes, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
             }
         }
@@ -1567,7 +1567,7 @@ namespace Kratos
                 SkipBlock("NodalData");
             }
 			else {
-                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container deos not have this variable: " << variable_name << "." << std::endl;
+                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
                 ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
             }
         }
@@ -1579,7 +1579,7 @@ namespace Kratos
                 SkipBlock("NodalData");
             }
 			else {
-                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container deos not have this variable: " << variable_name << "." << std::endl;
+                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
                 ReadNodalDofVariableData(rThisNodes, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
             }
         }
@@ -1590,7 +1590,7 @@ namespace Kratos
                 KRATOS_WARNING("ModelPartIO")<<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;
             }
 			else {
-                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container deos not have this variable: " << variable_name << "." << std::endl;
+                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
                 ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
             }
         }
@@ -1601,7 +1601,7 @@ namespace Kratos
                 KRATOS_WARNING("ModelPartIO")<<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;
             }
             else {
-                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container deos not have this variable: " << variable_name << "." << std::endl;
+                KRATOS_ERROR_IF_NOT(has_been_added) << "The nodal solution step container does not have this variable: " << variable_name << "." << std::endl;
                 ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Quaternion<double> > const& >(KratosComponents<Variable<Quaternion<double> > >::Get(variable_name)), Vector(4));
             }
         }
