@@ -36,8 +36,11 @@
 
 /* //elements */
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodal_integrated_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_solid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodal_integrated_solid_element.h"
 #include "custom_elements/updated_lagrangian_V_implicit_solid_element.h"
+#include "custom_elements/updated_lagrangian_V_implicit_nodal_integrated_solid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_explicit_element.h"
@@ -224,13 +227,21 @@ namespace Kratos
    /*  ///@{  */
    /*  //updated lagrangian */
 
-    /// 2D two step v-p fluid element
+    /// 2D two step v-p implicit element
     const TwoStepUpdatedLagrangianVPImplicitElement<2> mTwoStepUpdatedLagrangianVPImplicitElement2D;
     const TwoStepUpdatedLagrangianVPImplicitElement<2> mTwoStepUpdatedLagrangianVPImplicitElement2Dquadratic;
 
-    /// 3D two step v-p fluid element
+    /// 3D two step v-p implicit element
     const TwoStepUpdatedLagrangianVPImplicitElement<3> mTwoStepUpdatedLagrangianVPImplicitElement3D;
     const TwoStepUpdatedLagrangianVPImplicitElement<3> mTwoStepUpdatedLagrangianVPImplicitElement3Dquadratic;
+
+    /// 2D two step v-p implicit NodalIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<2> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<2> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2Dquadratic;
+
+    /// 3D two step v-p implicit NodalIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<3> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<3> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3Dquadratic;
 
     /// 2D two step v-p solid element
     const TwoStepUpdatedLagrangianVPImplicitSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitSolidElement2D;
@@ -239,6 +250,14 @@ namespace Kratos
     /// 3D two step v-p solid element
     const TwoStepUpdatedLagrangianVPImplicitSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitSolidElement3D;
     const TwoStepUpdatedLagrangianVPImplicitSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitSolidElement3Dquadratic;
+    
+    /// 2D two step v-p solid NodalIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement2Dquadratic;
+
+    /// 3D two step v-p solid NodalIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement3Dquadratic;
 
     /// 2D velocity solid element
     const UpdatedLagrangianVImplicitSolidElement<2> mUpdatedLagrangianVImplicitSolidElement2D;
@@ -247,6 +266,14 @@ namespace Kratos
     /// 3D velocity solid element
     const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3D;
     const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3Dquadratic;
+    
+    /// 2D velocity solid NodalIntegrated element
+    const UpdatedLagrangianVImplicitNodalIntegratedSolidElement<2> mUpdatedLagrangianVImplicitNodalIntegratedSolidElement2D;
+    const UpdatedLagrangianVImplicitNodalIntegratedSolidElement<2> mUpdatedLagrangianVImplicitNodalIntegratedSolidElement2Dquadratic;
+
+    /// 3D velocity solid NodalIntegrated element
+    const UpdatedLagrangianVImplicitNodalIntegratedSolidElement<3> mUpdatedLagrangianVImplicitNodalIntegratedSolidElement3D;
+    const UpdatedLagrangianVImplicitNodalIntegratedSolidElement<3> mUpdatedLagrangianVImplicitNodalIntegratedSolidElement3Dquadratic;
 
     /// 2D two step v-p fluid element
     const TwoStepUpdatedLagrangianVPImplicitFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidElement2D;
