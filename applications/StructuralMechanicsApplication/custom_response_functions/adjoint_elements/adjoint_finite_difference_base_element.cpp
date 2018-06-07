@@ -505,7 +505,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         double delta= this->GetValue(DISTURBANCE_MEASURE);
         double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
         delta *= correction_factor;
-        if(rDesignVariable == SHAPE_SENSITIVITY)
+        if(rDesignVariable == SHAPE)
         {
             const int number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
             const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -703,7 +703,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
     double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
     delta *= correction_factor;
 
-    if(rDesignVariable == SHAPE_SENSITIVITY)
+    if(rDesignVariable == SHAPE)
     {
         const int number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -769,7 +769,7 @@ double AdjointFiniteDifferencingBaseElement::GetDisturbanceMeasureCorrectionFact
 {
     KRATOS_TRY;
 
-    if(rDesignVariable == SHAPE_SENSITIVITY)
+    if(rDesignVariable == SHAPE)
     {
         double dx, dy, dz, L = 0.0;
 
