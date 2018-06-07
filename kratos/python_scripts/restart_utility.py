@@ -64,7 +64,7 @@ class RestartUtility(object):
             self.restart_control_type_is_time = True
         elif restart_control_type == "step":
             self.restart_control_type_is_time = False
-            self.restart_save_frequency = int(self.restart_save_frequency)
+            self.restart_save_frequency = int(self.restart_save_frequency) # STEP is an integer
         else:
             err_msg =  'The requested restart_control_type "' + restart_control_type + '" is not available!\n'
             err_msg += 'Available options are: "time", "step"'
