@@ -69,18 +69,7 @@ public:
 
     using MapperInterfaceInfoUniquePointerType = BaseType::MapperInterfaceInfoUniquePointerType;
 
-    using MapperInterfaceInfoPointerType = BaseType::MapperInterfaceInfoPointerType;
-    using MapperInterfaceInfoPointerVectorType = BaseType::MapperInterfaceInfoPointerVectorType;
-    using MapperInterfaceInfoPointerVectorPointerType = BaseType::MapperInterfaceInfoPointerVectorPointerType;
-
-    using MapperLocalSystemPointer = BaseType::MapperLocalSystemPointer;
-    using MapperLocalSystemPointerVector = BaseType::MapperLocalSystemPointerVector;
     using MapperLocalSystemPointerVectorPointer = BaseType::MapperLocalSystemPointerVectorPointer;
-
-    using BinsUniquePointerType = BaseType::BinsUniquePointerType;
-
-    using InterfaceObjectContainerType = BaseType::InterfaceObjectContainerType;
-    using InterfaceObjectContainerUniquePointerType = BaseType::InterfaceObjectContainerUniquePointerType;
 
     ///@}
     ///@name Life Cycle

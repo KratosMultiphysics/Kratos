@@ -58,9 +58,9 @@ namespace Kratos
             if (num_iteration == max_search_iterations) last_iteration = true; // TODO test if this works...
 
             KRATOS_WARNING_IF("Mapper", mEchoLevel >= 2 && rComm.MyPID() == 0)
-                << "search radius was increased, another search iteration is "
-                << "conducted | search iteration " << num_iteration << " / "
-                << max_search_iterations << " | search radius " << mSearchRadius << std::endl;
+                << "search radius was increased, another search iteration is conducted | "
+                << "search iteration " << num_iteration << " / "<< max_search_iterations << " | "
+                << "search radius " << mSearchRadius << std::endl;
 
             ConductSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
         }
