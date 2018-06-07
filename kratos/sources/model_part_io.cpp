@@ -65,8 +65,9 @@ namespace Kratos
     }
 
     /// Constructor with stream
-    ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream)
+    ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options)
       : mNumberOfLines(1)
+      , mOptions(Options)
     {
         // nullptr test can be confusing with Kratos::shared_ptr. Commented until we move to std::shared_ptr
         // if (Stream == nullptr)
