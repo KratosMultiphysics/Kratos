@@ -522,6 +522,9 @@ public:
             ScalarSolve(rA,rX,rB, iters, resid);
         }
 
+        if (mTol < resid)
+            KRATOS_WARNING("AMGCL Linear Solver")<<"Non converged linear solution. ["<< resid << " > "<< mTol << "]" << std::endl;
+
 
         if(mverbosity > 1)
         {
