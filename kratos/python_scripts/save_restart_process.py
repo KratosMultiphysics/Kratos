@@ -8,48 +8,47 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SaveRestartProcess(Model, settings["Parameters"])
 
+
 class SaveRestartProcess(KratosMultiphysics.Process):
 
     def __init__(self, model, params):
-        """This process compares files that are written during a simulation
-        against reference files.
-        Please see the "ExecuteFinalize" functions for details about the
-        available file-formats
+        """This process compares saves restart files
+        It works both in OpenMP and MPI
+        see the "default_settings" for available options
         """
         ## Settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
+        default_settings = KratosMultiphysics.Parameters("""{
             "model_part_name"              : "",
-            "parallel_type"                : "OpenMP",
             "echo_level"                   : 0,
             "serializer_trace"             : "no_trace",
             "restart_save_frequency"       : 0.0,
             "restart_control_type"         : "time",
             "save_restart_files_in_folder" : true
-        }
-        """)
+        }""")
 
         ## Overwrite the default settings with user-provided parameters
-        params.ValidateAndAssignDefaults(default_parameters)
-        model_part_name = params["model_part_name"].GetString()
+        params.ValidateAndAssignDefaults(default_settings)
+        self.params = params
+        self.model = model
 
-        parallel_type = params["parallel_type"].GetString()
+        if self.params["model_part_name"].GetString() == "":
+            raise Exception('No "model_part_name" was specified!')
 
-        if parallel_type == "OpenMP":
-            from restart_utility import RestartUtility as Restart
-        elif parallel_type == "MPI":
+    def ExecuteInitialize(self):
+        model_part = self.model[self.params["model_part_name"].GetString()]
+
+        is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
+
+        if is_mpi_execution:
             import KratosMultiphysics.TrilinosApplication
             from trilinos_restart_utility import TrilinosRestartUtility as Restart
         else:
-            err
+            from restart_utility import RestartUtility as Restart
 
-        params.RemoveValue("model_part_name")
-        params.RemoveValue("parallel_type")
+        self.params.AddValue("input_filename", self.params["model_part_name"])
+        self.params.RemoveValue("model_part_name")
 
-        self.restart_utility = Restart(model[model_part_name], params)
-
-    def ExecuteInitialize(self):
-        pass
+        self.restart_utility = Restart(model_part, self.params)
 
     def ExecuteBeforeSolutionLoop(self):
         pass
@@ -64,7 +63,7 @@ class SaveRestartProcess(KratosMultiphysics.Process):
         pass
 
     def IsOutputStep(self):
-        return True
+        return self.restart_utility.IsRestartOutputStep()
 
     def PrintOutput(self):
         self.restart_utility.SaveRestart()
