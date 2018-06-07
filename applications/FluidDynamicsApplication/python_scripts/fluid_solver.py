@@ -57,12 +57,13 @@ class FluidSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        ## Replace default elements and conditions
-        self._ReplaceElementsAndConditions()
-        ## Executes the check and prepare model process
-        self._ExecuteCheckAndPrepare()
-        ## Set buffer size
-        self.main_model_part.SetBufferSize(self.min_buffer_size)
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            ## Replace default elements and conditions
+            self._ReplaceElementsAndConditions()
+            ## Executes the check and prepare model process
+            self._ExecuteCheckAndPrepare()
+            ## Set buffer size
+            self.main_model_part.SetBufferSize(self.min_buffer_size)
 
         if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
             self.model.AddModelPart(self.main_model_part)
