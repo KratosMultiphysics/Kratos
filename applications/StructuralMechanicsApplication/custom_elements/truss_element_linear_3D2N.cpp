@@ -43,7 +43,6 @@ Element::Pointer
 TrussElementLinear3D2N::Create(IndexType NewId,
                             GeometryType::Pointer pGeom,
                                PropertiesType::Pointer pProperties) const {
-  const GeometryType &rGeom = this->GetGeometry();
   return Kratos::make_shared<TrussElementLinear3D2N>(
       NewId, pGeom, pProperties);
 }
