@@ -1,3 +1,12 @@
+# ==============================================================================
+#  KratosShapeOptimizationApplication
+#
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
+#
+#  Main authors:    Suneth Warnakulasuriya, https://github.com/sunethwarna
+#
+# ==============================================================================
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library

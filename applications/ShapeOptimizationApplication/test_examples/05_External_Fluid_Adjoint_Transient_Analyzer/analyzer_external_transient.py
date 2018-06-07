@@ -4,8 +4,7 @@
 #  License:         BSD License
 #                   license: ShapeOptimizationApplication/license.txt
 #
-#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
-#                   Geiser Armin, https://github.com/armingeiser
+#  Main authors:    Suneth Warnakulasuriya, https://github.com/sunethwarna
 #
 # ==============================================================================
 
