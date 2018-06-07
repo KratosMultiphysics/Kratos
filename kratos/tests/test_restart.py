@@ -32,9 +32,9 @@ class TestRestart(KratosUnittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def tearDown(self):
-        kratos_utils.DeleteFileIfExisting(GetFilePath("test_restart_file.rest"))
-        kratos_utils.DeleteFileIfExisting(GetFilePath("test_restart_file_15.0.rest"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("MainRestart__restart_files"))
+        kratos_utils.DeleteFileIfExisting("test_restart_file.rest")
+        kratos_utils.DeleteFileIfExisting("test_restart_file_15.0.rest")
+        kratos_utils.DeleteDirectoryIfExisting("MainRestart__restart_files")
 
     def _check_modelpart(self, model_part):
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
@@ -259,7 +259,7 @@ class TestRestart(KratosUnittest.TestCase):
         save_restart_process.ExecuteFinalize()
 
         # Checking if the files exist
-        base_path = GetFilePath("MainRestart__restart_files")
+        base_path = "MainRestart__restart_files"
         base_file_name = os.path.join(base_path, "MainRestart_")
         for i in range(2,50,2):
             self.assertTrue(os.path.isfile(base_file_name + str(i) + ".rest"))
