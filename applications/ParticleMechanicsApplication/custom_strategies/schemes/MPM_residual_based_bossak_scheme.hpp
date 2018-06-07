@@ -131,8 +131,8 @@ public:
      * Constructor.
      * The bossak method
      */
-    MPMResidualBasedBossakScheme(ModelPart& grid_model_part, unsigned int DomainSize, double rAlpham=0,double rDynamic=1)
-        :Scheme<TSparseSpace,TDenseSpace>(), mr_grid_model_part(grid_model_part), mRotationTool(DomainSize,IS_STRUCTURE)
+    MPMResidualBasedBossakScheme(ModelPart& grid_model_part, unsigned int DomainSize, unsigned int BlockSize, double rAlpham=0,double rDynamic=1)
+        :Scheme<TSparseSpace,TDenseSpace>(), mr_grid_model_part(grid_model_part), mRotationTool(DomainSize,BlockSize,IS_STRUCTURE)
     {
         //For pure Newmark Scheme
         mAlpha.f= 0;
@@ -146,6 +146,7 @@ public:
         //std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= "<<mAlpha.m<<" beta= "<<mNewmark.beta<<" gamma= "<<mNewmark.gamma<<"]"<<std::endl;
 
         mDomainSize = DomainSize;
+        mBlockSize  = BlockSize;
 
         //Allocate auxiliary memory
         int NumThreads = OpenMPUtils::GetNumThreads();
@@ -169,7 +170,7 @@ public:
         ,mVector(rOther.mVector)
         ,mr_grid_model_part(rOther.mr_grid_model_part)
         ,mDomainSize(rOther.mDomainSize)
-        ,mRotationTool(rOther.mDomainSize,IS_STRUCTURE)
+        ,mRotationTool(rOther.mDomainSize,rOther.mBlockSize,IS_STRUCTURE)
     {
     }
 
@@ -821,7 +822,7 @@ public:
         // If there is a slip condition, apply it on a rotated system of coordinates
         mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
         mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-        
+       
         KRATOS_CATCH( "" )
     }
 
@@ -1085,6 +1086,7 @@ protected:
     ModelPart& mr_grid_model_part;
 
     unsigned int    mDomainSize;
+    unsigned int    mBlockSize;
 
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 

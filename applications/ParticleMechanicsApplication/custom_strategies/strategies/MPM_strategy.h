@@ -208,6 +208,12 @@ public:
         double MP_Mass;
         double MP_Volume;
 
+        // Prepare Dimension and Block Size
+        unsigned int TBlock = TDim;
+        if (isMixedFormulation) TBlock ++;
+
+        KRATOS_INFO("MPM_Strategy") << "Dimension Size = " << TDim << " and Block Size = " << TBlock << std::endl;
+
         unsigned int k = 0;
         const unsigned int number_elements = grid_model_part.NumberOfElements();
         const unsigned int number_nodes = grid_model_part.NumberOfNodes();
@@ -369,7 +375,7 @@ public:
         {
             double Alpham;
             double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.0, Dynamic=1) );
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, TBlock, Alpham = 0.0, Dynamic=1) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
@@ -398,7 +404,7 @@ public:
         {
             double Alpham;
             double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.00, Dynamic=0) );
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, TBlock, Alpham = 0.00, Dynamic=0) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
