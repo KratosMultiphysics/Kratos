@@ -58,7 +58,8 @@
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder"
+            "input_filename" : "cylinder",
+            "ignore_variables_not_in_solution_step_data": true
         },
         "time_stepping"               : {
             "automatic_time_step" : false,

@@ -39,7 +39,8 @@
         "model_part_name": "MainModelPart",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder"
+            "input_filename" : "cylinder",
+            "ignore_variables_not_in_solution_step_data": true
         },
             "maximum_iterations": 50000,
             "echo_level": 0,
