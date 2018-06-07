@@ -72,28 +72,31 @@ public:
         ConstitutiveLaw::Pointer pConstitutiveLaw
     )
     {
-        const Vector& StrainVectorGP = rValues.GetStrainVector();
-        const Vector& StressVectorGP = rValues.GetStressVector();
+        const Vector StrainVectorGP = rValues.GetStrainVector();
+        const Vector StressVectorGP = rValues.GetStressVector();
 
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
         TangentTensor.clear();
 
         const int NumComp = StrainVectorGP.size();
-
+		
         // Loop over components of the strain
         for (int Component = 0; Component < NumComp; Component++)
         {
-            ConstitutiveLaw::Parameters PerturbedValues = rValues;
-            Vector& PerturbedStrain = PerturbedValues.GetStrainVector();
-            
+            Vector& PerturbedStrain = rValues.GetStrainVector();
+			
             double Perturbation;
             CalculatePerturbation(PerturbedStrain, Component, Perturbation);
             PerturbateStrainVector(PerturbedStrain, StrainVectorGP, Perturbation, Component);
-            IntegratePerturbedStrain(PerturbedValues, pConstitutiveLaw);
+            IntegratePerturbedStrain(rValues, pConstitutiveLaw);
 
-            Vector& PerturbedIntegratedStress = PerturbedValues.GetStressVector(); // now integrated
+            Vector& PerturbedIntegratedStress = rValues.GetStressVector(); // now integrated
             const Vector& DeltaStress = PerturbedIntegratedStress - StressVectorGP; 
             AssignComponentsToTangentTensor(TangentTensor, DeltaStress, Perturbation, Component);
+
+            // Reset the values to the initial ones
+            noalias(PerturbedStrain) = StrainVectorGP;
+            noalias(PerturbedIntegratedStress) = StressVectorGP;
         }
     }
 

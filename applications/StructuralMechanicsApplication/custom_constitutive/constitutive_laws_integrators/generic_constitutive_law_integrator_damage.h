@@ -123,7 +123,6 @@ public:
                     CharacteristicLength, rMaterialProperties, Damage);
                 break;
             
-
             // Add more...
         }
 

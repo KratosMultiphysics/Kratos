@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz & Alejandro Cornejo
 //
 
 #if !defined(KRATOS_CONSTITUTIVE_LAW_UTILITIES)
@@ -38,8 +38,8 @@ namespace Kratos
  * @class ConstitutiveLawUtilities
  * @ingroup StructuralMechanicsApplication
  * @brief This class includes several utilities necessaries for the computation of the constitutive law
- * @details The methods are static, so it can be called with constructing the class
- * @author Vicente Mataix Ferrandiz
+ * @details The methods are static, so it can be called without constructing the class
+ * @author Vicente Mataix Ferrandiz & Alejandro Cornejo
  */
 class ConstitutiveLawUtilities
 {
@@ -92,7 +92,7 @@ public:
     /**
      * @brief This method computes the third invariant from a given stress vector
      * @param StressVector The stress vector on Voigt notation
-     * @param rI3 The first invariant
+     * @param rI3 The third invariant
      */
     static void CalculateI3Invariant(
         const Vector& StressVector,
@@ -131,7 +131,7 @@ public:
     }
 
     /**
-     * @brief This method computes the second invariant of J
+     * @brief This method computes the third invariant of J
      * @param Deviator The deviator of the stress
      * @param rJ3 The third invariant of J
      */
@@ -155,7 +155,6 @@ public:
         FirstVector[0] = 1.0;
         FirstVector[1] = 1.0;
         FirstVector[2] = 1.0;
-
     }
 
     /**
@@ -263,7 +262,6 @@ public:
         } else {
             rPrincipalStressVector = ZeroVector(3);
         }
-
     }
 
 private:

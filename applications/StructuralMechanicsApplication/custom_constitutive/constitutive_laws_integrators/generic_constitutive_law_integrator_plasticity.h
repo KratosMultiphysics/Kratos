@@ -73,7 +73,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum class HardeningCurveType {LinearSoftening = 0, ExponentialSoftening = 1, InitialHardeningExponentialSoftening = 1};
+    enum class HardeningCurveType {LinearSoftening = 0, ExponentialSoftening = 1, InitialHardeningExponentialSoftening = 2};
 
     ///@}
     ///@name Life Cycle
@@ -131,6 +131,7 @@ public:
 
         // Backward Euler  
         while (is_converged == false && iteration <= max_iter) {
+            
             PlasticConsistencyFactorIncrement = UniaxialStress * PlasticDenominator; 
             if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
 
@@ -216,7 +217,7 @@ public:
     
     // Calculates the McAully factors 
     /* These "r"  differentiate between the 
-    tensile/compressive state            */
+    tensile/compressive state  */
     static void CalculateRFactors(
         const Vector& StressVector,
         double& r0,
@@ -284,7 +285,7 @@ public:
             DPlasticdissipation += rHCapa[i]*PlasticStrainInc[i];
         }
 
-        if (DPlasticdissipation > 0.0 | DPlasticdissipation > 1.0) DPlasticdissipation = 0.0;
+        if (DPlasticdissipation < 0.0 | DPlasticdissipation > 1.0) DPlasticdissipation = 0.0;
 
         rPlasticDissipation += DPlasticdissipation;
         if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999; // warning vicente

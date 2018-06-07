@@ -101,10 +101,10 @@ public:
         const double YieldCompression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
         double FrictionAngle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
-
+		
         // Check input variables
         if (FrictionAngle < tolerance) {
-            FrictionAngle = 32 * Globals::Pi / 180;
+            FrictionAngle = 32.0 * Globals::Pi / 180.0;
             KRATOS_WARNING("ModifiedMohrCoulombYieldSurface") << "Friction Angle not defined, assumed equal to 32 deg " << std::endl;
         }
         KRATOS_ERROR_IF(YieldCompression < tolerance) << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_COMPRESSION in .mdpa ";
@@ -115,8 +115,8 @@ public:
         Rmorh = std::pow(std::tan((Globals::Pi / 4.0) + FrictionAngle / 2.0), 2);
         alpha_r = R / Rmorh;
         double sinphi = std::sin(FrictionAngle);
-
-        double I1, J2, J3;
+		
+        double I1, J2, J3; 
         ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
         Vector Deviator = ZeroVector(6);
         ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, Deviator, J2);
@@ -140,7 +140,7 @@ public:
     {
         rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_COMPRESSION]);
     }
-    
+
     // Computes dG/dS
     static void CalculatePlasticPotentialDerivative(
         const Vector& StressVector,
@@ -153,6 +153,7 @@ public:
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, GFlux, rMaterialProperties);
     }
 
+
     static void CalculateDamageParameter(
         const Properties& rMaterialProperties, 
         double& AParameter, 
@@ -164,7 +165,7 @@ public:
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
-
+		
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
         } else {

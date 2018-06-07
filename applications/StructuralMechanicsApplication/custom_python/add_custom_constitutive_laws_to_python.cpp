@@ -74,7 +74,7 @@ using namespace pybind11;
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-
+	
     class_< TrussConstitutiveLaw, typename TrussConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "TrussConstitutiveLaw").def(init<>() )
     ;
@@ -139,11 +139,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"LinearIsotropicDamage3DLaw").def( init<>())
     ;
 	
-	// A.Cornejo
-// 	class_< GenericSmallStrainIsotropicPlasticity3D<class ConstLawIntegratorType>,
-// 	typename GenericSmallStrainIsotropicPlasticity3D< class ConstLawIntegratorType>::Pointer,  ConstitutiveLaw  >
-//    (m,"GenericSmallStrainIsotropicPlasticity3DLaw").def( init<>())
-//    ;
+
 
 
 
