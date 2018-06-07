@@ -27,22 +27,21 @@ class FluidDynamicsAnalysis(AnalysisStage):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
+        # Deprecation warnings
+        solver_settings = self.project_parameters["solver_settings"]
+        if not solver_settings.Has("domain_size"):
+            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            solver_settings.AddEmptyValue("domain_size")
+            solver_settings["domain_size"].SetInt(self.project_parameters["problem_data"]["domain_size"].GetInt())
+
+        if not solver_settings.Has("model_part_name"):
+            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            solver_settings.AddEmptyValue("model_part_name")
+            solver_settings["model_part_name"].SetString(self.project_parameters["problem_data"]["model_part_name"].GetString())
+
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid
-        return python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
-
-    def Initialize(self):
-        # This function is temporary until restart saving is handled through process
-        self._SetUpRestart()
-        super(FluidDynamicsAnalysis, self).Initialize()
-
-    def OutputSolutionStep(self):
-        # This function is temporary until restart saving is handled through process
-        super(FluidDynamicsAnalysis, self).OutputSolutionStep()
-
-        if self.save_restart:
-            restart_utility = self._GetRestartUtility()
-            restart_utility.SaveRestart()
+        return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -96,38 +95,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
                                 self.project_parameters["output_configuration"])
 
         return output
-
-    def _SetUpRestart(self):
-        """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
-        if self.project_parameters.Has("restart_settings"):
-            restart_settings = self.project_parameters["restart_settings"]
-            self.save_restart = restart_settings["save_restart"].GetBool()
-            restart_settings.RemoveValue("load_restart")
-            restart_settings.RemoveValue("save_restart")
-            restart_settings.AddValue("input_filename", self.project_parameters["problem_data"]["problem_name"])
-            restart_settings.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
-        else:
-            self.load_restart = False
-            self.save_restart = False
-
-    def _GetRestartUtility(self):
-
-        if self.__restart_utility is not None:
-            return self.__restart_utility
-        else:
-            if self.parallel_type == "OpenMP":
-                from restart_utility import RestartUtility as Restart
-            elif self.parallel_type == "MPI":
-                from trilinos_restart_utility import TrilinosRestartUtility as Restart
-
-            model_part_name = self.project_parameters["solver_settings"]["model_part_name"].GetString()
-            if self.model.HasModelPart(model_part_name):
-                model_part = self.model.GetModelPart(model_part_name)
-            else:
-                model_part = self.model.CreateModelPart(model_part_name)
-
-            self.__restart_utility = Restart(model_part,
-                                             self.project_parameters["restart_settings"])
 
 
     def _GetSimulationName(self):
