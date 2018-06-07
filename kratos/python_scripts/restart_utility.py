@@ -24,7 +24,8 @@ class RestartUtility(object):
             "load_restart_files_from_folder" : true,
             "restart_save_frequency"         : 0.0,
             "restart_control_type"           : "time",
-            "save_restart_files_in_folder"   : true
+            "save_restart_files_in_folder"   : true,
+            "set_mpi_communicator"           : true
         }
         """)
 
