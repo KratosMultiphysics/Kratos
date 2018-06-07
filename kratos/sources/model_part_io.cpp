@@ -486,10 +486,7 @@ namespace Kratos
 //         WriteModelPartDataBlock(rThisModelPart); // TODO: FINISH ME
         WriteTableBlock(rThisModelPart.Tables());
         WriteMesh(rThisModelPart.GetMesh());
-        if (mOptions.Is(IO::IGNORE_VARIABLES_ERROR))
-        {
-            WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
-        }
+        WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
         WriteDataBlock(rThisModelPart.Elements(), "Element");
         WriteDataBlock(rThisModelPart.Conditions(),"Condition");
 //         WriteCommunicatorDataBlock(); // TODO: FINISH ME
