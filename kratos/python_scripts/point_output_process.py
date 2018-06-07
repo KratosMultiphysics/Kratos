@@ -47,7 +47,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # retrieving the position of the entity
         point_position = self.params["position"].GetVector()
         if point_position.Size() != 3:
-            raise Exception('The position has to be provided with 3 coordinates')
+            raise Exception('The position has to be provided with 3 coordinates"')
         point = KratosMultiphysics.Point(point_position[0],
                                          point_position[1],
                                          point_position[2])
@@ -69,7 +69,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 continue
             else:
                 err_msg  = 'Type of variable "' + var + '" is not valid\n'
-                err_msg += 'It can only be double, component or array3d'
+                err_msg += 'It can only be double, component or array3d!'
                 raise Exception(err_msg)
 
         # retrieving the entity type
@@ -78,18 +78,21 @@ class PointOutputProcess(KratosMultiphysics.Process):
         if entity_type == "node":
             tol = 1e-12
             found_id = KratosMultiphysics.PointLocator(self.model_part).FindNode(point, tol)
-            self.entity.append(self.model_part.Nodes[found_id]) # note that this is a find!
-            self.area_coordinates.append("dummy") # needed for looping later
+            if found_id > -1:
+                self.entity.append(self.model_part.Nodes[found_id]) # note that this is a find!
+                self.area_coordinates.append("dummy") # needed for looping later
         elif entity_type == "element":
             self.sf_values = KratosMultiphysics.Vector()
             found_id = KratosMultiphysics.PointLocator(self.model_part).FindElement(point, self.sf_values)
-            self.entity.append(self.model_part.Elements[found_id]) # note that this is a find!
-            self.area_coordinates.append(self.sf_values)
+            if found_id > -1:
+                self.entity.append(self.model_part.Elements[found_id]) # note that this is a find!
+                self.area_coordinates.append(self.sf_values)
         elif entity_type == "condition":
             self.sf_values = KratosMultiphysics.Vector()
             found_id = KratosMultiphysics.PointLocator(self.model_part).FindCondition(point, self.sf_values)
-            self.entity.append(self.model_part.Conditions[found_id]) # note that this is a find!
-            self.area_coordinates.append(self.sf_values)
+            if found_id > -1:
+                self.entity.append(self.model_part.Conditions[found_id]) # note that this is a find!
+                self.area_coordinates.append(self.sf_values)
         else:
             err_msg  = 'Invalid "entity_type" specified, it can only be:\n'
             err_msg += '"node", "element", "condition"'
