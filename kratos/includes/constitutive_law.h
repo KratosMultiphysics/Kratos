@@ -512,7 +512,7 @@ public:
 
     /**
      * creates a new constitutive law pointer
-     * @param NewId the ID of the new element
+     * @param NewParameters The configuration parameters of the new constitutive law
      * @return a Pointer to the new constitutive law
      */
     virtual Pointer Create(Kratos::Parameters& NewParameters) const;
