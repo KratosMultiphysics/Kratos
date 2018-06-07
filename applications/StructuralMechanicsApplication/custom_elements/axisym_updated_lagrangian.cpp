@@ -47,13 +47,25 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
     
-    Element::Pointer AxisymUpdatedLagrangian::Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+    Element::Pointer AxisymUpdatedLagrangian::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const
     {
         return Kratos::make_shared<AxisymUpdatedLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    Element::Pointer AxisymUpdatedLagrangian::Create(
+        IndexType NewId, 
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties 
+        ) const
+    {
+        return Kratos::make_shared<AxisymUpdatedLagrangian>( NewId, pGeom, pProperties );
     }
     
     //******************************* DESTRUCTOR *****************************************

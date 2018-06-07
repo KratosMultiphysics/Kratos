@@ -10,7 +10,7 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-import navier_stokes_base_solver
+from fluid_solver import FluidSolver
 
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
@@ -34,7 +34,6 @@ class StabilizedFormulation(object):
             raise RuntimeError("Argument \'formulation\' not found in stabilization settings.")
 
     def SetProcessInfo(self,model_part):
-        print(self.process_data)
         for variable,value in self.process_data.items():
             model_part.ProcessInfo[variable] = value
 
@@ -101,23 +100,19 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesSolverMonolithic(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return NavierStokesSolverMonolithic(model, custom_settings)
 
-class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSolver):
+class NavierStokesSolverMonolithic(FluidSolver):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
+    def _ValidateSettings(self, settings):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "navier_stokes_solver_vmsmonolithic",
+            "model_part_name": "FluidModelPart",
+            "domain_size": 2,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -135,13 +130,13 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
-                "solver_type" : "AMGCL_NS_Solver"
+                "solver_type" : "AMGCL"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
             "time_stepping"                : {
-                "automatic_time_step" : true,
+                "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
@@ -156,30 +151,36 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
         }""")
 
         ## Backwards compatibility -- deprecation warnings
-        if custom_settings.Has("oss_switch"):
+        if settings.Has("oss_switch"):
             msg  = "Input JSON data contains deprecated setting \'oss_switch\' (int).\n"
             msg += "Please define \'stabilization/formulation\' (set it to \'vms\')\n"
             msg += "and set \'stabilization/use_orthogonal_subscales\' (bool) instead."
             KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
-            if not custom_settings.Has("stabilization"):
-                custom_settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
-            custom_settings["stabilization"].AddEmptyValue("use_orthogonal_subscales")
-            custom_settings["stabilization"]["use_orthogonal_subscales"].SetBool(bool(custom_settings["oss_switch"].GetInt()))
-            custom_settings.RemoveValue("oss_switch")
-        if custom_settings.Has("dynamic_tau"):
+            if not settings.Has("stabilization"):
+                settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
+            settings["stabilization"].AddEmptyValue("use_orthogonal_subscales")
+            settings["stabilization"]["use_orthogonal_subscales"].SetBool(bool(settings["oss_switch"].GetInt()))
+            settings.RemoveValue("oss_switch")
+        if settings.Has("dynamic_tau"):
             msg  = "Input JSON data contains deprecated setting \'dynamic_tau\' (float).\n"
             msg += "Please define \'stabilization/formulation\' (set it to \'vms\') and \n"
             msg += "set \'stabilization/dynamic_tau\' (float) instead."
             KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
-            if not custom_settings.Has("stabilization"):
-                custom_settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
-            custom_settings["stabilization"].AddEmptyValue("dynamic_tau")
-            custom_settings["stabilization"]["dynamic_tau"].SetDouble(custom_settings["dynamic_tau"].GetDouble())
-            custom_settings.RemoveValue("dynamic_tau")
+            if not settings.Has("stabilization"):
+                settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
+            settings["stabilization"].AddEmptyValue("dynamic_tau")
+            settings["stabilization"]["dynamic_tau"].SetDouble(settings["dynamic_tau"].GetDouble())
+            settings.RemoveValue("dynamic_tau")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+
+    def __init__(self, model, custom_settings):
+        super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
+
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
 
         self.stabilization = StabilizedFormulation(self.settings["stabilization"])
         self.element_name = self.stabilization.element_name
@@ -230,12 +231,9 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
 
 
-    def ImportModelPart(self):
-        super(NavierStokesSolverMonolithic, self).ImportModelPart()
-
-        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
+    def PrepareModelPart(self):
         self._set_physical_properties()
-
+        super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
     def Initialize(self):
 

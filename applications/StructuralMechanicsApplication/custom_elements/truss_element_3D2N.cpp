@@ -38,6 +38,13 @@ TrussElement3D2N::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                                                pProperties);
 }
 
+Element::Pointer
+TrussElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
+                         PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<TrussElement3D2N>(NewId, pGeom,
+                                               pProperties);
+}
+
 TrussElement3D2N::~TrussElement3D2N() {}
 
 void TrussElement3D2N::EquationIdVector(EquationIdVectorType &rResult,
