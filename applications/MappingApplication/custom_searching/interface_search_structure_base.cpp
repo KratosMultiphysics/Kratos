@@ -24,6 +24,7 @@
 namespace Kratos
 {
     using SizeType = std::size_t;
+    using IndexType = std::size_t;
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
@@ -33,11 +34,12 @@ namespace Kratos
                                 InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
 
-        // mSearchRadius = SearchRadius;
-        // mMaxSearchIterations = MaxSearchIterations;
-        const int increase_factor = 4;
-        int num_iteration = 1;
-        bool last_iteration = (mMaxSearchIterations == 1) ? true : false; // true in case only one search iteration is conducted // TODO needed???
+        mSearchRadius = mSearchSettings["search_radius"].GetDouble();
+        const IndexType max_search_iterations = mSearchSettings["search_iterations"].GetDouble();
+
+        const double increase_factor = 4.0;
+        IndexType num_iteration = 1;
+        bool last_iteration = (max_search_iterations == 1) ? true : false; // true in case only one search iteration is conducted // TODO needed???
 
         PrepareSearch(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
@@ -49,20 +51,16 @@ namespace Kratos
         // projection, more search iterations are necessary
         ConductSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
-        while (++num_iteration < mMaxSearchIterations && !AllNeighborsFound(rComm))
+        while (++num_iteration < max_search_iterations && !AllNeighborsFound(rComm))
         {
             mSearchRadius *= increase_factor;
 
-            if (num_iteration == mMaxSearchIterations) last_iteration = true;
+            if (num_iteration == max_search_iterations) last_iteration = true; // TODO test if this works...
 
-            if (mEchoLevel >= 2 && mCommRank == 0)
-            {
-                std::cout << "MAPPER WARNING, search radius was increased, "
-                          << "another search iteration is conducted, "
-                          << "search iteration " << num_iteration << " / "
-                          << mMaxSearchIterations << ", search radius "
-                          << mSearchRadius << std::endl;
-            }
+            KRATOS_WARNING_IF("Mapper", mEchoLevel >= 2 && rComm.MyPID() == 0)
+                << "search radius was increased, another search iteration is "
+                << "conducted | search iteration " << num_iteration << " / "
+                << max_search_iterations << " | search radius " << mSearchRadius << std::endl;
 
             ConductSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
         }

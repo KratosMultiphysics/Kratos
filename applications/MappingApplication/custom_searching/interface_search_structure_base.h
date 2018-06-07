@@ -94,9 +94,10 @@ public:
                              MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
                              Parameters SearchSettings)
         : mrModelPartOrigin(rModelPartOrigin),
-          mpMapperLocalSystems(pMapperLocalSystems)
+          mpMapperLocalSystems(pMapperLocalSystems),
+          mSearchSettings(SearchSettings)
     {
-        // mEchoLevel = EchoLevel;
+        mEchoLevel = mSearchSettings["echo_level"].GetInt();
         mpMapperInterfaceInfos = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
     }
 
@@ -224,21 +225,10 @@ protected:
 
     BinsUniquePointerType mpLocalBinStructure;
 
-    bool mInitializeIsPerformed = false;
-
     InterfaceObjectContainerUniquePointerType mpInterfaceObjectsOrigin;
 
-
-
-
-
-
-
+    Parameters mSearchSettings;
     double mSearchRadius;
-    int mMaxSearchIterations;
-
-    int mCommRank = 0; // default, for serial version
-    int mCommSize = 1; // default, for serial version
 
     int mEchoLevel = 0;
 

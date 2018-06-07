@@ -40,7 +40,8 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
                 ModelPart& rModelPartDestination,
                 Parameters MapperSettings) :
                     mrModelPartOrigin(rModelPartOrigin),
-                    mrModelPartDestination(rModelPartDestination)
+                    mrModelPartDestination(rModelPartDestination),
+                    mGeneralMapperSettings(MapperSettings)
 {
     ValidateInput(MapperSettings);
 
@@ -124,8 +125,11 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
 template<>
 void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
 {
-    // Parameters search_settings(mGeneralMapperSettings.Clone()); // TODO make this work
+    // The current solution is just a workaround since cloning doesn't work
+    // Parameters search_settings(mGeneralMapperSettings.Clone());
+    // Parameters search_settings = mGeneralMapperSettings.Clone(); //TODO I think this would be the correct solution ...
     Parameters search_settings(R"({})"); // TODO fill this
+    search_settings.ValidateAndAssignDefaults(mGeneralMapperSettings);
     mpSearchStructure = Kratos::make_unique<InterfaceSearchStructure>(mrModelPartOrigin,
                                                                       mpMapperLocalSystems,
                                                                       search_settings);
@@ -135,8 +139,10 @@ void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceTyp
 template<>
 void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
 {
-    // Parameters search_settings = mGeneralMapperSettings.Clone(); // TODO make this work
+    // The current solution is just a workaround since cloning doesn't work
+    // Parameters search_settings = mGeneralMapperSettings.Clone();
     Parameters search_settings(R"({})"); // TODO fill this
+    search_settings.ValidateAndAssignDefaults(mGeneralMapperSettings);
     mpSearchStructure = Kratos::make_unique<InterfaceSearchStructureMPI>(mrModelPartOrigin,
                                                                          mpMapperLocalSystems,
                                                                          search_settings);

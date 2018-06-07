@@ -261,13 +261,7 @@ protected:
     ModelPart& mrModelPartOrigin;
     ModelPart& mrModelPartDestination;
 
-    Parameters mGeneralMapperSettings = Parameters(R"({})");
-    Parameters mGeneralMapperSettingsDefaults = Parameters( R"(
-    {
-        "search_radius"     : -1.0,
-        "search_iterations" : 3,
-        "echo_level"        : 0
-    }  )" );
+    Parameters mGeneralMapperSettings;
 
     MappingOperationUtilityPointerType mpMappingOperationUtility;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
@@ -393,7 +387,7 @@ protected:
      * */
     virtual void ValidateMapperSpecificSettings(Parameters AllMapperSettings)
     {
-        mGeneralMapperSettings = AllMapperSettings;
+        // mGeneralMapperSettings = AllMapperSettings;
     }
 
     virtual MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const = 0;
@@ -455,7 +449,14 @@ private:
     void ValidateParameters(Parameters AllMapperSettings)
     {
         ValidateMapperSpecificSettings(AllMapperSettings);
-        mGeneralMapperSettings.ValidateAndAssignDefaults(mGeneralMapperSettingsDefaults);
+
+        Parameters default_settings = Parameters( R"({
+            "search_radius"     : -1.0,
+            "search_iterations" : 3,
+            "echo_level"        : 0
+        })");
+
+        mGeneralMapperSettings.ValidateAndAssignDefaults(default_settings);
     }
 
     // From outside the user might specify CONSERVATIVE
