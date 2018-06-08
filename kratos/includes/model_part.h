@@ -613,11 +613,6 @@ public:
         return mMasterSlaveConstraints;
     }
 
-    MasterSlaveConstraintContainerType::Pointer pGetMasterSlaveConstraints()
-    {
-        return Kratos::shared_ptr<MasterSlaveConstraintContainerType>(&mMasterSlaveConstraints);
-    }
-
     void SetMasterSlaveConstraints(MasterSlaveConstraintContainerType::Pointer& pOtherMasterSlaveConstraints)
     {
         mMasterSlaveConstraints = *pOtherMasterSlaveConstraints;
