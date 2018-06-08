@@ -453,9 +453,9 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint2(Mo
                                                                                        std::string ConstraintName,
                                                                                        ModelPart::IndexType Id,
                                                                                        ModelPart::NodeType& rMasterNode,
-                                                                                       ModelPart::VariableType& rMasterVariable,
+                                                                                       ModelPart::DoubleVariableType& rMasterVariable,
                                                                                        ModelPart::NodeType& rSlaveNode,
-                                                                                       ModelPart::VariableType& rSlaveVariable,
+                                                                                       ModelPart::DoubleVariableType& rSlaveVariable,
                                                                                        double Weight,
                                                                                        double Constant)
 {
@@ -477,9 +477,9 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint3(Mo
 }
 
 
-ModelPart::MasterSlaveConstraintContainerType::Pointer ModelPartGetMasterSlaveConstraints1(ModelPart& rModelPart)
+ModelPart::MasterSlaveConstraintContainerType& ModelPartGetMasterSlaveConstraints1(ModelPart& rModelPart)
 {
-    return rModelPart.pGetMasterSlaveConstraints();
+    return rModelPart.MasterSlaveConstraints();
 }
 
 void ModelPartSetMasterSlaveConstraints1(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
