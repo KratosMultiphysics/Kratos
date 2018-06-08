@@ -90,6 +90,10 @@ namespace Kratos {
     Matrix NContainer;
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+
+    ShapeFunctionDerivativesArrayType nodalDN_DX;
+    this->CalculateGeometryNodalData(nodalDN_DX);
+    
     const unsigned int NumGauss = GaussWeights.size();
     const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
 
@@ -132,36 +136,11 @@ namespace Kratos {
 	// this->GetElementalValueForOutput(YIELDED,rOutput);
 	
 	if(computeElement==true){
-	  // Add integration point contribution to the local mass matrix
-	  // double DynamicWeight=GaussWeight*Density;
-	  // this->ComputeMassMatrix(MassMatrix,N,DynamicWeight,MeanValueMass);
 
-	  this->AddExternalForces(rRightHandSideVector,Density,N,GaussWeight);
+	  this->ComputeExternalForces(rRightHandSideVector,Density,GaussWeight);
 
 	  this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
 
-	  // double lumpedDynamicWeight=GaussWeight*Density;
-	  // this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);   
-
-	  // double MeanValueMaterial=0.0;
-	  // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);    
-	  // double deviatoricCoeffTemp=DeviatoricCoeff;
-	  // DeviatoricCoeff=0;
-	  // // Add viscous term
-	  // this->ComputeCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
-	  
-	  // double staticFrictionCoefficient=0.34;
-	  // double dynamicFrictionCoefficient=0.6;
-	  // double inertialNumberZero=0.279;
-	  // double grainDiameter=0.001;
-	  // double grainDensity=2500;
-	  // double meanPressure=fabs(rElementalVariables.MeanPressure);
-	  // double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
-	  // double smallScale=grainDiameter/sqrt(meanPressure/grainDensity);
-	  // double denominator=inertialNumberZero+rElementalVariables.EquivalentStrainRate*smallScale;
-	  // if(meanPressure!=0 && rElementalVariables.EquivalentStrainRate!=0){
-	  //   DeviatoricCoeff=inertialNumberZero*deltaFrictionCoefficient*meanPressure*smallScale/pow(denominator,2);
-	  // }
 	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
 	  // DeviatoricCoeff=deviatoricCoeffTemp;
 	}
@@ -191,15 +170,6 @@ namespace Kratos {
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType AccelerationValues = ZeroVector(LocalSize);
 
-    // //1st order 
-    // this->GetVelocityValues(VelocityValues,0);
-    // AccelerationValues = VelocityValues/TimeStep;
-    // this->GetAccelerationValues(LastAccValues,0);
-    // this->GetVelocityValues(VelocityValues,1);
-    // AccelerationValues += -VelocityValues/TimeStep; 
-    // noalias( rRightHandSideVector ) += -prod(MassMatrix,AccelerationValues);
-    // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
-
     //2nd order 
     this->GetAccelerationValues(AccelerationValues,0);
     this->GetVelocityValues(VelocityValues,0);
@@ -210,36 +180,70 @@ namespace Kratos {
     noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix + MassMatrix*2/TimeStep;
 
 
-    // // Add residual of previous iteration to RHS
-    // VectorType VelocityValues = ZeroVector(LocalSize);
-    // VectorType UpdatedAccelerations = ZeroVector(LocalSize);
-    // VectorType LastAccValues = ZeroVector(LocalSize);
-
-    // // //1st order 
-    // // this->GetVelocityValues(VelocityValues,0);
-    // // UpdatedAccelerations = VelocityValues/TimeStep;
-    // // this->GetAccelerationValues(LastAccValues,0);
-    // // this->GetVelocityValues(VelocityValues,1);
-    // // UpdatedAccelerations += -VelocityValues/TimeStep; 
-    // // // UpdatedAccelerations =LastAccValues;
-    // // noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
-    // // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
-
-    // //2nd order 
-    // this->GetVelocityValues(VelocityValues,0);
-    // UpdatedAccelerations = 2.0*VelocityValues/TimeStep;
-    // this->GetAccelerationValues(LastAccValues,0);
-    // this->GetVelocityValues(VelocityValues,1);
-    // UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
-    // noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
-    // noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix;
-    // noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
-
     KRATOS_CATCH( "" );
  
   }
 
 
+    template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<TDim>::CalculateGeometryNodalData(ShapeFunctionDerivativesArrayType &rDN_DX)
+  {
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    Vector DetJ;
+    //it computes the derivatives of shape functions at each node. The Gauss information is only used to determine the size of the matrix. Giving GI_GAUSS_1 the matrix rDN_DX has size 3,2 in 2D and 4,3 in 3D
+    rDN_DX.resize(NumNodes);
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	ShapeFunctionDerivativesArrayType DN_DX;
+	double nodalElementVolume=0;
+	if(TDim==3){
+	  nodalElementVolume=rGeom.Volume()*0.25;
+	}else if(TDim==2){
+	  nodalElementVolume=rGeom.Area()/3.0;
+	}
+	rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,DetJ,GeometryData::GI_GAUSS_1);
+	const double nodalPatchVolume = rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
+	DN_DX *= nodalElementVolume/nodalPatchVolume;
+	BoundedMatrix<double,3,2> matrixDNDX=DN_DX[0];
+	rDN_DX[i]=matrixDNDX;
+	// std::cout<<"the nodal volume is "<<nodalPatchVolume<<" the element volume is "<<nodalElementVolume<<" x,y="<< rGeom[i].X()<<" "<<rGeom[i].Y()<<std::endl;
+
+      }
+
+
+    Vector rGaussWeights;
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
+
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1),false);
+
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++){
+      rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+    }
+  }
+  
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
+											     Matrix &NContainer,
+											     Vector &rGaussWeights)
+  {
+    const GeometryType& rGeom = this->GetGeometry();
+    Vector DetJ;
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,GeometryData::GI_GAUSS_1);
+    NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
+
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1),false);
+
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); g++){
+      // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
+      rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+      // if(rGaussWeights[g]<0)
+      // 	std::cout<<"NEGATIVE GAUSS WEIGHT "<<rGaussWeights[g]<<std::endl;
+    }
+  }
+
+  
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<TDim>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 												    std::vector<double>& rValues,
@@ -420,6 +424,41 @@ namespace Kratos {
     return ierr;
 
     KRATOS_CATCH("");
+  }
+
+ 
+  template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<TDim>::ComputeExternalForces(Vector& rRHSVector,
+											 const double Density,
+											 const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
+    SizeType FirstRow = 0;
+
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+
+	if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
+	  array_1d<double, 3 >& VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	  // Build RHS
+	  for (SizeType d = 0; d < TDim; ++d)
+	    {
+	      // Body force
+	      double coeff=0;
+	      if(TDim==2){
+		coeff=1.0/3.0;
+	      }else if(TDim==3){
+		coeff=0.25;
+	      }
+	      rRHSVector[FirstRow+d] += Weight * Density * coeff * VolumeAcceleration[d];
+	    }
+
+	}
+
+        FirstRow += TDim;
+
+      }
   }
 
 
