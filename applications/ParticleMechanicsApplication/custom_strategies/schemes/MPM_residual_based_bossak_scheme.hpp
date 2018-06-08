@@ -521,10 +521,7 @@ public:
                     }
                 }
 			}
-            
-            
-            //IterativeExtrapolation evaluate again the global nodal nodal momentum inertia in function of a auxiliary function
-            //std::cout<<"BEFORE CALLING FOR THE INITIALIZE SOLUTION STEP OF THE ELEMENT AFTER THE FIRST TIME"<<std::endl;
+                     
             NormVel = 0.0;
             NormAcc = 0.0;
             NormPres = 0.0;
@@ -612,56 +609,6 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
-    /**
-    Function called once at the beginning of each solution step in the initialize solution step.
-    The basic operations to be carried in there are the following:
-    - evaluation of the auxiliar variables in terms of velocity and acceleration on the particles
-    - evaluate again the global values of nodal momentum and global inertia on the nodes of the connectivities
-     */
-    void IterativeExtrapolation(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-    )
-    {
-        KRATOS_TRY
-        //iterative extrapolation
-        //reset all nodal momentum and nodal inertia values
-        //for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
-        //i != mr_grid_model_part.NodesEnd(); ++i)
-        //{
-        //if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
-        //{
-
-        //array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
-        //array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-
-        ////double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-        //NodalMomentum.clear();
-        //NodalInertia.clear();
-        //}
-        //}
-
-
-        //ElementsArrayType& pElements = rModelPart.Elements();
-        //ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-        //for (ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
-        //{
-        //((UpdatedLagrangian*)it) -> IterativeExtrapolation(CurrentProcessInfo);
-        //}
-
-        //ConditionsArrayType& pConditions = rModelPart.Conditions();
-        //for (ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
-        //{
-        //UpdatedLagrangian * myCond = (*it);
-        //myCond -> IterativeExtrapolation(CurrentProcessInfo);
-        //}
-        KRATOS_CATCH("")
-    }
 
     //***************************************************************************
     //***************************************************************************
