@@ -95,20 +95,6 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop = model_part.pGetProperties(property_id, mesh_id);
 
-    /*
-    //TODO(marcelo): Implement the "keys()" part? Not sure if this check is necessary
-    //if (data["Material"]["Variables"].end() - data["Material"]["Variables"].begin())
-    //    KRATOS_INFO("::[Reading materials process DEBUG]::")
-    //            << "Property " << property_id << " is not empty." << std::endl;
-    if (p_prop->HasVariables())
-        KRATOS_INFO("Read materials")
-            << "Property " << property_id << " already has variables." << std::endl;
-    //if (len(data["Material"]["Tables"].keys()) > 0 && p_prop.HasTables())
-    if (p_prop->HasTables())
-        KRATOS_INFO("Read materials")
-            << "Property " << property_id << " already has tables." << std::endl;
-    */
-
     // Assign the p_properties to the model part's elements and conditions.
     auto& elements_array = model_part.Elements();
     auto& conditions_array = model_part.Conditions();
