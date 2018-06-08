@@ -91,6 +91,7 @@ namespace Kratos
                 const Kratos::Flags& rMappingOptions)
     {
         // TODO create a function ptr to not have the if all the time
+        // or use some function from the standard ...
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(rModelPart.NumberOfNodes()); i++)
         {
@@ -169,7 +170,7 @@ namespace Kratos
 
             // Insert the mapping weights from the local_systems into the mapping matrix
             for (IndexType i=0; i<mapping_weights.size(); ++i)
-                rMdo(origin_ids[i], destination_ids[i]) += mapping_weights[i];
+                rMdo(destination_ids[i], origin_ids[i]) += mapping_weights[i];
 
             r_local_sys->Clear();
         }
@@ -219,7 +220,7 @@ namespace Kratos
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const
     {
-
+        KRATOS_ERROR << "Mapping with vectors is not implemented yet!" << std::endl;
     }
 
 
