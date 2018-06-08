@@ -14,15 +14,19 @@ def Factory(settings, Model):
 class MultiplePointsOutputProcess(KratosMultiphysics.Process):
     """This process writes several points to a file
     Internally it holds objects of type "PointOutputProcess"
+    Usage:
+        - directly by specifying the locations of the points for which output is wanted
+        - inside other processes that create points for which output is required
+          (e.g. LinePointsOutputProcess)
     """
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
-            "positions"         : [[]],
-            "model_part_name"  : "",
-            "output_file_name" : "",
-            "output_variables" : [],
-            "entity_type"      : "element"
+            "positions"          : [[]],
+            "model_part_name"    : "",
+            "output_file_name"   : "",
+            "output_variables"   : [],
+            "entity_type"        : "element"
         }''')
 
         params.ValidateAndAssignDefaults(default_settings)
@@ -40,10 +44,11 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             raise Exception('No "output_file_name" was specified!')
 
         self.point_output_processes = []
-        # Create the individual point_output_processes
         params.RemoveValue("positions")
         params.AddEmptyValue("position")
         position_vec = KratosMultiphysics.Vector(3)
+
+        # Create the individual point_output_processes
         for i in range(num_points):
             point_proc_params = params.Clone()
 
@@ -51,7 +56,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
                 position_vec[j] = positions[i,j]
             point_proc_params["position"].SetVector(position_vec)
 
-            output_file_name = output_file_name_base + "_" + str(i+1) # TODO come up with sth better?
+            output_file_name = output_file_name_base + "_" + str(i+1)
             point_proc_params["output_file_name"].SetString(output_file_name)
 
             self.point_output_processes.append(PointOutputProcess(model, point_proc_params))
@@ -77,11 +82,15 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             proc.ExecuteBeforeOutputStep()
 
     def IsOutputStep(self):
-        return True # we always print output
+        for proc in self.point_output_processes:
+            if proc.IsOutputStep():
+                return True
+        return False # return False if none of the processes writes
 
     def PrintOutput(self):
         for proc in self.point_output_processes:
-            proc.PrintOutput()
+            if proc.IsOutputStep():
+                proc.PrintOutput()
 
     def ExecuteAfterOutputStep(self):
         for proc in self.point_output_processes:
