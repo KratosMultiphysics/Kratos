@@ -39,6 +39,7 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     // read json string in materials file, create Parameters
     const std::string& materials_filename = rParameters["Parameters"]["materials_filename"].GetString();
     std::ifstream infile(materials_filename);
+    KRATOS_ERROR_IF_NOT(infile.good()) << "The masterials file cannot be found: " << materials_filename << std::endl;
     std::stringstream buffer;
     buffer << infile.rdbuf();
     Parameters materials(buffer.str());
