@@ -48,7 +48,7 @@ class MasterSlaveRelation : public IndexedObject
     typedef std::size_t IndexType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
-    typedef std::vector<IndexType> EquationIdVectorType;    
+    typedef std::vector<IndexType> EquationIdVectorType;
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveRelation);
 
     // empty constructor and methods to add master and slave independently.
@@ -90,10 +90,16 @@ class MasterSlaveRelation : public IndexedObject
                                   ProcessInfo& rCurrentProcessInfo)
     {
         if (rSlaveEquationIds.size() != 0)
-            rSlaveEquationIds.resize(0);
+            rSlaveEquationIds.resize(1);
 
         if (rMasterEquationIds.size() != 0)
-            rMasterEquationIds.resize(0);
+            rMasterEquationIds.resize(this->GetNumberOfMasters());
+
+        rSlaveEquationIds[0] = this->SlaveEquationId();
+
+        auto &master_it = mMasterDataSet.Begin();
+        for (IndexType i=0; i<this->GetNumberOfMasters(); i++)
+            rMasterEquationIds[i] = (++master_it).first;
     }
 
     /**
@@ -110,8 +116,17 @@ class MasterSlaveRelation : public IndexedObject
     {
       if (rTransformationMatrix.size1() != 0)
       {
-    	rTransformationMatrix.resize(0, 0, false);
+    	rTransformationMatrix.resize(1, this->GetNumberOfMasters(), false);
       }
+
+      if (rConstantVector.size1() != 0)
+      {
+    	rConstantVector.resize(1, false);
+      }
+
+        auto &master_it = mMasterDataSet.Begin();
+        for (IndexType i=0; i<this->GetNumberOfMasters(); i++)
+            rMasterEquationIds[0,i] = (++master_it).second;
     }
 
     void PrintInfo(std::ostream& rOutput) const override
