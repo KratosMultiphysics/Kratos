@@ -109,10 +109,35 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) = 0;
+    /**
+    * @brief Processing the result of the search
+    * This function processes the results of the search, i.e. it extracts
+    * the information needed from the neighbor and saves it such that it can be
+    * later accesse by the MapperLocalSystem for assembling it's local system
+    * @param rpInterfaceObject The InterfaceObject found by the search
+    * @param rpInterfaceObject The distance to the InterfaceObject found by the search
+    * @author Philipp Bucher
+    */
+    virtual void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+                                     const double NeighborDistance) = 0;
 
+    /**
+    * @brief Processing the result of the search for computing an approximation
+    * This function processes the results of the search for computing an approximation.
+    * This can be necessary if e.g. a projection fails.
+    * In case an approximation is found the function "SetIsApproximation" has to be
+    * called to set internal flags for data-exchange and the computation of the
+    * local system by the MapperLocalSystem
+    * It's implementation is optional
+    * @param rpInterfaceObject The InterfaceObject found by the search
+    * @param rpInterfaceObject The distance to the InterfaceObject found by the search
+    * @see ProcessSearchResult
+    * @see SetIsApproximation
+    * @author Philipp Bucher
+    */
     virtual void ProcessSearchResultForApproximation(
-        const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) {}
+        const InterfaceObject::Pointer& rpInterfaceObject,
+        const double NeighborDistance) {}
 
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,

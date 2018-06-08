@@ -72,7 +72,7 @@ public:
 
     void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) override;
 
-    void GetValue(std::size_t& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    void GetValue(int& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {
         rValue = mNearestNeighborId;
     }
@@ -84,7 +84,7 @@ public:
 
 private:
 
-    std::size_t mNearestNeighborId;
+    int mNearestNeighborId;
     double mNearestNeighborDistance = std::numeric_limits<double>::max();
 
     friend class Serializer;

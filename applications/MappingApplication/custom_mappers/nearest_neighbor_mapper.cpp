@@ -26,14 +26,14 @@ namespace Kratos
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void NearestNeigborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance)
+void NearestNeigborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+                                                      const double NeighborDistance)
 {
     SetLocalSearchWasSuccessful();
 
-    const double distance = 1.0; // TODO how to get the distance?
-    if (distance < mNearestNeighborDistance)
+    if (NeighborDistance < mNearestNeighborDistance)
     {
-        mNearestNeighborDistance = distance;
+        mNearestNeighborDistance = NeighborDistance;
         mNearestNeighborId = rpInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
     }
 }
@@ -43,12 +43,12 @@ void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeig
                     EquationIdVectorType& rDestinationIds) const
 {
     if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
-    if (rOriginIds.size() != 1)      rOriginIds.resize(1);
+    if (rOriginIds.size()      != 1) rOriginIds.resize(1);
     if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
 
     if (mInterfaceInfos.size() > 0)
     {
-        std::size_t nearest_neighbor_id;
+        int nearest_neighbor_id;
         double nearest_neighbor_distance;
         mInterfaceInfos[0]->GetValue(nearest_neighbor_id);
         mInterfaceInfos[0]->GetValue(nearest_neighbor_distance);

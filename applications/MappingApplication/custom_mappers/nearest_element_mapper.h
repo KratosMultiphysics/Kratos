@@ -78,7 +78,7 @@ public:
     void ProcessSearchResultForApproximation(const InterfaceObject::Pointer& rpInterfaceObject,
                                              const double NeighborDistance) override;
 
-    void GetValue(std::vector<std::size_t>& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    void GetValue(std::vector<int>& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {
         rValue = mNodeIds;
     }
@@ -95,7 +95,7 @@ public:
 
 private:
 
-    std::vector<std::size_t> mNodeIds;
+    std::vector<int> mNodeIds;
     std::vector<double> mShapeFunctionValues;
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
 

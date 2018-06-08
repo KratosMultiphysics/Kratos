@@ -138,7 +138,7 @@ public:
                   typename Mapper<TSparseSpace, TDenseSpace>::Pointer pMapperPrototype)
     {
         GetRegisteredMappersList<TSparseSpace, TDenseSpace>().insert(
-            make_pair(rMapperName, pMapperPrototype)); // TODO std::?
+            std::make_pair(rMapperName, pMapperPrototype));
     }
 
 
