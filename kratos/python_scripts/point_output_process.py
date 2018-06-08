@@ -146,7 +146,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         pass
 
     def IsOutputStep(self):
-        return True # we always print output
+        return True # for now we always print output
 
     def PrintOutput(self):
         '''Print results to file.'''
@@ -157,7 +157,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # i.e. if no entity was found then also no output_file will be
         # initialized which means that the loop body will never be executed
         for var_list,ent,coord,f in zip(self.output_variables, self.entity, self.area_coordinates, self.output_file):
-            out = "{0:.12g}".format(time)
+            out = "{0:.12g}".format(time) # making the format more readable
             for var in var_list:
                 value = Interpolate(var, ent, coord)
 
@@ -193,9 +193,9 @@ def InitializeOutputFile(output_file_name, entity_type, point, output_variables)
     for var in output_variables:
         # if this is a Variable< array_1d< double,3 > >
         if IsArrayVariable(var):
-            out += " {0}_X {0}_Y {0}_Z".format(var.Name)
+            out += " {0}_X {0}_Y {0}_Z".format(var.Name())
         else:
-            out += " " + str(var.Name) # TODO revert this once the Name property works again!
+            out += " " + var.Name()
 
     out += "\n"
     output_file.write(out)

@@ -1,5 +1,5 @@
 # Results for "node" at position: x: 0.5; y: 0.0; z: 0.0
-# time <bound method PyCapsule.Name of DISPLACEMENT variable #513250816>_X <bound method PyCapsule.Name of DISPLACEMENT variable #513250816>_Y <bound method PyCapsule.Name of DISPLACEMENT variable #513250816>_Z <bound method PyCapsule.Name of VISCOSITY variable #2390805504> <bound method PyCapsule.Name of ACCELERATION variable #3200769280>_X <bound method PyCapsule.Name of ACCELERATION variable #3200769280>_Y <bound method PyCapsule.Name of ACCELERATION variable #3200769280>_Z
+# time DISPLACEMENT_X DISPLACEMENT_Y DISPLACEMENT_Z VISCOSITY ACCELERATION_X ACCELERATION_Y ACCELERATION_Z
 0.15 0.075 0.4 0.65 1.0605 0.01125 0.06 0.0975
 0.3 0.15 0.55 0.8 1.1280000000000001 0.045 0.165 0.24
 0.45 0.225 0.7 0.95 1.2405 0.10124999999999999 0.31499999999999995 0.42749999999999994
