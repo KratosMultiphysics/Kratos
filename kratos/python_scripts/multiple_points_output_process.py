@@ -57,6 +57,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             point_proc_params["position"].SetVector(position_vec)
 
             output_file_name = output_file_name_base + "_" + str(i+1)
+
             point_proc_params["output_file_name"].SetString(output_file_name)
 
             self.point_output_processes.append(PointOutputProcess(model, point_proc_params))

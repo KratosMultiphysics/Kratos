@@ -809,9 +809,9 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "PointOutputProcess",
                         "Parameters"            : {
-                            "position"         : [0.5, 0.25, 0.0],
+                            "position"         : [0.5, 0.0, 0.0],
                             "model_part_name"  : "Main",
-                            "output_file_name" : "node_output_rest",
+                            "output_file_name" : "point_output_rest",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
                         }
@@ -820,14 +820,22 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "node_output_restart_ref.dat",
-                            "output_file_name"      : "node_output_rest.dat",
+                            "reference_file_name"   : "point_output_rest_ref.dat",
+                            "output_file_name"      : "point_output_rest.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
 
         Model = {"Main":model_part}
+
+        # for the restart, one needs a _rest_base to preserve
+        # as _rest will be modified (overwritten) and compared with _ref
+        output_file_name = settings["process_list"][0]["Parameters"]["output_file_name"].GetString()
+        with open(output_file_name + "_base.dat") as base_file:
+            with open(output_file_name + ".dat", "w") as target_file:
+                for line in base_file:
+                    target_file.write(line)
 
         import process_factory
         list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
@@ -844,7 +852,6 @@ class TestProcesses(KratosUnittest.TestCase):
 
         end_time = 5.0
         delta_time = 0.15
-
 
         while model_part.ProcessInfo[TIME] < end_time:
             model_part.ProcessInfo[TIME] += delta_time
@@ -935,6 +942,105 @@ class TestProcesses(KratosUnittest.TestCase):
         list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
             settings["process_list"] )
 
+
+        for process in list_of_processes:
+            process.ExecuteInitialize()
+
+        for process in list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[TIME] = 0.0
+
+        while model_part.ProcessInfo[TIME] < end_time:
+            model_part.ProcessInfo[TIME] += delta_time
+
+            SetNodalValuesForPointOutputProcesses(model_part)
+
+            for process in list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            for process in list_of_processes:
+                process.ExecuteBeforeOutputStep()
+
+            for process in list_of_processes:
+                try:
+                    process.PrintOutput()
+                except AttributeError: # only the output process has this method!
+                    pass
+
+            for process in list_of_processes:
+                process.ExecuteAfterOutputStep()
+
+            for process in list_of_processes:
+                process.ExecuteFinalizeSolutionStep()
+
+        for process in list_of_processes:
+            process.ExecuteFinalize()
+
+    def test_line_output_process(self):
+
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "line_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "LineOutputProcess",
+                        "Parameters"            : {
+                            "start_point"       : [0.0,  0.0, 0.0],
+                            "end_point"         : [0.9,  0.0, 0.0],
+                            "number_of_sampling_points": 3,
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "line_output",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "element"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "line_output_1_ref.dat",
+                            "output_file_name"      : "line_output_1.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ,{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "line_output_2_ref.dat",
+                            "output_file_name"      : "line_output_2.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    }, {
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "line_output_3_ref.dat",
+                            "output_file_name"      : "line_output_3.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    }]
+        }""")
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
+            settings["process_list"] )
+
+        model_part.ProcessInfo[DOMAIN_SIZE] = 3
 
         for process in list_of_processes:
             process.ExecuteInitialize()

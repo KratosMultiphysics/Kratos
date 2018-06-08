@@ -47,7 +47,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # retrieving the position of the entity
         point_position = self.params["position"].GetVector()
         if point_position.Size() != 3:
-            raise Exception('The position has to be provided with 3 coordinates"')
+            raise Exception('The position has to be provided with 3 coordinates!')
         point = KratosMultiphysics.Point(point_position[0],
                                          point_position[1],
                                          point_position[2])
@@ -119,6 +119,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
                                                                            point,
                                                                            self.output_variables[0],
                                                                            restart_time)
+
                 if existing_file_is_valid:
                     self.output_file.append(out_file)
                 # if no valid file can be found we create a new one
@@ -219,13 +220,25 @@ def AddToExistingOutputFile(output_file_name, entity_type, point, output_variabl
         output_file = open(output_file_name,"w") # this overwrites the old file
 
         # search for time, return false if it was not found
-
         # copy corresponding lines to new file and open it
+        is_found = False
+
+        counter = 0
+
+        for line in lines_existing_file:
+            output_file.write(line)
+            if line.startswith(str(restart_time)):
+                is_found = True
+                break
+
+        if not(is_found):
+            warn_msg  = "No line was found in " + output_file_name + " after restarting containing indicated restart time,\n"
+            warn_msg += "Appending results after restart from time " + str(restart_time) + " not possible"
+            KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
 
         return True, output_file
     except:
         return False, None
-
 
 
 def Interpolate(variable, entity, sf_values):
@@ -235,8 +248,8 @@ def Interpolate(variable, entity, sf_values):
         nodes = entity.GetNodes()
         # Initializing 'value' like this, i don't need to know its type
         # => this way it works both for scalar and array3 variables
-        value = nodes[0].GetSolutionStepValue(variable) * coordinates[0]
-        for n,c in zip(nodes[1:],coordinates[1:]):
+        value = nodes[0].GetSolutionStepValue(variable) * sf_values[0]
+        for n,c in zip(nodes[1:], sf_values[1:]):
             value = value + c * n.GetSolutionStepValue(variable)
 
         return value
