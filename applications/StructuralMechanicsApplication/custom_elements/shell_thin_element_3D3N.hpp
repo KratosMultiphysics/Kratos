@@ -34,7 +34,7 @@ namespace Kratos
 ///@}
 
 class ShellT3_CoordinateTransformation;
-class AdjointFiniteDifferencingBaseElement;
+class AdjointFiniteDifferencingShellElement;
 
 ///@name  Enum's
 ///@{
@@ -60,7 +60,7 @@ class AdjointFiniteDifferencingBaseElement;
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement
 {
 
-friend class AdjointFiniteDifferencingBaseElement;
+friend class AdjointFiniteDifferencingShellElement;
 
 public:
 

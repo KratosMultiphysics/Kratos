@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/element.h"
-#include "../../custom_elements/shell_thin_element_3D3N.hpp"
 
 namespace Kratos
 {
@@ -105,37 +104,31 @@ public:
 
     void ResetConstitutiveLaw() override
     {
-        //KRATOS_WATCH("ResetConstitutiveLaw adjoint FD");
         mpPrimalElement->ResetConstitutiveLaw();
     }
 
     void CleanMemory() override
     {
-        //KRATOS_WATCH("CleanMemory adjoint FD");
         mpPrimalElement->CleanMemory();
     }
 
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
-        //KRATOS_WATCH("InitializeSolutionStep adjoint FD");
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
     }
 
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
-        // KRATOS_WATCH("InitializeNonLinearIteration adjoint FD");
         mpPrimalElement->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
 
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
     {
-        // KRATOS_WATCH("FinalizeNonLinearIteration adjoint FD");
         mpPrimalElement->FinalizeNonLinearIteration(rCurrentProcessInfo);
     }
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
-        // KRATOS_WATCH("FinalizeSolutionStep adjoint FD");
         mpPrimalElement->FinalizeSolutionStep(rCurrentProcessInfo);
     }
 
@@ -164,18 +157,14 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override
     {
-        Vector dummy;
-        mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrix, dummy, rCurrentProcessInfo);
-        // TODO HACK necessary because shell doe not LHS...!!
-        // mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
-        //                                       rCurrentProcessInfo);
+        mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
+                                               rCurrentProcessInfo);
     }
 
     void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
 					const std::vector< Variable< MatrixType > >& rLHSVariables,
 					ProcessInfo& rCurrentProcessInfo) override
     {
-        // KRATOS_WATCH("CalculateLeftHandSide2 adjoint FD");
         mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrices,
                                                rLHSVariables,
                                                rCurrentProcessInfo);
@@ -184,7 +173,6 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo) override
     {
-        // KRATOS_WATCH("CalculateRightHandSide adjoint FD");
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
                                                 rCurrentProcessInfo);
     }
@@ -193,7 +181,6 @@ public:
 					const std::vector< Variable< VectorType > >& rRHSVariables,
 					ProcessInfo& rCurrentProcessInfo) override
     {
-        // KRATOS_WATCH("CalculateRightHandSide adjoint FD");
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVectors,
                                                 rRHSVariables,
                                                 rCurrentProcessInfo);
@@ -267,7 +254,6 @@ public:
 
     void SetProperties(PropertiesType::Pointer pProperties)
     {
-        KRATOS_WATCH("SET PROPERTIES TO PRIMAL ELEMENT")
         mpPrimalElement->SetProperties(pProperties);
     }
 
@@ -293,6 +279,16 @@ protected:
 
     ///@}
 
+    ///@name Member Variables
+    ///@{
+
+    /**
+     * pointer to the primal element
+     */
+    Element::Pointer mpPrimalElement;
+
+    ///@}
+
 private:
 
     ///@name Private Classes
@@ -314,13 +310,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    /**
-     * pointer to the primal element
-     */
-    Element::Pointer mpPrimalElement;
-    ShellThinElement3D3N::Pointer mpPrimalShellElement;
-
     ///@}
 
     ///@name Serialization

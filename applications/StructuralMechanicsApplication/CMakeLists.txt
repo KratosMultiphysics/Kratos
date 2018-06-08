@@ -20,7 +20,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/formfinding_io_utility.cpp
-  
+
 
   ## RESPONSE UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_structural_response_function.cpp
@@ -77,6 +77,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
 
   # Adding elements for adjoint sensitivity analysis
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D3N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/cr_beam_adjoint_element_3D2N.cpp
 

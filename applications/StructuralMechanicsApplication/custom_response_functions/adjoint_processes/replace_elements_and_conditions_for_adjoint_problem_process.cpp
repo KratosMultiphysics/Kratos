@@ -14,6 +14,7 @@
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "replace_elements_and_conditions_for_adjoint_problem_process.h"
 #include "../adjoint_elements/adjoint_finite_difference_base_element.h"
+#include "../adjoint_elements/adjoint_finite_difference_shell_element.h"
 
 namespace Kratos
 {
@@ -40,7 +41,20 @@ namespace Kratos
 
             if(replace_element)
             {
-                if (element_name == "AdjointFiniteDifferencingBaseElement")
+                if (element_name == "AdjointFiniteDifferencingShellElement")
+                {
+                    KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
+                        << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
+
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingShellElement>(
+                        it->Id(), it->pGetGeometry(), it->pGetProperties(), *it.base() );
+
+                    //deep copy elemental data
+                    p_element->Data() = it->Data();
+
+                    (*it.base()) = p_element;
+                }
+                else if (element_name == "AdjointFiniteDifferencingBaseElement")
                 {
                     KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
                         << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
@@ -162,8 +176,8 @@ namespace Kratos
         else if(name_current_element == "CrLinearBeamAdjointElement3D2N")
             rName = "CrLinearBeamElement3D2N";
         else if(name_current_element == "ShellThinElement3D3N")
-            rName = "AdjointFiniteDifferencingBaseElement";
-        else if(name_current_element == "AdjointFiniteDifferencingBaseElement")
+            rName = "AdjointFiniteDifferencingShellElement";
+        else if(name_current_element == "AdjointFiniteDifferencingShellElement")
             rName = "ShellThinElement3D3N";
         else
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
