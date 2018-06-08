@@ -80,8 +80,12 @@ void TrussElement3D2N::GetDofList(DofsVectorType &rElementalDofList,
 }
 
 void TrussElement3D2N::Initialize() {
-
   KRATOS_TRY
+  if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
+        this->mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW];
+    }
+  else
+    KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
   KRATOS_CATCH("")
 }
 
@@ -417,6 +421,9 @@ void TrussElement3D2N::GetValueOnIntegrationPoints(
 int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
   const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+  this->mConstitutiveLaw->Check(this->GetProperties(),this->GetGeometry(),rCurrentProcessInfo);
+
   if (this->GetGeometry().WorkingSpaceDimension() != msDimension ||
       this->GetGeometry().PointsNumber() != msNumberOfNodes) {
     KRATOS_THROW_ERROR(
@@ -703,7 +710,11 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
                    TrussElement3D2N::msLocalSize> &rGeometricStiffnessMatrix,
     ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
-  const double E = this->GetProperties()[YOUNG_MODULUS];
+
+  double E = 0.00;
+  ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
+  this->mConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
+  
   double A = this->GetProperties()[CROSS_AREA];
 
   double prestress = 0.00;
@@ -798,7 +809,11 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
                    TrussElement3D2N::msLocalSize> &rElasticStiffnessMatrix,
     ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
-  const double E = this->GetProperties()[YOUNG_MODULUS];
+
+  double E = 0.00;
+  ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
+  this->mConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
+
   double A = this->GetProperties()[CROSS_AREA];
 
   rElasticStiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);

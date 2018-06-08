@@ -129,13 +129,13 @@ namespace Kratos
 			const ProcessInfo& rCurrentProcessInfo) override;
 
 
+        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+
+
 		private:
 
-			double plastic_strain = 0.00;
-			double plastic_alpha = 0.00;
-
 			//test!!!
-			double test_is_plas = 0.00; 
 			double test_stress_total = 0.00;
 
 			friend class Serializer;

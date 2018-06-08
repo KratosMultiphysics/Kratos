@@ -40,6 +40,8 @@ namespace Kratos
         static constexpr int msNumberOfNodes = 2;
         static constexpr int msDimension = 3;
         static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
+        ConstitutiveLaw::Pointer mConstitutiveLaw = nullptr; 
+
     public:
         KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
 
@@ -237,6 +239,11 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
+
+        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+        {
+            std::cout << "implement me: InitializeNonLinearIteration" << std::endl;
+        };
 
     private:
         friend class Serializer;

@@ -58,24 +58,7 @@ TrussElementLinear3D2N::CreateElementStiffnessMatrix(
   BoundedMatrix<double, msLocalSize, msLocalSize> LocalStiffnessMatrix =
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CalculateElasticStiffnessMatrix(LocalStiffnessMatrix,
-                                        rCurrentProcessInfo);
-  
-  // test solution -> do this directly in CalculateElasticStiffnessMatrix!!!
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  if(this->CheckIfIsPlasticRegime()) {
-    const double youngs_modulus = this->GetProperties()[YOUNG_MODULUS];
-    const double plastic_tangent_modulus = this->ReturnElastoPlasticTangentModulus();
-    for (SizeType i=0;i<msLocalSize;++i){
-      for (SizeType j=0;j<msLocalSize;++j){
-        LocalStiffnessMatrix(i,j) = LocalStiffnessMatrix(i,j)*(plastic_tangent_modulus/youngs_modulus);
-      }
-    }
-  }
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+                                        rCurrentProcessInfo); 
 
   return LocalStiffnessMatrix;
   KRATOS_CATCH("")
@@ -233,106 +216,42 @@ double TrussElementLinear3D2N::CalculateLinearStrain()  {
   KRATOS_TRY;
   const double length_0 = this->CalculateReferenceLength();
   const double length = this->CalculateCurrentLength();
-  const double e = ((length*length-length_0*length_0)/(length+length_0))/length_0;
+  const double e = (length-length_0)/(length_0);
   return e;
   KRATOS_CATCH("");
 }
 
-double TrussElementLinear3D2N::ReturnElastoPlasticTangentModulus() const {
-  KRATOS_TRY;
-  double hardening_modulus = 0.00;
-  if (this->GetProperties().Has(HARDENING_MODULUS_1D)) {
-    hardening_modulus = this->GetProperties()[HARDENING_MODULUS_1D];
-  }
-  const double youngs_modulus = this->GetProperties()[YOUNG_MODULUS];
-  const double tangent_modulus = (hardening_modulus*youngs_modulus)/(hardening_modulus+youngs_modulus);
-  return tangent_modulus;
-  KRATOS_CATCH("");
-}
 
 double TrussElementLinear3D2N::TrialStateStress() {
   KRATOS_TRY;
-  const double elastic_trial_strain = this->CalculateLinearStrain()-this->plastic_strain;
+  double plastic_strain = 0.00;
+  this->mConstitutiveLaw->GetValue(PLASTIC_STRAIN,plastic_strain);
+  const double elastic_trial_strain = this->CalculateLinearStrain()-plastic_strain;
   const double youngs_modulus = this->GetProperties()[YOUNG_MODULUS];
-  KRATOS_WATCH(elastic_trial_strain);
-  KRATOS_WATCH(this->plastic_strain);
   return (youngs_modulus*elastic_trial_strain);
   KRATOS_CATCH("");
 }
 
-double TrussElementLinear3D2N::TrialYieldFunction() {
-  KRATOS_TRY;
-  double yield_stress_limit = 0.00;
-  if (this->GetProperties().Has(YIELD_STRESS)) {
-    yield_stress_limit = this->GetProperties()[YIELD_STRESS];
-  }
-  double hardening_modulus = 0.00;
-  if (this->GetProperties().Has(HARDENING_MODULUS_1D)) {
-    hardening_modulus = this->GetProperties()[HARDENING_MODULUS_1D];
-  }
-
-  const double trial_stress = this->TrialStateStress();
-  double trial_yield_function =  std::abs(trial_stress);
-  trial_yield_function -= yield_stress_limit + (hardening_modulus*this->plastic_alpha);
-  std::cout << trial_yield_function << '=' << std::abs(trial_stress) << '-' << yield_stress_limit << '+'  << hardening_modulus <<'*'<<this->plastic_alpha << std::endl;
-
-  return trial_yield_function;
-  KRATOS_CATCH("");  
-}
-
-bool TrussElementLinear3D2N::CheckIfIsPlasticRegime() {
-  KRATOS_TRY;
-  const double numerical_limit = std::numeric_limits<double>::epsilon();
-  bool is_in_plastic_regime = false;
-  const double trial_yield_function = this->TrialYieldFunction();
-  if (trial_yield_function > 0.00) is_in_plastic_regime = true;
-
-  if (std::abs(this->CalculateLinearStrain())<numerical_limit) is_in_plastic_regime=false;
-
-  return is_in_plastic_regime;
-  KRATOS_CATCH("");
-}
 
 void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces)
 {
   KRATOS_TRY;
+
+  Vector temp_internal_stresses = ZeroVector(msLocalSize);
   ProcessInfo temp_process_information;
-  rinternalForces = ZeroVector(msLocalSize);
-  const double trial_stress = this->TrialStateStress();
-  double current_stress = trial_stress;
+  ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
+  this->mConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);  
 
-  KRATOS_WATCH(this->CheckIfIsPlasticRegime());
+  rinternalForces = temp_internal_stresses*this->GetProperties()[CROSS_AREA];
 
-  if (this->CheckIfIsPlasticRegime()) {
-
-    double hardening_modulus = 0.00;
-    if (this->GetProperties().Has(HARDENING_MODULUS_1D)) {
-      hardening_modulus = this->GetProperties()[HARDENING_MODULUS_1D];
-    }
-    const double youngs_modulus = this->GetProperties()[YOUNG_MODULUS];  
-
-    const double trial_yield_function = this->TrialYieldFunction();
-    
-
-    const double delta_gamma = trial_yield_function/(youngs_modulus+hardening_modulus);
-    current_stress = 1.00 - ((delta_gamma*youngs_modulus)/std::abs(trial_stress));
-    current_stress = current_stress * trial_stress;
-
-    this->plastic_strain = this->plastic_strain + (delta_gamma*MathUtils<double>::Sign(trial_stress));
-    this->plastic_alpha = this->plastic_alpha + delta_gamma;
-  }
-
-  this->test_stress_total=current_stress;
-  const double area = this->GetProperties()[CROSS_AREA];
-  const double truss_axial_force = area*current_stress;
-  rinternalForces[0] = -1.00 * truss_axial_force;
-  rinternalForces[3] = 1.00 * truss_axial_force;
 
   BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CreateTransformationMatrix(transformation_matrix);
 
   rinternalForces = prod(transformation_matrix, rinternalForces);
+
+  this->test_stress_total= temp_internal_stresses[3];
 
 
   KRATOS_CATCH("");
@@ -353,16 +272,36 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
     rOutput.resize(integration_points.size());
   }
 
-
-  //test!!!
-  if (rVariable == DP_K)rOutput[0] = this->plastic_strain;
-  if (rVariable == INFINITY_YIELD_STRESS)rOutput[0] = this->test_is_plas;
+  //test
   if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE)rOutput[0] = this->test_stress_total;
   if (rVariable == LAMBDA_MAX)rOutput[0] = this->CalculateLinearStrain();
    
   KRATOS_CATCH("")
   }
 
+
+void TrussElementLinear3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY;
+  Vector strain_vector = ZeroVector(this->mConstitutiveLaw->GetStrainSize());
+  Vector stress_vector = ZeroVector(this->mConstitutiveLaw->GetStrainSize());
+  strain_vector[0] = this->CalculateLinearStrain();
+
+
+  Matrix temp_matrix;
+  Vector temp_vector;
+
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // implement in the standard const law for pure elasticity
+  //              <<CalculateMaterialResponse>>
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  this->mConstitutiveLaw->CalculateMaterialResponse(strain_vector,
+  temp_matrix,stress_vector,temp_matrix,rCurrentProcessInfo,this->GetProperties(),
+  this->GetGeometry(),temp_vector);
+
+  KRATOS_CATCH("");
+}
 
 void TrussElementLinear3D2N::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElement3D2N);

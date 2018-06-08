@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Klaus B. Sautter
 //
 
 #if !defined (KRATOS_TRUSS_PLASTICITY_LAW_H_INCLUDED)
@@ -75,6 +75,44 @@ public:
      */
     void GetLawFeatures(Features& rFeatures) override;
 
+    void SetValue(const Variable<bool>& rVariable,
+                          const bool& rValue,
+                          const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValue(const Variable<double>& rThisVariable,
+                          const double& rValue,
+                          const ProcessInfo& rCurrentProcessInfo) override;
+
+    double& GetValue(const Variable<double>& rThisVariable,
+                    double& rValue) override;
+
+    bool& GetValue(const Variable<bool>& rThisVariable,bool& rValue) override;
+
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                    const Variable<double>& rThisVariable,
+                    double& rValue) override;
+
+    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                const Variable<Vector>& rThisVariable,
+                Vector& rValue) override;
+
+    void CalculateMaterialResponse(const Vector& rStrainVector,
+                                    const Matrix& rDeformationGradient,
+                                    Vector& rStressVector,
+                                    Matrix& rAlgorithmicTangent,
+                                    const ProcessInfo& rCurrentProcessInfo,
+                                    const Properties& rMaterialProperties,
+                                    const GeometryType& rElementGeometry,
+                                    const Vector& rShapeFunctionsValues,
+                                    bool CalculateStresses = true,
+                                    int CalculateTangent = true,
+                                    bool SaveInternalVariables = true) override;
+
+    double TrialYieldFunction(const Properties& rMaterialProperties,
+     const double& rCurrentStress);
+    bool CheckIfIsPlasticRegime(const Properties& rMaterialProperties,
+        const double& rCurrentStress);
+
     /**
      * Voigt tensor size:
      */
@@ -124,7 +162,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    bool mInelasticFlag = false; /// This flags tells if we are in a elastic or ineslastic regime
+    double mAccumulatedPlasticStrain = 0.0; /// The current accumulated plastic strain
+    double mPlasticAlpha = 0.0; /// The current plastic increment
+    double mStressState = 0.0; // The current stress state
     ///@}
     ///@name Private Operators
     ///@{
