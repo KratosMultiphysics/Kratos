@@ -209,7 +209,7 @@ class Solution(object):
         
         # Solving the problem (time integration)
         while(self.time < self.end_time):
-            
+
             self.InitializeSolutionStep()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
@@ -227,8 +227,7 @@ class Solution(object):
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.step
         self.main_model_part.CloneTimeStep(self.time) 
 
-
-        print(" [STEP:",self.step," TIME:",self.time,"]")
+        #print(" [STEP:",self.step," TIME:",self.time,"]")
 
         # processes to be executed at the begining of the solution step
         self.model_processes.ExecuteInitializeSolutionStep()
@@ -241,7 +240,7 @@ class Solution(object):
         self.solver.InitializeSolutionStep()
         
     def SolveSolutionStep(self):
-        
+
         self.solver.Predict()
 
         self.solver.SolveSolutionStep()
@@ -257,15 +256,16 @@ class Solution(object):
         # processes to be executed at the end of the solution step
         self.model_processes.ExecuteFinalizeSolutionStep()
 
-        # processes to be executed before witting the output      
+        #if (self.time>0.0001):
+        # processes to be executed before writing the output      
         self.model_processes.ExecuteBeforeOutputStep()
-
+        
         # write output results GiD: (frequency writing is controlled internally)
         self.GraphicalOutputPrintOutput()            
-
+        
         # processes to be executed after witting the output
         self.model_processes.ExecuteAfterOutputStep()
-        
+                
 
     def Finalize(self):
         
@@ -321,7 +321,8 @@ class Solution(object):
         
     def GraphicalOutputPrintOutput(self):
         if(self.graphical_output.IsOutputStep()):
-                self.graphical_output.PrintOutput()
+            print("---> Print Output at [STEP:",self.step," TIME:",self.time," DT:",self.delta_time,"]")
+            self.graphical_output.PrintOutput()
 
     def GraphicalOutputExecuteFinalize(self):
         self.graphical_output.ExecuteFinalize()

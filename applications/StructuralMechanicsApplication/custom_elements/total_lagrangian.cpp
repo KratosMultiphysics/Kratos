@@ -105,6 +105,14 @@ Element::Pointer TotalLagrangian::Create( IndexType NewId, NodesArrayType const&
     return Kratos::make_shared<TotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer TotalLagrangian::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+{
+    return Kratos::make_shared<TotalLagrangian>( NewId, pGeom, pProperties );
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
