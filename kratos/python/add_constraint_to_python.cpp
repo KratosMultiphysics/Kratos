@@ -25,12 +25,10 @@ namespace Kratos
 {
 namespace Python
 {
-
+    using namespace pybind11;
+    
 void  AddConstraintToPython(pybind11::module& m)
 {
-
-    using namespace pybind11;
-
     class_<MasterSlaveConstraint>(m, "MasterSlaveConstraint" )
 	.def(init<>())
     .def("Clear", &MasterSlaveConstraint::Clear)
