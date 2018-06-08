@@ -101,6 +101,10 @@ public:
     using TSystemMatrixUniquePointerType = typename MappingOperationUtilityType::TSystemMatrixUniquePointerType;
     using TSystemVectorUniquePointerType = typename MappingOperationUtilityType::TSystemVectorUniquePointerType;
 
+    using DoubleVariableType = typename MappingOperationUtilityType::DoubleVariableType;
+    using ComponentVariableType = typename MappingOperationUtilityType::ComponentVariableType;
+    using Array3VariableType = typename MappingOperationUtilityType::Array3VariableType;
+
 
     ///@}
     ///@name Life Cycle
@@ -304,52 +308,6 @@ protected:
 
     virtual void UpdateInterfaceInternal(Kratos::Flags MappingOptions, double SearchRadius);
 
-
-    template< typename TDataType >
-    void TMap(const Variable<TDataType>& rOriginVariable,
-              const Variable<TDataType>& rDestinationVariable,
-              Kratos::Flags MappingOptions,
-              const bool UseTranspose = false)
-    {
-        CheckForConservative(MappingOptions);
-
-        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
-        {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
-            const bool use_transpose = true;
-            TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
-        }
-        else
-        {
-            KRATOS_DEBUG_ERROR_IF_NOT(mpMappingOperationUtility)<< "mpMappingOperationUtility "
-                << "is a nullptr" << std::endl;
-
-            mpMappingOperationUtility->ExecuteMapping(
-                *mpMdo, *mpQo, *mpQd,
-                mrModelPartOrigin, mrModelPartDestination,
-                rOriginVariable, rDestinationVariable,
-                MappingOptions, UseTranspose);
-        }
-    }
-
-    template< typename TDataType >
-    void TInverseMap(const Variable<TDataType>& rOriginVariable,
-                     const Variable<TDataType>& rDestinationVariable,
-                     Kratos::Flags MappingOptions,
-                     const bool UseTranspose = false)
-    {
-        CheckForConservative(MappingOptions);
-
-        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
-        {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
-            const bool use_transpose = true;
-            TMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
-        }
-        else
-            GetInverseMapper()->TMap(rDestinationVariable, rOriginVariable, MappingOptions, UseTranspose);
-    }
-
     MapperUniquePointerType& GetInverseMapper()
     {
         InitializeInverseMapper(); // Checks if it was initialized
@@ -379,6 +337,95 @@ protected:
 
     //     return rQd;
     // }
+
+        /* This function maps from Destination to Origin */
+    virtual void MapInternal(const Variable<double>& rOriginVariable,
+                             const Variable<double>& rDestinationVariable,
+                             Kratos::Flags MappingOptions,
+                             const bool UseTranspose)
+    {
+        mpMappingOperationUtility->InitializeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                rOriginVariable, rDestinationVariable,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->ExecuteMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                rOriginVariable, rDestinationVariable,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->FinalizeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                rOriginVariable, rDestinationVariable,
+                MappingOptions, UseTranspose);
+    }
+
+    /* This function maps from Destination to Origin */
+    virtual void MapInternal(const Variable< array_1d<double, 3> >& rOriginVariable,
+                             const Variable< array_1d<double, 3> >& rDestinationVariable,
+                             Kratos::Flags MappingOptions,
+                             const bool UseTranspose)
+    {
+        ComponentVariableType var_component_x_origin = KratosComponents< ComponentVariableType >::Get(rOriginVariable.Name()+std::string("_X"));
+        ComponentVariableType var_component_y_origin = KratosComponents< ComponentVariableType >::Get(rOriginVariable.Name()+std::string("_Y"));
+        ComponentVariableType var_component_z_origin = KratosComponents< ComponentVariableType >::Get(rOriginVariable.Name()+std::string("_Z"));
+
+        ComponentVariableType var_component_x_destination = KratosComponents< ComponentVariableType >::Get(rDestinationVariable.Name()+std::string("_X"));
+        ComponentVariableType var_component_y_destination = KratosComponents< ComponentVariableType >::Get(rDestinationVariable.Name()+std::string("_Y"));
+        ComponentVariableType var_component_z_destination = KratosComponents< ComponentVariableType >::Get(rDestinationVariable.Name()+std::string("_Z"));
+
+        // X-Component
+        mpMappingOperationUtility->InitializeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_x_origin, var_component_x_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->ExecuteMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_x_origin, var_component_x_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->FinalizeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_x_origin, var_component_x_destination,
+                MappingOptions, UseTranspose);
+
+        // Y-Component
+        mpMappingOperationUtility->InitializeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_y_origin, var_component_y_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->ExecuteMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_y_origin, var_component_y_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->FinalizeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_y_origin, var_component_y_destination,
+                MappingOptions, UseTranspose);
+
+        // Z-Component
+        mpMappingOperationUtility->InitializeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_z_origin, var_component_z_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->ExecuteMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_z_origin, var_component_z_destination,
+                MappingOptions, UseTranspose);
+        mpMappingOperationUtility->FinalizeMappingStep(
+                *mpMdo, *mpQo, *mpQd,
+                mrModelPartOrigin, mrModelPartDestination,
+                var_component_z_origin, var_component_z_destination,
+                MappingOptions, UseTranspose);
+    }
 
     /**
      * This function can be overridden by derived Mappers if they need some
@@ -457,6 +504,57 @@ private:
         })");
 
         mGeneralMapperSettings.ValidateAndAssignDefaults(default_settings);
+    }
+
+
+    template< typename TDataType >
+    void TMap(const Variable<TDataType>& rOriginVariable,
+              const Variable<TDataType>& rDestinationVariable,
+              Kratos::Flags MappingOptions,
+              const bool UseTranspose = false)
+    {
+        CheckForConservative(MappingOptions);
+
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
+        {
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+            const bool use_transpose = true;
+            TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
+        }
+        else
+        {
+            KRATOS_DEBUG_ERROR_IF_NOT(mpMappingOperationUtility)<< "mpMappingOperationUtility "
+                << "is a nullptr" << std::endl;
+
+            MapInternal(rOriginVariable,
+                        rDestinationVariable,
+                        MappingOptions,
+                        UseTranspose);
+
+            // mpMappingOperationUtility->ExecuteMapping(
+            //     *mpMdo, *mpQo, *mpQd,
+            //     mrModelPartOrigin, mrModelPartDestination,
+            //     rOriginVariable, rDestinationVariable,
+            //     MappingOptions, UseTranspose);
+        }
+    }
+
+    template< typename TDataType >
+    void TInverseMap(const Variable<TDataType>& rOriginVariable,
+                     const Variable<TDataType>& rDestinationVariable,
+                     Kratos::Flags MappingOptions,
+                     const bool UseTranspose = false)
+    {
+        CheckForConservative(MappingOptions);
+
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
+        {
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
+            const bool use_transpose = true;
+            TMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
+        }
+        else
+            GetInverseMapper()->TMap(rDestinationVariable, rOriginVariable, MappingOptions, UseTranspose);
     }
 
     // From outside the user might specify CONSERVATIVE

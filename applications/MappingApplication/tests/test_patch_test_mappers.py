@@ -66,17 +66,25 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
     def _set_values_origin(self):
         value = 0
+        vec = KratosMultiphysics.Vector(3)
         for node in self.mp_origin.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, value+0.2)
-            node.SetSolutionStepValue(KratosMultiphysics.FORCE, (value, value+0.1, value-0.3))
+            vec[0] = value
+            vec[1] = value+0.1
+            vec[2] = value-0.3
+            node.SetSolutionStepValue(KratosMultiphysics.FORCE, vec)
             value += 1
 
 
     def _set_values_destination(self):
         value = 0
+        vec = KratosMultiphysics.Vector(3)
         for node in self.mp_destination.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, value-0.3)
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, (value, value-0.1, value+0.4))
+            vec[0] = value
+            vec[1] = value-0.1
+            vec[2] = value+0.4
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, vec)
             value += 1
 
 

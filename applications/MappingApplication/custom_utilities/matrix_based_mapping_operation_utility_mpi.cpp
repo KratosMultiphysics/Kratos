@@ -137,9 +137,10 @@ namespace Kratos
 
     }
 
-    // The "Solve" function
+
+
     template<>
-    void UtilityType::ExecuteMapping(
+    void UtilityType::InitializeMappingStep(
         TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
@@ -153,16 +154,75 @@ namespace Kratos
 
     }
 
-    // The "Solve" function
     template<>
-    void UtilityType::ExecuteMapping(
+    void UtilityType::InitializeMappingStep(
         TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Array3VariableType& rOriginVariable,
-        const Array3VariableType& rDestinationVariable,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+
+    }
+
+    template<>
+    void UtilityType::ExecuteMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+
+    }
+
+    template<>
+    void UtilityType::ExecuteMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+
+    }
+
+    template<>
+    void UtilityType::FinalizeMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+
+    }
+
+    template<>
+    void UtilityType::FinalizeMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const
     {

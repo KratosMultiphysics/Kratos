@@ -78,7 +78,7 @@ class MatrixBasedMappingOperationUtility
     typedef typename BaseType::TSystemVectorUniquePointerType TSystemVectorUniquePointerType;
 
     using DoubleVariableType = typename BaseType::DoubleVariableType;
-    using Array3VariableType = typename BaseType::Array3VariableType;
+    using ComponentVariableType = typename BaseType::ComponentVariableType;
 
     ///@}
     ///@name Life Cycle
@@ -112,28 +112,75 @@ class MatrixBasedMappingOperationUtility
     void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                             TSystemMatrixType& rMdo) const override;
 
-
     // The "Solve" function
-    void ExecuteMapping(
+    void InitializeMappingStep(
         TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Variable<double>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const override;
 
     // The "Solve" function
-    void ExecuteMapping(
+    void InitializeMappingStep(
         TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
-        const Array3VariableType& rOriginVariable,
-        const Array3VariableType& rDestinationVariable,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const override;
+
+    // The "Solve" function
+    void ExecuteMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const override;
+
+    // The "Solve" function
+    void ExecuteMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const override;
+
+    // The "Solve" function
+    void FinalizeMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const override;
+
+    // The "Solve" function
+    void FinalizeMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
         const bool UseTranspose) const override;
 

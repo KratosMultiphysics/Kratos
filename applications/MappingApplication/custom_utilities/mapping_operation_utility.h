@@ -81,6 +81,7 @@ class MappingOperationUtility
     using TSystemVectorUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
 
     using DoubleVariableType = Variable<double>;
+    using ComponentVariableType = VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >;
     using Array3VariableType = Variable<array_1d<double, 3>>;
 
     ///@}
@@ -123,7 +124,7 @@ class MappingOperationUtility
 
 
     // The "Solve" function
-    virtual void ExecuteMapping(
+    virtual void InitializeMappingStep(
         TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
@@ -132,10 +133,28 @@ class MappingOperationUtility
         const DoubleVariableType& rOriginVariable,
         const DoubleVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const = 0;
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
 
     // The "Solve" function
-    virtual void ExecuteMapping(
+    virtual void InitializeMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    // The "Solve" function
+    virtual void InitializeMappingStep(
         TSystemMatrixType& rMdo,
         TSystemVectorType& rQo,
         TSystemVectorType& rQd,
@@ -144,7 +163,100 @@ class MappingOperationUtility
         const Array3VariableType& rOriginVariable,
         const Array3VariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const = 0;
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    // The "Solve" function
+    virtual void ExecuteMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    // The "Solve" function
+    virtual void ExecuteMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    // The "Solve" function
+    virtual void ExecuteMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const Array3VariableType& rOriginVariable,
+        const Array3VariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    // The "Solve" function
+    virtual void FinalizeMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const DoubleVariableType& rOriginVariable,
+        const DoubleVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    // The "Solve" function
+    virtual void FinalizeMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const ComponentVariableType& rOriginVariable,
+        const ComponentVariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
+
+    // The "Solve" function
+    virtual void FinalizeMappingStep(
+        TSystemMatrixType& rMdo,
+        TSystemVectorType& rQo,
+        TSystemVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const Array3VariableType& rOriginVariable,
+        const Array3VariableType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+    }
 
 
     ///@}
