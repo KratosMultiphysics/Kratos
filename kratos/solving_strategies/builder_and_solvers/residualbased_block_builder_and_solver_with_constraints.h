@@ -592,44 +592,48 @@ private:
         }
     }
 
+
+    // This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
+    template<class TContainerType>
     void ApplyConstraints(  ModelPart& rModelPart,
-                            Element::Pointer pCurrentElement,
-                            Element::EquationIdVectorType& rEquationIds,
+                            TContainerType::Pointer pCurrentContainer,
+                            TContainerType::EquationIdVectorType& rEquationIds,
                             ProcessInfo& rCurrentProcessInfo
                         )
     {
-        // This adds the equation IDs of masters of all the slaves correspoining to pCurrentElement to EquationIds
+        const SizeType number_of_nodes = pCurrentContainer->GetGeometry().PointsNumber();
+        // For each node check if it is a slave or not If it is .. we change the Transformation matrix
+        for (IndexType j = 0; j < number_of_nodes; j++) {
+            DofsVectorType element_dofs;
+            pCurrentContainer->GetDofList(element_dofs, CurrentProcessInfo);
+            SizeType number_dofs_per_node = element_dofs.size() / number_of_nodes;
+            if (pCurrentContainer->GetGeometry()[j].Is(SLAVE)) { //temporary, will be checked once at the beginning only
+                // Necessary data for iterating and modifying the matrix
+                IndexType slave_equation_id;
+                IndexType start_position_node_dofs = number_dofs_per_node * (j);
+                for (IndexType i = 0; i < number_dofs_per_node; i++) {
+                    slave_equation_id = element_dofs[start_position_node_dofs + i]->EquationId();
+                    if (p_mpc_data->mEquationIdToWeightsMap.count(slave_equation_id) > 0) {
+                        MasterIdWeightMapType master_weights_map = p_mpc_data->mEquationIdToWeightsMap[slave_equation_id];
+                        for (auto master : master_weights_map) {
+                            EquationId.push_back(master.first);
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    void ApplyConstraints(  ModelPart& rModelPart,
-                            Condition::Pointer pCurrentCondition,
-                            Condition::EquationIdVectorType& rEquationIds,
-                            ProcessInfo& rCurrentProcessInfo
-                        )
-    {
-        // This adds the equation IDs of masters of all the slaves correspoining to pCurrentCondition to EquationIds
-    }
-
+    template<class TContainerType>
     void ApplyConstraints( ModelPart& rModelPart,
-                           Element::Pointer pElement,
+                           TContainerType::Pointer pCurrentContainer,
                            LocalSystemMatrixType& rLHS_Contribution,
                            LocalSystemVectorType& rRHS_Contribution,
-                           Element::EquationIdVectorType& rEquationId,
+                           TContainerType::EquationIdVectorType& rEquationId,
                            ProcessInfo& rCurrentProcessInfo
                         )
     {
         // This function modifies LHS and RHS contributions with T and C matrices of the constraints present in this current pElement
-    }
-
-    void ApplyConstraints( ModelPart& rModelPart,
-                           Condition::Pointer pCondition,
-                           LocalSystemMatrixType& rLHS_Contribution,
-                           LocalSystemVectorType& rRHS_Contribution,
-                           Condition::EquationIdVectorType& rEquationId,
-                           ProcessInfo& rCurrentProcessInfo
-                        )
-    {
-        // This function modifies LHS and RHS contributions with T and C matrices of the constraints present in this current pCondition
     }
 
     ///@}
