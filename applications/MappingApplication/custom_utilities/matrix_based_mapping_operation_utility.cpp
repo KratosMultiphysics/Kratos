@@ -31,6 +31,8 @@ namespace Kratos
     using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
     using MappingWeightsVector = typename MapperLocalSystem::MappingWeightsVector;
 
+    using NodeIterator = ModelPart::NodeIterator;
+
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
@@ -70,7 +72,7 @@ namespace Kratos
         }
     }
 
-    template< class TVarType>
+    template< class TVarType >
     void FillSystemVector(UtilityType::TSystemVectorType& rVector,
                           ModelPart& rModelPart,
                           const TVarType& rVariable,
@@ -84,23 +86,75 @@ namespace Kratos
         }
     }
 
-    template< class TVarType>
+    template< class TVarType >
+    static void UpdateFunction(const NodeIterator& rNodeIt,
+                               const TVarType& rVariable,
+                               const double Value,
+                               const double Factor)
+    {
+        rNodeIt->FastGetSolutionStepValue(rVariable) = Value * Factor;
+    }
+
+    template< class TVarType >
+    static void UpdateFunctionWithAdd(const NodeIterator& rNodeIt,
+                               const TVarType& rVariable,
+                               const double Value,
+                               const double Factor)
+    {
+        rNodeIt->FastGetSolutionStepValue(rVariable) += Value * Factor;
+    }
+
+    template< class TVarType >
+    static void UpdateFunctionNonHist(const NodeIterator& rNodeIt,
+                               const TVarType& rVariable,
+                               const double Value,
+                               const double Factor)
+    {
+        rNodeIt->GetValue(rVariable) = Value * Factor;
+    }
+
+    template< class TVarType >
+    static void UpdateFunctionNonHistWithAdd(const NodeIterator& rNodeIt,
+                               const TVarType& rVariable,
+                               const double Value,
+                               const double Factor)
+    {
+        rNodeIt->GetValue(rVariable) += Value * Factor;
+    }
+
+    template< class TVarType >
+    static std::function<void(const NodeIterator&, const TVarType&, const double, const double)>
+    GetUpdateFunction(const Kratos::Flags& rMappingOptions)
+    {
+        if (rMappingOptions.Is(MapperFlags::ADD_VALUES) && rMappingOptions.Is(MapperFlags::NON_HISTORICAL))
+            return &UpdateFunctionNonHistWithAdd<TVarType>;
+        if (rMappingOptions.Is(MapperFlags::ADD_VALUES))
+            return &UpdateFunctionWithAdd<TVarType>;
+        if (rMappingOptions.Is(MapperFlags::NON_HISTORICAL))
+            return &UpdateFunctionNonHist<TVarType>;
+        return &UpdateFunction<TVarType>;
+    }
+
+    template< class TVarType >
     void Update(UtilityType::TSystemVectorType& rVector,
                 ModelPart& rModelPart,
                 const TVarType& rVariable,
                 const Kratos::Flags& rMappingOptions)
     {
-        // TODO create a function ptr to not have the if all the time
-        // or use some function from the standard ...
+        const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
+
+        // Here we construct a function pointer to not have the if all the time inside the loop
+        const auto update_fct = std::bind(GetUpdateFunction<TVarType>(rMappingOptions),
+                                          std::placeholders::_1,
+                                          std::placeholders::_2,
+                                          std::placeholders::_3,
+                                          factor);
+
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(rModelPart.NumberOfNodes()); i++)
         {
             auto it = rModelPart.NodesBegin() + i;
-
-            if (rMappingOptions.Is(MapperFlags::ADD_VALUES))
-                it->FastGetSolutionStepValue(rVariable) += rVector[i] /** Factor*/;
-            else
-                it->FastGetSolutionStepValue(rVariable) = rVector[i] /** Factor*/;
+            update_fct(it, rVariable, rVector[i]);
         }
     }
 

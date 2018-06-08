@@ -148,7 +148,10 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self._check_results_scalar_const(self.mp_destination, mapping_value, KratosMultiphysics.TEMPERATURE)
 
         # Vector Mapping
-        mapping_value = (1.443, -5.874, 7.99)
+        mapping_value = KratosMultiphysics.Vector(3)
+        mapping_value[0] = 1.443
+        mapping_value[1] = -5.874
+        mapping_value[2] = 7.99
         self._set_values_mp_const(self.mp_origin, KratosMultiphysics.FORCE, mapping_value)
 
         self.mapper.Map(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY)
@@ -175,7 +178,10 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self._check_results_scalar_const(self.mp_origin, mapping_value, KratosMultiphysics.PRESSURE)
 
         # Vector Mapping
-        mapping_value = (-5.443, 44.874, -7.9779)
+        mapping_value = KratosMultiphysics.Vector(3)
+        mapping_value[0] = -5.443
+        mapping_value[1] = 44.874
+        mapping_value[2] = -7.9779
         self._set_values_mp_const(self.mp_destination, KratosMultiphysics.VELOCITY, mapping_value)
 
         self.mapper.InverseMap(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY)
