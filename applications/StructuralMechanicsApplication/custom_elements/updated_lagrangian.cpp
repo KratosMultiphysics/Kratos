@@ -51,6 +51,14 @@ Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType cons
 /***********************************************************************************/
 /***********************************************************************************/
 
+Element::Pointer UpdatedLagrangian::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+{
+    return Kratos::make_shared<UpdatedLagrangian>( NewId, pGeom, pProperties );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 UpdatedLagrangian::~UpdatedLagrangian()
 {
 }

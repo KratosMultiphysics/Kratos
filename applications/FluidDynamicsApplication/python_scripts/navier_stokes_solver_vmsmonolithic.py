@@ -139,7 +139,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
+                "maximum_delta_time"  : 0.01,
+                "time_step"           : 0.0
             },
             "time_scheme":"bossak",
             "alpha":-0.3,
@@ -195,6 +196,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.min_buffer_size = 3
         elif scheme_type == "steady":
             self.min_buffer_size = 1
+            self._SetUpSteadySimulation()
         else:
             msg  = "Unknown time_scheme option found in project parameters:\n"
             msg += "\"" + scheme_type + "\"\n"
@@ -320,3 +322,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+
+    def _SetUpSteadySimulation(self):
+        '''Overwrite time stepping parameters so that they do not interfere with steady state simulations.'''
+        self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
+        if self.settings["stabilization"].Has("dynamic_tau"):
+            self.settings["stabilization"]["dynamic_tau"].SetDouble(0.0)
