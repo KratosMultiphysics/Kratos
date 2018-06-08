@@ -53,6 +53,8 @@ NodalVectorData BodyForce;
 
 NodalScalarData Pressure;
 NodalScalarData Distance;
+NodalScalarData NodalDensity; 
+NodalScalarData NodalDynamicViscosity; 
 
 double Density;
 double DynamicViscosity;
@@ -102,6 +104,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromNodalData(NodalDensity, DENSITY, r_geometry); 
+    this->FillFromNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry); 
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
@@ -207,19 +211,19 @@ void CalculateAirMaterialResponse() {
 	if(this->ShearStress.size() != strain_size)
 		this->ShearStress.resize(strain_size,false);
 
-	ComputeStrain();
+    CalculateEffectiveViscosityAtGaussPoint();
 
-	const double nu = DynamicViscosity;
-	const double c1 = 2.0*nu;
-	const double c2 = nu;
+	const double mu = this->EffectiveViscosity;
+	const double c1 = 2.0*mu;
+	const double c2 = mu;
 
 	this->C.clear();
 
 	if (TDim == 2) 
 	{
-		this->C(0, 0) = 2.0*nu;
-		this->C(1, 1) = 2.0*nu;
-		this->C(2, 2) = nu;
+		this->C(0, 0) = 2.0*mu;
+		this->C(1, 1) = 2.0*mu;
+		this->C(2, 2) = mu;
 
 		this->ShearStress[0] = c1 * this->StrainRate[0];
 		this->ShearStress[1] = c1 * this->StrainRate[1];
@@ -228,12 +232,12 @@ void CalculateAirMaterialResponse() {
 
 	else if (TDim == 3)
 	{
-		this->C(0, 0) = 2.0*nu;
-		this->C(1, 1) = 2.0*nu;
-		this->C(2, 2) = 2.0*nu;
-		this->C(3, 3) = nu;
-		this->C(4, 4) = nu;
-		this->C(5, 5) = nu;
+		this->C(0, 0) = 2.0*mu;
+		this->C(1, 1) = 2.0*mu;
+		this->C(2, 2) = 2.0*mu;
+		this->C(3, 3) = mu;
+		this->C(4, 4) = mu;
+		this->C(5, 5) = mu;
 		this->ShearStress[0] = c1*this->StrainRate[0];
 		this->ShearStress[1] = c1*this->StrainRate[1];
 		this->ShearStress[2] = c1*this->StrainRate[2];
@@ -303,6 +307,37 @@ void CalculateDensityAtGaussPoint()
     }
 
     Density = density / navg;
+}
+
+void CalculateEffectiveViscosityAtGaussPoint()
+{
+    double dist = 0.0;
+    for (unsigned int i = 0; i < TNumNodes; i++)
+        dist += this->N[i] * Distance[i];
+
+    int navg = 0;
+    double dynamic_viscosity = 0.0;
+    for (unsigned int i = 0; i < TNumNodes; i++)
+    {
+        if (dist * Distance[i] > 0.0)
+        {
+            navg += 1;
+            dynamic_viscosity += NodalDynamicViscosity[i];
+        }
+    }
+    DynamicViscosity = dynamic_viscosity / navg;
+
+
+    if (SmagorinskyConstant > 0.0) 
+    { 
+        ComputeStrain(); 
+        const double strain_rate_norm = ComputeStrainNorm(); 
+ 
+        double length_scale = SmagorinskyConstant*ElementSize; 
+        length_scale *= length_scale; // square 
+        this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm; 
+    } 
+    else this->EffectiveViscosity = DynamicViscosity; 
 }
 ///@}
 
