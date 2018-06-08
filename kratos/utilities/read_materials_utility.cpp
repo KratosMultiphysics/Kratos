@@ -28,14 +28,16 @@ ReadMaterialsUtility::ReadMaterialsUtility(
 {
     Parameters default_parameters(R"(
     {
-        "materials_filename" : "please specify the file to be opened"
+        "Parameters" : {
+            "materials_filename" : "please specify the file to be opened"
+        }
     }  )"
     );
 
     rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // read json string in materials file, create Parameters
-    const std::string& materials_filename = rParameters["materials_filename"].GetString();
+    const std::string& materials_filename = rParameters["Parameters"]["materials_filename"].GetString();
     std::ifstream infile(materials_filename);
     std::stringstream buffer;
     buffer << infile.rdbuf();
@@ -146,26 +148,94 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
         // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
         const std::string& variable_name = CleanVariableName(iter.name());
 
-        if (value.IsDouble()){
-            const auto& variable = KratosComponents<Variable<double>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetDouble());
-        } else if (value.IsInt()){
-            const auto& variable = KratosComponents<Variable<int>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetInt());
-        } else if (value.IsBool()){
-            const auto& variable = KratosComponents<Variable<bool>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetBool());
-        } else if (value.IsString()){
-            const auto& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetString());
-        } else if (value.IsVector()){
-            const auto& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetVector());
-        } else if (value.IsMatrix()){
-            const auto& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetMatrix());
-        }
-        else {
+        // We don't just copy the values, we do some tyransformation depending of the destination variable
+        if(KratosComponents<Variable<double> >::Has(variable_name)) {
+            const Variable<double>& variable = KratosComponents<Variable<double>>().Get(variable_name);
+            if (value.IsDouble()) {
+                p_prop->SetValue(variable, value.GetDouble());
+            } else if (value.IsInt()) {
+                p_prop->SetValue(variable, static_cast<double>(value.GetInt()));
+            } else {
+                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+            }
+        } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
+            const Variable<bool>& variable = KratosComponents<Variable<bool>>().Get(variable_name);
+            if (value.IsBool()) {
+                p_prop->SetValue(variable, value.GetBool());
+            } else if (value.IsInt()) {
+                p_prop->SetValue(variable, static_cast<bool>(value.GetInt()));
+            } else if (value.IsDouble()) {
+                p_prop->SetValue(variable, static_cast<bool>(value.GetDouble()));
+            } else {
+                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+            }
+        } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
+            const Variable<int>& variable = KratosComponents<Variable<int>>().Get(variable_name);
+            if (value.IsInt()) {
+                p_prop->SetValue(variable, value.GetInt());
+            } else if (value.IsDouble()) {
+                p_prop->SetValue(variable, static_cast<int>(value.GetDouble()));
+            } else {
+                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+            }
+        } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+            const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
+            if (value.IsVector()) {
+                array_1d<double, 3> temp(3, 0.0);
+                const Vector& value_variable = value.GetVector();
+                const std::size_t iter_number = (3 < value_variable.size()) ? 3 : value_variable.size();
+                for (std::size_t index = 0; index < iter_number; index++)
+                    temp[index] = value_variable[index];
+                p_prop->SetValue(variable, temp);
+            } else {
+                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+            }
+        } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+            const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
+            if (value.IsVector()) {
+                array_1d<double, 6> temp(6, 0.0);
+                const Vector& value_variable = value.GetVector();
+                const std::size_t iter_number = (6 < value_variable.size()) ? 6 : value_variable.size();
+                for (std::size_t index = 0; index < iter_number; index++)
+                    temp[index] = value_variable[index];
+                p_prop->SetValue(variable, temp);
+            } else {
+                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+            }
+        } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
+            const Variable<Vector>& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
+            if (value.IsVector()) {
+                p_prop->SetValue(variable, value.GetVector());
+            } else if (value.IsMatrix()) {
+                Vector temp;
+                const Matrix& value_variable = value.GetMatrix();
+                for (std::size_t index = 0; index < value_variable.size1(); index++)
+                    temp[index] = value_variable(index, 0);
+                p_prop->SetValue(variable, temp);
+            } else {
+                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+            }
+        } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
+            const Variable<Matrix>& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
+            if (value.IsMatrix()) {
+                p_prop->SetValue(variable, value.GetMatrix());
+            } else if (value.IsVector()) {
+                Matrix temp;
+                const Vector& value_variable = value.GetVector();
+                for (std::size_t index = 0; index < value_variable.size(); index++)
+                    temp(index, 0) = value_variable[index];
+                p_prop->SetValue(variable, temp);
+            } else {
+                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+            }
+        } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
+            const Variable<std::string>& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
+            if (value.IsString()) {
+                p_prop->SetValue(variable, value.GetString());
+            } else {
+                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+            }
+        } else {
             KRATOS_ERROR << "Type of value is not available";
         }
     }
