@@ -71,19 +71,7 @@ class MasterSlaveRelation : public IndexedObject
     double ConstantUpdate() const { return mConstantUpdate; }
     IndexType SlaveEquationId() const { return mSlaveEquationId; }
 
-    // This is only for serializer. Not to be used outside
-    void AddMaster(std::size_t MasterEquationId, double Weight)
-    {
-        auto res = mMasterDataSet.find(MasterEquationId);
-        if (res != mMasterDataSet.end())
-        {
-            (*res).second += Weight;
-        }
-        else
-        {
-            mMasterDataSet[MasterEquationId] = Weight;
-        }
-    }
+
 
     // Get number of masters for this slave
     std::size_t GetNumberOfMasters() const
@@ -146,7 +134,7 @@ class MasterSlaveRelation : public IndexedObject
         mMasterDataSet.clear();
     }
 
-
+  private:
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -160,9 +148,24 @@ class MasterSlaveRelation : public IndexedObject
     {
 
     }
+
+    // This is only for serializer. Not to be used outside
+    void AddMaster(std::size_t MasterEquationId, double Weight)
+    {
+        auto res = mMasterDataSet.find(MasterEquationId);
+        if (res != mMasterDataSet.end())
+        {
+            (*res).second += Weight;
+        }
+        else
+        {
+            mMasterDataSet[MasterEquationId] = Weight;
+        }
+    }
+
     ///@}
 
-  private:
+
     std::unordered_map<IndexType, double> mMasterDataSet;
 
     IndexType mSlaveEquationId;
