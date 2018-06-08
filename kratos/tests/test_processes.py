@@ -795,6 +795,84 @@ class TestProcesses(KratosUnittest.TestCase):
         pass
 
     def test_point_output_process_restart(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [0.5, 0.25, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "node_output_rest",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "node"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "node_output_restart_ref.dat",
+                            "output_file_name"      : "node_output_rest.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
+            settings["process_list"] )
+
+        model_part.ProcessInfo[IS_RESTARTED] = True
+        model_part.ProcessInfo[TIME] = 2.1
+
+        for process in list_of_processes:
+            process.ExecuteInitialize()
+
+        for process in list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+
+        end_time = 5.0
+        delta_time = 0.15
+
+
+        while model_part.ProcessInfo[TIME] < end_time:
+            model_part.ProcessInfo[TIME] += delta_time
+
+            SetNodalValuesForPointOutputProcesses(model_part)
+
+            for process in list_of_processes:
+                process.ExecuteInitializeSolutionStep()
+
+            for process in list_of_processes:
+                process.ExecuteBeforeOutputStep()
+
+            for process in list_of_processes:
+                try:
+                    process.PrintOutput()
+                except AttributeError: # only the output process has this method!
+                    pass
+
+            for process in list_of_processes:
+                process.ExecuteAfterOutputStep()
+
+            for process in list_of_processes:
+                process.ExecuteFinalizeSolutionStep()
+
+        for process in list_of_processes:
+            process.ExecuteFinalize()
+
+    def test_point_output_process_failed_restart(self):
         pass
 
     def test_multiple_point_output_process(self):

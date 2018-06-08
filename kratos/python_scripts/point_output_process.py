@@ -111,16 +111,22 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 output_file_name += ".dat"
 
             if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-                # if the simulation is restarted we search for file
+                # if the simulation is restarted we search for a  file
                 # existing from the previous run to append the data
-                if os.path.isfile(output_file_name):
-                    self.output_file.append(AddToExistingOutputFile(output_file_name))
-                # if no existing file can be found we create a new one
+                restart_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+                existing_file_is_valid, out_file = AddToExistingOutputFile(output_file_name,
+                                                                           entity_type,
+                                                                           point,
+                                                                           self.output_variables[0],
+                                                                           restart_time)
+                if existing_file_is_valid:
+                    self.output_file.append(out_file)
+                # if no valid file can be found we create a new one
                 # and issue a warning
                 else:
                     warn_msg  = "No data file was found after restarting,\n"
                     warn_msg += "writing to a new file"
-                    KratosMultiphysics.Logger.PrintWarnint("PointOutputProcess", warn_msg)
+                    KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
 
                     self.output_file.append(InitializeOutputFile(output_file_name,
                                                                  entity_type,
@@ -201,6 +207,25 @@ def InitializeOutputFile(output_file_name, entity_type, point, output_variables)
     output_file.write(out)
 
     return output_file
+
+def AddToExistingOutputFile(output_file_name, entity_type, point, output_variables, restart_time):
+    if not os.path.isfile(output_file_name):
+        return False, None
+
+    try: # We try to open the file and transfer the info
+        with open(output_file_name,'r') as out_file:
+            lines_existing_file = out_file.readlines()
+
+        output_file = open(output_file_name,"w") # this overwrites the old file
+
+        # search for time, return false if it was not found
+
+        # copy corresponding lines to new file and open it
+
+        return True, output_file
+    except:
+        return False, None
+
 
 
 def Interpolate(variable, entity, sf_values):
