@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -61,78 +61,20 @@
 namespace Kratos
 {
 
-    //element
-    KRATOS_CREATE_VARIABLE( int, COUNTER )
-    KRATOS_CREATE_VARIABLE( int, MP_NUMBER )
-    KRATOS_CREATE_VARIABLE( int, MP_BOOL )
-    KRATOS_CREATE_VARIABLE( int, MP_MATERIAL_ID )
-    KRATOS_CREATE_VARIABLE( double, WEIGHT )
-    KRATOS_CREATE_VARIABLE( double, MP_MASS )
-    KRATOS_CREATE_VARIABLE( double, MP_DENSITY )
-    KRATOS_CREATE_VARIABLE( double, MP_VOLUME )
-    KRATOS_CREATE_VARIABLE( double, MP_KINETIC_ENERGY )
-    KRATOS_CREATE_VARIABLE( double, MP_STRAIN_ENERGY )
-    KRATOS_CREATE_VARIABLE( double, MP_TOTAL_ENERGY )
-    KRATOS_CREATE_VARIABLE( double, MP_PRESSURE )
-    KRATOS_CREATE_VARIABLE( double, MP_JACOBIAN )
-    KRATOS_CREATE_VARIABLE( double, MP_EQUIVALENT_PLASTIC_STRAIN )
-    KRATOS_CREATE_VARIABLE( double, MP_CONSTITUTIVE_PRESSURE )
-    KRATOS_CREATE_VARIABLE( double, NODAL_MPRESSURE )
-    KRATOS_CREATE_VARIABLE( double, AUX_PRESSURE)
-    KRATOS_CREATE_VARIABLE( double, AUX_MP_PRESSURE)
-
-    //constitutive law
-    KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
-
-    KRATOS_CREATE_VARIABLE( double, DILATANCY_COEFFICIENT )
-
-
-    KRATOS_CREATE_VARIABLE(double, COHESION )
-    KRATOS_CREATE_VARIABLE(double, INTERNAL_DILATANCY_ANGLE )
-    //nodal dofs
-    //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
-    KRATOS_CREATE_VARIABLE( double, AUX_R)
-    KRATOS_CREATE_VARIABLE( double, AUX_T)
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_VEL )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_VEL )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_ACC )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_ACC )
-    KRATOS_CREATE_VARIABLE( double, NODAL_LUMPED_MASS)
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
-    //MP element variable
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( GAUSS_COORD )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MP_DISPLACEMENT )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MP_VELOCITY )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MP_ACCELERATION )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_VELOCITY )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_ACCELERATION )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MP_VOLUME_ACCELERATION )
-    KRATOS_CREATE_VARIABLE( Vector, MP_CAUCHY_STRESS_VECTOR )
-    KRATOS_CREATE_VARIABLE( Vector, MP_ALMANSI_STRAIN_VECTOR )
-    KRATOS_CREATE_VARIABLE( Vector, PREVIOUS_MP_CAUCHY_STRESS_VECTOR )
-    KRATOS_CREATE_VARIABLE( Vector, PREVIOUS_MP_ALMANSI_STRAIN_VECTOR )
-    KRATOS_CREATE_VARIABLE( Matrix, MP_CONSTITUTIVE_MATRIX )
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_AUX)
-    //grid node variable
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM)
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA)
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
-
     KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
         KratosApplication("ParticleMechanicsApplication"),
         mUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         //mUpdatedLagrangianUP3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4) ) ) )
+        mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4) ) ) ),
         //mUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
         //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
         //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
-        //mMPMLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-        //mMPMLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
-        //mMPMLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
-        //mMPMLineLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
+        mMPMPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
+        mMPMPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
+        mMPMLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
+        mMPMSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
 
     {}
 
@@ -146,13 +88,19 @@ namespace Kratos
                         << "          |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____| MECHANICS " << std::endl
                         << "Initializing KratosParticleMechanicsApplication...              " << std::endl;
 
-        //Registering elements and conditions here
+        //Registering elements
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D3N", mUpdatedLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D4N", mUpdatedLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
         //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP3D4N", mUpdatedLagrangianUP3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D4N", mUpdatedLagrangian2D4N )
         //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D4N", mUpdatedLagrangianUP2D4N )
+
+        //Registering conditions
+        KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition2D1N", mMPMPointLoadCondition2D1N )
+        KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition3D1N", mMPMPointLoadCondition3D1N )
+        KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition2D2N", mMPMLineLoadCondition2D2N)
+        KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D3N", mMPMSurfaceLoadCondition3D3N)
 
         //element
         KRATOS_REGISTER_VARIABLE( COUNTER )
@@ -190,6 +138,17 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( NODAL_LUMPED_MASS )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
+
+        //conditions
+        //nodal load variables
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
+
+        //condition load variables
+        KRATOS_REGISTER_VARIABLE(POINT_LOADS_VECTOR)
+        KRATOS_REGISTER_VARIABLE(LINE_LOADS_VECTOR)
+        KRATOS_REGISTER_VARIABLE(SURFACE_LOADS_VECTOR)
 
         //MP element variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( GAUSS_COORD )

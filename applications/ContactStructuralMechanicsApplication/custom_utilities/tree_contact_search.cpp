@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
 
@@ -846,9 +847,9 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
                     double aux_distance = 0.0;
                     const array_1d<double, 3> normal = geom_slave[i_node].GetValue(NORMAL);
                     if (norm_2(normal) < tolerance)
-                        aux_distance = MortarUtilities::FastProjectDirection(geom_master, geom_slave[i_node], projected_point, normal_master, normal_slave);
+                        aux_distance = GeometricalProjectionUtilities::FastProjectDirection(geom_master, geom_slave[i_node], projected_point, normal_master, normal_slave);
                     else
-                        aux_distance = MortarUtilities::FastProjectDirection(geom_master, geom_slave[i_node], projected_point, normal_master, normal);
+                        aux_distance = GeometricalProjectionUtilities::FastProjectDirection(geom_master, geom_slave[i_node], projected_point, normal_master, normal);
 
                     array_1d<double, 3> result;
                     if (aux_distance <= geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_master.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
@@ -866,7 +867,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
                         }
                     }
 
-                    aux_distance = MortarUtilities::FastProjectDirection(geom_master, geom_slave[i_node], projected_point, normal_master, -normal_master);
+                    aux_distance = GeometricalProjectionUtilities::FastProjectDirection(geom_master, geom_slave[i_node], projected_point, normal_master, -normal_master);
                     if (aux_distance <= geom_slave[i_node].FastGetSolutionStepValue(NODAL_H) * active_check_factor &&  geom_master.IsInside(projected_point, result, tolerance)) { // NOTE: This can be problematic (It depends the way IsInside() and the local_pointCoordinates() are implemented)
                         at_least_one_node_potential_contact = true;
                         geom_slave[i_node].Set(ACTIVE, true);

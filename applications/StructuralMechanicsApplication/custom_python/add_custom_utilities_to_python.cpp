@@ -19,6 +19,9 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 //Utilities
+#include "custom_utilities/formfinding_io_utility.h"
+
+//Utilities
 
 namespace Kratos
 {
@@ -28,6 +31,13 @@ namespace Python
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
+
+    class_<FormfindingIOUtility>(m,"FormfindingIOUtility")
+    .def(init<ModelPart&, const Parameters>())
+    .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
+    .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
+    .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
+    ;
 }
 
 }  // namespace Python.  

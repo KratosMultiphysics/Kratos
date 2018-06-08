@@ -214,7 +214,7 @@ class ApplicationGenerator(TemplateRule):
 
         # add it to kratos
         self._addApplicationToCMake()
-        self._addApplicationToAppList()
+        # self._addApplicationToAppList()
 
     # Interal goes here
     def _applyTemplateRulesToFile(self, src, dst, rules):
