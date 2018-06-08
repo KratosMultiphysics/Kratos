@@ -41,6 +41,8 @@ PYBIND11_MODULE(KratosFluidTransportApplication, m)
 	.def(init<>());
 
 	//registering variables in python
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PECLET);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,PHI_GRADIENT);
 }
 
 

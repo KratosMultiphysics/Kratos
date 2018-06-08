@@ -14,13 +14,14 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidTransportApplication 
 set( KRATOS_FLUID_TRANSPORT_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/fluid_transport_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fluid_transport_application_variables.cpp
-  
+
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/steady_convection_diffusion_FIC_element.cpp
 )
 
 ## Define python interface sources
 set( KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_transport_python_application.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
 ###############################################################################

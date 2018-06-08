@@ -15,6 +15,7 @@
 #define  KRATOS_STEADY_CONVECTION_DIFFUSION_FIC_ELEMENT_H_INCLUDED
 
 // Project includes
+#include <cmath>
 #include "containers/array_1d.h"
 #include "includes/define.h"
 #include "includes/element.h"
@@ -22,6 +23,8 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 #include "includes/convection_diffusion_settings.h"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/element_size_calculator.cpp"
 
 // Application includes
 // TODO: Create base element
@@ -171,13 +174,18 @@ protected:
 
     void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
+    void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
+                                                    const PropertiesType& Prop);
 
-    double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,2>& rVelocity);
+    void CalculateFICBeta(ElementVariables& rVariables);
 
-    //double AverageElementSize(const Geometry<Node<3> >& rGeometry);
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer,
-                                        const array_1d<array_1d<double,TDim>, TNumNodes>& VariableWithComponents,const unsigned int& GPoint);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
