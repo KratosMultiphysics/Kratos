@@ -154,11 +154,6 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
         if (self.echo_level == 0):
             KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
-        ## Structure model part definition
-        main_model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        self.main_model_part = KratosMultiphysics.ModelPart(main_model_part_name)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.project_parameters["problem_data"]["domain_size"].GetInt())
-
         ## Solver construction
         import python_solvers_wrapper_adaptative_structural
         self.solver = python_solvers_wrapper_adaptative_structural.CreateSolver(self.model, self.project_parameters)

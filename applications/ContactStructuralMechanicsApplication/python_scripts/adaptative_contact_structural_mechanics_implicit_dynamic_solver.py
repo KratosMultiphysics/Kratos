@@ -26,8 +26,8 @@ except ImportError as e:
 # Import base class file
 import contact_structural_mechanics_implicit_dynamic_solver
 
-def CreateSolver(main_model_part, custom_settings):
-    return AdaptativeContactImplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return AdaptativeContactImplicitMechanicalSolver(model, custom_settings)
 
 class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_implicit_dynamic_solver.ContactImplicitMechanicalSolver):
     """The structural mechanics static solver. (Fot adaptative remeshing)
@@ -41,7 +41,7 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         adaptative_remesh_parameters = KM.Parameters("""
         {
@@ -86,7 +86,7 @@ class AdaptativeContactImplicitMechanicalSolver(contact_structural_mechanics_imp
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
 
         # Construct the base solver.
-        super(AdaptativeContactImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(AdaptativeContactImplicitMechanicalSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[AdaptativeContactImplicitMechanicalSolver]:: ", "Construction finished")
 
     #### Private functions ####
