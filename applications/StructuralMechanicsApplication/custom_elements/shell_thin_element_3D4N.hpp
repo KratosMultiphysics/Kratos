@@ -136,7 +136,7 @@ Southern California, 2012.
 				return mXYDeriv;
 			}
 
-			inline const double Determinant()const
+			inline double Determinant()const
 			{
 				return mDet;
 			}

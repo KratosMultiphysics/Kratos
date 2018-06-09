@@ -18,6 +18,7 @@ from navier_stokes_wall_condition_test import NavierStokesWallConditionTest
 from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from volume_source_test import VolumeSourceTest
 from fluid_analysis_test import FluidAnalysisTest
+from adjoint_fluid_test import AdjointFluidTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -71,6 +72,7 @@ def AssambleTestSuites():
     nightSuite.addTest(TimeIntegratedFluidElementTest('testCavity'))
     nightSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
+    nightSuite.addTest(AdjointFluidTest('testCylinder'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']

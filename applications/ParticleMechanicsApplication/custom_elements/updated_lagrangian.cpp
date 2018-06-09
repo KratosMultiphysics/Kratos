@@ -397,15 +397,10 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     //the MP density is updated
     double MP_Density = (GetProperties()[DENSITY]) / Variables.detFT;
     this->SetValue(MP_DENSITY, MP_Density);
-    //if(this->Id() == 1786 || this->Id() == 1836)
-    //{
-    //std::cout<<"density "<<this->Id() << GetProperties()[DENSITY]<<std::endl;
-    //}
 
     //the integration weight is evaluated
     double MP_Volume = this->GetValue(MP_MASS)/this->GetValue(MP_DENSITY);
 
-    //this->SetValue(MP_DENSITY, MP_Density);
     this->SetValue(MP_VOLUME, MP_Volume);
         
     if ( rLocalSystem.CalculationFlags.Is(UpdatedLagrangian::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
@@ -470,16 +465,6 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
 
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
-
-    //if(this->Id() == 365)
-    //{
-
-    //std::cout<<"rVariables.DN_DX "<<this->Id()<<rVariables.DN_DX<<std::endl;
-    //std::cout<<"rVariables.DN_De "<<this->Id()<<rVariables.DN_De<<std::endl;
-    //std::cout<<"rVariables.J "<<this->Id()<<rVariables.J<<std::endl;
-    //std::cout<<"rVariables.j "<<this->Id()<<rVariables.j<<std::endl;
-    //std::cout<<"Invj "<<this->Id()<<Invj<<std::endl;
-    //}
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
@@ -964,22 +949,7 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
         //double NodalArea = GetGeometry()[j].FastGetSolutionStepValue(NODAL_LUMPED_MASS,0);
         //double NodalMass = NodalDensity * NodalArea;
         //AUX_MP_Mass += Variables.N[j] * NodalMass;
-        //if(this->Id()==12514 || this->Id()==12515 || this->Id()==12516)
-        //{
-        //std::cout<<"NODE ID "<<GetGeometry()[j].Id()<<std::endl;
-        //std::cout<<" NodalDensity "<<NodalDensity<<std::endl;
-        //std::cout<<" NodalArea "<<NodalArea<<std::endl;
-        //std::cout<<" NodalMass "<<NodalMass<<std::endl;
-        //std::cout<<" Variables.N[j] "<<Variables.N[j]<<std::endl;
-        //std::cout<<" AUX_MP_Mass "<< AUX_MP_Mass<<std::endl;
-        //}
-
-        //}
-        //if(this->Id()==12514 || this->Id()==12515 || this->Id()==12516)
-        //{
-        //std::cout<<" MP_Mass "<< MP_Mass<<std::endl;
-        //std::cout<<" AUX_MP_Mass "<< AUX_MP_Mass<<std::endl;
-        //}
+ 
 
         for (unsigned int i=0; i<number_of_nodes; i++)
 
@@ -987,15 +957,7 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
             GetGeometry()[i].SetLock();
             GetGeometry()[i].FastGetSolutionStepValue(AUX_R) += Variables.N[i] * (MP_Mass);// - AUX_MP_Mass);
             GetGeometry()[i].UnSetLock();
-            //if(GetGeometry()[i].Id() == 538 )
-            //{
-            //std::cout<<"ELEMENT ID "<<this->Id()<<std::endl;
-            //std::cout<<" MP_Mass "<<MP_Mass<<std::endl;
-            //std::cout<<" xg "<<xg<<std::endl;
-            //std::cout<<"Variables.N "<< Variables.N<<std::endl;
-            //std::cout<<"Variables.N[i] "<< Variables.N[i]<<std::endl;
-            //std::cout<<"AUX_R "<< GetGeometry()[i].GetSolutionStepValue(AUX_R)<<std::endl;
-            //}
+
         }
     }
 
@@ -1154,8 +1116,6 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     // In the Initialize of each time step the nodal initial conditions are evaluated
     //1. first of all I need to evaluate the MP momentum and MP_inertia
 
-
-
     //int MP_bool = this->GetValue(MP_BOOL);
 
     //std::cout<<" in InitializeSolutionStep2"<<std::endl;
@@ -1164,8 +1124,6 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
     GeneralVariables Variables;
     //this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
-
 
     Matrix J0 = ZeroMatrix(dimension, dimension);
 
@@ -1442,15 +1400,6 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
             // const double NodalMass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS, 0);
             // array_1d<double,3> NodalMomentum = NodalMass * NodalVelocity;
             // array_1d<double,3> NodalInertia = NodalMass * NodalAcceleration;
-
-            //if (this->Id() == 1518 || this->Id() == 1513)
-            //{
-            //std::cout<< "Nodal ID "<< GetGeometry()[i].Id()<<std::endl;
-            //std::cout<< "NodalAcceleration "<<NodalAcceleration<<std::endl;
-            //std::cout<< "NodalVelocity "<<NodalVelocity<<std::endl;
-            //std::cout<< "NodalMass "<<NodalMass<<std::endl;
-            //std::cout<< "rVariables.N "<<rVariables.N<<std::endl;
-            //}
 
             for ( unsigned int j = 0; j < dimension; j++ )
             {

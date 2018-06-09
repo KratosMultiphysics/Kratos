@@ -177,13 +177,13 @@ namespace Kratos
     {
         std::string aux_string;
         const std::string string_to_remove = "This properties contains 0 tables";
-            
+
         for(PropertiesContainerType::const_iterator i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; i_properties++)
         {
             std::ostringstream aux_ostream;
             (*mpStream) << "Begin Properties " << i_properties->Id() << std::endl;
             i_properties->PrintData(aux_ostream);
-            
+
             aux_string = aux_ostream.str();
             std::string::size_type i = aux_string.find(string_to_remove);
 
@@ -191,9 +191,9 @@ namespace Kratos
             {
                 aux_string.erase(i, string_to_remove.length());
             }
-            
+
             aux_string.erase(std::remove(aux_string.begin(), aux_string.end(), ':'), aux_string.end());
-            
+
             (*mpStream) << aux_string << std::endl;
             (*mpStream) << "End Properties" << std::endl << std::endl;
         }
@@ -244,28 +244,28 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
 
     void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
-    {        
+    {
         // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
         if (rThisElements.size() > 0) {
             std::string element_name;
 
             auto it_element = rThisElements.begin();
             auto elements_components = KratosComponents<Element>::GetComponents();
-            
+
             // Fisrt we do the first element
             CompareElementsAndConditionsUtility::GetRegisteredName(*it_element, element_name);
-            
+
             (*mpStream) << "Begin Elements\t" << element_name << std::endl;
             (*mpStream) << "\t" << rThisElements.begin()->Id() << "\t" << (rThisElements.begin()->pGetProperties())->Id() << "\t";
             for (std::size_t i_node = 0; i_node < rThisElements.begin()->GetGeometry().size(); i_node++)
                 (*mpStream) << rThisElements.begin()->GetGeometry()[i_node].Id() << "\t";
             (*mpStream) << std::endl;
-            
+
             // Now we iterate over all the elements
             for(std::size_t i = 1; i < rThisElements.size(); i++) {
                 auto it_elem_previous = rThisElements.begin() + i - 1;
@@ -278,9 +278,9 @@ namespace Kratos
                     (*mpStream) << std::endl;
                 } else {
                     (*mpStream) << "End Elements" << std::endl << std::endl;;
-                    
+
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                    
+
                     (*mpStream) << "Begin Elements\t" << element_name << std::endl;
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
@@ -288,11 +288,11 @@ namespace Kratos
                     (*mpStream) << std::endl;
                 }
             }
-            
+
             (*mpStream) << "End Elements" << std::endl << std::endl;
         }
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
 
@@ -339,13 +339,13 @@ namespace Kratos
     void ModelPartIO::WriteConditions(ConditionsContainerType const& rThisConditions)
     {
         // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condition has changed
-        
+
         if (rThisConditions.size() > 0) {
             std::string condition_name;
 
             auto it_condition = rThisConditions.begin();
             auto conditions_components = KratosComponents<Condition>::GetComponents();
-            
+
             // Fisrt we do the first condition
             CompareElementsAndConditionsUtility::GetRegisteredName(*it_condition, condition_name);
 
@@ -354,7 +354,7 @@ namespace Kratos
             for (std::size_t i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); i_node++)
                 (*mpStream) << rThisConditions.begin()->GetGeometry()[i_node].Id() << "\t";
             (*mpStream) << std::endl;
-            
+
             // Now we iterate over all the conditions
             for(std::size_t i = 1; i < rThisConditions.size(); i++) {
                 auto it_cond_previous = rThisConditions.begin() + i - 1;
@@ -369,7 +369,7 @@ namespace Kratos
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
 
                     CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                    
+
                     (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
@@ -377,7 +377,7 @@ namespace Kratos
                     (*mpStream) << std::endl;
                 }
             }
-            
+
             (*mpStream) << "End Conditions" << std::endl << std::endl;
         }
     }
@@ -477,24 +477,24 @@ namespace Kratos
     void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
     {
         Timer::Start("Writing Output");
-        
+
         // Setting the buffer size
 //         size_t size_buffer = 4096; // Look to modify this
 //         char Buffer[size_buffer];
 //         mpStream->rdbuf()->pubsetbuf(Buffer, size_buffer);
-        
+
 //         WriteModelPartDataBlock(rThisModelPart); // TODO: FINISH ME
         WriteTableBlock(rThisModelPart.Tables());
         WriteMesh(rThisModelPart.GetMesh());
         WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
         WriteDataBlock(rThisModelPart.Elements(), "Element");
-        WriteDataBlock(rThisModelPart.Conditions(),"Condition"); 
+        WriteDataBlock(rThisModelPart.Conditions(),"Condition");
 //         WriteCommunicatorDataBlock(); // TODO: FINISH ME
 //         WriteMeshBlock(rThisModelPart); // TODO: FINISH ME
         WriteSubModelPartBlock(rThisModelPart, "");
-        
+
         KRATOS_INFO("ModelPartIO") << "  [Total Lines Wrote : " << mNumberOfLines<<"]" << std::endl;
-        
+
         Timer::Stop("Writing Output");
     }
 
@@ -851,14 +851,14 @@ namespace Kratos
     void ModelPartIO::WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart)
     {
         KRATOS_TRY;
-        
+
         (*mpStream) << "Begin ModelPartData" << std::endl;
         // TODO: Finish me!!!!!
         (*mpStream) << "End ModelPartData" << std::endl;
-        
+
         KRATOS_CATCH("");
     }
-    
+
 
     template<class TablesContainerType>
     void ModelPartIO::ReadTableBlock(TablesContainerType& rTables)
@@ -977,30 +977,30 @@ namespace Kratos
     void ModelPartIO::WriteTableBlock(TablesContainerType& rTables)
     {
         std::string variable1, variable2; // NOTE: NOT POSSIBLE TO KNOW
-        
+
         // "SOLUTION" // FIXME: We need to think about the how to make possible to define the variables described in the table
         variable1 = "DISTANCE";
         variable2 = "TIME";
-        
+
         auto numTables = rTables.end() - rTables.begin();
-        
-        for(unsigned int i = 0; i < numTables; i++) 
+
+        for(unsigned int i = 0; i < numTables; i++)
         {
             auto itTable = rTables.begin() + i;
-            
+
             const auto& Data = itTable->Data();
             std::size_t size = Data.size();
-            
+
             (*mpStream) << "Begin Table" << i << "\t" << variable1 << "\t" << variable2 << " // NOTE: The variables does not correspond with the real ones. Right now the KRATOS Table's does not store the variables"<< std::endl;
-            
+
             for(std::size_t j = 1 ; j < size ; j++)
             {
                 const auto X = Data[j].first;
                 const auto Y = (Data[j].second)[0];
-                
+
                 (*mpStream) << X << "\t" << Y << std::endl;
             }
-            
+
             (*mpStream) << "End Table" << std::endl;
         }
     }
@@ -1008,34 +1008,34 @@ namespace Kratos
     void ModelPartIO::WriteTableBlock(ModelPart::TablesContainerType& rTables)
     {
         std::string variable1, variable2; // NOTE: NOT POSSIBLE TO KNOW
-        
+
         // "SOLUTION" // FIXME: We need to think about the how to make possible to define the variables described in the table
         variable1 = "DISTANCE";
         variable2 = "TIME";
-        
+
         auto numTables = rTables.end() - rTables.begin();
-        
-        for(unsigned int i = 0; i < numTables; i++) 
+
+        for(unsigned int i = 0; i < numTables; i++)
         {
             auto itTable = rTables.begin() + i;
-            
+
             const auto& Data = itTable->Data();
             std::size_t size = Data.size();
-            
+
             (*mpStream) << "Begin Table" << i << "\t" << variable1 << "\t" << variable2 << " // NOTE: The variables does not correspond with the real ones. Right now the KRATOS Table's does not store the variables"<< std::endl;
-            
+
             for(std::size_t j = 1 ; j < size ; j++)
             {
                 const auto X = Data[j].first;
                 const auto Y = (Data[j].second)[0];
-                
+
                 (*mpStream) << X << "\t" << Y << std::endl;
             }
-            
+
             (*mpStream) << "End Table" << std::endl;
         }
     }
-    
+
     void ModelPartIO::ReadNodesBlock(NodesContainerType& rThisNodes)
     {
 	KRATOS_TRY
@@ -1163,14 +1163,14 @@ namespace Kratos
          read_coordinates[ReorderedNodeId(id)] = coords;
 	  number_of_nodes_read++;
 	}
-	
-	
+
+
 	//make this to construct the nodes "in parallel" - the idea is that first touch is being done in parallel but the reading is actually sequential
 	const int nnodes = read_coordinates.size();
 	const int nthreads = OpenMPUtils::GetNumThreads();
         std::vector<int> partition;
         OpenMPUtils::DivideInPartitions(nnodes, nthreads, partition);
-        
+
         map_type::const_iterator it = read_coordinates.begin();
         for(int ithread=0; ithread<nthreads; ithread++)
         {
@@ -1626,33 +1626,33 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-    
+
     void ModelPartIO::WriteNodalDataBlock(ModelPart& rThisModelPart)
     {
         KRATOS_TRY
 
         VariablesList r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
         NodesContainerType& r_this_nodes = rThisModelPart.Nodes();
-        
+
         typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
-        
+
         std::string variable_name;
-        
+
         // FIXME: Maybe there is a better way (I get confused with to much KratosComponents)
-        for(std::size_t i = 0; i < r_this_variables.size(); i++) 
+        for(std::size_t i = 0; i < r_this_variables.size(); i++)
         {
             auto it_var = r_this_variables.begin() + i;
-            
+
             variable_name = it_var->Name();
-            
+
             if(KratosComponents<Flags >::Has(variable_name))
             {
                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
-                auto Variable = static_cast<Flags const& >(KratosComponents<Flags>::Get(variable_name)); 
-                for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
+                auto Variable = static_cast<Flags const& >(KratosComponents<Flags>::Get(variable_name));
+                for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                 {
                     auto it_node = r_this_nodes.begin() + j;
-                    
+
                     const bool is_fixed = it_node->Is(Variable); // FIXME: I don't know if they are set this way
                     (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->Is(Variable) << std::endl;
                 }
@@ -1662,10 +1662,10 @@ namespace Kratos
             {
                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
                 auto Variable = static_cast<Kratos::Variable<int> const& >(KratosComponents<Kratos::Variable<int> >::Get(variable_name));
-                for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
+                for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                 {
                     auto it_node = r_this_nodes.begin() + j;
-                    
+
                     const bool is_fixed = it_node->IsFixed(Variable);
                     (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
                 }
@@ -1675,10 +1675,10 @@ namespace Kratos
             {
                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
                 auto Variable = static_cast<Kratos::Variable<double> const& >(KratosComponents<Kratos::Variable<double> >::Get(variable_name));
-                for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
+                for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                 {
                     auto it_node = r_this_nodes.begin() + j;
-                    
+
                     const bool is_fixed = it_node->IsFixed(Variable);
                     (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
                 }
@@ -1688,10 +1688,10 @@ namespace Kratos
             {
                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
                 auto Variable = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name));
-                for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
+                for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                 {
                     auto it_node = r_this_nodes.begin() + j;
-                    
+
                     const bool is_fixed = it_node->IsFixed(Variable);
                     (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
                 }
@@ -1703,35 +1703,35 @@ namespace Kratos
                 {
                     (*mpStream) << "Begin NodalData\t" << variable_name << "_X" << std::endl;
                     auto VariableX = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_X"));
-                    for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
+                    for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                     {
                         auto it_node = r_this_nodes.begin() + j;
-                        
+
                         const bool is_fixed = it_node->IsFixed(VariableX);
                         (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(VariableX, 0) << std::endl;
                     }
                     (*mpStream) << "End NodalData" << std::endl << std::endl;
-                    
+
                     (*mpStream) << "Begin NodalData\t" << variable_name << "_Y" << std::endl;
                     auto VariableY = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_Y"));
-                    for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
+                    for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                     {
                         auto it_node = r_this_nodes.begin() + j;
-                        
+
                         const bool is_fixed = it_node->IsFixed(VariableY);
                         (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(VariableY, 0) << std::endl;
                     }
                     (*mpStream) << "End NodalData" << std::endl << std::endl;
-                    
+
                     (*mpStream) << "Begin NodalData\t" << variable_name << "_Z" << std::endl;
                     auto VariableZ = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_Z"));
-                    for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
+                    for(std::size_t j = 0; j < r_this_nodes.size(); j++)
                     {
                         auto it_node = r_this_nodes.begin() + j;
-                        
+
                         const bool is_fixed = it_node->IsFixed(VariableZ);
                         (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(VariableZ, 0) << std::endl;
-                    } 
+                    }
                     (*mpStream) << "End NodalData" << std::endl << std::endl;
                 }
                 else
@@ -1768,7 +1768,7 @@ namespace Kratos
             {
                 KRATOS_WARNING("ModelPartIO") << variable_name << " is not a valid variable for output!!!" << std::endl;
             }
-                        
+
         }
 
         KRATOS_CATCH("")
@@ -1777,7 +1777,7 @@ namespace Kratos
     void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName){
         typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
         std::unordered_set<std::string> variables;
-        
+
         for(auto& object :rThisObjectContainer){
             for(auto& var:object.GetData()){
                 auto const& is_included = variables.find(var.first->Name());
@@ -1810,7 +1810,7 @@ namespace Kratos
                     }
                     else
                         KRATOS_WARNING("ModelPartIO") << var.first->Name() << " is not a valid variable for output!!!" << std::endl;
-                    
+
                 }
             }
         }
@@ -3029,11 +3029,11 @@ namespace Kratos
 
 		KRATOS_CATCH("")
 	}
-	
+
 	void ModelPartIO::WriteSubModelPartBlock(
-        ModelPart& rMainModelPart, 
+        ModelPart& rMainModelPart,
         const std::string InitialTabulation) {
-            
+
 		KRATOS_TRY;
 
         const std::vector<std::string> sub_model_part_names = rMainModelPart.GetSubModelPartNames();
@@ -3042,25 +3042,25 @@ namespace Kratos
 
             const std::string sub_model_part_name = sub_model_part_names[i_sub];
             ModelPart& r_sub_model_part = rMainModelPart.GetSubModelPart(sub_model_part_name);
-            
+
             (*mpStream) << InitialTabulation << "Begin SubModelPart\t" << sub_model_part_name << std::endl;
-            
+
             // Submodelpart data section
             (*mpStream) << InitialTabulation << "\tBegin SubModelPartData" << std::endl;
             // VARIABLE_NAME value // TODO: Finish me
             (*mpStream) << InitialTabulation  << "\tEnd SubModelPartData" << std::endl;
-            
+
             // Submodelpart tables section
             (*mpStream) << InitialTabulation  << "\tBegin SubModelPartTables" << std::endl;
 //                     ModelPart::TablesContainerType& rThisTables = rMainModelPart.Tables();
 //                     auto numTables = rThisTables.end() - rThisTables.begin();
-//                     for(unsigned int i = 0; i < numTables; i++) 
+//                     for(unsigned int i = 0; i < numTables; i++)
 //                     {
 //                         auto itTable = rThisTables.begin() + i;
 //                         (*mpStream) << InitialTabulation << "\t" << itTable->Id() << std::endl; //FIXME: Tables does not have Id() Whyyyyy?
 //                     }
             (*mpStream) << InitialTabulation << "\tEnd SubModelPartTables" << std::endl;
-            
+
             // Submodelpart nodes section
             (*mpStream) << InitialTabulation << "\tBegin SubModelPartNodes" << std::endl;
             NodesContainerType& rThisNodes = r_sub_model_part.Nodes();
@@ -3070,7 +3070,7 @@ namespace Kratos
                 (*mpStream) << InitialTabulation << "\t\t" << itNode->Id() << std::endl;
             }
             (*mpStream) << InitialTabulation << "\tEnd SubModelPartNodes" << std::endl;
-            
+
             // Submodelpart elements section
             (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
             ElementsContainerType& rThisElements = r_sub_model_part.Elements();
@@ -3080,7 +3080,7 @@ namespace Kratos
                 (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << std::endl;
             }
             (*mpStream) << InitialTabulation << "\tEnd SubModelPartElements" << std::endl;
-            
+
             // Submodelpart conditions section
             (*mpStream) << InitialTabulation << "\tBegin SubModelPartConditions" << std::endl;
             ConditionsContainerType& rThisConditions= r_sub_model_part.Conditions();
@@ -3090,16 +3090,16 @@ namespace Kratos
                 (*mpStream) << InitialTabulation << "\t\t" << itCond->Id() << std::endl;
             }
             (*mpStream) << InitialTabulation << "\tEnd SubModelPartConditions" << std::endl;
-            
+
             // Write the subsubmodelparts
             WriteSubModelPartBlock(r_sub_model_part, InitialTabulation+"\t");
-            
+
             (*mpStream) << InitialTabulation << "End SubModelPart\t" << std::endl << std::endl;
         }
 
 		KRATOS_CATCH("");
 	}
-	
+
 	void  ModelPartIO::ReadSubModelPartTablesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
 	{
 		KRATOS_TRY

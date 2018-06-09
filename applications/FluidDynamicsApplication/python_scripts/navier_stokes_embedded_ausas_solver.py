@@ -12,27 +12,18 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 import navier_stokes_embedded_solver
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesEmbeddedAusasMonolithicSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return NavierStokesEmbeddedAusasMonolithicSolver(model, custom_settings)
 
 class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
-    def __init__(self, main_model_part, custom_settings):
+    def _ValidateSettings(self, settings):
 
-        self.element_name = "EmbeddedAusasNavierStokes"
-        self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
-        self.min_buffer_size = 3
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
-        ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "EmbeddedAusas",
+            "model_part_name": "FluidModelPart",
+            "domain_size": 2,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -52,7 +43,7 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL_NS_Solver"
+                "solver_type"         : "AMGCL"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -68,18 +59,16 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
             "reorder": false
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 
-        ## Construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+    def __init__(self, model, custom_settings):
 
-        ## Set the distance reading filename
-        # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
-        if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
-            self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
+        super(NavierStokesEmbeddedAusasMonolithicSolver,self).__init__(model,custom_settings)
+
+        self.element_name = "EmbeddedAusasNavierStokes"
+        self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
+        self.min_buffer_size = 3
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedAusasMonolithicSolver", "Construction of NavierStokesEmbeddedAusasMonolithicSolver finished.")
 
@@ -102,7 +91,8 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
     def InitializeSolutionStep(self):
         (self.bdf_process).Execute()
         (self.find_nodal_neighbours_process).Execute()
-        (self.solver).InitializeSolutionStep()
+        if self._TimeBufferIsInitialized():
+            (self.solver).InitializeSolutionStep()
 
 
     def Solve(self):
@@ -110,5 +100,5 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
         (self.find_nodal_neighbours_process).Execute()
 
         # Note that the first two time steps are dropped to fill the BDF buffer
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
+        if self._TimeBufferIsInitialized():
             (self.solver).Solve()

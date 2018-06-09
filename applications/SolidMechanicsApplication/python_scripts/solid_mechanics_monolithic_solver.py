@@ -292,7 +292,7 @@ class MonolithicSolver(object):
         AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, dof_variables, dof_reactions)
         AddDofsProcess.Execute()
         if( self.echo_level > 1 ):
-            print(self.dof_variables + self.dof_reactions)
+            print(dof_variables + dof_reactions)
             print("::[Solver]:: DOF's ADDED")
 
 

@@ -361,21 +361,21 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
-    print("\nRunning cpp unit tests ...")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
-    print("Finished running cpp unit tests!")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    print("\nRunning mpi python tests ...")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
     try:
         import KratosMultiphysics.mpi as KratosMPI
         import KratosMultiphysics.MetisApplication as MetisApplication
         import KratosMultiphysics.TrilinosApplication as TrilinosApplication
         p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"], stdout=subprocess.PIPE)
         p.wait()
-        print("Finished mpi python tests!")
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
     except ImportError:
-        print("mpi is not available!")
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
 
-    print("\nRunning python tests ...")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
-    print("Finished python tests!")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
