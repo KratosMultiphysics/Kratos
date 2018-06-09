@@ -24,8 +24,8 @@ except ImportError as e:
 # Import base class file
 import structural_mechanics_implicit_dynamic_solver
 
-def CreateSolver(main_model_part, custom_settings):
-    return AdaptativeImplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return AdaptativeImplicitMechanicalSolver(model, custom_settings)
 
 class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.ImplicitMechanicalSolver):
     """The structural mechanics static solver. (Fot adaptative remeshing)
@@ -39,7 +39,7 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         adaptative_remesh_parameters = KratosMultiphysics.Parameters("""
         {
@@ -84,7 +84,7 @@ class AdaptativeImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_s
         self.adaptative_remesh_parameters = adaptative_remesh_parameters
 
         # Construct the base solver.
-        super(AdaptativeImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(AdaptativeImplicitMechanicalSolver, self).__init__(model, custom_settings)
 
         if (self.settings["reform_dofs_at_each_step"].GetBool() is False):
             self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
