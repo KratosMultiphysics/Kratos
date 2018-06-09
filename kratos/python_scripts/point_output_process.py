@@ -115,9 +115,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 # existing from the previous run to append the data
                 restart_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
                 existing_file_is_valid, out_file = AddToExistingOutputFile(output_file_name,
-                                                                           entity_type,
-                                                                           point,
-                                                                           self.output_variables[0],
                                                                            restart_time)
 
                 if existing_file_is_valid:
@@ -209,7 +206,7 @@ def InitializeOutputFile(output_file_name, entity_type, point, output_variables)
 
     return output_file
 
-def AddToExistingOutputFile(output_file_name, entity_type, point, output_variables, restart_time):
+def AddToExistingOutputFile(output_file_name, restart_time):
     if not os.path.isfile(output_file_name):
         return False, None
 
@@ -223,8 +220,6 @@ def AddToExistingOutputFile(output_file_name, entity_type, point, output_variabl
         # copy corresponding lines to new file and open it
         is_found = False
 
-        counter = 0
-
         for line in lines_existing_file:
             output_file.write(line)
             if line.startswith(str(restart_time)):
@@ -232,8 +227,8 @@ def AddToExistingOutputFile(output_file_name, entity_type, point, output_variabl
                 break
 
         if not(is_found):
-            warn_msg  = "No line was found in " + output_file_name + " after restarting containing indicated restart time,\n"
-            warn_msg += "Appending results after restart from time " + str(restart_time) + " not possible"
+            warn_msg  = "No line was found in " + output_file_name + " after restarting containing indicated restart time, \n"
+            warn_msg += "appending results after restart from time " + str(restart_time) + " not possible"
             KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
 
         return True, output_file
