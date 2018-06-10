@@ -743,50 +743,12 @@ class TestProcesses(KratosUnittest.TestCase):
                     } ]
         }""")
 
-        Model = {"Main":model_part}
-
-        import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
-            settings["process_list"] )
-
-
-        for process in list_of_processes:
-            process.ExecuteInitialize()
-
-        for process in list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
         end_time = 5.0
         delta_time = 0.15
 
         model_part.ProcessInfo[TIME] = 0.0
 
-        while model_part.ProcessInfo[TIME] < end_time:
-            model_part.ProcessInfo[TIME] += delta_time
-
-            SetNodalValuesForPointOutputProcesses(model_part)
-
-            for process in list_of_processes:
-                process.ExecuteInitializeSolutionStep()
-
-            for process in list_of_processes:
-                process.ExecuteBeforeOutputStep()
-
-            for process in list_of_processes:
-                try:
-                    process.PrintOutput()
-                except AttributeError: # only the output process has this method!
-                    pass
-
-            for process in list_of_processes:
-                process.ExecuteAfterOutputStep()
-
-            for process in list_of_processes:
-                process.ExecuteFinalizeSolutionStep()
-
-        for process in list_of_processes:
-            process.ExecuteFinalize()
-
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_element(self):
         pass
@@ -799,6 +761,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
 
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
@@ -812,7 +775,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "position"         : [0.5, 0.0, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "point_output_rest",
-                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION", "VELOCITY_Y"],
                             "entity_type"      : "node"
                         }
                     },{
@@ -827,8 +790,6 @@ class TestProcesses(KratosUnittest.TestCase):
                     } ]
         }""")
 
-        Model = {"Main":model_part}
-
         # for the restart, one needs a _rest_base to preserve
         # as _rest will be modified (overwritten) and compared with _ref
         output_file_name = settings["process_list"][0]["Parameters"]["output_file_name"].GetString()
@@ -837,53 +798,18 @@ class TestProcesses(KratosUnittest.TestCase):
                 for line in base_file:
                     target_file.write(line)
 
-        import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
-            settings["process_list"] )
-
         model_part.ProcessInfo[IS_RESTARTED] = True
         model_part.ProcessInfo[TIME] = 2.1
-
-        for process in list_of_processes:
-            process.ExecuteInitialize()
-
-        for process in list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
 
         end_time = 5.0
         delta_time = 0.15
 
-        while model_part.ProcessInfo[TIME] < end_time:
-            model_part.ProcessInfo[TIME] += delta_time
-
-            SetNodalValuesForPointOutputProcesses(model_part)
-
-            for process in list_of_processes:
-                process.ExecuteInitializeSolutionStep()
-
-            for process in list_of_processes:
-                process.ExecuteBeforeOutputStep()
-
-            for process in list_of_processes:
-                try:
-                    process.PrintOutput()
-                except AttributeError: # only the output process has this method!
-                    pass
-
-            for process in list_of_processes:
-                process.ExecuteAfterOutputStep()
-
-            for process in list_of_processes:
-                process.ExecuteFinalizeSolutionStep()
-
-        for process in list_of_processes:
-            process.ExecuteFinalize()
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_failed_restart(self):
         pass
 
     def test_multiple_point_output_process(self):
-
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
@@ -936,49 +862,12 @@ class TestProcesses(KratosUnittest.TestCase):
                     } ]
         }""")
 
-        Model = {"Main":model_part}
-
-        import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
-            settings["process_list"] )
-
-
-        for process in list_of_processes:
-            process.ExecuteInitialize()
-
-        for process in list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
         end_time = 5.0
         delta_time = 0.15
 
         model_part.ProcessInfo[TIME] = 0.0
 
-        while model_part.ProcessInfo[TIME] < end_time:
-            model_part.ProcessInfo[TIME] += delta_time
-
-            SetNodalValuesForPointOutputProcesses(model_part)
-
-            for process in list_of_processes:
-                process.ExecuteInitializeSolutionStep()
-
-            for process in list_of_processes:
-                process.ExecuteBeforeOutputStep()
-
-            for process in list_of_processes:
-                try:
-                    process.PrintOutput()
-                except AttributeError: # only the output process has this method!
-                    pass
-
-            for process in list_of_processes:
-                process.ExecuteAfterOutputStep()
-
-            for process in list_of_processes:
-                process.ExecuteFinalizeSolutionStep()
-
-        for process in list_of_processes:
-            process.ExecuteFinalize()
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_line_output_process(self):
 
@@ -1034,50 +923,14 @@ class TestProcesses(KratosUnittest.TestCase):
                     }]
         }""")
 
-        Model = {"Main":model_part}
-
-        import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
-            settings["process_list"] )
-
         model_part.ProcessInfo[DOMAIN_SIZE] = 3
-
-        for process in list_of_processes:
-            process.ExecuteInitialize()
-
-        for process in list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
 
         end_time = 5.0
         delta_time = 0.15
 
         model_part.ProcessInfo[TIME] = 0.0
 
-        while model_part.ProcessInfo[TIME] < end_time:
-            model_part.ProcessInfo[TIME] += delta_time
-
-            SetNodalValuesForPointOutputProcesses(model_part)
-
-            for process in list_of_processes:
-                process.ExecuteInitializeSolutionStep()
-
-            for process in list_of_processes:
-                process.ExecuteBeforeOutputStep()
-
-            for process in list_of_processes:
-                try:
-                    process.PrintOutput()
-                except AttributeError: # only the output process has this method!
-                    pass
-
-            for process in list_of_processes:
-                process.ExecuteAfterOutputStep()
-
-            for process in list_of_processes:
-                process.ExecuteFinalizeSolutionStep()
-
-        for process in list_of_processes:
-            process.ExecuteFinalize()
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
 
 def SetNodalValuesForPointOutputProcesses(model_part):
@@ -1091,7 +944,44 @@ def SetNodalValuesForPointOutputProcesses(model_part):
         node.SetSolutionStepValue(ACCELERATION, vec*time)
         node.SetSolutionStepValue(VISCOSITY, time**2 + 1.038)
 
+def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
+    Model = {"Main":model_part}
 
+    import process_factory
+    list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
+        settings["process_list"] )
+
+    for process in list_of_processes:
+        process.ExecuteInitialize()
+
+    for process in list_of_processes:
+        process.ExecuteBeforeSolutionLoop()
+
+    while model_part.ProcessInfo[TIME] < end_time:
+        model_part.ProcessInfo[TIME] += delta_time
+
+        SetNodalValuesForPointOutputProcesses(model_part)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for process in list_of_processes:
+            process.ExecuteBeforeOutputStep()
+
+        for process in list_of_processes:
+            try:
+                process.PrintOutput()
+            except AttributeError: # only the output process has this method!
+                pass
+
+        for process in list_of_processes:
+            process.ExecuteAfterOutputStep()
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+    for process in list_of_processes:
+        process.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()

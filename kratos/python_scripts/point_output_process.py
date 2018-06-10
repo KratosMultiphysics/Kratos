@@ -12,7 +12,17 @@ def Factory(settings, Model):
     return PointOutputProcess(Model, settings["Parameters"])
 
 class PointOutputProcess(KratosMultiphysics.Process):
+    """This process writes results from a geometrical position (point) in the model to a file
+    It first searches the entity containing the requested output location and then interpolates
+    the requested variable(s)
+    The output can be requested for elements, conditions and nodes. For nodes no geometrical
+    interpolation is performed, the exact coordinates have to be specified.
 
+    This process works in MPI as well as with restarts
+
+    It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess)
+    Furthermore it can be used for testing in MPI where the node numbers can change
+    """
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
@@ -29,13 +39,11 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.params.ValidateAndAssignDefaults(default_settings)
 
         # These quantites are lists such that they can be looped
+        # => needed for mpi in case the point is in a different partition
         self.output_file = []
         self.entity = []
         self.area_coordinates = []
         self.output_variables = []
-
-        # TODO check if the variables requested for output are in the ModelPart
-        # for now throw an error and in the future add them automatically => #859
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
@@ -60,15 +68,16 @@ class PointOutputProcess(KratosMultiphysics.Process):
             raise Exception('No variables specified for output!')
         self.output_variables.append(output_vars)
         # validate types of variables
-        for var in self.output_variables:
-            if type(var) != KratosMultiphysics.DoubleVariable:
+        for var in self.output_variables[0]:
+            self.__CheckVariableIsSolutionStepVariable(var)
+            if type(var) == KratosMultiphysics.DoubleVariable:
                 continue
-            elif type(var) != KratosMultiphysics.Array1DVariable3:
+            elif type(var) == KratosMultiphysics.Array1DVariable3:
                 continue
-            elif type(var) != KratosMultiphysics.Array1DComponentVariable:
+            elif type(var) == KratosMultiphysics.Array1DComponentVariable:
                 continue
             else:
-                err_msg  = 'Type of variable "' + var + '" is not valid\n'
+                err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
                 err_msg += 'It can only be double, component or array3d!'
                 raise Exception(err_msg)
 
@@ -119,6 +128,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
                 if existing_file_is_valid:
                     self.output_file.append(out_file)
+
                 # if no valid file can be found we create a new one
                 # and issue a warning
                 else:
@@ -188,6 +198,16 @@ class PointOutputProcess(KratosMultiphysics.Process):
         '''Close output files.'''
         for f in self.output_file:
             f.close()
+
+    def __CheckVariableIsSolutionStepVariable(self, var):
+        # if the requested Variable is a component we check the source Variable
+        if type(var) == KratosMultiphysics.Array1DComponentVariable:
+            var = var.GetSourceVariable()
+
+        if not self.model_part.HasNodalSolutionStepVariable(var):
+            err_msg  = 'ModelPart "' + self.model_part.Name + '" does not have'
+            err_msg += ' "' + var.Name() + '" as SolutionStepVariable!'
+            raise Exception(err_msg)
 
 def InitializeOutputFile(output_file_name, entity_type, point, output_variables):
     output_file = open(output_file_name,"w")
