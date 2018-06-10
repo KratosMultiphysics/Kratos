@@ -19,42 +19,43 @@ class PoromechanicsAnalysis(AnalysisStage):
         # Time monitoring
         print(timer.ctime())
         self.initial_time = timer.perf_counter()
+        
+        # Create the ModelPart
+        model_part_name = parameters["problem_data"]["model_part_name"].GetString()
+        self.main_model_part = Kratos.ModelPart(model_part_name)
+
+        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE,
+                                                  parameters["problem_data"]["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(Kratos.TIME,
+                                                  parameters["problem_data"]["start_time"].GetDouble())
+        #TODO
+        #self.main_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 
+        #                                          parameters["problem_data"]["time_step"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
 
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
 
-        self.echo_level = self.project_parameters["solver_settings"]["echo_level"].GetInt()
-        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-
+        ## Import parallel modules if needed and set number of OMP threads
         parallel=Kratos.OpenMPUtils()
-        parallel.SetNumThreads(self.project_parameters["problem_data"]["number_of_threads"].GetInt())
-        # If this is an MPI run, load the distributed memory modules
+        parallel.SetNumThreads(parameters["problem_data"]["number_of_threads"].GetInt())
         if (self.parallel_type == "MPI"):
-            from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication
-            import KratosMultiphysics.TrilinosApplication
-            self.is_printing_rank = (mpi.rank == 0)
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             print("MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         else:
-            self.is_printing_rank = True
             print("OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         sys.stdout.flush()
 
-        ## Create model part and solver (but don't initialize them yet)
-        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        self.main_model_part = Kratos.ModelPart(model_part_name)
-
+    def _CreateSolver(self):
         solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
-        self.solver = solver_module.CreateSolver(self.main_model_part, self.project_parameters["solver_settings"])
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
 
     def Initialize(self):
+        #TODO: seguir despues de solver
         '''
         Construct and initialize all classes and tools used in the simulation loop.
         '''
-        domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
-        self.main_model_part.ProcessInfo.SetValue(Kratos.TIME, self.project_parameters["problem_data"]["start_time"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, self.project_parameters["problem_data"]["time_step"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
 
         self._SetUpRestart()
 

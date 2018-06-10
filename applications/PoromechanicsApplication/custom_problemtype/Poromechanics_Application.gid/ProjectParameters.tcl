@@ -16,7 +16,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
-    puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
+    puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
     puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
@@ -33,10 +33,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     } else {
         puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
     }
+    puts $FileVar "        \"model_part_name\":                    \"PorousDomain\","
+    puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
+    puts $FileVar "        \"time_step\":                          [GiD_AccessValue get gendata Delta_Time],"
     puts $FileVar "        \"model_import_settings\":              \{"
     puts $FileVar "            \"input_type\":       \"mdpa\","
-    puts $FileVar "            \"input_filename\":   \"$basename\","
-    puts $FileVar "            \"input_file_label\": 0"
+    puts $FileVar "            \"input_filename\":   \"$basename\""
     puts $FileVar "        \},"
     puts $FileVar "        \"buffer_size\":                        2,"
     puts $FileVar "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"

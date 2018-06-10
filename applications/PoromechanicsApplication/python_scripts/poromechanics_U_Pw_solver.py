@@ -1,24 +1,29 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
+from python_solver import PythonSolver
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("PoromechanicsApplication")
+
+# Import applications
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+def CreateSolver(model, custom_settings):
 
+    return UPwSolver(model, custom_settings)
 
-def CreateSolver(main_model_part, custom_settings):
+class UPwSolver(PythonSolver):
 
-    return UPwSolver(main_model_part, custom_settings)
+    def __init__(self, model, custom_settings):
 
+        settings = self._ValidateSettings(custom_settings)
 
-class UPwSolver(object):
+        #TODO: seguir
+        super(UPwSolver,self).__init__(model, settings)
 
-    def __init__(self, main_model_part, custom_settings):
-
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
         ##settings string in json format
