@@ -882,7 +882,46 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_failed_restart(self):
-        pass
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [0.5, 0.25, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "node_output_failed_restart",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "node"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "point_output_process_ref_files/node_output_failed_restart_ref.dat",
+                            "output_file_name"      : "node_output_failed_restart.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        # "fake" a restart
+        model_part.ProcessInfo[IS_RESTARTED] = True
+        model_part.ProcessInfo[TIME] = 2.1
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_multiple_point_output_process(self):
         model_part = ModelPart("Main")
