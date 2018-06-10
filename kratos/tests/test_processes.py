@@ -2,6 +2,7 @@
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
+import KratosMultiphysics.kratos_utilities as kratos_utils
 import math
 import os
 
@@ -911,6 +912,9 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
+
+        # Delete the file in case it is leftover from a previous test
+        kratos_utils.DeleteFileIfExisting("node_output_failed_restart.dat")
 
         reference_file_name = GetFilePath("point_output_process_ref_files/node_output_failed_restart_ref.dat")
 
