@@ -152,36 +152,57 @@ void NodalValuesInterpolationProcess<2>::CalculateData(
     const auto& node_data_2 = pElement->GetGeometry()[2].Data();
 
     // Now we interpolate the values of each node
+    double aux_coeff;
     for (auto& var : mListDoublesVariables) {
-        if (node_data_0.Has(var) && node_data_1.Has(var) && node_data_2.Has(var)) {
+        aux_coeff = 0.0;
+        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
+        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
+        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
+        if (aux_coeff > 0.0) {
+            aux_coeff = 1.0/aux_coeff;
             data.SetValue(var,
-                  rShapeFunctions[0] * (node_data_0.GetValue(var))
-                + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                + rShapeFunctions[2] * (node_data_2.GetValue(var)));
+      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
+                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
+                 + rShapeFunctions[2] * (node_data_2.GetValue(var))));
         }
     }
     for (auto& var : mListArraysVariables) {
-        if (node_data_0.Has(var) && node_data_1.Has(var) && node_data_2.Has(var)) {
+            aux_coeff = 0.0;
+            if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
+            if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
+            if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
+        if (aux_coeff > 0.0)  {
+            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
             data.SetValue<array_1d<double, 3>>(var,
-                  rShapeFunctions[0] * (node_data_0.GetValue(var))
-                + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                + rShapeFunctions[2] * (node_data_2.GetValue(var)));
+      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
+                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
+                 + rShapeFunctions[2] * (node_data_2.GetValue(var))));
         }
     }
     for (auto& var : mListVectorVariables) {
-        if (node_data_0.Has(var) && node_data_1.Has(var) && node_data_2.Has(var)) {
+            aux_coeff = 0.0;
+            if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
+            if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
+            if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
+        if (aux_coeff > 0.0)  {
+            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
             data.SetValue<Vector>(var,
-                  rShapeFunctions[0] * (node_data_0.GetValue(var))
-                + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                + rShapeFunctions[2] * (node_data_2.GetValue(var)));
+      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
+                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
+                 + rShapeFunctions[2] * (node_data_2.GetValue(var))));
         }
     }
     for (auto& var : mListMatrixVariables) {
-        if (node_data_0.Has(var) && node_data_1.Has(var) && node_data_2.Has(var)) {
+            aux_coeff = 0.0;
+            if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
+            if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
+            if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
+        if (aux_coeff > 0.0)  {
+            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
             data.SetValue<Matrix>(var,
-                  rShapeFunctions[0] * (node_data_0.GetValue(var))
-                + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                + rShapeFunctions[2] * (node_data_2.GetValue(var)));
+      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
+                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
+                 + rShapeFunctions[2] * (node_data_2.GetValue(var))));
         }
     }
 }
@@ -206,40 +227,64 @@ void NodalValuesInterpolationProcess<3>::CalculateData(
     const auto& node_data_3 = pElement->GetGeometry()[3].Data();
 
     // Now we interpolate the values of each node
+    double aux_coeff;
     for (auto& var : mListDoublesVariables) {
-        if (node_data_0.Has(var) && node_data_1.Has(var) && node_data_2.Has(var) && node_data_3.Has(var)) {
+        aux_coeff = 0.0;
+        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
+        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
+        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
+        if (node_data_3.Has(var)) aux_coeff += rShapeFunctions[3];
+        if (aux_coeff > 0.0)  {
+            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
             data.SetValue(var,
-                  rShapeFunctions[0] * (node_data_0.GetValue(var))
-                + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                + rShapeFunctions[2] * (node_data_2.GetValue(var))
-                + rShapeFunctions[3] * (node_data_3.GetValue(var)));
+      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
+                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
+                 + rShapeFunctions[2] * (node_data_2.GetValue(var))
+                 + rShapeFunctions[3] * (node_data_3.GetValue(var))));
         }
     }
     for (auto& var : mListArraysVariables) {
-        if (node_data_0.Has(var) && node_data_1.Has(var) && node_data_2.Has(var) && node_data_3.Has(var)) {
+        aux_coeff = 0.0;
+        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
+        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
+        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
+        if (node_data_3.Has(var)) aux_coeff += rShapeFunctions[3];
+        if (aux_coeff > 0.0)  {
+            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
             data.SetValue<array_1d<double, 3>>(var,
-                  rShapeFunctions[0] * (node_data_0.GetValue(var))
-                + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                + rShapeFunctions[2] * (node_data_2.GetValue(var))
-                + rShapeFunctions[3] * (node_data_3.GetValue(var)));
+      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
+                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
+                 + rShapeFunctions[2] * (node_data_2.GetValue(var))
+                 + rShapeFunctions[3] * (node_data_3.GetValue(var))));
         }
     }
     for (auto& var : mListVectorVariables) {
-        if (node_data_0.Has(var) && node_data_1.Has(var) && node_data_2.Has(var)) {
+        aux_coeff = 0.0;
+        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
+        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
+        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
+        if (node_data_3.Has(var)) aux_coeff += rShapeFunctions[3];
+        if (aux_coeff > 0.0)  {
             data.SetValue<Vector>(var,
-                  rShapeFunctions[0] * (node_data_0.GetValue(var))
-                + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                + rShapeFunctions[2] * (node_data_2.GetValue(var))
-                + rShapeFunctions[3] * (node_data_3.GetValue(var)));
+      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
+                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
+                 + rShapeFunctions[2] * (node_data_2.GetValue(var))
+                 + rShapeFunctions[3] * (node_data_3.GetValue(var))));
         }
     }
     for (auto& var : mListMatrixVariables) {
-        if (node_data_0.Has(var) && node_data_1.Has(var) && node_data_2.Has(var) && node_data_3.Has(var)) {
+        aux_coeff = 0.0;
+        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
+        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
+        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
+        if (node_data_3.Has(var)) aux_coeff += rShapeFunctions[3];
+        if (aux_coeff > 0.0)  {
+            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
             data.SetValue<Matrix>(var,
-                  rShapeFunctions[0] * (node_data_0.GetValue(var))
-                + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                + rShapeFunctions[2] * (node_data_2.GetValue(var))
-                + rShapeFunctions[3] * (node_data_3.GetValue(var)));
+      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
+                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
+                 + rShapeFunctions[2] * (node_data_2.GetValue(var))
+                 + rShapeFunctions[3] * (node_data_3.GetValue(var))));
         }
     }
 }
