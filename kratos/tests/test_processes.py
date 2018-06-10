@@ -751,10 +751,85 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_element(self):
-        pass
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [0.563, 0.89, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "element_output",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "point_output_process_ref_files/element_output_ref.dat",
+                            "output_file_name"      : "element_output.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[TIME] = 0.0
+        model_part.ProcessInfo[DOMAIN_SIZE] = 3
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_condition(self):
-        pass
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [16.0, 0.2, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "condition_output",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "condition"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "point_output_process_ref_files/condition_output_ref.dat",
+                            "output_file_name"      : "condition_output.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[TIME] = 0.0
+        model_part.ProcessInfo[DOMAIN_SIZE] = 2
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_restart(self):
         model_part = ModelPart("Main")
