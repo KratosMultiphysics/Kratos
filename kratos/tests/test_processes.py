@@ -945,7 +945,6 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_line_output_process(self):
-
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
@@ -960,8 +959,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "LineOutputProcess",
                         "Parameters"            : {
-                            "start_point"       : [0.0,  0.0, 0.0],
-                            "end_point"         : [0.9,  0.0, 0.0],
+                            "start_point"       : [0.0,  0.1, 0.0],
+                            "end_point"         : [0.9,  0.5, 0.0],
                             "number_of_sampling_points": 3,
                             "model_part_name"  : "Main",
                             "output_file_name" : "line_output",
