@@ -39,8 +39,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_parameters)
 
-        self.reference_file_name = os.path.join(os.getcwd(), params["reference_file_name"].GetString())
-        self.output_file_name = os.path.join(os.getcwd(), params["output_file_name"].GetString())
+        # abspath to make paths os-independent
+        ref_file_name = os.path.abspath(params["reference_file_name"].GetString())
+        out_file_name = os.path.abspath(params["output_file_name"].GetString())
+
+        self.reference_file_name = os.path.join(os.getcwd(), ref_file_name)
+        self.output_file_name = os.path.join(os.getcwd(), out_file_name)
+
         self.remove_output_file = params["remove_output_file"].GetBool()
         self.comparison_type = params["comparison_type"].GetString()
         self.decimal_places = params["decimal_places"].GetInt()
@@ -91,6 +96,18 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         It returns the lines read from both files and also compares
         if they contain the same numer of lines
         """
+        # check if files are valid
+        if not os.path.isfile(self.reference_file_name):
+            err_msg  = 'The specified reference file name "'
+            err_msg += self.reference_file_name
+            err_msg += '" is not valid!'
+            raise Exception(err_msg)
+        if not os.path.isfile(self.output_file_name):
+            err_msg  = 'The specified output file name "'
+            err_msg += self.output_file_name
+            err_msg += '" is not valid!'
+            raise Exception(err_msg)
+
         with open(self.reference_file_name,'r') as ref_file:
             lines_ref = ref_file.readlines()
         with open(self.output_file_name,'r') as out_file:
