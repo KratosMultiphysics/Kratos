@@ -50,5 +50,15 @@ namespace Kratos {
 
             model_part.AddNodalSolutionStepVariable(VELOCITY); // Adding the same Variable twice is fine bcs it wont do anything
 		}
+
+		KRATOS_TEST_CASE_IN_SUITE(ModelPartHasNodalSolutionStepVariable, KratosCoreFastSuite)
+		{
+			ModelPart model_part("Main");
+
+            model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+			KRATOS_CHECK(model_part.HasNodalSolutionStepVariable(VELOCITY));
+			KRATOS_CHECK_IS_FALSE(model_part.HasNodalSolutionStepVariable(PRESSURE));
+		}
 	}
 }  // namespace Kratos.
