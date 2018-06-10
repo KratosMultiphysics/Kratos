@@ -13,12 +13,17 @@ class FluidDynamicsAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
     def __init__(self,model,parameters):
-        # Create the ModelPart
-        # Note that this in temporary and will be done through the model in the future
-        model_part_name = parameters["problem_data"]["model_part_name"].GetString()
-        self.main_model_part = Kratos.ModelPart(model_part_name)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
-                                                  parameters["problem_data"]["domain_size"].GetInt())
+        # Deprecation warnings
+        solver_settings = parameters["solver_settings"]
+        if not solver_settings.Has("domain_size"):
+            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            solver_settings.AddEmptyValue("domain_size")
+            solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
+
+        if not solver_settings.Has("model_part_name"):
+            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            solver_settings.AddEmptyValue("model_part_name")
+            solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
 
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
@@ -26,18 +31,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
         if (self.parallel_type == "MPI"):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-
-        # Deprecation warnings
-        solver_settings = self.project_parameters["solver_settings"]
-        if not solver_settings.Has("domain_size"):
-            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
-            solver_settings.AddEmptyValue("domain_size")
-            solver_settings["domain_size"].SetInt(self.project_parameters["problem_data"]["domain_size"].GetInt())
-
-        if not solver_settings.Has("model_part_name"):
-            Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
-            solver_settings.AddEmptyValue("model_part_name")
-            solver_settings["model_part_name"].SetString(self.project_parameters["problem_data"]["model_part_name"].GetString())
 
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid
