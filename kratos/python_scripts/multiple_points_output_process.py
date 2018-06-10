@@ -82,17 +82,6 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
         for proc in self.point_output_processes:
             proc.ExecuteBeforeOutputStep()
 
-    def IsOutputStep(self):
-        for proc in self.point_output_processes:
-            if proc.IsOutputStep():
-                return True
-        return False # return False if none of the processes writes
-
-    def PrintOutput(self):
-        for proc in self.point_output_processes:
-            if proc.IsOutputStep():
-                proc.PrintOutput()
-
     def ExecuteAfterOutputStep(self):
         for proc in self.point_output_processes:
             proc.ExecuteAfterOutputStep()

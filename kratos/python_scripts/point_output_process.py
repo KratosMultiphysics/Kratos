@@ -154,17 +154,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def IsOutputStep(self):
-        return True # for now we always print output
-
-    def PrintOutput(self):
-        '''Print results to file.'''
-
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         # zip works with the shortes list, which is what we want here
@@ -182,6 +171,9 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
             out += "\n"
             f.write(out)
+
+    def ExecuteBeforeOutputStep(self):
+        pass
 
     def ExecuteAfterOutputStep(self):
         pass
@@ -208,6 +200,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
             err_msg  = 'ModelPart "' + self.model_part.Name + '" does not have'
             err_msg += ' "' + var.Name() + '" as SolutionStepVariable!'
             raise Exception(err_msg)
+
 
 def InitializeOutputFile(output_file_name, entity_type, point, output_variables):
     output_file = open(output_file_name,"w")

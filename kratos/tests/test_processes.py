@@ -1006,7 +1006,6 @@ class TestProcesses(KratosUnittest.TestCase):
                         "Parameters"            : {
                             "start_point"       : [0.0,  0.1, 0.0],
                             "end_point"         : [0.9,  0.5, 0.0],
-                            "number_of_sampling_points": 3,
                             "model_part_name"  : "Main",
                             "output_file_name" : "line_output",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
@@ -1086,12 +1085,6 @@ def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
         for process in list_of_processes:
             process.ExecuteBeforeOutputStep()
-
-        for process in list_of_processes:
-            try:
-                process.PrintOutput()
-            except AttributeError: # only the output process has this method!
-                pass
 
         for process in list_of_processes:
             process.ExecuteAfterOutputStep()

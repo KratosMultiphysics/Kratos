@@ -12,7 +12,7 @@ def Factory(settings, Model):
     return LineOutputProcess(Model, settings["Parameters"])
 
 class LineOutputProcess(KratosMultiphysics.Process):
-    """This process writes several points along a line to a file
+    """This process writes output for several points along a line to a file
     Internally it holds an object of type "MultiplePointsOutputProcess"
     Usage:
         - specifying start and end point defining the line
@@ -21,13 +21,13 @@ class LineOutputProcess(KratosMultiphysics.Process):
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
-            "start_point"         : [],
-            "end_point"         : [],
-            "number_of_sampling_points": 3,
-            "model_part_name"    : "",
-            "output_file_name"   : "",
-            "output_variables"   : [],
-            "entity_type"        : "element"
+            "start_point"               : [],
+            "end_point"                 : [],
+            "number_of_sampling_points" : 3,
+            "model_part_name"           : "",
+            "output_file_name"          : "",
+            "output_variables"          : [],
+            "entity_type"               : "element"
         }''')
 
         params.ValidateAndAssignDefaults(default_settings)
@@ -82,12 +82,6 @@ class LineOutputProcess(KratosMultiphysics.Process):
 
     def ExecuteBeforeOutputStep(self):
         self.multiple_points_output_process.ExecuteBeforeOutputStep()
-
-    def IsOutputStep(self):
-        return self.multiple_points_output_process.IsOutputStep()
-
-    def PrintOutput(self):
-        self.multiple_points_output_process.PrintOutput()
 
     def ExecuteAfterOutputStep(self):
         self.multiple_points_output_process.ExecuteAfterOutputStep()
