@@ -768,7 +768,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "position"         : [0.563, 0.89, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "element_output",
-                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
+                            "output_variables" : ["DISPLACEMENT_X", "VISCOSITY", "ACCELERATION"]
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",
@@ -836,7 +836,6 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part.AddNodalSolutionStepVariable(VELOCITY)
 
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
@@ -850,7 +849,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "position"         : [0.5, 0.0, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "point_output_rest",
-                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION", "VELOCITY_Y"],
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
                         }
                     },{
@@ -858,7 +857,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/point_output_rest_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/point_outputgg_rest_ref.dat",
                             "output_file_name"      : "point_output_rest.dat",
                             "comparison_type"       : "dat_file"
                         }
