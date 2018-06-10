@@ -38,6 +38,13 @@ CrBeamElement2D2N::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                                                 pProperties);
 }
 
+Element::Pointer
+CrBeamElement2D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
+                          PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CrBeamElement2D2N>(NewId, pGeom,
+                                                pProperties);
+}
+
 CrBeamElement2D2N::~CrBeamElement2D2N() {}
 
 void CrBeamElement2D2N::EquationIdVector(EquationIdVectorType &rResult,
