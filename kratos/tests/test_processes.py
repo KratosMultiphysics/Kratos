@@ -736,7 +736,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "node_output_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/node_output_ref.dat",
                             "output_file_name"      : "node_output.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -820,7 +820,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_rest_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/point_output_rest_ref.dat",
                             "output_file_name"      : "point_output_rest.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -832,7 +832,7 @@ class TestProcesses(KratosUnittest.TestCase):
         # for the restart, one needs a _rest_base to preserve
         # as _rest will be modified (overwritten) and compared with _ref
         output_file_name = settings["process_list"][0]["Parameters"]["output_file_name"].GetString()
-        with open(output_file_name + "_base.dat") as base_file:
+        with open("point_output_process_ref_files/" + output_file_name + "_base.dat") as base_file:
             with open(output_file_name + ".dat", "w") as target_file:
                 for line in base_file:
                     target_file.write(line)
@@ -911,7 +911,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "node_output_1_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/node_output_1_ref.dat",
                             "output_file_name"      : "node_output_1.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -920,7 +920,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "node_output_2_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/node_output_2_ref.dat",
                             "output_file_name"      : "node_output_2.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -929,7 +929,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "node_output_3_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/node_output_3_ref.dat",
                             "output_file_name"      : "node_output_3.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -1009,7 +1009,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "line_output_1_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/line_output_1_ref.dat",
                             "output_file_name"      : "line_output_1.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -1018,7 +1018,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "line_output_2_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/line_output_2_ref.dat",
                             "output_file_name"      : "line_output_2.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -1027,7 +1027,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "line_output_3_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/line_output_3_ref.dat",
                             "output_file_name"      : "line_output_3.dat",
                             "comparison_type"       : "dat_file"
                         }
