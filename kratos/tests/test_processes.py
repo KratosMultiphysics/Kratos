@@ -840,13 +840,14 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
+        # note that we are comparing the same file as for without restart
         settings = Parameters("""{
                 "process_list" : [ {
                         "python_module"  : "point_output_process",
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "PointOutputProcess",
                         "Parameters"            : {
-                            "position"         : [0.5, 0.0, 0.0],
+                            "position"         : [0.5, 0.25, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "point_output_rest",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
@@ -857,23 +858,29 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/point_outputgg_rest_ref.dat",
+                            "reference_file_name"   : "point_output_process_ref_files/node_output_ref.dat",
                             "output_file_name"      : "point_output_rest.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
 
-        # for the restart, one needs a _rest_base to preserve
-        # as _rest will be modified (overwritten) and compared with _ref
-        output_file_name = settings["process_list"][0]["Parameters"]["output_file_name"].GetString()
-        with open("point_output_process_ref_files/" + output_file_name + "_base.dat") as base_file:
-            with open(output_file_name + ".dat", "w") as target_file:
-                for line in base_file:
-                    target_file.write(line)
+        # From this file we copy some lines into a new file , which will be used as basis for the restart
+        ref_file_name = settings["process_list"][1]["Parameters"]["reference_file_name"].GetString()
+        ref_file_name = os.path.abspath(ref_file_name) # making it work independent of OS
+
+        # here we create a dat file from a "previous run"
+        out_file_name = settings["process_list"][0]["Parameters"]["output_file_name"].GetString()
+        out_file_name += ".dat"
+
+        with open(ref_file_name, 'r') as ref_file, open(out_file_name, 'w') as out_file:
+            for line in ref_file:
+                out_file.write(line)
+                if line.startswith("3.15"): # the previous run "stopped" at T=3.1
+                    break
 
         model_part.ProcessInfo[IS_RESTARTED] = True
-        model_part.ProcessInfo[TIME] = 2.1
+        model_part.ProcessInfo[TIME] = 2.1 # the new run "starts" at T=2.1
 
         end_time = 5.0
         delta_time = 0.15
