@@ -52,7 +52,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class PointLocator
+  class KRATOS_API(KRATOS_CORE) PointLocator
     {
     public:
       ///@name Type Definitions
