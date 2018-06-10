@@ -719,6 +719,8 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
+        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_ref.dat")
+
         settings = Parameters("""{
                 "process_list" : [ {
                         "python_module"  : "point_output_process",
@@ -736,12 +738,14 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/node_output_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "node_output.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         end_time = 5.0
         delta_time = 0.15
@@ -759,6 +763,8 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
+        reference_file_name = GetFilePath("point_output_process_ref_files/element_output_ref.dat")
+
         settings = Parameters("""{
                 "process_list" : [ {
                         "python_module"  : "point_output_process",
@@ -775,12 +781,14 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/element_output_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "element_output.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         end_time = 5.0
         delta_time = 0.15
@@ -799,6 +807,8 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
+        reference_file_name = GetFilePath("point_output_process_ref_files/condition_output_ref.dat")
+
         settings = Parameters("""{
                 "process_list" : [ {
                         "python_module"  : "point_output_process",
@@ -816,12 +826,14 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/condition_output_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "condition_output.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         end_time = 5.0
         delta_time = 0.15
@@ -839,6 +851,8 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_ref.dat")
 
         # note that we are comparing the same file as for without restart
         settings = Parameters("""{
@@ -858,12 +872,14 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/node_output_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "point_output_rest.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         # From this file we copy some lines into a new file , which will be used as basis for the restart
         ref_file_name = settings["process_list"][1]["Parameters"]["reference_file_name"].GetString()
@@ -896,6 +912,8 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
+        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_failed_restart_ref.dat")
+
         settings = Parameters("""{
                 "process_list" : [ {
                         "python_module"  : "point_output_process",
@@ -913,12 +931,14 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/node_output_failed_restart_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "node_output_failed_restart.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
 
         end_time = 5.0
         delta_time = 0.15
@@ -937,6 +957,10 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
+
+        reference_file_name_1 = GetFilePath("point_output_process_ref_files/node_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("point_output_process_ref_files/node_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("point_output_process_ref_files/node_output_3_ref.dat")
 
         settings = Parameters("""{
                 "process_list" : [ {
@@ -957,7 +981,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/node_output_1_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "node_output_1.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -966,7 +990,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/node_output_2_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "node_output_2.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -975,12 +999,16 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/node_output_3_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "node_output_3.dat",
                             "comparison_type"       : "dat_file"
                         }
                     } ]
         }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
 
         end_time = 5.0
         delta_time = 0.15
@@ -997,6 +1025,10 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
+
+        reference_file_name_1 = GetFilePath("point_output_process_ref_files/line_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("point_output_process_ref_files/line_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("point_output_process_ref_files/line_output_3_ref.dat")
 
         settings = Parameters("""{
                 "process_list" : [ {
@@ -1016,7 +1048,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/line_output_1_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "line_output_1.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -1025,7 +1057,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/line_output_2_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "line_output_2.dat",
                             "comparison_type"       : "dat_file"
                         }
@@ -1034,12 +1066,16 @@ class TestProcesses(KratosUnittest.TestCase):
                         "kratos_module"  : "KratosMultiphysics",
                         "process_name"   : "CompareTwoFilesCheckProcess",
                         "Parameters"            : {
-                            "reference_file_name"   : "point_output_process_ref_files/line_output_3_ref.dat",
+                            "reference_file_name"   : "",
                             "output_file_name"      : "line_output_3.dat",
                             "comparison_type"       : "dat_file"
                         }
                     }]
         }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
 
         model_part.ProcessInfo[DOMAIN_SIZE] = 3
 
