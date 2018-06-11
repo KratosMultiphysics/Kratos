@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 try:
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-    import KratosMultiphysics.StructuralMechanicsApplicationXXX
+    import KratosMultiphysics.StructuralMechanicsApplication
     missing_external_dependencies = False
     missing_application = ''
 except ImportError as e:
