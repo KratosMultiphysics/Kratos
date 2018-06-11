@@ -475,7 +475,8 @@ class TestParameters(KratosUnittest.TestCase):
         tmp = Parameters("""{
             "valid_vectors" : [ []
             ],
-            "false_vectors" : [ [[2,3],2],
+            "false_vectors" : [ [[]],
+                                [[2,3],2],
                                 [2,3,[2]],
                                 [2,3,[]],
                                 [{"key":3},2],
