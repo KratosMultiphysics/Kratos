@@ -96,8 +96,8 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop = model_part.pGetProperties(property_id, mesh_id);
 
-    KRATOS_INFO_IF("::[Reading materials process]:: Property", data["Material"]["Variables"].size() > 0 && p_prop->HasVariables()) << std::to_string(property_id) << "already has variables." << std::endl;
-    KRATOS_INFO_IF("::[Reading materials process]:: Property", data["Material"]["Tables"].size() > 0 && p_prop->HasTables()) << std::to_string(property_id) << "already has tables." << std::endl;
+    KRATOS_INFO_IF("::[Reading materials process]:: Property", (data["Material"]["Variables"].begin() - data["Material"]["Variables"].end()) > 0 && p_prop->HasVariables()) << std::to_string(property_id) << "already has variables." << std::endl;
+    KRATOS_INFO_IF("::[Reading materials process]:: Property", (data["Material"]["Tables"].begin() - data["Material"]["Tables"].end()) > 0 && p_prop->HasTables()) << std::to_string(property_id) << "already has tables." << std::endl;
 
     // Assign the p_properties to the model part's elements and conditions.
     auto& elements_array = model_part.Elements();
