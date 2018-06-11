@@ -19,11 +19,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "containers/model.h"
-#include "processes/process.h"
 #include "includes/kratos_parameters.h"
-#include "includes/io.h"
 
 namespace Kratos {
 
@@ -53,6 +50,7 @@ namespace Kratos {
  * @details This process reads constitutive law and material properties from a json file
  * and assign them to elements and conditions.
  * @author Marcelo Raschi
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
 {
@@ -173,16 +171,27 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
     
     /**
-     * @brief This methos assigns the properties to the model parts
+     * @brief This method assigns the properties to the model parts
      * @param rData The parameters containing all the configurations of the materials
      */
     void AssignPropertyBlock(Parameters rData);
 
     /**
-     * @brief This method gets the properties of the differents model parts
+     * @brief This method gets the properties of the different model parts
      * @param rMaterials The parameters containing the properties of the materials
      */
     void GetPropertyBlock(Parameters rMaterials);
+
+    /**
+     * @brief Trims out a component name, separating by '."
+     * @details Trims out a component name, removing unnecessary module information.
+     * For backward compatibility.
+     * Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
+     * Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
+     * @param line Component name in materials json file
+     */
+    void TrimComponentName(std::string& line);
+
 
     ///@}
     ///@name Private  Access

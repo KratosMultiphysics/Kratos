@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/properties.h"
 #include "utilities/read_materials_utility.h"
 
 namespace Kratos
@@ -37,7 +36,7 @@ ReadMaterialsUtility::ReadMaterialsUtility(
 
     rParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    // read json string in materials file, create Parameters
+    // Read json string in materials file, create Parameters
     const std::string& materials_filename = rParameters["Parameters"]["materials_filename"].GetString();
     std::ifstream infile(materials_filename);
     KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
@@ -78,12 +77,7 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters materials)
 /***********************************************************************************/
 /***********************************************************************************/
 
-// Remove application info from variable name.
-// Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
-// Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
-
-void TrimComponentName(std::string&);
-void TrimComponentName(std::string& line){
+void ReadMaterialsUtility::TrimComponentName(std::string& line){
     std::stringstream ss(line);
     std::size_t counter = 0;
     while (std::getline(ss, line, '.')){counter++;}
