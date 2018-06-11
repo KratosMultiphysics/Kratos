@@ -630,7 +630,7 @@ namespace Kratos
         }
         else if(rVariable == I22_PSEUDO_LOAD)
         {
-            Vector I22_pseudo_load_on_GP = CalculatePseudoLoadOfBendingStiffnessSOnGP(rCurrentProcessInfo);
+            Vector I22_pseudo_load_on_GP = CalculatePseudoLoadOfBendingStiffnessOnGP(rCurrentProcessInfo);
 
             // Write output on GP
             if(rOutput.size() == I22_pseudo_load_on_GP.size())
@@ -981,7 +981,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    Vector CrBeamAdjointElement3D2N::CalculatePseudoLoadOfBendingStiffnessSOnGP(const ProcessInfo& rCurrentProcessInfo)
+    Vector CrBeamAdjointElement3D2N::CalculatePseudoLoadOfBendingStiffnessOnGP(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 

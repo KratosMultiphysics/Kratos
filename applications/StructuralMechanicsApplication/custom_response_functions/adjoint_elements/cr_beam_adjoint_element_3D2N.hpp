@@ -132,7 +132,7 @@ namespace Kratos
 
         double CalculateFirstOrderElongation();
 
-        Vector CalculatePseudoLoadOfBendingStiffnessSOnGP(const ProcessInfo& rCurrentProcessInfo);
+        Vector CalculatePseudoLoadOfBendingStiffnessOnGP(const ProcessInfo& rCurrentProcessInfo);
         // ***************************************************************
 
 
