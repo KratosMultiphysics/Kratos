@@ -409,7 +409,7 @@ namespace Kratos
                                             // 1.0 is no reduction.
 
             // Gauss loop
-            for (std::size_t gauss_point = 0; gauss_point < 4; gauss_point++)
+            for (SizeType gauss_point = 0; gauss_point < 4; gauss_point++)
             {
                 // Calculate average mass per unit area and thickness at the
                 // current GP
@@ -424,17 +424,17 @@ namespace Kratos
                     jacOp.Determinant();
 
                 // Assemble shape function matrix over nodes
-                for (std::size_t node = 0; node < 4; node++)
+                for (SizeType node = 0; node < 4; node++)
                 {
                     // translational entries - dofs 1, 2, 3
-                    for (std::size_t dof = 0; dof < 3; dof++)
+                    for (SizeType dof = 0; dof < 3; dof++)
                     {
                         N(dof, 6 * node + dof) =
                             shapeFunctions(gauss_point, node);
                     }
 
                     // rotational inertia entries - dofs 4, 5
-                    for (std::size_t dof = 0; dof < 2; dof++)
+                    for (SizeType dof = 0; dof < 2; dof++)
                     {
                         N(dof + 3, 6 * node + dof + 3) =
                             thickness / std::sqrt(12.0) *
@@ -457,7 +457,7 @@ namespace Kratos
             // Lumped mass matrix
 
             // Calculate average mass per unit area over the whole element
-            for (std::size_t i = 0; i < 4; i++)
+            for (SizeType i = 0; i < 4; i++)
                 av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
             av_mass_per_unit_area /= 4.0;
 
@@ -465,9 +465,9 @@ namespace Kratos
             double lump_area = referenceCoordinateSystem.Area() / 4.0;
 
             // Gauss Loop
-            for (std::size_t i = 0; i < 4; i++)
+            for (SizeType i = 0; i < 4; i++)
             {
-                std::size_t index = i * 6;
+                SizeType index = i * 6;
 
                 double nodal_mass = av_mass_per_unit_area * lump_area;
 
@@ -563,7 +563,7 @@ namespace Kratos
         if (caseId > 19)
         {
             // resize output
-            std::size_t size = 4;
+            SizeType size = 4;
             if (rValues.size() != size)
                 rValues.resize(size);
 
@@ -647,7 +647,7 @@ namespace Kratos
         else if (rVariable == TSAI_WU_RESERVE_FACTOR)
         {
             // resize output
-            std::size_t size = 4;
+            SizeType size = 4;
             if (rValues.size() != size)
                 rValues.resize(size);
 
@@ -794,7 +794,7 @@ namespace Kratos
             ShellQ4_LocalCoordinateSystem localCoordinateSystem(
                 mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
-            for (std::size_t GP = 0; GP < 4; GP++)
+            for (SizeType GP = 0; GP < 4; GP++)
             {
                 rValues[GP] = localCoordinateSystem.Vx();
             }
@@ -841,7 +841,7 @@ namespace Kratos
             fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
 
             //write results
-            for (std::size_t dir = 0; dir < 1; dir++)
+            for (SizeType dir = 0; dir < 1; dir++)
             {
                 rValues[dir] = fiberAxis1;
             }
@@ -1067,10 +1067,10 @@ namespace Kratos
         // Evaluate Tsai-Wu @ top surface of current layer
         double var_a = 0.0;
         double var_b = 0.0;
-        for (std::size_t i = 0; i < 3; i++)
+        for (SizeType i = 0; i < 3; i++)
         {
             var_b += F_i[i] * data.rlaminateStresses[2 * rPly][i];
-            for (std::size_t j = 0; j < 3; j++)
+            for (SizeType j = 0; j < 3; j++)
             {
                 var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly][i] * data.rlaminateStresses[2 * rPly][j];
             }
@@ -1080,10 +1080,10 @@ namespace Kratos
         // Evaluate Tsai-Wu @ bottom surface of current layer
         var_a = 0.0;
         var_b = 0.0;
-        for (std::size_t i = 0; i < 3; i++)
+        for (SizeType i = 0; i < 3; i++)
         {
             var_b += F_i[i] * data.rlaminateStresses[2 * rPly + 1][i];
-            for (std::size_t j = 0; j < 3; j++)
+            for (SizeType j = 0; j < 3; j++)
             {
                 var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly + 1][i] * data.rlaminateStresses[2 * rPly + 1][j];
             }
@@ -1168,7 +1168,7 @@ namespace Kratos
 
         if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY || rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION)
         {
-            for (std::size_t i = 0; i < 3; i++)
+            for (SizeType i = 0; i < 3; i++)
             {
                 rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i]* data.dA[data.gpIndex];
             }
@@ -1180,7 +1180,7 @@ namespace Kratos
         }
         else if (rVariable == SHELL_ELEMENT_BENDING_ENERGY || rVariable == SHELL_ELEMENT_BENDING_ENERGY_FRACTION)
         {
-            for (std::size_t i = 3; i < 6; i++)
+            for (SizeType i = 3; i < 6; i++)
             {
                 rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i]* data.dA[data.gpIndex];
             }
@@ -2307,7 +2307,7 @@ namespace Kratos
         InitializeCalculationData(data);
 
         // Gauss Loop.
-        for (std::size_t i = 0; i < GetNumberOfGPs(); i++)
+        for (SizeType i = 0; i < GetNumberOfGPs(); i++)
         {
             data.gpIndex = i;
             CalculateGaussPointContribution(data, rLeftHandSideMatrix,
@@ -2378,7 +2378,7 @@ namespace Kratos
 
         // resize output
 
-        std::size_t size = 4;
+        SizeType size = 4;
         if (rValues.size() != size)
             rValues.resize(size);
 
@@ -2437,7 +2437,7 @@ namespace Kratos
         if (ijob == 0) return false;
 
         // resize output
-        std::size_t size = 4;
+        SizeType size = 4;
         if (rValues.size() != size)
             rValues.resize(size);
 
@@ -2646,9 +2646,9 @@ namespace Kratos
 
                 int surface = 0; // start from top ply top surface
                 // Output global results sequentially
-                for (std::size_t row = 0; row < 3; row++)
+                for (SizeType row = 0; row < 3; row++)
                 {
-                    for (std::size_t col = 0; col < 3; col++)
+                    for (SizeType col = 0; col < 3; col++)
                     {
                         if (surface > 7)
                         {
@@ -2716,9 +2716,9 @@ namespace Kratos
 
                     int surface = 0; // start from top ply top surface
                                      // Output global results sequentially
-                    for (std::size_t row = 0; row < 3; row++)
+                    for (SizeType row = 0; row < 3; row++)
                     {
-                        for (std::size_t col = 0; col < 3; col++)
+                        for (SizeType col = 0; col < 3; col++)
                         {
                             if (surface > 7)
                             {

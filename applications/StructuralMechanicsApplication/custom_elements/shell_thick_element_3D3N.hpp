@@ -279,7 +279,7 @@ namespace Kratos
             // these data are updated during the
             // calculations
 
-            size_t gpIndex;
+            SizeType gpIndex;
 
             // ---------------------------------------
             // calculation-variable data

@@ -326,7 +326,7 @@ Southern California, 2012.
             // calculations
 
             array_1d<double, 4> N;    /*!< SF values at parametric point */
-            size_t gpIndex;    /*!< Index of current Gauss Point (zero based) */
+            SizeType gpIndex;    /*!< Index of current Gauss Point (zero based) */
 
             // ---------------------------------------
             // calculation-variable data
