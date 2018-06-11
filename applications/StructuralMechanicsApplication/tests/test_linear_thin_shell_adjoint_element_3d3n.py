@@ -211,7 +211,22 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
-    def CalculateSensitivityMatrix_Property(self):
+        # Rigid Body test
+        RBT_1 = self._zero_vector(18)
+        RBT_1[0]=1
+        RBT_1[6]=1
+        RBT_1[12]=1
+        test_1 = PseudoLoadMatrix*RBT_1
+        #print(test_1)
+
+        RBT_2 = self._zero_vector(18)
+        RBT_2[2]=1
+        RBT_2[8]=1
+        RBT_2[14]=1
+        test_2 = PseudoLoadMatrix*RBT_2
+        #print(test_2)
+
+    def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
         RHSUndisturbed = self._zero_vector(18)
@@ -237,6 +252,33 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.THICKNESS, PseudoLoadMatrix, self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
+
+        # Rigid Body test
+        RBT_1 = self._zero_vector(18)
+        RBT_1[0]=1
+        RBT_1[6]=1
+        RBT_1[12]=1
+        test_1 = PseudoLoadMatrix*RBT_1
+        print(test_1)
+        # ***
+        RBT_2 = self._zero_vector(18)
+        RBT_2[2]=1
+        RBT_2[8]=1
+        RBT_2[14]=1
+        test_2 = PseudoLoadMatrix*RBT_2
+        print(test_2)
+        # ***
+        RBT_3 = self._zero_vector(18)
+      
+        rot = 1
+        RBT_3[3]=rot
+        RBT_3[9]=rot
+        RBT_3[15]=rot
+        RBT_3[14]= 4 * rot
+
+        test_3 = PseudoLoadMatrix*RBT_3
+
+        print(test_3)
 
 if __name__ == '__main__':
     KratosUnittest.main()
