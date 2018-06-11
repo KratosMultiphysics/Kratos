@@ -75,7 +75,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@name Life Cycle
     ///@{
 
-    ReadMaterialsUtility(Parameters Parameters, Model& rModel);
+    ReadMaterialsUtility(Parameters Params, Model& rModel);
 
     ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
 
@@ -172,15 +172,15 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     
     /**
      * @brief This method assigns the properties to the model parts
-     * @param rData The parameters containing all the configurations of the materials
+     * @param Data The parameters containing all the configurations of the materials
      */
-    void AssignPropertyBlock(Parameters rData);
+    void AssignPropertyBlock(Parameters Data);
 
     /**
      * @brief This method gets the properties of the different model parts
-     * @param rMaterials The parameters containing the properties of the materials
+     * @param Materials The parameters containing the properties of the materials
      */
-    void GetPropertyBlock(Parameters rMaterials);
+    void GetPropertyBlock(Parameters Materials);
 
     /**
      * @brief Trims out a component name, separating by '."
@@ -188,9 +188,9 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * For backward compatibility.
      * Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
      * Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
-     * @param line Component name in materials json file
+     * @param rLine Component name in materials json file
      */
-    void TrimComponentName(std::string& line);
+    void TrimComponentName(std::string& rLine);
 
 
     ///@}
