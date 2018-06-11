@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 try:
     import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-    import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
+    import KratosMultiphysics.StructuralMechanicsApplicationXXX
     missing_external_dependencies = False
     missing_application = ''
 except ImportError as e:
@@ -90,7 +90,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
     def test_input_python(self):
 
         if (missing_external_dependencies is True):
-            self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
+            self.skipTest("{} is not available".format(missing_application))
         self._prepare_test()
         import read_materials_process
         read_materials_process.Factory(self.test_settings,self.Model)
@@ -99,7 +99,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
     def test_input_cpp(self):
 
         if (missing_external_dependencies is True):
-            self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
+            self.skipTest("{} is not available".format(missing_application))
         self._prepare_test()
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.Model)
         self._check_results()
