@@ -328,17 +328,17 @@ private:
      * @param Dx Vector of results (variations on nodal variables)
      */
     TDataType CalculateFinalCorrectionNorm(
-        IndexType& rDofNum,
+        SizeType& rDofNum,
         DofsArrayType& rDofSet,
         const TSystemVectorType& Dx
         )
     {
         // Initialize
         TDataType final_correction_norm = TDataType();
-        rDofNum = 0;
+        SizeType dof_num = 0;
 
         // Loop over Dofs
-        #pragma omp parallel for reduction(+:final_correction_norm,rDofNum)
+        #pragma omp parallel for reduction(+:final_correction_norm,dof_num)
         for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
             auto it_dof = rDofSet.begin() + i;
 
@@ -349,10 +349,11 @@ private:
                 dof_id = it_dof->EquationId();
                 variation_dof_value = Dx[dof_id];
                 final_correction_norm += variation_dof_value * variation_dof_value;
-                rDofNum++;
+                dof_num++;
             }
         }
 
+        rDofNum = dof_num;
         return final_correction_norm;
     }
 
