@@ -46,7 +46,8 @@ namespace Kratos
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TPlasticPotentialType , std::size_t TVoigtSize>
+//template <class TPlasticPotentialType , std::size_t TVoigtSize>
+template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerYieldSurface
 {
 public:
