@@ -26,7 +26,7 @@
 
 namespace Kratos
 {
-	/**
+    /**
      * @class CrBeamElementLinear3D2N
      *
      * @brief This is a linear 3D-2node beam element with 3 translational dofs and 3 rotational dof per node inheriting from CrBeamElement3D2N
@@ -34,64 +34,84 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-	class CrBeamElementLinear3D2N : public CrBeamElement3D2N
-	{
+    class CrBeamElementLinear3D2N : public CrBeamElement3D2N
+    {
 
-		public:
-			KRATOS_CLASS_POINTER_DEFINITION(CrBeamElementLinear3D2N);
+        public:
+            KRATOS_CLASS_POINTER_DEFINITION(CrBeamElementLinear3D2N);
 
-			CrBeamElementLinear3D2N() {};
-			CrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
-			CrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-							PropertiesType::Pointer pProperties);
-
-
-			~CrBeamElementLinear3D2N() override;
+            CrBeamElementLinear3D2N() {};
+            CrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
+            CrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
+                            PropertiesType::Pointer pProperties);
 
 
-			BaseType::Pointer Create(
-				IndexType NewId,
-				NodesArrayType const& rThisNodes,
-				PropertiesType::Pointer pProperties) const override;
+            ~CrBeamElementLinear3D2N() override;
 
-			void CalculateLocalSystem(
-				MatrixType& rLeftHandSideMatrix,
-				VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo) override;
+            /**
+            * @brief Creates a new element
+            * @param NewId The Id of the new created element
+            * @param pGeom The pointer to the geometry of the element
+            * @param pProperties The pointer to property
+            * @return The pointer to the created element
+            */
+            Element::Pointer Create(
+                IndexType NewId,
+                GeometryType::Pointer pGeom,
+                PropertiesType::Pointer pProperties
+                ) const override;
 
-			void CalculateRightHandSide(
-				VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo) override;
+            /**
+            * @brief Creates a new element
+            * @param NewId The Id of the new created element
+            * @param ThisNodes The array containing nodes
+            * @param pProperties The pointer to property
+            * @return The pointer to the created element
+            */
+            Element::Pointer Create(
+                IndexType NewId,
+                NodesArrayType const& ThisNodes,
+                PropertiesType::Pointer pProperties
+                ) const override;
 
-			void CalculateLeftHandSide(
-				MatrixType& rLeftHandSideMatrix,
-				ProcessInfo& rCurrentProcessInfo) override;
+            void CalculateLocalSystem(
+                MatrixType& rLeftHandSideMatrix,
+                VectorType& rRightHandSideVector,
+                ProcessInfo& rCurrentProcessInfo) override;
 
-			void CalculateMassMatrix(
-				MatrixType& rMassMatrix,
-				ProcessInfo& rCurrentProcessInfo) override;
+            void CalculateRightHandSide(
+                VectorType& rRightHandSideVector,
+                ProcessInfo& rCurrentProcessInfo) override;
 
-			/**
-			 * @brief This function calculates the element stiffness w.r.t. deformation modes
-			 */
-			BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() override;
+            void CalculateLeftHandSide(
+                MatrixType& rLeftHandSideMatrix,
+                ProcessInfo& rCurrentProcessInfo) override;
 
-			void CalculateOnIntegrationPoints(
-				const Variable<array_1d<double, 3 > >& rVariable,
-				std::vector< array_1d<double, 3 > >& rOutput,
-				const ProcessInfo& rCurrentProcessInfo) override;
+            void CalculateMassMatrix(
+                MatrixType& rMassMatrix,
+                ProcessInfo& rCurrentProcessInfo) override;
 
-			void CalculateOnIntegrationPoints(
-				const Variable<Vector >& rVariable,
-				std::vector< Vector >& rOutput,
-				const ProcessInfo& rCurrentProcessInfo) override;
+            /**
+             * @brief This function calculates the element stiffness w.r.t. deformation modes
+             */
+            BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() override;
 
-		private:
+            void CalculateOnIntegrationPoints(
+                const Variable<array_1d<double, 3 > >& rVariable,
+                std::vector< array_1d<double, 3 > >& rOutput,
+                const ProcessInfo& rCurrentProcessInfo) override;
 
-			friend class Serializer;
-			void save(Serializer& rSerializer) const override;
-			void load(Serializer& rSerializer) override;
-	};
+            void CalculateOnIntegrationPoints(
+                const Variable<Vector >& rVariable,
+                std::vector< Vector >& rOutput,
+                const ProcessInfo& rCurrentProcessInfo) override;
+
+        private:
+
+            friend class Serializer;
+            void save(Serializer& rSerializer) const override;
+            void load(Serializer& rSerializer) override;
+    };
 
 }
 

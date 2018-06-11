@@ -137,7 +137,7 @@ ShellThickElement3D4N::MITC4Params::MITC4Params(const ShellQ4_LocalCoordinateSys
     Cy = - LCS.Y1() - LCS.Y2() + LCS.Y3() + LCS.Y4();
 
     double Alpha = std::atan( Ay / Ax );
-    double Beta  = 3.141592653589793 * 0.5 - std::atan( Cx / Cy );
+    double Beta  = Globals::Pi * 0.5 - std::atan( Cx / Cy );
 
     Transformation(0, 0) =   std::sin(Beta);
     Transformation(0, 1) = - std::sin(Alpha);
@@ -441,6 +441,11 @@ Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType c
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
 
     return Kratos::make_shared< ShellThickElement3D4N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
+}
+
+Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared< ShellThickElement3D4N >(NewId, pGeom, pProperties, mpCoordinateTransformation->Create(pGeom) );
 }
 
 void ShellThickElement3D4N::Initialize()
