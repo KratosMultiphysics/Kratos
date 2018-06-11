@@ -40,8 +40,8 @@ class LineOutputProcess(KratosMultiphysics.Process):
         if end_point_position.Size() != 3:
             raise Exception('The end point position has to be provided with 3 coordinates!')
         number_of_sampling_points = params["number_of_sampling_points"].GetInt()
-        if number_of_sampling_points < 1:
-            raise Exception('The number of sampling points has to be positive and larger then 0!')
+        if number_of_sampling_points < 2:
+            raise Exception('The number of sampling points has to be larger that 1!')
 
         # check the entity type
         entity_type = params["entity_type"].GetString()
