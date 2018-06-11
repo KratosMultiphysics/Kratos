@@ -120,13 +120,13 @@ class FluidSolver(PythonSolver):
         (self.solver).Clear()
 
     def Solve(self):
-        message = "".join(
+        message = "".join([
             "Calling FluidSolver.Solve() method, which is deprecated\n",
             "Please call the individual methods instead:\n",
             "solver.InitializeSolutionStep()\n",
             "solver.Predict()\n",
             "solver.SolveSolutionStep()\n",
-            "solver.FinalizeSolutionStep()\n"
+            "solver.FinalizeSolutionStep()\n"]
         )
         KratosMultiphysics.Logger.PrintWarning("FluidSolver",message)
         self.InitializeSolutionStep()
