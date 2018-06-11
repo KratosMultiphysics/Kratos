@@ -22,6 +22,7 @@
 #include "custom_processes/clear_point_contact_conditions_process.hpp"
 #include "custom_processes/build_contact_conditions_process.hpp"
 
+#include "custom_processes/hm_parametric_wall_contact_search_process.hpp"
 
 namespace Kratos
 {
@@ -56,6 +57,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m,"ParametricWallContactSearch")
       .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
       ;
+
+  class_<HMParametricWallContactSearchProcess, HMParametricWallContactSearchProcess::Pointer, Process> 
+	   (m,"HMParametricWallContactSearch")
+      .def(init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
+	   ;
 
   class_<BuildContactModelPartProcess, BuildContactModelPartProcess::Pointer, Process>
       (m,"BuildContactModelPart")

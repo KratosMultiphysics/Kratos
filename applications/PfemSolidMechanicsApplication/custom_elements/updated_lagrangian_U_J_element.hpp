@@ -264,10 +264,6 @@ namespace Kratos
           ****/    
          double mElementStabilizationNumber;
 
-         /*** 
-           Just to check a few things
-          ***/
-         //bool mCompressibleWater;
 
          ///@}
          ///@name Protected Operators

@@ -62,6 +62,14 @@ class PfemFluidSolver:
                 "preconditioner_type"            : "None",
                 "scaling"                        : false
             },
+            "solving_strategy_settings":{
+               "time_step_prediction_level": 0,
+               "max_delta_time": 1.0e-5,
+               "fraction_delta_time": 0.9,
+               "rayleigh_damping": false,
+               "rayleigh_alpha": 0.0,
+               "rayleigh_beta" : 0.0
+            },
             "bodies_list": [
                 {"body_name":"body1",
                 "parts_list":["Part1"]
@@ -110,13 +118,16 @@ class PfemFluidSolver:
                                                               self.settings["time_order"].GetInt(),
                                                               self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
+        echo_level = self.settings["echo_level"].GetInt()
+
         # Set echo_level
-        self.fluid_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.fluid_solver.SetEchoLevel(echo_level)
 
         # Set initialize flag
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
             self.mechanical_solver.SetInitializePerformedFlag(True)
-        
+
+    
         # Check if everything is assigned correctly
         self.fluid_solver.Check()
 
@@ -139,7 +150,12 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
-        
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_ERROR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+
+
         #VARIABLES FOR PAPANASTASIOU MODEL
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
@@ -174,6 +190,7 @@ class PfemFluidSolver:
         for node in self.main_model_part.Nodes:
             # adding dofs
             node.AddDof(KratosMultiphysics.PRESSURE)
+            node.AddDof(KratosMultiphysics.DENSITY)
             node.AddDof(KratosMultiphysics.VELOCITY_X)
             node.AddDof(KratosMultiphysics.VELOCITY_Y)
             node.AddDof(KratosMultiphysics.VELOCITY_Z)
@@ -292,10 +309,11 @@ class PfemFluidSolver:
         #adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #adaptive_time_interval.Execute()
 
-        unactive_peak_elements = False
-        unactive_sliver_elements = False
-        set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
-        set_active_flag.Execute()
+        pass
+        #unactive_peak_elements = False
+        #unactive_sliver_elements = False
+        #set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
+        #set_active_flag.Execute()
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteInitialize()
@@ -312,10 +330,12 @@ class PfemFluidSolver:
         #pass
         self.fluid_solver.FinalizeSolutionStep()  
 
+        #print("set_active_flag.ExecuteFinalize()")
         unactive_peak_elements = False
         unactive_sliver_elements = False
-        set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
-        set_active_flag.ExecuteFinalize()
+        if(unactive_peak_elements == True or unactive_sliver_elements == True):
+            set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
+            set_active_flag.ExecuteFinalize()
 
         #split_elements = KratosPfemFluid.SplitElementsProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         #split_elements.ExecuteFinalize()
