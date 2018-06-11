@@ -336,17 +336,17 @@ private:
      */
     void CalculateResidualNorm(
         TDataType& rResidualSolutionNorm,
-        IndexType& rDofNum,
+        SizeType& rDofNum,
         DofsArrayType& rDofSet,
         const TSystemVectorType& b
         )
     {
         // Initialize
-        rResidualSolutionNorm = TDataType();
-        rDofNum = 0;
+        TDataType residual_solution_norm = TDataType();
+        SizeType dof_num = 0;
 
         // Loop over Dofs
-        #pragma omp parallel for reduction(+:rResidualSolutionNorm,rDofNum)
+        #pragma omp parallel for reduction(+:residual_solution_norm,dof_num)
         for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
             auto it_dof = rDofSet.begin() + i;
 
@@ -356,10 +356,13 @@ private:
             if (it_dof->IsFree()) {
                 dof_id = it_dof->EquationId();
                 residual_dof_value = b[dof_id];
-                rResidualSolutionNorm += residual_dof_value * residual_dof_value;
-                rDofNum++;
+                residual_solution_norm += residual_dof_value * residual_dof_value;
+                dof_num++;
             }
         }
+             
+        rDofNum = dof_num;
+        rResidualSolutionNorm = residual_solution_norm;
     }
 
     ///@} 
