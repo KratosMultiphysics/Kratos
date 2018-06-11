@@ -203,8 +203,11 @@ void TrussPlasticityConstitutiveLaw::CalculateMaterialResponse(
     if (rStressVector.size() != 1) rStressVector.resize(1);
     rStressVector[0] = youngs_modulus*elastic_trial_strain; 
 
-    this->mStressState = rStressVector[0];
-    this->mInelasticFlag = this->CheckIfIsPlasticRegime(rMaterialProperties,rStressVector[0]);
+    if (SaveInternalVariables)
+    {
+        this->mStressState = rStressVector[0];
+        this->mInelasticFlag = this->CheckIfIsPlasticRegime(rMaterialProperties,rStressVector[0]);
+    }
 }
 
 

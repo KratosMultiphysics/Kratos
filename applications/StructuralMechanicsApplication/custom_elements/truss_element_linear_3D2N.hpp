@@ -98,7 +98,6 @@ namespace Kratos
             std::vector< array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-
         /**
          * @brief This function calculates the total stiffness matrix for the element
          */
@@ -116,10 +115,8 @@ namespace Kratos
          * @brief This function calculates the current linear-Lagrange strain
          */
 		double CalculateLinearStrain();
-		double ReturnElastoPlasticTangentModulus() const;
-		double TrialStateStress();
-		double TrialYieldFunction();
-		bool CheckIfIsPlasticRegime();
+
+
 		void UpdateInternalForces(
 			BoundedVector<double,msLocalSize>& rinternalForces) override;
 
@@ -131,6 +128,10 @@ namespace Kratos
 
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
+        // make this override and add to non_lin truss
+        BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
+            ProcessInfo& rCurrentProcessInfo,
+            const bool& rSaveInternalVariables);
 
 
 		private:
