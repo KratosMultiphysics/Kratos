@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Marcelo Raschi
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_READ_MATERIALS_H_INCLUDED )

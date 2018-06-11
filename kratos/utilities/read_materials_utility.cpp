@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "utilities/read_materials_utility.hpp"
+#include "utilities/read_materials_utility.h"
 
 namespace Kratos
 {
