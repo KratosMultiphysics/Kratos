@@ -431,12 +431,12 @@ void BaseShellElement::PrintData(std::ostream& rOStream) const {
 ///@name Protected Operations
 ///@{
 
-std::size_t BaseShellElement::GetNumberOfDofs()
+SizeType BaseShellElement::GetNumberOfDofs()
 {
     return ( 6 * GetGeometry().PointsNumber() ); // 6 dofs per node
 }
 
-std::size_t BaseShellElement::GetNumberOfGPs()
+SizeType BaseShellElement::GetNumberOfGPs()
 {
     const GeometryType::IntegrationPointsArrayType& integrationPoints =
     GetGeometry().IntegrationPoints(mIntegrationMethod);
