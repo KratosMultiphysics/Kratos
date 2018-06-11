@@ -42,8 +42,10 @@ TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
 
 ConstitutiveLaw::Pointer TrussConstitutiveLaw::Clone() const
 {
-    TrussConstitutiveLaw::Pointer p_clone(new TrussConstitutiveLaw(*this));
+/*     TrussConstitutiveLaw::Pointer p_clone(new TrussConstitutiveLaw(*this));
     return p_clone;
+ */
+    return Kratos::make_shared<TrussConstitutiveLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -69,6 +71,19 @@ void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
+double& TrussConstitutiveLaw::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
+    if(rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE) rValue = this->mStressState;
+    else KRATOS_ERROR << "can't get the specified value" << std::endl;
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 double& TrussConstitutiveLaw::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
@@ -78,6 +93,47 @@ double& TrussConstitutiveLaw::CalculateValue(
     else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
     return rValue;
 }
+
+//************************************************************************************
+//************************************************************************************
+
+Vector& TrussConstitutiveLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue)
+{
+    
+    if(rThisVariable == NORMAL_STRESS) 
+    {
+        const SizeType dofs = 6;
+        if(rValue.size()!=dofs) rValue.resize(dofs);
+        rValue[0] = -1.0 * this->mStressState;
+        rValue[3] = 1.0 * this->mStressState;
+    }
+    else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void TrussConstitutiveLaw::CalculateMaterialResponse(
+    const Vector& rStrainVector,const Matrix& rDeformationGradient,
+    Vector& rStressVector,Matrix& rAlgorithmicTangent,
+    const ProcessInfo& rCurrentProcessInfo,const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues,
+    bool CalculateStresses,int CalculateTangent,bool SaveInternalVariables)
+{
+    const double axial_strain = rStrainVector[0];
+    const double youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
+
+    if (rStressVector.size() != 1) rStressVector.resize(1);
+    rStressVector[0] = youngs_modulus*axial_strain; 
+
+    //if (SaveInternalVariables) this->mStressState = rStressVector[0];
+    this->mStressState = rStressVector[0];
+}
+
 
 //************************************************************************************
 //************************************************************************************

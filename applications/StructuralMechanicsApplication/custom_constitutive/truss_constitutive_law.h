@@ -97,9 +97,22 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    double& GetValue(const Variable<double>& rThisVariable,
+        double& rValue) override;
 
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,double& rValue) override;
+        
+    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue) override;
+
+    void CalculateMaterialResponse(
+        const Vector& rStrainVector,const Matrix& rDeformationGradient,
+        Vector& rStressVector,Matrix& rAlgorithmicTangent,
+        const ProcessInfo& rCurrentProcessInfo,const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues,
+        bool CalculateStresses,int CalculateTangent,bool SaveInternalVariables) override;
 
 protected:
 
@@ -127,7 +140,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    double mStressState = 0.0; // The current stress state
     ///@}
     ///@name Private Operators
     ///@{
