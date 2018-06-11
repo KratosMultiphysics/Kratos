@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
 //       contact:    A.Winterstein[at]tum.de
@@ -26,324 +26,348 @@ namespace Kratos
 {
 
 
-	///@name Kratos Globals
-	///@{
-	///@}
+    ///@name Kratos Globals
+    ///@{
+    ///@}
 
-	///@name Type Definitions
-	///@{
-	///@}
+    ///@name Type Definitions
+    ///@{
+    ///@}
 
-	class ShellT3_CoordinateTransformation;
+    class ShellT3_CoordinateTransformation;
 
-	///@name  Enum's
-	///@{
-	///@}
+    ///@name  Enum's
+    ///@{
+    ///@}
+
+    ///@name  Functions
+    ///@{
+    ///@}
+
+    ///@name Kratos Classes
+    ///@{
+
+    /** \brief ShellThickElement3D3N
+    *
+    * This element represents a 3-node Shell element
+    * based on the Discrete Shear Gap theory (DSG) by Bletzinger.
+    * This element is formulated for small strains,
+    * but can be used in Geometrically nonlinear problems
+    * involving large displacements and rotations
+    * using a Corotational Coordinate Transformation.
+    * Material nonlinearity is handled by means of the cross section object.
+    */
 
-	///@name  Functions
-	///@{
-	///@}
+    /*
+    Shell formulation reference:
+    1.    Bletzinger, K.U., Bischoff, M. and Ramm, E., 2000. A unified approach for
+        shear-locking-free triangular and rectangular shell finite elements.
+        Computers & Structures, 75(3), pp.321-334.
+    2.    Rama, G.,  Marinkovic, D.,  Zehn, M., 2016. Efficient co-rotational
+        3-node shell element.
+        American Journal of Engineering and Applied Sciences, Volume 9, Issue 2,
+        Pages 420-431.
+    */
 
-	///@name Kratos Classes
-	///@{
 
-	/** \brief ShellThickElement3D3N
-	*
-	* This element represents a 3-node Shell element
-	* based on the Discrete Shear Gap theory (DSG) by Bletzinger.
-	* This element is formulated for small strains,
-	* but can be used in Geometrically nonlinear problems
-	* involving large displacements and rotations
-	* using a Corotational Coordinate Transformation.
-	* Material nonlinearity is handled by means of the cross section object.
-	*/
+    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public BaseShellElement
+    {
+    public:
 
-	/*
-	Shell formulation reference:
-	1.	Bletzinger, K.U., Bischoff, M. and Ramm, E., 2000. A unified approach for
-		shear-locking-free triangular and rectangular shell finite elements.
-		Computers & Structures, 75(3), pp.321-334.
-	2.	Rama, G.,  Marinkovic, D.,  Zehn, M., 2016. Efficient co-rotational
-		3-node shell element.
-		American Journal of Engineering and Applied Sciences, Volume 9, Issue 2,
-		Pages 420-431.
-	*/
+        ///@name Type Definitions
+        ///@{
 
+        KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D3N);
 
-	class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N : public BaseShellElement
-	{
-	public:
+        typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
 
-		///@name Type Definitions
-		///@{
+        typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
 
-		KRATOS_CLASS_POINTER_DEFINITION(ShellThickElement3D3N);
+        typedef array_1d<double, 3> Vector3Type;
 
-		typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
+        typedef Quaternion<double> QuaternionType;
 
-		typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
+        ///@}
 
-		typedef array_1d<double, 3> Vector3Type;
+        ///@name Classes
+        ///@{
 
-		typedef Quaternion<double> QuaternionType;
+        ///@}
 
-		///@}
+        ///@name Life Cycle
+        ///@{
 
-		///@name Classes
-		///@{
+        ShellThickElement3D3N(IndexType NewId,
+            GeometryType::Pointer pGeometry,
+            bool NLGeom = false);
 
-		///@}
+        ShellThickElement3D3N(IndexType NewId,
+            GeometryType::Pointer pGeometry,
+            PropertiesType::Pointer pProperties,
+            bool NLGeom = false);
 
-		///@name Life Cycle
-		///@{
+        ShellThickElement3D3N(IndexType NewId,
+            GeometryType::Pointer pGeometry,
+            PropertiesType::Pointer pProperties,
+            CoordinateTransformationBasePointerType pCoordinateTransformation);
 
-		ShellThickElement3D3N(IndexType NewId,
-			GeometryType::Pointer pGeometry,
-			bool NLGeom = false);
+        ~ShellThickElement3D3N() override;
 
-		ShellThickElement3D3N(IndexType NewId,
-			GeometryType::Pointer pGeometry,
-			PropertiesType::Pointer pProperties,
-			bool NLGeom = false);
+        ///@}
 
-		ShellThickElement3D3N(IndexType NewId,
-			GeometryType::Pointer pGeometry,
-			PropertiesType::Pointer pProperties,
-			CoordinateTransformationBasePointerType pCoordinateTransformation);
+        ///@name Operations
+        ///@{
 
-		~ShellThickElement3D3N() override;
+        // Basic
 
-		///@}
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
-		///@name Operations
-		///@{
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
-		// Basic
+        void Initialize() override;
 
-		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+        void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;    //corotational formulation
 
-		void Initialize() override;
+        void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;	//corotational formulation
+        void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+        void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
 
-		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+        void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override; //corotational formulation
+        // Results calculation on integration points
 
-		void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-		// Results calculation on integration points
+        void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+        void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+        void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable, std::vector<array_1d<double, 6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+        // More results calculation on integration points to interface with python
+        void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+            std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable, std::vector<array_1d<double, 6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+            std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		// More results calculation on integration points to interface with python
-		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+            std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-			std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(const Variable<array_1d<double,
+            3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-			std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(const Variable<array_1d<double,
+            6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-			3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
-			const ProcessInfo& rCurrentProcessInfo) override;
+        // Calculate functions
+        void Calculate(const Variable<Matrix >& rVariable,
+            Matrix& Output,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-			6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
-			const ProcessInfo& rCurrentProcessInfo) override;
+        ///@}
 
-		// Calculate functions
-		void Calculate(const Variable<Matrix >& rVariable,
-			Matrix& Output,
-			const ProcessInfo& rCurrentProcessInfo) override;
+        ///@name Public specialized Access - Temporary
+        ///@{
 
-		///@}
+        ///@}
 
-		///@name Public specialized Access - Temporary
-		///@{
+    protected:
 
-		///@}
+        ///@name Protected Lyfe Cycle
+        ///@{
 
-	protected:
+        /**
+        * Protected empty constructor
+        */
+        ShellThickElement3D3N() : BaseShellElement()
+        {
+        }
 
-		///@name Protected Lyfe Cycle
-		///@{
+        ///@}
 
-		/**
-		* Protected empty constructor
-		*/
-		ShellThickElement3D3N() : BaseShellElement()
-		{
-		}
+    private:
 
-		///@}
+        ///@name Private Classes
+        ///@{
 
-	private:
+        class CalculationData
+        {
 
-		///@name Private Classes
-		///@{
+        public:
 
-		class CalculationData
-		{
+            // ---------------------------------------
+            // calculation-constant data
+            // ----------------------------------------
+            // these data are allocated and constructed
+            // at the beginning of the calculation
 
-		public:
+            ShellT3_LocalCoordinateSystem LCS0; /*!< reference coordinate system */
+            ShellT3_LocalCoordinateSystem LCS;  /*!< current coordinate system */
 
-			// ---------------------------------------
-			// calculation-constant data
-			// ----------------------------------------
-			// these data are allocated and constructed
-			// at the beginning of the calculation
+            double dA;
+            double hMean;
+            double TotalArea;
 
-			ShellT3_LocalCoordinateSystem LCS0; /*!< reference coordinate system */
-			ShellT3_LocalCoordinateSystem LCS;  /*!< current coordinate system */
+            std::vector< array_1d<double, 3> > gpLocations;
 
-			double dA;
-			double hMean;
-			double TotalArea;
+            MatrixType dNxy = ZeroMatrix(3, 2);  /*!< shape function cartesian derivatives */
+            VectorType N = ZeroVector(3); /*!< shape function vector at the current integration point */
 
-			std::vector< array_1d<double, 3> > gpLocations;
+            VectorType globalDisplacements = ZeroVector(18); /*!< global displacement vector */
+            VectorType localDisplacements = ZeroVector(18);  /*!< local displacement vector */
 
-			MatrixType dNxy = ZeroMatrix(3, 2);  /*!< shape function cartesian derivatives */
-			VectorType N = ZeroVector(3); /*!< shape function vector at the current integration point */
+            bool CalculateRHS; /*!< flag for the calculation of the right-hand-side vector */
+            bool CalculateLHS; /*!< flag for the calculation of the left-hand-side vector */
 
-			VectorType globalDisplacements = ZeroVector(18); /*!< global displacement vector */
-			VectorType localDisplacements = ZeroVector(18);  /*!< local displacement vector */
+            const bool parabolic_composite_transverse_shear_strains = false;
 
-			bool CalculateRHS; /*!< flag for the calculation of the right-hand-side vector */
-			bool CalculateLHS; /*!< flag for the calculation of the left-hand-side vector */
+            // ---------------------------------------
+            // Testing flags
+            // ---------------------------------------
+            // These should all be FALSE unless you are testing, or
+            // investigating the effects of element enhancements!
 
-			const bool parabolic_composite_transverse_shear_strains = false;
+            const bool basicTriCST = false;    // bool to use basic CST
+            // displacement-based shear formulation. This should be FALSE unless
+            // you are testing
 
-			// ---------------------------------------
-			// Testing flags
-			// ---------------------------------------
-			// These should all be FALSE unless you are testing, or
-			// investigating the effects of element enhancements!
+            const bool ignore_shear_stabilization = false; // bool to
+            // ignore stabilizing the transverse shear part of the material
+            // matrix. This should be false unless you are testing
 
-			const bool basicTriCST = false;	// bool to use basic CST
-			// displacement-based shear formulation. This should be FALSE unless
-			// you are testing
+            const bool smoothedDSG = false; // bool to use smoothed DSG
+            // formulation according to [Nguyen-Thoi et al., 2013].
+            // This should be false unless you are testing
 
-			const bool ignore_shear_stabilization = false; // bool to
-			// ignore stabilizing the transverse shear part of the material
-			// matrix. This should be false unless you are testing
+            const bool specialDSGc3 = false; // bool to use experimental
+            // DSGc3 formulation not yet complete.
+            // This should be false unless you are testing
 
-			const bool smoothedDSG = false; // bool to use smoothed DSG
-			// formulation according to [Nguyen-Thoi et al., 2013].
-			// This should be false unless you are testing
+            // ---------------------------------------
+            // calculation-variable data
+            // ---------------------------------------
+            // these data are updated during the
+            // calculations
 
-			const bool specialDSGc3 = false; // bool to use experimental
-			// DSGc3 formulation not yet complete.
-			// This should be false unless you are testing
+            size_t gpIndex;
 
-			// ---------------------------------------
-			// calculation-variable data
-			// ---------------------------------------
-			// these data are updated during the
-			// calculations
+            // ---------------------------------------
+            // calculation-variable data
+            // ---------------------------------------
+            // these data are updated during the
+            // calculations, but they are allocated
+            // only once(the first time they are used)
+            // to avoid useless re-allocations
 
-			size_t gpIndex;
+            MatrixType B = ZeroMatrix(8, 18);   /*!< total strain-displacement matrix at the current integration point */
 
-			// ---------------------------------------
-			// calculation-variable data
-			// ---------------------------------------
-			// these data are updated during the
-			// calculations, but they are allocated
-			// only once(the first time they are used)
-			// to avoid useless re-allocations
+            double h_e;        /*!< longest edge of triangle */
+            double alpha = 0.1;    // modifier of shear material matrix stabilization parameter
+                                // refer Lyly(1993)
+            double shearStabilisation;
 
-			MatrixType B = ZeroMatrix(8, 18);   /*!< total strain-displacement matrix at the current integration point */
+            Matrix D = ZeroMatrix(8, 8);        /*!< section constitutive matrix at the current integration point */
 
-			double h_e;		/*!< longest edge of triangle */
-			double alpha = 0.1;	// modifier of shear material matrix stabilization parameter
-								// refer Lyly(1993)
-			double shearStabilisation;
+            VectorType generalizedStrains = ZeroVector(8);  /*!< generalized strain vector at the current integration point */
 
-			Matrix D = ZeroMatrix(8, 8);		/*!< section constitutive matrix at the current integration point */
+            VectorType generalizedStresses = ZeroVector(8); /*!< generalized stress vector at the current integration point */
 
-			VectorType generalizedStrains = ZeroVector(8);  /*!< generalized strain vector at the current integration point */
+            ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
-			VectorType generalizedStresses = ZeroVector(8); /*!< generalized stress vector at the current integration point */
+            std::vector<VectorType> rlaminateStrains;
 
-			ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
+            std::vector<VectorType> rlaminateStresses;
 
-			std::vector<VectorType> rlaminateStrains;
+        public:
 
-			std::vector<VectorType> rlaminateStresses;
+            const ProcessInfo& CurrentProcessInfo;
 
-		public:
+        public:
 
-			const ProcessInfo& CurrentProcessInfo;
+            CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
+                const ProcessInfo& rCurrentProcessInfo);
 
-		public:
+        };
 
-			CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
-				const ProcessInfo& rCurrentProcessInfo);
+        ///@}
 
-		};
+        ///@name Private Operations
+        ///@{
+        void CalculateStressesFromForceResultants
+            (VectorType& rstresses,
+                const double& rthickness);
 
-		///@}
+        void CalculateLaminaStrains(CalculationData& data);
 
-		///@name Private Operations
-		///@{
-		void CalculateStressesFromForceResultants
-			(VectorType& rstresses,
-				const double& rthickness);
+        void CalculateLaminaStresses(CalculationData& data);
 
-		void CalculateLaminaStrains(CalculationData& data);
+        double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
-		void CalculateLaminaStresses(CalculationData& data);
+        void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
 
-		double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
+        void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
 
-		void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
+        void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
 
-		void CalculateShellElementEnergy(const CalculationData& data, const Variable<double>& rVariable, double& rEnergy_Result);
+        void DecimalCorrection(Vector& a);
 
-		void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& iJob, bool& bGlobal);
+        void SetupOrientationAngles() override;
 
-		void DecimalCorrection(Vector& a);
+        void CalculateSectionResponse(CalculationData& data);
 
-		void SetupOrientationAngles() override;
+        void InitializeCalculationData(CalculationData& data);
 
-		void CalculateSectionResponse(CalculationData& data);
+        void CalculateDSGc3Contribution(CalculationData& data, MatrixType& rLeftHandSideMatrix);
 
-		void InitializeCalculationData(CalculationData& data);
+        void CalculateSmoothedDSGBMatrix(CalculationData& data);
 
-		void CalculateDSGc3Contribution(CalculationData& data, MatrixType& rLeftHandSideMatrix);
+        void CalculateDSGShearBMatrix(Matrix& shearBMatrix, const double& a, const double& b, const double& c, const double& d, const double& A);
 
-		void CalculateSmoothedDSGBMatrix(CalculationData& data);
+        void AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector);
 
-		void CalculateDSGShearBMatrix(Matrix& shearBMatrix, const double& a, const double& b, const double& c, const double& d, const double& A);
-
-		void AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector);
-
-		void CalculateAll(MatrixType& rLeftHandSideMatrix,
+        void CalculateAll(MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo,
             const bool CalculateStiffnessMatrixFlag,
             const bool CalculateResidualVectorFlag) override;
 
-		bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
-			std::vector<array_1d<double, 3> >& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+        bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
+            std::vector<array_1d<double, 3> >& rValues,
+            const ProcessInfo& rCurrentProcessInfo);
 
-		bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
-			std::vector<Matrix>& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+        bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+            std::vector<Matrix>& rValues,
+            const ProcessInfo& rCurrentProcessInfo);
 
         /**
         * Returns the behavior of this shell (thin/thick)
@@ -351,43 +375,43 @@ namespace Kratos
         */
         ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
 
-		///@}
+        ///@}
 
-		///@name Static Member Variables
-		///@{
-		///@}
+        ///@name Static Member Variables
+        ///@{
+        ///@}
 
-		///@name Member Variables
-		///@{
+        ///@name Member Variables
+        ///@{
 
-		CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
+        CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
         ///@}
 
         ///@name Serialization
         ///@{
 
-		friend class Serializer;
+        friend class Serializer;
 
-		void save(Serializer& rSerializer) const override;
+        void save(Serializer& rSerializer) const override;
 
-		void load(Serializer& rSerializer) override;
+        void load(Serializer& rSerializer) override;
 
-		///@}
+        ///@}
 
-		///@name Private  Access
-		///@{
-		///@}
+        ///@name Private  Access
+        ///@{
+        ///@}
 
-		///@name Private Inquiry
-		///@{
-		///@}
+        ///@name Private Inquiry
+        ///@{
+        ///@}
 
-		///@name Un accessible methods
-		///@{
-		///@}
+        ///@name Un accessible methods
+        ///@{
+        ///@}
 
-	};
+    };
 
 }
 #endif // SHELL_THICK_ELEMENT_3D3N_H_INCLUDED
