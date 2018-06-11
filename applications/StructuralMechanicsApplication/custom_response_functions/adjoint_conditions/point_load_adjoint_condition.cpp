@@ -213,6 +213,7 @@ namespace Kratos
             Vector RHS;
             Matrix dummy_LHS;
             ProcessInfo copy_process_info = rCurrentProcessInfo;
+            array_1d<double, 3 > pseudo_load = ZeroVector(3);
 
             PointLoadCondition::CalculateAll(dummy_LHS, RHS, copy_process_info, false, true);
 
@@ -220,9 +221,17 @@ namespace Kratos
             for(unsigned int i = 0; i < RHS.size(); ++i)
             {
                 if( RHS[i] > 1e-12 || RHS[i] < -1e-12 )
+                {
                     rOutput(k, i) = 1.0; // or is it sign dependent?
+                    pseudo_load(i) = 1.0;
+                }
+                    
                 k++;
             }
+
+            // write pseudo-load to node for post processing
+            for (unsigned int i = 0; i < number_of_nodes; ++i)
+                this->GetGeometry()[i].FastGetSolutionStepValue(POINT_LOAD_PSEUDO_LOAD) = pseudo_load;
         }
         else if( rDesignVariable == SHAPE_SENSITIVITY )
         {
