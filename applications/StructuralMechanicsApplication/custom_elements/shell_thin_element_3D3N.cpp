@@ -12,7 +12,6 @@
 #include "shell_thin_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shell_utilities.h"
-#include "geometries/triangle_3d_3.h"
 
 #include <string>
 #include <iomanip>

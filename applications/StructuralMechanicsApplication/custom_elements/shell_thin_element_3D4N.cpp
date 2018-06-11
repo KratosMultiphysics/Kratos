@@ -29,8 +29,6 @@ involving large displacements and rotations
 using a Corotational Coordinate Transformation.
 Material nonlinearity is handled by means of the cross section object.
 
-
-
 Shell formulation references:---------------------------------------------------
 ANDES formulation:
 Bjorn Haugen. "Buckling and Stability Problems for Thin Shell Structures
@@ -682,11 +680,9 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
         // in-plane and is used in element stiffness calculation.
 
         // Resize output
-        if (rValues.size() != 4)
-            rValues.resize(4);
+        if (rValues.size() != 4) rValues.resize(4);
 
         for (int i = 0; i < 4; ++i) rValues[i] = ZeroVector(3);
-
 
         // Initialize common calculation variables
         // Compute the local coordinate system.
@@ -718,9 +714,7 @@ void ShellThinElement3D4N::GetValueOnIntegrationPoints
 
         //write results
         for (SizeType dir = 0; dir < 1; dir++)
-        {
             rValues[dir] = fiberAxis1;
-        }
     }
 }
 
@@ -947,9 +941,7 @@ double ShellThinElement3D4N::CalculateTsaiWuPlaneStress(const CalculationData & 
     {
         var_b += F_i[i] * data.rlaminateStresses[2 * rPly][i];
         for (SizeType j = 0; j < 3; j++)
-        {
             var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly][i] * data.rlaminateStresses[2 * rPly][j];
-        }
     }
     double tsai_reserve_factor_top = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
 
@@ -960,9 +952,7 @@ double ShellThinElement3D4N::CalculateTsaiWuPlaneStress(const CalculationData & 
     {
         var_b += F_i[i] * data.rlaminateStresses[2 * rPly + 1][i];
         for (SizeType j = 0; j < 3; j++)
-        {
             var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly + 1][i] * data.rlaminateStresses[2 * rPly + 1][j];
-        }
     }
     double tsai_reserve_factor_bottom = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
 
@@ -1045,26 +1035,18 @@ void ShellThinElement3D4N::CalculateShellElementEnergy(const CalculationData & d
     if (rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY || rVariable == SHELL_ELEMENT_MEMBRANE_ENERGY_FRACTION)
     {
         for (SizeType i = 0; i < 3; i++)
-        {
             rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i]* data.dA[data.gpIndex];
-        }
 
         if (is_fraction_calc)
-        {
             rEnergy_Result /= totalEnergy;
-        }
     }
     else if (rVariable == SHELL_ELEMENT_BENDING_ENERGY || rVariable == SHELL_ELEMENT_BENDING_ENERGY_FRACTION)
     {
         for (SizeType i = 3; i < 6; i++)
-        {
             rEnergy_Result += data.generalizedStresses[i] * data.generalizedStrains[i]* data.dA[data.gpIndex];
-        }
 
         if (is_fraction_calc)
-        {
             rEnergy_Result /= totalEnergy;
-        }
     }
     else if (rVariable == SHELL_ELEMENT_SHEAR_ENERGY || rVariable == SHELL_ELEMENT_SHEAR_ENERGY_FRACTION)
     {
@@ -1300,9 +1282,6 @@ void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
         // compute the 'area' of the current integration point
         data.dA[gp] = IntegrationWeight * data.jacOp.Determinant();
     }
-
-
-
 
     if (data.basicQuad == false)
     {
@@ -1722,8 +1701,6 @@ void ShellThinElement3D4N::InitializeCalculationData(CalculationData& data)
         }
     }
 
-
-
     // ---------------------------------------------------------------------
     //
     //                       DKQ BENDING FORMULATION
@@ -1948,10 +1925,6 @@ void ShellThinElement3D4N::CalculateBMatrix(CalculationData& data)
         B_mem += data.L_mem + B_hH_mem;
     }
 
-
-
-
-
     // --------------------------------------------
     //     DKQ BENDING FORMULATION
     //---------------------------------------------
@@ -2068,7 +2041,6 @@ void ShellThinElement3D4N::CalculateBMatrix(CalculationData& data)
 
     B_bend_total.clear();
     B_bend_total += B_bend_DKQ;
-
 
     //---------------------------------------------
     // assemble the membrane contribution

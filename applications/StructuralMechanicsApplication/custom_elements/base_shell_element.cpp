@@ -15,46 +15,21 @@
 
 // External includes
 
-
 // Project includes
 #include "custom_elements/base_shell_element.h"
 #include "includes/checks.h"
 
-
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
+using SizeType = std::size_t;
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/**
- * Constructor using Geometry
- */
 BaseShellElement::BaseShellElement(IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
 }
 
-/**
- * Constructor using Properties
- */
 BaseShellElement::BaseShellElement(IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -62,27 +37,9 @@ BaseShellElement::BaseShellElement(IndexType NewId,
 {
 }
 
-/**
- * Destructor
- */
 BaseShellElement::~BaseShellElement() {
 }
 
-///@}
-///@name Operators
-///@{
-
-
-///@}
-///@name Operations
-///@{
-
-/**
- * this determines the elemental equation ID vector for all elemental
- * DOFs
- * @param rResult: the elemental equation ID vector
- * @param rCurrentProcessInfo: the current process info instance
- */
 void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
                                         ProcessInfo& rCurrentProcessInfo)
 {
@@ -108,11 +65,6 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
     }
 }
 
-/**
- * determines the elemental list of DOFs
- * @param rElementalDofList: the list of DOFs
- * @param rCurrentProcessInfo: the current process info instance
- */
 void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
                                   ProcessInfo& rCurrentProcessInfo)
 {
@@ -363,10 +315,6 @@ int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH( "" )
 }
 
-///@}
-///@name Access
-///@{
-
 void BaseShellElement::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
 {
     KRATOS_TRY
@@ -380,56 +328,19 @@ void BaseShellElement::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCro
     KRATOS_CATCH("")
 }
 
-
-///@}
-///@name Inquiry
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-/// Turn back information as a string.
-
 std::string BaseShellElement::Info() const {
   std::stringstream buffer;
   buffer << "BaseShellElement #" << Id();
   return buffer.str();
 }
 
-/// Print information about this object.
-
 void BaseShellElement::PrintInfo(std::ostream& rOStream) const {
   rOStream << "BaseShellElement #" << Id();
 }
 
-/// Print object's data.
-
 void BaseShellElement::PrintData(std::ostream& rOStream) const {
   pGetGeometry()->PrintData(rOStream);
 }
-
-///@}
-///@name Friends
-///@{
-
-///@}
-
-///@name Protected static Member Variables
-///@{
-
-///@}
-///@name Protected member Variables
-///@{
-
-///@}
-///@name Protected Operators
-///@{
-
-///@}
-///@name Protected Operations
-///@{
 
 SizeType BaseShellElement::GetNumberOfDofs()
 {
@@ -577,39 +488,6 @@ void BaseShellElement::CheckSpecificProperties()
     }
 }
 
-///@}
-///@name Protected  Access
-///@{
-
-///@}
-///@name Protected Inquiry
-///@{
-
-///@}
-///@name Protected LifeCycle
-///@{
-
-///@}
-
-///@name Static Member Variables
-///@{
-
-///@}
-///@name Member Variables
-///@{
-
-///@}
-///@name Private Operators
-///@{
-
-///@}
-///@name Private Operations
-///@{
-
-///@}
-///@name Serialization
-///@{
-
 void BaseShellElement::save(Serializer& rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
   rSerializer.save("Sections", mSections);
@@ -623,26 +501,6 @@ void BaseShellElement::load(Serializer& rSerializer) {
   rSerializer.load("IntM", temp);
   mIntegrationMethod = (IntegrationMethod)temp;
 }
-
-///@}
-///@name Private  Access
-///@{
-
-///@}
-///@name Private Inquiry
-///@{
-
-///@}
-///@name Un accessible methods
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
 
 /// input stream function
 inline std::istream & operator >> (std::istream& rIStream, BaseShellElement& rThis);
