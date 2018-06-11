@@ -5,9 +5,9 @@ from KratosMultiphysics.ChimeraApplication import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
-from generalTests import KratosChimeraGeneralTests
-
+# Import the tests to test_classes to create the suits
+#sys.path.insert(0, 'chimera_monolithic_simple_test')
+from test_chimera_monolithic_simple import TestChimeraMonolithicSimple
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -28,7 +28,7 @@ def AssambleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(KratosChimeraGeneralTests('testSmallExample'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestChimeraMonolithicSimple]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -36,16 +36,12 @@ def AssambleTestSuites():
     # - testNightlyFirstExample
     # - testNightlySecondExample
     nightSuite = suites['nightly']
-    nightSuite.addTests(KratosChimeraGeneralTests)
+    nightSuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosChimeraGeneralTests
-        ])
-    )
+    allSuite.addTests(nightSuite)
 
     return suites
 
