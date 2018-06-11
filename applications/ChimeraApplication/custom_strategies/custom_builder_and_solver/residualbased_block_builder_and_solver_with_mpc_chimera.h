@@ -351,7 +351,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpcChimera
         TSystemMatrixType &A,
         ElementsContainerType &rElements,
         ConditionsArrayType &rConditions,
-        ProcessInfo &CurrentProcessInfo) override
+        ProcessInfo &CurrentProcessInfo)
     {
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
