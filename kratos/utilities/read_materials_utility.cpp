@@ -96,8 +96,17 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop = model_part.pGetProperties(property_id, mesh_id);
 
-    KRATOS_INFO_IF("::[Reading materials process]:: Property", (data["Material"]["Variables"].end() - data["Material"]["Variables"].begin()) > 0 && p_prop->HasVariables()) << std::to_string(property_id) << "already has variables." << std::endl;
-    KRATOS_INFO_IF("::[Reading materials process]:: Property", (data["Material"]["Tables"].end() - data["Material"]["Tables"].begin()) > 0 && p_prop->HasTables()) << std::to_string(property_id) << "already has tables." << std::endl;
+    // We compute the size using the iterators
+    std::size_t variables_size = 0;
+    for(auto it=data["Material"]["Variables"].begin(); it!=data["Material"]["Variables"].end(); ++it)
+        variables_size++;
+    
+    std::size_t tables_size = 0;
+    for(auto it=data["Material"]["Tables"].begin(); it!=data["Material"]["Tables"].end(); ++it)
+        tables_size++;
+    
+    KRATOS_INFO_IF("::[Reading materials process]:: Property", variables_size > 0 && p_prop->HasVariables()) << std::to_string(property_id) << "already has variables." << std::endl;
+    KRATOS_INFO_IF("::[Reading materials process]:: Property", tables_size > 0 && p_prop->HasTables()) << std::to_string(property_id) << "already has tables." << std::endl;
 
     // Assign the p_properties to the model part's elements and conditions.
     auto& elements_array = model_part.Elements();
