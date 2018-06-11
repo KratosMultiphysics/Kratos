@@ -114,14 +114,15 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
 
 
   BoundedVector<double,msLocalSize> internal_forces = 
-  this->GetConstitutiveLawTrialResponse(rCurrentProcessInfo,false);
-
+    this->GetConstitutiveLawTrialResponse(rCurrentProcessInfo,false);
 
   BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CreateTransformationMatrix(transformation_matrix);
 
   internal_forces = prod(transformation_matrix, internal_forces);
+
+
 
   rRightHandSideVector -= internal_forces;
   this->AddPrestressLinear(rRightHandSideVector);
@@ -198,9 +199,17 @@ void TrussElementLinear3D2N::WriteTransformationCoordinates(
 
 double TrussElementLinear3D2N::CalculateLinearStrain()  {
   KRATOS_TRY;
+
+  Vector current_disp = ZeroVector(msLocalSize);
+  this->GetValuesVector(current_disp);
+  BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
+      ZeroMatrix(msLocalSize, msLocalSize);
+  this->CreateTransformationMatrix(transformation_matrix);
+
+  current_disp = prod(Matrix(trans(transformation_matrix)),current_disp);
   const double length_0 = this->CalculateReferenceLength();
-  const double length = this->CalculateCurrentLength();
-  const double e = (length-length_0)/(length_0);
+  const double e = (current_disp[3]-current_disp[0])/length_0;
+
   return e;
   KRATOS_CATCH("");
 }
@@ -240,7 +249,6 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 
   const GeometryType::IntegrationPointsArrayType &integration_points =
       GetGeometry().IntegrationPoints();
- //double temp_double = 1.0;
 
   if (rOutput.size() != integration_points.size()) {
     rOutput.resize(integration_points.size());
@@ -270,7 +278,6 @@ BoundedVector<double,TrussElementLinear3D2N::msLocalSize>
     Vector strain_vector = ZeroVector(this->mConstitutiveLaw->GetStrainSize());
     Vector stress_vector = ZeroVector(this->mConstitutiveLaw->GetStrainSize());
     strain_vector[0] = this->CalculateLinearStrain();
-
 
     Matrix temp_matrix;
     Vector temp_vector;

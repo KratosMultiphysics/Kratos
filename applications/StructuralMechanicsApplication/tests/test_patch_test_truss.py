@@ -36,7 +36,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
-        cl = StructuralMechanicsApplication.LinearElastic3DLaw()
+        cl = StructuralMechanicsApplication.TrussConstitutiveLaw()
         mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
 
@@ -82,9 +82,10 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                                                                 compute_reactions,
                                                                 reform_step_dofs,
                                                                 calculate_norm_dx,
-                                                                move_mesh_flag)
+                                                                move_mesh_flag)                        
         strategy.SetEchoLevel(0)
 
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 
@@ -109,7 +110,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                                                                 reform_step_dofs,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 
@@ -136,6 +137,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
 
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 

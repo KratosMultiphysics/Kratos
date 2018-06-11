@@ -422,6 +422,7 @@ int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
   const double numerical_limit = std::numeric_limits<double>::epsilon();
 
+
   this->mConstitutiveLaw->Check(this->GetProperties(),this->GetGeometry(),rCurrentProcessInfo);
 
   if (this->GetGeometry().WorkingSpaceDimension() != msDimension ||

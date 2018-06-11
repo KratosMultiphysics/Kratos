@@ -178,7 +178,7 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
         rValue[0] = -1.0 * current_stress;
         rValue[3] = 1.0 * current_stress;
 
-        current_stress = this->mStressState;
+        this->mStressState = current_stress;
 
     }
     else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
