@@ -19,7 +19,7 @@
             "input_type"     : "mdpa",
             "input_filename" : "truss_test/dynamic_3D2NTruss_test"
         },        
-            "material_import_settings" :{
+        "material_import_settings" :{
             "materials_filename": "truss_test/dynamic_3D2NTruss_test_materials.json"
         },
         "line_search"                        : false,
