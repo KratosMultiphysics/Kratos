@@ -43,6 +43,11 @@ class LineOutputProcess(KratosMultiphysics.Process):
         if number_of_sampling_points < 1:
             raise Exception('The number of sampling points has to be positive and larger then 0!')
 
+        # check the entity type
+        entity_type = params["entity_type"].GetString()
+        if not entity_type == "element" or entity_type == "condition":
+            raise Exception('"entity_type" can be either "element" or "condition"!')
+
         # setup the parametric space for the internal points on the line
         lower_bound = 0.0
         upper_bound = 1.0

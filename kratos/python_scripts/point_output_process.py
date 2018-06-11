@@ -167,9 +167,9 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 value = Interpolate(var, ent, coord)
 
                 if IsArrayVariable(var):
-                    out += " " + " ".join( "{0:.12g}".format(v) for v in value )
+                    out += " " + " ".join( "{0:.16g}".format(v) for v in value )
                 else:
-                    out += " " + "{0:.12g}".format(value)
+                    out += " " + "{0:.16g}".format(value)
 
             out += "\n"
             f.write(out)
@@ -207,7 +207,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 def InitializeOutputFile(output_file_name, entity_type, entity_id, point, output_variables):
     output_file = open(output_file_name,"w")
     out  = '# Results for "' + entity_type + '" '
-    out += 'with ID: ' + entity_id + " at position: '
+    out += 'with Id # ' + str(entity_id) + ' at position: '
     out += 'x: ' + "{0:.12g}".format(point.X) + '; '
     out += 'y: ' + "{0:.12g}".format(point.Y) + '; '
     out += 'z: ' + "{0:.12g}".format(point.Z) + '\n'
