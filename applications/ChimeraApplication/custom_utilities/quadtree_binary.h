@@ -973,8 +973,8 @@ class QuadtreeBinary
 
         const double tolerance = 0.001 * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL); // 0.1% of the min size
 
-        double min_coord[2] = {0.00, 0.00};
-        double max_coord[2] = {0.00, 0.00};
+        double min_coord[3] = {0.00, 0.00, 0.00};
+        double max_coord[3] = {0.00, 0.00, 0.00};
 
         //
         // to be added to configure
@@ -1062,8 +1062,8 @@ class QuadtreeBinary
 
         const double tolerance = 0.001 * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL); // 0.1% of the min size
 
-        double min_coord[2] = {0.00, 0.00};
-        double max_coord[2] = {0.00, 0.00};
+        double min_coord[3] = {0.00, 0.00, 0.00};
+        double max_coord[3] = {0.00, 0.00, 0.00};
 
         //
         // to be added to configure
@@ -1163,8 +1163,8 @@ class QuadtreeBinary
 
         const double tolerance = 0.001 * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL); // 0.1% of the min size
 
-        double min_coord[2] = {0.00, 0.00};
-        double max_coord[2] = {0.00, 0.00};
+        double min_coord[3] = {0.00, 0.00, 0.00};
+        double max_coord[3] = {0.00, 0.00, 0.00};
 
         //
         // to be added to configure
