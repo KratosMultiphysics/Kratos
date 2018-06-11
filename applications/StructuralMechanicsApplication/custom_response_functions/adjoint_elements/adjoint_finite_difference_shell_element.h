@@ -103,12 +103,10 @@ public:
     {
         Vector dummy;
         mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrix, dummy, rCurrentProcessInfo);
-        // TODO HACK necessary because shell doe not LHS...!!
+        // TODO HACK necessary because shell does not implement LHS...!!
         // mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
         //                                       rCurrentProcessInfo);
     }
-
-    // TODO add functions from element.h line 641 - 710
 
     void Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;
@@ -118,7 +116,6 @@ public:
 
     // TODO evaluate if other Calculate functions are necessary
 
-    // TODO add functions from element.h line 744 - 882
     // Results calculation on integration points
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
@@ -128,24 +125,6 @@ public:
 
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Sensitivity functions
-
-    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
-                                    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
-                                        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
-                                            const Variable<Vector>& rStressVariable,
-                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
 
@@ -176,10 +155,23 @@ private:
     ///@name Private Operations
     ///@{
 
-    double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
+    double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable) override;
 
-    double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+    double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
+    virtual void AfterPerturbation(const Variable<double>& rDesignVariable,
+                            const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalShellElement->ResetSections();
+        mpPrimalElement->Initialize();
+    }
+
+    virtual void AfterPerturbation(const Variable<array_1d<double,3>>& rDesignVariable,
+                            const ProcessInfo& rCurrentProcessInfo) override
+    {
+    }
+
+    ///@}
     ///@}
 
     ///@name Static Member Variables

@@ -126,7 +126,7 @@ void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Vector >& rV
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "NOT_IMPLEMENTED" << std::endl;
+    KRATOS_ERROR << "Calculate NOT_IMPLEMENTED" << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -171,7 +171,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Va
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "NOT_IMPLEMENTED" << std::endl;
+    KRATOS_ERROR << "CalculateOnIntegrationPoints NOT_IMPLEMENTED" << std::endl;
 
     KRATOS_CATCH("")
 
@@ -234,7 +234,55 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "NOT_IMPLEMENTED" << std::endl;
+    // define working variables
+    Vector RHS_undist;
+    Vector RHS_dist;
+    ProcessInfo copy_process_info = rCurrentProcessInfo;
+
+    // Compute RHS before disturbing
+    mpPrimalElement->CalculateRightHandSide(RHS_undist, copy_process_info);
+    rOutput.resize(1,RHS_undist.size());
+
+    // Get disturbance measure
+    double delta = this->GetValue(DISTURBANCE_MEASURE);
+    double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+    delta *= correction_factor;
+
+    if ( mpPrimalElement->GetProperties().Has(rDesignVariable) )
+    {
+        // Save properties and its pointer
+        Properties& r_global_property = mpPrimalElement->GetProperties();
+        Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
+
+        // Create new property and assign it to the element
+        Properties::Pointer p_local_property(new Properties(r_global_property));
+        mpPrimalElement->SetProperties(p_local_property);
+
+        // Disturb the design variable
+        const double current_property_value = mpPrimalElement->GetProperties()[rDesignVariable];
+        p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+
+        this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
+
+        // Compute RHS after disturbance
+        mpPrimalElement->CalculateRightHandSide(RHS_dist, copy_process_info);
+
+        // Compute derivative of RHS w.r.t. design variable with finite differences
+        noalias(RHS_dist) -= RHS_undist;
+        RHS_dist /= delta;
+        for(unsigned int i = 0; i < RHS_dist.size(); i++)
+            rOutput(0, i) = RHS_dist[i];
+
+        // Give element original properties back
+        mpPrimalElement->SetProperties(p_global_properties);
+
+        this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
+
+        //call one last time to make sure everything is as it was before TODO improve this..
+        mpPrimalElement->CalculateRightHandSide(RHS_dist, copy_process_info);
+    }
+    else
+        rOutput.clear();
 
     KRATOS_CATCH("")
 
@@ -245,17 +293,129 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "NOT_IMPLEMENTED" << std::endl;
+    // define working variables
+    Vector RHS_undist;
+    Vector RHS_dist;
+    ProcessInfo copy_process_info = rCurrentProcessInfo;
+
+    // Get disturbance measure
+    double delta= this->GetValue(DISTURBANCE_MEASURE);
+    double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+    delta *= correction_factor;
+
+    if(rDesignVariable == SHAPE)
+    {
+        const int number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+        const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+        const int local_size = number_of_nodes * dimension * 2;
+
+        rOutput.resize(dimension * number_of_nodes, local_size);
+
+        // compute RHS before disturbing
+        mpPrimalElement->CalculateRightHandSide(RHS_undist, copy_process_info);
+
+        int index = 0;
+        //TODO: look that this works also for parallel computing
+        for(auto& node_i : mpPrimalElement->GetGeometry())
+        {
+            for(std::size_t coord_dir_i = 0; coord_dir_i < dimension; coord_dir_i++)
+            {
+                // disturb the design variable
+                node_i.GetInitialPosition()[coord_dir_i] += delta;
+
+                // compute RHS after disturbance
+                mpPrimalElement->CalculateRightHandSide(RHS_dist, copy_process_info);
+
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                noalias(RHS_dist) -= RHS_undist;
+                RHS_dist /= delta;
+                for(unsigned int i = 0; i < RHS_dist.size(); i++)
+                    rOutput( (coord_dir_i + index*dimension), i) = RHS_dist[i];
+
+                // Reset perturbed vector
+                noalias(RHS_dist) = ZeroVector(RHS_dist.size());
+
+                // undisturb the design variable
+                node_i.GetInitialPosition()[coord_dir_i] -= delta;
+            }
+            index++;
+
+            //call one last time to make sure everything is as it was before TODO improve this..
+            mpPrimalElement->CalculateRightHandSide(RHS_dist, copy_process_info);
+
+        }// end loop over element nodes
+
+    }
+    else
+        KRATOS_ERROR << "Unsupported design variable!" << std::endl;
 
     KRATOS_CATCH("")
-
 }
+
 void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "NOT_IMPLEMENTED" << std::endl;
+    const int num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+    const int dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
+    const int num_dofs_per_node = dimension * 2; // TODO generalize
+    const int num_dofs = num_nodes * num_dofs_per_node;
+    Vector initial_state_variables;
+    Vector stress_derivatives_vector;
+
+    // TODO first caclulation only to get the size of the stress vector
+    this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+    rOutput.resize(num_dofs, stress_derivatives_vector.size() );
+    rOutput.clear();
+    initial_state_variables.resize(num_dofs);
+
+    // Build vector of variables containing the DOF-variables of the primal problem
+    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
+    primal_solution_variable_list.reserve(num_dofs_per_node);
+    primal_solution_variable_list.push_back(DISPLACEMENT_X);
+    primal_solution_variable_list.push_back(DISPLACEMENT_Y);
+    primal_solution_variable_list.push_back(DISPLACEMENT_Z);
+    primal_solution_variable_list.push_back(ROTATION_X);
+    primal_solution_variable_list.push_back(ROTATION_Y);
+    primal_solution_variable_list.push_back(ROTATION_Z);
+
+    // TODO Armin
+    KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+        << "Stress displacement derivative computation is currently only available for linear cases !" << std::endl;
+
+    for (int i = 0; i < num_nodes; i++)
+    {
+        int index = i * num_dofs_per_node;
+        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+        {
+            initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+        }
+    }
+    for (int i = 0; i < num_nodes; i++)
+    {
+        int index = i * num_dofs_per_node;
+        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+        {
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
+
+            this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+
+            for(unsigned int k = 0; k < stress_derivatives_vector.size(); k++)
+                rOutput(index+j, k) = stress_derivatives_vector[k];
+
+            stress_derivatives_vector.clear();
+
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 0.0;
+        }
+    }
+    for (int i = 0; i < num_nodes; i++)
+    {
+        int index = i * num_dofs_per_node;
+        for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
+    }
 
     KRATOS_CATCH("")
 }
@@ -266,7 +426,56 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "NOT_IMPLEMENTED" << std::endl;
+    // Define working variables
+    Vector stress_vector_undist;
+    Vector stress_vector_dist;
+
+    // Compute stress on GP before disturbance
+    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+
+    // Get disturbance measure
+    double delta= this->GetValue(DISTURBANCE_MEASURE);
+    double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+    delta *= correction_factor;
+
+    const SizeType stress_vector_size = stress_vector_undist.size();
+    rOutput.resize(1, stress_vector_size);
+
+    if( mpPrimalElement->GetProperties().Has(rDesignVariable) )
+    {
+        // Save properties and its pointer
+        Properties& r_global_property = mpPrimalElement->GetProperties();
+        Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
+
+        // Create new property and assign it to the element
+        Properties::Pointer p_local_property(new Properties(r_global_property));
+        mpPrimalElement->SetProperties(p_local_property);
+
+        // Disturb the design variable
+        const double current_property_value = mpPrimalElement->GetProperties()[rDesignVariable];
+        p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+
+        // TODO
+        this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
+
+        // Compute stress on GP after disturbance
+        this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+
+        // Compute derivative of stress w.r.t. design variable with finite differences
+        noalias(stress_vector_dist)  -= stress_vector_undist;
+        stress_vector_dist  /= delta;
+
+        for(size_t j = 0; j < stress_vector_size; j++)
+            rOutput(0, j) = stress_vector_dist[j];
+
+        // Give element original properties back
+        mpPrimalElement->SetProperties(p_global_properties);
+
+        // TODO
+        this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
+    }
+    else
+        rOutput.clear();
 
     KRATOS_CATCH("")
 }
@@ -277,7 +486,60 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "NOT_IMPLEMENTED" << std::endl;
+    // define working variables
+    Vector stress_vector_undist;
+    Vector stress_vector_dist;
+
+    // Get disturbance measure
+    double delta= this->GetValue(DISTURBANCE_MEASURE);
+    double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
+    delta *= correction_factor;
+
+    if(rDesignVariable == SHAPE)
+    {
+        const int number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+        const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+
+        // Compute stress on GP before disturbance
+        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+
+        const SizeType stress_vector_size = stress_vector_undist.size();
+        rOutput.resize(dimension * number_of_nodes, stress_vector_size);
+
+        int index = 0;
+        //TODO: look that this works also for parallel computing
+        for(auto& node_i : mpPrimalElement->GetGeometry())
+        {
+            for(std::size_t coord_dir_i = 0; coord_dir_i < dimension; coord_dir_i++)
+            {
+                // disturb the design variable
+                node_i.GetInitialPosition()[coord_dir_i] += delta;
+
+                this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
+
+                // Compute stress on GP after disturbance
+                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+
+                // Compute derivative of stress w.r.t. design variable with finite differences
+                noalias(stress_vector_dist)  -= stress_vector_undist;
+                stress_vector_dist  /= delta;
+
+                for(size_t i = 0; i < stress_vector_size; i++)
+                    rOutput( (coord_dir_i + index*dimension), i) = stress_vector_dist[i];
+
+                // Reset pertubed vector
+                stress_vector_dist = Vector(0);
+
+                // undisturb the design variable
+                node_i.GetInitialPosition()[coord_dir_i] -= delta;
+
+                this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
+            }
+            index++;
+        }// end loop over element nodes
+    }
+    else
+        KRATOS_ERROR << "Unsupported design variable!" << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -305,7 +567,7 @@ double AdjointFiniteDifferencingBaseElement::GetDisturbanceMeasureCorrectionFact
 
     if(rDesignVariable == SHAPE)
     {
-        KRATOS_ERROR << "NOT_IMPLEMENTED" << std::endl;
+        KRATOS_ERROR << "GetDisturbanceMeasureCorrectionFactor NOT_IMPLEMENTED" << std::endl;
     }
     else
         return 1.0;
