@@ -44,8 +44,9 @@ namespace Kratos
 
 /** \brief AdjointFiniteDifferencingBaseElement
  *
- * This element is inherited from ShellThinElement3D3N. It is the corresponding
- * element to it and is used for solving the adjoint problem and for computing sensitivities.
+ * This element a wrapper for a primal element to calculate element derivatives using
+ * finite differncing. It is designed to be used in semi-analytic adjoint
+ * sensitivity analysis
  */
 class AdjointFiniteDifferencingBaseElement : public Element
 {
@@ -186,14 +187,99 @@ public:
                                                 rCurrentProcessInfo);
     }
 
-    // TODO add functions from element.h line 510 - 624
+    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+							VectorType& rRightHandSideVector,
+							ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateFirstDerivativesContributions(rLeftHandSideMatrix,
+							rRightHandSideVector,
+							rCurrentProcessInfo);
+    }
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					        ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
+					        rCurrentProcessInfo);
+    }
+
+    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+					      ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateFirstDerivativesRHS(rRightHandSideVector,
+					        rCurrentProcessInfo);
+    }
+
+    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+							 VectorType& rRightHandSideVector,
+							 ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateSecondDerivativesContributions(rLeftHandSideMatrix,
+							    rRightHandSideVector,
+							    rCurrentProcessInfo);
+    }
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					       ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
+					        rCurrentProcessInfo);
+    }
+
+    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+					       ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateSecondDerivativesRHS(rRightHandSideVector,
+					        rCurrentProcessInfo);
+    }
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
     }
 
-    // TODO add functions from element.h line 641 - 710
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+    }
+
+    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->AddExplicitContribution(rCurrentProcessInfo);
+    }
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                const Variable<VectorType>& rRHSVariable,
+                                Variable<double >& rDestinationVariable,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->AddExplicitContribution(rRHSVector,
+                                    rRHSVariable,
+                                    rDestinationVariable,
+                                    rCurrentProcessInfo);
+    }
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                const Variable<VectorType>& rRHSVariable,
+                                Variable<array_1d<double,3> >& rDestinationVariable,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->AddExplicitContribution(rRHSVector,
+                                rRHSVariable,
+                                rDestinationVariable,
+                                rCurrentProcessInfo);
+    }
+
+    void AddExplicitContribution(const MatrixType& rLHSMatrix,
+                                const Variable<MatrixType>& rLHSVariable,
+                                Variable<Matrix>& rDestinationVariable,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->AddExplicitContribution(rLHSMatrix,
+                                rLHSVariable,
+                                rDestinationVariable,
+                                rCurrentProcessInfo);
+    }
 
     void Calculate(const Variable<Vector >& rVariable, Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;
