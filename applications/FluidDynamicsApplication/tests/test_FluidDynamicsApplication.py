@@ -19,6 +19,7 @@ from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from volume_source_test import VolumeSourceTest
 from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
+from hdf5_io_test import HDF5IOTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -47,6 +48,7 @@ def AssambleTestSuites():
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
+    smallSuite.addTest(HDF5IOTest('testInputOutput'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
