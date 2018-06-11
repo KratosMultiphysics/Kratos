@@ -113,14 +113,14 @@ namespace Kratos
 		void InterpToStandardGaussPoints(std::vector< array_1d<double, 3> >& rV)
 		{
 			if (rV.size() != 3) return;
-			for (IndexType i = 0; i < 3; i++)
+			for (IndexType i = 0; i < 3; ++i)
 				InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
 		}
 
 		void InterpToStandardGaussPoints(std::vector< array_1d<double, 6> >& rV)
 		{
 			if (rV.size() != 3) return;
-			for (IndexType i = 0; i < 6; i++)
+			for (IndexType i = 0; i < 6; ++i)
 				InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
 		}
 
@@ -128,10 +128,10 @@ namespace Kratos
 		{
 			if (rV.size() != 3) return;
 			SizeType ncomp = rV[0].size();
-			for (int i = 1; i < 3; i++)
+			for (int i = 1; i < 3; ++i)
 				if (rV[i].size() != ncomp)
 					return;
-			for (IndexType i = 0; i < ncomp; i++)
+			for (IndexType i = 0; i < ncomp; ++i)
 				InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
 		}
 
@@ -140,11 +140,11 @@ namespace Kratos
 			if (rV.size() != 3) return;
 			SizeType nrows = rV[0].size1();
 			SizeType ncols = rV[0].size2();
-			for (int i = 1; i < 3; i++)
+			for (int i = 1; i < 3; ++i)
 				if (rV[i].size1() != nrows || rV[i].size2() != ncols)
 					return;
-			for (IndexType i = 0; i < nrows; i++)
-				for (IndexType j = 0; j < ncols; j++)
+			for (IndexType i = 0; i < nrows; ++i)
+				for (IndexType j = 0; j < ncols; ++j)
 					InterpToStandardGaussPoints
 					(rV[0](i, j), rV[1](i, j), rV[2](i, j));
 		}

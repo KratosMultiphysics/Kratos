@@ -23,6 +23,7 @@ namespace Kratos
 {
 
 using SizeType = std::size_t;
+using IndexType = std::size_t;
 
 BaseShellElement::BaseShellElement(IndexType NewId,
     GeometryType::Pointer pGeometry)
@@ -45,14 +46,13 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
-    if (rResult.size() != num_dofs)
-        rResult.resize(num_dofs, false);
+    if (rResult.size() != num_dofs) rResult.resize(num_dofs, false);
 
     GeometryType& geom = GetGeometry();
 
-    for (SizeType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < geom.size(); ++i)
     {
-        const SizeType index = i * 6;
+        const IndexType index = i * 6;
         NodeType& i_node = geom[i];
 
         rResult[index]     = i_node.GetDof(DISPLACEMENT_X).EquationId();
@@ -70,12 +70,11 @@ void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
-    rElementalDofList.resize(0);
-    rElementalDofList.reserve(num_dofs);
+    rElementalDofList.resize(0); rElementalDofList.reserve(num_dofs);
 
     GeometryType& geom = GetGeometry();
 
-    for (SizeType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < geom.size(); ++i)
     {
         NodeType& i_node = geom[i];
 
@@ -93,18 +92,17 @@ void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
-    if (rValues.size() != num_dofs)
-        rValues.resize(num_dofs, false);
+    if (rValues.size() != num_dofs) rValues.resize(num_dofs, false);
 
     const GeometryType& geom = GetGeometry();
 
-    for (SizeType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < geom.size(); ++i)
     {
         const NodeType& i_node = geom[i];
         const array_1d<double, 3>& disp = i_node.FastGetSolutionStepValue(DISPLACEMENT, Step);
         const array_1d<double, 3>& rot = i_node.FastGetSolutionStepValue(ROTATION, Step);
 
-        const SizeType index = i * 6;
+        const IndexType index = i * 6;
         rValues[index]     = disp[0];
         rValues[index + 1] = disp[1];
         rValues[index + 2] = disp[2];
@@ -119,18 +117,17 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
-    if (rValues.size() != num_dofs)
-        rValues.resize(num_dofs, false);
+    if (rValues.size() != num_dofs) rValues.resize(num_dofs, false);
 
     const GeometryType& geom = GetGeometry();
 
-    for (SizeType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < geom.size(); ++i)
     {
         const NodeType& i_node = geom[i];
         const array_1d<double, 3>& vel = i_node.FastGetSolutionStepValue(VELOCITY, Step);
         // TODO also include the angular velocity
 
-        const SizeType index = i * 6;
+        const IndexType index = i * 6;
         rValues[index]     = vel[0];
         rValues[index + 1] = vel[1];
         rValues[index + 2] = vel[2];
@@ -145,18 +142,17 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
-    if (rValues.size() != num_dofs)
-        rValues.resize(num_dofs, false);
+    if (rValues.size() != num_dofs) rValues.resize(num_dofs, false);
 
     const GeometryType & geom = GetGeometry();
 
-    for (SizeType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < geom.size(); ++i)
     {
         const NodeType& i_node = geom[i];
         const array_1d<double, 3>& acc = i_node.FastGetSolutionStepValue(ACCELERATION, Step);
         // TODO also include the angular acceleration
 
-        const SizeType index = i * 6;
+        const IndexType index = i * 6;
         rValues[index]     = acc[0];
         rValues[index + 1] = acc[1];
         rValues[index + 2] = acc[2];
@@ -175,7 +171,7 @@ void BaseShellElement::ResetConstitutiveLaw()
     const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
     const Properties& props = GetProperties();
-    for(SizeType i = 0; i < mSections.size(); i++)
+    for(IndexType i = 0; i < mSections.size(); ++i)
         mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
 
     KRATOS_CATCH("")
@@ -185,7 +181,7 @@ void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentPro
 {
     const GeometryType& geom = this->GetGeometry();
     const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for (SizeType i = 0; i < mSections.size(); ++i)
+    for (IndexType i = 0; i < mSections.size(); ++i)
         mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
@@ -193,7 +189,7 @@ void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProce
 {
     const GeometryType& geom = this->GetGeometry();
     const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for (SizeType i = 0; i < mSections.size(); ++i)
+    for (IndexType i = 0; i < mSections.size(); ++i)
         mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
@@ -203,7 +199,7 @@ void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessIn
 	const GeometryType & geom = GetGeometry();
 	const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-	for (SizeType i = 0; i < mSections.size(); ++i)
+	for (IndexType i = 0; i < mSections.size(); ++i)
 		mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
@@ -213,7 +209,7 @@ void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo
     const GeometryType& geom = GetGeometry();
     const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-    for (SizeType i = 0; i < mSections.size(); i++)
+    for (IndexType i = 0; i < mSections.size(); ++i)
         mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
@@ -322,7 +318,7 @@ void BaseShellElement::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCro
     KRATOS_ERROR_IF_NOT(crossSections.size() == GetNumberOfGPs())
         << "The number of cross section is wrong: " << crossSections.size() << std::endl;
     mSections.clear();
-    for (SizeType i = 0; i < crossSections.size(); i++)
+    for (IndexType i = 0; i < crossSections.size(); ++i)
         mSections.push_back(crossSections[i]);
     this->SetupOrientationAngles();
     KRATOS_CATCH("")
@@ -396,7 +392,7 @@ void BaseShellElement::CheckDofs()
 {
     GeometryType& r_geom = GetGeometry();
     // verify that the dofs exist
-    for (unsigned int i = 0; i < r_geom.size(); i++)
+    for (IndexType i = 0; i < r_geom.size(); ++i)
     {
         auto& r_node = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
