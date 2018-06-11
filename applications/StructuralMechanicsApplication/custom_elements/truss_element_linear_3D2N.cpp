@@ -224,8 +224,6 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
 
   rinternalForces = prod(transformation_matrix, rinternalForces);
 
-  // testing 
-  this->test_stress_total= temp_internal_stresses[3];
   KRATOS_CATCH("");
 }
 
@@ -242,6 +240,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 
   const GeometryType::IntegrationPointsArrayType &integration_points =
       GetGeometry().IntegrationPoints();
+ //double temp_double = 1.0;
 
   if (rOutput.size() != integration_points.size()) {
     rOutput.resize(integration_points.size());
@@ -249,7 +248,7 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 
   //test
   if (rVariable == LAMBDA_MAX)rOutput[0] = this->CalculateLinearStrain();
-  if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE) rOutput[0] = this->test_stress_total;
+  if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE) this->mConstitutiveLaw->GetValue(VON_MISES_STRESS_MIDDLE_SURFACE,rOutput[0]);
    
   KRATOS_CATCH("")
 }

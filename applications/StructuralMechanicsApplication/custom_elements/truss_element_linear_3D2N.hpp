@@ -135,10 +135,7 @@ namespace Kratos
 
 
 		private:
-
-			//test!!!
-			double test_stress_total = 0.00;
-
+        
 			friend class Serializer;
 			void save(Serializer& rSerializer) const override;
 			void load(Serializer& rSerializer) override;

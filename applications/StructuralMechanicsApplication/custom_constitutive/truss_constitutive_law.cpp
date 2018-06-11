@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Klaus B. Sautter
 //
 // System includes
 #include <iostream>
@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/truss_constitutive_law.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -63,6 +64,19 @@ void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 
     //Set the spacedimension
     rFeatures.mSpaceDimension = 3;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& TrussConstitutiveLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<double>& rThisVariable,
+    double& rValue)
+{
+    if(rThisVariable == TANGENT_MODULUS) rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]; 
+    else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
+    return rValue;
 }
 
 //************************************************************************************

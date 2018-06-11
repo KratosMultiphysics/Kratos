@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Klaus B. Sautter
 //
 
 #if !defined (KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED)
@@ -96,6 +96,10 @@ public:
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
+
+
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,double& rValue) override;
 
 protected:
 

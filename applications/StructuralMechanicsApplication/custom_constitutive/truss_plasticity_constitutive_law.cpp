@@ -89,6 +89,7 @@ double& TrussPlasticityConstitutiveLaw::GetValue(
 {
     if(rThisVariable == PLASTIC_STRAIN) rValue = this->mAccumulatedPlasticStrain;
     else if(rThisVariable == PLASTIC_ALPHA) rValue = this->mPlasticAlpha;
+    else if(rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE) rValue = this->mStressState;
     else KRATOS_ERROR << "can't get the specified value" << std::endl;
     return rValue;
 }
@@ -176,6 +177,8 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
 
         rValue[0] = -1.0 * current_stress;
         rValue[3] = 1.0 * current_stress;
+
+        current_stress = this->mStressState;
 
     }
     else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
