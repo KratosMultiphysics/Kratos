@@ -77,12 +77,13 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters materials)
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string CleanVariableName(std::string);
-std::string CleanVariableName(std::string line){
+void TrimComponentName(std::string&);
+void TrimComponentName(std::string& line){
     std::stringstream ss(line);
-    std::string variable_name;
-    while (std::getline(ss, variable_name, '.')){}
-    return variable_name;
+    std::size_t counter = 0;
+    while (std::getline(ss, line, '.')){counter++;}
+    if (counter > 1)
+        KRATOS_WARNING("Read materials") << "Ignoring module information for component " << line << std::endl;
 }
 
 /***********************************************************************************/
@@ -132,7 +133,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
 
         // Remove application info from consitutive law name.
         // Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
-        constitutive_law_name = CleanVariableName(constitutive_law_name);
+        TrimComponentName(constitutive_law_name);
 
         auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
         p_prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
@@ -147,7 +148,8 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
 
         // Remove application info from variable name.
         // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
-        const std::string& variable_name = CleanVariableName(iter.name());
+        std::string variable_name = iter.name();
+        TrimComponentName(variable_name);
 
         // We don't just copy the values, we do some tyransformation depending of the destination variable
         if(KratosComponents<Variable<double> >::Has(variable_name)) {
@@ -250,8 +252,10 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
 
         // Remove application info from variable name.
         // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
-        const std::string& input_var_name = CleanVariableName(table_param["input_variable"].GetString());
-        const std::string& output_var_name = CleanVariableName(table_param["output_variable"].GetString());
+        std::string input_var_name = table_param["input_variable"].GetString();
+        TrimComponentName(input_var_name);
+        std::string output_var_name = table_param["output_variable"].GetString();
+        TrimComponentName(output_var_name);
 
         const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
         const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
