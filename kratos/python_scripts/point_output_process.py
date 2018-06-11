@@ -138,12 +138,14 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
                     self.output_file.append(InitializeOutputFile(output_file_name,
                                                                  entity_type,
+                                                                 found_id,
                                                                  point,
                                                                  self.output_variables[0]))
 
             else: # no restart, regular simulation
                 self.output_file.append(InitializeOutputFile(output_file_name,
                                                              entity_type,
+                                                             found_id,
                                                              point,
                                                              self.output_variables[0]))
 
@@ -202,9 +204,10 @@ class PointOutputProcess(KratosMultiphysics.Process):
             raise Exception(err_msg)
 
 
-def InitializeOutputFile(output_file_name, entity_type, point, output_variables):
+def InitializeOutputFile(output_file_name, entity_type, entity_id, point, output_variables):
     output_file = open(output_file_name,"w")
-    out  = '# Results for "' + entity_type + '" at position: '
+    out  = '# Results for "' + entity_type + '" '
+    out += 'with ID: ' + entity_id + " at position: '
     out += 'x: ' + "{0:.12g}".format(point.X) + '; '
     out += 'y: ' + "{0:.12g}".format(point.Y) + '; '
     out += 'z: ' + "{0:.12g}".format(point.Z) + '\n'

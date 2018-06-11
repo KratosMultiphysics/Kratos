@@ -136,9 +136,9 @@ namespace Kratos
                                          const Point& rThePoint,
                                          double DistanceThreshold) const
     {
-        const double distance = std::sqrt( std::pow(rNode.X() - rThePoint.X(),2)
-                                         + std::pow(rNode.Y() - rThePoint.Y(),2)
-                                         + std::pow(rNode.Z() - rThePoint.Z(),2) );
+        const double distance = std::sqrt( std::pow(rNode.X0() - rThePoint.X(),2)
+                                         + std::pow(rNode.Y0() - rThePoint.Y(),2)
+                                         + std::pow(rNode.Z0() - rThePoint.Z(),2) );
 
         return (distance < DistanceThreshold);
     }
