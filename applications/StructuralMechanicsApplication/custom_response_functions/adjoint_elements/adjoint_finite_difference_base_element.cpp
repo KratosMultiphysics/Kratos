@@ -323,6 +323,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
                 // disturb the design variable
                 node_i.GetInitialPosition()[coord_dir_i] += delta;
 
+                this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
+
                 // compute RHS after disturbance
                 mpPrimalElement->CalculateRightHandSide(RHS_dist, copy_process_info);
 
@@ -337,6 +339,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
                 // undisturb the design variable
                 node_i.GetInitialPosition()[coord_dir_i] -= delta;
+
+                this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
             }
             index++;
 
@@ -364,7 +368,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
     Vector initial_state_variables;
     Vector stress_derivatives_vector;
 
-    // TODO first caclulation only to get the size of the stress vector
+    // TODO first calculation only to get the size of the stress vector
     this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
     rOutput.resize(num_dofs, stress_derivatives_vector.size() );
     rOutput.clear();
@@ -455,7 +459,6 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
         const double current_property_value = mpPrimalElement->GetProperties()[rDesignVariable];
         p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
-        // TODO
         this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
 
         // Compute stress on GP after disturbance
@@ -471,7 +474,6 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
         // Give element original properties back
         mpPrimalElement->SetProperties(p_global_properties);
 
-        // TODO
         this->AfterPerturbation(rDesignVariable, rCurrentProcessInfo);
     }
     else
