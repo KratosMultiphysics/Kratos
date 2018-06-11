@@ -242,7 +242,7 @@ namespace Kratos
 
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
         {
-            std::cout << "implement me: InitializeNonLinearIteration" << std::endl;
+            //std::cout << "implement me: InitializeNonLinearIteration" << std::endl;
         };
 
     private:
