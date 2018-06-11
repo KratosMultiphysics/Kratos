@@ -39,7 +39,7 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     // read json string in materials file, create Parameters
     const std::string& materials_filename = rParameters["Parameters"]["materials_filename"].GetString();
     std::ifstream infile(materials_filename);
-    KRATOS_ERROR_IF_NOT(infile.good()) << "The masterials file cannot be found: " << materials_filename << std::endl;
+    KRATOS_ERROR_IF_NOT(infile.good()) << "The materials file cannot be found: " << materials_filename << std::endl;
     std::stringstream buffer;
     buffer << infile.rdbuf();
     Parameters materials(buffer.str());
@@ -105,8 +105,10 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     for(auto it=data["Material"]["Tables"].begin(); it!=data["Material"]["Tables"].end(); ++it)
         tables_size++;
     
-    KRATOS_INFO_IF("::[Reading materials process]:: Property", variables_size > 0 && p_prop->HasVariables()) << std::to_string(property_id) << "already has variables." << std::endl;
-    KRATOS_INFO_IF("::[Reading materials process]:: Property", tables_size > 0 && p_prop->HasTables()) << std::to_string(property_id) << "already has tables." << std::endl;
+    KRATOS_WARNING_IF("Read materials", variables_size > 0 && p_prop->HasVariables())
+        << "Property " << std::to_string(property_id) << " already has variables." << std::endl;
+    KRATOS_WARNING_IF("Read materials", tables_size > 0 && p_prop->HasTables())
+        << "Property " << std::to_string(property_id) << " already has tables." << std::endl;
 
     // Assign the p_properties to the model part's elements and conditions.
     auto& elements_array = model_part.Elements();
