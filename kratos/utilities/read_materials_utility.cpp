@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Marcelo Raschi
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -39,7 +40,7 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     // read json string in materials file, create Parameters
     const std::string& materials_filename = rParameters["Parameters"]["materials_filename"].GetString();
     std::ifstream infile(materials_filename);
-    KRATOS_ERROR_IF_NOT(infile.good()) << "The materials file cannot be found: " << materials_filename << std::endl;
+    KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
     std::stringstream buffer;
     buffer << infile.rdbuf();
     Parameters materials(buffer.str());
@@ -77,6 +78,10 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters materials)
 /***********************************************************************************/
 /***********************************************************************************/
 
+// Remove application info from variable name.
+// Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
+// Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
+
 void TrimComponentName(std::string&);
 void TrimComponentName(std::string& line){
     std::stringstream ss(line);
@@ -97,7 +102,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop = model_part.pGetProperties(property_id, mesh_id);
 
-    // We compute the size using the iterators
+    // Compute the size using the iterators
     std::size_t variables_size = 0;
     for(auto it=data["Material"]["Variables"].begin(); it!=data["Material"]["Variables"].end(); ++it)
         variables_size++;
@@ -130,15 +135,12 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     //Set the CONSTITUTIVE_LAW for the current p_properties.
     if (data["Material"].Has("constitutive_law")) {
         std::string constitutive_law_name = data["Material"]["constitutive_law"]["name"].GetString();
-
-        // Remove application info from consitutive law name.
-        // Ex: KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3D -> LinearElastic3D
         TrimComponentName(constitutive_law_name);
 
         auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
         p_prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
     } else {
-        KRATOS_INFO("Read materials") << "Not consitutive law defined for material ID: " << property_id << std::endl;
+        KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << property_id << std::endl;
     }
 
     // Add / override the values of material parameters in the p_properties
@@ -146,8 +148,6 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     for(auto iter = variables.begin(); iter != variables.end(); iter++) {
         const Parameters value = variables.GetValue(iter.name());
 
-        // Remove application info from variable name.
-        // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
         std::string variable_name = iter.name();
         TrimComponentName(variable_name);
 
@@ -159,7 +159,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
             } else if (value.IsInt()) {
                 p_prop->SetValue(variable, static_cast<double>(value.GetInt()));
             } else {
-                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
         } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
             const Variable<bool>& variable = KratosComponents<Variable<bool>>().Get(variable_name);
@@ -170,7 +170,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
             } else if (value.IsDouble()) {
                 p_prop->SetValue(variable, static_cast<bool>(value.GetDouble()));
             } else {
-                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
         } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
             const Variable<int>& variable = KratosComponents<Variable<int>>().Get(variable_name);
@@ -179,7 +179,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
             } else if (value.IsDouble()) {
                 p_prop->SetValue(variable, static_cast<int>(value.GetDouble()));
             } else {
-                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
         } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
             const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
@@ -191,7 +191,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
                     temp[index] = value_variable[index];
                 p_prop->SetValue(variable, temp);
             } else {
-                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
         } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
             const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
@@ -203,7 +203,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
                     temp[index] = value_variable[index];
                 p_prop->SetValue(variable, temp);
             } else {
-                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
         } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
             const Variable<Vector>& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
@@ -216,7 +216,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
                     temp[index] = value_variable(index, 0);
                 p_prop->SetValue(variable, temp);
             } else {
-                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
         } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
             const Variable<Matrix>& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
@@ -229,17 +229,17 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
                     temp(index, 0) = value_variable[index];
                 p_prop->SetValue(variable, temp);
             } else {
-                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
         } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
             const Variable<std::string>& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
             if (value.IsString()) {
                 p_prop->SetValue(variable, value.GetString());
             } else {
-                KRATOS_ERROR << "Check you write the value in a correct format: " << value << std::endl;
+                KRATOS_ERROR << "Check the value: " << value << " is in the correct format" << std::endl;
             }
         } else {
-            KRATOS_ERROR << "Type of value is not available";
+            KRATOS_ERROR << "Value type not defined";
         }
     }
 
@@ -247,11 +247,9 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
     Parameters tables = data["Material"]["Tables"];
     for(auto iter = tables.begin(); iter != tables.end(); iter++) {
         auto table_param = tables.GetValue(iter.name());
-        // Case table is double, double. How is it defined? How to check?
+        // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
         Table<double> table;
 
-        // Remove application info from variable name.
-        // Ex: KratosMultiphysics.YOUNG_MODULUS -> YOUNG_MODULUS
         std::string input_var_name = table_param["input_variable"].GetString();
         TrimComponentName(input_var_name);
         std::string output_var_name = table_param["output_variable"].GetString();
@@ -261,7 +259,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters data)
         const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
         for (auto i = 0; i < table_param["data"].size(); i++) {
             table.insert(table_param["data"][i][0].GetDouble(),
-                            table_param["data"][i][1].GetDouble());
+                         table_param["data"][i][1].GetDouble());
         }
         p_prop->SetTable(input_var, output_var, table);
     }
