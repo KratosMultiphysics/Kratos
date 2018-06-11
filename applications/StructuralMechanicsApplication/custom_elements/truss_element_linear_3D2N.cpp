@@ -166,18 +166,9 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
       prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 
-    Matrix left_hand_side_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-    ProcessInfo
-        dummy_info; // CalculateLeftHandSide does not take const ProcessInfo
-    this->CalculateLeftHandSide(left_hand_side_matrix, dummy_info);
-    Vector nodal_deformation = ZeroVector(msLocalSize);
-    this->GetValuesVector(nodal_deformation);
-    BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
-        ZeroMatrix(msLocalSize, msLocalSize);
-    this->CreateTransformationMatrix(transformation_matrix);
-    Vector f_int = prod(left_hand_side_matrix, nodal_deformation);
-    f_int = prod(Matrix(trans(transformation_matrix)), f_int);
-    truss_forces[0] = f_int[3] + prestress * A;
+    array_1d<double, 3 > truss_stresses;
+    this->mConstitutiveLaw->GetValue(FORCE,truss_stresses);
+    truss_forces[0] = (truss_stresses[0] + prestress) * A;
 
     rOutput[0] = truss_forces;
   }
@@ -236,7 +227,27 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
   KRATOS_CATCH("");
 }
 
+/* void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>> &rVariable,
+    std::vector<array_1d<double, 3>> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo) {
 
+    const GeometryType::IntegrationPointsArrayType &integration_points =
+        GetGeometry().IntegrationPoints();
+    if (rOutput.size() != integration_points.size()) {
+      rOutput.resize(integration_points.size());
+    }
+
+    if (rVariable == FORCE) {
+      BoundedVector<double, msDimension> truss_forces = ZeroVector(msDimension);
+      truss_forces[2] = 0.00;
+      truss_forces[1] = 0.00;
+      this->mConstitutiveLaw->GetValue(VON_MISES_STRESS_MIDDLE_SURFACE,truss_forces[0])
+      truss_forces[0] = truss_forces[0]*this->GetProperties()[CROSS_AREA]
+
+      rOutput[0] = truss_forces;
+  }
+} */
 
 
 
@@ -254,12 +265,11 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
     rOutput.resize(integration_points.size());
   }
 
-  //test
   if (rVariable == LAMBDA_MAX)rOutput[0] = this->CalculateLinearStrain();
-  if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE) this->mConstitutiveLaw->GetValue(VON_MISES_STRESS_MIDDLE_SURFACE,rOutput[0]);
    
   KRATOS_CATCH("")
 }
+
 
 
 void TrussElementLinear3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)

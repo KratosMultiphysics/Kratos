@@ -97,8 +97,8 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
-    double& GetValue(const Variable<double>& rThisVariable,
-        double& rValue) override;
+    array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
+        array_1d<double, 3 > & rValue) override;
 
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,double& rValue) override;

@@ -105,7 +105,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         ### custom testing
         mp = self.model["Structure.computing_domain"]
         for element in mp.Elements:
-            sigma = element.CalculateOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS_MIDDLE_SURFACE,mp.ProcessInfo)[0]
+            sigma = element.CalculateOnIntegrationPoints(KratosMultiphysics.FORCE,mp.ProcessInfo)[0][0]
             epsi = element.CalculateOnIntegrationPoints(StructuralMechanicsApplication.LAMBDA_MAX,mp.ProcessInfo)[0]
             self.fod.write(str(sigma) + "\n")
             self.fol.write(str(epsi) + "\n")

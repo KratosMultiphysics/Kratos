@@ -67,16 +67,19 @@ void TrussConstitutiveLaw::GetLawFeatures(Features& rFeatures)
     //Set the spacedimension
     rFeatures.mSpaceDimension = 3;
 }
-
 //************************************************************************************
 //************************************************************************************
 
-double& TrussConstitutiveLaw::GetValue(
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
+array_1d<double, 3 > & TrussConstitutiveLaw::GetValue(
+    const Variable<array_1d<double, 3 > >& rThisVariable,
+    array_1d<double, 3 > & rValue)
 {
-    if(rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE) rValue = this->mStressState;
+    if (rThisVariable == FORCE)
+    {
+        rValue[0] = this->mStressState;
+        rValue[1] = 0.0;
+        rValue[2] = 0.0;
+    }
     else KRATOS_ERROR << "can't get the specified value" << std::endl;
     return rValue;
 }
