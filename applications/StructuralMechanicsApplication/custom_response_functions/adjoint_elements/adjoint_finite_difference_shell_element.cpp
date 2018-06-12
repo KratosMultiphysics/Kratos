@@ -427,21 +427,6 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 
 // private
 
-double AdjointFiniteDifferencingShellElement::GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if ( mpPrimalElement->GetProperties().Has(rDesignVariable) )
-    {
-        const double variable_value = mpPrimalElement->GetProperties()[rDesignVariable];
-        return variable_value;
-    }
-    else
-        return 1.0;
-
-    KRATOS_CATCH("")
-}
-
 double AdjointFiniteDifferencingShellElement::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
 {
     KRATOS_TRY;

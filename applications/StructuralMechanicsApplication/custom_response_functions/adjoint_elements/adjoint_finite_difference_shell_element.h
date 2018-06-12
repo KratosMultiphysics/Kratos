@@ -114,15 +114,11 @@ public:
     void Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override;
 
-    // TODO evaluate if other Calculate functions are necessary
-
-    // Results calculation on integration points
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
                                         const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -155,20 +151,13 @@ private:
     ///@name Private Operations
     ///@{
 
-    double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable) override;
-
     double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
-    virtual void AfterPerturbation(const Variable<double>& rDesignVariable,
+    void AfterPerturbation(const Variable<double>& rDesignVariable,
                             const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalShellElement->ResetSections();
         mpPrimalElement->Initialize();
-    }
-
-    virtual void AfterPerturbation(const Variable<array_1d<double,3>>& rDesignVariable,
-                            const ProcessInfo& rCurrentProcessInfo) override
-    {
     }
 
     ///@}
