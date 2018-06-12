@@ -144,7 +144,7 @@ public:
         const ProcessInfo& ProcessInfo = rValues.GetProcessInfo();
         const double TimeStep = ProcessInfo[DELTA_TIME];
 
-        const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; // C1/Cinf
+        const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; //  C1/Cinf
         const double DelayTime = rMaterialProperties[DELAY_TIME];
 
         // Elastic Matrix
@@ -164,11 +164,6 @@ public:
         this->SetNonConvPreviousStrainVector(StrainVector);
 
     } // End CalculateMaterialResponseCauchy
-
-    // void CalculateTangentTensor(Matrix& C) 
-    // {
-
-    // }
 
     void FinalizeSolutionStep(
         const Properties& rMaterialProperties,

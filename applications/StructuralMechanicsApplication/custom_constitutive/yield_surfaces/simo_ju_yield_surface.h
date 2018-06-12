@@ -145,10 +145,10 @@ public:
         const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
 
-         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (n*n*Gf*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-        } else {
-            
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
+            AParameter = 1.00 / (Gf*n*n / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        } else { // linear
+            AParameter = - std::pow(sigma_c, 2) / (2.0*Gf*n*n / CharacteristicLength);
         }
     }
 

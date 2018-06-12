@@ -46,7 +46,7 @@ namespace Kratos
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TPlasticPotentialType , std::size_t TVoigtSize>
+template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurface
 {
 public:
@@ -57,7 +57,7 @@ public:
     typedef TPlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of ModifiedMohrCoulombYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION( ModifiedMohrCoulombYieldSurface );
+    KRATOS_CLASS_POINTER_DEFINITION( ModifiedMohrCoulombYieldSurface);
 
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -132,7 +132,7 @@ public:
         } else {
             ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, theta);
             rEqStress = (2.0*std::tan(Globals::Pi*0.25 + FrictionAngle*0.5) / std::cos(FrictionAngle))*((I1*K3 / 3.0) +
-            std::sqrt(J2)*(K1*std::cos(theta) - K2*std::sin(theta)*sinphi / std::sqrt(3.0)));
+                        std::sqrt(J2)*(K1*std::cos(theta) - K2*std::sin(theta)*sinphi / std::sqrt(3.0)));
         }
     }
 
@@ -167,9 +167,9 @@ public:
         const double n = sigma_c / sigma_t;
 		
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (Gf*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-        } else {
-            
+            AParameter = 1.00 / (Gf*n*n*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+        } else { // linear
+            AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf*n*n / CharacteristicLength);
         }
     }
 

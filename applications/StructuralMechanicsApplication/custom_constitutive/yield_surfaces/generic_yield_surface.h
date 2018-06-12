@@ -6,7 +6,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Main authors:    Alejandro Cornejo & Lucia Barbu & Vicente Mataix
 //
 
 #if !defined(KRATOS_GENERIC_YIELD_SURFACE_H_INCLUDED)
@@ -51,9 +51,9 @@ namespace Kratos
  * @details
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
- * @author Alejandro Cornejo & Lucia Barbu
+ * @author Alejandro Cornejo & Lucia Barbu & Vicente Mataix
  */
-template <class TPlasticPotentialType , std::size_t TVoigtSize>
+template <class TPlasticPotentialType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericYieldSurface
 {
 public:

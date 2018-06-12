@@ -141,7 +141,6 @@ public:
     {
         double InitialThreshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
-
         Damage = 1 - (InitialThreshold / UniaxialStress)*std::exp(DamageParameter*(1.0 - UniaxialStress / InitialThreshold));
     }
 
@@ -154,7 +153,9 @@ public:
         double& Damage
     )
     {
-        // TODO
+        double InitialThreshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
+        Damage = (1.0 - InitialThreshold / UniaxialStress) / (1.0 + DamageParameter);
     }
 
     ///@}

@@ -175,11 +175,6 @@ public:
 
     } // End CalculateMaterialResponseCauchy
 
-    // void CalculateTangentTensor(Matrix& C) 
-    // {
-
-    // }
-
     void FinalizeSolutionStep(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,

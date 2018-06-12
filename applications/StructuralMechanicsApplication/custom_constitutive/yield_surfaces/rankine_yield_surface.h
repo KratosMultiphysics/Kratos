@@ -121,8 +121,8 @@ public:
 
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-        } else {
-            
+        } else { // linear
+            AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf / CharacteristicLength);
         }
     }
 

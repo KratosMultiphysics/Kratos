@@ -114,7 +114,7 @@ public:
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
         double c1, c2, c3;
-        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE];
+        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double SinDil    = std::sin(Dilatancy);
         const double CosDil    = std::cos(Dilatancy);
         const double SinTheta  = std::sin(LodeAngle);

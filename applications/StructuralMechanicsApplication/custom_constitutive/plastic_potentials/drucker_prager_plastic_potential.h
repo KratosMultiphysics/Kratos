@@ -110,7 +110,7 @@ public:
         double c1, c2, c3;
         c3 = 0.0;
 
-        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE];
+        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double SinDil    = std::sin(Dilatancy);
         const double Root3     = std::sqrt(3.0);
 
