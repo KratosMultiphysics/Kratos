@@ -199,7 +199,7 @@ void  AddContainersToPython(pybind11::module& m)
     ;
     class_<VariableComponent<VectorComponentAdaptor<vector<double> > >,VariableData>(m, "VectorComponentVariable")
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<vector<double> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<vector<double> > >::GetSourceVariable )
+    // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<vector<double> > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
