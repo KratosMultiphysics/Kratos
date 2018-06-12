@@ -61,33 +61,26 @@ void SolidShellThickComputeProcess::Execute()
 
     // Now that the connectivity has been constructed
     double distance;
-    #pragma omp parallel for firstprivate(distance)
-    for (int i = 0; i < static_cast<int>(connectivity_map.size()); i++) {
-        const auto it_pair = connectivity_map.begin();// + i;
-        auto pnode1 = mrThisModelPart.pGetNode(it_pair->first);
-        auto pnode2 = mrThisModelPart.pGetNode(it_pair->second);
+    for (auto& pair : connectivity_map) {
+        auto pnode1 = mrThisModelPart.pGetNode(pair.first);
+        auto pnode2 = mrThisModelPart.pGetNode(pair.second);
         distance = norm_2(pnode1->Coordinates() - pnode2->Coordinates());
 
         const double previous_thickness_1 = pnode1->GetValue(THICKNESS);
         const double previous_thickness_2 = pnode2->GetValue(THICKNESS);
 
         // We set the thickness on the firt node
-        pnode1->SetLock();
         if (previous_thickness_1 > 0.0) {
             pnode1->SetValue(THICKNESS, (previous_thickness_1 + distance));
         } else {
             pnode1->SetValue(THICKNESS, distance);
         }
-        pnode1->UnSetLock();
-
         // We set the thickness on the second node
-        pnode2->SetLock();
         if (previous_thickness_2 > 0.0) {
             pnode2->SetValue(THICKNESS, (previous_thickness_2 + distance));
         } else {
             pnode2->SetValue(THICKNESS, distance);
         }
-        pnode2->UnSetLock();
     }
 
     KRATOS_CATCH("")
