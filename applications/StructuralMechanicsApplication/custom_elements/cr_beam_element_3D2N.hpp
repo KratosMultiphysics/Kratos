@@ -43,9 +43,6 @@ namespace Kratos
 		static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
 		static constexpr unsigned int msElementSize = msLocalSize * 2;
 
-        void CheckVariables();
-        void CheckDofs();
-        void CheckProperties();
 
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(CrBeamElement3D2N);
@@ -219,6 +216,9 @@ namespace Kratos
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+        void CheckVariables();
+        void CheckDofs();
+        void CheckProperties();
 
 		/**
          * @brief This function calculates reduction values in case of shear-deformable structures

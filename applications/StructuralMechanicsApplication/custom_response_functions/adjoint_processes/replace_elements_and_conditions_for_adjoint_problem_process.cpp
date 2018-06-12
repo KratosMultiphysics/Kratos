@@ -15,6 +15,7 @@
 #include "replace_elements_and_conditions_for_adjoint_problem_process.h"
 #include "../adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "../adjoint_elements/adjoint_finite_difference_shell_element.h"
+#include "../adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 
 namespace Kratos
 {
@@ -47,6 +48,19 @@ namespace Kratos
                         << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
 
                     Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingShellElement>(
+                        it->Id(), it->pGetGeometry(), it->pGetProperties(), *it.base() );
+
+                    //deep copy elemental data
+                    p_element->Data() = it->Data();
+
+                    (*it.base()) = p_element;
+                }
+                else if (element_name == "AdjointFiniteDifferenceCrBeamElement")
+                {
+                    KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
+                        << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
+
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(
                         it->Id(), it->pGetGeometry(), it->pGetProperties(), *it.base() );
 
                     //deep copy elemental data
@@ -172,8 +186,8 @@ namespace Kratos
 
         // Add here all new adjoint elements or elements which should be ignored by the replacement process
         if(name_current_element == "CrLinearBeamElement3D2N")
-            rName = "CrLinearBeamAdjointElement3D2N";
-        else if(name_current_element == "CrLinearBeamAdjointElement3D2N")
+            rName = "AdjointFiniteDifferenceCrBeamElement";
+        else if(name_current_element == "AdjointFiniteDifferenceCrBeamElement")
             rName = "CrLinearBeamElement3D2N";
         else if(name_current_element == "ShellThinElement3D3N")
             rName = "AdjointFiniteDifferencingShellElement";

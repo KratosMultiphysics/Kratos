@@ -41,6 +41,7 @@
 /* Adding the adjoint elements */
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
 #include "custom_response_functions/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
@@ -365,6 +366,7 @@ private:
     // Adding adjoint elements
     const AdjointFiniteDifferencingBaseElement mAdjointFiniteDifferencingBaseElement;
     const AdjointFiniteDifferencingShellElement mAdjointFiniteDifferencingShellElement;
+    const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
     const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
     const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
