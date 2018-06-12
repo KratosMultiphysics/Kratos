@@ -367,63 +367,63 @@ protected:
                              Kratos::Flags MappingOptions,
                              const bool UseTranspose)
     {
-        ComponentVariableType var_component_x_origin = KratosComponents< ComponentVariableType >::Get(rOriginVariable.Name()+std::string("_X"));
-        ComponentVariableType var_component_y_origin = KratosComponents< ComponentVariableType >::Get(rOriginVariable.Name()+std::string("_Y"));
-        ComponentVariableType var_component_z_origin = KratosComponents< ComponentVariableType >::Get(rOriginVariable.Name()+std::string("_Z"));
+        auto const& var_x_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_X");
+        auto const& var_y_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Y");
+        auto const& var_z_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Z");
 
-        ComponentVariableType var_component_x_destination = KratosComponents< ComponentVariableType >::Get(rDestinationVariable.Name()+std::string("_X"));
-        ComponentVariableType var_component_y_destination = KratosComponents< ComponentVariableType >::Get(rDestinationVariable.Name()+std::string("_Y"));
-        ComponentVariableType var_component_z_destination = KratosComponents< ComponentVariableType >::Get(rDestinationVariable.Name()+std::string("_Z"));
+        auto const& var_x_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_X");
+        auto const& var_y_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Y");
+        auto const& var_z_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Z");
 
         // X-Component
         mpMappingOperationUtility->InitializeMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_x_origin, var_component_x_destination,
+                var_x_origin, var_x_destination,
                 MappingOptions, UseTranspose);
         mpMappingOperationUtility->ExecuteMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_x_origin, var_component_x_destination,
+                var_x_origin, var_x_destination,
                 MappingOptions, UseTranspose);
         mpMappingOperationUtility->FinalizeMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_x_origin, var_component_x_destination,
+                var_x_origin, var_x_destination,
                 MappingOptions, UseTranspose);
 
         // Y-Component
         mpMappingOperationUtility->InitializeMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_y_origin, var_component_y_destination,
+                var_y_origin, var_y_destination,
                 MappingOptions, UseTranspose);
         mpMappingOperationUtility->ExecuteMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_y_origin, var_component_y_destination,
+                var_y_origin, var_y_destination,
                 MappingOptions, UseTranspose);
         mpMappingOperationUtility->FinalizeMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_y_origin, var_component_y_destination,
+                var_y_origin, var_y_destination,
                 MappingOptions, UseTranspose);
 
         // Z-Component
         mpMappingOperationUtility->InitializeMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_z_origin, var_component_z_destination,
+                var_z_origin, var_z_destination,
                 MappingOptions, UseTranspose);
         mpMappingOperationUtility->ExecuteMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_z_origin, var_component_z_destination,
+                var_z_origin, var_z_destination,
                 MappingOptions, UseTranspose);
         mpMappingOperationUtility->FinalizeMappingStep(
                 *mpMdo, *mpQo, *mpQd,
                 mrModelPartOrigin, mrModelPartDestination,
-                var_component_z_origin, var_component_z_destination,
+                var_z_origin, var_z_destination,
                 MappingOptions, UseTranspose);
     }
 
