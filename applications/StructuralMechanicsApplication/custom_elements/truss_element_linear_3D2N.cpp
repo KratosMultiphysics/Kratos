@@ -172,12 +172,6 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 
     rOutput[0] = truss_forces;
   }
-  if(rVariable == STRAIN)
-  {
-    BoundedVector<double, msDimension> truss_forces = ZeroVector(msDimension);
-    truss_forces[0]=1000.1;
-    rOutput[0] = truss_forces;
-  }
 }
 
 

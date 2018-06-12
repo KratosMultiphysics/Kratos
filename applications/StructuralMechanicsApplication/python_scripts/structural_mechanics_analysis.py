@@ -77,10 +77,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         self._ExecuteBeforeSolutionLoop()
 
-        '''         self.fod = open("sigma.txt", "w")
-                self.fol = open("epsilon.txt", "w")
-                self.fot = open("time.txt", "w") '''
-
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAnalysis, self).InitializeSolutionStep()
 
@@ -103,31 +99,12 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
 
-        '''         ### custom testing
-                mp = self.model["Structure.computing_domain"]
-                for element in mp.Elements:
-                    sigma = element.CalculateOnIntegrationPoints(KratosMultiphysics.FORCE,mp.ProcessInfo)[0][0]
-                    epsi = element.CalculateOnIntegrationPoints(StructuralMechanicsApplication.LAMBDA_MAX,mp.ProcessInfo)[0]
-                    self.fod.write(str(sigma) + "\n")
-                    self.fol.write(str(epsi) + "\n")
-                    
-                    node_i = mp.Nodes[2]
-                    disp_y = node_i.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
-                    react_y = node_i.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
-                    self.fod.write(str(disp_y) + ",")
-                    self.fol.write(str(react_y) + ",")
-                    self.fot.write(str(self.time) + ",")  '''
-
-
     def Finalize(self):
         super(StructuralMechanicsAnalysis, self).Finalize()
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
-        ''' self.fod.close() '''
-        ''' self.fol.close() '''
-        ''' self.fot.close() '''
 
 
     #### Internal functions ####

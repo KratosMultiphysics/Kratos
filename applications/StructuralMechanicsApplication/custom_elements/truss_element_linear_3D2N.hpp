@@ -98,6 +98,10 @@ namespace Kratos
             std::vector< array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
+
         /**
          * @brief This function calculates the total stiffness matrix for the element
          */
@@ -117,18 +121,23 @@ namespace Kratos
 		double CalculateLinearStrain();
 
 
+		/**
+         * @brief This function updates the internal forces
+         * @param rinternalForces The internal forces
+         */
+
 		void UpdateInternalForces(
 			BoundedVector<double,msLocalSize>& rinternalForces) override;
 
 
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
-            const ProcessInfo &rCurrentProcessInfo) override;
-
-
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
-        // make this override and add to non_lin truss
+
+        /**
+         * @brief This function calls the constitutive law to get stresses
+         * @param rCurrentProcessInfo Current process info
+         * @param rSaveInternalVariables Boolean to save internal constit. law variables
+         */
         BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
             ProcessInfo& rCurrentProcessInfo,
             const bool& rSaveInternalVariables);

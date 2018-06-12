@@ -111,8 +111,19 @@ public:
                                     int CalculateTangent = true,
                                     bool SaveInternalVariables = true) override;
 
+    /**
+     * @brief This function calculates the yield function for the plastic model
+     * @param rMaterialProperties Material Properties of the problem
+     * @param rCurrentStress Current stress value
+     */
     double TrialYieldFunction(const Properties& rMaterialProperties,
      const double& rCurrentStress);
+
+        /**
+     * @brief This function checks if the current stress is in the plastic regime
+     * @param rMaterialProperties Material Properties of the problem
+     * @param rCurrentStress Current stress value
+     */
     bool CheckIfIsPlasticRegime(const Properties& rMaterialProperties,
         const double& rCurrentStress);
 
