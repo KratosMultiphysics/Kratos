@@ -66,8 +66,8 @@ class ComputeDragProcess(python_process.PythonProcess):
             # Write the drag force values
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 if (self.print_drag_to_screen):
-                    print("DRAG RESULTS:")
-                    print("Current time: " + str(current_time) + " x-drag: " + format(drag_force[0],self.format) + " y-drag: " + format(drag_force[1],self.format) + " z-drag: " + format(drag_force[2],self.format))
+                    KratosMultiphysics.Logger.PrintInfo("ComputeDragProcess", "DRAG RESULTS:")
+                    KratosMultiphysics.Logger.PrintInfo("ComputeDragProcess","Current time: " + str(current_time) + " x-drag: " + format(drag_force[0],self.format) + " y-drag: " + format(drag_force[1],self.format) + " z-drag: " + format(drag_force[2],self.format))
 
                 if (self.write_drag_output_file):
                     with open(self.drag_filename, 'a') as file:
