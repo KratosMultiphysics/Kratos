@@ -10,6 +10,7 @@
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -31,12 +32,13 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
 
     Parameters default_parameters = Parameters(R"(
     {
-        "element_name"        : "SolidShellElementSprism3D6N",
-        "model_part_name"     : "",
-        "number_of_layers"    : 1,
-        "export_to_mdpa"      : false,
-        "output_name"         : "output",
-        "initialize_elements" : false
+        "element_name"              : "SolidShellElementSprism3D6N",
+        "new_constitutive_law_name" : "",
+        "model_part_name"           : "",
+        "number_of_layers"          : 1,
+        "export_to_mdpa"            : false,
+        "output_name"               : "output",
+        "initialize_elements"       : false
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -149,12 +151,16 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
     KRATOS_ERROR_IF_NOT(r_clone_element.GetGeometry().size() == 2 * TNumNodes) << "ERROR: Element " << element_name << " has a different number of nodes to " << 2 * TNumNodes << std::endl;
 
+    // We will save the list of properties ids to later set the CL
+    std::unordered_set<IndexType> set_id_properties;
+
     // We create the new elements
     IndexType element_counter = total_number_of_elements;
     for(IndexType i = 0; i < geometry_number_of_elements; ++i) {
         auto it_elem = elements_array.begin() + i;
 
         auto p_prop = it_elem->pGetProperties();
+        set_id_properties.insert(p_prop->Id());
         for (IndexType j = 0; j < number_of_layers; ++j) {
             std::vector<IndexType> element_node_ids (2 * TNumNodes);
             for (IndexType k = 0; k < TNumNodes; ++k) {
@@ -168,6 +174,16 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 
         // We set the flag TO_ERASE for later remove the elements
         it_elem->Set(TO_ERASE, true);
+    }
+
+    // We reassign a new constitutive law
+    const std::string& new_constitutive_law_name = mThisParameters["new_constitutive_law_name"].GetString();
+    if (new_constitutive_law_name != "") {
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(new_constitutive_law_name).Clone();
+        for (auto id_prop : set_id_properties) {
+            auto p_prop = geometry_model_part.pGetProperties(id_prop);
+            p_prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+        }
     }
 
     // Finally we remove the old nodes and elements

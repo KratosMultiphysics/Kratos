@@ -34,7 +34,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    // The size definition
+    /// The size definition
     typedef std::size_t SizeType;
 
 ///@}
@@ -64,11 +64,14 @@ public:
     /// Pointer definition of ShellToSolidShellProcess
     KRATOS_CLASS_POINTER_DEFINITION(ShellToSolidShellProcess);
     
-    // Geometric type definitions
+    /// The index definition
+    typedef std::size_t                                     IndexType;
+
+    /// Geometric type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
 
-    // The definition of the containers
+    /// The definition of the containers
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
     typedef ModelPart::ElementsContainerType        ElementsArrayType;

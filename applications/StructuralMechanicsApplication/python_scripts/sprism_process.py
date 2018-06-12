@@ -42,11 +42,12 @@ class SPRISMProcess(python_process.PythonProcess):
             "mesh_id"                        : 0,
             "model_part_name"                : "Structure",
             "preprocess_shell_to_solidshell" : {
-                "element_name"        : "SolidShellElementSprism3D6N",
-                "number_of_layers"    : 1,
-                "export_to_mdpa"      : false,
-                "output_name"         : "output",
-                "initialize_elements" : false
+                "element_name"              : "SolidShellElementSprism3D6N",
+                "new_constitutive_law_name" : "LinearElastic3DLaw",
+                "number_of_layers"          : 1,
+                "export_to_mdpa"            : false,
+                "output_name"               : "output",
+                "initialize_elements"       : false
             }
         }
         """)
@@ -75,6 +76,7 @@ class SPRISMProcess(python_process.PythonProcess):
         # We preprocess from triangle shells to SPRISM solid-shells
         shell_to_solid_shell_parameters = KM.Parameters("""{}""")
         shell_to_solid_shell_parameters.AddValue("element_name", self.settings["preprocess_shell_to_solidshell"]["element_name"])
+        shell_to_solid_shell_parameters.AddValue("new_constitutive_law_name", self.settings["preprocess_shell_to_solidshell"]["new_constitutive_law_name"])
         shell_to_solid_shell_parameters.AddValue("model_part_name", self.settings["model_part_name"])
         shell_to_solid_shell_parameters.AddValue("number_of_layers", self.settings["preprocess_shell_to_solidshell"]["number_of_layers"])
         shell_to_solid_shell_parameters.AddValue("export_to_mdpa", self.settings["preprocess_shell_to_solidshell"]["export_to_mdpa"])
