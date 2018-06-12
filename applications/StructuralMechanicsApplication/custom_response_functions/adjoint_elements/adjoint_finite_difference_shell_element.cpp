@@ -94,8 +94,9 @@ void AdjointFiniteDifferencingShellElement::GetDofList(DofsVectorType& rElementa
     }
 }
 
-void AdjointFiniteDifferencingShellElement::GetValuesVector(Vector& rValues, int Step) {
-
+void AdjointFiniteDifferencingShellElement::GetValuesVector(Vector& rValues, int Step)
+{
+    KRATOS_TRY
     const SizeType num_dofs = mpPrimalShellElement->GetNumberOfDofs();
     if(rValues.size() != num_dofs)
         rValues.resize(num_dofs, false);
@@ -118,6 +119,7 @@ void AdjointFiniteDifferencingShellElement::GetValuesVector(Vector& rValues, int
         rValues[index + 4] = rot[1];
         rValues[index + 5] = rot[2];
     }
+    KRATOS_CATCH("")
 }
 
 void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Vector >& rVariable,
@@ -286,6 +288,7 @@ void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Matrix >& r
 {
     KRATOS_TRY;
 
+    // TODO catch ON_NODE and return, else call base class
     if(rVariable == STRESS_DISP_DERIV_ON_GP)
     {
        this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
@@ -461,12 +464,12 @@ double AdjointFiniteDifferencingShellElement::GetDisturbanceMeasureCorrectionFac
 
 void AdjointFiniteDifferencingShellElement::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, AdjointFiniteDifferencingBaseElement );
 }
 
 void AdjointFiniteDifferencingShellElement::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AdjointFiniteDifferencingBaseElement );
 
 }
 

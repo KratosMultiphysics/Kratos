@@ -87,7 +87,7 @@ public:
 
     // Basic
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties,
+    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties,
                 Element::Pointer pPrimalElement) const;
 
     // TODO Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const override;
