@@ -23,16 +23,16 @@ class SPRISMProcess(python_process.PythonProcess):
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
-    model_part -- the model part used to construct the process.
+    Model -- the container of the different model parts.
     settings -- Kratos parameters containing the settings.
     """
 
-    def __init__(self, model_part, settings):
+    def __init__(self, Model, settings):
         """ The default constructor of the class
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model_part -- the model part used to construct the process.
+        Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
 
@@ -57,8 +57,8 @@ class SPRISMProcess(python_process.PythonProcess):
         self.settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         # We define the model parts
-        self.main_model_part = model_part
-        self.solid_shell_model_part = model_part[self.settings["model_part_name"].GetString()]
+        self.solid_shell_model_part = Model[self.settings["model_part_name"].GetString()]
+        self.main_model_part = self.solid_shell_model_part.GetRootModelPart()
         
         # We create the process to compute the neighbours (should be run each time we recompute connectivity)
         self.sprism_neighbour_search = SMA.PrismNeighboursProcess(self.solid_shell_model_part)
