@@ -22,11 +22,88 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "custom_utilities/mapper_flags.h"
 
 namespace Kratos
 {
 namespace MapperUtilities
 {
+
+using NodeIterator = ModelPart::NodeIterator;
+
+template< class TVarType >
+static void FillFunction(const NodeIterator& rNodeIt,
+                         const TVarType& rVariable,
+                         double& rValue)
+{
+    rValue = rNodeIt->FastGetSolutionStepValue(rVariable);
+}
+
+template< class TVarType >
+static void FillFunctionNonHist(const NodeIterator& rNodeIt,
+                                const TVarType& rVariable,
+                                double& rValue)
+{
+    rValue = rNodeIt->GetValue(rVariable);
+}
+
+template< class TVarType >
+static std::function<void(const NodeIterator&, const TVarType&, double&)>
+GetFillFunction(const Kratos::Flags& rMappingOptions)
+{
+    if (rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL))
+        return &FillFunctionNonHist<TVarType>;
+    return &FillFunction<TVarType>;
+}
+
+template< class TVarType >
+static void UpdateFunction(const NodeIterator& rNodeIt,
+                           const TVarType& rVariable,
+                           const double Value,
+                           const double Factor)
+{
+    rNodeIt->FastGetSolutionStepValue(rVariable) = Value * Factor;
+}
+
+template< class TVarType >
+static void UpdateFunctionWithAdd(const NodeIterator& rNodeIt,
+                            const TVarType& rVariable,
+                            const double Value,
+                            const double Factor)
+{
+    rNodeIt->FastGetSolutionStepValue(rVariable) += Value * Factor;
+}
+
+template< class TVarType >
+static void UpdateFunctionNonHist(const NodeIterator& rNodeIt,
+                            const TVarType& rVariable,
+                            const double Value,
+                            const double Factor)
+{
+    rNodeIt->GetValue(rVariable) = Value * Factor;
+}
+
+template< class TVarType >
+static void UpdateFunctionNonHistWithAdd(const NodeIterator& rNodeIt,
+                            const TVarType& rVariable,
+                            const double Value,
+                            const double Factor)
+{
+    rNodeIt->GetValue(rVariable) += Value * Factor;
+}
+
+template< class TVarType >
+static std::function<void(const NodeIterator&, const TVarType&, const double, const double)>
+GetUpdateFunction(const Kratos::Flags& rMappingOptions)
+{
+    if (rMappingOptions.Is(MapperFlags::ADD_VALUES) && rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))
+        return &UpdateFunctionNonHistWithAdd<TVarType>;
+    if (rMappingOptions.Is(MapperFlags::ADD_VALUES))
+        return &UpdateFunctionWithAdd<TVarType>;
+    if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))
+        return &UpdateFunctionNonHist<TVarType>;
+    return &UpdateFunction<TVarType>;
+}
 
 /**
 * @brief Assigning INTERFACE_EQUATION_IDs to the nodes, with and without MPI
@@ -60,11 +137,11 @@ inline int ComputeNumberOfElements(ModelPart& rModelPart)
 }
 
 inline double ComputeDistance(const array_1d<double, 3>& rCoords1,
-                                const array_1d<double, 3>& rCoords2)
+                              const array_1d<double, 3>& rCoords2)
 {
-    return std::sqrt(std::pow(rCoords1[0] - rCoords2[0] , 2) +
-                        std::pow(rCoords1[1] - rCoords2[1] , 2) +
-                        std::pow(rCoords1[2] - rCoords2[2] , 2));
+    return std::sqrt( std::pow(rCoords1[0] - rCoords2[0] , 2) +
+                      std::pow(rCoords1[1] - rCoords2[1] , 2) +
+                      std::pow(rCoords1[2] - rCoords2[2] , 2) );
 }
 
 template <typename T>
