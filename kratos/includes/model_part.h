@@ -481,7 +481,7 @@ public:
     }
 
     template<class TDataType>
-    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
+    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable) const
     {
         return mpVariablesList->Has(ThisVariable);
     }
