@@ -18,7 +18,8 @@ class ComputeDragProcess(python_process.PythonProcess):
                 "model_part_name"           : "please_specify_model_part_name",
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,
-                "print_drag_to_screen"      : false
+                "print_drag_to_screen"      : false,
+                "print_format"              : ""
             }
             """)
 
@@ -31,6 +32,8 @@ class ComputeDragProcess(python_process.PythonProcess):
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
+
+        self.format = settings["print_format"].GetString()
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.interval = KratosMultiphysics.Vector(2)
@@ -64,9 +67,9 @@ class ComputeDragProcess(python_process.PythonProcess):
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 if (self.print_drag_to_screen):
                     print("DRAG RESULTS:")
-                    print("Current time: " + str(current_time) + " x-drag: " + str(drag_force[0]) + " y-drag: " + str(drag_force[1]) + " z-drag: " + str(drag_force[2]))
+                    print("Current time: " + str(current_time) + " x-drag: " + format(drag_force[0],self.format) + " y-drag: " + format(drag_force[1],self.format) + " z-drag: " + format(drag_force[2],self.format))
 
                 if (self.write_drag_output_file):
                     with open(self.drag_filename, 'a') as file:
-                        file.write(str(current_time)+"   "+str(drag_force[0])+"   "+str(drag_force[1])+"   "+str(drag_force[2])+"\n")
+                        file.write(str(current_time)+"   "+format(drag_force[0],self.format)+"   "+format(drag_force[1],self.format)+"   "+format(drag_force[2],self.format)+"\n")
                         file.close()
