@@ -80,7 +80,7 @@ array_1d<double, 3 > & TrussConstitutiveLaw::GetValue(
         rValue[1] = 0.0;
         rValue[2] = 0.0;
     }
-    else KRATOS_ERROR << "can't get the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't get the specified value" << std::endl;
     return rValue;
 }
 
@@ -93,7 +93,7 @@ double& TrussConstitutiveLaw::CalculateValue(
     double& rValue)
 {
     if(rThisVariable == TANGENT_MODULUS) rValue = rParameterValues.GetMaterialProperties()[YOUNG_MODULUS]; 
-    else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
 
@@ -109,11 +109,11 @@ Vector& TrussConstitutiveLaw::CalculateValue(
     if(rThisVariable == NORMAL_STRESS) 
     {
         const SizeType dofs = 6;
-        if(rValue.size()!=dofs) rValue.resize(dofs);
+        rValue = ZeroVector(dofs);
         rValue[0] = -1.0 * this->mStressState;
         rValue[3] = 1.0 * this->mStressState;
     }
-    else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
 
@@ -145,15 +145,11 @@ int TrussConstitutiveLaw::Check(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
-    {
-        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)
+     << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)
-    {
-        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
-    }
+    KRATOS_ERROR_IF(DENSITY.Key() == 0 || rMaterialProperties[DENSITY] < 0.00)
+     << "DENSITY has Key zero or invalid value " << std::endl;
 
     return 0;
 

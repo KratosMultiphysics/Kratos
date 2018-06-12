@@ -427,10 +427,8 @@ int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
 
   if (this->GetGeometry().WorkingSpaceDimension() != msDimension ||
       this->GetGeometry().PointsNumber() != msNumberOfNodes) {
-    KRATOS_THROW_ERROR(
-        std::invalid_argument,
-        "The truss element works only in 3D and with 2 noded elements", "")
-  }
+    KRATOS_ERROR << "The truss element works only in 3D and with 2 noded elements" << std::endl;
+      }
   // verify that the variables are correctly initialized
   if (VELOCITY.Key() == 0)
     KRATOS_ERROR << "VELOCITY has Key zero! (check if the application is "
@@ -716,7 +714,7 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
   this->mConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
   
-  double A = this->GetProperties()[CROSS_AREA];
+  const double A = this->GetProperties()[CROSS_AREA];
 
   double prestress = 0.00;
   if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {

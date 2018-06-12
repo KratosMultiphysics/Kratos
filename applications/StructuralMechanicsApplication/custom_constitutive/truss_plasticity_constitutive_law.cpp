@@ -75,7 +75,7 @@ bool& TrussPlasticityConstitutiveLaw::GetValue(
     )
 {
     if(rThisVariable == INELASTIC_FLAG) rValue = this->mInelasticFlag;
-    else KRATOS_ERROR << "can't get the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't get the specified value" << std::endl;
     return rValue;
 }
 
@@ -89,7 +89,7 @@ double& TrussPlasticityConstitutiveLaw::GetValue(
 {
     if(rThisVariable == PLASTIC_STRAIN) rValue = this->mAccumulatedPlasticStrain;
     else if(rThisVariable == PLASTIC_ALPHA) rValue = this->mPlasticAlpha;
-    else KRATOS_ERROR << "can't get the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't get the specified value" << std::endl;
     return rValue;
 }
 
@@ -106,7 +106,7 @@ array_1d<double, 3 > & TrussPlasticityConstitutiveLaw::GetValue(
         rValue[1] = 0.0;
         rValue[2] = 0.0;
     }
-    else KRATOS_ERROR << "can't get the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't get the specified value" << std::endl;
     return rValue;
 }
 
@@ -121,7 +121,7 @@ void TrussPlasticityConstitutiveLaw::SetValue(
 {
     if(rThisVariable == PLASTIC_STRAIN) this->mAccumulatedPlasticStrain = rValue;
     if(rThisVariable == PLASTIC_ALPHA) this->mPlasticAlpha = rValue;
-    else KRATOS_ERROR << "can't set the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't set the specified value" << std::endl;
 }
 
 //************************************************************************************
@@ -132,7 +132,7 @@ void TrussPlasticityConstitutiveLaw::SetValue(const Variable<bool>& rThisVariabl
                           const ProcessInfo& rCurrentProcessInfo)
 {
     if(rThisVariable == INELASTIC_FLAG) this->mInelasticFlag = rValue;
-    else KRATOS_ERROR << "can't set the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't set the specified value" << std::endl;
 }
 
 
@@ -156,7 +156,7 @@ double& TrussPlasticityConstitutiveLaw::CalculateValue(
         }
         else rValue = youngs_modulus;
     } 
-    else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
 
     return rValue;
 }
@@ -172,7 +172,7 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
         const SizeType dofs = 6;
         const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
 
-        if(rValue.size()!=dofs) rValue.resize(dofs);
+        rValue = ZeroVector(dofs);
         double current_stress = this->mStressState;
 
 
@@ -197,7 +197,7 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
         this->mStressState = current_stress;
 
     }
-    else KRATOS_ERROR << "can't calculate the specified value" << std::endl;
+    else KRATOS_ERROR << "Can't calculate the specified value" << std::endl;
     return rValue;
 }
 
