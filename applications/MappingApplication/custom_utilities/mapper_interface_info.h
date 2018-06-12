@@ -143,7 +143,7 @@ public:
                                                 const IndexType SourceLocalSystemIndex,
                                                 const IndexType SourceRank=0) const = 0;
 
-    virtual void Clear()
+    virtual void Clear() // is this fct needed? => I think it is not needed any more... Since I now create new object all the time
     {
         mLocalSearchWasSuccessful = false;
         mIsApproximation = false;
@@ -154,16 +154,10 @@ public:
     IndexType GetSourceRank() const { return mSourceRank; }
 
     bool GetLocalSearchWasSuccessful() const { return mLocalSearchWasSuccessful; }
-    void SetLocalSearchWasSuccessful() { mLocalSearchWasSuccessful = true; }
 
     bool GetIsApproximation() const { return mIsApproximation; }
-    void SetIsApproximation()
-    {
-        mLocalSearchWasSuccessful = true; // If an approximation is found also means that the local search has been successful!
-        mIsApproximation = true;
-    }
 
-    void UpdateCoordinates(const CoordinatesArrayType& rCoordinates)
+    void UpdateCoordinates(const CoordinatesArrayType& rCoordinates) // TODO needed? => I think it is not needed any more...
     {
         noalias(mCoordinates) = rCoordinates;
     }
@@ -245,6 +239,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void SetLocalSearchWasSuccessful() { mLocalSearchWasSuccessful = true; }
+
+    void SetIsApproximation()
+    {
+        mLocalSearchWasSuccessful = true; // If an approximation is found also means that the local search has been successful!
+        mIsApproximation = true;
+    }
 
     ///@}
     ///@name Protected  Access
