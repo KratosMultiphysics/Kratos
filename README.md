@@ -6,7 +6,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 **Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
-[release-image]: https://img.shields.io/badge/release-5.3-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-6.0-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
