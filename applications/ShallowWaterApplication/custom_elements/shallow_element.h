@@ -51,6 +51,20 @@ public:
     ///@name Type Definitions
     ///@{
 
+    struct ElementData
+    {
+        double dt_inv;
+        double lumping_factor;
+        double c_tau;
+        double gravity;
+        double manning2;
+
+        array_1d<double, 9> depth;
+        array_1d<double, 9> rain;
+        array_1d<double, 9> unknown;
+        array_1d<double, 9> proj_unk;
+    };
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ShallowElement
@@ -150,13 +164,6 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
     /**
-     * ELEMENTS inherited from this class have to implement next
-     * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-     * they can be managed internally with a private method to do the same calculations
-     * only once: MANDATORY
-     */
-
-    /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
@@ -188,22 +195,6 @@ public:
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental mass matrix
-     * @param rMassMatrix: the elemental mass matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    // void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental damping matrix
-     * @param rDampingMatrix: the elemental damping matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    // void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input
@@ -285,6 +276,20 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void InitializeElement(
+        ElementData& rData,
+        const ProcessInfo& rCurrentProcessInfo);
+
+    void ComputeMassMatrices(
+        const ElementData& rData,
+        BoundedMatrix<double,9,9>& rVelMatrix,
+        BoundedMatrix<double,9,9>& rHeightMatrix);
+
+    void ComputeElementValues(
+        const ElementData& rData,
+        array_1d<double,2>& rVel,
+        double& rHeight);
 
     ///@}
     ///@name Protected  Access
