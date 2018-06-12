@@ -221,8 +221,9 @@ private:
 
     /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
+     * @param ReorderAccordingShellConnectivity True if we reorder using the shell connectivity as reference
      */
-    void ReorderAllIds();
+    void ReorderAllIds(const bool ReorderAccordingShellConnectivity = false);
 
     /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements

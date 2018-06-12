@@ -70,7 +70,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     const SizeType total_number_of_elements = mrThisModelPart.Elements().size();
 
     // First we reoder the ids
-    ReorderAllIds();
+    ReorderAllIds(true);
 
     // We copy the dof from the first node
     NodeType::DofsContainerType dofs = nodes_array.begin()->GetDofs();
@@ -216,11 +216,49 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 /***********************************************************************************/
 
 template<SizeType TNumNodes>
-void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds()
+void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccordingShellConnectivity)
 {
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    for(SizeType i = 0; i < nodes_array.size(); ++i)
-        (nodes_array.begin() + i)->SetId(i + 1);
+    if (!ReorderAccordingShellConnectivity) {
+        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+        for(SizeType i = 0; i < nodes_array.size(); ++i)
+            (nodes_array.begin() + i)->SetId(i + 1);
+    } else {
+        // The name of the submodelpart
+        const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
+        ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
+
+        // Auxiliar model part where to store new nodes and elements
+        ModelPart auxiliar_model_part;
+
+        // Auxiliar values
+        NodesArrayType& nodes_array = geometry_model_part.Nodes();
+        const SizeType geometry_number_of_nodes = nodes_array.size();
+        NodesArrayType& total_nodes_array = mrThisModelPart.Nodes();
+        const SizeType total_number_of_nodes = total_nodes_array.size();
+
+        // We reoder first all the nodes
+        for(SizeType i = 0; i < total_number_of_nodes; ++i)
+            (total_nodes_array.begin() + i)->SetId(total_number_of_nodes + i + 1);
+
+        // We reoder now just the shell the nodes
+        for(SizeType i = 0; i < geometry_number_of_nodes; ++i) {
+            auto it_node = nodes_array.begin() + i;
+            it_node->SetId(i + 1);
+            it_node->Set(VISITED, true);
+        }
+
+        // We reoder the rest of all the nodes
+        IndexType aux_index = 0;
+        for(SizeType i = 0; i < total_number_of_nodes; ++i) {
+            auto it_node = total_nodes_array.begin() + i;
+            if (it_node->IsNot(VISITED)) {
+                it_node->SetId(geometry_number_of_nodes + aux_index + 1);
+                aux_index++;
+            } else {
+                it_node->Set(VISITED, false);
+            }
+        }
+    }
 
     ElementsArrayType& element_array = mrThisModelPart.Elements();
     for(SizeType i = 0; i < element_array.size(); ++i)
