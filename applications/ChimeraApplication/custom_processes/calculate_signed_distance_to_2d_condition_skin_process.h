@@ -512,7 +512,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         // also initialize the embedded velocity of the fluid Element
         int ElementsSize = fluid_Elements.size();
 
-#pragma omp parallel for firstprivate(ElementsSize)
+//#pragma omp parallel for firstprivate(ElementsSize) no omp because it allocates the memory!
         for (int i = 0; i < ElementsSize; i++)
         {
             fluid_Elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;

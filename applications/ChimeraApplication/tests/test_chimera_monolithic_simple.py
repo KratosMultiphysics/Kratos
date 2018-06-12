@@ -20,11 +20,6 @@ class WorkFolderScope:
         os.chdir(self.currentPath)
 
 class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
-    def _setUp(self):
-        self.check_tolerance = 1e-6
-        self.work_folder = "chimera_monolithic_simple_test"
-        self.reference_file = "reference_chimera_monolithic_simple_test"
-        self.print_reference_values = False
 
     def test_MonolithicSimple(self):
         self._setUp()
@@ -32,9 +27,14 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
         self._tearDown()
         self._checkResults()
 
-    def _runTest(self):
-        KratosMultiphysics.CheckForPreviousImport()
+    def _setUp(self):
+        self.check_tolerance = 1e-6
+        self.work_folder = "chimera_monolithic_simple_test"
+        self.reference_file = "reference_chimera_monolithic_simple_test"
+        self.print_reference_values = False
 
+
+    def _runTest(self):
         with WorkFolderScope(self.work_folder):
             parameter_file = open("test_chimera_monolithic_simple_ProjectParameters.json",'r')
             self.ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
@@ -49,21 +49,36 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
                 #from KratosMultiphysics.MetisApplication import *
                 #from KratosMultiphysics.TrilinosApplication import *
 
+            solver_settings = ProjectParameters["solver_settings"]
+            if not solver_settings.Has("domain_size"):
+                KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+                solver_settings.AddEmptyValue("domain_size")
+                solver_settings["domain_size"].SetInt(ProjectParameters["problem_data"]["domain_size"].GetInt())
+
+            if not solver_settings.Has("model_part_name"):
+                KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+                solver_settings.AddEmptyValue("model_part_name")
+                solver_settings["model_part_name"].SetString(ProjectParameters["problem_data"]["model_part_name"].GetString())
+
+            fluid_model = KratosMultiphysics.Model()
+
             ## Fluid model part definition
-            main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-            self.main_model_part = main_model_part
-            main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+            #main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
+            #self.main_model_part = main_model_part
+            #main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
             ## Solver construction
             solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-            solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+            solver = solver_module.CreateSolver(fluid_model, ProjectParameters["solver_settings"])
 
-            main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
             solver.AddVariables()
 
             ## Read the model - note that SetBufferSize is done here
             solver.ImportModelPart()
+            solver.PrepareModelPart()
 
+            main_model_part = fluid_model[ProjectParameters["problem_data"]["model_part_name"].GetString()]
+            self.main_model_part = main_model_part
             ## Add AddDofs
             solver.AddDofs()
 
@@ -73,39 +88,35 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
             patchBoundary = main_model_part.GetSubModelPart("GENERIC_patchBoundary")
             structure = main_model_part.GetSubModelPart("NoSlip2D_structure")
 
-            ## Creation of Kratos model (build sub_model_parts or submeshes)
-            FluidModel = KratosMultiphysics.Model()
-            FluidModel.AddModelPart(main_model_part)
-
             ## Get the list of the skin submodel parts in the object Model
-            for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
-                skin_part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-                FluidModel.AddModelPart(main_model_part.GetSubModelPart(skin_part_name))
+            #for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
+            #    skin_part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
+            #    fluid_model.AddModelPart(main_model_part.GetSubModelPart(skin_part_name))
 
             ## Get the list of the no-skin submodel parts in the object Model (results processes and no-skin conditions)
             #for i in range(ProjectParameters["solver_settings"]["no_skin_parts"].size()):
              #   no_skin_part_name = ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
-              #  FluidModel.AddModelPart(main_model_part.GetSubModelPart(no_skin_part_name))
+              #  fluid_model.AddModelPart(main_model_part.GetSubModelPart(no_skin_part_name))
 
             ## Get the list of the initial conditions submodel parts in the object Model
-            for i in range(ProjectParameters["initial_conditions_process_list"].size()):
-                initial_cond_part_name = ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-                FluidModel.AddModelPart(main_model_part.GetSubModelPart(initial_cond_part_name))
+            #for i in range(ProjectParameters["initial_conditions_process_list"].size()):
+            #    initial_cond_part_name = ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
+            #    fluid_model.AddModelPart(main_model_part.GetSubModelPart(initial_cond_part_name))
 
             ## Get the gravity submodel part in the object Model
-            for i in range(ProjectParameters["gravity"].size()):
-                gravity_part_name = ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-                FluidModel.AddModelPart(main_model_part.GetSubModelPart(gravity_part_name))
+            #for i in range(ProjectParameters["gravity"].size()):
+            #    gravity_part_name = ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
+            #    fluid_model.AddModelPart(main_model_part.GetSubModelPart(gravity_part_name))
 
             ## Processes construction
             import process_factory
             # "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity)
             # Note 1: gravity is firstly constructed. Outlet process might need its information.
             # Note 2: conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-            list_of_processes =  process_factory.KratosProcessFactory(FluidModel).ConstructListOfProcesses( ProjectParameters["gravity"] )
-            list_of_processes += process_factory.KratosProcessFactory(FluidModel).ConstructListOfProcesses( ProjectParameters["initial_conditions_process_list"] )
-            list_of_processes += process_factory.KratosProcessFactory(FluidModel).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
-            list_of_processes += process_factory.KratosProcessFactory(FluidModel).ConstructListOfProcesses( ProjectParameters["auxiliar_process_list"] )
+            list_of_processes =  process_factory.KratosProcessFactory(fluid_model).ConstructListOfProcesses( ProjectParameters["gravity"] )
+            list_of_processes += process_factory.KratosProcessFactory(fluid_model).ConstructListOfProcesses( ProjectParameters["initial_conditions_process_list"] )
+            list_of_processes += process_factory.KratosProcessFactory(fluid_model).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
+            list_of_processes += process_factory.KratosProcessFactory(fluid_model).ConstructListOfProcesses( ProjectParameters["auxiliar_process_list"] )
 
             if (echo_level > 1) and ((parallel_type == "OpenMP") or (mpi.rank == 0)):
                 for process in list_of_processes:
@@ -120,7 +131,7 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
 
             ## Stepping and time settings
             start_time = ProjectParameters["problem_data"]["start_time"].GetDouble()
-            Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
+            #Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
             end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
             time = start_time
@@ -153,19 +164,14 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
 
             while(time <= end_time):
 
-                step =step+1
-                time = time + Dt
-
-                main_model_part.CloneTimeStep(time)
-                main_model_part.ProcessInfo[KratosMultiphysics.STEP]=step
+                time = solver.AdvanceInTime(time)
 
                 ChimeraProcess.ExecuteInitializeSolutionStep()
 
                 for process in list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-                if(step >= 3):
-                    solver.Solve()
+                solver.Solve()
 
                 for process in list_of_processes:
                     process.ExecuteFinalizeSolutionStep()

@@ -6,8 +6,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 2,
         "start_time"      : 0.0,
-        "end_time"        : 0.025,
-        "time_step"       : 0.005
+        "end_time"        : 0.025
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -76,7 +75,8 @@
                 "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
+                "maximum_delta_time"  : 0.01,
+                "time_step"       : 0.005
             },
             "alpha":-0.3,
             "move_mesh_strategy": 0,
