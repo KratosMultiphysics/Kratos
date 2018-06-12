@@ -98,13 +98,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
-
     def Finalize(self):
         super(StructuralMechanicsAnalysis, self).Finalize()
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
-
 
 
     #### Internal functions ####
