@@ -172,7 +172,36 @@ void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
 
     rOutput[0] = truss_forces;
   }
+  if(rVariable == STRAIN)
+  {
+    BoundedVector<double, msDimension> truss_forces = ZeroVector(msDimension);
+    truss_forces[0]=1000.1;
+    rOutput[0] = truss_forces;
+  }
 }
+
+
+void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
+    const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY
+  const GeometryType::IntegrationPointsArrayType &integration_points =
+      GetGeometry().IntegrationPoints();
+  if (rOutput.size() != integration_points.size()) {
+    rOutput.resize(integration_points.size());
+  }
+  if (rVariable == STRAIN) {
+    Vector Strain = ZeroVector(msDimension);
+    Strain[0] = this->CalculateLinearStrain();
+    Strain[1] = 0.00;
+    Strain[2] = 0.00;
+    rOutput[0] = Strain;
+  }
+  KRATOS_CATCH("")
+}
+
+
+
 
 void TrussElementLinear3D2N::WriteTransformationCoordinates(
     BoundedVector<double, TrussElement3D2N::msLocalSize>
@@ -226,50 +255,6 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
 
   KRATOS_CATCH("");
 }
-
-/* void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double, 3>> &rVariable,
-    std::vector<array_1d<double, 3>> &rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-
-    const GeometryType::IntegrationPointsArrayType &integration_points =
-        GetGeometry().IntegrationPoints();
-    if (rOutput.size() != integration_points.size()) {
-      rOutput.resize(integration_points.size());
-    }
-
-    if (rVariable == FORCE) {
-      BoundedVector<double, msDimension> truss_forces = ZeroVector(msDimension);
-      truss_forces[2] = 0.00;
-      truss_forces[1] = 0.00;
-      this->mConstitutiveLaw->GetValue(VON_MISES_STRESS_MIDDLE_SURFACE,truss_forces[0])
-      truss_forces[0] = truss_forces[0]*this->GetProperties()[CROSS_AREA]
-
-      rOutput[0] = truss_forces;
-  }
-} */
-
-
-
-void TrussElementLinear3D2N::CalculateOnIntegrationPoints(
-    const Variable<double> &rVariable, std::vector<double> &rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-
-  TrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
-
-  const GeometryType::IntegrationPointsArrayType &integration_points =
-      GetGeometry().IntegrationPoints();
-
-  if (rOutput.size() != integration_points.size()) {
-    rOutput.resize(integration_points.size());
-  }
-
-  if (rVariable == LAMBDA_MAX)rOutput[0] = this->CalculateLinearStrain();
-   
-  KRATOS_CATCH("")
-}
-
 
 
 void TrussElementLinear3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)

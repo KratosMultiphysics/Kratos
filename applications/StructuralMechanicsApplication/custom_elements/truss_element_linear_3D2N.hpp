@@ -120,10 +120,10 @@ namespace Kratos
 		void UpdateInternalForces(
 			BoundedVector<double,msLocalSize>& rinternalForces) override;
 
-		void CalculateOnIntegrationPoints(
-			const Variable<double>& rVariable,
-			std::vector<double>& rOutput,
-			const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
 
 
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;

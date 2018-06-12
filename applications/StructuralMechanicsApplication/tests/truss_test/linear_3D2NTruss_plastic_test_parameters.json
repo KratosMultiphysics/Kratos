@@ -111,7 +111,7 @@
         "incremental_load"         : false,
         "incremental_displacement" : false
     },
-    "_list_other_processes": [
+    "list_other_processes": [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
@@ -121,11 +121,11 @@
             "check_variables"  : ["DISPLACEMENT_Y","REACTION_Y"],
             "input_file_name"  : "truss_test/linear_3D2NTruss_plastic_test_results.json",
             "model_part_name"  : "Structure",
-            "time_frequency"   : 0.4
+            "time_frequency"   : 0.8
         }
     }
     ],
-    "json_output_process" : [
+    "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
@@ -133,10 +133,10 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables" : ["DISPLACEMENT_Y","REACTION_Y"],
-            "gauss_points_output_variables" : ["FORCE"],
+            "gauss_points_output_variables" : ["FORCE","STRAIN"],
             "output_file_name" : "truss_test/linear_3D2NTruss_plastic_test_results.json",
             "model_part_name"  : "Structure",
-            "time_frequency"   : 0.4
+            "time_frequency"   : 0.8
         }
     }
     ]     
