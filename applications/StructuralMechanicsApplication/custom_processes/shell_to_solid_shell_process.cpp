@@ -247,7 +247,12 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
     // Tolerance
     const double tolerance = std::numeric_limits<double>::epsilon();
 
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    // The name of the submodelpart
+    const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
+    ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
+
+    // We iterate over the nodes
+    NodesArrayType& nodes_array = geometry_model_part.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for
@@ -255,7 +260,7 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
         (nodes_array.begin() + i)->SetValue(NORMAL, ZeroVector(3));
 
     // Sum all the nodes normals
-    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+    ElementsArrayType& elements_array = geometry_model_part.Elements();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
