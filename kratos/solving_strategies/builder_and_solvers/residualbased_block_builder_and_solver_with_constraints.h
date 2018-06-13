@@ -608,15 +608,19 @@ private:
             pCurrentContainer->GetDofList(element_dofs, CurrentProcessInfo);
             SizeType number_dofs_per_node = element_dofs.size() / number_of_nodes;
             if (pCurrentContainer->GetGeometry()[j].Is(SLAVE)) { //temporary, will be checked once at the beginning only
-                // Necessary data for iterating and modifying the matrix
+                // Necessary data for iterating and modifying the equation id vector
                 IndexType slave_equation_id;
                 IndexType start_position_node_dofs = number_dofs_per_node * (j);
                 for (IndexType i = 0; i < number_dofs_per_node; i++) {
                     slave_equation_id = element_dofs[start_position_node_dofs + i]->EquationId();
-                    if (p_mpc_data->mEquationIdToWeightsMap.count(slave_equation_id) > 0) {
-                        MasterIdWeightMapType master_weights_map = p_mpc_data->mEquationIdToWeightsMap[slave_equation_id];
-                        for (auto master : master_weights_map) {
-                            EquationId.push_back(master.first);
+                    auto& global_master_slave_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
+                    if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end()) {
+
+                        TContainerType::EquationIdVectorType& slave_equation_ids;
+                        TContainerType::EquationIdVectorType& master_equation_ids;
+                        global_master_slave_constraint->EquationIdVector(slave_equation_ids, master_equation_ids);
+                        for (auto& master_eq_id : master_equation_ids) {
+                            rEquationIds.push_back(master_eq_id);
                         }
                     }
                 }
