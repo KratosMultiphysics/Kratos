@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SHELL_TO_SOLID_SHELL_PROCESS_PROCESS)
-#define KRATOS_SHELL_TO_SOLID_SHELL_PROCESS_PROCESS
+#if !defined(KRATOS_SOLID_SHELL_THICKNESS_COMPUTE_PROCESS)
+#define KRATOS_SOLID_SHELL_THICKNESS_COMPUTE_PROCESS
 
 // System includes
 
@@ -19,11 +19,6 @@
 // Project includes
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-
-/* Geometries defined  */
-#include "geometries/prism_3d_6.h"
-#include "geometries/hexahedra_3d_8.h"
 
 namespace Kratos
 {
@@ -34,9 +29,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    /// The size definition
-    typedef std::size_t SizeType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -46,52 +38,49 @@ namespace Kratos
 ///@{
     
 /** 
- * @class ShellToSolidShellProcess
+ * @class SolidShellThickComputeProcess
  * @ingroup StructuralMechanicsApplication
- * @brief This method transforms triangular and quadrilateral elements into prisms and hexahedra elements
- * @details It used the nodal normal for that pourpose
- * @tparam TNumNodes To distinghuis between triangles and quadrilaterals
+ * @brief This method computes the current thickness in a node of a solid-shell
+ * @details It takes into account the connectivity of the solid geometry. It sets the value on the uppper and lower node, so in case of several layers it will mean the value between them
  * @author Vicente Mataix Ferrandiz
 */
-template<SizeType TNumNodes>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellToSolidShellProcess
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SolidShellThickComputeProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ShellToSolidShellProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ShellToSolidShellProcess);
+    /// Pointer definition of SolidShellThickComputeProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SolidShellThickComputeProcess);
     
-    /// The index definition
-    typedef std::size_t                                     IndexType;
-
-    /// Geometric type definitions
+    // General type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
-
-    /// The definition of the containers
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
     typedef ModelPart::ElementsContainerType        ElementsArrayType;
+
+    // Definitions of the integers
+    typedef std::size_t                                     IndexType;
+    typedef std::size_t                                      SizeType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /**
-     * @brief Default constructor.
-     * @param rThisModelPart The model part to compute
-     * @param ThisParameters The parameters of configuration
-     */
-    ShellToSolidShellProcess(
-        ModelPart& rThisModelPart,
-        Parameters ThisParameters = Parameters(R"({})")
-        );
+    /// Default constructor.
+    SolidShellThickComputeProcess(
+        ModelPart& rThisModelPart
+        ):mrThisModelPart(rThisModelPart)
+    {
+        KRATOS_TRY
+        
+        KRATOS_CATCH("")
+    }
 
     /// Destructor.
-    ~ShellToSolidShellProcess() override
+    ~SolidShellThickComputeProcess() override
     = default;
 
     ///@}
@@ -142,13 +131,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ShellToSolidShellProcess";
+        return "SolidShellThickComputeProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ShellToSolidShellProcess";
+        rOStream << "SolidShellThickComputeProcess";
     }
 
     /// Print object's data.
@@ -208,8 +197,7 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrThisModelPart;              /// The main model part
-    Parameters mThisParameters;              /// The parameters (can be used for general pourposes)
+    ModelPart& mrThisModelPart; /// The model part containing the solid-shells
 
     ///@}
     ///@name Private Operators
@@ -219,22 +207,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
-     * @param ReorderAccordingShellConnectivity True if we reorder using the shell connectivity as reference
-     */
-    void ReorderAllIds(const bool ReorderAccordingShellConnectivity = false);
-
-    /**
-     * @brief After we have transfer the information from the previous modelpart we initilize the elements
-     */
-
-    void InitializeElements();
-
-    /**
-     * @brief It computes the mean of the normal on the elements in all the nodes (non historical version)
-     */
-    inline void ComputeNodesMeanNormalModelPartNonHistorical();
 
     ///@}
     ///@name Private  Access
@@ -251,15 +223,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    ShellToSolidShellProcess& operator=(ShellToSolidShellProcess const& rOther) = delete;
+    SolidShellThickComputeProcess& operator=(SolidShellThickComputeProcess const& rOther) = delete;
 
     /// Copy constructor.
-    //ShellToSolidShellProcess(ShellToSolidShellProcess const& rOther);
+    //SolidShellThickComputeProcess(SolidShellThickComputeProcess const& rOther);
 
 
     ///@}
 
-}; // Class ShellToSolidShellProcess
+}; // Class SolidShellThickComputeProcess
 
 ///@}
 
@@ -273,11 +245,11 @@ private:
 
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   ShellToSolidShellProcess& rThis);
+//                                   SolidShellThickComputeProcess& rThis);
 // 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ShellToSolidShellProcess& rThis)
+//                                   const SolidShellThickComputeProcess& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -287,4 +259,4 @@ private:
 // }
 
 }
-#endif /* KRATOS_SHELL_TO_SOLID_SHELL_PROCESS_PROCESS defined */
+#endif /* KRATOS_SOLID_SHELL_THICKNESS_COMPUTE_PROCESS defined */
