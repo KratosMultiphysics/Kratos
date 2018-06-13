@@ -16,14 +16,13 @@ class ImposeNodalReferenceTemperatureProcess(Process):
         variable_name = settings["variable_name"].GetString()
         initial_value = settings["initial_value"].GetDouble()
 
-        # This exception is introduced to check if the parameter "input_file_name" exixts. If not, it create it and define it as "".
-        # This could be changed when the Nodal Reference Temp (input file) process will be fixed. So far, in the ACOMBO Release 6, this parameter (input_file_name) was removed from the interface.
-        try:
-            settings["input_file_name"].GetString()
-        except:
-            input_file_name = ""
-        else:
+        # Checks if the parameter "input_file_name" exixts. If not, it create it and define it as "".
+        # This may be changed in the future, when the Nodal Reference Temp (input file) process will be fixed.
+
+        if settings.Has("input_file_name"):
             input_file_name = settings["input_file_name"].GetString()
+        else:
+            input_file_name = ""
 
         if ((input_file_name == "") or (input_file_name == "- No file") or (input_file_name == "- Add new file")):
             self.table = PiecewiseLinearTable()
