@@ -111,11 +111,9 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         elif analysis_type == "arc_length":
             raise Exception('"arc_length is not available at the moment"')
             mechanical_solution_strategy = self._create_arc_length_strategy()
-        elif analysis_type == "formfinding":
-            mechanical_solution_strategy = self._create_formfinding_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\", \"formfinding\""
+            err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\""
             raise Exception(err_msg)
         return mechanical_solution_strategy
 
@@ -134,23 +132,6 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                 self.arc_length_settings["max_iteration"].GetInt(),
                                                                 self.arc_length_settings["max_recursive"].GetInt(),
                                                                 self.arc_length_settings["factor_delta_lmax"].GetDouble(),
-                                                                self.settings["compute_reactions"].GetBool(),
-                                                                self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                self.settings["move_mesh_flag"].GetBool())
-
-    def _create_formfinding_strategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
-        return StructuralMechanicsApplication.FormfindingUpdatedReferenceStrategy(
-                                                                computing_model_part,
-                                                                mechanical_scheme,
-                                                                linear_solver,
-                                                                mechanical_convergence_criterion,
-                                                                builder_and_solver,
-                                                                self.settings["max_iteration"].GetInt(),
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                 self.settings["move_mesh_flag"].GetBool())

@@ -88,6 +88,7 @@ class MechanicalSolver(PythonSolver):
                 "scaling": false,
                 "verbosity": 1
             },
+            "time_stepping"                : { },
             "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : []
@@ -199,8 +200,6 @@ class MechanicalSolver(PythonSolver):
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
         if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
-
-        print(self.model)
 
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
