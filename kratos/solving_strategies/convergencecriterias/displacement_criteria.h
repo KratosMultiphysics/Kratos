@@ -305,19 +305,19 @@ private:
      */
     void CalculateReferenceNorm(DofsArrayType& rDofSet)
     {
-        mReferenceDispNorm = TDataType();
+        TDataType reference_disp_norm = TDataType();
         TDataType dof_value;
 
-        #pragma omp parallel for reduction(+:mReferenceDispNorm)
+        #pragma omp parallel for reduction(+:reference_disp_norm)
         for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
             auto it_dof = rDofSet.begin() + i;
 
             if(it_dof->IsFree()) {
                 dof_value = it_dof->GetSolutionStepValue();
-                mReferenceDispNorm += dof_value * dof_value;
+                reference_disp_norm += dof_value * dof_value;
             }
         }
-        mReferenceDispNorm = std::sqrt(mReferenceDispNorm);
+        mReferenceDispNorm = std::sqrt(reference_disp_norm);
     }
 
     /**
