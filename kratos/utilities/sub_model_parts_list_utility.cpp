@@ -83,19 +83,19 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
     /* Nodes */
     for(auto & aux_nodes_color : aux_nodes_colors) {
         const std::set<IndexType>& value = aux_nodes_color.second;
-        if (value.size() > 1) combinations[value] = -1;
+        if (value.size() > 1) combinations[value] = 0;
     }
 
     /* Conditions */
     for(auto & aux_cond_color : aux_cond_colors) {
         const std::set<IndexType>& value = aux_cond_color.second;
-        if (value.size() > 1) combinations[value] = -1;
+        if (value.size() > 1) combinations[value] = 0;
     }
 
     /* Elements */
     for(auto & aux_elem_color : aux_elem_colors) {
         const std::set<IndexType>& value = aux_elem_color.second;
-        if (value.size() > 1) combinations[value] = -1;
+        if (value.size() > 1) combinations[value] = 0;
     }
 
     /* Combinations */
