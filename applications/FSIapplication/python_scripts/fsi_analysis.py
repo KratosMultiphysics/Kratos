@@ -14,8 +14,21 @@ from analysis_stage import AnalysisStage
 class FSIAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
 
-    def __init__(self, model, parameters):
-        super(FSIAnalysis,self).__init__(model, parameters)
+    def __init__(self, model, project_parameters):
+        '''The constructor of the FSI analysis object
+
+        Note that the base class analysis stage constructor
+        is not called intentionally, since it is not compatible
+        with the current FSI application Json structure.
+        '''
+        if (type(model) != Kratos.Model):
+            raise Exception("Input is expected to be provided as a Kratos Model object")
+
+        if (type(project_parameters) != Kratos.Parameters):
+            raise Exception("Input is expected to be provided as a Kratos Parameters object")
+
+        self.model = model
+        self.project_parameters = project_parameters
 
         echo_fluid = self.project_parameters["fluid_solver_settings"]["problem_data"]["echo_level"].GetInt()
         echo_structure = self.project_parameters["structure_solver_settings"]["problem_data"]["echo_level"].GetInt()
@@ -38,10 +51,8 @@ class FSIAnalysis(AnalysisStage):
             self.project_parameters.AddEmptyValue("echo_level")
             self.project_parameters["echo_level"].SetInt(self.echo_level)
 
-        import python_solvers_wrapper_fsi
-        self.solver = python_solvers_wrapper_fsi.CreateSolver(model, self.project_parameters)
-
-        self.__restart_utility = None
+        # Add solver variables (note that the solver is created in the first _GetSolver() call)
+        self._GetSolver().AddVariables()
 
     def Initialize(self):
         '''
@@ -55,10 +66,9 @@ class FSIAnalysis(AnalysisStage):
             fluid_restart_utility.LoadRestart()
             structure_restart_utility.LoadRestart()
         else:
-            self.solver.AddVariables()
-            self.solver.ImportModelPart()
-            self.solver.PrepareModelPart()
-            self.solver.AddDofs()
+            self._GetSolver().ImportModelPart()
+            self._GetSolver().PrepareModelPart()
+            self._GetSolver().AddDofs()
             print(self.model)
             self.fluid_main_model_part = self.model.GetModelPart(
                 self.project_parameters["fluid_solver_settings"]["solver_settings"]["model_part_name"].GetString())
@@ -73,7 +83,7 @@ class FSIAnalysis(AnalysisStage):
         self._SetUpListOfProcesses()
         self._SetUpAnalysis()
 
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
 
     def InitializeSolutionStep(self):
@@ -88,10 +98,12 @@ class FSIAnalysis(AnalysisStage):
             raise Exception(err_msg)
 
         if self.is_printing_rank:
-            Kratos.Logger.PrintInfo("FSI Analysis","STEP = ", step_fluid)
-            Kratos.Logger.PrintInfo("FSI Analysis","TIME = ", self.time)
+            Kratos.Logger.PrintInfo(self._GetSimulationName(),"STEP = ", step_fluid)
+            Kratos.Logger.PrintInfo(self._GetSimulationName(),"TIME = ", self.time)
 
-        super(FSIAnalysis,self).InitializeSolutionStep()
+        self.ApplyBoundaryConditions() #here the processes are called
+        self.ChangeMaterialProperties() #this is normally empty
+        self._GetSolver().InitializeSolutionStep()
 
     def OutputSolutionStep(self):
 
@@ -100,7 +112,7 @@ class FSIAnalysis(AnalysisStage):
 
         if has_output and is_output_step:
 
-            for process in self.list_of_processes:
+            for process in self._GetListOfProcesses():
                 process.ExecuteBeforeOutputStep()
 
             if self.fluid_output.IsOutputStep():
@@ -109,7 +121,7 @@ class FSIAnalysis(AnalysisStage):
             if self.structure_output.IsOutputStep():
                 self.structure_output.PrintOutput()
 
-            for process in self.list_of_processes:
+            for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
 
         if self.save_restart:
@@ -117,6 +129,22 @@ class FSIAnalysis(AnalysisStage):
             structure_restart_utility = self._GetStructureRestartUtility()
             fluid_restart_utility.SaveRestart()
             structure_restart_utility.SaveRestart()
+
+    def _CreateSolver(self):
+        import python_solvers_wrapper_fsi
+        return python_solvers_wrapper_fsi.CreateSolver(self.model, self.project_parameters)
+
+    def _GetSimulationName(self):
+        fluid_simulation_name = self.project_parameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString()
+        structure_simulation_name = self.project_parameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString()
+
+        if fluid_simulation_name != structure_simulation_name:
+            err_msg =  'Different fluid and structure simulation names:\n'
+            err_msg += '\t-Fluid simulation name:' + fluid_simulation_name + '\n'
+            err_msg += '\t-Structure simulation name:' + structure_simulation_name + '\n'
+            raise Exception(err_msg)
+
+        return fluid_simulation_name
 
     def _SetUpListOfProcesses(self):
         '''
@@ -130,23 +158,23 @@ class FSIAnalysis(AnalysisStage):
         # Fluid domain processes
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["gravity"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["initial_conditions_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["boundary_conditions_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["auxiliar_process_list"] )
+        self._list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["gravity"] )
+        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["initial_conditions_process_list"] )
+        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["boundary_conditions_process_list"] )
+        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["auxiliar_process_list"] )
 
         # Structure domain processes
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["structure_solver_settings"]["constraints_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["structure_solver_settings"]["loads_process_list"] )
+        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["structure_solver_settings"]["constraints_process_list"] )
+        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["structure_solver_settings"]["loads_process_list"] )
 
         #TODO this should be generic
         # Initialize fluid and structure GiD I/O
         self.fluid_output, self.structure_output = self._SetUpGiDOutput()
 
         if self.fluid_output is not None:
-            self.list_of_processes += [self.fluid_output,]
+            self._list_of_processes += [self.fluid_output,]
         if self.structure_output is not None:
-            self.list_of_processes += [self.structure_output,]
+            self._list_of_processes += [self.structure_output,]
 
     def _SetUpAnalysis(self):
         '''
@@ -155,10 +183,10 @@ class FSIAnalysis(AnalysisStage):
         can start immediately after exiting it.
         '''
 
-        for process in self.list_of_processes:
+        for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
-        self.solver.Initialize()
+        self._GetSolver().Initialize()
 
         ## If the echo level is high enough, print the complete list of settings used to run the simulation
         if self.is_printing_rank and self.echo_level > 1:
@@ -205,7 +233,7 @@ class FSIAnalysis(AnalysisStage):
         if self.fluid_has_output:
             fluid_output_filename = self.project_parameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString() + '_fluid'
             fluid_output = OutputProcess(
-                self.solver.GetFluidComputingModelPart(),
+                self._GetSolver().GetFluidComputingModelPart(),
                 fluid_output_filename,
                 self.project_parameters["fluid_solver_settings"]["output_configuration"])
 
@@ -213,7 +241,7 @@ class FSIAnalysis(AnalysisStage):
         if self.structure_has_output:
             structure_output_filename = self.project_parameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString() + '_structure'
             structure_output = OutputProcess(
-                self.solver.GetStructureComputingModelPart(),
+                self._GetSolver().GetStructureComputingModelPart(),
                 structure_output_filename,
                 self.project_parameters["structure_solver_settings"]["output_configuration"])
 
