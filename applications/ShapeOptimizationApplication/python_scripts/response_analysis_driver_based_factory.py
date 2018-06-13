@@ -83,6 +83,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
     def CalculateValue(self):
         if not self.is_analysis_step_completed:
             self.response_data = {}
+            #  TODO: Transfer iteration specific log entries to a file in the iteration folder to seperate them from optimization logging entries
             self.analysis_driver.Run(self.model_part, self.response_data)
 
     def GetValue(self):
