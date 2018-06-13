@@ -217,12 +217,8 @@ class ALMContactProcess(KM.Process):
 
         # We copy the conditions to the ContactSubModelPart
         if (preprocess is True):
-            for cond in self.contact_model_part.Conditions:
-                interface_model_part.AddCondition(cond)
-            del(cond)
-            for node in self.contact_model_part.Nodes:
-                interface_model_part.AddNode(node, 0)
-            del(node)
+            transfer_process = KM.FastTransferBetweenModelPartsProcess(interface_model_part, self.contact_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDCONDITIONS)
+            transfer_process.Execute()
 
         # Creating the search
         self._create_main_search(computing_model_part)
@@ -634,5 +630,5 @@ class ALMContactProcess(KM.Process):
         # We transfer the list of submodelparts to the contact model part
         for i in range(0, param.size()):
             partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
-            transfer_process = KM.FastTransferBetweenModelPartsProcess(self.contact_model_part, partial_model_part)
+            transfer_process = KM.FastTransferBetweenModelPartsProcess(self.contact_model_part, partial_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDCONDITIONS)
             transfer_process.Execute()
