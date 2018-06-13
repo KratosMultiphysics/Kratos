@@ -11,6 +11,7 @@
 //
 
 // Project includes
+#include "includes/serializer.h"
 #include "testing/testing.h"
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_utilities/mapper_utilities.h"
@@ -19,7 +20,10 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceInfoBasicTests, KratosMappingApplicationSerialTestSuite)
+using MappingWeightsVector = std::vector<double>;
+using EquationIdVectorType = std::vector<std::size_t>;
+
+KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
     // This test covers the basic functionalities provided by the "MapperInterfaceInfo"
     // A "NearestNeigborInterfaceInfo" is being used since "MapperInterfaceInfo" is a pure virtual class
@@ -44,7 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceInfoBasicTests, KratosMappingApplicationSeria
         KRATOS_CHECK_DOUBLE_EQUAL(nearest_neighbor_info.GetCoordinates()[i], coords_1[i]);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NoNeighbor, KratosMappingApplicationSerialTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
     Point coords(1.0, 2.45, -23.8);
 
@@ -55,15 +59,6 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NoNeighbor, KratosMapping
 
     // Test if the "Create" function returns the correct object
     KRATOS_CHECK_EQUAL(typeid(nearest_neighbor_info), typeid(*nearest_neighbor_info_2));
-
-    KRATOS_CHECK_EQUAL(nearest_neighbor_info_2->GetLocalSystemIndex(), source_local_sys_idx);
-    KRATOS_CHECK_EQUAL(nearest_neighbor_info_2->GetSourceRank(), 0);
-
-    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info_2->GetLocalSearchWasSuccessful());
-    KRATOS_CHECK_IS_FALSE(nearest_neighbor_info_2->GetIsApproximation());
-
-    for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(nearest_neighbor_info_2->GetCoordinates()[i], coords[i]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMappingApplicationSerialTestSuite)
@@ -180,17 +175,130 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
     nearest_neighbor_info.ProcessSearchResult(interface_node_2, dist_2);
     nearest_neighbor_info.ProcessSearchResult(interface_node_3, dist_3);
 
-    // SERIALIZE
+    // serializing the object
+    Serializer serializer;
+    serializer.save("nearest_neighbor_interface_info", nearest_neighbor_info);
+    // deserializing the object => this happens if the remote search was successful and
+    // sending back of the object to the partition where it came from is required
+    NearestNeigborInterfaceInfo nearest_neighbor_info_new;
+    serializer.load("nearest_neighbor_interface_info", nearest_neighbor_info_new);
 
-    // DESERIALIZE
+    int found_id;
+    nearest_neighbor_info_new.GetValue(found_id);
+    KRATOS_CHECK_EQUAL(found_id, expected_id_found);
 
-    // int found_id;
-    // nearest_neighbor_info_new.GetValue(found_id);
-    // KRATOS_CHECK_EQUAL(found_id, expected_id_found);
+    double neighbor_dist;
+    nearest_neighbor_info_new.GetValue(neighbor_dist);
+    KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3);
+}
 
-    // double neighbor_dist;
-    // nearest_neighbor_info_new.GetValue(neighbor_dist);
-    // KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3);
+KRATOS_TEST_CASE_IN_SUITE(MapperLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
+{
+    // This test covers the basic functionalities provided by the "MapperLocalSystem"
+    // A "NearestNeighborLocalSystem" is being used since "MapperLocalSystem" is a pure virtual class
+
+    Point coords_1(1.0, 2.45, -23.8);
+    auto node_local_sys(Kratos::make_shared<Node<3>>(5, coords_1));
+
+    NearestNeighborLocalSystem local_sys(node_local_sys);
+
+    for (std::size_t i=0; i<3; ++i)
+        KRATOS_CHECK_DOUBLE_EQUAL(local_sys.GetCoordinates()[i], coords_1[i]);
+
+    KRATOS_CHECK_IS_FALSE(local_sys.HasInterfaceInfo());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
+{
+    NearestNeighborLocalSystem local_sys_dummy;
+
+    auto node_local_sys(Kratos::make_shared<Node<3>>(1, 1.0, 2.5, -5.0));
+
+    auto local_sys(local_sys_dummy.Create(node_local_sys));
+
+    // Test if the "Create" function returns the correct object
+    KRATOS_CHECK_EQUAL(typeid(local_sys_dummy), typeid(*local_sys));
+
+    KRATOS_CHECK(local_sys->UseNodesAsBasis());
+
+    // Computing the local system
+    // this should return nothing since no InterfaceInfos are available
+    MappingWeightsVector weights;
+    EquationIdVectorType origin_ids;
+    EquationIdVectorType origin_ids2;
+    EquationIdVectorType destination_ids;
+    EquationIdVectorType destination_ids2;
+
+    local_sys->EquationIdVectors(origin_ids, destination_ids);
+
+    KRATOS_CHECK_EQUAL(origin_ids.size(), 0);
+    KRATOS_CHECK_EQUAL(destination_ids.size(), 0);
+
+    local_sys->CalculateLocalSystem(weights, origin_ids2, destination_ids2);
+    KRATOS_CHECK_EQUAL(weights.size(), 0);
+    KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
+    KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosMappingApplicationSerialTestSuite)
+{
+    NearestNeighborLocalSystem local_sys_dummy;
+
+    const int dest_id = 13;
+
+    auto node_local_sys(Kratos::make_shared<Node<3>>(5, 1.0, 2.5, -5.0));
+    node_local_sys->SetValue(INTERFACE_EQUATION_ID, dest_id);
+
+    auto local_sys(local_sys_dummy.Create(node_local_sys));
+
+    // Test if the "Create" function returns the correct object
+    KRATOS_CHECK_EQUAL(typeid(local_sys_dummy), typeid(*local_sys));
+
+    // Create the NearestNeighborInfos to be used by the NearestNeighborLocalSystem
+    auto node_1(Kratos::make_shared<Node<3>>(1, 18.0, 2.7, 30.0));
+    auto node_2(Kratos::make_shared<Node<3>>(3, 1.0, 2.5, -3.0)); // this is the nearest neighbor
+
+    InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1));
+    InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2));
+
+    const int expected_id_found = 67;
+
+    node_1->SetValue(INTERFACE_EQUATION_ID, 35);
+    node_2->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
+
+    // We compute the real distance bcs this would also be computed by the search
+    const double dist_1 = MapperUtilities::ComputeDistance(local_sys->GetCoordinates(), *interface_node_1);
+    const double dist_2 = MapperUtilities::ComputeDistance(local_sys->GetCoordinates(), *interface_node_2);
+
+    MapperInterfaceInfo::Pointer p_nearest_neighbor_info_1(Kratos::make_shared<NearestNeigborInterfaceInfo>(local_sys->GetCoordinates(), 0, 0));
+    MapperInterfaceInfo::Pointer p_nearest_neighbor_info_2(Kratos::make_shared<NearestNeigborInterfaceInfo>(local_sys->GetCoordinates(), 0, 0));
+
+    p_nearest_neighbor_info_1->ProcessSearchResult(interface_node_1, dist_1);
+    p_nearest_neighbor_info_2->ProcessSearchResult(interface_node_2, dist_2);
+
+    local_sys->AddInterfaceInfo(p_nearest_neighbor_info_1);
+    local_sys->AddInterfaceInfo(p_nearest_neighbor_info_2);
+
+    // Computing the local system
+    MappingWeightsVector weights;
+    EquationIdVectorType origin_ids;
+    EquationIdVectorType origin_ids2;
+    EquationIdVectorType destination_ids;
+    EquationIdVectorType destination_ids2;
+
+    local_sys->EquationIdVectors(origin_ids, destination_ids);
+
+    KRATOS_CHECK_EQUAL(origin_ids.size(), 1);
+    KRATOS_CHECK_EQUAL(destination_ids.size(), 1);
+
+    local_sys->CalculateLocalSystem(weights, origin_ids2, destination_ids2);
+    KRATOS_CHECK_EQUAL(weights.size(), 1);
+    KRATOS_CHECK_EQUAL(origin_ids2.size(), 1);
+    KRATOS_CHECK_EQUAL(destination_ids2.size(), 1);
+
+    KRATOS_CHECK_DOUBLE_EQUAL(weights[0], 1.0);
+    KRATOS_CHECK_EQUAL(origin_ids2[0], expected_id_found);
+    KRATOS_CHECK_EQUAL(destination_ids2[0], dest_id);
 }
 
 }  // namespace Testing

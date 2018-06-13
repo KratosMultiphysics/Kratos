@@ -54,7 +54,7 @@ namespace Kratos
 
         /*
         1. Check which partitions have part of Interface (or send BBoxes directly...? => Don't think this is a good solution)
-        2. Compute Graph for DataExchange
+        2. Compute Graph for DataExchange (or do async => do I need a graph in such a case?)
         3. Send BBoxes to partitions that have part of Interface
         4. Compute CandidatePartitions
         5. Send stuff to CandidatePartitions
@@ -69,7 +69,8 @@ namespace Kratos
         1. Check with which Partitions I have to communicate
         2. Exchange this info
         3. Compute CommunicationGraph
-        4. Searialize InterfaceInfos and exchange them
+        4. Searialize InterfaceInfos and exchange them => Big question: how to handle the fact that the interfaceinfos are pointer?
+        I don't want to send pointer, so I have to think abt how to do it in a smart way...
         5. Deserialize InterfaceInfos and assign them to the LocalSystems
         */
 

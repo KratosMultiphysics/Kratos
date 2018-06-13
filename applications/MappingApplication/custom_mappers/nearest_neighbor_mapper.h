@@ -51,7 +51,7 @@ class NearestNeigborInterfaceInfo : public MapperInterfaceInfo
 public:
 
     /// Default constructor.
-    NearestNeigborInterfaceInfo() {}
+    NearestNeigborInterfaceInfo() {} // TODO needed? I think so, for serializetion...
 
     NearestNeigborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                 const IndexType SourceLocalSystemIndex,
@@ -138,6 +138,7 @@ public:
 
     CoordinatesArrayType& GetCoordinates() const override
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         return mpNode->Coordinates();
     }
 

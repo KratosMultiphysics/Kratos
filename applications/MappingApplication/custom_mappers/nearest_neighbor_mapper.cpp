@@ -67,18 +67,20 @@ void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeig
 
         rMappingWeights[0] = 1.0;
         rOriginIds[0] = nearest_neighbor_id;
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
     }
     else
     {
+        // TODO move this warning to another place and make it also depend on the echo-lvl how much information is being printed
         KRATOS_WARNING("NearestNeighborMapper")
             << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
 
         // TODO is this ok? => I guess it would be better to do this in a more general way in the baseclass...
         // TODO resize to zero, then it wont be assembled! (might be a bit slower though...)
-        rMappingWeights[0] = 0.0;
-        rOriginIds[0]      = 0;
-        rDestinationIds[0] = 0;
+        rMappingWeights.resize(0);
+        rOriginIds.resize(0);
+        rDestinationIds.resize(0);
     }
 
 }

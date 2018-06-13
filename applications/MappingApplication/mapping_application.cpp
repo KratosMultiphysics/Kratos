@@ -111,5 +111,8 @@ void KratosMappingApplication::Register()
     // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
     KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
+
+    // TODO do I have to register the MapperInterfaceInfos in the serializer?
+    // seems to also work without ...
 }
 }  // namespace Kratos.
