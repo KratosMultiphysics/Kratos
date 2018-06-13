@@ -130,9 +130,13 @@ namespace Kratos
 
         Vector CalculateBendingDeformationModesOnGP(const Vector &DiscreteBendingDefMode);
 
-        double CalculateFirstOrderElongation();
+        double CalculateFirstOrderAxialStrain();
 
         Vector CalculatePseudoLoadOfBendingStiffnessOnGP(const ProcessInfo& rCurrentProcessInfo);
+        
+        void CalculatePseudoMomentOnGP(const Variable<double>& rVariable, std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+
+         void CalculatePseudoForceOnGP(const Variable<double>& rVariable, std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo);
         // ***************************************************************
 
 

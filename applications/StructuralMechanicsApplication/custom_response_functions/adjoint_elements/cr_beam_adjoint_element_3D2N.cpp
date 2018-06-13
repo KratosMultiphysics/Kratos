@@ -599,36 +599,13 @@ namespace Kratos
             // Get result value for output
             double output_value = this->GetValue(rVariable);
 
-            // Write scalar result value on all Gauss-Points
-            for(unsigned int i = 0; i < write_points_number; ++i)
-                rOutput[i] = output_value;
-        }
-        else if (rVariable == TRUSS_ELONGATION_MODE)
-        {
-            const double elongation = CalculateFirstOrderElongation();
+            const double L = this->CalculateReferenceLength();
 
             // Write scalar result value on all Gauss-Points
             for(unsigned int i = 0; i < write_points_number; ++i)
-                rOutput[i] = elongation;
+                rOutput[i] = output_value / L;
         }
-        else if (rVariable == CROSS_AREA_PSEUDO_LOAD) 
-        {
-            // Get pseudo-load in global direction
-            Matrix sensitivity_matrix; 
-            this->CalculateSensitivityMatrix(CROSS_AREA, sensitivity_matrix, rCurrentProcessInfo);  
-            Vector pseudo_force_vector = row(sensitivity_matrix, 0); 
-            
-            // Transform pseudo load in local direction
-            BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix = this->CalculateInitialLocalCS();
-            pseudo_force_vector = prod(Matrix(trans(transformation_matrix)), pseudo_force_vector);
-
-            const double continuous_pseudo_force = pseudo_force_vector[6] / this->CalculateReferenceLength(); // TODO: stimmt das Konzept auch, wenn das System gedreht ist?
-
-            // Write scalar result value on all Gauss-Points
-            for(unsigned int i = 0; i < write_points_number; ++i)
-                rOutput[i] =  continuous_pseudo_force;
-        }
-        else if(rVariable == I22_PSEUDO_LOAD)
+        else if(rVariable == I22_PSEUDO_LOAD) // pseudo-load based on beam deformation modes
         {
             Vector I22_pseudo_load_on_GP = CalculatePseudoLoadOfBendingStiffnessOnGP(rCurrentProcessInfo);
 
@@ -637,6 +614,77 @@ namespace Kratos
             {
                 for(unsigned int i = 0; i < write_points_number; ++i)
                     rOutput[i] =  I22_pseudo_load_on_GP[i];
+            }
+        }
+        else if(rVariable == I22_SENSITIVITY_ANALYTIC)
+        {
+            std::vector< array_1d<double, 3 > > I22_pseudo_moment_on_GP;
+            this->CalculatePseudoMomentOnGP(I22, I22_pseudo_moment_on_GP, rCurrentProcessInfo);
+
+            std::vector< array_1d<double, 3 > > curvature_of_influence_function; 
+            this->CalculateOnIntegrationPoints(ADJOINT_CURVATURE, curvature_of_influence_function, rCurrentProcessInfo);
+      
+            // Write output on GP
+            if(rOutput.size() == I22_pseudo_moment_on_GP.size())
+            {
+                for(unsigned int i = 0; i < write_points_number; ++i)
+                    rOutput[i] =  I22_pseudo_moment_on_GP[i][1] * curvature_of_influence_function[i][1];
+            }
+        }
+        else if(rVariable == CROSS_AREA_SENSITIVITY_ANALYTIC)
+        {
+            std::vector< array_1d<double, 3 > > cross_area_pseudo_force_on_GP;
+            this->CalculatePseudoForceOnGP(CROSS_AREA, cross_area_pseudo_force_on_GP, rCurrentProcessInfo);
+
+            std::vector< array_1d<double, 3 > > stain_of_influence_function; 
+            this->CalculateOnIntegrationPoints(ADJOINT_STRAIN, stain_of_influence_function, rCurrentProcessInfo);
+      
+            // Write output on GP
+            if(rOutput.size() == cross_area_pseudo_force_on_GP.size())
+            {
+                for(unsigned int i = 0; i < write_points_number; ++i)
+                    rOutput[i] =  cross_area_pseudo_force_on_GP[i][0] * stain_of_influence_function[i][0];
+            }
+        }
+        else if(rVariable == YOUNG_MODULUS_SENSITIVITY_ANALYTIC || rVariable == I22_SENSITIVITY_ANALYTIC || rVariable == CROSS_AREA_SENSITIVITY_ANALYTIC)
+        {
+            std::vector< array_1d<double, 3 > > pseudo_force_on_GP;
+            std::vector< array_1d<double, 3 > > pseudo_moment_on_GP;
+
+            if(rVariable == YOUNG_MODULUS_SENSITIVITY_ANALYTIC)
+            {
+                this->CalculatePseudoForceOnGP(YOUNG_MODULUS, pseudo_force_on_GP, rCurrentProcessInfo);
+                this->CalculatePseudoMomentOnGP(YOUNG_MODULUS, pseudo_moment_on_GP, rCurrentProcessInfo);
+            }
+            else if(rVariable == I22_SENSITIVITY_ANALYTIC)
+            {
+                this->CalculatePseudoForceOnGP(I22, pseudo_force_on_GP, rCurrentProcessInfo);
+                this->CalculatePseudoMomentOnGP(I22, pseudo_moment_on_GP, rCurrentProcessInfo);
+            }
+            else if(rVariable == CROSS_AREA_SENSITIVITY_ANALYTIC)
+            {
+                this->CalculatePseudoForceOnGP(CROSS_AREA, pseudo_force_on_GP, rCurrentProcessInfo);
+                this->CalculatePseudoMomentOnGP(CROSS_AREA, pseudo_moment_on_GP, rCurrentProcessInfo);
+            }
+          
+            std::vector< array_1d<double, 3 > > stain_of_influence_function; 
+            this->CalculateOnIntegrationPoints(ADJOINT_STRAIN, stain_of_influence_function, rCurrentProcessInfo);
+
+            std::vector< array_1d<double, 3 > > curvature_of_influence_function; 
+            this->CalculateOnIntegrationPoints(ADJOINT_CURVATURE, curvature_of_influence_function, rCurrentProcessInfo);
+
+            // Write output on GP
+            if(rOutput.size() == pseudo_force_on_GP.size())
+            {
+                for(unsigned int i = 0; i < write_points_number; ++i)
+                {
+                    rOutput[i] = pseudo_force_on_GP[i][0]  * stain_of_influence_function[i][0] +
+                                 pseudo_force_on_GP[i][1]  * stain_of_influence_function[i][1] +
+                                 pseudo_force_on_GP[i][2]  * stain_of_influence_function[i][2] +
+                                 pseudo_moment_on_GP[i][0] * curvature_of_influence_function[i][0]+
+                                 pseudo_moment_on_GP[i][1] * curvature_of_influence_function[i][1]+
+                                 pseudo_moment_on_GP[i][2] * curvature_of_influence_function[i][2];                    
+                }
             }
         }
         else
@@ -658,8 +706,6 @@ namespace Kratos
         GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
         if (rOutput.size() != write_points_number) 
             rOutput.resize(write_points_number);  
-
-        std::cout << "Gauss Point number = " << write_points_number << "#################################################"<<  std::endl;  
 
         // rOutput[GP 1,2,3][x,y,z]
         if(rVariable == BEAM_BENDING_MODES) 
@@ -707,14 +753,18 @@ namespace Kratos
             if(Has(TRACED_STRESS_TYPE))
                 def_mode_bending_y[0] += 1.0;
 
-            //std::cout << "Def-modes y of element id #" << this->Id() << std::endl;
-            //std::cout << def_mode_bending_y[0]  << std::endl;
-            //std::cout << def_mode_bending_y[1] << std::endl;
-            //std::cout << "#####################################" << std::endl;  
+            /*std::cout << "Def-modes y of element id #" << this->Id() << std::endl;
+            std::cout << def_mode_bending_y[0]  << std::endl;
+            std::cout << def_mode_bending_y[1] << std::endl;
+            std::cout << "def mode from cr formulation:" << std::endl;  */
 
             Vector x_mode_internal = CalculateBendingDeformationModesOnGP(def_mode_bending_x);
             Vector y_mode_internal = CalculateBendingDeformationModesOnGP(def_mode_bending_y);
             Vector z_mode_internal = CalculateBendingDeformationModesOnGP(def_mode_bending_z);
+
+            //this->CalculateDeformationModes();
+
+            //std::cout << "#####################################" << std::endl;  
 
             // Write output on GP
             if(rOutput.size() == x_mode_internal.size())
@@ -735,11 +785,11 @@ namespace Kratos
 
             //Verify results+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++   
             //Compute Sensitivities with deformation modes
-            Matrix pseudo_load_I22;
-            CalculateSensitivityMatrix(I22, pseudo_load_I22, rCurrentProcessInfo);
-            double sensitivity_wrt_I22 =  pseudo_load_I22(0,4)*def_mode_bending_y[0] + pseudo_load_I22(0,10)*def_mode_bending_y[1];
-
-            double reference_I22_sensitivity = this->GetValue(I22_SENSITIVITY);
+            //Matrix pseudo_load_I22;
+            //CalculateSensitivityMatrix(I22, pseudo_load_I22, rCurrentProcessInfo);
+            //double sensitivity_wrt_I22 =  pseudo_load_I22(0,4)*def_mode_bending_y[0] + pseudo_load_I22(0,10)*def_mode_bending_y[1];
+//
+            //double reference_I22_sensitivity = this->GetValue(I22_SENSITIVITY);
             
             //std::cout << "adj. SA = " << reference_I22_sensitivity << std::endl;
             //std::cout << "def. mode = " << sensitivity_wrt_I22 << std::endl;
@@ -750,6 +800,124 @@ namespace Kratos
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++      
     
         }
+        else if(rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_STRAIN)
+        {
+            Matrix left_hand_side_matrix = this->CreateElementStiffnessMatrix_Material();
+
+            Vector nodal_deformation = ZeroVector(msElementSize);
+            this->GetValuesVector(nodal_deformation); 
+
+            BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
+                this->CalculateInitialLocalCS();
+            nodal_deformation =
+                prod(Matrix(trans(transformation_matrix)), nodal_deformation);
+
+            if(Has(TRACED_STRESS_TYPE))
+                nodal_deformation[4] += 1.0;
+    
+
+            //// start static back condensation
+            /*if (this->Has(CONDENSED_DOF_LIST)) 
+            {
+                Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
+                std::vector<int> dofList(dof_list_input.size());
+                for (SizeType i = 0; i < dof_list_input.size(); ++i)
+                  dofList[i] = dof_list_input[i];
+                Vector nodal_deformation_temp = nodal_deformation;
+                StaticCondensationUtility::ConvertingCondensation(
+                    *this, nodal_deformation_temp, nodal_deformation, dofList,
+                    left_hand_side_matrix);
+            }*/
+            //// end static back condensation
+
+            Vector adjoint_stress = prod(left_hand_side_matrix, nodal_deformation);
+            const double E = this->GetProperties()[YOUNG_MODULUS];
+            const double Iy = this->GetProperties()[I22];
+            const double Iz = this->GetProperties()[I33];
+            const double A = this->GetProperties()[CROSS_AREA];
+            const double G = this->CalculateShearModulus();
+            const double J = this->GetProperties()[TORSIONAL_INERTIA];
+            double Ay = 0.00;
+            if (this->GetProperties().Has(AREA_EFFECTIVE_Y))
+                Ay = GetProperties()[AREA_EFFECTIVE_Y];
+            double Az = 0.00;
+            if (this->GetProperties().Has(AREA_EFFECTIVE_Z))
+                Az = GetProperties()[AREA_EFFECTIVE_Z];
+
+
+            // rOutput[GP 1,2,3][x,y,z]
+            const double step = 1.0 / (write_points_number + 1.0);
+            if (rVariable == ADJOINT_CURVATURE) // = - M/EI
+            {   
+                double x = 0.0;
+                for(unsigned int i = 0; i < write_points_number; i++)
+                {
+                    x += step;
+                    rOutput[i][0] =  1.0/(G*J)*(-1.0 * adjoint_stress[3] * (1-x) + adjoint_stress[9] * x);
+                    rOutput[i][1] = -1.0/(E*Iy)*(-1.0 * adjoint_stress[4] * (1-x) + adjoint_stress[10] * x);   
+                    rOutput[i][2] = -1.0/(E*Iz)*(       adjoint_stress[5] * (1-x) - adjoint_stress[11] * x);  
+                }
+            }
+            else if (rVariable == ADJOINT_STRAIN) 
+            {
+                KRATOS_ERROR_IF(this->GetProperties().Has(AREA_EFFECTIVE_Y)  || this->GetProperties().Has(AREA_EFFECTIVE_Z)) 
+                    << "Computation of shear strains is currently not implemented" << std::endl;
+
+                double x = 0.0;
+                for(unsigned int i = 0; i < write_points_number; i++)
+                {
+                    x += step;
+                    rOutput[i][0] = 1.0/(E * A)*(-1.0 * adjoint_stress[0]*(1-x)  + adjoint_stress[6] * x);
+                    if(Ay > 0.0)   
+                        rOutput[i][1] = 1.0/(G*Ay)*(-1.0 * adjoint_stress[1] * (1-x) + adjoint_stress[7] * x); //--> not correct
+                    else
+                        rOutput[i][1] = 0.0;
+                    if(Az > 0.0)
+                        rOutput[i][2] = 1.0/(G*Az)*(-1.0 * adjoint_stress[2] * (1-x) + adjoint_stress[8] * x); // --> not correct
+                    else
+                        rOutput[i][2] = 0.0;        
+                }
+
+            }
+
+            // Control scalar product between pseudo moment and curvature of influence function
+            /*Vector I22_pseudo_load_on_GP = CalculatePseudoMomentOfBendingStiffnessOnGP(rCurrentProcessInfo);
+            double pseudo_moment_mean = I22_pseudo_load_on_GP[1];
+
+            const double E = this->GetProperties()[YOUNG_MODULUS];
+            const double L = this->CalculateReferenceLength();
+            const double Iy = this->GetProperties()[I22];
+
+            double curvature_lambda_mean = (-1.0 * adjoint_stress[4] * 0.5 + adjoint_stress[10] * 0.5)/(E*Iy); 
+
+            double sensitivity_wrt_I22 = curvature_lambda_mean * pseudo_moment_mean * L;
+
+            double reference_I22_sensitivity = this->GetValue(I22_SENSITIVITY);
+
+            double deviation = (-reference_I22_sensitivity+sensitivity_wrt_I22)/reference_I22_sensitivity *100.0;
+
+            std::cout << "sensitivity of element id #" << this->Id() << std::endl;
+            std::cout << "adj. SA = " << reference_I22_sensitivity << std::endl;
+            std::cout << "analytic SA = " << sensitivity_wrt_I22 << std::endl;
+            std::cout << "rel. dev = " << deviation << " percent" <<std::endl;
+            if(std::abs(deviation) > 5.0)
+                std::cout << "Attention: deviation is bigger than 5 percent!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" <<std::endl;
+            std::cout << "******************************"  << std::endl;*/
+            //check if relative deviation < 8%
+            //KRATOS_ERROR_IF(std::abs((-reference_I22_sensitivity+sensitivity_wrt_I22)/reference_I22_sensitivity) > 0.08)
+            //  << "Wrong sensitivity computation" << std::endl;
+
+            
+        }
+        else if(rVariable == I22_PSEUDO_MOMENT)
+            this->CalculatePseudoMomentOnGP(I22, rOutput, rCurrentProcessInfo);
+        else if(rVariable == CROSS_AREA_PSEUDO_FORCE)
+            this->CalculatePseudoForceOnGP(CROSS_AREA, rOutput, rCurrentProcessInfo);
+        else if(rVariable == YOUNG_MODULUS_PSEUDO_FORCE)
+            this->CalculatePseudoForceOnGP(YOUNG_MODULUS, rOutput, rCurrentProcessInfo);
+        else if(rVariable == YOUNG_MODULUS_PSEUDO_MOMENT)
+            this->CalculatePseudoMomentOnGP(YOUNG_MODULUS, rOutput, rCurrentProcessInfo);
+    
 
         KRATOS_CATCH("")
     }
@@ -761,6 +929,8 @@ namespace Kratos
     {
         KRATOS_TRY;
         this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+        CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
         KRATOS_CATCH("")
     }
 
@@ -866,14 +1036,11 @@ namespace Kratos
 
     CrBeamAdjointElement3D2N::IntegrationMethod CrBeamAdjointElement3D2N::GetIntegrationMethod() const 
     {
-        const unsigned int &write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_9);
-
-        std::cout << "Gauss Point number = " << write_points_number << " ##############"<<  std::endl;  
-
+        //const unsigned int &write_points_number =
+        //GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_9);
     
         // do this to have 5GP as an output in GID
-        return Kratos::GeometryData::GI_GAUSS_9;
+        return Kratos::GeometryData::GI_GAUSS_3;
 
     }
 
@@ -951,12 +1118,11 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    double CrBeamAdjointElement3D2N::CalculateFirstOrderElongation()
+    double CrBeamAdjointElement3D2N::CalculateFirstOrderAxialStrain() //--> currently not needed
     {
         KRATOS_TRY;
 
         const double numerical_limit = std::numeric_limits<double>::epsilon();
-        const double L = this->CalculateReferenceLength();
      
         Vector undeformed_vector = ZeroVector(msDimension);
         undeformed_vector[0] = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0(); 
@@ -972,11 +1138,11 @@ namespace Kratos
         double length_relation = inner_prod(deformed_vector, undeformed_vector) / 
                                     inner_prod(undeformed_vector, undeformed_vector);
 
-        double elongation = 0.0;
+        double strain = 0.0;
         if(std::abs(length_relation - 1) > numerical_limit)
-            elongation = L * (length_relation - 1.0);
+            strain = length_relation - 1.0; //TODO: is this strain computation correct?
     
-        return elongation;
+        return strain;
 
         KRATOS_CATCH("")
     }
@@ -1002,11 +1168,6 @@ namespace Kratos
         const double p2 = (-1.0) / (L*L)*(pseudo_force_vector[10]*24 + pseudo_force_vector[4]*36);
         const double p4 = 1.0 / (L*L)*(pseudo_force_vector[10]*36 + pseudo_force_vector[4]*24);
 
-        //std::cout << "pseudo-load of element id #" << this->Id() << std::endl;
-        //std::cout << p2  << std::endl;
-        //std::cout << p4  << std::endl;
-        //std::cout << "#####################################" << std::endl;  
-
         const double step = 1.0 / (write_points_number + 1.0);
         double x = 0.0;
         for(unsigned int i = 0; i < write_points_number; i++)
@@ -1018,6 +1179,74 @@ namespace Kratos
         return pseudo_load_on_GP;
 
         KRATOS_CATCH("")
+    }
+
+    void CrBeamAdjointElement3D2N::CalculatePseudoMomentOnGP(const Variable<double>& rVariable, 
+                std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        const unsigned int &write_points_number =
+        GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        if (rOutput.size() != write_points_number) 
+            rOutput.resize(write_points_number);  
+
+        // Get pseudo-load in global direction
+        Matrix sensitivity_matrix; 
+        this->CalculateSensitivityMatrix(rVariable, sensitivity_matrix, rCurrentProcessInfo);  
+        Vector pseudo_moment_vector = row(sensitivity_matrix, 0); 
+        
+        // Transform pseudo load in local direction
+        BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix = this->CalculateInitialLocalCS();
+        pseudo_moment_vector = prod(Matrix(trans(transformation_matrix)), pseudo_moment_vector);
+
+        const double step = 1.0 / (write_points_number + 1.0);
+        double x = 0.0;
+        for(unsigned int i = 0; i < write_points_number; i++)
+        {
+            x += step ;
+            rOutput[i][0] = -pseudo_moment_vector[3] * (1-x) + pseudo_moment_vector[9] * x; //check for correct sign
+            rOutput[i][1] = pseudo_moment_vector[4] * (1-x) - pseudo_moment_vector[10] * x; 
+            rOutput[i][2] = -1.0 * pseudo_moment_vector[5] * (1-x) + pseudo_moment_vector[11] * x; 
+            // TODO: Check for signs!!
+        }
+
+        KRATOS_CATCH("")
+
+    }
+
+    void CrBeamAdjointElement3D2N::CalculatePseudoForceOnGP(const Variable<double>& rVariable, 
+                std::vector< array_1d<double, 3 > >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        const unsigned int &write_points_number =
+        GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
+        if (rOutput.size() != write_points_number) 
+            rOutput.resize(write_points_number);  
+
+        // Get pseudo-load in global direction
+        Matrix sensitivity_matrix; 
+        this->CalculateSensitivityMatrix(rVariable, sensitivity_matrix, rCurrentProcessInfo);  
+        Vector pseudo_force_vector = row(sensitivity_matrix, 0); 
+        
+        // Transform pseudo load in local direction
+        BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix = this->CalculateInitialLocalCS();
+        pseudo_force_vector = prod(Matrix(trans(transformation_matrix)), pseudo_force_vector);
+
+        const double step = 1.0 / (write_points_number + 1.0);
+        double x = 0.0;
+        for(unsigned int i = 0; i < write_points_number; i++)
+        {
+            x += step ;
+            rOutput[i][0] = -1.0 * pseudo_force_vector[0] * (1-x) + pseudo_force_vector[6] * x; 
+            rOutput[i][1] = -1.0 * pseudo_force_vector[1] * (1-x) + pseudo_force_vector[7] * x; 
+            rOutput[i][2] = -1.0 * pseudo_force_vector[2] * (1-x) + pseudo_force_vector[8] * x; 
+
+        }
+
+        KRATOS_CATCH("")
+
     }
 
     //##############################################################################################################################
@@ -1043,10 +1272,12 @@ namespace Kratos
         Vector phi_a = CalculateAntiSymmetricDeformationMode(bisectrix);
 
         deformation_modes_total_v[3] = l - L;
+        std::cout << "Symmetric part:" << std::endl;  
         for (int i = 0; i < 3; ++i)
-          deformation_modes_total_v[i] = phi_s[i];
+            deformation_modes_total_v[i] = phi_s[i] << std::endl;  
+        std::cout << "antisymmetric part:" << std::endl;  
         for (int i = 0; i < 2; ++i)
-          deformation_modes_total_v[i + 4] = phi_a[i + 1];
+            deformation_modes_total_v[i + 4] =std::cout << phi_a[i + 1] << std::endl;  
 
         return deformation_modes_total_v;
 
