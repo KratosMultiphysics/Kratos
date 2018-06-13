@@ -38,6 +38,12 @@ void AddNodalSolutionStepVariable(ModelPart& rModelPart, Variable<TDataType> con
     rModelPart.AddNodalSolutionStepVariable(rThisVariable);
 }
 
+template<class TDataType>
+bool HasNodalSolutionStepVariable(ModelPart& rModelPart, Variable<TDataType> const& rThisVariable)
+{
+    return rModelPart.HasNodalSolutionStepVariable(rThisVariable);
+}
+
 void SetModelPartName(ModelPart& rModelPart, std::string const& NewName)
 {
     rModelPart.Name() = NewName;
@@ -607,7 +613,7 @@ void AddModelPartToPython(pybind11::module& m)
 
         class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return make_iterator(self.begin(), self.end());},  keep_alive<0,1>())
-        
+
         ;
 
 	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart")
@@ -684,7 +690,7 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("RemoveElement", ModelPartRemoveElement2)
 		.def("RemoveElement", ModelPartRemoveElement3)
 		.def("RemoveElement", ModelPartRemoveElement4)
-                .def("RemoveElements", &ModelPart::RemoveElements)
+		.def("RemoveElements", &ModelPart::RemoveElements)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels1)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels2)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels3)
@@ -722,6 +728,13 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Vector>)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Matrix>)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Quaternion<double> >)
+		.def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<bool>)
+		.def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<int>)
+		.def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<double>)
+		.def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<array_1d<double, 3 > >)
+		.def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Vector>)
+		.def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Matrix>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Quaternion<double> >)
 		.def("GetNodalSolutionStepDataSize", &ModelPart::GetNodalSolutionStepDataSize)
 		.def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
 		.def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
@@ -738,8 +751,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
-        .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },  
-                                        [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; }) 
+        .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
+                                        [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
  		.def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
 		;
 }
