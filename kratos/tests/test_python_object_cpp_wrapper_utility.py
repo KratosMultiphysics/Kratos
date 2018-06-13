@@ -14,18 +14,18 @@ class TestPythonObjectCppWrapperUtility(KratosUnittest.TestCase):
 
     def test_process_factory(self):
         dummy_class = DummyClass()
-        process_factory = KratosMultiphysics.PythonObjectCppWrapperUtility(dummy_class)
+        python_wrapper = KratosMultiphysics.PythonObjectCppWrapperUtility(dummy_class)
         #dummy_class.DummyMethod()
-        process_factory.Execute("DummyMethod")
+        python_wrapper.Execute("DummyMethod")
         self.assertTrue(dummy_class.this_assert)
 
     def test_processes_list_factory(self):
         dummy_class1 = DummyClass()
         dummy_class2 = DummyClass()
         dummy_list = [dummy_class1, dummy_class2]
-        process_factory = KratosMultiphysics.PythonObjectCppWrapperUtility(dummy_list)
+        python_wrapper = KratosMultiphysics.PythonObjectCppWrapperUtility(dummy_list)
         #dummy_class.DummyMethod()
-        process_factory.Execute("DummyMethod")
+        python_wrapper.Execute("DummyMethod")
         self.assertTrue(dummy_class1.this_assert)
         self.assertTrue(dummy_class2.this_assert)
 
