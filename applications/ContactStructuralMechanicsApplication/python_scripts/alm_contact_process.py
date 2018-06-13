@@ -15,11 +15,10 @@ def Factory(settings, Model):
     return ALMContactProcess(Model, settings["Parameters"])
 
 import sys
-import python_process
 
 # All the processes python processes should be derived from "python_process"
 
-class ALMContactProcess(python_process.PythonProcess):
+class ALMContactProcess(KM.Process):
     """This class is used in order to compute the contact using a mortar ALM formulation
 
     This class constructs the model parts containing the contact conditions and
@@ -29,7 +28,7 @@ class ALMContactProcess(python_process.PythonProcess):
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
-    model_part -- the model part used to construct the process.
+    Model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
     """
 
@@ -43,12 +42,12 @@ class ALMContactProcess(python_process.PythonProcess):
         "nodal_elemental_derivatives": CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES
         }
 
-    def __init__(self, model_part, settings):
+    def __init__(self, Model, settings):
         """ The default constructor of the class
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model_part -- the model part used to construct the process.
+        Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
 
@@ -58,7 +57,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
-            "contact_model_part"          : "",
+            "contact_model_part"          : [],
             "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
             "interval"                    : [0.0,"End"],
@@ -98,18 +97,19 @@ class ALMContactProcess(python_process.PythonProcess):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
-        self.main_model_part = model_part[self.settings["model_part_name"].GetString()]
+        self.main_model_part = Model[self.settings["model_part_name"].GetString()]
         self.computing_model_part_name = self.settings["computing_model_part_name"].GetString()
 
         self.dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
-        contact_model_part_name = self.settings["contact_model_part"].GetString()
         # In case no model part is assigned we detect the skin
-        if contact_model_part_name == "":
-            detect_skin = KM.SkinDetectionProcess3D(model_part)
+        if self.settings["contact_model_part"].size() == 0:
+            detect_skin = KM.SkinDetectionProcess3D(self.main_model_part)
             detect_skin.Execute()
             contact_model_part_name = "SkinModelPart"
-        self.contact_model_part = model_part[contact_model_part_name]
+            self.contact_model_part = Model[contact_model_part_name]
+        else:
+            self.__generate_contact_model_part_from_input_list(self.settings["contact_model_part"])
 
         # A check necessary for axisymmetric cases (the domain can not be 3D)
         if (self.settings["alternative_formulations"]["axisymmetric"].GetBool() is True) and (self.dimension == 3):
@@ -611,3 +611,28 @@ class ALMContactProcess(python_process.PythonProcess):
         gid_io.FinalizeResults()
 
         #raise NameError("DEBUG")
+
+    def __generate_contact_model_part_from_input_list(self, param):
+        """ Generates a contact model part from a list of model parts
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        value -- The Kratos vector to transform
+        """
+
+        # At least verify that the input is a string
+        if not param.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+        # We check if the model part exists
+        if self.main_model_part.HasSubModelPart("ContactModelPart"):
+            raise NameError("ContactModelPart already registered")
+
+        # We create the submodelpart
+        self.contact_model_part = self.main_model_part.CreateSubModelPart("ContactModelPart")
+
+        # We transfer the list of submodelparts to the contact model part
+        for i in range(0, param.size()):
+            partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
+            transfer_process = KM.FastTransferBetweenModelPartsProcess(self.contact_model_part, partial_model_part)
+            transfer_process.Execute()
