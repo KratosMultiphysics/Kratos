@@ -38,6 +38,7 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
         "number_of_layers"          : 1,
         "export_to_mdpa"            : false,
         "output_name"               : "output",
+        "computing_model_part_name" : "computing_domain",
         "initialize_elements"       : false
     })" );
 
@@ -201,9 +202,17 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // We copy the new model part to the original one
-    mrThisModelPart.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
-    mrThisModelPart.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
+    geometry_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
+    geometry_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
     
+    // We add to the computing model part if available
+    const std::string& computing_model_part_name = mThisParameters["computing_model_part_name"].GetString();
+    if (computing_model_part_name != "") {
+        ModelPart& computing_model_part = mrThisModelPart.GetSubModelPart(computing_model_part_name);
+        computing_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
+        computing_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
+    }
+
     // Reorder again all the IDs
     ReorderAllIds();
 
