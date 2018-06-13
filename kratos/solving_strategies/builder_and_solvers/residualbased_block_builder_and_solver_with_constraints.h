@@ -127,6 +127,7 @@ public:
     typedef PointerVectorSet<MasterSlaveRelationType, IndexedObject> MasterSlaveRelationContainerType;
 
     typedef std::vector<std::size_t> EquationIdVectorType;
+    typedef std::sizt_t SizeType;
 
     ///@}
     ///@name Life Cycle
@@ -154,6 +155,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void SetUpSystem(
+        ModelPart &rModelPart
+        ) override
+    {
+        BaseType::SetUpSystem(rModelPart);
+        FormulateGlobalMasterSlaveRelations(rModelPart);
+    }
+
 
     /**
      * @brief Function to perform the build of the RHS. The vector could be sized as the total number
@@ -616,8 +626,8 @@ private:
                     auto& global_master_slave_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
                     if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end()) {
 
-                        TContainerType::EquationIdVectorType& slave_equation_ids;
-                        TContainerType::EquationIdVectorType& master_equation_ids;
+                        TContainerType::EquationIdVectorType slave_equation_ids;
+                        TContainerType::EquationIdVectorType master_equation_ids;
                         global_master_slave_constraint->EquationIdVector(slave_equation_ids, master_equation_ids);
                         for (auto& master_eq_id : master_equation_ids) {
                             rEquationIds.push_back(master_eq_id);
@@ -631,13 +641,45 @@ private:
     template<class TContainerType>
     void ApplyConstraints( ModelPart& rModelPart,
                            TContainerType::Pointer pCurrentContainer,
-                           LocalSystemMatrixType& rLHS_Contribution,
-                           LocalSystemVectorType& rRHS_Contribution,
+                           LocalSystemMatrixType& rLHSContribution,
+                           LocalSystemVectorType& rRHSContribution,
                            TContainerType::EquationIdVectorType& rEquationId,
                            ProcessInfo& rCurrentProcessInfo
                         )
     {
         // This function modifies LHS and RHS contributions with T and C matrices of the constraints present in this current pElement
+
+        KRATOS_TRY
+        bool slaveFound = false;
+        auto& geometry = pCurrentContainer->GetGeometry();
+        const SizeType number_of_nodes = geometry.PointsNumber();
+        for (IndexType j = 0; j < number_of_nodes; j++) {
+            bool node_is_slave = true;
+            if (geometry[j]->IsDefined(SLAVE))
+                node_is_active = geometry[j]->Is(SLAVE);
+            if (node_is_slave) { // temporary, will be checked once at the beginning only
+                slaveFound = true;
+                break;
+            }
+        }
+        // If no slave is found for this container , no need of going on
+        if (!slaveFound) {
+            return;
+        }
+
+        // Saving th original system size
+        const SizeType initial_sys_size = rLHSContribution.size1();
+
+        // first fill in the rEquationIds using the above function (overloaded one)
+        ApplyConstraints(rModelPart, pCurrentContainer, rEquationIds, rCurrentProcessInfo); // now rEquationIds has all the slave equation ids appended to it.
+
+        // Get number of masters for this current container
+        const SizeType num_masters = rEquationIds.size() - initial_sys_size;
+
+        
+
+        KRATOS_CATCH("Applying Multipoint constraints failed ..");
+
     }
 
     ///@}
