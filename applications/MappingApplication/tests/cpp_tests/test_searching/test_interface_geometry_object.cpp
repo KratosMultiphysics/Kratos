@@ -23,5 +23,17 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSeria
 
 }
 
+KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite)
+{
+
+
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSuite)
+{
+
+
+}
+
 }  // namespace Testing
 }  // namespace Kratos
