@@ -190,6 +190,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
             self.__restart_utility = Restart(model_part,
                                              self.project_parameters["restart_settings"])
 
+            return self.__restart_utility
 
 if __name__ == '__main__':
     from sys import argv
