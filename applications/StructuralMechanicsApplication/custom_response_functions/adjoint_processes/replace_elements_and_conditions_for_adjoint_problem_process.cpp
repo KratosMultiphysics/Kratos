@@ -194,8 +194,10 @@ namespace Kratos
         else if(name_current_element == "AdjointFiniteDifferencingShellElement")
             rName = "ShellThinElement3D3N";
         else
+        {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
              " because there is no equivalent adjoint/primal element available." << std::endl;
+        }
 
         return replacement_necessary;
 
@@ -219,11 +221,15 @@ namespace Kratos
             rName = "PointLoadCondition2D1N";
         else if(name_current_condition == "PointLoadAdjointCondition3D1N")
             rName = "PointLoadCondition3D1N";
-        else if(name_current_condition == "ShapeOptimizationCondition")
+        else if(name_current_condition == "ShapeOptimizationCondition3D3N")
+            replacement_necessary = false;
+        else if(name_current_condition == "ShapeOptimizationCondition3D4N")
             replacement_necessary = false;
         else
+        {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_condition <<
              " because there is no equivalent adjoint/primal condition available." << std::endl;
+        }
 
 
         return replacement_necessary;
