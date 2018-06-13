@@ -68,6 +68,10 @@ class AdjointFluidAnalysis(AnalysisStage):
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
+    def _CreateSolver(self):
+        import python_solvers_wrapper_adjoint_fluid
+        return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)            
+
     def InitializeSolutionStep(self):
 
         if self.is_printing_rank:
