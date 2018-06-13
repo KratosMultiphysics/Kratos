@@ -58,7 +58,7 @@ TrussElementLinear3D2N::CreateElementStiffnessMatrix(
   BoundedMatrix<double, msLocalSize, msLocalSize> LocalStiffnessMatrix =
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CalculateElasticStiffnessMatrix(LocalStiffnessMatrix,
-                                        rCurrentProcessInfo); 
+                                        rCurrentProcessInfo);
 
   return LocalStiffnessMatrix;
   KRATOS_CATCH("")
@@ -110,10 +110,10 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-  rRightHandSideVector = ZeroVector(msLocalSize); 
+  rRightHandSideVector = ZeroVector(msLocalSize);
 
 
-  BoundedVector<double,msLocalSize> internal_forces = 
+  BoundedVector<double,msLocalSize> internal_forces =
     this->GetConstitutiveLawTrialResponse(rCurrentProcessInfo,false);
 
   BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
@@ -236,7 +236,7 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
   Vector temp_internal_stresses = ZeroVector(msLocalSize);
   ProcessInfo temp_process_information;
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
-  this->mConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);  
+  this->mConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
 
   rInternalForces = temp_internal_stresses*this->GetProperties()[CROSS_AREA];
 
@@ -259,10 +259,10 @@ void TrussElementLinear3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentP
 }
 
 
-BoundedVector<double,TrussElementLinear3D2N::msLocalSize> 
+BoundedVector<double,TrussElementLinear3D2N::msLocalSize>
   TrussElementLinear3D2N::GetConstitutiveLawTrialResponse(
    ProcessInfo& rCurrentProcessInfo,const bool& rSaveInternalVariables)
-{  
+{
     KRATOS_TRY;
     Vector strain_vector = ZeroVector(this->mConstitutiveLaw->GetStrainSize());
     Vector stress_vector = ZeroVector(this->mConstitutiveLaw->GetStrainSize());
@@ -275,7 +275,7 @@ BoundedVector<double,TrussElementLinear3D2N::msLocalSize>
     temp_matrix,stress_vector,temp_matrix,rCurrentProcessInfo,this->GetProperties(),
     this->GetGeometry(),temp_vector,true,true,rSaveInternalVariables);
 
-    BoundedVector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize); 
+    BoundedVector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
     internal_forces[0] = -1.0 * this->GetProperties()[CROSS_AREA] * stress_vector[0];
     internal_forces[3] = +1.0 * this->GetProperties()[CROSS_AREA] * stress_vector[0];
 
