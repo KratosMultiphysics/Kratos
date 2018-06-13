@@ -26,6 +26,7 @@
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
+#include "custom_processes/solid_shell_thickness_compute_process.h"
 
 namespace Kratos
 {
@@ -53,6 +54,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
         .def(init<ModelPart&>())
         ;
+
+    class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
+        .def(init<ModelPart&>())
+        ;
+    
 
     class_<CableNetMpcProcess, CableNetMpcProcess::Pointer, ApplyMultipointConstraintsProcess>(m,"CableNetMpcProcess")
         .def(init<ModelPart&,Parameters&>())
