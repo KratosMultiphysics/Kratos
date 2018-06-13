@@ -9,7 +9,6 @@
 //  Main authors:    Klaus B. Sautter
 //
 // System includes
-#include <iostream>
 
 // External includes
 
@@ -42,9 +41,6 @@ TrussConstitutiveLaw::TrussConstitutiveLaw(const TrussConstitutiveLaw& rOther)
 
 ConstitutiveLaw::Pointer TrussConstitutiveLaw::Clone() const
 {
-/*     TrussConstitutiveLaw::Pointer p_clone(new TrussConstitutiveLaw(*this));
-    return p_clone;
- */
     return Kratos::make_shared<TrussConstitutiveLaw>(*this);
 }
 
@@ -108,7 +104,7 @@ Vector& TrussConstitutiveLaw::CalculateValue(
     
     if(rThisVariable == NORMAL_STRESS) 
     {
-        const SizeType dofs = 6;
+        constexpr SizeType dofs = 6;
         rValue = ZeroVector(dofs);
         rValue[0] = -1.0 * this->mStressState;
         rValue[3] = 1.0 * this->mStressState;

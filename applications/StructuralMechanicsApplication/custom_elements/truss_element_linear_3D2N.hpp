@@ -127,7 +127,7 @@ namespace Kratos
          */
 
 		void UpdateInternalForces(
-			BoundedVector<double,msLocalSize>& rinternalForces) override;
+			BoundedVector<double,msLocalSize>& rInternalForces) override;
 
 
         void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;

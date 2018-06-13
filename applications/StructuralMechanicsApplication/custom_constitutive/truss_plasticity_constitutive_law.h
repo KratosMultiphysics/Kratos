@@ -23,6 +23,14 @@
 namespace Kratos
 {
 
+/** 
+ * @namespace TrussPlasticityConstitutiveLaw
+ * 
+ * @brief This constitutive law represents a linear hardening plasticity 1D law
+ * 
+ * @author Klaus B Sautter
+ */
+
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussPlasticityConstitutiveLaw : public ConstitutiveLaw
 {
@@ -202,12 +210,20 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        rSerializer.save("StressState", this->mStressState);
+        rSerializer.save("PlasticAlpha", this->mPlasticAlpha);
+        rSerializer.save("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrain);
+        rSerializer.save("InelasticFlag", this->mInelasticFlag);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        rSerializer.load("StressState", this->mStressState);
+        rSerializer.load("PlasticAlpha", this->mPlasticAlpha);
+        rSerializer.load("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrain);
+        rSerializer.load("InelasticFlag", this->mInelasticFlag);
     }
 
 

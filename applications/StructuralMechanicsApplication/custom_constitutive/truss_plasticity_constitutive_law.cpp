@@ -9,7 +9,6 @@
 //  Main authors:    Klaus B. Sautter
 //
 // System includes
-#include <iostream>
 
 // External includes
 
@@ -42,8 +41,7 @@ TrussPlasticityConstitutiveLaw::TrussPlasticityConstitutiveLaw(const TrussPlasti
 
 ConstitutiveLaw::Pointer TrussPlasticityConstitutiveLaw::Clone() const
 {
-    TrussPlasticityConstitutiveLaw::Pointer p_clone(new TrussPlasticityConstitutiveLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<TrussPlasticityConstitutiveLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -146,13 +144,16 @@ double& TrussPlasticityConstitutiveLaw::CalculateValue(
     )
 {
     if(rThisVariable == TANGENT_MODULUS)
-    {    
+    {   
+        const double numerical_limit = std::numeric_limits<double>::epsilon(); 
         const Properties& r_material_properties = rParameterValues.GetMaterialProperties(); 
         const double hardening_modulus = r_material_properties[HARDENING_MODULUS_1D];
         const double youngs_modulus = r_material_properties[YOUNG_MODULUS];
         if (this->mInelasticFlag) 
         {
-            rValue = (hardening_modulus*youngs_modulus)/(hardening_modulus+youngs_modulus);;
+            KRATOS_DEBUG_ERROR_IF((hardening_modulus+youngs_modulus)<numerical_limit)
+             << "Dividing by 0 when calculating the plastic tangent modulus" << std::endl;
+            rValue = (hardening_modulus*youngs_modulus)/(hardening_modulus+youngs_modulus);
         }
         else rValue = youngs_modulus;
     } 
@@ -169,7 +170,7 @@ Vector& TrussPlasticityConstitutiveLaw::CalculateValue(
     
     if(rThisVariable == NORMAL_STRESS) 
     {
-        const SizeType dofs = 6;
+        constexpr SizeType dofs = 6;
         const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
 
         rValue = ZeroVector(dofs);

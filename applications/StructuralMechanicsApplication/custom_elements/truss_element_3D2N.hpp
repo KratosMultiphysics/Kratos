@@ -129,7 +129,7 @@ namespace Kratos
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
          */
-        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces);
+        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces);
 
         /**
          * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
@@ -239,11 +239,6 @@ namespace Kratos
         virtual void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates);
 
-
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
-        {
-            //std::cout << "implement me: InitializeNonLinearIteration" << std::endl;
-        };
 
     private:
         friend class Serializer;

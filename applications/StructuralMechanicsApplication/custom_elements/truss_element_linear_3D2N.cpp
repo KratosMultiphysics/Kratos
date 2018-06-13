@@ -229,7 +229,7 @@ double TrussElementLinear3D2N::CalculateLinearStrain()  {
 }
 
 
-void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces)
+void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces)
 {
   KRATOS_TRY;
 
@@ -238,14 +238,14 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
   this->mConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);  
 
-  rinternalForces = temp_internal_stresses*this->GetProperties()[CROSS_AREA];
+  rInternalForces = temp_internal_stresses*this->GetProperties()[CROSS_AREA];
 
 
   BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CreateTransformationMatrix(transformation_matrix);
 
-  rinternalForces = prod(transformation_matrix, rinternalForces);
+  rInternalForces = prod(transformation_matrix, rInternalForces);
 
   KRATOS_CATCH("");
 }
@@ -286,9 +286,11 @@ BoundedVector<double,TrussElementLinear3D2N::msLocalSize>
 
 void TrussElementLinear3D2N::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElement3D2N);
+  rSerializer.save("mConstitutiveLaw", mConstitutiveLaw);
 }
 void TrussElementLinear3D2N::load(Serializer &rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElement3D2N);
+  rSerializer.load("mConstitutiveLaw", mConstitutiveLaw);
 }
 
 } // namespace Kratos.

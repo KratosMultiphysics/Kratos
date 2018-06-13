@@ -22,6 +22,14 @@
 namespace Kratos
 {
 
+/** 
+ * @namespace TrussConstitutiveLaw
+ * 
+ * @brief This constitutive law represents a linear elastic 1D law
+ * 
+ * @author Klaus B Sautter
+ */
+
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussConstitutiveLaw : public ConstitutiveLaw
 {
@@ -163,12 +171,14 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        rSerializer.save("StressState", this->mStressState);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        rSerializer.load("StressState", this->mStressState);
     }
 
 
