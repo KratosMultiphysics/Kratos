@@ -457,7 +457,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     // SubModelParts List Utility
     class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
     .def(init<ModelPart&>())
-    .def("ComputeSubModelPartsList",&SubModelPartsListUtility::ComputeSubModelPartsList)
+    .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
     .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
