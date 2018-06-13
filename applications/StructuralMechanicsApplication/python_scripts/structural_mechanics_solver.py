@@ -265,6 +265,8 @@ class MechanicalSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
+        if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
+            raise Exception("The ComputingModelPart was not created yet!")
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
     def ExportModelPart(self):
