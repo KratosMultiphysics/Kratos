@@ -64,6 +64,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
 
         self.model_part_filename = response_settings["optimization_model_part_name"].GetString()
         self.analysis_driver_name = response_settings["analysis_driver"].GetString()
+        # TODO: This log file will be used in to write iteration specific logging entries
         self.log_file = "%s.log" % self.analysis_driver_name
         self.results_file = "%s.results" % self.analysis_driver_name
         self.analysis_driver = __import__(self.analysis_driver_name)
