@@ -40,29 +40,37 @@ class LineOutputProcess(KratosMultiphysics.Process):
         if end_point_position.Size() != 3:
             raise Exception('The end point position has to be provided with 3 coordinates!')
         number_of_sampling_points = params["number_of_sampling_points"].GetInt()
-        if number_of_sampling_points < 2:
-            raise Exception('The number of sampling points has to be larger than 1!')
 
         # check the entity type
         entity_type = params["entity_type"].GetString()
         if not entity_type == "element" or entity_type == "condition":
             raise Exception('"entity_type" can be either "element" or "condition"!')
 
-        # setup the parametric space for the internal points on the line
-        lower_bound = 0.0
-        upper_bound = 1.0
-        parametrized_internal_points = [lower_bound + x*(upper_bound-lower_bound)/(number_of_sampling_points-1) for x in range(number_of_sampling_points)]
+        if number_of_sampling_points <= 0:
+            raise Exception('The number of sampling points has to be larger than 0!')
 
-        # determining the positions of the output points
-        direction_vector = [x - y for x, y in zip(end_point_position, start_point_position)]
+        elif number_of_sampling_points == 1:
+            positions = KratosMultiphysics.Matrix(1, 3)
+            positions[0,0] = (start_point_position[0] + end_point_position[0] ) / 2.
+            positions[0,1] = (start_point_position[1] + end_point_position[1] ) / 2.
+            positions[0,2] = (start_point_position[2] + end_point_position[2] ) / 2.
 
-        positions = KratosMultiphysics.Matrix(len(parametrized_internal_points), 3)
-        for k in range(len(parametrized_internal_points)):
-            current_position = [x + parametrized_internal_points[k]*y for x, y in zip(start_point_position, direction_vector)]
+        else:
+            # setup the parametric space for the internal points on the line
+            lower_bound = 0.0
+            upper_bound = 1.0
+            parametrized_internal_points = [lower_bound + x*(upper_bound-lower_bound)/(number_of_sampling_points-1) for x in range(number_of_sampling_points)]
 
-            positions[k,0] = current_position[0]
-            positions[k,1] = current_position[1]
-            positions[k,2] = current_position[2]
+            # determining the positions of the output points
+            direction_vector = [x - y for x, y in zip(end_point_position, start_point_position)]
+
+            positions = KratosMultiphysics.Matrix(len(parametrized_internal_points), 3)
+            for k in range(len(parametrized_internal_points)):
+                current_position = [x + parametrized_internal_points[k]*y for x, y in zip(start_point_position, direction_vector)]
+
+                positions[k,0] = current_position[0]
+                positions[k,1] = current_position[1]
+                positions[k,2] = current_position[2]
 
         params.RemoveValue("start_point")
         params.RemoveValue("end_point")
