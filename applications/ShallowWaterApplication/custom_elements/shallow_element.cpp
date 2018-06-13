@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "includes/cfd_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "custom_elements/shallow_element.h"
@@ -48,7 +49,7 @@ int ShallowElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(MANNING)
     KRATOS_CHECK_VARIABLE_KEY(GRAVITY)
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME)
-    KRATOS_CHECK_VARIABLE_KEY(STABILIZATION_FACTOR)
+    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( unsigned int i = 0; i < nnodes; i++ )
@@ -180,44 +181,61 @@ void ShallowElement::CalculateLocalSystem(
     double height;
     ComputeElementValues(data, vel, height);
 
+    // Auxiliary values to compute friction and stabilization terms
     double abs_vel = norm_2(vel);
-    double height4_3 = std::pow(height, 1.33333333);
-
+    double height4_3 = std::pow(std::abs(height), 1.33333333);
     double aux_h = std::max(0.001, height);
     double c = std::sqrt(data.gravity * aux_h);
-    double tau_h = length * data.c_tau / c;
 
     // Build LHS
     // Wave equation terms
-    BoundedMatrix<double,9,9> vel_wave = prod(N_vel,DN_DX_height);
-    rLeftHandSideMatrix  = data.gravity * vel_wave;  // Add <q*h*div(u)> to Mass Eq
-    rLeftHandSideMatrix += height * outer_prod(N_height, DN_DX_vel); // Add <w*g*grad(h)> to Momentum Eq
+    BoundedMatrix<double,9,9> vel_wave = prod(trans(N_vel),DN_DX_height);
+    noalias(rLeftHandSideMatrix)  = data.gravity * vel_wave;  // Add <q*h*div(u)> to Mass Eq
+    noalias(rLeftHandSideMatrix) += height * outer_prod(N_height, DN_DX_vel); // Add <w*g*grad(h)> to Momentum Eq
 
     // Inertia terms
-    rLeftHandSideMatrix += data.dt_inv * vel_mass_matrix; // Velocity lumped mass matrix
-    rLeftHandSideMatrix += data.dt_inv * h_mass_matrix;   // Height lumped mass matrix
+    noalias(rLeftHandSideMatrix) += data.dt_inv * vel_mass_matrix; // Velocity lumped mass matrix
+    noalias(rLeftHandSideMatrix) += data.dt_inv * h_mass_matrix;   // Height lumped mass matrix
 
     // Friction term
-    rLeftHandSideMatrix += data.gravity * data.manning2 * abs_vel / height4_3 * vel_mass_matrix;
-
-    // Stabilization term
-    BoundedMatrix<double,9,9> stab_vel_mass = outer_prod(DN_DX_vel, N_height);
-    rLeftHandSideMatrix += tau_h * height * outer_prod(DN_DX_vel, DN_DX_vel);
-    rLeftHandSideMatrix += tau_h * data.dt_inv * stab_vel_mass;
+    noalias(rLeftHandSideMatrix) += data.gravity * data.manning2 * abs_vel / height4_3 * vel_mass_matrix;
 
     // Build RHS
     // Source terms (bathymetry contribution)
-    rRightHandSideVector  = -data.gravity * prod(vel_wave, data.depth);
+    noalias(rRightHandSideVector)  = -data.gravity * prod(vel_wave, data.depth);
 
     // Inertia terms
     noalias(rRightHandSideVector) += data.dt_inv * prod(vel_mass_matrix, data.proj_unk);
     noalias(rRightHandSideVector) += data.dt_inv * prod(h_mass_matrix, data.proj_unk);
 
-    // Stabilization term
-    rRightHandSideVector += tau_h * data.dt_inv * prod(stab_vel_mass, data.proj_unk);
+    // Adding stabilization terms
+    double tau_h = length * data.c_tau / c;
+    array_1d<double,2> height_grad = prod(DN_DX_height, data.unknown);
+    double k_dc = 0.5 * length * data.c_tau;
+    double grad_norm = norm_2(height_grad);
+    array_1d<double,9> residual = rRightHandSideVector - prod(rLeftHandSideMatrix, data.unknown);
+    double h_residual = data.lumping_factor * (residual[2] + residual[5] + residual[8]);
+    if (grad_norm > 1e-6)
+        k_dc *= std::abs(h_residual / grad_norm);
+        // k_dc *= grad_norm; // The easiest and heaviest way. Not good for complex free surface problems
+        // k_dc *= std::abs(inner_prod(vel, height_grad)) / grad_norm;
+    else
+        k_dc *= 0;
+    this->SetValue(RESIDUAL_NORM, h_residual);
+    this->SetValue(MIU, k_dc);
+
+    double tau = tau_h + k_dc;
+
+    // LHS stabilization term
+    BoundedMatrix<double,9,9> stab_vel_mass = outer_prod(DN_DX_vel, N_height);
+    noalias(rLeftHandSideMatrix) += tau * height * outer_prod(DN_DX_vel, DN_DX_vel);
+    noalias(rLeftHandSideMatrix) += tau * data.dt_inv * stab_vel_mass;
+
+    // RHS stabilization term
+    noalias(rRightHandSideVector) += tau * data.dt_inv * prod(stab_vel_mass, data.proj_unk);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
-    rRightHandSideVector -= prod(rLeftHandSideMatrix, data.unknown);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
 
     rRightHandSideVector *= area;
     rLeftHandSideMatrix *= area;
@@ -266,7 +284,7 @@ void ShallowElement::InitializeElement(ElementData& rData, const ProcessInfo& rC
     const double delta_t = rCurrentProcessInfo[DELTA_TIME];
     rData.dt_inv = 1.0 / delta_t;
     rData.lumping_factor = 1.0 / nnodes;
-    rData.c_tau = rCurrentProcessInfo[STABILIZATION_FACTOR];
+    rData.c_tau = rCurrentProcessInfo[DYNAMIC_TAU];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rData.manning2 = std::pow( GetProperties()[MANNING], 2);
 
