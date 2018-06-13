@@ -51,68 +51,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
-        self._CreateSolver()
-
-    def Initialize(self):
-        self.ModifyInitialProperties()
-        self.ModifyInitialGeometry()
-        self._ExecuteInitialize()
-        self._SetUpListOfProcesses()
-        ## Processes initialization
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
-
-        ## Solver initialization
-        self.solver.Initialize()
-
-        self._ExecuteBeforeSolutionLoop()
-
-    def InitializeSolutionStep(self):
-        super(StructuralMechanicsAnalysis, self).InitializeSolutionStep()
-
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self.solver.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
-        sys.stdout.flush()
-
-    def OutputSolutionStep(self):
-        if self.have_output and self.output.IsOutputStep():
-
-            for process in self.list_of_processes:
-                process.ExecuteBeforeOutputStep()
-
-            self.output.PrintOutput()
-
-            for process in self.list_of_processes:
-                process.ExecuteAfterOutputStep()
-
-        self.solver.SaveRestart() # whether a restart-file is written is decided internally
-
-
-    #### Internal functions ####
-    def SetTimeStep(self,new_dt):
-        self.delta_time = new_dt
-
-    def _CreateSolver(self, external_model_part=None):
-        """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
-        if external_model_part != None:
-            # This is a temporary solution until the importing of the ModelPart
-            # is removed from the solver (needed e.g. for Optimization)
-            if (type(external_model_part) != KratosMultiphysics.ModelPart):
-                raise Exception("Input is expected to be provided as a Kratos ModelPart object")
-            self.using_external_model_part = True
-        else:
-            self.using_external_model_part = False
-
-        
-
-    def Finalize(self):
-        super(StructuralMechanicsAnalysis, self).Finalize()
-
-        if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
-
-
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
