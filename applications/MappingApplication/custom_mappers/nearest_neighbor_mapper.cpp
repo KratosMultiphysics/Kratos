@@ -42,12 +42,12 @@ void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeig
                     EquationIdVectorType& rOriginIds,
                     EquationIdVectorType& rDestinationIds) const
 {
-    if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
-    if (rOriginIds.size()      != 1) rOriginIds.resize(1);
-    if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
-
     if (mInterfaceInfos.size() > 0)
     {
+        if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
+        if (rOriginIds.size()      != 1) rOriginIds.resize(1);
+        if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
+
         int nearest_neighbor_id;
         double nearest_neighbor_distance;
         mInterfaceInfos[0]->GetValue(nearest_neighbor_id);

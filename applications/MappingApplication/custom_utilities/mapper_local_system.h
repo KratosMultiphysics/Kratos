@@ -87,6 +87,16 @@ public:
     using GeometryType = Geometry<NodeType>;
     using GeometryPointerType = Kratos::shared_ptr<GeometryType>;
 
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    enum PairingStatus
+    {
+        NoInterfaceInfo,
+        Approximation
+    };
+
 
     ///@}
     ///@name Life Cycle
@@ -179,7 +189,6 @@ public:
         mDestinationIds.clear();
         mIsComputed = false;
     }
-
 
     ///@}
     ///@name Access
