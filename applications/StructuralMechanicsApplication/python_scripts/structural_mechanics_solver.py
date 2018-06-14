@@ -88,6 +88,7 @@ class MechanicalSolver(PythonSolver):
                 "scaling": false,
                 "verbosity": 1
             },
+            "time_stepping"                : { },
             "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : []
@@ -200,8 +201,6 @@ class MechanicalSolver(PythonSolver):
         if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
 
-        print(self.model)
-
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
@@ -266,6 +265,8 @@ class MechanicalSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
+        if not self.main_model_part.HasSubModelPart(self.settings["computing_model_part_name"].GetString()):
+            raise Exception("The ComputingModelPart was not created yet!")
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
 
     def ExportModelPart(self):

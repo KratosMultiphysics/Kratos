@@ -7,13 +7,14 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS )
 #define  KRATOS_NODAL_VALUES_INTERPOLATION_PROCESS
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -21,6 +22,7 @@
 #include "meshing_application.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
+#include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/binbased_fast_point_locator.h"
 
@@ -33,6 +35,10 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
+    /// Defining the integers
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -53,7 +59,7 @@ namespace Kratos
  * The process employs the projection.h from MeshingApplication, which works internally using a kd-tree 
  * @author Vicente Mataix Ferrandiz
  */
-template<unsigned int TDim>
+template<SizeType TDim>
 class NodalValuesInterpolationProcess 
     : public Process
 {
@@ -193,13 +199,18 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrOriginMainModelPart;                    /// The origin model part
-    ModelPart& mrDestinationMainModelPart;               /// The destination model part
-    unsigned int mMaxNumberOfResults;                    /// The maximum number of results to consider in the search
-    unsigned int mStepDataSize;                          /// The size of the database
-    unsigned int mBufferSize;                            /// The size of the buffer
-    FrameworkEulerLagrange mFramework;                   /// The framework
-    unsigned int mEchoLevel;                             /// The level of verbosity
+    ModelPart& mrOriginMainModelPart;                                       /// The origin model part
+    ModelPart& mrDestinationMainModelPart;                                  /// The destination model part
+    SizeType mMaxNumberOfResults;                                           /// The maximum number of results to consider in the search
+    bool mInterpolateNonHistorical;                                         /// If the non-historical values are interpolated
+    std::unordered_set<Variable<double>, VariableHasher<Variable<double>>, VariableComparator<Variable<double>>> mListDoublesVariables;             /// List of double non-historical variables
+    std::unordered_set<Variable<array_1d<double, 3>>, VariableHasher<Variable<array_1d<double, 3>>>, VariableComparator<Variable<array_1d<double, 3>>>> mListArraysVariables; /// List of array non-historical variables
+    std::unordered_set<Variable<Vector>, VariableHasher<Variable<Vector>>, VariableComparator<Variable<Vector>>> mListVectorVariables;              /// List of vector non-historical variables
+    std::unordered_set<Variable<Matrix>, VariableHasher<Variable<Matrix>>, VariableComparator<Variable<Matrix>>> mListMatrixVariables;              /// List of matrix non-historical variables
+    SizeType mStepDataSize;                                                 /// The size of the database
+    SizeType mBufferSize;                                                   /// The size of the buffer
+    FrameworkEulerLagrange mFramework;                                      /// The framework
+    IndexType mEchoLevel;                                                   /// The level of verbosity
     
     ///@}
     ///@name Private Operators
@@ -228,6 +239,24 @@ private:
     }
     
     /**
+     * @brief It calculates the data (DataContainer) interpolated to the node
+     * @param pNode The node pointer
+     * @param pElement The element pointer
+     * @param rShapeFunctions The shape functions
+     */
+
+    void CalculateData(
+        NodeType::Pointer pNode,
+        const Element::Pointer& pElement,
+        const Vector& rShapeFunctions
+        );
+
+    /**
+     * @brief This methoid creates the list of non-historical variables fro nodal interpolation
+     */
+    void GetListNonHistoricalVariables();
+
+    /**
      * @brief It calculates the Step data interpolated to the node
      * @param pNode The node pointer
      * @param pElement The element pointer
@@ -239,7 +268,7 @@ private:
         NodeType::Pointer pNode,
         const Element::Pointer& pElement,
         const Vector& rShapeFunctions,
-        const unsigned int Step
+        const IndexType Step
         );
     
     ///@}

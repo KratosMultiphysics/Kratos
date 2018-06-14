@@ -173,6 +173,12 @@ class Simple3D2NTrussLinearTest(StructuralMechanicsTestFactory):
 class Simple3D2NTrussDynamicTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/dynamic_3D2NTruss_test"
 
+class Simple3D2NTrussLinearCompressionPlasticTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/linear_3D2NTruss_plastic_compression_test"
+
+class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/linear_3D2NTruss_plastic_tension_test"
+
 class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_3D2NBeamCr_test"
 

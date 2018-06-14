@@ -10,6 +10,7 @@
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -31,12 +32,14 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
 
     Parameters default_parameters = Parameters(R"(
     {
-        "element_name"        : "SolidShellElementSprism3D6N",
-        "model_part_name"     : "",
-        "number_of_layers"    : 1,
-        "export_to_mdpa"      : false,
-        "output_name"         : "output",
-        "initialize_elements" : false
+        "element_name"              : "SolidShellElementSprism3D6N",
+        "new_constitutive_law_name" : "",
+        "model_part_name"           : "",
+        "number_of_layers"          : 1,
+        "export_to_mdpa"            : false,
+        "output_name"               : "output",
+        "computing_model_part_name" : "computing_domain",
+        "initialize_elements"       : false
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -56,6 +59,9 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
     ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
 
+    // We initialize some values use later
+    NodeType::Pointer p_node_begin = *(geometry_model_part.NodesBegin().base());
+
     // Auxiliar model part where to store new nodes and elements
     ModelPart auxiliar_model_part;
 
@@ -68,7 +74,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     const SizeType total_number_of_elements = mrThisModelPart.Elements().size();
 
     // First we reoder the ids
-    ReorderAllIds();
+    ReorderAllIds(true);
 
     // We copy the dof from the first node
     NodeType::DofsContainerType dofs = nodes_array.begin()->GetDofs();
@@ -132,13 +138,20 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
         for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
             p_node0->pAddDof(*it_dof);
 
+        // We copy the step data
+        CopyVariablesList(p_node0, p_node_begin);
+
         for (IndexType j = 0; j < number_of_layers; ++j) {
             coordinates += normal * delta_thickness;
             node_id = (j + 1) * geometry_number_of_nodes + total_number_of_nodes + i + 1;
             NodeType::Pointer p_node1 = auxiliar_model_part.CreateNewNode(node_id, coordinates[0], coordinates[1], coordinates[2]);
+
             // Set the DOFs in the nodes
             for (auto it_dof = dofs.begin(); it_dof != dofs.end(); ++it_dof)
                 p_node1->pAddDof(*it_dof);
+
+            // We copy the step data
+            CopyVariablesList(p_node1, p_node_begin);
         }
 
         // We set the flag TO_ERASE for later remove the nodes
@@ -149,12 +162,16 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
     KRATOS_ERROR_IF_NOT(r_clone_element.GetGeometry().size() == 2 * TNumNodes) << "ERROR: Element " << element_name << " has a different number of nodes to " << 2 * TNumNodes << std::endl;
 
+    // We will save the list of properties ids to later set the CL
+    std::unordered_set<IndexType> set_id_properties;
+
     // We create the new elements
     IndexType element_counter = total_number_of_elements;
     for(IndexType i = 0; i < geometry_number_of_elements; ++i) {
         auto it_elem = elements_array.begin() + i;
 
         auto p_prop = it_elem->pGetProperties();
+        set_id_properties.insert(p_prop->Id());
         for (IndexType j = 0; j < number_of_layers; ++j) {
             std::vector<IndexType> element_node_ids (2 * TNumNodes);
             for (IndexType k = 0; k < TNumNodes; ++k) {
@@ -170,14 +187,32 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
         it_elem->Set(TO_ERASE, true);
     }
 
+    // We reassign a new constitutive law
+    const std::string& new_constitutive_law_name = mThisParameters["new_constitutive_law_name"].GetString();
+    if (new_constitutive_law_name != "") {
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(new_constitutive_law_name).Clone();
+        for (auto id_prop : set_id_properties) {
+            auto p_prop = geometry_model_part.pGetProperties(id_prop);
+            p_prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+        }
+    }
+
     // Finally we remove the old nodes and elements
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // We copy the new model part to the original one
-    mrThisModelPart.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
-    mrThisModelPart.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
+    geometry_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
+    geometry_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
     
+    // We add to the computing model part if available
+    const std::string& computing_model_part_name = mThisParameters["computing_model_part_name"].GetString();
+    if (computing_model_part_name != "") {
+        ModelPart& computing_model_part = mrThisModelPart.GetSubModelPart(computing_model_part_name);
+        computing_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
+        computing_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
+    }
+
     // Reorder again all the IDs
     ReorderAllIds();
 
@@ -200,11 +235,49 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 /***********************************************************************************/
 
 template<SizeType TNumNodes>
-void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds()
+void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccordingShellConnectivity)
 {
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    for(SizeType i = 0; i < nodes_array.size(); ++i)
-        (nodes_array.begin() + i)->SetId(i + 1);
+    if (!ReorderAccordingShellConnectivity) {
+        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+        for(SizeType i = 0; i < nodes_array.size(); ++i)
+            (nodes_array.begin() + i)->SetId(i + 1);
+    } else {
+        // The name of the submodelpart
+        const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
+        ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
+
+        // Auxiliar model part where to store new nodes and elements
+        ModelPart auxiliar_model_part;
+
+        // Auxiliar values
+        NodesArrayType& nodes_array = geometry_model_part.Nodes();
+        const SizeType geometry_number_of_nodes = nodes_array.size();
+        NodesArrayType& total_nodes_array = mrThisModelPart.Nodes();
+        const SizeType total_number_of_nodes = total_nodes_array.size();
+
+        // We reoder first all the nodes
+        for(SizeType i = 0; i < total_number_of_nodes; ++i)
+            (total_nodes_array.begin() + i)->SetId(total_number_of_nodes + i + 1);
+
+        // We reoder now just the shell the nodes
+        for(SizeType i = 0; i < geometry_number_of_nodes; ++i) {
+            auto it_node = nodes_array.begin() + i;
+            it_node->SetId(i + 1);
+            it_node->Set(VISITED, true);
+        }
+
+        // We reoder the rest of all the nodes
+        IndexType aux_index = 0;
+        for(SizeType i = 0; i < total_number_of_nodes; ++i) {
+            auto it_node = total_nodes_array.begin() + i;
+            if (it_node->IsNot(VISITED)) {
+                it_node->SetId(geometry_number_of_nodes + aux_index + 1);
+                aux_index++;
+            } else {
+                it_node->Set(VISITED, false);
+            }
+        }
+    }
 
     ElementsArrayType& element_array = mrThisModelPart.Elements();
     for(SizeType i = 0; i < element_array.size(); ++i)
@@ -231,7 +304,12 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
     // Tolerance
     const double tolerance = std::numeric_limits<double>::epsilon();
 
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    // The name of the submodelpart
+    const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
+    ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
+
+    // We iterate over the nodes
+    NodesArrayType& nodes_array = geometry_model_part.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for
@@ -239,7 +317,7 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
         (nodes_array.begin() + i)->SetValue(NORMAL, ZeroVector(3));
 
     // Sum all the nodes normals
-    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+    ElementsArrayType& elements_array = geometry_model_part.Elements();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
@@ -275,6 +353,20 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
         if (norm_normal > tolerance) normal /= norm_normal;
         else KRATOS_ERROR << "WARNING:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TNumNodes>
+inline void ShellToSolidShellProcess<TNumNodes>::CopyVariablesList(
+    NodeType::Pointer pNodeNew,
+    NodeType::Pointer pNodeOld
+    )
+{
+    auto& node_data = pNodeNew->SolutionStepData();
+    auto& node_data_reference = pNodeOld->SolutionStepData();
+    node_data.SetVariablesList(node_data_reference.pGetVariablesList());
 }
 
 /***********************************************************************************/
