@@ -150,7 +150,7 @@ public:
 
     bool UseNodesAsBasis() const override { return true; }
 
-    CoordinatesArrayType& GetCoordinates() const override
+    CoordinatesArrayType& Coordinates() const override
     {
         return mpNode->Coordinates();
     }

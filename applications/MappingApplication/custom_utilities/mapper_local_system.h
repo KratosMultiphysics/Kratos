@@ -167,7 +167,7 @@ public:
     // // => this is the case if the Geometry on the destination is not important
     virtual bool UseNodesAsBasis() const = 0;
 
-    virtual CoordinatesArrayType& GetCoordinates() const = 0;
+    virtual CoordinatesArrayType& Coordinates() const = 0;
 
 
     void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) // TODO pass by const ref?

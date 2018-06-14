@@ -159,7 +159,7 @@ namespace Kratos
             {
                 const auto& r_interface_info = (*mpMapperInterfaceInfos)[i];
 
-                interface_obj->UpdateCoordinates(r_interface_info->GetCoordinates());
+                interface_obj->UpdateCoordinates(r_interface_info->Coordinates());
                 double search_radius = mSearchRadius; // reset search radius // TODO check this
 
                 // reset the containers

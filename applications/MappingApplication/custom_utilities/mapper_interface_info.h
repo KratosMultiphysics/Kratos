@@ -162,7 +162,7 @@ public:
         noalias(mCoordinates) = rCoordinates;
     }
 
-    CoordinatesArrayType& GetCoordinates()
+    CoordinatesArrayType& Coordinates()
     {
         return mCoordinates;
     }

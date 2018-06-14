@@ -93,7 +93,7 @@ namespace Kratos
         {
             if (!r_local_sys->HasInterfaceInfo()) // Only the local_systems that have not received an InterfaceInfo create a new one
             {
-                const auto& r_coords = r_local_sys->GetCoordinates();
+                const auto& r_coords = r_local_sys->Coordinates();
                 (*mpMapperInterfaceInfos).push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx));
             }
             ++local_sys_idx;
