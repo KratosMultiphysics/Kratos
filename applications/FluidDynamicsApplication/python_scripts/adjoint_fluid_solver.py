@@ -8,9 +8,6 @@ from python_solver import PythonSolver
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications("AdjointFluidApplication")
 
-# Import applications
-import KratosMultiphysics.AdjointFluidApplication as KratosAdjoint
-
 def CreateSolver(model, custom_settings):
     return AdjointFluidSolver(model, custom_settings)
 
