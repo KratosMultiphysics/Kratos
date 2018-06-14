@@ -13,7 +13,6 @@
 // System includes
 
 // External includes
-#include <pybind11/operators.h>
 
 // Project includes
 #include "utilities/python_object_cpp_wrapper_utility.h"
