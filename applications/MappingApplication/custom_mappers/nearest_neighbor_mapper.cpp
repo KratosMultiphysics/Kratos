@@ -41,10 +41,12 @@ void NearestNeigborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
 void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeights,
                     EquationIdVectorType& rOriginIds,
                     EquationIdVectorType& rDestinationIds,
-                    const int EchoLevel) const
+                    MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
     if (mInterfaceInfos.size() > 0)
     {
+        rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
+
         if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
         if (rOriginIds.size()      != 1) rOriginIds.resize(1);
         if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
@@ -73,9 +75,7 @@ void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeig
     }
     else
     {
-        // TODO move this warning to another place and make it also depend on the echo-lvl how much information is being printed
-        KRATOS_WARNING("NearestNeighborMapper")
-            << "MapperLocalSystem No xxx" << "xxx" << " has not found a neighbor" << std::endl;
+        rPairingStatus = MapperLocalSystem::PairingStatus::NoInterfaceInfo;
 
         // TODO is this ok? => I guess it would be better to do this in a more general way in the baseclass...
         // TODO resize to zero, then it wont be assembled! (might be a bit slower though...)
@@ -84,6 +84,18 @@ void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeig
         rDestinationIds.resize(0);
     }
 
+}
+
+std::string NearestNeighborLocalSystem::PairingInfo(const int EchoLevel, const int CommRank) const
+{
+    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+
+    std::stringstream buffer;
+    buffer << "NearestNeighborLocalSystem based on " << mpNode->Info();
+    if (EchoLevel > 1) // TODO leave here?
+        buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+    buffer << " in rank " << CommRank;
+    return buffer.str();
 }
 
 /***********************************************************************************/

@@ -133,7 +133,7 @@ public:
     void CalculateAll(MappingWeightsVector& rMappingWeights,
                       EquationIdVectorType& rOriginIds,
                       EquationIdVectorType& rDestinationIds,
-                      const int EchoLevel) const override;
+                      MapperLocalSystem::PairingStatus& rPairingStatus) const override;
 
     bool UseNodesAsBasis() const override { return true; }
 
@@ -142,6 +142,9 @@ public:
         KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         return mpNode->Coordinates();
     }
+
+    /// Turn back information as a string.
+    std::string PairingInfo(const int EchoLevel, const int CommRank) const override;
 
 private:
     NodePointerType mpNode;

@@ -571,6 +571,8 @@ private:
 
     void AssignInterfaceEquationIds();
 
+    void PrintPairingInfo();
+
     ///@}
     ///@name Private  Access
     ///@{

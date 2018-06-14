@@ -147,13 +147,26 @@ public:
     void CalculateAll(MappingWeightsVector& rMappingWeights,
                       EquationIdVectorType& rOriginIds,
                       EquationIdVectorType& rDestinationIds,
-                      const int EchoLevel) const override;
+                      MapperLocalSystem::PairingStatus& rPairingStatus) const override;
 
     bool UseNodesAsBasis() const override { return true; }
 
     CoordinatesArrayType& Coordinates() const override
     {
         return mpNode->Coordinates();
+    }
+
+    /// Turn back information as a string.
+    std::string PairingInfo(const int EchoLevel, const int CommRank) const override
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+
+        std::stringstream buffer;
+        // buffer << "NearestNeighborLocalSystem based on " << mpNode->Info();
+        // if (EchoLevel > 1)
+        //     buffer << " at Coodinates " << mpNode->Coordinates.PrintData();
+        // buffer << " in rank " << CommRank;
+        return buffer.str();
     }
 
 private:

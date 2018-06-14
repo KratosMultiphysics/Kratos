@@ -112,6 +112,8 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags Mapping
                                                           *mpMapperLocalSystems);
 
     mpMappingOperationUtility->BuildMappingMatrix(*mpMapperLocalSystems, *mpMdo);
+
+    if (mEchoLevel > 0) PrintPairingInfo();
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -209,6 +211,33 @@ void Mapper<TSparseSpace, TDenseSpace>::AssignInterfaceEquationIds()
 {
     MapperUtilities::AssignInterfaceEquationIds(mrModelPartOrigin.GetCommunicator());
     MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
+}
+
+template<class TSparseSpace, class TDenseSpace>
+void Mapper<TSparseSpace, TDenseSpace>::PrintPairingInfo()
+{
+    const int comm_rank = mrModelPartDestination.GetCommunicator().MyPID();
+    std::stringstream warning_msg;
+
+    for (const auto& rp_local_sys : *mpMapperLocalSystems)
+    {
+        const auto pairing_status = rp_local_sys->GetPairingStatus();
+        if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound)
+        {
+            warning_msg << rp_local_sys->PairingInfo(mEchoLevel, comm_rank);
+
+            if (pairing_status == MapperLocalSystem::PairingStatus::Approximation)
+                warning_msg << " is using an approximation";
+            else if (pairing_status == MapperLocalSystem::PairingStatus::NoInterfaceInfo)
+                warning_msg << " has not found a neighbor";
+
+            KRATOS_WARNING("Mapper") << warning_msg.str() << std::endl;
+
+            // reset the stringstream
+            warning_msg.str( std::string() );
+            warning_msg.clear();
+        }
+    }
 }
 
 // /// input stream function

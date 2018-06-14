@@ -94,7 +94,8 @@ public:
     enum PairingStatus
     {
         NoInterfaceInfo,
-        Approximation
+        Approximation,
+        InterfaceInfoFound
     };
 
 
@@ -130,12 +131,11 @@ public:
     }
 
     void EquationIdVectors(EquationIdVectorType& rOriginIds,
-                           EquationIdVectorType& rDestinationIds,
-                           const int EchoLevel=0)
+                           EquationIdVectorType& rDestinationIds)
     {
         if (!mIsComputed)
         {
-            CalculateAll(mMappingWeights, mOriginIds, mDestinationIds, EchoLevel);
+            CalculateAll(mMappingWeights, mOriginIds, mDestinationIds, mPairingStatus);
             mIsComputed = true;
         }
 
@@ -145,8 +145,7 @@ public:
 
     void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
                               EquationIdVectorType& rOriginIds,
-                              EquationIdVectorType& rDestinationIds,
-                              const int EchoLevel=0) const
+                              EquationIdVectorType& rDestinationIds) // TODO should be const if it werent for the PairingStatus
     {
         if (mIsComputed)
         {
@@ -160,7 +159,7 @@ public:
         {
             // This will be called if the EquationIdVectors have NOT been querried before
             // i.e. matrix-free mapping
-            CalculateAll(rMappingWeights, rOriginIds, rDestinationIds, EchoLevel);
+            CalculateAll(rMappingWeights, rOriginIds, rDestinationIds, mPairingStatus);
         }
     }
 
@@ -192,9 +191,9 @@ public:
         mIsComputed = false;
     }
 
-    void SetCommRank(const int CommRank)
+    PairingStatus GetPairingStatus() const
     {
-        mCommRank = CommRank;
+        return mPairingStatus;
     }
 
     ///@}
@@ -210,6 +209,8 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    virtual std::string PairingInfo(const int EchoLevel, const int CommRank) const = 0;
 
     /// Turn back information as a string.
     virtual std::string Info() const {return "MapperLocalSystem";}
@@ -245,8 +246,7 @@ protected:
     EquationIdVectorType mOriginIds;
     EquationIdVectorType mDestinationIds;
 
-    int mCommRank = 0;
-
+    PairingStatus mPairingStatus = PairingStatus::NoInterfaceInfo;
 
     ///@}
     ///@name Protected Operators
@@ -263,7 +263,7 @@ protected:
     virtual void CalculateAll(MappingWeightsVector& rMappingWeights,
                               EquationIdVectorType& rOriginIds,
                               EquationIdVectorType& rDestinationIds,
-                              const int EchoLevel) const = 0;
+                              MapperLocalSystem::PairingStatus& rPairingStatus) const = 0;
 
 
     ///@}

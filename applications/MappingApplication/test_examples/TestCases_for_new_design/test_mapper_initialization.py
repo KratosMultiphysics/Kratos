@@ -21,7 +21,7 @@ mapper_settings = KratosMultiphysics.Parameters(
     """
     {
         "mapper_type" : "nearest_neighbor",
-        "echo_level"  : 1
+        "echo_level"  : 2
     }
     """
 );

@@ -212,7 +212,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
 {
     NearestNeighborLocalSystem local_sys_dummy;
 
-    auto node_local_sys(Kratos::make_shared<Node<3>>(1, 1.0, 2.5, -5.0));
+    auto node_local_sys(Kratos::make_shared<Node<3>>(8, 1.0, 2.5, -5.0));
 
     auto local_sys(local_sys_dummy.Create(node_local_sys));
 
@@ -238,6 +238,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
     KRATOS_CHECK_EQUAL(weights.size(), 0);
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
+
+    KRATOS_CHECK_C_STRING_EQUAL((local_sys->PairingInfo(2,23)).c_str(),
+        "NearestNeighborLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5 in rank 23");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosMappingApplicationSerialTestSuite)
