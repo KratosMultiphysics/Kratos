@@ -83,19 +83,19 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
     /* Nodes */
     for(auto & aux_nodes_color : aux_nodes_colors) {
         const std::set<IndexType>& value = aux_nodes_color.second;
-        if (value.size() > 1) combinations[value] = -1;
+        if (value.size() > 1) combinations[value] = 0;
     }
 
     /* Conditions */
     for(auto & aux_cond_color : aux_cond_colors) {
         const std::set<IndexType>& value = aux_cond_color.second;
-        if (value.size() > 1) combinations[value] = -1;
+        if (value.size() > 1) combinations[value] = 0;
     }
 
     /* Elements */
     for(auto & aux_elem_color : aux_elem_colors) {
         const std::set<IndexType>& value = aux_elem_color.second;
-        if (value.size() > 1) combinations[value] = -1;
+        if (value.size() > 1) combinations[value] = 0;
     }
 
     /* Combinations */
@@ -205,5 +205,38 @@ ModelPart& SubModelPartsListUtility::GetRecursiveSubModelPart(
     return ThisModelPart;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SubModelPartsListUtility::DebugComputeSubModelPartsList()
+{
+    IndexIntMapType node_colors, cond_colors, elem_colors;
+    IntStringMapType colors;
+
+    ComputeSubModelPartsList(node_colors, cond_colors, elem_colors, colors);
+
+    // The colors are the following
+    for (auto& color : colors) {
+        KRATOS_INFO("") << "COLOR: " << color.first << " has the following model parts" << std::endl;
+        for (auto& name : color.second) {
+            KRATOS_INFO("") << "\t" << name << std::endl;
+        }
+    }
+
+    // The nodes belonging to colors are
+    for (auto& node_color : node_colors) {
+        KRATOS_INFO("") << "NODE COLOR: " << node_color.second << "\t" << node_color.first << std::endl;
+    }
+
+    // The conditions belonging to colors are
+    for (auto& cond_color : cond_colors) {
+        KRATOS_INFO("") << "CONDITION COLOR: " << cond_color.second << "\t" << cond_color.first << std::endl;
+    }
+
+    // The elements belonging to colors are
+    for (auto& elem_color : elem_colors) {
+        KRATOS_INFO("") << "ELEMENT COLOR: " << elem_color.second << "\t" << elem_color.first << std::endl;
+    }
+}
 
 }  // namespace Kratos.
