@@ -214,12 +214,12 @@ namespace Kratos
 
         // Add here all new adjoint conditions or conditions which should be ignored by the replacement process
         if(name_current_condition == "PointLoadCondition2D1N")
-            rName = "AdjointSemiAnalyticPointLoadCondition2D1N";
+            rName = "PointLoadAdjointCondition2D1N";
         else if(name_current_condition == "PointLoadCondition3D1N")
-            rName = "AdjointSemiAnalyticPointLoadCondition3D1N";
-        else if(name_current_condition == "AdjointSemiAnalyticPointLoadCondition2D1N")
+            rName = "PointLoadAdjointCondition3D1N";
+        else if(name_current_condition == "PointLoadAdjointCondition2D1N")
             rName = "PointLoadCondition2D1N";
-        else if(name_current_condition == "AdjointSemiAnalyticPointLoadCondition3D1N")
+        else if(name_current_condition == "PointLoadAdjointCondition3D1N")
             rName = "PointLoadCondition3D1N";
         else if(name_current_condition == "ShapeOptimizationCondition3D3N")
             replacement_necessary = false;
