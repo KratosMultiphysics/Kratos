@@ -64,7 +64,7 @@
                 "prefix" : "/ModelData"
             },
             "nodal_results_settings" : {
-                "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
+                "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
     }],
