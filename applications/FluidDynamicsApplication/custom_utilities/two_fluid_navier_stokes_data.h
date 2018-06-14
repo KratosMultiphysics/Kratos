@@ -211,6 +211,8 @@ void CalculateAirMaterialResponse() {
 	if(this->ShearStress.size() != strain_size)
 		this->ShearStress.resize(strain_size,false);
 
+    ComputeStrain(); 
+
     CalculateEffectiveViscosityAtGaussPoint();
 
 	const double mu = this->EffectiveViscosity;
@@ -218,32 +220,66 @@ void CalculateAirMaterialResponse() {
 	const double c2 = mu;
 
 	this->C.clear();
+    Matrix& c_mat = this->C;
+    Vector& stress = this->ShearStress;
+    Vector& strain = this->StrainRate;
 
 	if (TDim == 2) 
 	{
-		this->C(0, 0) = 2.0*mu;
-		this->C(1, 1) = 2.0*mu;
-		this->C(2, 2) = mu;
+        constexpr double two_thirds = 2./3.;
+        constexpr double four_thirds = 4./3.;
 
-		this->ShearStress[0] = c1 * this->StrainRate[0];
-		this->ShearStress[1] = c1 * this->StrainRate[1];
-		this->ShearStress[2] = c2 * this->StrainRate[2];
+        c_mat(0,0) = mu * four_thirds;
+        c_mat(0,1) = -mu * two_thirds;
+        c_mat(0,2) = 0.0;
+        c_mat(1,0) = -mu * two_thirds;
+        c_mat(1,1) = mu * four_thirds;
+        c_mat(1,2) = 0.0;
+        c_mat(2,0) = 0.0;
+        c_mat(2,1) = 0.0;
+        c_mat(2,2) = mu;
+
+		c_mat(0, 0) = 2.0*mu;
+		c_mat(1, 1) = 2.0*mu;
+		c_mat(2, 2) = mu;
+
+        const double trace = strain[0] + strain[1];
+        const double volumetric_part = trace/2.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+
+		stress[0] = c1 * strain[0] - volumetric_part; 
+		stress[1] = c1 * strain[1] - volumetric_part;
+		stress[2] = c2 * strain[2];
 	}
 
 	else if (TDim == 3)
 	{
-		this->C(0, 0) = 2.0*mu;
-		this->C(1, 1) = 2.0*mu;
-		this->C(2, 2) = 2.0*mu;
-		this->C(3, 3) = mu;
-		this->C(4, 4) = mu;
-		this->C(5, 5) = mu;
-		this->ShearStress[0] = c1*this->StrainRate[0];
-		this->ShearStress[1] = c1*this->StrainRate[1];
-		this->ShearStress[2] = c1*this->StrainRate[2];
-		this->ShearStress[3] = c2*this->StrainRate[3];
-		this->ShearStress[4] = c2*this->StrainRate[4];
-		this->ShearStress[5] = c2*this->StrainRate[5];
+        constexpr double two_thirds = 2./3.;
+        constexpr double four_thirds = 4./3.;
+        c_mat(0,0) = mu * four_thirds;
+        c_mat(0,1) = -mu * two_thirds;
+        c_mat(0,2) = -mu * two_thirds;
+
+        c_mat(1,0) = -mu * two_thirds;
+        c_mat(1,1) = mu * four_thirds;
+        c_mat(1,2) = -mu * two_thirds;
+
+        c_mat(2,0) = -mu * two_thirds;
+        c_mat(2,1) = -mu * two_thirds;
+        c_mat(2,2) = mu * four_thirds;
+
+        c_mat(3,3) = mu;
+        c_mat(4,4) = mu;
+        c_mat(5,5) = mu;
+
+        const double trace = strain[0] + strain[1] + strain[2];
+        const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+
+		stress[0] = c1*(strain[0] - volumetric_part); 
+		stress[1] = c1*(strain[1] - volumetric_part); 
+		stress[2] = c1*(strain[2] - volumetric_part); 
+		stress[3] = c2*strain[3];
+		stress[4] = c2*strain[4];
+		stress[5] = c2*strain[5];
 	}
 }
 
@@ -330,7 +366,6 @@ void CalculateEffectiveViscosityAtGaussPoint()
 
     if (SmagorinskyConstant > 0.0) 
     { 
-        ComputeStrain(); 
         const double strain_rate_norm = ComputeStrainNorm(); 
  
         double length_scale = SmagorinskyConstant*ElementSize; 
