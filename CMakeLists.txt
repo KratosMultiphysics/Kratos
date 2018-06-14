@@ -376,7 +376,20 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
+
+# Applications
+# Internal applicatons work as usual.
 add_subdirectory(applications)
+
+# External applications
+# if -DKRATOS_EXTERNAL_APPLICATION_DIR is defined iterate over all the directories and look for applications
+# in them
+if(DEFINED KRATOS_EXTERNAL_APPLICATION_DIR)
+    foreach(APPLICATION_EXTERNAL_DIR ${KRATOS_EXTERNAL_APPLICATION_DIR})
+        message("A new dir to look into: ${APPLICATION_EXTERNAL_DIR}")
+        add_subdirectory(${APPLICATION_EXTERNAL_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_EXTERNAL_DIR})
+    endforeach(APPLICATION_EXTERNAL_DIR ${KRATOS_EXTERNAL_APPLICATION_DIR})
+endif(DEFINED KRATOS_EXTERNAL_APPLICATION_DIR)
 
 #compiling the triangle library
 add_subdirectory(${KRATOS_ROOT_DIR}/external_libraries/triangle)
