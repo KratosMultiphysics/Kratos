@@ -45,7 +45,7 @@ namespace Kratos
 /** \brief AdjointFiniteDifferencingBaseElement
  *
  * This element a wrapper for a primal element to calculate element derivatives using
- * finite differncing. It is designed to be used in semi-analytic adjoint
+ * finite differencing  (adjoint semi analytic approach). It is designed to be used in adjoint
  * sensitivity analysis
  */
 class AdjointFiniteDifferencingBaseElement : public Element
@@ -81,6 +81,15 @@ public:
     ~AdjointFiniteDifferencingBaseElement() override;
 
     ///@}
+
+    ///@}
+    ///@name Informations
+    ///@{
+
+    SizeType WorkingSpaceDimension() const
+    {
+         return mpPrimalElement->WorkingSpaceDimension();
+    }
 
     ///@name Operations
     ///@{
