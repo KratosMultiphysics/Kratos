@@ -18,8 +18,8 @@ End Nodes
 
 
 Begin Elements ShellThinElement3D3N// GUI group identifier: AREAS
-         1          0        1      2       4                            
-         2          0        2      5       4 
+         1          0        1      2       4
+         2          0        2      5       4
          3          0        2      6       5
          4          0        2      3       6
          5          0        4      8       7
@@ -55,6 +55,7 @@ Begin SubModelPart Parts_AREAS // Group AREAS // Subtree Parts
          8
     End SubModelPartElements
     Begin SubModelPartConditions
+        1
     End SubModelPartConditions
 End SubModelPart
 Begin SubModelPart DISPLACEMENT_DIR_BC // Group DIR_BC // Subtree DISPLACEMENT
@@ -62,10 +63,10 @@ Begin SubModelPart DISPLACEMENT_DIR_BC // Group DIR_BC // Subtree DISPLACEMENT
         1
         2
         3
-        4  
+        4
         6
-        7  
-        8   
+        7
+        8
         9
     End SubModelPartNodes
     Begin SubModelPartElements
@@ -84,7 +85,7 @@ Begin SubModelPart PointLoad3D_NODES // Group AREAS // Subtree SurfaceLoad3D
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart  test_model_part 
+Begin SubModelPart  test_model_part
     Begin SubModelPartNodes
          2
          5
