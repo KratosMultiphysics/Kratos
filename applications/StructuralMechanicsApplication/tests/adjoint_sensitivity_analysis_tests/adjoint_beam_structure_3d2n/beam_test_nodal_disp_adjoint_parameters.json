@@ -24,7 +24,7 @@
                 "sensitivity_model_part_name" : "Parts_Beam",
                 "nodal_sensitivity_variables"  : ["SHAPE"],
                 "element_sensitivity_variables"  : ["I22"],
-                "condition_sensitivity_variables"  : [],
+                "condition_sensitivity_variables"  : ["POINT_LOAD"],
                 "step_size"         : 1e-6,
                 "traced_node_id"       : 6,
                 "traced_dof"        : "DISPLACEMENT_Z"
@@ -75,7 +75,20 @@
         }
     }
     ],
-    "loads_process_list"       : [],
+    "loads_process_list"       : [{
+        "python_module"   : "process_factory",
+        "kratos_module" : "KratosMultiphysics",
+        "check"                 : "DirectorVectorNonZero direction",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_load",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"          :40,
+            "direction"       : [0.0,0.0,1.0]
+        }
+    }],
     "list_other_processes" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
         "python_module" : "single_mesh_primal_input_process",
@@ -87,7 +100,7 @@
                 "file_access_mode" : "read_only"
             },
             "nodal_results_settings" : {
-                "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
+                "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
      },
@@ -97,14 +110,25 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"  : ["ADJOINT_DISPLACEMENT_X","ADJOINT_DISPLACEMENT_Z","ADJOINT_ROTATION_Y", "SHAPE_SENSITIVITY_X"],
+            "check_variables"  : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
             "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_nodal_disp_results.json",
             "model_part_name"  : "Structure",
-            "sub_model_part_name"  : "test_model_part",
             "time_frequency"   : -2.0
         }
-    }
-    ],
+    }],
+    "_json_output_process" : [
+    {
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
+            "output_variables" : ["ADJOINT_DISPLACEMENT", "ADJOINT_ROTATION", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
+            "output_file_name" : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_nodal_disp_results.json",
+            "model_part_name"  : "Structure",
+            "time_frequency"   : -2.0
+        }
+    }],
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,
@@ -114,21 +138,5 @@
     "constraints_data"         : {
         "incremental_load"         : false,
         "incremental_displacement" : false
-    },
-    "print_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["ADJOINT_DISPLACEMENT_X","ADJOINT_DISPLACEMENT_Z","ADJOINT_ROTATION_Y", "SHAPE_SENSITIVITY_X"],
-            "output_file_name" : "linear_adjoint_3D2NBeamCr_test_results.json",
-            "model_part_name"  : "Structure",
-            "sub_model_part_name"  : "test_model_part",
-            "tolerance"            : 1e-5,
-            "time_frequency"   : -2.0
-        }
     }
-    ]
 }
