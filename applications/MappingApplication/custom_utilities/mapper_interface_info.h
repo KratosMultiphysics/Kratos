@@ -143,12 +143,6 @@ public:
                                                 const IndexType SourceLocalSystemIndex,
                                                 const IndexType SourceRank=0) const = 0;
 
-    virtual void Clear() // is this fct needed? => I think it is not needed any more... Since I now create new object all the time
-    {
-        mLocalSearchWasSuccessful = false;
-        mIsApproximation = false;
-    }
-
     IndexType GetLocalSystemIndex() const { return mSourceLocalSystemIndex; }
 
     IndexType GetSourceRank() const { return mSourceRank; }
@@ -156,11 +150,6 @@ public:
     bool GetLocalSearchWasSuccessful() const { return mLocalSearchWasSuccessful; }
 
     bool GetIsApproximation() const { return mIsApproximation; }
-
-    void UpdateCoordinates(const CoordinatesArrayType& rCoordinates) // TODO needed? => I think it is not needed any more...
-    {
-        noalias(mCoordinates) = rCoordinates;
-    }
 
     CoordinatesArrayType& Coordinates()
     {
