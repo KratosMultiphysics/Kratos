@@ -462,6 +462,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("AddObject",&PythonObjectCppWrapperUtility::AddObject)
     .def("AddObjects",&PythonObjectCppWrapperUtility::AddObjects)
     .def("Execute",&PythonObjectCppWrapperUtility::Execute)
+    .def("RunStructuralAnalysisStage",&PythonObjectCppWrapperUtility::RunStructuralAnalysisStage)
     ;
 }
 

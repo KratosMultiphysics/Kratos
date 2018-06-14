@@ -21,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_parameters.h"
 #include "includes/serializer.h"
 
 namespace Kratos
@@ -130,6 +131,12 @@ public:
 
     void Execute(const std::string& rNameMethod);
 
+    /**
+     * @brief This method can be used to call directly an analysis stage from C++
+     * @param rProjectParametersFile The name of the file containing the configuration of the parameters
+     */
+    static void RunStructuralAnalysisStage(const std::string& rProjectParametersFile);
+
     ///@}
     ///@name Access
     ///@{
@@ -215,6 +222,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    static Parameters ReadParameters(const std::string& rProjectParametersFile);
 
     ///@}
     ///@name Private  Access
