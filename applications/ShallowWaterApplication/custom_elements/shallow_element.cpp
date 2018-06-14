@@ -226,13 +226,23 @@ void ShallowElement::CalculateLocalSystem(
 
     double tau = tau_h + k_dc;
 
+    array_1d<double,2> tau_h_stab;// = tau * vel / norm_2(vel);
+    tau_h_stab[0] = tau;
+    tau_h_stab[1] = tau;
+    array_1d<double,elem_size> DN_DX_h_stab = prod(DN_DX_height, tau_h_stab);
+
+    // KRATOS_WATCH(DN_DX_h_stab)
+    // KRATOS_WATCH(DN_DX_vel)
+    // KRATOS_WATCH(DN_DX_height)
+    // KRATOS_WATCH(tau_h_stab)
+
     // LHS stabilization term
-    BoundedMatrix<double,9,9> stab_vel_mass = outer_prod(DN_DX_vel, N_height);
-    noalias(rLeftHandSideMatrix) += tau * height * outer_prod(DN_DX_vel, DN_DX_vel);
-    noalias(rLeftHandSideMatrix) += tau * data.dt_inv * stab_vel_mass;
+    BoundedMatrix<double,9,9> stab_h_mass = outer_prod(DN_DX_h_stab, N_height);
+    noalias(rLeftHandSideMatrix) += tau * height * outer_prod(DN_DX_h_stab, DN_DX_vel);
+    noalias(rLeftHandSideMatrix) += tau * data.dt_inv * stab_h_mass;
 
     // RHS stabilization term
-    noalias(rRightHandSideVector) += tau * data.dt_inv * prod(stab_vel_mass, data.proj_unk);
+    noalias(rRightHandSideVector) += tau * data.dt_inv * prod(stab_h_mass, data.proj_unk);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
