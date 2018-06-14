@@ -64,6 +64,7 @@ namespace Kratos
     {
         const std::size_t num_nodes = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
         const auto nodes_ptr_begin = mrModelPartDestination.GetCommunicator().LocalMesh().Nodes().ptr_begin();
+        const int comm_rank = mrModelPartDestination.GetCommunicator().MyPID();
 
         mpMapperLocalSystems->resize(num_nodes);
 
@@ -72,6 +73,7 @@ namespace Kratos
         {
             auto it_node = nodes_ptr_begin + i;
             (*mpMapperLocalSystems)[i] = rpLocalSystem->Create(*(it_node));
+            (*mpMapperLocalSystems)[i]->SetCommRank(comm_rank);
         }
     }
 

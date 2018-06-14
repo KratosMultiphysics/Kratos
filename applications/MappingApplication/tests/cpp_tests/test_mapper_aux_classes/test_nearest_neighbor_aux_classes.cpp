@@ -229,12 +229,12 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_BasicTests, KratosMappingAp
     EquationIdVectorType destination_ids;
     EquationIdVectorType destination_ids2;
 
-    local_sys->EquationIdVectors(origin_ids, destination_ids, 0);
+    local_sys->EquationIdVectors(origin_ids, destination_ids);
 
     KRATOS_CHECK_EQUAL(origin_ids.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids.size(), 0);
 
-    local_sys->CalculateLocalSystem(weights, origin_ids2, destination_ids2, 0);
+    local_sys->CalculateLocalSystem(weights, origin_ids2, destination_ids2);
     KRATOS_CHECK_EQUAL(weights.size(), 0);
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
@@ -286,12 +286,12 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosM
     EquationIdVectorType destination_ids;
     EquationIdVectorType destination_ids2;
 
-    local_sys->EquationIdVectors(origin_ids, destination_ids, 0);
+    local_sys->EquationIdVectors(origin_ids, destination_ids);
 
     KRATOS_CHECK_EQUAL(origin_ids.size(), 1);
     KRATOS_CHECK_EQUAL(destination_ids.size(), 1);
 
-    local_sys->CalculateLocalSystem(weights, origin_ids2, destination_ids2, 0);
+    local_sys->CalculateLocalSystem(weights, origin_ids2, destination_ids2);
     KRATOS_CHECK_EQUAL(weights.size(), 1);
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 1);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 1);

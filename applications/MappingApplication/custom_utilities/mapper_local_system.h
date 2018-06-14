@@ -131,7 +131,7 @@ public:
 
     void EquationIdVectors(EquationIdVectorType& rOriginIds,
                            EquationIdVectorType& rDestinationIds,
-                           const int EchoLevel)
+                           const int EchoLevel=0)
     {
         if (!mIsComputed)
         {
@@ -146,7 +146,7 @@ public:
     void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
                               EquationIdVectorType& rOriginIds,
                               EquationIdVectorType& rDestinationIds,
-                              const int EchoLevel) const
+                              const int EchoLevel=0) const
     {
         if (mIsComputed)
         {
@@ -190,6 +190,11 @@ public:
         mOriginIds.clear();
         mDestinationIds.clear();
         mIsComputed = false;
+    }
+
+    void SetCommRank(const int CommRank)
+    {
+        mCommRank = CommRank;
     }
 
     ///@}
@@ -239,6 +244,8 @@ protected:
     MappingWeightsVector mMappingWeights;
     EquationIdVectorType mOriginIds;
     EquationIdVectorType mDestinationIds;
+
+    int mCommRank = 0;
 
 
     ///@}
