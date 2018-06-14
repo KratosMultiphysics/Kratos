@@ -76,7 +76,7 @@ class TrilinosImportModelPartUtility():
 
         elif input_type == "rest":
             from trilinos_restart_utility import TrilinosRestartUtility as RestartUtility
-            restart_settings = self.settings.Clone()
+            restart_settings = self.settings["model_import_settings"].Clone()
 
             restart_settings.RemoveValue("input_type")
 

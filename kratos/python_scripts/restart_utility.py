@@ -113,8 +113,9 @@ class RestartUtility(object):
         """
         if self.save_restart_files_in_folder:
             folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path):
+            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
                 os.makedirs(folder_path)
+            self.model_part.GetCommunicator().Barrier()
 
         if self.restart_control_type_is_time:
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
