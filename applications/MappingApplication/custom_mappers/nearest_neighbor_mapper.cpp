@@ -73,17 +73,7 @@ void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeig
         KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
     }
-    else
-    {
-        rPairingStatus = MapperLocalSystem::PairingStatus::NoInterfaceInfo;
-
-        // TODO is this ok? => I guess it would be better to do this in a more general way in the baseclass...
-        // TODO resize to zero, then it wont be assembled! (might be a bit slower though...)
-        rMappingWeights.resize(0);
-        rOriginIds.resize(0);
-        rDestinationIds.resize(0);
-    }
-
+    else ResizeToZero(rMappingWeights, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
 std::string NearestNeighborLocalSystem::PairingInfo(const int EchoLevel, const int CommRank) const

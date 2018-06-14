@@ -163,6 +163,29 @@ public:
         }
     }
 
+    /**
+    * @brief Resizing the output if no InterfaceInfo is available
+    * This function resizes the system vectors to zero and also sets that no valid
+    * Information from the other side could be found to compute the local system
+    * @param rMappingWeights The vector conatining the mapping weights
+    * @param rOriginIds The vector containing the ids on the origin
+    * @param rDestinationIds The vector containing the ids on the destination
+    * @param rPairingStatus The pairingstatus of the MapperLocalSystem
+    * @see CalculateAll
+    * @author Philipp Bucher
+    */
+    void ResizeToZero(MappingWeightsVector& rMappingWeights,
+                      EquationIdVectorType& rOriginIds,
+                      EquationIdVectorType& rDestinationIds,
+                      MapperLocalSystem::PairingStatus& rPairingStatus) const
+    {
+        rPairingStatus = MapperLocalSystem::PairingStatus::NoInterfaceInfo;
+
+        rMappingWeights.resize(0);
+        rOriginIds.resize(0);
+        rDestinationIds.resize(0);
+    }
+
 
     // // This specifies if Nodes should be used for the construction
     // // => this is the case if the Geometry on the destination is not important
