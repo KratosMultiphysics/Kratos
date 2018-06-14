@@ -40,6 +40,8 @@ namespace Kratos
         static constexpr int msNumberOfNodes = 2;
         static constexpr int msDimension = 3;
         static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
+        ConstitutiveLaw::Pointer mConstitutiveLaw = nullptr; 
+
     public:
         KRATOS_CLASS_POINTER_DEFINITION(TrussElement3D2N);
 
@@ -127,7 +129,7 @@ namespace Kratos
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
          */
-        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rinternalForces);
+        virtual void UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces);
 
         /**
          * @brief This function calculates the transformation matrix to globalize vectors and/or matrices

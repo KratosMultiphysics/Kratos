@@ -53,6 +53,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/python_object_cpp_wrapper_utility.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 namespace Kratos
 {
@@ -463,6 +464,14 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("AddObjects",&PythonObjectCppWrapperUtility::AddObjects)
     .def("Execute",&PythonObjectCppWrapperUtility::Execute)
     .def("RunStructuralAnalysisStage",&PythonObjectCppWrapperUtility::RunStructuralAnalysisStage)
+    ;
+  
+    // SubModelParts List Utility
+    class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
+    .def(init<ModelPart&>())
+    .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
+    .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
+    .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 }
 
