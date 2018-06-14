@@ -30,6 +30,7 @@ import test_restart
 import test_gid_io_gauss_points
 import test_skin_detection_process
 import test_sparse_multiplication
+import test_variable_component
 
 
 def AssembleTestSuites():
@@ -73,6 +74,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_skin_detection_process.TestSkinDetectionProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixSum]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixMultiplication]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

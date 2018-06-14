@@ -103,6 +103,7 @@ namespace Kratos
             {
                 "element_name"    : "SolidShellElementSprism3D6N",
                 "model_part_name" : "",
+                "computing_model_part_name" : "",
                 "number_of_layers": 1
             })" );
 
@@ -132,6 +133,7 @@ namespace Kratos
             {
                 "element_name"    : "SolidShellElementSprism3D6N",
                 "model_part_name" : "",
+                "computing_model_part_name" : "",
                 "number_of_layers": 2
             })" );
 

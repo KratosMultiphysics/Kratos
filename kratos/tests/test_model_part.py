@@ -652,6 +652,13 @@ class TestModelPart(KratosUnittest.TestCase):
                 for subsubpart in subpart.SubModelParts:
                     self.assertEqual(subsubpart.Name,"subsub1")
         self.assertEqual(counter, 2)
+
+    def test_model_part_has_solution_step_variable(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+
+        self.assertTrue(model_part.HasNodalSolutionStepVariable(VELOCITY))
+        self.assertFalse(model_part.HasNodalSolutionStepVariable(PRESSURE))
         
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -27,9 +27,11 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/total_structural_mass_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/prism_neighbours_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shell_to_solid_shell_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/solid_shell_thickness_compute_process.cpp
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_plasticity_constitutive_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/beam_constitutive_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_stress.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_strain.cpp

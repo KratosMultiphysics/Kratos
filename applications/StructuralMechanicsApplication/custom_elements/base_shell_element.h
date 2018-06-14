@@ -65,6 +65,8 @@ public:
 
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -215,9 +217,9 @@ protected:
     {
     }
 
-    std::size_t GetNumberOfDofs();
+    SizeType GetNumberOfDofs();
 
-    std::size_t GetNumberOfGPs();
+    SizeType GetNumberOfGPs();
 
     void SetBaseMembers();
 

@@ -52,6 +52,7 @@
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 namespace Kratos
 {
@@ -451,6 +452,14 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
     .def(init<>())
     .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
+    ;
+
+    // SubModelParts List Utility
+    class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
+    .def(init<ModelPart&>())
+    .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
+    .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
+    .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 }
 
