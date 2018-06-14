@@ -34,16 +34,15 @@ class AdjointFluidAnalysis(AnalysisStage):
                             )
         self.number_of_steps = parameters["problem_data"]["nsteps"].GetInt()
 
-        super(AdjointFluidAnalysis, self).__init__(model, parameters)
-
-        # If this is an MPI run, load the distributed memory modules
-        if (self.parallel_type == "MPI"):
+        self.is_printing_rank = True
+        ## Import parallel modules if needed
+        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication
-            import KratosMultiphysics.TrilinosApplication
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication        
             self.is_printing_rank = (mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
+
+        super(AdjointFluidAnalysis, self).__init__(model, parameters)
 
     def _CreateSolver(self):
         import python_solvers_wrapper_adjoint_fluid
