@@ -318,7 +318,7 @@ class MechanicalSolver(PythonSolver):
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
-            import read_materials_process
+            import read_materials_process_with_create as read_materials_process
             # Create a dictionary of model parts.
             Model = KratosMultiphysics.Model()
             Model.AddModelPart(self.main_model_part)

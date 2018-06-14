@@ -476,8 +476,11 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearJ2Plasticity3DLaw", mLinearJ2Plasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearIsotropicDamage3DLaw", mLinearIsotropicDamage3D);
 	
-	// A cornejo
-	//KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainIsotropicPlasticity3D", mGenericSmallStrainIsotropicPlasticity3D);
-}
+	// todo
+	// KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainIsotropicPlasticity3D", mGenericSmallStrainIsotropicPlasticity3D);
+    // KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainIsotropicDamage3D", mGenericSmallStrainIsotropicDamage3D);
 
+
+
+}
 }  // namespace Kratos.

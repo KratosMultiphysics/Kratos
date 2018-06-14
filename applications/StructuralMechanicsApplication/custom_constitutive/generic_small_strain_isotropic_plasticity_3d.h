@@ -119,14 +119,14 @@ public:
     {
     }
 
-    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const
+    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
     {
         const std::string& yield = NewParameters["yield_surface"].GetString();
         const std::string& potential = NewParameters["plastic_potential"].GetString();
         ConstitutiveLaw::Pointer constitutive_law;
 
         KRATOS_ERROR_IF(yield == "SimoJu")  << "SimoJu yield surface not available in plasticity " << yield << std::endl;
-        KRATOS_ERROR_IF(yield == "Rankine") << "SimoJu yield surface not available in plasticity " << yield << std::endl;
+        KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity " << yield << std::endl;
 
         if (yield == "VonMises") {
             if (potential == "VonMises") {
