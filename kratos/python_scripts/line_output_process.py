@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # other imports
 from multiple_points_output_process import MultiplePointsOutputProcess
+import os
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -27,7 +28,9 @@ class LineOutputProcess(KratosMultiphysics.Process):
             "model_part_name"           : "",
             "output_file_name"          : "",
             "output_variables"          : [],
-            "entity_type"               : "element"
+            "entity_type"               : "element",
+            "save_output_file_in_folder"  : true,
+            "output_folder_relative_path" : "TabularResults"
         }''')
 
         params.ValidateAndAssignDefaults(default_settings)
@@ -78,6 +81,29 @@ class LineOutputProcess(KratosMultiphysics.Process):
 
         params.AddEmptyValue("positions")
         params["positions"].SetMatrix(positions)
+
+        # setting up the output_file
+        raw_path, output_file_name_base = os.path.split(params["output_file_name"].GetString())
+        if output_file_name_base == "":
+            raise Exception('No "output_file_name" was specified!')
+
+        if params["save_output_file_in_folder"].GetBool():
+            if params["output_folder_relative_path"].GetString() == "":
+                raise Exception('No "save_output_file_in_folder" was specified!')
+            else:
+                output_folder_relative_path = os.path.join(params["output_folder_relative_path"].GetString(),
+                                                        "mp_" + output_file_name_base)
+                if raw_path != "":
+                    warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name" : "'+ params["output_file_name"].GetString() +'"\n'
+                    warn_msg += 'Use "output_folder_relative_path" to specify correctly\n'
+                    warn_msg += 'Using the default relative path "' + output_folder_relative_path + '" instead'
+                    KratosMultiphysics.Logger.PrintWarning("LineOutputProcess", warn_msg)
+        else:
+            if raw_path != "":
+                warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ params["output_file_name"].GetString() +'"\n'
+                warn_msg += 'Use the "save_output_file_in_folder" and "output_folder_relative_path" to specify correctly\n'
+                warn_msg += 'Using the current directory instead'
+                KratosMultiphysics.Logger.PrintWarning("LineOutputProcess", warn_msg)
 
         self.multiple_points_output_process = MultiplePointsOutputProcess(model, params)
 
