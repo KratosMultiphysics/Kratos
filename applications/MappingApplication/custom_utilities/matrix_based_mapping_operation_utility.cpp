@@ -57,7 +57,8 @@ void InitializeVector(UtilityType::TSystemVectorUniquePointerType& rpVector,
 }
 
 void ConstructMatrixStructure(UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
-                                UtilityType::TSystemMatrixType& rMdo)
+                              UtilityType::TSystemMatrixType& rMdo,
+                              const int EchoLevel)
 {
     // A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
     EquationIdVectorType origin_ids;
@@ -66,7 +67,7 @@ void ConstructMatrixStructure(UtilityType::MapperLocalSystemPointerVector& rMapp
     // TODO omp
     for (/*const*/auto& r_local_sys : rMapperLocalSystems) // TODO I think this can be const bcs it is the ptr
     {
-        r_local_sys->EquationIdVectors(origin_ids, destination_ids);
+        r_local_sys->EquationIdVectors(origin_ids, destination_ids, EchoLevel);
 
     }
 }
@@ -139,7 +140,7 @@ void UtilityType::ResizeAndInitializeVectors(
     // This has to be done always since the Graph has changed if the Interface is updated!
     const SizeType num_non_zeros = 100; // TODO this should be computed
 
-    // ConstructMatrixStructure(rpMdo, rMapperLocalSystems);
+    // ConstructMatrixStructure(rpMdo, rMapperLocalSystems, GetEchoLevel());
 
     TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(
         num_nodes_destination, num_nodes_origin, num_non_zeros);
@@ -169,7 +170,7 @@ void UtilityType::BuildMappingMatrix(
 
     for (auto& r_local_sys : rMapperLocalSystems) // TODO omp
     {
-        r_local_sys->CalculateLocalSystem(mapping_weights, origin_ids, destination_ids);
+        r_local_sys->CalculateLocalSystem(mapping_weights, origin_ids, destination_ids, GetEchoLevel());
         KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != origin_ids.size()) << "OriginID vector size mismatch" << std::endl;
         KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size()) << "DestinationID vector size mismatch" << std::endl;
 

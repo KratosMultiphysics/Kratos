@@ -40,7 +40,8 @@ void NearestNeigborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
 
 void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeights,
                     EquationIdVectorType& rOriginIds,
-                    EquationIdVectorType& rDestinationIds) const
+                    EquationIdVectorType& rDestinationIds,
+                    const int EchoLevel) const
 {
     if (mInterfaceInfos.size() > 0)
     {

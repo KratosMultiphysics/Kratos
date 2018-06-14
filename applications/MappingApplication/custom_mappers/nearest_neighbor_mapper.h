@@ -131,8 +131,9 @@ public:
     }
 
     void CalculateAll(MappingWeightsVector& rMappingWeights,
-                        EquationIdVectorType& rOriginIds,
-                        EquationIdVectorType& rDestinationIds) const override;
+                      EquationIdVectorType& rOriginIds,
+                      EquationIdVectorType& rDestinationIds,
+                      const int EchoLevel) const override;
 
     bool UseNodesAsBasis() const override { return true; }
 

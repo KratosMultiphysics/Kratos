@@ -92,7 +92,6 @@ public:
         : mSourceLocalSystemIndex(SourceLocalSystemIndex),
           mCoordinates(rCoordinates),
           mSourceRank(SourceRank)
-
     {
     }
 

@@ -60,7 +60,8 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
 
 void NearestElementLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeights,
                     EquationIdVectorType& rOriginIds,
-                    EquationIdVectorType& rDestinationIds) const
+                    EquationIdVectorType& rDestinationIds,
+                    const int EchoLevel) const
 {
     // if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
     // if (rOriginIds.size() != 1)      rOriginIds.resize(1);

@@ -130,11 +130,12 @@ public:
     }
 
     void EquationIdVectors(EquationIdVectorType& rOriginIds,
-                           EquationIdVectorType& rDestinationIds)
+                           EquationIdVectorType& rDestinationIds,
+                           const int EchoLevel)
     {
         if (!mIsComputed)
         {
-            CalculateAll(mMappingWeights, mOriginIds, mDestinationIds);
+            CalculateAll(mMappingWeights, mOriginIds, mDestinationIds, EchoLevel);
             mIsComputed = true;
         }
 
@@ -144,7 +145,8 @@ public:
 
     void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
                               EquationIdVectorType& rOriginIds,
-                              EquationIdVectorType& rDestinationIds) const
+                              EquationIdVectorType& rDestinationIds,
+                              const int EchoLevel) const
     {
         if (mIsComputed)
         {
@@ -158,7 +160,7 @@ public:
         {
             // This will be called if the EquationIdVectors have NOT been querried before
             // i.e. matrix-free mapping
-            CalculateAll(rMappingWeights, rOriginIds, rDestinationIds);
+            CalculateAll(rMappingWeights, rOriginIds, rDestinationIds, EchoLevel);
         }
     }
 
@@ -252,8 +254,9 @@ protected:
     // Note that it is "const", therefore it can NOT modify its members
     // Whether members are to be saved is decided in other functions of this class
     virtual void CalculateAll(MappingWeightsVector& rMappingWeights,
-                              EquationIdVectorType&     rOriginIds,
-                              EquationIdVectorType&     rDestinationIds) const = 0;
+                              EquationIdVectorType& rOriginIds,
+                              EquationIdVectorType& rDestinationIds,
+                              const int EchoLevel) const = 0;
 
 
     ///@}
