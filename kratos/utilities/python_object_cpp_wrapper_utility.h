@@ -75,17 +75,23 @@ public:
     PythonObjectCppWrapperUtility()= default;
 
     /**
-     * @brief Constructor using a list of processes
-     * @param ProcessesList List of processes that will be used to build the vector of processes
+     * @brief Constructor using the name of the file
+     * @param rNameFile The name of the file used to construct the object
      */
-    PythonObjectCppWrapperUtility(ListType& ProcessesList);
+    PythonObjectCppWrapperUtility(const std::string& rNameFile);
+
+    /**
+     * @brief Constructor using a list of objects
+     * @param rObjectList List of objects that will be used to build the vector of objects
+     */
+    PythonObjectCppWrapperUtility(ListType& rObjectList);
 
     /**
      * @brief Constructor using just one process
-     * @param rProcess The process that will be added  at the begining of the vector of processes
+     * @param rObject The process that will be added  at the begining of the vector of objects
      * @note This constructor overrides the previous ones ("everything" is an object, so here I try first to work as it is a list)
      */
-    PythonObjectCppWrapperUtility(ObjectType& rProcess);
+    PythonObjectCppWrapperUtility(ObjectType& rObject);
 
     /// Destructor.
     virtual ~PythonObjectCppWrapperUtility()= default;

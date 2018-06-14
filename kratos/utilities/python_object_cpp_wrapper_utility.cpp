@@ -19,6 +19,17 @@
 
 namespace Kratos
 {
+PythonObjectCppWrapperUtility::PythonObjectCppWrapperUtility(const std::string& rNameFile)
+{
+    const char * name = rNameFile.c_str();
+    pybind11::object object = pybind11::module::import(name);
+    mListPythonObjects.resize(1);
+    mListPythonObjects[0] = object;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 PythonObjectCppWrapperUtility::PythonObjectCppWrapperUtility(ListType& rObjectList)
 {
     const std::size_t size_objects = len(rObjectList);
