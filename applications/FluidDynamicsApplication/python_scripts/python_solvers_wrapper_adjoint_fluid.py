@@ -23,8 +23,10 @@ def CreateSolver(model, custom_settings):
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
-        # TODO:
-        raise Exception("the requested solver type is not in the python solvers wrapper")
+        if (solver_type == "Monolithic"):
+            solver_module_name = "trilinos_adjoint_vmsmonolithic_solver"
+        else:
+            raise Exception("the requested solver type is not in the python solvers wrapper")
     else:
         raise Exception("parallelism is neither OpenMP nor MPI")
 
