@@ -478,7 +478,6 @@ void MmgProcess<TDim>::ExecuteRemeshing()
 
     /* NODES */ // TODO: ADD OMP
     for (IndexType i_node = 1; i_node <= n_nodes; ++i_node) {
-        int ref, is_required;
         NodeType::Pointer p_node = CreateNode(i_node, ref, is_required);
         
         // Set the DOFs in the nodes 
