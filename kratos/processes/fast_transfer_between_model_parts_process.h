@@ -88,7 +88,8 @@ public:
         ELEMENTS = 1,
         NODESANDELEMENTS = 2,
         CONDITIONS = 3,
-        ALL = 4
+        NODESANDCONDITIONS = 4,
+        ALL = 5
     };
 
     ///@}
