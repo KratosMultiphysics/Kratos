@@ -89,7 +89,8 @@ void PythonObjectCppWrapperUtility::RunStructuralAnalysisStage(const std::string
     pybind11::object structural = pybind11::module::import("KratosMultiphysics.StructuralMechanicsApplication");
     pybind11::object structura_analysis = pybind11::module::import("structural_mechanics_analysis").attr("StructuralMechanicsAnalysis");
     pybind11::object my_structura_analysis = structura_analysis(model, parameters);
-    my_structura_analysis.attr("Run");
+    auto run = my_structura_analysis.attr("Run");
+    run();
 }
 
 /***********************************************************************************/
