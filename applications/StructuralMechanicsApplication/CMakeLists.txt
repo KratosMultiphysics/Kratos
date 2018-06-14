@@ -116,6 +116,16 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_response_functions_to_python.cpp
 )
 
+set( KRATOS_WRAPPER_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/external_interface.h
+		${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/external_interface.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/external_interface_bindings.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/mesh_converter.h
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/mesh_converter.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/vector3.h
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/vector3.cpp
+)
+
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosStructuralMechanicsCore PUBLIC KratosCore)
 set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
@@ -125,6 +135,9 @@ set_target_properties(KratosStructuralMechanicsCore PROPERTIES COMPILE_DEFINITIO
 pybind11_add_module(KratosStructuralMechanicsApplication MODULE THIN_LTO ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosStructuralMechanicsApplication PUBLIC KratosStructuralMechanicsCore)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
+
+add_library(KratosWrapper SHARED ${KRATOS_WRAPPER_SOURCES})
+target_link_libraries(KratosWrapper PUBLIC KratosCore KratosStructuralMechanicsCore)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
@@ -159,6 +172,7 @@ endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosStructuralMechanicsCore DESTINATION libs )
 install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
+install(TARGETS KratosWrapper DESTINATION libs)
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )
