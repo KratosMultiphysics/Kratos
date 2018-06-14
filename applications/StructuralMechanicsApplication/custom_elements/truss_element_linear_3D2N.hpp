@@ -98,6 +98,9 @@ namespace Kratos
             std::vector< array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
 
         /**
          * @brief This function calculates the total stiffness matrix for the element
@@ -112,13 +115,40 @@ namespace Kratos
         void WriteTransformationCoordinates(
             BoundedVector<double,msLocalSize>& rReferenceCoordinates) override;
 
+		/**
+         * @brief This function calculates the current linear-Lagrange strain
+         */
+		double CalculateLinearStrain();
 
-        private:
 
-            friend class Serializer;
-            void save(Serializer& rSerializer) const override;
-            void load(Serializer& rSerializer) override;
-    };
+		/**
+         * @brief This function updates the internal forces
+         * @param rinternalForces The internal forces
+         */
+
+		void UpdateInternalForces(
+			BoundedVector<double,msLocalSize>& rInternalForces) override;
+
+
+        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+
+        /**
+         * @brief This function calls the constitutive law to get stresses
+         * @param rCurrentProcessInfo Current process info
+         * @param rSaveInternalVariables Boolean to save internal constit. law variables
+         */
+        BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
+            ProcessInfo& rCurrentProcessInfo,
+            const bool& rSaveInternalVariables);
+
+
+		private:
+
+			friend class Serializer;
+			void save(Serializer& rSerializer) const override;
+			void load(Serializer& rSerializer) override;
+	};
 
 
 }

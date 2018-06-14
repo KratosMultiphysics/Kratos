@@ -246,6 +246,8 @@ public:
     TSystemVectorType mDx = TSystemVectorType();
     TSystemVectorType mb = TSystemVectorType();
 
+    pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
     this->CalculateAndAddRHS(pScheme, r_model_part);
 
     pScheme->Update(r_model_part, dof_set_dummy, mA, mDx,

@@ -66,7 +66,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         list_of_processes = super(StructuralMechanicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process"
+            processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
