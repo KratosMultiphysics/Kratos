@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as KratosShallow
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -100,8 +99,9 @@ class ShallowWaterBaseSolver(object):
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = KratosFluid.EstimateDtUtility2D(self.model_part,
-                                                                            self.settings["time_stepping"])
+            #self.EstimateDeltaTimeUtility = KratosFluid.EstimateDtUtility2D(self.model_part,
+            #                                                                self.settings["time_stepping"])
+            raise Exception("Estimation Dt utility not yet implemented")
 
         # Creating the solution strategy for the mesh stage
         self.conv_criteria = KratosMultiphysics.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
