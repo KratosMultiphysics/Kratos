@@ -15,7 +15,7 @@ def Factory(settings, Model):
     return MeshTyingProcess(Model, settings["Parameters"])
 
 
-# All the processes python processes should be derived from "Process"
+# All the processes python should be derived from "Process"
 
 
 class MeshTyingProcess(KM.Process):
