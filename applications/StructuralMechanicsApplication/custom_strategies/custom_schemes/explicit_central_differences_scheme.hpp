@@ -138,6 +138,35 @@ public:
     InitializeResidual(rModelPart);
     KRATOS_CATCH("")
   }
+  //***************************************************************************
+  
+  void InitializeNonLinIteration(
+      ModelPart& rModelPart,
+      TSystemMatrixType& A,
+      TSystemVectorType& Dx,
+      TSystemVectorType& b
+      ) override
+  {
+      KRATOS_TRY;
+
+      ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
+      
+      #pragma omp parallel for
+      for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
+          auto it_elem = rModelPart.ElementsBegin() + i;
+          it_elem->InitializeNonLinearIteration(current_process_info);
+      }
+      
+      
+      #pragma omp parallel for
+      for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
+          auto it_elem = rModelPart.ConditionsBegin() + i;
+          it_elem->InitializeNonLinearIteration(current_process_info);
+      }     
+      
+      KRATOS_CATCH( "" );
+  }
+
 
   //**************************************************************************
 

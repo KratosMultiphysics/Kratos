@@ -45,8 +45,7 @@ void ALMVariablesCalculationProcess::Execute()
     ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
     
     #pragma omp parallel for reduction(+:total_volume_slave, total_area_slave, mean_young_modulus_slave, mean_nodal_h_slave, total_volume_master, total_area_master, mean_young_modulus_master, mean_nodal_h_master)
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) 
-    {
+    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
         auto it_cond = conditions_array.begin() + i;
         
         // We get the condition geometry
@@ -55,6 +54,7 @@ void ALMVariablesCalculationProcess::Execute()
         
         // We get the values from the condition
         Properties& this_properties = it_cond->GetProperties();
+
         const double young_modulus = this_properties[YOUNG_MODULUS];
         const double element_volume = it_cond->GetGeometry().Area();
         

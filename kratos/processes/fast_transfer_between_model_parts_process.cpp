@@ -57,7 +57,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
     if (mFlag == Flags()) {
         const SizeType num_nodes = mrOriginModelPart.Nodes().size();
 
-        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS))
+        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
             mrDestinationModelPart.AddNodes(mrOriginModelPart.NodesBegin(),mrOriginModelPart.NodesEnd());
 
         const SizeType num_elements = mrOriginModelPart.Elements().size();
@@ -67,7 +67,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
 
         const SizeType num_conditions = mrOriginModelPart.Conditions().size();
 
-        if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS))
+        if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
             mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
     } else {
         NodesArrayType vector_nodes;
@@ -89,7 +89,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
         {
             const int id = OpenMPUtils::ThisThread();
 
-            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS)) {
+            if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
                 #pragma omp for
                 for(int i = 0; i < num_nodes; ++i) {
                     auto it_node = mrOriginModelPart.NodesBegin() + i;
@@ -109,7 +109,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
                 }
             }
 
-            if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS)) {
+            if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
                 #pragma omp for
                 for(int i = 0; i < num_conditions; ++i) {
                     auto it_cond = mrOriginModelPart.ConditionsBegin() + i;
@@ -122,7 +122,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
             // We transfer
             #pragma omp single
             {
-                if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS))
+                if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                     for( auto& node_buffer : nodes_buffer)
                         mrDestinationModelPart.AddNodes(node_buffer.begin(),node_buffer.end());
 
@@ -130,7 +130,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
                     for( auto& element_buffer : elements_buffer)
                         mrDestinationModelPart.AddElements(element_buffer.begin(),element_buffer.end());
 
-                if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS))
+                if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                     for( auto& condition_buffer : conditions_buffer)
                         mrDestinationModelPart.AddConditions(condition_buffer.begin(),condition_buffer.end());
             }
