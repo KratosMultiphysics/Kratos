@@ -84,10 +84,6 @@ message( "**********************************************************************
 message( " ")
 message( " ")
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/applications_interface.py DESTINATION applications)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
 #include subdirectories for compilation
 if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON)
   add_subdirectory(ExternalSolversApplication)
