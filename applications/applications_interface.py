@@ -31,7 +31,6 @@ Import_MagnetostaticApplication = False
 Import_DamApplication = False
 Import_TestApplication = False
 Import_OpenCLApplication = False
-Import_PodApplication = False
 Import_LevelSetApplication = False
 Import_FluidDynamicsApplication = False
 Import_KratosDEMApplication = False
@@ -74,7 +73,6 @@ print("Import_MagnetostaticApplication: False")
 print("Import_DamApplication: False")
 print("Import_TestApplication: False")
 print("Import_OpenCLApplication: False")
-print("Import_PodApplication: False")
 print("Import_LevelSetApplication: False")
 print("Import_FluidDynamicsApplication: False")
 print("Import_KratosDEMApplication: False")
@@ -121,7 +119,6 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_DamApplication: " + str(Import_DamApplication))
     print("Import_TestApplication: " + str(Import_TestApplication))
     print("Import_OpenCLApplication: " + str(Import_OpenCLApplication))
-    print("Import_PodApplication: " + str(Import_PodApplication))
     print("Import_LevelSetApplication:" + str(Import_LevelSetApplication))
     print("Import_FluidDynamicsApplication: " + str(Import_FluidDynamicsApplication))
     print("Import_KratosMixedElementApplication: " + str(Import_KratosMixedElementApplication))
@@ -380,16 +377,8 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.ImportApplication(opencl_application)
         print("KratosOpenCLApplication sucessfully imported")
 
-    if(Import_PodApplication):
-        print("importing KratosPodApplication ...")
-        sys.path.append(applications_path + '/PODApplication/python_scripts')
-        from KratosPodApplication import *
-        pod_application = KratosPodApplication()
-        kernel.ImportApplication(pod_application)
-        print("KratosPodApplication sucessfully imported")
-
     if(Import_LevelSetApplication):
-        print("importing KratosPodApplication ...")
+        print("importing KratosLevelSetApplication ...")
         sys.path.append(applications_path + '/LevelSetApplication/python_scripts')
         from KratosLevelSetApplication import *
         levelset_application = KratosLevelSetApplication()
@@ -540,8 +529,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(test_application)
     if(Import_OpenCLApplication):
         kernel.InitializeApplication(opencl_application)
-    if(Import_PodApplication):
-        kernel.InitializeApplication(pod_application)
     if(Import_LevelSetApplication):
         kernel.InitializeApplication(levelset_application)
     if(Import_FluidDynamicsApplication):
