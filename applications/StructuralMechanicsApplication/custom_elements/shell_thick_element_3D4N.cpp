@@ -12,71 +12,12 @@
 #include "shell_thick_element_3D4N.hpp"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shell_utilities.h"
-#include "geometries/quadrilateral_3d_4.h"
 
 #include <string>
 #include <iomanip>
 
 namespace Kratos
 {
-
-// =====================================================================================
-//
-// Utilties
-//
-// =====================================================================================
-
-// namespace Utilities
-// {
-//
-// template<class TVec>
-// inline void ShapeFunc(double xi, double eta, TVec & N)
-// {
-//     N(0) = 0.25 * (1.0 - xi) * (1.0 - eta); // node 1
-//     N(1) = 0.25 * (1.0 + xi) * (1.0 - eta); // node 2
-//     N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
-//     N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
-// }
-//
-// template<class TVec>
-// inline void ShapeFuncSerendipity(double xi, double eta, TVec & N)
-// {
-//     N(0) = 0.5 * (1.0 - xi * xi) * (1.0 - eta);  // node 5
-//     N(1) = 0.5 * (1.0 + xi) * (1.0 - eta * eta); // node 6
-//     N(2) = 0.5 * (1.0 - xi * xi) * (1.0 + eta);  // node 7
-//     N(3) = 0.5 * (1.0 - xi) * (1.0 - eta * eta); // node 8
-// }
-//
-// template<class TMat>
-// inline void ShapeFunc_NaturalDerivatives(double xi, double eta, TMat & dN)
-// {
-//     dN(0, 0) = -(1.0 - eta) * 0.25;
-//     dN(1, 0) =  (1.0 - eta) * 0.25;
-//     dN(2, 0) =  (1.0 + eta) * 0.25;
-//     dN(3, 0) = -(1.0 + eta) * 0.25;
-//
-//     dN(0, 1) = -(1.0 - xi)  * 0.25;
-//     dN(1, 1) = -(1.0 + xi)  * 0.25;
-//     dN(2, 1) =  (1.0 + xi)  * 0.25;
-//     dN(3, 1) =  (1.0 - xi)  * 0.25;
-// }
-//
-// template<class TMat>
-// inline void ShapeFuncSerendipity_NaturalDerivatives(double xi, double eta, TMat & dN)
-// {
-//     dN(0, 0) = -xi * (1.0 - eta);
-//     dN(1, 0) =  0.5 * (1.0 - eta * eta);
-//     dN(2, 0) = -xi * (1.0 - eta);
-//     dN(3, 0) = -0.5 * (1.0 - eta * eta);
-//
-//     dN(0, 1) = -0.5 * (1.0 - xi * xi);
-//     dN(1, 1) = -eta * (1.0 + xi);
-//     dN(2, 1) =  0.5 * (1.0 - xi * xi);
-//     dN(3, 1) = -eta * (1.0 + xi);
-// }
-//
-// }
-
 // =====================================================================================
 //
 // Class JacobianOperator
@@ -195,9 +136,9 @@ void ShellThickElement3D4N::EASOperatorStorage::Initialize(const GeometryType& g
         noalias(alpha) = ZeroVector(5);
         noalias(alpha_converged) = ZeroVector(5);
 
-        for(std::size_t i = 0; i < 4; i++)
+        for(SizeType i = 0; i < 4; i++)
         {
-            std::size_t ii = i * 6;
+            SizeType ii = i * 6;
             const array_1d<double, 3>& initialDispl = geom[i].FastGetSolutionStepValue(DISPLACEMENT);
             const array_1d<double, 3>& initialRot = geom[i].FastGetSolutionStepValue(ROTATION);
 
@@ -563,15 +504,15 @@ void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 
     // Calculate avarage mass per unit area
     double av_mass_per_unit_area = 0.0;
-    for(std::size_t i = 0; i < 4; i++)
+    for(SizeType i = 0; i < 4; i++)
         av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
     av_mass_per_unit_area /= 4.0;
 
     // Gauss Loop
 
-    for(std::size_t i = 0; i < 4; i++)
+    for(SizeType i = 0; i < 4; i++)
     {
-        std::size_t index = i * 6;
+        SizeType index = i * 6;
 
         double nodal_mass = av_mass_per_unit_area * lump_area;
 
@@ -731,7 +672,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 	else if (rVariable == TSAI_WU_RESERVE_FACTOR)
 	{
 		// resize output
-		std::size_t size = 4;
+		SizeType size = 4;
 		if (rValues.size() != size)
 			rValues.resize(size);
 
@@ -910,7 +851,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 		ShellQ4_LocalCoordinateSystem localCoordinateSystem(
 			mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
-		for (std::size_t GP = 0; GP < 4; GP++)
+		for (SizeType GP = 0; GP < 4; GP++)
 		{
 			rValues[GP] = localCoordinateSystem.Vx();
 		}
@@ -954,9 +895,9 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 		Matrix localToGlobalLarge;
 		localCoordinateSystem.ComputeLocalToGlobalTransformationMatrix(localToGlobalLarge);
 		Matrix localToGlobalSmall = Matrix(3, 3, 0.0);
-		for (size_t i = 0; i < 3; i++)
+		for (SizeType i = 0; i < 3; i++)
 		{
-		for (size_t j = 0; j < 3; j++)
+		for (SizeType j = 0; j < 3; j++)
 		{
 		localToGlobalSmall(i, j) = localToGlobalLarge(i, j);
 		}
@@ -969,7 +910,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 		fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
 
 		//write results
-		for (std::size_t dir = 0; dir < 1; dir++)
+		for (SizeType dir = 0; dir < 1; dir++)
 		{
 			rValues[dir] = fiberAxis1;
 		}
@@ -1224,10 +1165,10 @@ double ShellThickElement3D4N::CalculateTsaiWuPlaneStress(const std::vector<Vecto
 																			// Evaluate Tsai-Wu @ top surface of current layer
 	double var_a = 0.0;
 	double var_b = 0.0;
-	for (std::size_t i = 0; i < 3; i++)
+	for (SizeType i = 0; i < 3; i++)
 	{
 		var_b += F_i[i] * rlaminateStresses[2 * rPly][i];
-		for (std::size_t j = 0; j < 3; j++)
+		for (SizeType j = 0; j < 3; j++)
 		{
 			var_a += F_ij(i, j)*rlaminateStresses[2 * rPly][i] * rlaminateStresses[2 * rPly][j];
 		}
@@ -1240,10 +1181,10 @@ double ShellThickElement3D4N::CalculateTsaiWuPlaneStress(const std::vector<Vecto
 	// Evaluate Tsai-Wu @ bottom surface of current layer
 	var_a = 0.0;
 	var_b = 0.0;
-	for (std::size_t i = 0; i < 3; i++)
+	for (SizeType i = 0; i < 3; i++)
 	{
 		var_b += F_i[i] * rlaminateStresses[2 * rPly + 1][i];
-		for (std::size_t j = 0; j < 3; j++)
+		for (SizeType j = 0; j < 3; j++)
 		{
 			var_a += F_ij(i, j)*rlaminateStresses[2 * rPly + 1][i] * rlaminateStresses[2 * rPly + 1][j];
 		}
@@ -1840,7 +1781,7 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_MaterialOrientation(c
 
     // resize output
 
-    std::size_t size = 4;
+    SizeType size = 4;
     if(rValues.size() != size)
         rValues.resize(size);
 
@@ -1902,7 +1843,7 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 
     // resize output
 
-    std::size_t size = 4;
+    SizeType size = 4;
     if(rValues.size() != size)
         rValues.resize(size);
 

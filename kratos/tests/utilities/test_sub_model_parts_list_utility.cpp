@@ -36,7 +36,7 @@ namespace Kratos
         * Checks the correct work of the sub modelparts list utility
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosSubModelPartsListUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosCoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
             ModelPart first_model_part("Main");
@@ -170,7 +170,7 @@ namespace Kratos
         * Checks the correct work of the modelparts colors utility (with different sublevels of modelparts)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosSubModelPartsListUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosCoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts
             ModelPart first_model_part("Main");
