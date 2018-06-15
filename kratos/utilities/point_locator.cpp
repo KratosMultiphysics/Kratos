@@ -29,7 +29,7 @@ namespace Kratos
         int found_node_id = -1; // if no node is found this will be returned
         bool is_close_enough = false;
 
-        int global_nodes_found = 0;
+        int local_nodes_found = 0;
 
         // note that this cannot be omp bcs breaking is not allowed in omp
         for (auto& r_node : mrModelPart.GetCommunicator().LocalMesh().Nodes())
@@ -37,13 +37,13 @@ namespace Kratos
             is_close_enough = NodeIsCloseEnough(r_node, rThePoint, DistanceThreshold);
             if (is_close_enough)
             {
-                global_nodes_found = 1;
+                local_nodes_found = 1;
                 found_node_id = r_node.Id();
                 break;
             }
         }
 
-        CheckResults("Node", rThePoint, global_nodes_found);
+        CheckResults("Node", rThePoint, local_nodes_found);
 
         return found_node_id;
     }
@@ -89,7 +89,7 @@ namespace Kratos
 
         bool is_inside;
 
-        int global_objects_found = 0;
+        int local_objects_found = 0;
         array_1d<double, 3> local_coordinates;
 
         // note that this cannot be omp bcs breaking is not allowed in omp
@@ -98,7 +98,7 @@ namespace Kratos
             is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates);
             if (is_inside)
             {
-                global_objects_found = 1;
+                local_objects_found = 1;
                 rObjectId = r_object.Id();
                 // resizing of rShapeFunctionValues happens inside the function if required
                 r_object.GetGeometry().ShapeFunctionsValues(rShapeFunctionValues, local_coordinates);
@@ -106,16 +106,16 @@ namespace Kratos
             }
         }
 
-        CheckResults(rObjectName, rThePoint, global_objects_found);
+        CheckResults(rObjectName, rThePoint, local_objects_found);
     }
 
     void PointLocator::CheckResults(const std::string& rObjectName,
                                     const Point& rThePoint,
-                                    int GlobalObjectsFound) const
+                                    int LocalObjectsFound) const
     {
-        mrModelPart.GetCommunicator().SumAll(GlobalObjectsFound);
+        mrModelPart.GetCommunicator().SumAll(LocalObjectsFound);
 
-        if (GlobalObjectsFound > 1)
+        if (LocalObjectsFound > 1)
         {
             KRATOS_WARNING_IF("Point Locator", mrModelPart.GetCommunicator().MyPID() == 0)
                 << "More than one " << rObjectName << " found for Point: " << rThePoint << std::endl;
@@ -124,7 +124,7 @@ namespace Kratos
                 << "    In Rank: " << mrModelPart.GetCommunicator().MyPID() << std::endl;
             mrModelPart.GetCommunicator().Barrier();
         }
-        else if (GlobalObjectsFound == 0)
+        else if (LocalObjectsFound == 0)
         {
             KRATOS_WARNING_IF("Point Locator", mrModelPart.GetCommunicator().MyPID() == 0)
                 << "No " << rObjectName << " found for Point: " << rThePoint << std::endl;
