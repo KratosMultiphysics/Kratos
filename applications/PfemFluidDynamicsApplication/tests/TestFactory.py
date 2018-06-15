@@ -1,7 +1,7 @@
 import os
 
-# Import Kratos
-from KratosMultiphysics import *
+# Importing the Kratos Library
+import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -24,8 +24,18 @@ class TestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+
             if( self.file_parameters == None ):
                 self.file_parameters = self.file_name + "_parameters.json"
+
+            # Reading the ProjectParameters
+            with open(self.file_parameters,'r') as parameter_file:
+                ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+            # To avoid many prints
+            if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
             self.test = MainFluidPFEM.Solution(self.file_parameters)
             #self.test = MainFluidPFEM.Solution(self.file_parameters,self.file_name)
 

@@ -68,6 +68,7 @@
             "model_part_name"       : "Main Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
+            "write_totalVolumeBeforeMeshing" : false,
             "meshing_before_output" : true,
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",

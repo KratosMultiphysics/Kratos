@@ -19,7 +19,6 @@ class Water_Sloshing_2D_Test_Mu_Rheology(TF.TestFactory):
     file_parameters = "fluid_element_tests/Water_sloshing_2D/Mu_Rheology/ProjectParameters.json"
 
 
-
 def SetTestSuite(suites):
     small_suite = suites['small']
 

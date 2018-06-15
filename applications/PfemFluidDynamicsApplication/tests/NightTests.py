@@ -11,9 +11,6 @@ class Dam_Break_2D_Newtonian_Test(TF.TestFactory):
      file_parameters = "fluid_element_tests/Dam_Break_2D/Newtonian_fluid/ProjectParameters.json"
 
 
-
-
-
 def SetTestSuite(suites):
     night_suite = suites['nightly']
 
