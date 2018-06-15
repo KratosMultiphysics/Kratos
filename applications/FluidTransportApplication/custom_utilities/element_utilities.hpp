@@ -14,6 +14,9 @@
 #if !defined(KRATOS_ELEMENT_UTILITIES )
 #define  KRATOS_ELEMENT_UTILITIES
 
+// Project includes
+#include "includes/define.h"
+
 // System includes
 //#include <cmath>
 
@@ -29,91 +32,116 @@ namespace Kratos
 class ElementUtilities
 {
 
+
 public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    template< unsigned int TDim, unsigned int TNumNodes >
-    void ElementUtilities::InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer,
-                                        const array_1d<array_1d<double,TDim>, TNumNodes>& VariableWithComponents,const unsigned int& GPoint)
+    static inline void InterpolateVariableWithComponents(array_1d<double,2>& rVector,const Matrix& Ncontainer,
+                                        const array_1d<array_1d<double,3>, 3>& VariableWithComponents,const unsigned int& GPoint)
     {
-        noalias(rVector) = ZeroVector(TDim);
+        noalias(rVector) = ZeroVector(2);
 
-        for(unsigned int i=0; i<TNumNodes; i++)
+        for(unsigned int i=0; i<3; i++)
         {
             rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
             rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
-            if (TDim == 3)
-            {
-                rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[i][2];
-            }
         }
     }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void InterpolateVariableWithComponents(array_1d<double,2>& rVector,const Matrix& Ncontainer,
+                                        const array_1d<array_1d<double,3>, 4>& VariableWithComponents,const unsigned int& GPoint)
+    {
+        noalias(rVector) = ZeroVector(2);
 
+        for(unsigned int i=0; i<4; i++)
+        {
+            rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
+            rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
+        }
+    }
 
-    // static inline void InterpolateVariableWithComponents(array_1d<double,2>& rVector,const Matrix& Ncontainer,
-    //                                     const array_1d<array_1d<double,2>, 3>& VariableWithComponents,const unsigned int& GPoint)
-    // {
-    //     //Triangle_2d_3
-    //     noalias(rVector) = ZeroVector(2);
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer,
+                                        const array_1d<array_1d<double,3>, 4>& VariableWithComponents,const unsigned int& GPoint)
+    {
+        noalias(rVector) = ZeroVector(3);
 
-    //     for(unsigned int i=0; i<3; i++)
-    //     {
-    //         rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
-    //         rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
-    //     }
-    // }
+        for(unsigned int i=0; i<4; i++)
+        {
+            rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
+            rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
+            rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[i][2];
+        }
+    }
 
-    // //----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // static inline void InterpolateVariableWithComponents(array_1d<double,2>& rVector,const Matrix& Ncontainer,
-    //                                     const array_1d<array_1d<double,2>, 4>& VariableWithComponents,const unsigned int& GPoint)
-    // {
-    //     //Quadrilateral_2d_4
-    //     noalias(rVector) = ZeroVector(2);
+    static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer,
+                                        const array_1d<array_1d<double,3>, 8>& VariableWithComponents,const unsigned int& GPoint)
+    {
+        noalias(rVector) = ZeroVector(3);
 
-    //     for(unsigned int i=0; i<4; i++)
-    //     {
-    //         rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
-    //         rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
-    //     }
-    // }
+        for(unsigned int i=0; i<8; i++)
+        {
+            rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
+            rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
+            rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[i][2];
+        }
+    }
 
-    // //----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer,
-    //                                     const array_1d<array_1d<double,3>, 4>& VariableWithComponents,const unsigned int& GPoint)
-    // {
-    //     //Tetrahedra_3d_4
-    //     noalias(rVector) = ZeroVector(3);
+    // TODO
+    // Triangle2D3 version.
+    static inline double ProjectedLength(const Geometry<Node<3> >& rGeometry,
+                                                            const array_1d<double,3>& rVelocity)
+    {
+        double Hvel = 0.0;
+        double CosAngle = 0.0;
+        double EdgeNorm = 0.0;
+        double NormVel = norm_2 (rVelocity);
 
-    //     for(unsigned int i=0; i<4; i++)
-    //     {
-    //         rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
-    //         rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
-    //         rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[i][2];
-    //     }
-    // }
+        const unsigned int NumNodes = 3;
 
-    // //----------------------------------------------------------------------------------------
+        if (NormVel > 1e-12)
+        {
+            // Loop over edges looking for maximum 'projected' length
+            array_1d<double,3> Edge(3,0.0);
+            for(unsigned int i = 0; i < NumNodes; ++i)
+            {
+                unsigned int j = (i+1) % NumNodes;
+                Edge = rGeometry[j] - rGeometry[i];
+                double InnerProd = inner_prod (rVelocity, Edge);
+                double EdgeNormAux = norm_2 (Edge);
 
-    // static inline void InterpolateVariableWithComponents(array_1d<double,3>& rVector,const Matrix& Ncontainer,
-    //                                     const array_1d<array_1d<double,3>, 8>& VariableWithComponents,const unsigned int& GPoint)
-    // {
-    //     //Hexahedra_3d_8
-    //     noalias(rVector) = ZeroVector(3);
+                double CosAngleAux = InnerProd / (NormVel * EdgeNormAux);
 
-    //     for(unsigned int i=0; i<8; i++)
-    //     {
-    //         rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
-    //         rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
-    //         rVector[2] += Ncontainer(GPoint,i)*VariableWithComponents[i][2];
-    //     }
-    // }
+                if (EdgeNormAux > EdgeNorm)
+                {
+                    EdgeNorm = EdgeNormAux;
+                }
+
+                if (CosAngleAux > CosAngle)
+                {
+                    CosAngle = CosAngleAux;
+                }
+
+                double HvelAux = EdgeNorm * CosAngle;
+
+                if (HvelAux > Hvel)
+                {
+                    Hvel = HvelAux;
+                }
+
+            }
+        }
+
+        return Hvel;
+    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

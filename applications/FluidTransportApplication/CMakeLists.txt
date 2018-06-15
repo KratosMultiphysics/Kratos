@@ -27,7 +27,7 @@ set( KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES
 ###############################################################################
 ## FluidTransportApplication core library (C++ parts)
 add_library(KratosFluidTransportCore SHARED ${KRATOS_FLUID_TRANSPORT_APPLICATION_CORE_SOURCES})
-target_link_libraries(KratosFluidTransportCore PRIVATE KratosCore)
+target_link_libraries(KratosFluidTransportCore PRIVATE KratosCore KratosFluidDynamicsCore)
 
 ## FluidTransportApplication python module
 pybind11_add_module(KratosFluidTransportApplication MODULE ${KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES})

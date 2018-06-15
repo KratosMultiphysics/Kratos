@@ -151,19 +151,21 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         set PutStrings [string trimright $PutStrings ,]
     }
     append PutStrings \]
-    puts $FileVar "            \"nodal_results\":       $PutStrings"
-    # # gauss_point_results
-    # set PutStrings \[
-    # set iGroup 0
-    # AppendOutputVariables PutStrings iGroup Write_Face_Heat_Flux FACE_HEAT_FLUX_VECTOR
-    # if {$iGroup > 0} {
-    #     set PutStrings [string trimright $PutStrings ,]
-    # }
-    # append PutStrings \]
-    # puts $FileVar "            \"gauss_point_results\": $PutStrings"
-    # puts $FileVar "        \},"
-    # puts $FileVar "        \"point_data_configuration\":  \[\]"
-    puts $FileVar "        \}"
+    puts $FileVar "            \"nodal_results\":       $PutStrings,"
+    # gauss_point_results
+    set PutStrings \[
+    set iGroup 0
+    AppendOutputVariables PutStrings iGroup Write_Peclet PECLET
+    AppendOutputVariables PutStrings iGroup Write_FIC_Beta FIC_BETA
+    AppendOutputVariables PutStrings iGroup Write_Phi_Gradient PHI_GRADIENT
+
+    if {$iGroup > 0} {
+        set PutStrings [string trimright $PutStrings ,]
+    }
+    append PutStrings \]
+    puts $FileVar "            \"gauss_point_results\": $PutStrings"
+    puts $FileVar "        \},"
+    puts $FileVar "        \"point_data_configuration\":  \[\]"
 
     puts $FileVar "    \},"
 

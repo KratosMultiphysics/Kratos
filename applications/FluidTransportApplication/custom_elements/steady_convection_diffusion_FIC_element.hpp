@@ -24,7 +24,7 @@
 #include "utilities/math_utils.h"
 #include "includes/convection_diffusion_settings.h"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/element_size_calculator.cpp"
+#include "custom_utilities/element_size_calculator.h"
 
 // Application includes
 // TODO: Create base element
@@ -117,6 +117,7 @@ protected:
         double absorption;
         double DifSC;
         double AuxDiffusion;
+        double CosinusNormals;
 
         array_1d<double,TDim> HVector;
         array_1d<double,TDim> HvVector;
@@ -171,6 +172,8 @@ protected:
     void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
     void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+
+    void CalculateNormalsAngle(ElementVariables& rVariables);
 
     void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 

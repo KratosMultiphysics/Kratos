@@ -92,6 +92,7 @@ class FluidTransportSteadySolver(object):
         ## Convection Variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
         # Add thermal variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -155,6 +156,10 @@ class FluidTransportSteadySolver(object):
 
         # Check if everything is assigned correctly
         self.Solver.Check()
+
+        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
 
         print ("Initialization FluidTransportSteadySolver finished")
 

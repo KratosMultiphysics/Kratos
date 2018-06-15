@@ -67,6 +67,12 @@ QUESTION: Write_Reactions#CB#(true,false)
 VALUE: false
 QUESTION: Write_Q_Source#CB#(true,false)
 VALUE: false
+QUESTION: Write_Peclet#CB#(true,false)
+VALUE: false
+QUESTION: Write_FIC_Beta#CB#(true,false)
+VALUE: false
+QUESTION: Write_Phi_Gradient#CB#(true,false)
+VALUE: false
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary
