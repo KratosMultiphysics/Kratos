@@ -1478,8 +1478,18 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             {
                 low[i] = i_node->Coordinates()[i] < low[i] ? i_node->Coordinates()[i] : low[i];
                 high[i] = i_node->Coordinates()[i] > high[i] ? i_node->Coordinates()[i] : high[i];
+
             }
         }
+
+   /*      ///rishtih
+        low[0] -=  0.3*(high[0]-low[0] );
+        low[1] -=  0.3*(high[1]-low[1] );
+
+        high[0] +=  0.3*(high[0]-low[0] );
+        high[1] +=  0.3*(high[1]-low[1] );
+ */
+
         std::cout << "Skin added" << std::endl;
         mpQuadtree->SetBoundingBox(low, high);
         std::cout << "Lowest Dimension" << low[0] << "," << low[1] << std::endl;
@@ -1950,6 +1960,9 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         //        std::cout << "colors : " << colors[0] << ", " << colors[1] << ", " << colors[2] << std::endl;
         //#endif
         double distance = (fabs(distances[0]) > fabs(distances[1])) ? distances[1] : distances[0];
+
+        if (distances[0]*distances[1] < 0)
+            distance = fabs(distance);
         //distance = (fabs(distance) > fabs(distances[2])) ? distances[2] : distance;
 
         return distance;

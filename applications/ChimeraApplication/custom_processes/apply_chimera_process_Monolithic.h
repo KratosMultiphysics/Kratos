@@ -143,40 +143,39 @@ class ApplyChimeraProcessMonolithic : public Process
 		Parameters default_parameters(R"(
             {
                 "process_name":"apply_chimera_process_monolithic",
-                    "background": {
-									"model_part_name":"GENERIC_background",
-									"pressure_coupling":"all"
-                                  },
-                	"patch" :     {
-									"model_part_name":"GENERIC_patch",
-									"pressure_coupling" : "all"
-                                  },
-					"type" : "nearest_element",
-					"IsWeak" : true,
-					"pressure_coupling_node" : 0.0,
-                    "patch_boundary_model_part_name":"GENERIC_patchBoundary",
-					"domain_boundary_model_part_name":"GENERIC_DomainBoundary",
-					"patch_inside_boundary_model_part_name":"GENERIC_StrctureOne",
-					"overlap_distance":0.045
+                                "Chimera_levels" : [ [{ "model_part_name":"GENERIC_background",
+														"model_part_boundary_name":"GENERIC_domainboundary",
+														"model_part_inside_boundary_name" :"GENERIC_domainboundary"
+		            									            }],
+
+				    									 [{ "model_part_name":"GENERIC_patch_1_1",
+														"model_part_boundary_name":"GENERIC_patchboundary_1_1",
+														"model_part_inside_boundary_name":"GENERIC_structure_1_1"
+		            									     	}],
+
+				    									 [{ "model_part_name":"GENERIC_patch_2_1",
+														"model_part_boundary_name":"GENERIC_patchboundary_2_1",
+														"model_part_inside_boundary_name":"GENERIC_strcuture2_1"
+		            									    	}] ],
+                    			"type" : "nearest_element",
+                                "IsWeak" : true,
+                                "pressure_coupling" : "all",
+                                "pressure_coupling_node" : 0.0,
+                                "overlap_distance":0.045
             })");
 
-		m_background_model_part_name = m_parameters["background"]["model_part_name"].GetString();
-		m_patch_model_part_name = m_parameters["patch"]["model_part_name"].GetString();
-		m_patch_boundary_model_part_name = m_parameters["patch_boundary_model_part_name"].GetString();
-		m_domain_boundary_model_part_name = m_parameters["domain_boundary_model_part_name"].GetString();
-		m_patch_inside_boundary_model_part_name = m_parameters["patch_inside_boundary_model_part_name"].GetString();
 		m_type = m_parameters["type"].GetString();
 		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
 
-		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
-		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
+		NumberOfLevels = m_parameters["Chimera_levels"].size();
+
+		for (int i =0; i<NumberOfLevels ;i++)
+			LevelTable.push_back ( m_parameters["Chimera_levels"][i].size());
 
 		ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
 		if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
 			info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
 
-		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
-		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
 		this->pMpc = MpcDataPointerType(new MpcData(m_type));
 		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
@@ -226,7 +225,8 @@ class ApplyChimeraProcessMonolithic : public Process
 	{
 		KRATOS_TRY;
 		// Actual execution of the functionality of this class
-		FormulateChimera();
+
+		DoChimeraLoop();
 
 		KRATOS_CATCH("");
 	}
@@ -265,82 +265,107 @@ class ApplyChimeraProcessMonolithic : public Process
 
 #pragma omp parallel for firstprivate(results, N)
 		//MY NEW LOOP: reset the visited flag
-		for (int i = 0; i < n_boundary_nodes; i++)
 
+	/*
+	   for (int i = 0; i < n_boundary_nodes; i++)
 		{
 			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
 			Node<3>::Pointer p_boundary_node = *(iparticle.base());
 			p_boundary_node->Set(VISITED, false);
 		}
-
+    */
 		for (int i = 0; i < n_boundary_nodes; i++)
 
 		{
 			ModelPart::NodesContainerType::iterator iparticle = rBoundaryModelPart.NodesBegin() + i;
 			Node<3>::Pointer p_boundary_node = *(iparticle.base());
 
-			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+			bool NodeCoupled = false;
+			if ((p_boundary_node)->IsDefined(VISITED))
+				NodeCoupled = (p_boundary_node)->Is(VISITED);
 
-			Element::Pointer pElement;
+				typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-			bool is_found = false;
-			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
+				Element::Pointer pElement;
 
-			// Initialise the boundary nodes dofs to 0 at ever time steps
+				bool is_found = false;
+				is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
 
-			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
-			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
-
-			if (TDim == 3)
-				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
-
-			if (pressure_coupling == "all")
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
-			if (is_found == true)
-			{
-				Geometry<Node<3>> &geom = pElement->GetGeometry();
-
-				for (std::size_t i = 0; i < geom.size(); i++)
+				if (NodeCoupled && is_found)
 				{
-					//Interpolation of velocity
-					p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
-					p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * N[i];
-
 					//Define master slave relation for velocity
-					AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
-					AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
+					RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpc, *p_boundary_node, VELOCITY_X);
+					RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpc, *p_boundary_node, VELOCITY_Y);
 					if (TDim == 3)
 					{
-						//Interpolation of velocity
-						p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
-
 						//Define master slave relation for velocity
-						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
+						RemoveMasterSlaveRelationWithNodesAndVariableComponents(pMpc, *p_boundary_node, VELOCITY_Z);
 					}
 
 					if (pressure_coupling == "all")
 					{
-						//Interpolation of pressure
-						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-
 						//Defining master slave relation for pressure
-						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-
-						counter++;
+						RemoveMasterSlaveRelationWithNodesAndVariable(pMpc, *p_boundary_node, PRESSURE);
 					}
-				} // end of loop over host element nodes
+				}
 
-			} // if (is_found = true)
 
-			// Setting the buffer 1 same buffer 0
-			p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0);
-			p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0);
-			if (TDim == 3)
-				p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0);
+				// Initialise the boundary nodes dofs to 0 at ever time steps
 
-			if (pressure_coupling == "all")
-				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
+				p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) = 0.0;
+				p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) = 0.0;
+
+				if (TDim == 3)
+					p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) = 0.0;
+
+				if (pressure_coupling == "all")
+					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+
+				if (is_found == true)
+				{
+					Geometry<Node<3>> &geom = pElement->GetGeometry();
+
+					for (std::size_t i = 0; i < geom.size(); i++)
+					{
+						//Interpolation of velocity
+						p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_X).GetSolutionStepValue(0) * N[i];
+						p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Y).GetSolutionStepValue(0) * N[i];
+
+						//Define master slave relation for velocity
+						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_X, *p_boundary_node, VELOCITY_X, N[i]);
+						AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Y, *p_boundary_node, VELOCITY_Y, N[i]);
+						if (TDim == 3)
+						{
+							//Interpolation of velocity
+							p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0) += geom[i].GetDof(VELOCITY_Z).GetSolutionStepValue(0) * N[i];
+
+							//Define master slave relation for velocity
+							AddMasterSlaveRelationWithNodesAndVariableComponents(pMpc, geom[i], VELOCITY_Z, *p_boundary_node, VELOCITY_Z, N[i]);
+						}
+
+						if (pressure_coupling == "all")
+						{
+							//Interpolation of pressure
+							p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
+
+							//Defining master slave relation for pressure
+							AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
+
+							counter++;
+						}
+					} // end of loop over host element nodes
+
+				// Setting the buffer 1 same buffer 0
+				p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_X).GetSolutionStepValue(0);
+				p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Y).GetSolutionStepValue(0);
+				if (TDim == 3)
+					p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(1) = p_boundary_node->GetDof(VELOCITY_Z).GetSolutionStepValue(0);
+
+				if (pressure_coupling == "all")
+					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
+			}
+
+			p_boundary_node->Set(VISITED, true);
 
 		} // end of loop over boundary nodes
 
@@ -361,33 +386,41 @@ class ApplyChimeraProcessMonolithic : public Process
 				p_boundary_node = rBoundaryModelPart.pGetNode(node_num);
 			}
 
-			typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+			bool NodeCoupled = false;
+			if ((p_boundary_node)->IsDefined(VISITED))
+				NodeCoupled = (p_boundary_node)->Is(VISITED);
 
-			Element::Pointer pElement;
-
-			bool is_found = false;
-			is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
-
-			//Initialsing pressure to 0 at every time steps
-			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
-
-			if (is_found == true)
+			if (!NodeCoupled)
 			{
-				Geometry<Node<3>> &geom = pElement->GetGeometry();
-				for (std::size_t i = 0; i < geom.size(); i++)
-				{
-					// Interpolation of pressure
-					p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
-					// Defining master slave relation for one pressure node
-					AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
-					counter++;
-				}
-			}
-			// Setting the buffer 1 same buffer 0
-			p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
+				typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-			std::cout << "Coordinates of node that are pressure coupled" << std::endl;
-			std::cout << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
+				Element::Pointer pElement;
+
+				bool is_found = false;
+				is_found = pBinLocator->FindPointOnMesh(p_boundary_node->Coordinates(), N, pElement, result_begin, max_results);
+
+				//Initialsing pressure to 0 at every time steps
+				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) = 0.0;
+
+				if (is_found == true)
+				{
+					Geometry<Node<3>> &geom = pElement->GetGeometry();
+					for (std::size_t i = 0; i < geom.size(); i++)
+					{
+						// Interpolation of pressure
+						p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0) += geom[i].GetDof(PRESSURE).GetSolutionStepValue(0) * N[i];
+						// Defining master slave relation for one pressure node
+						AddMasterSlaveRelationWithNodesAndVariable(pMpc, geom[i], PRESSURE, *p_boundary_node, PRESSURE, N[i]);
+						counter++;
+					}
+				}
+				// Setting the buffer 1 same buffer 0
+				p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(1) = p_boundary_node->GetDof(PRESSURE).GetSolutionStepValue(0);
+
+				std::cout << "Coordinates of node that are pressure coupled" << std::endl;
+				std::cout << p_boundary_node->X() << "," << p_boundary_node->Y() << "," << p_boundary_node->Z() << std::endl;
+			}
+			p_boundary_node->Set(VISITED, true);
 
 		} // end of if (pressure_coupling == "one")
 
@@ -432,23 +465,78 @@ class ApplyChimeraProcessMonolithic : public Process
 		ApplyConservativeCorrections(mrMainModelPart, pMpc);
 	}
 
-	//Apply Chimera with or without overlap
-	void FormulateChimera()
+	void DoChimeraLoop()
 	{
-		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
-		ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
-		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
-		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
-		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
-
-		this->pBinLocatorForBackground->UpdateSearchDatabase();
-		this->pBinLocatorForPatch->UpdateSearchDatabase();
-
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
 		{
 			if (!it->Is(VISITED)) //for multipatch
 				it->Set(ACTIVE, true);
 		}
+
+		for (ModelPart::NodesContainerType::iterator it = mrMainModelPart.NodesBegin(); it != mrMainModelPart.NodesEnd(); ++it)
+		{
+			it->Set(VISITED, false);
+		}
+
+
+		int MainDomainOrNot = 1 ;
+
+		for(int BG_i= 0; BG_i < NumberOfLevels ;BG_i++) // TODO change the names
+		{
+			for(int BG_j= 0; BG_j < LevelTable[BG_i];BG_j++)
+			{
+				for(int patch_i= BG_i+1; patch_i < NumberOfLevels ;patch_i++)
+				{
+					for(int patch_j= 0; patch_j < LevelTable[patch_i];patch_j++)
+					{
+						m_background_model_part_name  =  m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_name"].GetString();
+						m_domain_boundary_model_part_name = m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
+
+						m_patch_model_part_name       =  m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_name"].GetString();
+						m_patch_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_boundary_name"].GetString();
+						m_patch_inside_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
+
+						std::cout<<"Formulating Chimera for the combination background::"<<m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
+
+						MainDomainOrNot = 1 ;
+						if(BG_i == 0)
+							MainDomainOrNot = -1 ;
+
+						FormulateChimera(MainDomainOrNot);
+					}
+				}
+			}
+		}
+
+
+		//yeh yeh yeh finished coding
+	}
+
+	//Apply Chimera with or without overlap
+
+	void FormulateChimera(int MainDomainOrNot)
+	{
+
+		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
+		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
+		ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
+		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
+		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
+
+/* 		std::cout<<"printing my background"<<rBackgroundModelPart<<std::endl;
+		std::cout<<"printing my domain boundary "<<rDomainBoundaryModelPart<<std::endl;
+
+		std::cout<<"printing my patch"<<rPatchModelPart<<std::endl;
+		std::cout<<"printing my patch boundary"<<rPatchBoundaryModelPart<<std::endl;
+		std::cout<<"printing my patch inside boundary"<<rPatchInsideBoundaryModelPart<<std::endl;
+ */
+
+		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
+		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
+
+		this->pBinLocatorForBackground->UpdateSearchDatabase();
+		this->pBinLocatorForPatch->UpdateSearchDatabase();
+
 
 		const double epsilon = 1e-12;
 		if (m_overlap_distance < epsilon)
@@ -468,7 +556,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
 			//this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pOutOfDomainPatchModelPart, *pOutOfDomainPatchBoundaryModelPart);
-			this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart);
+			this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
 
 			//CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
 
@@ -483,10 +571,12 @@ class ApplyChimeraProcessMonolithic : public Process
 			CalculateNodalAreaAndNodalMass(*pModifiedPatchBoundaryModelPart, 1);
 			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
 
+			std::cout<<"Formulate Chimera: Calculated Nodal area and nodal mass "<<std::endl;
+
 			pMpc->SetIsWeak(m_parameters["IsWeak"].GetBool());
 
-			std::string pr_coupling_patch = m_parameters["patch"]["pressure_coupling"].GetString();
-			std::string pr_coupling_background = m_parameters["background"]["pressure_coupling"].GetString();
+			std::string pr_coupling_patch = m_parameters["pressure_coupling"].GetString();
+			std::string pr_coupling_background = m_parameters["pressure_coupling"].GetString();
 
 			if (m_type == "nearest_element")
 			{
@@ -501,9 +591,13 @@ class ApplyChimeraProcessMonolithic : public Process
 				ApplyMpcConstraintConservative(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpc, pr_coupling_background);
 				std::cout << "Patch boundary coupled with background & HoleBoundary  coupled with patch  using conservative approach" << std::endl;
 			}
+
+			std::cout<<"Formulate Chimera: Appplied MPCs "<<std::endl;
 		}
 
 		//pMpc->GetInfo();
+
+		std::cout<<"End of Formulate Chimera"<<std::endl;
 	}
 
 	// This function removes all the boundaries common to first and second but retain rest of the boundaries
@@ -890,6 +984,44 @@ void AddMasterSlaveRelationWithNodeIdsAndVariable(MpcDataPointerType pMpc, Index
 	AddMasterSlaveRelationWithDofs(pMpc, pointerSlaveDOF, pointerMasterDOF, weight, constant);
 }
 
+
+// REMOVE
+
+
+    // Remove constraints
+    void RemoveMasterSlaveRelationWithNodesAndVariableComponents(MpcDataPointerType pMpc, Node<3> &SlaveNode, VariableComponentType &SlaveVariable)
+    {
+        SlaveNode.Set(SLAVE);
+        DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+        RemoveMasterSlaveRelationWithDofs(pMpc,pointerSlaveDOF);
+    }
+
+    void RemoveMasterSlaveRelationWithNodeIdsAndVariableComponents(MpcDataPointerType pMpc, IndexType SlaveNodeId, VariableComponentType &SlaveVariable)
+    {
+        Node<3> &SlaveNode = mrMainModelPart.Nodes()[SlaveNodeId];
+        SlaveNode.Set(SLAVE, false);
+        DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+        RemoveMasterSlaveRelationWithDofs(pMpc,pointerSlaveDOF);
+    }
+
+    // Functions with use two variables
+    void RemoveMasterSlaveRelationWithNodesAndVariable(MpcDataPointerType pMpc, Node<3> &SlaveNode, VariableType &SlaveVariable)
+    {
+        SlaveNode.Set(SLAVE);
+        DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+        RemoveMasterSlaveRelationWithDofs(pMpc,pointerSlaveDOF);
+    }
+
+    void RemoveMasterSlaveRelationWithNodeIdsAndVariable(MpcDataPointerType pMpc, IndexType SlaveNodeId, VariableType &SlaveVariable)
+    {
+        Node<3> &SlaveNode = mrMainModelPart.Nodes()[SlaveNodeId];
+        SlaveNode.Set(SLAVE, false);
+        DofType &pointerSlaveDOF = SlaveNode.GetDof(SlaveVariable);
+        RemoveMasterSlaveRelationWithDofs(pMpc,pointerSlaveDOF);
+    }
+
+
+
 // Default functions
 /**
 		Applies the MPC condition using DOFs, one as master and other as slave, and with the given weight
@@ -901,6 +1033,12 @@ void AddMasterSlaveRelationWithDofs(MpcDataPointerType pMpc, DofType slaveDOF, D
 {
 	pMpc->AddConstraint(slaveDOF, masterDOF, masterWeight, constant);
 }
+
+void RemoveMasterSlaveRelationWithDofs(MpcDataPointerType pMpc,DofType slaveDOF)
+{
+	pMpc->RemoveConstraint(slaveDOF);
+}
+
 
 void AddNodalNormalSlaveRelationWithDofs(MpcDataPointerType pMpc, DofType slaveDOF, double nodalNormalComponent = 0.0)
 {
@@ -1031,6 +1169,8 @@ CustomHoleCuttingProcess::Pointer pHoleCuttingProcess;
 typename CustomCalculateSignedDistanceProcess<TDim>::Pointer pCalculateDistanceProcess;
 ModelPart &mrMainModelPart;
 double m_overlap_distance;
+int NumberOfLevels;
+std::vector<int> LevelTable;
 
 Parameters m_parameters;
 std::string m_background_model_part_name;

@@ -235,11 +235,15 @@ class MpcData
         }
     }
 
+    void RemoveConstraint(DofType &SlaveDof)
+    {
+        std::size_t slaveVariableKey = SlaveDof.GetVariable().Key();
+        mDofConstraints.erase(std::make_pair(SlaveDof.Id(), slaveVariableKey));
+    }
+
     void AddNodalNormalToSlaveDof(DofType &SlaveDof, double nodalNormalComponent = 0.0)
     {
-
         std::size_t slaveVariableKey = SlaveDof.GetVariable().Key();
-
         mSlaveDofToNodalNormalMap.insert({std::make_pair(SlaveDof.Id(), slaveVariableKey), nodalNormalComponent});
     }
 

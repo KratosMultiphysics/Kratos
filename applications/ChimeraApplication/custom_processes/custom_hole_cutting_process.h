@@ -372,12 +372,14 @@ class CustomHoleCuttingProcess
 	}
 
 
-	void RemoveOutOfDomainPatchAndReturnModifiedPatch(ModelPart &rModelPart,ModelPart &rInsideBoundary, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart)
+	void RemoveOutOfDomainPatchAndReturnModifiedPatch(ModelPart &rModelPart,ModelPart &rInsideBoundary, ModelPart &rExtractedModelPart, ModelPart &rExtractedBoundaryModelPart,int MainDomainOrNot)
 	{
 		KRATOS_TRY;
 
 		std::cout << "\n:: Removing Out Of Domain Patch with Inside boundary Given ::" << std::endl;
 		std::vector<std::size_t> vector_of_node_ids;
+
+		int count = 0;
 
 		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
 		{
@@ -390,7 +392,10 @@ class CustomHoleCuttingProcess
 			for (j = 0; j < geom.size(); j++)
 			{
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
-				if (elementDistance > 0)
+
+				elementDistance = elementDistance*MainDomainOrNot;
+
+				if (elementDistance < 0)
 				{
 					numPointsOutside++;
 				}
@@ -418,6 +423,7 @@ class CustomHoleCuttingProcess
 			}
 			 else
 			{
+				count++;
 				Element::Pointer pElem = *(it.base());
 				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
 				rExtractedModelPart.Elements().push_back(pElem);
@@ -426,6 +432,7 @@ class CustomHoleCuttingProcess
 			}
 		}
 
+		std::cout<<" Rishith printing number of elements added to modified patch part"<<count<<std::endl;
 		//sorting and making unique list of node ids
 		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
 		vector_of_node_ids.assign(s.begin(), s.end());
@@ -821,7 +828,6 @@ class CustomHoleCuttingProcess
 
 					//std::cout<<"First Node: "<<original_nodes_order[0]<<std::endl;
 					//std::cout<<"Second Node: "<<original_nodes_order[1]<<std::endl;
-
 					Node<3>::Pointer pnode1 = rSurfaceModelPart.Nodes()(original_nodes_order[0]);
 					Node<3>::Pointer pnode2 = rSurfaceModelPart.Nodes()(original_nodes_order[1]);
 
@@ -853,7 +859,7 @@ class CustomHoleCuttingProcess
 			rExtractedBoundaryModelPart.AddNode(pnode);
 		}
 
-		std::cout << "Successful extraction of the Boundary " << rExtractedBoundaryModelPart.GetMesh() << std::endl;
+		std::cout << "Successful extraction of the Boundary Rishith " << rExtractedBoundaryModelPart.GetMesh() << std::endl;
 
 		KRATOS_CATCH("");
 	}
