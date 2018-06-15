@@ -102,11 +102,7 @@ class AdjointFluidSolver(PythonSolver):
         self.solver.Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.solver.SolveSolutionStep()
-        if not is_converged and self._IsPrintingRank():
-            msg  = "Adjoint fluid solver did not converge for iteration " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
-            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__,msg)
+        self.solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
