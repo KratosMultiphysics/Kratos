@@ -2,7 +2,7 @@
 //   Project Name:        KratosConstitutiveModelsApplication $
 //   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                   April 2017 $
+//   Date:                $Date:                   April 2018 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -12,8 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/linear_elastic_model.hpp"
-#include "utilities/quaternion.h"
+#include "custom_models/elasticity_models/hypo_elastic_model.hpp"
 
 namespace Kratos
 {
@@ -95,11 +94,8 @@ namespace Kratos
 
     // ConstitutiveModelData::StressMeasure_Kirchhoff  allowed only
 
-    // spatial velocity gradient
-    const MatrixType& rSpatialVelocityGradient = rValues.GetDeltaDeformationMatrix();
-
     // symmetric spatial velocity gradient
-    rValues.StrainMatrix = 0.5 * (rSpatialVelocityGradient + trans(rSpatialVelocityGradient));
+    noalias(rVariables.StrainMatrix) = 0.5 * (rValues.StrainMatrix + trans(rValues.StrainMatrix)); // spatial velocity gradient is rValues.StrainMatrix
     
     rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
     rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu; 
@@ -119,6 +115,26 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+  //************// W
+    
+  void HypoElasticModel::CalculateAndAddIsochoricStrainEnergy(ElasticDataType& rVariables, double& rIsochoricDensityFunction)
+  {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "calling the base class function in HypoElasticModel ... illegal operation" << std::endl;
+    
+    KRATOS_CATCH(" ")
+  }
+    
+    
+  void HypoElasticModel::CalculateAndAddVolumetricStrainEnergy(ElasticDataType& rVariables, double& rVolumetricDensityFunction)
+  {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "calling the base class function in HypoElasticModel ... illegal operation" << std::endl;
+	
+    KRATOS_CATCH(" ")
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -136,14 +152,14 @@ namespace Kratos
     MatrixType W = 0.5 * rDeltaTime * (rSpatialVelocityGradient - trans(rSpatialVelocityGradient));
 
     // Exponential map using quaternions
-    Quaternion<double> QuaternionValue = QuaternionType<double>::FromRotationMatrix( W );
+    Quaternion<double> QuaternionValue = Quaternion<double>::FromRotationMatrix( W );
     QuaternionValue.ToRotationMatrix(W);
     
     MatrixType PreviousStressMatrix;
-    PreviousStressMatrix = ConstitutiveModelUtilities::SymmetricTensorToVector(this->HistoryVector, PreviousStressMatrix);
+    PreviousStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector, PreviousStressMatrix);
 
     PreviousStressMatrix = prod( W, PreviousStressMatrix );
-    PreviousStressMatrix = prod( PreviousstressMatrix, trans(W) );
+    PreviousStressMatrix = prod( PreviousStressMatrix, trans(W) );
 
     rStressMatrix += PreviousStressMatrix;
 
@@ -165,7 +181,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
 
     this->CalculateAndAddConstitutiveTensor(Variables);
     
@@ -179,6 +195,8 @@ namespace Kratos
     
     // Total stress stored in the HistoryVector
     this->AddHistoricalStress(rValues, rStressMatrix);    
+
+    Variables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
     KRATOS_CATCH(" ")
   }
@@ -192,9 +210,7 @@ namespace Kratos
     KRATOS_TRY
 
     noalias(rStressVector) = prod(rVariables.ConstitutiveTensor,rStrainVector);
-    
-    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
-    
+        
     KRATOS_CATCH(" ")
   }
   
@@ -210,7 +226,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
 
     this->CalculateAndAddConstitutiveTensor(Variables);
     
@@ -224,6 +240,8 @@ namespace Kratos
     
     // Isochoric stress stored in the HistoryVector
     this->AddHistoricalStress(rValues, rStressMatrix);
+
+    Variables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
     
     KRATOS_CATCH(" ")
   }
@@ -243,9 +261,7 @@ namespace Kratos
     rStressVector[0] -= MeanStress;
     rStressVector[1] -= MeanStress;
     rStressVector[2] -= MeanStress;
-	
-    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
-	
+		
     KRATOS_CATCH(" ")
   }
 
@@ -257,7 +273,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    this->CalculateStressTensor( rValues, rStressMatrix);
+    this->CalculateStressTensor( rValues, rStressMatrix );
     double MeanPressure = 0;
     for (unsigned int i = 0; i < 3; i++)
        MeanPressure += rStressMatrix(i,i)/3.0;
@@ -369,7 +385,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
 
     //Set constitutive matrix to zero before adding
     rConstitutiveMatrix.clear();
@@ -381,6 +397,11 @@ namespace Kratos
 
     rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
 
+    // Rate to stress value
+    rStressMatrix *= rValues.GetProcessInfo()[DELTA_TIME];
+    
+    // Total stress stored in the HistoryVector
+    this->AddHistoricalStress(rValues, rStressMatrix);
     
     KRATOS_CATCH(" ")
   }

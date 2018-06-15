@@ -132,6 +132,17 @@ Element::Pointer SolidShellElementSprism3D6N::Create(
     return Kratos::make_shared<SolidShellElementSprism3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer SolidShellElementSprism3D6N::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<SolidShellElementSprism3D6N>(NewId, pGeom, pProperties);
+}
+
 /*********************************** CLONE ******************************************/
 /************************************************************************************/
 

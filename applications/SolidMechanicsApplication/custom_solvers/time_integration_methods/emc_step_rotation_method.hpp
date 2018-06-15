@@ -79,6 +79,15 @@ namespace Kratos
     
     /// Default Constructor.
     EmcStepRotationMethod() : DerivedType() {}
+    
+    /// Constructor.
+    EmcStepRotationMethod(const TVariableType& rVariable) : DerivedType(rVariable) {}
+    
+    /// Constructor.
+    EmcStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative) {}
+    
+    /// Constructor.
+    EmcStepRotationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : DerivedType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
 
     /// Copy Constructor.
     EmcStepRotationMethod(EmcStepRotationMethod& rOther) : DerivedType(rOther) {}

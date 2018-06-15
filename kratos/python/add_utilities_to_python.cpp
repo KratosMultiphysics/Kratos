@@ -33,6 +33,7 @@
 #include "utilities/activation_utilities.h"
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/condition_number_utility.h"
+#include "utilities/mortar_utilities.h"
 
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
@@ -51,6 +52,7 @@
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 namespace Kratos
 {
@@ -444,6 +446,20 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
+    ;
+
+    // Mortar utilities
+    class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
+    .def(init<>())
+    .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
+    ;
+
+    // SubModelParts List Utility
+    class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
+    .def(init<ModelPart&>())
+    .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
+    .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
+    .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 }
 

@@ -22,6 +22,7 @@
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "utilities/geometrical_sensitivity_utility.h"
 
 namespace Kratos
 {
@@ -250,6 +251,10 @@ public:
         VectorType& rRightHandSideVector, 
         ProcessInfo& rCurrentProcessInfo
         ) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
       * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
@@ -680,7 +685,9 @@ protected:
         const unsigned int PointNumber,
         const double detJ
         );
-    
+
+    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
+
     ///@}
     ///@name Protected  Access
     ///@{

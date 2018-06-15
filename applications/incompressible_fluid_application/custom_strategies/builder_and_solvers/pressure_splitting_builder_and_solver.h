@@ -1025,9 +1025,8 @@ public:
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& rCurrentProcessInfo)
+        ModelPart& r_model_part
+        )
     {
         KRATOS_TRY;
 
@@ -1102,7 +1101,7 @@ public:
             D.resize(mPressFreeDofs, mVelFreeDofs, false);
             L.resize(mPressFreeDofs, mPressFreeDofs, false);
 
-            ConstructMatrixStructure(pScheme, S, D, G, L, rElements, rConditions, rCurrentProcessInfo);
+            ConstructMatrixStructure(pScheme, S, D, G, L, r_model_part);
 
             A.resize(mPressFreeDofs, mPressFreeDofs, false);
             IDiagS.resize(mVelFreeDofs);
@@ -1285,9 +1284,7 @@ protected:
         TSystemMatrixType& D,
         TSystemMatrixType& G,
         TSystemMatrixType& L,
-        const ElementsContainerType& rElements,
-        const ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo)
+        ModelPart& rModelPart)
     {
         std::vector< std::vector<std::size_t> > indicesS(mVelFreeDofs);
         std::vector< std::vector<std::size_t> > indicesG(mVelFreeDofs);
@@ -1298,8 +1295,8 @@ protected:
         ids.reserve(16); // 16 as initial capacity: 4 Dofs per node assumed
 
         // Identify and collect the indices of non-zero terms in each matrix
-        for (typename ElementsContainerType::const_iterator itElem = rElements.begin();
-                itElem != rElements.end(); itElem++)
+        for (typename ElementsContainerType::const_iterator itElem = rModelPart.ElementsBegin();
+                itElem != rModelPart.ElementsEnd(); itElem++)
         {
             pScheme->EquationId( *(itElem.base()) , ids, CurrentProcessInfo);
 
@@ -1333,8 +1330,8 @@ protected:
         }
 
         // Do the same for conditions
-        for (typename ConditionsArrayType::const_iterator itCond = rConditions.begin();
-                itCond != rConditions.end(); itCond++)
+        for (typename ConditionsArrayType::const_iterator itCond = rModelPart.ConditionsBegin();
+                itCond != rModelPart.ConditionsEnd(); itCond++)
         {            
             pScheme->Condition_EquationId( *(itCond.base()), ids, CurrentProcessInfo);
 

@@ -85,7 +85,7 @@
         "Parameters"    : {
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_Parts_Auto1",
-            "contact_model_part"          : "CONTACT_Contact_Auto1",
+            "contact_model_part"          : ["CONTACT_Contact_Auto1"],
             "contact_type"                : "Frictionless"
         }
     }

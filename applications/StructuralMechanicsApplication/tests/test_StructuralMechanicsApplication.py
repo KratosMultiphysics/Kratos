@@ -104,6 +104,8 @@ from structural_mechanics_test_factory import MembraneQ4TrussPointLoadTests as T
 from structural_mechanics_test_factory import Simple3D2NTrussTest as T3D2NTrussTest
 from structural_mechanics_test_factory import Simple3D2NTrussLinearTest as T3D2NTrussLinearTest
 from structural_mechanics_test_factory import Simple3D2NTrussDynamicTest as T3D2NTrussDynamicTest
+from structural_mechanics_test_factory import Simple3D2NTrussLinearCompressionPlasticTest as T3D2NTrussLinearCompressionPlasticTest
+from structural_mechanics_test_factory import Simple3D2NTrussLinearTensionPlasticTest as T3D2NTrussLinearTensionPlasticTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrTest as T3D2NBeamCrTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
@@ -229,9 +231,9 @@ def AssembleTestSuites():
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Basic restart test (leave these in the smallSuite to have the Exection script tested)
-    smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
-    smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
-    smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
+    #smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
+    #smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
+    #smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
@@ -273,6 +275,8 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
     nightSuite.addTest(T3D2NTrussTest('test_execution'))
+    nightSuite.addTest(T3D2NTrussLinearCompressionPlasticTest('test_execution'))
+    nightSuite.addTest(T3D2NTrussLinearTensionPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
@@ -361,21 +365,21 @@ def AssembleTestSuites():
 
 
 if __name__ == '__main__':
-    print("\nRunning cpp unit tests ...")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
     run_cpp_unit_tests.run()
-    print("Finished running cpp unit tests!")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
-    print("\nRunning mpi python tests ...")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
     try:
         import KratosMultiphysics.mpi as KratosMPI
         import KratosMultiphysics.MetisApplication as MetisApplication
         import KratosMultiphysics.TrilinosApplication as TrilinosApplication
         p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_StructuralMechanicsApplication_mpi.py"], stdout=subprocess.PIPE)
         p.wait()
-        print("Finished mpi python tests!")
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
     except ImportError:
-        print("mpi is not available!")
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
 
-    print("\nRunning python tests ...")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
-    print("Finished python tests!")
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

@@ -13,8 +13,8 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import structural_mechanics_solver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return ImplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return ImplicitMechanicalSolver(model, custom_settings)
 
 
 class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
@@ -28,7 +28,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
@@ -42,7 +42,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
 
         # Construct the base solver.
-        super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(ImplicitMechanicalSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
         # Setting minimum buffer

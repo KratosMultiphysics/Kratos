@@ -1,10 +1,15 @@
 {
-    "input_settings":{
+    "input_settings" : {
 	"materials_file_name" : "element_tests/shell_elements/thin_shell_materials.json"
     },
-    "problem_data"             : {
+    "problem_data" : {
         "problem_name" : "thin_triangular_shell_bending",
         "echo_level"   : 0
+    },
+    "time_settings" : {
+        "time_step"  : 0.05,
+        "start_time" : 0.0,
+        "end_time"   : 0.1
     },
     "model_settings"           : {
         "model_name"           : "thin_triangular_shell_bending",
@@ -18,25 +23,21 @@
     "solver_settings"          : {
         "solver_type" : "solid_mechanics_static_solver",
         "Parameters"  : {
-            "time_settings"             : {
-                "time_step"  : 0.05,
-                "start_time" : 0.0,
-                "end_time"   : 0.1
-            },
             "time_integration_settings" : {
-                "solution_type"      : "Static",
-                "integration_method" : "Non-Linear"
+		"solution_type"      : "Quasi-static",
+                "analysis_type"      : "Non-linear",
+		"integration_method" : "Static"
             },
             "solving_strategy_settings" : {
                 "line_search"                 : false,
+		"max_iteration"               : 30
+	    },
+	    "convergence_criterion_settings" : {
                 "convergence_criterion"       : "Residual_criterion",
-                "variable_relative_tolerance" : 0.0001,
-                "variable_absolute_tolerance" : 1e-9,
                 "residual_relative_tolerance" : 1e-6,
-                "residual_absolute_tolerance" : 1e-6,
-                "max_iteration"               : 30
+                "residual_absolute_tolerance" : 1e-6
             },
-	    "dofs" : ["ROTATION"]
+	    "dofs" : ["DISPLACEMENT","ROTATION"]
         }
     },
     "constraints_process_list" : [{
@@ -74,7 +75,7 @@
         "python_module"   : "json_output_process",
         "kratos_module"   : "KratosMultiphysics",
         "Parameters"      : {
-            "output_variables" : ["DISPLACEMENT_X","REACTION_X"],
+            "output_variables" : ["DISPLACEMENT_X","DISPLACEMENT_REACTION_X"],
             "output_file_name" : "element_tests/shell_elements/thin_triangular_shell_bending_results.json",
             "model_part_name"  : "Parts_Parts_Auto1",
             "time_frequency"   : 0.05
@@ -86,7 +87,7 @@
         "python_module"   : "from_json_check_result_process",
         "kratos_module"   : "KratosMultiphysics",
         "Parameters"      : {
-            "check_variables" : ["DISPLACEMENT_X","REACTION_X"],
+            "check_variables" : ["DISPLACEMENT_X","DISPLACEMENT_REACTION_X"],
             "input_file_name" : "element_tests/shell_elements/thin_triangular_shell_bending_results.json",
             "model_part_name"  : "Parts_Parts_Auto1",
             "time_frequency"   : 0.05

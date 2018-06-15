@@ -192,6 +192,14 @@ protected:
     void CalculateVelocityGradient(Matrix& rH,
                                    const Matrix& rDN_DX,
                                    unsigned int step = 0);
+
+    /**
+     * Calculation of the velocity gradient
+     */
+    void CalculateVelocityGradientVector(Vector& rH,
+                                         const Matrix& rDN_DX,
+                                         unsigned int step = 0);
+
     
     /**
      * Calculation of the symmetric velocity gradient Vector

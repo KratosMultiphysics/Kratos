@@ -81,6 +81,9 @@ class Solution(object):
 
         sys.stdout.flush()
 
+        # Set time settings
+        self._get_time_settings()
+
         # Initialize Solver
         computing_model_part = self.model.GetComputingModelPart()
         self.solver.SetComputingModelPart(computing_model_part)
@@ -117,13 +120,6 @@ class Solution(object):
 
         print(" ")
         print("::[KSM Simulation]:: Analysis -START- ")
-
-        # Set time settings
-        self.step       = self.process_info[KratosMultiphysics.STEP]
-        self.time       = self.process_info[KratosMultiphysics.TIME]
-
-        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
-        self.end_time   = self.solver.GetEndTime()
 
         sys.stdout.flush()
 
@@ -280,6 +276,32 @@ class Solution(object):
     def _get_solver(self):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
         return (solver_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"]))
+
+    def _get_time_settings(self):
+
+        # Get time parameters
+        if( self._is_not_restarted() ):
+            if( self.ProjectParameters.Has("time_settings") ):
+                time_settings = self.ProjectParameters["time_settings"]
+                time_increment = 1.0
+                if( self.ProjectParameters["time_settings"].Has("time_step") ):
+                    time_increment = time_settings["time_step"].GetDouble()
+                    self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_increment)
+                initial_time = 0.0
+                if( self.ProjectParameters["time_settings"].Has("start_time") ):
+                    initial_time = time_settings["start_time"].GetDouble()
+                self.process_info.SetValue(KratosMultiphysics.TIME, initial_time)
+
+        # Set time parameters
+        self.step       = self.process_info[KratosMultiphysics.STEP]
+        self.time       = self.process_info[KratosMultiphysics.TIME]
+
+        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
+
+        self.end_time   = self.time + self.delta_time
+        if( self.ProjectParameters.Has("time_settings") ):
+            if( self.ProjectParameters["time_settings"].Has("end_time") ):
+                self.end_time = self.ProjectParameters["time_settings"]["end_time"].GetDouble()
 
     def _import_materials(self):
         # Assign material to model_parts (if Materials.json exists)

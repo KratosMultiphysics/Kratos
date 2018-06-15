@@ -155,7 +155,7 @@ namespace Kratos
 	permute[6]=2;
 
 
-	boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+	DenseMatrix<unsigned int> lpofa; //points that define the faces
 	GetGeometry().NodesInFaces(lpofa);
 
 	//reorder counter-clock-wise

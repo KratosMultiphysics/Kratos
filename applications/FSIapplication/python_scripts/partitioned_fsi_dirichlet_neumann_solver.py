@@ -26,14 +26,14 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 # Import base class file
 import partitioned_fsi_base_solver
 
-def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
-    return PartitionedFSIDirichletNeumannSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
+def CreateSolver(model, project_parameters):
+    return PartitionedFSIDirichletNeumannSolver(model, project_parameters)
 
 class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.PartitionedFSIBaseSolver):
-    def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
+    def __init__(self, model, project_parameters):
 
         print("*** Partitioned Dirichlet-Neumann FSI solver construction starts...")
-        super(PartitionedFSIDirichletNeumannSolver, self).__init__(structure_main_model_part, fluid_main_model_part, project_parameters)
+        super(PartitionedFSIDirichletNeumannSolver, self).__init__(model, project_parameters)
         print("*** Partitioned Dirichlet-Neumann FSI solver construction finished.")
 
 

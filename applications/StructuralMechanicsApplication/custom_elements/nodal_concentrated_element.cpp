@@ -76,16 +76,28 @@ NodalConcentratedElement&  NodalConcentratedElement::operator=(NodalConcentrated
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
-Element::Pointer NodalConcentratedElement::Create( 
+Element::Pointer NodalConcentratedElement::Create(
+    IndexType NewId,
+    NodesArrayType const& rThisNodes,
+    PropertiesType::Pointer pProperties
+    ) const
+{
+    //NEEDED TO CREATE AN ELEMENT
+    return Kratos::make_shared<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping );
+}
+
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer NodalConcentratedElement::Create(
     IndexType NewId, 
-    NodesArrayType const& rThisNodes, 
+    GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties 
     ) const
 {
     //NEEDED TO CREATE AN ELEMENT   
-    return Kratos::make_shared<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping );
+    return Kratos::make_shared<NodalConcentratedElement>( NewId, pGeom, pProperties, mUseRayleighDamping );
 }
-
 
 //************************************CLONE*******************************************
 //************************************************************************************

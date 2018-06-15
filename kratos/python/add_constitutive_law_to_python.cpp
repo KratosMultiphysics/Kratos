@@ -149,6 +149,7 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     
     class_< ConstitutiveLaw, ConstitutiveLaw::Pointer , Flags >(m,"ConstitutiveLaw")
     .def(init<>() )
+    .def("Create",&ConstitutiveLaw::Create)
     .def("Clone",&ConstitutiveLaw::Clone)
     .def("WorkingSpaceDimension",&ConstitutiveLaw::WorkingSpaceDimension)
     .def("GetStrainSize",&ConstitutiveLaw::GetStrainSize)
