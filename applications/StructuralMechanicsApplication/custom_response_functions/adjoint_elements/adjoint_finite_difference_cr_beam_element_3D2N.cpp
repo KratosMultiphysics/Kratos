@@ -272,48 +272,6 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Matrix >& rV
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferenceCrBeamElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                        std::vector<double>& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    if(this->Has(rVariable))
-    {
-        // Get result value for output
-        double output_value = this->GetValue(rVariable);
-
-        // Resize Output
-        const unsigned int&  write_points_number = GetGeometry()
-            .IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3); // TODO use  GetIntegrationMethod()
-        if (rOutput.size() != write_points_number)
-        {
-            rOutput.resize(write_points_number);
-        }
-
-        // Write scalar result value on all Gauss-Points
-        for(unsigned int i = 0; i < write_points_number; ++i)
-        {
-            rOutput[i] = output_value;
-        }
-    }
-    else
-        KRATOS_ERROR << "Unsupported output variable." << std::endl;
-
-
-    KRATOS_CATCH("")
-
-}
-
-void AdjointFiniteDifferenceCrBeamElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                        std::vector<double>& rValues,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
 int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

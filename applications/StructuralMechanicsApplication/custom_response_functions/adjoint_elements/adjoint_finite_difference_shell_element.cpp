@@ -318,46 +318,6 @@ void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Matrix >& r
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingShellElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                          std::vector<double>& rOutput,
-                          const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    if(this->Has(rVariable))
-    {
-        // Get result value for output
-        double output_value = this->GetValue(rVariable);
-        const SizeType num_gps = mpPrimalShellElement->GetNumberOfGPs(); //TODO?
-
-        // Resize Output
-        if(rOutput.size() != num_gps)
-            rOutput.resize(num_gps);
-
-        // Write scalar result value on all Gauss-Points
-        for(unsigned int i = 0; i < num_gps; i++)
-            rOutput[i] = output_value;
-
-        //OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);
-    }
-    else
-        KRATOS_ERROR << "Unsupported output variable." << std::endl;
-
-
-
-    KRATOS_CATCH("")
-
-}
-
-void AdjointFiniteDifferencingShellElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                    std::vector<double>& rValues,
-                    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    KRATOS_CATCH("")
-}
-
 int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

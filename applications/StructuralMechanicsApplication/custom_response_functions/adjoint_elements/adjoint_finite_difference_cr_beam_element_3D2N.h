@@ -68,14 +68,6 @@ public:
                         Matrix& rOutput,
                         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                        std::vector<double>& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                        std::vector<double>& rValues,
-                        const ProcessInfo& rCurrentProcessInfo) override;
-
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:

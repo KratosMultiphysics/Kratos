@@ -86,11 +86,6 @@ public:
     ///@name Informations
     ///@{
 
-    SizeType WorkingSpaceDimension() const
-    {
-         return mpPrimalElement->WorkingSpaceDimension();
-    }
-
     ///@name Operations
     ///@{
 
@@ -104,6 +99,12 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+
+        
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mpPrimalElement->GetIntegrationMethod();
+    }
 
     void GetValuesVector(Vector& values, int Step = 0) override;
 
@@ -298,14 +299,52 @@ public:
 
     // TODO evaluate if other Calculate functions are necessary
 
-    // TODO add functions from element.h line 744 - 882
     // Results calculation on integration points
+    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+					      std::vector<bool>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
-                                        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+					      std::vector<double>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }                      
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					      std::vector< array_1d<double, 3 > >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
 
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+					      std::vector< array_1d<double, 6 > >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
+					      std::vector< Vector >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+					      std::vector< Matrix >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -326,34 +365,6 @@ public:
     void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
                                             const Variable<Vector>& rStressVariable,
                                              Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-    PropertiesType::Pointer pGetProperties()
-    {
-        return mpPrimalElement->pGetProperties();
-    }
-
-    const PropertiesType::Pointer pGetProperties() const
-    {
-        return mpPrimalElement->pGetProperties();
-    }
-
-    PropertiesType& GetProperties()
-    {
-        return mpPrimalElement->GetProperties();
-    }
-
-    PropertiesType const& GetProperties() const
-    {
-        return mpPrimalElement->GetProperties();
-    }
-
-    void SetProperties(PropertiesType::Pointer pProperties)
-    {
-        mpPrimalElement->SetProperties(pProperties);
-    }
-
-    // TODO add functions from element.h line 1050 - 1157
-
     ///@}
 
     ///@name Public specialized Access - Temporary
