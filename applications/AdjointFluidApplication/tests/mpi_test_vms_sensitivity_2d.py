@@ -1,8 +1,10 @@
 import os
-from KratosMultiphysics import *
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import test_MainKratosMPI
+from fluid_dynamics_analysis import FluidDynamicsAnalysis
+from adjoint_fluid_analysis import AdjointFluidAnalysis
 
 class ControlledExecutionScope:
     def __init__(self, scope):
@@ -29,26 +31,27 @@ class TestCase(KratosUnittest.TestCase):
             if name.find(model_part_name) == 0:
                 self._remove_file(name)
 
-    def _create_test(self, parameter_file_name):
-        with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
-            project_parameters = Parameters(parameter_file.read())
-            parameter_file.close()
-        test = test_MainKratosMPI.MainKratos(project_parameters)
-        return test
-
-    def solve(self, parameter_file_name):
-        test = self._create_test(parameter_file_name)
-        test.Solve()
-
     def test_Cylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # solve fluid
-            self.solve('test_vms_sensitivity_2d/mpi_cylinder_test')
-            # solve adjoint
-            test = self._create_test('test_vms_sensitivity_2d/mpi_cylinder_test_adjoint')
-            test.Solve()
+            model = Kratos.Model()
+            with open('test_vms_sensitivity_2d/mpi_cylinder_test_parameters.json', 'r') as parameter_file:
+                project_parameters = Kratos.Parameters(parameter_file.read())
+                parameter_file.close()            
+            primal_simulation = FluidDynamicsAnalysis(model,project_parameters)
+            primal_simulation.Run()
             KratosMPI.mpi.world.barrier()
-            rank = test.main_model_part.GetCommunicator().MyPID()
+
+            # solve adjoint
+            with open('test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_parameters.json', 'r') as parameter_file:
+                project_parameters = Kratos.Parameters(parameter_file.read())
+                parameter_file.close()  
+
+            adjoint_model = Kratos.Model()
+            adjoint_simulation = AdjointFluidAnalysis(adjoint_model,project_parameters)
+            adjoint_simulation.Run()
+            KratosMPI.mpi.world.barrier()
+            rank = adjoint_simulation._solver.main_model_part.GetCommunicator().MyPID()
             # remove files
             if rank == 0:
                 self._remove_file("./test_vms_sensitivity_2d/mpi_cylinder_test_probe1.dat")
@@ -57,7 +60,7 @@ class TestCase(KratosUnittest.TestCase):
                 self._remove_file("./test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe2.dat")
                 self._remove_file("./test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe3.dat")
                 self._remove_file("./test_vms_sensitivity_2d/cylinder_test.time")
-                self._remove_h5_files("MainModelPart")
+                self._remove_h5_files("primal")
             self._remove_file("./test_vms_sensitivity_2d/cylinder_test_" + str(rank) + ".time")
             self._remove_file("./test_vms_sensitivity_2d/cylinder_test_" + str(rank) + ".mdpa")
 
