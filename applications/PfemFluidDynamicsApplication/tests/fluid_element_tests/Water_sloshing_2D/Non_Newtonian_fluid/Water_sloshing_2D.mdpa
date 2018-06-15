@@ -6,8 +6,11 @@ Begin Properties 0
 End Properties
 Begin Properties 1
     DENSITY 1000.0
-    VISCOSITY 1000.0
+    VISCOSITY 0.001
     BULK_MODULUS 2150000000.0
+    FLOW_INDEX 0.5
+    YIELD_SHEAR 100.0
+    ADAPTIVE_EXPONENT 1000
 End Properties
 
 Begin Properties 2
