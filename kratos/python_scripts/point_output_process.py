@@ -115,7 +115,14 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # NOTE: If the search was not successful (i.e. found_id = -1), we fail silently and
         # do nothing. This is BY DESIGN, as we are supposed to work on MPI too, and the point
         # in question might lie on a different partition.
-        if found_id > -1:
+        # Here we also check if the point has been found in more than one partition
+        # In sich a case only one rank (the one with the larger PID) writes the output!
+        my_rank = -1 # dummy to indicate that the point is not in my partition
+        if found_id > -1: # the point lies in my partition
+            my_rank = self.model_part.GetCommunicator().MyPID()
+        writing_rank = self.model_part.GetCommunicator().MaxAll(my_rank) # The partition with the larger rank writes
+
+        if my_rank == writing_rank:
             # setting up the output_file
             raw_path, output_file_name = os.path.split(self.params["output_file_name"].GetString())
             if output_file_name == "":
@@ -142,9 +149,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
                     warn_msg += 'Using the current directory instead'
                     KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
 
-            if not os.path.isdir(output_folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
+            if not os.path.isdir(output_folder_path):
                 os.makedirs(output_folder_path)
-            self.model_part.GetCommunicator().Barrier()
 
             output_file_name = os.path.join(output_folder_path, output_file_name)
 

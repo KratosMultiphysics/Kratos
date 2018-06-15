@@ -89,7 +89,6 @@ def AddToExistingOutputFile(output_file_name, file_header, restart_time):
         with open(output_file_name,'r') as out_file:
             lines_existing_file = out_file.readlines()
 
-
         # search for time, return false if it was not found
         # copy corresponding lines to new file and open it
         is_found = False
