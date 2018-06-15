@@ -32,15 +32,15 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
 
     Parameters default_parameters = Parameters(R"(
     {
-        "element_name"                        : "SolidShellElementSprism3D6N",
-        "new_constitutive_law_name"           : "",
-        "model_part_name"                     : "",
-        "number_of_layers"                    : 1,
-        "export_to_mdpa"                      : false,
-        "output_name"                         : "output",
-        "computing_model_part_name"           : "computing_domain",
-        "create_submodelparts_external_layers": false,
-        "initialize_elements"                 : false
+        "element_name"                         : "SolidShellElementSprism3D6N",
+        "new_constitutive_law_name"            : "",
+        "model_part_name"                      : "",
+        "number_of_layers"                     : 1,
+        "export_to_mdpa"                       : false,
+        "output_name"                          : "output",
+        "computing_model_part_name"            : "computing_domain",
+        "create_submodelparts_external_layers" : false,
+        "initialize_elements"                  : false
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
