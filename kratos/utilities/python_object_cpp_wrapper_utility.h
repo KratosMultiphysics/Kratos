@@ -52,7 +52,7 @@ namespace Kratos
  * @details This class is used in order to interoperate between c++ and python
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(KRATOS_CORE) PythonObjectCppWrapperUtility
+class PythonObjectCppWrapperUtility
 {
 public:
 
@@ -233,20 +233,6 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-
-    friend class Serializer;
-
-    virtual void save(Serializer& rSerializer) const
-    {
-        // TODO: Fill if necessary
-//         rSerializer.save("Processes", mListPythonObjects);
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        // TODO: Fill if necessary
-//         rSerializer.load("Processes", mListPythonObjects);
-    }
     
     ///@name Private Inquiry
     ///@{
