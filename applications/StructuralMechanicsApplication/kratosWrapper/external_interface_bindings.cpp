@@ -40,8 +40,8 @@ extern "C" {
 		return Interface::getTrianglesCount();
 	}
 
-	EXPORT void __stdcall UpdateNodesPos(float* xCoordinates, float* yCoordinates, float* zCoordinates) {
-		Interface::updateNodesPos(xCoordinates, yCoordinates, zCoordinates);
+	EXPORT void __stdcall UpdateNodePos(int nodeId, float x, float y, float z) {
+		Interface::updateNodePos(nodeId, x, y, z);
 	}
 
 	EXPORT void __stdcall Calculate() {

@@ -1,12 +1,12 @@
 #include "includes/model_part_io.h"
+#include "includes/variables.h"
 
-#include "mesh_converter.h"
 #include "external_interface.h"
-
+#include <iostream>
 using namespace KratosWrapper;
 
 
-int* Interface::pmRequiredNodes;
+int* Interface::pmKratosNodeIds;
 int* Interface::pmTriangles;
 int Interface::mTrianglesCount;
 int Interface::mNodesCount;
@@ -17,24 +17,25 @@ Kratos::Kernel Interface::mKernel;
 Kratos::KratosStructuralMechanicsApplication Interface::mApplication;
 Kratos::ModelPart Interface::mMainModelPart;
 
-void Interface::init(char* path) {
+void Interface::initInternals() {
 	mApplication.Register();
 	mKernel.Initialize();
+	mMainModelPart.AddNodalSolutionStepVariable(Kratos::DISPLACEMENT);
+}
 
+void Interface::loadMDPAFile(char* mdpaPath){
 	Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
-	pFile->open(path, std::fstream::in);
+	pFile->open(mdpaPath, std::fstream::in);
 
 	Kratos::ModelPartIO * modelPartIO = new Kratos::ModelPartIO(pFile);
 	modelPartIO->ReadModelPart(mMainModelPart);
+
 	delete modelPartIO;
+}
 
-	MeshConverter meshConverter;
-	meshConverter.ProcessMesh(mMainModelPart.ElementsArray());
-
+void Interface::saveTriangles(MeshConverter& meshConverter) {
 	std::vector<face> faces = meshConverter.GetFaces();
-	std::vector<int> nodes = meshConverter.GetNodes();
-	
-	//save converted traingle mesh
+
 	mTrianglesCount = faces.size();
 	pmTriangles = new int[mTrianglesCount * 3];
 	for (int i = 0; i < mTrianglesCount; i++) {
@@ -42,12 +43,16 @@ void Interface::init(char* path) {
 			pmTriangles[3 * i + j] = faces.at(i).nodes[j];
 		}
 	}
+}
+
+void Interface::saveNodes(MeshConverter& meshConverter) {
+	std::vector<int> nodes = meshConverter.GetNodes();
 
 	//save nodes
 	mNodesCount = nodes.size();
-	pmRequiredNodes = new int[mNodesCount];
+	pmKratosNodeIds = new int[mNodesCount];
 	for (int i = 0; i < mNodesCount; i++) {
-		pmRequiredNodes[i] = nodes.at(i);
+		pmKratosNodeIds[i] = nodes.at(i);
 	}
 
 	pmXCoordinates = new float[mNodesCount];
@@ -56,16 +61,31 @@ void Interface::init(char* path) {
 
 	//retrieve node coordinates
 	for (int i = 0; i < mNodesCount; i++) {
-		Kratos::shared_ptr<Kratos::Node<3Ui64>> currentNode = mMainModelPart.pGetNode(pmRequiredNodes[i]);
+		Kratos::shared_ptr<Kratos::Node<3Ui64>> currentNode = mMainModelPart.pGetNode(pmKratosNodeIds[i]);
 		pmXCoordinates[i] = currentNode->X();
 		pmYCoordinates[i] = currentNode->Y();
 		pmZCoordinates[i] = currentNode->Z();
-	}
 
+	}
 }
 
-void Interface::updateNodesPos(float* xCoordinates, float* yCoordinates, float* zCoordinates) {
+void Interface::init(char* mdpaPath) {
+	initInternals();
+	loadMDPAFile(mdpaPath);
 
+	MeshConverter meshConverter;
+	meshConverter.ProcessMesh(mMainModelPart.ElementsArray());
+
+	saveTriangles(meshConverter);
+	saveNodes(meshConverter);
+}
+
+void Interface::updateNodePos(int nodeId, float x, float y, float z) {
+	Kratos::NodeType& node =  mMainModelPart.GetNode(pmKratosNodeIds[nodeId]);
+	Kratos::array_1d<double, 3>& displacement = node.FastGetSolutionStepValue(Kratos::DISPLACEMENT);
+	displacement[0] = x - node.X();
+	displacement[1] = y - node.Y();
+	displacement[2] = z - node.Z();
 }
 
 void Interface::calculate() {
