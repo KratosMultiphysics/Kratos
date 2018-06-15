@@ -163,16 +163,3 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Monolithic MPI solver initialization finished.")
-
-    # def _ExecuteCheckAndPrepare(self):
-    #     super(self.__class__, self)._ExecuteCheckAndPrepare()
-    #     # AdjointFluidSolver._ExecuteCheckAndPrepare(self)
-
-    #     MetisApplication.SetMPICommunicatorProcess(self.main_model_part).Execute()
-
-    #     ParallelFillCommunicator = TrilinosApplication.ParallelFillCommunicator(self.main_model_part.GetRootModelPart())
-    #     ParallelFillCommunicator.Execute()
-
-    #     if KratosMPI.mpi.rank == 0 :
-    #         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI communicators constructed.")
-    #         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI model reading finished.")            
