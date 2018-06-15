@@ -500,12 +500,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType>::ComputeResidualMatrix
 {
     const SizeType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
     Matrix var_origin_matrix(TNumNodes, size_to_compute);
-    if (mOriginHistorical == Historical)
+    if (mOriginHistorical)
         MortarUtilities::MatrixValue<TVarType, Historical>(MasterGeometry, mOriginVariable, var_origin_matrix);
     else
         MortarUtilities::MatrixValue<TVarType, NonHistorical>(MasterGeometry, mOriginVariable, var_origin_matrix);
     Matrix var_destination_matrix(TNumNodes, size_to_compute);
-    if (mDestinationHistorical == Historical)
+    if (mDestinationHistorical)
         MortarUtilities::MatrixValue<TVarType, Historical>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
     else
         MortarUtilities::MatrixValue<TVarType, NonHistorical>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
@@ -600,7 +600,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType>::ExecuteExplicitMappin
     IndexType iteration = 0;
 
     // We set to zero the variables
-    if (mDestinationHistorical == Historical)
+    if (mDestinationHistorical)
         MortarUtilities::ResetValue<TVarType, Historical>(mDestinationModelPart, mDestinationVariable);
     else
         MortarUtilities::ResetValue<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable);
@@ -675,7 +675,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType>::ExecuteExplicitMappin
         for(int i = 0; i < num_nodes; ++i) {
             auto it_node = nodes_array.begin() + i;
             NodeType::Pointer pnode = *(it_node.base());
-            if (mDestinationHistorical == Historical)
+            if (mDestinationHistorical)
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, Historical>(pnode, mDestinationVariable, ref_area);
             else
                 MortarUtilities::AddAreaWeightedNodalValue<TVarType, NonHistorical>(pnode, mDestinationVariable, ref_area);
@@ -727,7 +727,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType>::ExecuteImplicitMappin
     IndexType iteration = 0;
 
     // We set to zero the variables
-    if (mDestinationHistorical == Historical)
+    if (mDestinationHistorical)
         MortarUtilities::ResetValue<TVarType, Historical>(mDestinationModelPart,  mDestinationVariable);
     else
         MortarUtilities::ResetValue<TVarType, NonHistorical>(mDestinationModelPart, mDestinationVariable);
