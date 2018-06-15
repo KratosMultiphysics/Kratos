@@ -160,10 +160,6 @@ class MechanicalSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-        #if self.settings["pressure_dofs"].GetBool(): # TODO: The creation of UP and USigma elements is pending
-        #    # Add specific variables for the problem (pressure dofs).
-        #    self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        #    self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
         # Add variables that the user defined in the ProjectParameters
         for i in range(self.settings["auxiliary_variables_list"].size()):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
@@ -183,8 +179,6 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
-        #if self.settings["pressure_dofs"].GetBool():
-        #    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
 
         # Add dofs that the user defined in the ProjectParameters
         if (self.settings["auxiliary_dofs_list"].size() != self.settings["auxiliary_reaction_list"].size()):
