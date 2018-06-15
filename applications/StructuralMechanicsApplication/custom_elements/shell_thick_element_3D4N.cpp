@@ -393,57 +393,22 @@ void ShellThickElement3D4N::Initialize()
 {
     KRATOS_TRY
 
-    const GeometryType & geom = GetGeometry();
-    const PropertiesType & props = GetProperties();
+    const auto& r_geom = GetGeometry();
 
-    if(geom.PointsNumber() != 4)
-        KRATOS_THROW_ERROR(std::logic_error, "ShellThickElement3D4N Element needs a geometry with 4 nodes", geom.PointsNumber());
+    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(GetIntegrationMethod())).size() == 4)
+        << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
 
-    const GeometryType::IntegrationPointsArrayType & integrationPoints = geom.IntegrationPoints(GetIntegrationMethod());
-    if(integrationPoints.size() != 4)
-        KRATOS_THROW_ERROR(std::logic_error, "ShellThickElement3D4N Element needs a full integration scheme", integrationPoints.size());
+    const int points_number = r_geom.PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes"
+        << points_number << std::endl;
 
-    if(mSections.size() != 4)
-    {
-        const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-        ShellCrossSection::Pointer theSection;
-        if(props.Has(SHELL_CROSS_SECTION))
-        {
-            theSection = props[SHELL_CROSS_SECTION];
-        }
-		else if (ShellCrossSection::CheckIsOrthotropic(props))
-		{
-			// make new instance of shell cross section
-			theSection =
-				ShellCrossSection::Pointer(new ShellCrossSection());
-
-			// Parse material properties for each layer
-			theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
-		}
-		else
-        {
-            theSection = ShellCrossSection::Pointer(new ShellCrossSection());
-            theSection->BeginStack();
-            theSection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
-            theSection->EndStack();
-        }
-
-        mSections.clear();
-        for(int i = 0; i < 4; i++)
-        {
-            ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(GetSectionBehavior());
-            sectionClone->InitializeCrossSection(props, geom, row( shapeFunctionsValues, i ));
-            mSections.push_back(sectionClone);
-        }
-    }
+    BaseShellElement::Initialize();
 
     mpCoordinateTransformation->Initialize();
 
     this->SetupOrientationAngles();
 
-    mEASStorage.Initialize(geom);
+    mEASStorage.Initialize(r_geom);
 
     KRATOS_CATCH("")
 }

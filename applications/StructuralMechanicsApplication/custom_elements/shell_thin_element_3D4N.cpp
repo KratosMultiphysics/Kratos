@@ -154,56 +154,12 @@ void ShellThinElement3D4N::Initialize()
 {
     KRATOS_TRY
 
-    const GeometryType & geom = GetGeometry();
-    const PropertiesType & props = GetProperties();
+    const int points_number = GetGeometry().PointsNumber();
 
-    if (geom.PointsNumber() != 4)
-        KRATOS_THROW_ERROR(std::logic_error,
-            "ShellThinElement3D4N Element - Wrong number of nodes",
-            geom.PointsNumber());
+    KRATOS_ERROR_IF_NOT(points_number == 4) <<"ShellThinElement3D4N - Wrong number of nodes"
+        << points_number << std::endl;
 
-    const SizeType num_gps = GetNumberOfGPs();
-
-    if (mSections.size() != num_gps)
-    {
-        const Matrix & shapeFunctionsValues =
-            geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-        ShellCrossSection::Pointer theSection;
-
-        if (props.Has(SHELL_CROSS_SECTION))
-        {
-            theSection = props[SHELL_CROSS_SECTION];
-        }
-        else if (ShellCrossSection::CheckIsOrthotropic(props))
-        {
-            // make new instance of shell cross section
-            theSection =
-                ShellCrossSection::Pointer(new ShellCrossSection());
-
-            // Parse material properties for each layer
-            theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
-        }
-        else
-        {
-            theSection =
-                ShellCrossSection::Pointer(new ShellCrossSection());
-            theSection->BeginStack();
-            theSection->AddPly(props[THICKNESS], 0.0, 5,
-                this->pGetProperties());
-            theSection->EndStack();
-        }
-
-        mSections.clear();
-        for (SizeType i = 0; i < num_gps; ++i)
-        {
-            ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(GetSectionBehavior());
-            sectionClone->InitializeCrossSection(props, geom,
-                row(shapeFunctionsValues, i));
-            mSections.push_back(sectionClone);
-        }
-    }
+    BaseShellElement::Initialize();
 
     mpCoordinateTransformation->Initialize();
 

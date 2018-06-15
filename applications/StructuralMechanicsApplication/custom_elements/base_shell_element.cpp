@@ -177,6 +177,55 @@ void BaseShellElement::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
+void BaseShellElement::Initialize()
+{
+    const GeometryType& r_geom = GetGeometry();
+    const PropertiesType& r_props = GetProperties();
+
+    const SizeType num_gps = GetNumberOfGPs();
+
+    if (mSections.size() != num_gps)
+    {
+        const Matrix & shapeFunctionsValues =
+            r_geom.ShapeFunctionsValues(GetIntegrationMethod());
+
+        ShellCrossSection::Pointer theSection;
+
+        if (r_props.Has(SHELL_CROSS_SECTION))
+        {
+            theSection = r_props[SHELL_CROSS_SECTION];
+        }
+        else if (ShellCrossSection::CheckIsOrthotropic(r_props))
+        {
+            // make new instance of shell cross section
+            theSection =
+                ShellCrossSection::Pointer(new ShellCrossSection());
+
+            // Parse material properties for each layer
+            theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
+        }
+        else
+        {
+            theSection =
+                ShellCrossSection::Pointer(new ShellCrossSection());
+            theSection->BeginStack();
+            theSection->AddPly(r_props[THICKNESS], 0.0, 5,
+                this->pGetProperties());
+            theSection->EndStack();
+        }
+
+        mSections.clear();
+        for (SizeType i = 0; i < num_gps; ++i)
+        {
+            ShellCrossSection::Pointer sectionClone = theSection->Clone();
+            sectionClone->SetSectionBehavior(GetSectionBehavior());
+            sectionClone->InitializeCrossSection(r_props, r_geom,
+                row(shapeFunctionsValues, i));
+            mSections.push_back(sectionClone);
+        }
+    }
+}
+
 void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& geom = this->GetGeometry();
