@@ -73,7 +73,6 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     ConditionsArrayType& conditions_array = geometry_model_part.Conditions();
     ElementsArrayType& elements_array = geometry_model_part.Elements();
     const SizeType geometry_number_of_nodes = nodes_array.size();
-    const SizeType geometry_number_of_conditions = conditions_array.size();
     const SizeType geometry_number_of_elements = elements_array.size();
     const SizeType total_number_of_nodes = mrThisModelPart.Nodes().size();
     const SizeType total_number_of_conditions = mrThisModelPart.Conditions().size();
