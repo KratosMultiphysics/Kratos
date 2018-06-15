@@ -184,21 +184,20 @@ void ShallowElement::CalculateLocalSystem(
     // Auxiliary values to compute friction and stabilization terms
     double abs_vel = norm_2(vel);
     double height4_3 = std::pow(std::abs(height), 1.33333333);
-    double aux_h = std::max(0.001, height);
-    double c = std::sqrt(data.gravity * aux_h);
+    double h_aux = std::max(0.001, std::abs(height));
 
     // Build LHS
     // Wave equation terms
     BoundedMatrix<double,9,9> vel_wave = prod(trans(N_vel),DN_DX_height);
-    noalias(rLeftHandSideMatrix)  = data.gravity * vel_wave;  // Add <q*h*div(u)> to Mass Eq
-    noalias(rLeftHandSideMatrix) += height * outer_prod(N_height, DN_DX_vel); // Add <w*g*grad(h)> to Momentum Eq
+    noalias(rLeftHandSideMatrix)  = data.gravity * vel_wave;                  // Add <w*g*grad(h)> to Momentum Eq
+    noalias(rLeftHandSideMatrix) += height * outer_prod(N_height, DN_DX_vel); // Add <q*h*div(u)> to Mass Eq
 
     // Inertia terms
     noalias(rLeftHandSideMatrix) += data.dt_inv * vel_mass_matrix; // Velocity lumped mass matrix
     noalias(rLeftHandSideMatrix) += data.dt_inv * h_mass_matrix;   // Height lumped mass matrix
 
     // Friction term
-    noalias(rLeftHandSideMatrix) += data.gravity * data.manning2 * abs_vel / height4_3 * vel_mass_matrix;
+    // noalias(rLeftHandSideMatrix) += data.gravity * data.manning2 * abs_vel / height4_3 * vel_mass_matrix;
 
     // Build RHS
     // Source terms (bathymetry contribution)
@@ -209,7 +208,8 @@ void ShallowElement::CalculateLocalSystem(
     noalias(rRightHandSideVector) += data.dt_inv * prod(h_mass_matrix, data.proj_unk);
 
     // Adding stabilization terms
-    double tau_h = length * data.c_tau / c;
+    double tau_h = length * data.c_tau;// * std::sqrt(h_aux / data.gravity);
+    double tau_v = length * data.c_tau;// * std::sqrt(data.gravity / h_aux);
     array_1d<double,2> height_grad = prod(DN_DX_height, data.unknown);
     double k_dc = 0.5 * length * data.c_tau;
     double grad_norm = norm_2(height_grad);
@@ -221,46 +221,51 @@ void ShallowElement::CalculateLocalSystem(
         // k_dc *= std::abs(inner_prod(vel, height_grad)) / grad_norm;
     else
         k_dc *= 0;
+
+    tau_h += tau_h + k_dc;
+    
     this->SetValue(RESIDUAL_NORM, h_residual);
     this->SetValue(MIU, k_dc);
+    this->SetValue(PR_ART_VISC, tau_h);
+    this->SetValue(VEL_ART_VISC, tau_v);
 
-    double tau = tau_h + k_dc;
+    array_1d<double,2> tau_h_stab;// = tau_h * vel / norm_2(vel);
+    array_1d<double,2> tau_v_stab;
+    tau_h_stab[0] = tau_h;
+    tau_h_stab[1] = tau_h;
+    tau_v_stab[0] = tau_v;
+    tau_v_stab[1] = tau_v;
 
-    array_1d<double,2> tau_h_stab;// = tau * vel / norm_2(vel);
-    tau_h_stab[0] = tau;
-    tau_h_stab[1] = tau;
     array_1d<double,elem_size> DN_DX_h_stab = ZeroVector(elem_size); // = prod(tau_h_stab, DN_DX_height);
     BoundedMatrix<double,2,elem_size> DN_DX_v_stab = ZeroMatrix(2,elem_size);
 
     for (unsigned int node = 0; node < nnodes; node++)
     {
-        DN_DX_v_stab(0,3*node  ) = tau_h_stab[0]*DN_DX(node,0);
-        DN_DX_v_stab(0,3*node+1) = tau_h_stab[0]*DN_DX(node,0);
-        DN_DX_v_stab(1,3*node  ) = tau_h_stab[1]*DN_DX(node,1);
-        DN_DX_v_stab(1,3*node+1) = tau_h_stab[1]*DN_DX(node,1);
+        DN_DX_v_stab(0,3*node  ) = tau_v_stab[0]*DN_DX(node,0);
+        DN_DX_v_stab(0,3*node+1) = tau_v_stab[0]*DN_DX(node,0);
+        DN_DX_v_stab(1,3*node  ) = tau_v_stab[1]*DN_DX(node,1);
+        DN_DX_v_stab(1,3*node+1) = tau_v_stab[1]*DN_DX(node,1);
         DN_DX_h_stab[3*node+2] = tau_h_stab[0]*DN_DX(node,0) + tau_h_stab[1]*DN_DX(node,1);
     }
 
     // Mass balance LHS stabilization terms
     BoundedMatrix<double,9,9> stab_h_mass = outer_prod(DN_DX_h_stab, N_height);
-    noalias(rLeftHandSideMatrix) += tau * height * outer_prod(DN_DX_h_stab, DN_DX_vel);
-    noalias(rLeftHandSideMatrix) += tau * data.dt_inv * stab_h_mass;
+    noalias(rLeftHandSideMatrix) += height * outer_prod(DN_DX_h_stab, DN_DX_vel);
+    // noalias(rLeftHandSideMatrix) += data.dt_inv * stab_h_mass;
 
     // Mass balance RHS stabilization terms
-    noalias(rRightHandSideVector) += tau * data.dt_inv * prod(stab_h_mass, data.proj_unk);
+    // noalias(rRightHandSideVector) += data.dt_inv * prod(stab_h_mass, data.proj_unk);
 
     // Momentum balance stabilization terms
     BoundedMatrix<double,9,9> mass_v_stab = prod(trans(DN_DX_v_stab), N_vel);
     BoundedMatrix<double,9,9> wave_v_stab = prod(trans(DN_DX_v_stab), DN_DX_height);
-    // KRATOS_WATCH(mass_v_stab);
-    // KRATOS_WATCH(wave_v_stab);
-    noalias(rLeftHandSideMatrix) += tau * data.gravity * wave_v_stab;
-    noalias(rLeftHandSideMatrix) += tau * data.dt_inv * mass_v_stab;
-    noalias(rLeftHandSideMatrix) += tau * data.gravity * data.manning2 * abs_vel / height4_3 * mass_v_stab;
+    noalias(rLeftHandSideMatrix) += data.gravity * wave_v_stab;
+    // noalias(rLeftHandSideMatrix) += data.dt_inv * mass_v_stab;
+    // noalias(rLeftHandSideMatrix) += data.gravity * data.manning2 * abs_vel / height4_3 * mass_v_stab;
 
     // Momentum balance stabilization terms
-    noalias(rRightHandSideVector) -= tau * data.gravity * prod(wave_v_stab, data.depth);
-    noalias(rRightHandSideVector) += tau * data.dt_inv * prod(mass_v_stab, data.proj_unk);
+    noalias(rRightHandSideVector) -= data.gravity * prod(wave_v_stab, data.depth);
+    // noalias(rRightHandSideVector) += data.dt_inv * prod(mass_v_stab, data.proj_unk);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
@@ -296,7 +301,10 @@ void ShallowElement::GetValueOnIntegrationPoints(
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == VEL_ART_VISC || rVariable == PR_ART_VISC || rVariable == RESIDUAL_NORM || rVariable == MIU)
+    if (rVariable == VEL_ART_VISC ||
+        rVariable == PR_ART_VISC ||
+        rVariable == RESIDUAL_NORM ||
+        rVariable == MIU)
     {
         for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) 
             rValues[PointNumber] = double(this->GetValue(rVariable));
