@@ -16,8 +16,7 @@ namespace Kratos
 {
 
 ShellCrossSection::ShellCrossSection()
-    : mOffset(0.0)
-    , mStack()
+    : mStack()
     , mEditingStack(false)
     , mHasDrillingPenalty(false)
     , mDrillingPenalty(0.0)
@@ -52,10 +51,10 @@ void ShellCrossSection::BeginStack()
     }
 }
 
-void ShellCrossSection::AddPly(const IndexType PlyIndex, double orientationAngle, int numPoints, const Properties::Pointer & pProperties)
+void ShellCrossSection::AddPly(const IndexType PlyIndex, int numPoints, const Properties::Pointer & pProperties)
 {
     if((mEditingStack) && (pProperties != nullptr))
-        mStack.push_back( Ply( PlyIndex, 0.0, orientationAngle, numPoints, pProperties ) );
+        mStack.push_back( Ply( PlyIndex, 0.0, numPoints, pProperties ) );
 }
 
 void ShellCrossSection::EndStack()
@@ -68,7 +67,7 @@ void ShellCrossSection::EndStack()
         {
             Ply& iPly = *it;
             double iTh = iPly.GetThickness();
-            iPly.SetLocation(currentLocation - iTh * 0.5 - mOffset);
+            iPly.SetLocation(currentLocation - iTh * 0.5 - GetOffset());
             currentLocation -= iTh;
         }
 
@@ -86,7 +85,7 @@ std::string ShellCrossSection::GetInfo()const
     ss << "                      SellCrossSection Info:" << std::endl;
     ss << "===============================================================" << std::endl;
     ss << "Total Thickness: " << GetThickness() << std::endl;
-    ss << "Offset from the midplane: " << mOffset << std::endl;
+    ss << "Offset from the midplane: " << GetOffset() << std::endl;
     ss << "Number of Plies: " << mStack.size() << std::endl;
     ss << "===============================================================" << std::endl;
     ss << "=======================       STACK      ======================" << std::endl;
@@ -826,48 +825,11 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties::Pointer
     const SizeType num_plies = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS).size1();
     this->BeginStack();
 
-    // figure out the format of material properties based on it's width
-    int my_format = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS).size2();
-    if(my_format == 16)
-    {
-        my_format -= 7;
-    }
-
-    double ply_thickness, angle_rz, accum_thickness;
-    accum_thickness = 0.0;
-
     // add ply for each orthotropic layer defined
     for(IndexType ply_idx = 0; ply_idx < num_plies; ++ply_idx)
-    {
-        switch (my_format)
-        {
-        case 9:
-            // Composite mechanical properties material definition
-            //
-            // Arranged as: thickness, RZangle, density, E1, E2, Poisson_12, G12, G13, G23
-
-            // Assign the geometric properties of the current ply
-            ply_thickness = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS)(ply_idx, 0);
-            angle_rz = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS)(ply_idx, 1);
-
-            // Mechanical properties of the plies are updated during the
-            // calculation in the following method:
-            // ShellCrossSection::Ply::RecoverOrthotropicProperties
-
-            break;
-
-        default:
-            KRATOS_ERROR << "The Orthotropic Layer data has been defined incorrectly! It should be arranged as follows:"
-                         << "\n\tthickness, RZangle, density, E1, E2, Poisson_12, G12, G13, G23" << std::endl;
-        }
-
-        this->AddPly(ply_idx, angle_rz, 5, pProps);
-        accum_thickness += ply_thickness;
-    }
+        this->AddPly(ply_idx, 5, pProps);
 
     this->EndStack();
-    KRATOS_ERROR_IF_NOT(pProps->GetValue(THICKNESS) == accum_thickness) << "The sum of ply thicknesses ( " << accum_thickness
-                << " ) is different from the element property THICKNESS ( " << pProps->GetValue(THICKNESS) << std::endl;
 }
 
 void ShellCrossSection::GetLaminaeOrientation(Vector & rOrientation_Vector)
@@ -1443,7 +1405,6 @@ void ShellCrossSection::PrivateCopy(const ShellCrossSection & other)
 {
     if(this != &other)
     {
-        mOffset = other.mOffset;
         mStack = other.mStack;
         mEditingStack = other.mEditingStack;
         mHasDrillingPenalty = other.mHasDrillingPenalty;

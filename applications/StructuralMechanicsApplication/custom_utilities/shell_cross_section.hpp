@@ -426,25 +426,22 @@ public:
         Ply()
             : mPlyIndex(0)
             , mLocation(0.0)
-            , mOrientationAngle(0.0)
             , mIntegrationPoints()
             , mpProperties(Properties::Pointer())
         {}
 
-        Ply(const int PlyIndex, double location, double orientationAngle, int numPoints, const Properties::Pointer & pProperties)
+        Ply(const int PlyIndex, double location , int numPoints, const Properties::Pointer & pProperties)
             : mPlyIndex(PlyIndex)
             , mLocation(location)
             , mIntegrationPoints()
             , mpProperties(pProperties)
         {
-            this->SetOrientationAngle(orientationAngle);
             this->SetUpIntegrationPoints(numPoints);
         }
 
         Ply(const Ply& other)
             : mPlyIndex(other.mPlyIndex)
             , mLocation(other.mLocation)
-            , mOrientationAngle(other.mOrientationAngle)
             , mIntegrationPoints(other.mIntegrationPoints)
             , mpProperties(other.mpProperties)
         {}
@@ -455,7 +452,6 @@ public:
             {
                 mPlyIndex = other.mPlyIndex;
                 mLocation = other.mLocation;
-                mOrientationAngle = other.mOrientationAngle;
                 mIntegrationPoints = other.mIntegrationPoints;
                 mpProperties = other.mpProperties;
             }
@@ -485,13 +481,16 @@ public:
 
         inline double GetOrientationAngle()const
         {
-            return mOrientationAngle;
+            return ShellUtilities::GetOrientationAngle(*mpProperties, mPlyIndex);
         }
-        inline void SetOrientationAngle(double degrees)
+
+        inline double GetOffset()const
         {
-            mOrientationAngle = std::fmod(degrees, 360.0);
-            if(mOrientationAngle < 0.0)
-                mOrientationAngle += 360.0;
+            // TODO!!!
+            // if (mpProperties->Has(SHELL_OFFSET))
+            //     return mpProperties->GetValue(SHELL_OFFSET);
+            // else
+                return 0.0;
         }
 
 		void RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps);
@@ -517,7 +516,7 @@ public:
 
         inline double CalculateMassPerUnitArea()const
         {
-            return mpProperties->GetValue(DENSITY) * GetThickness();
+            return ShellUtilities::GetDensity(*mpProperties, mPlyIndex) * GetThickness();
         }
 
         inline IntegrationPointCollection::size_type NumberOfIntegrationPoints()const
@@ -593,7 +592,6 @@ public:
         {
             rSerializer.save("idx", mPlyIndex);
             rSerializer.save("L", mLocation);
-            rSerializer.save("O", mOrientationAngle);
             rSerializer.save("IntP", mIntegrationPoints);
             rSerializer.save("Prop", mpProperties);
         }
@@ -602,7 +600,6 @@ public:
         {
             rSerializer.load("idx", mPlyIndex);
             rSerializer.load("L", mLocation);
-            rSerializer.load("O", mOrientationAngle);
             rSerializer.load("IntP", mIntegrationPoints);
             rSerializer.load("Prop", mpProperties);
         }
@@ -693,7 +690,7 @@ public:
     				   For numPoints = odd number > 3, the composite Simpson rule is used.
     * @param pProperties the pointer to the properties assigned to the new ply.
     */
-    void AddPly(const IndexType PlyIndex, double orientationAngle, int numPoints, const Properties::Pointer & pProperties);
+    void AddPly(const IndexType PlyIndex, int numPoints, const Properties::Pointer & pProperties);
 
     /**
     * Finalizes the editing of the Composite Layup.
@@ -1114,24 +1111,8 @@ public:
     */
     inline double GetOffset()const
     {
-        return mOffset;
-    }
-
-    /**
-    * Sets the offset of this cross section with respect to the reference mid-surface
-    * of the parent element.
-    * The offset can be a positive or negative value, measured along the normal of the reference surface.
-    * The default value is Zero (i.e. the center of the cross section coincides with the shell mid-surface).
-    * @param offset the offset
-    */
-    inline void SetOffset(double offset)
-    {
-    	if ((mOffset != offset) && (!mEditingStack))
-    	{
-    		for (PlyCollection::iterator it = mStack.begin(); it != mStack.end(); ++it)
-    			(*it).SetLocation((*it).GetLocation() + offset - mOffset);
-    		mOffset = offset;
-    	}
+        KRATOS_DEBUG_ERROR_IF(mStack.size() == 0) << "no plies available!" << std::endl;
+        return mStack[0].GetOffset();
     }
 
     /**
@@ -1354,7 +1335,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mOffset;
     PlyCollection mStack;
     bool mEditingStack;
     bool mHasDrillingPenalty;
@@ -1378,7 +1358,6 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("offs", mOffset);
         rSerializer.save("stack", mStack);
         rSerializer.save("edit", mEditingStack);
         rSerializer.save("dr", mHasDrillingPenalty);
@@ -1398,7 +1377,6 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        rSerializer.load("offs", mOffset);
         rSerializer.load("stack", mStack);
         rSerializer.load("edit", mEditingStack);
         rSerializer.load("dr", mHasDrillingPenalty);

@@ -208,10 +208,9 @@ void BaseShellElement::Initialize()
         {
             p_ref_section = Kratos::make_shared<ShellCrossSection>();
             const IndexType ply_index = 0;
-            const double ply_orientation = 0.0;
             const SizeType num_points = 5;
             p_ref_section->BeginStack();
-            p_ref_section->AddPly(ply_index, ply_orientation, num_points, this->pGetProperties());
+            p_ref_section->AddPly(ply_index, num_points, this->pGetProperties());
             p_ref_section->EndStack();
         }
 
@@ -488,9 +487,10 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
     {
         CheckSpecificProperties();
 
+        // TODO is this needed???? => it is, the dummy is needed for "Check" => unify!
         ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
         dummySection->BeginStack();
-        dummySection->AddPly(props[THICKNESS], 0.0, 5, pGetProperties());
+        dummySection->AddPly(0, 5, pGetProperties());
         dummySection->EndStack();
         dummySection->SetSectionBehavior(ShellCrossSection::Thick);
         dummySection->Check(props, geom, rCurrentProcessInfo);

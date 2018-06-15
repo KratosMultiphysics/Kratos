@@ -186,6 +186,36 @@ double GetThickness(const Properties& rProps, const IndexType Index)
     }
 }
 
+double GetDensity(const Properties& rProps, const IndexType Index)
+{
+    if (IsOrthotropic(rProps))
+    {
+        const auto& orthotropic_layers = rProps.GetValue(SHELL_ORTHOTROPIC_LAYERS);
+        return orthotropic_layers(Index,2);
+    }
+    else
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rProps.Has(DENSITY));
+        return rProps.GetValue(DENSITY);
+    }
+}
+
+double GetOrientationAngle(const Properties& rProps, const IndexType Index)
+{
+    if (IsOrthotropic(rProps))
+    {
+        const auto& orthotropic_layers = rProps.GetValue(SHELL_ORTHOTROPIC_LAYERS);
+        double orientation_angle = orthotropic_layers(Index,1);
+
+        orientation_angle = std::fmod(orientation_angle, 360.0);
+        if(orientation_angle < 0.0)
+            orientation_angle += 360.0;
+        return orientation_angle;
+    }
+    else
+        return 0.0;
+}
+
 
 } // namespace ShellUtilities
 
