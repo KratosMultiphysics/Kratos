@@ -5,6 +5,7 @@ import KratosMultiphysics
 
 # other imports
 import os
+from file_handler_utility import FileHandlerUtility
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -26,11 +27,12 @@ class PointOutputProcess(KratosMultiphysics.Process):
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
-            "position"         : [],
-            "model_part_name"  : "",
-            "output_file_name" : "",
-            "output_variables" : [],
-            "entity_type"      : "element",
+            "model_part_name"             : "",
+            "entity_type"                 : "element",
+            "position"                    : [],
+            "output_variables"            : [],
+            "flush_frequency"             : "",
+            "output_file_name"            : "",
             "save_output_file_in_folder"  : true,
             "output_folder_relative_path" : "TabularResults"
         }''')
@@ -140,39 +142,18 @@ class PointOutputProcess(KratosMultiphysics.Process):
                     warn_msg += 'Using the current directory instead'
                     KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
 
-            if not os.path.isdir(output_folder_path):
+            if not os.path.isdir(output_folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
                 os.makedirs(output_folder_path)
+            self.model_part.GetCommunicator().Barrier()
+
             output_file_name = os.path.join(output_folder_path, output_file_name)
 
-            if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-                # if the simulation is restarted we search for a  file
-                # existing from the previous run to append the data
-                restart_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-                existing_file_is_valid, out_file = AddToExistingOutputFile(output_file_name,
-                                                                           restart_time)
+            file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
+            file_handler_params["output_file_name"].SetString(output_file_name)
+            file_handler_params.AddValue("flush_frequency", self.params["flush_frequency"])
 
-                if existing_file_is_valid:
-                    self.output_file.append(out_file)
-
-                # if no valid file can be found we create a new one
-                # and issue a warning
-                else:
-                    warn_msg  = "No data file was found after restarting,\n"
-                    warn_msg += "writing to a new file"
-                    KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
-
-                    self.output_file.append(InitializeOutputFile(output_file_name,
-                                                                 entity_type,
-                                                                 found_id,
-                                                                 point,
-                                                                 self.output_variables[0]))
-
-            else: # no restart, regular simulation
-                self.output_file.append(InitializeOutputFile(output_file_name,
-                                                             entity_type,
-                                                             found_id,
-                                                             point,
-                                                             self.output_variables[0]))
+            file_header = GetFileHeader(entity_type, found_id, point, self.output_variables[0])
+            self.output_file.append(FileHandlerUtility(self.model_part, file_handler_params, file_header))
 
     def ExecuteBeforeSolutionLoop(self):
         pass
@@ -206,15 +187,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalize(self):
-        self.__CloseOutputFiles()
-
-    def __del__(self):
-         # in case "ExecuteFinalize" is not called
-         # this can happen if a simulation is forcefully stopped on a cluster
-        self.__CloseOutputFiles()
-
-    def __CloseOutputFiles(self):
-        '''Close output files.'''
         for f in self.output_file:
             f.close()
 
@@ -229,55 +201,23 @@ class PointOutputProcess(KratosMultiphysics.Process):
             raise Exception(err_msg)
 
 
-def InitializeOutputFile(output_file_name, entity_type, entity_id, point, output_variables):
-    output_file = open(output_file_name,"w")
-    out  = '# Results for "' + entity_type + '" '
-    out += 'with Id # ' + str(entity_id) + ' at position: '
-    out += 'x: ' + "{0:.12g}".format(point.X) + '; '
-    out += 'y: ' + "{0:.12g}".format(point.Y) + '; '
-    out += 'z: ' + "{0:.12g}".format(point.Z) + '\n'
-    out += '# time'
+def GetFileHeader(entity_type, entity_id, point, output_variables):
+    header  = '# Results for "' + entity_type + '" '
+    header += 'with Id # ' + str(entity_id) + ' at position: '
+    header += 'x: ' + "{0:.12g}".format(point.X) + '; '
+    header += 'y: ' + "{0:.12g}".format(point.Y) + '; '
+    header += 'z: ' + "{0:.12g}".format(point.Z) + '\n'
+    header += '# time'
     for var in output_variables:
         # if this is a Variable< array_1d< double,3 > >
         if IsArrayVariable(var):
-            out += " {0}_X {0}_Y {0}_Z".format(var.Name())
+            header += " {0}_X {0}_Y {0}_Z".format(var.Name())
         else:
-            out += " " + var.Name()
+            header += " " + var.Name()
 
-    out += "\n"
-    output_file.write(out)
+    header += "\n"
 
-    return output_file
-
-def AddToExistingOutputFile(output_file_name, restart_time):
-    if not os.path.isfile(output_file_name):
-        return False, None
-
-    try: # We try to open the file and transfer the info
-        with open(output_file_name,'r') as out_file:
-            lines_existing_file = out_file.readlines()
-
-        output_file = open(output_file_name,"w") # this overwrites the old file
-
-        # search for time, return false if it was not found
-        # copy corresponding lines to new file and open it
-        is_found = False
-
-        for line in lines_existing_file:
-            output_file.write(line)
-            if line.startswith(str(restart_time)):
-                is_found = True
-                break
-
-        if not(is_found):
-            warn_msg  = "No line was found in " + output_file_name + " after restarting containing indicated restart time, \n"
-            warn_msg += "appending results after restart from time " + str(restart_time) + " not possible"
-            KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
-
-        return True, output_file
-    except:
-        return False, None
-
+    return header
 
 def Interpolate(variable, entity, sf_values):
     if type(entity) == KratosMultiphysics.Node:

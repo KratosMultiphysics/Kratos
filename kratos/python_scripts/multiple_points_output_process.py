@@ -23,11 +23,12 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
-            "positions"          : [[]],
-            "model_part_name"    : "",
-            "output_file_name"   : "",
-            "output_variables"   : [],
-            "entity_type"        : "element",
+            "model_part_name"             : "",
+            "entity_type"                 : "element",
+            "positions"                   : [[]],
+            "output_variables"            : [],
+            "flush_frequency"             : "",
+            "output_file_name"            : "",
             "save_output_file_in_folder"  : true,
             "output_folder_relative_path" : "TabularResults"
         }''')
