@@ -78,6 +78,45 @@ void PythonObjectCppWrapperUtility::Execute(const std::string& rNameMethod)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void PythonObjectCppWrapperUtility::RunAnalysisStage(
+        const std::string& rProjectParametersFile, 
+        Parameters StageParameters
+        )
+{
+    Parameters parameters = ReadParameters(rProjectParametersFile);
+
+    Parameters default_stage_parameters = Parameters(R"(
+    {
+        "list_applications_to_import"          : ["StructuralMechanicsApplication"],
+        "analysis_stage_name"                  : "structural_mechanics_analysis.StructuralMechanicsAnalysis"
+    })" );
+    
+    StageParameters.ValidateAndAssignDefaults(default_stage_parameters);
+
+    Model model = Model();
+
+    pybind11::object kratos = pybind11::module::import("KratosMultiphysics");
+    if (StageParameters["list_applications_to_import"].IsArray()) {
+        auto list_applications_to_import = StageParameters["list_applications_to_import"];
+        for (IndexType i_app = 0; i_app < list_applications_to_import.size(); ++i_app) {
+            const std::string& app_name = list_applications_to_import[i_app].GetString();
+            const char * char_name = ("KratosMultiphysics."+app_name).c_str();
+            pybind11::object application = pybind11::module::import(char_name);
+        }
+    }
+    std::string first, second;
+    TrimComponentName(StageParameters["analysis_stage_name"].GetString(), first, second);
+    const char * char_first = first.c_str();
+    const char * char_second = second.c_str();
+    pybind11::object analysis = pybind11::module::import(char_first).attr(char_second);
+    pybind11::object my_analysis = analysis(model, parameters);
+    auto run = my_analysis.attr("Run");
+    run();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void PythonObjectCppWrapperUtility::RunStructuralAnalysisStage(const std::string& rProjectParametersFile)
 {
     Parameters parameters = ReadParameters(rProjectParametersFile);
@@ -86,9 +125,9 @@ void PythonObjectCppWrapperUtility::RunStructuralAnalysisStage(const std::string
 
     pybind11::object kratos = pybind11::module::import("KratosMultiphysics");
     pybind11::object structural = pybind11::module::import("KratosMultiphysics.StructuralMechanicsApplication");
-    pybind11::object structura_analysis = pybind11::module::import("structural_mechanics_analysis").attr("StructuralMechanicsAnalysis");
-    pybind11::object my_structura_analysis = structura_analysis(model, parameters);
-    auto run = my_structura_analysis.attr("Run");
+    pybind11::object structural_analysis = pybind11::module::import("structural_mechanics_analysis").attr("StructuralMechanicsAnalysis");
+    pybind11::object my_structural_analysis = structural_analysis(model, parameters);
+    auto run = my_structural_analysis.attr("Run");
     run();
 }
 
@@ -104,5 +143,19 @@ Parameters PythonObjectCppWrapperUtility::ReadParameters(const std::string& rPro
     Parameters parameters(buffer.str());
 
     return parameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PythonObjectCppWrapperUtility::TrimComponentName(
+    const std::string& rCompleteName,
+    std::string& rFirstPart,
+    std::string& rSecondPart
+    )
+{
+    std::string::size_type found = rCompleteName.find(".");
+    rFirstPart = rCompleteName.substr(0, found - 1);
+    rSecondPart = rCompleteName.substr(found + 1);
 }
 }  // namespace Kratos.

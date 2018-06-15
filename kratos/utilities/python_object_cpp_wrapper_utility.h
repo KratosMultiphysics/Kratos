@@ -68,6 +68,9 @@ public:
     /// The list [] of python
     typedef pybind11::list     ListType;
     
+    /// Integers values
+    typedef std::size_t IndexType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -133,6 +136,16 @@ public:
 
     /**
      * @brief This method can be used to call directly an analysis stage from C++
+     * @param rProjectParametersFile The name of the file containing the configuration of the parameters
+     * @param StageParameters The parameters fro configure the stage
+     */
+    static void RunAnalysisStage(
+        const std::string& rProjectParametersFile, 
+        Parameters StageParameters = Parameters(R"({})")
+        );
+
+    /**
+     * @brief This method can be used to call directly an structural analysis stage from C++
      * @param rProjectParametersFile The name of the file containing the configuration of the parameters
      */
     static void RunStructuralAnalysisStage(const std::string& rProjectParametersFile);
@@ -223,7 +236,23 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method read an exetrnal *.json parameters file
+     * @param rProjectParametersFile The name of the file containing the configuration of the parameters
+     */
     static Parameters ReadParameters(const std::string& rProjectParametersFile);
+
+    /**
+     * @brief This method trims a compund name 
+     * @param rCompleteName The name complete
+     * @param rFirstPart The first part of the name
+     * @param rSecondPart The second part of the name
+     */
+    static void TrimComponentName(    
+        const std::string& rCompleteName,
+        std::string& rFirstPart,
+        std::string& rSecondPart
+        );
 
     ///@}
     ///@name Private  Access
