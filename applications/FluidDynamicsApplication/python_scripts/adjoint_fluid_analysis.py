@@ -43,43 +43,49 @@ class AdjointFluidAnalysis(AnalysisStage):
             self.is_printing_rank = (mpi.rank == 0)
 
         super(AdjointFluidAnalysis, self).__init__(model, parameters)
+    
+    def Initialize(self):
+        super(self.__class__, self).Initialize()
+
+        # dummy time step to correctly calculate DELTA_TIME
+        self._solver.main_model_part.CloneTimeStep(self.time)
 
     def _CreateSolver(self):
         import python_solvers_wrapper_adjoint_fluid
         return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)            
     
     def _CreateProcesses(self, parameter_name, initialization_order):
-            """Create a list of Processes
-            This method is TEMPORARY to not break existing code
-            It will be removed in the future
-            """
-            list_of_processes = super(AdjointFluidAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+        """Create a list of Processes
+        This method is TEMPORARY to not break existing code
+        It will be removed in the future
+        """
+        list_of_processes = super(AdjointFluidAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
-            # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
-            # Note 1: gravity is constructed first. Outlet process might need its information.
-            # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-            if parameter_name == "processes":
-                processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
-                if len(list_of_processes) == 0: # Processes are given in the old format
-                    Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
-                    from process_factory import KratosProcessFactory
-                    factory = KratosProcessFactory(self.model)
-                    for process_name in processes_block_names:
-                        if (self.project_parameters.Has(process_name) is True):
-                            list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
-                else: # Processes are given in the new format
-                    for process_name in processes_block_names:
-                        if (self.project_parameters.Has(process_name) is True):
-                            raise Exception("Mixing of process initialization is not alowed!")
-            elif parameter_name == "output_processes":
-                if self.project_parameters.Has("output_configuration"):
-                    #KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
-                    gid_output= self._SetUpGiDOutput()
-                    list_of_processes += [gid_output,]
-            else:
-                raise NameError("wrong parameter name")
+        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
+        # Note 1: gravity is constructed first. Outlet process might need its information.
+        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
+        if parameter_name == "processes":
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            if len(list_of_processes) == 0: # Processes are given in the old format
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
+                from process_factory import KratosProcessFactory
+                factory = KratosProcessFactory(self.model)
+                for process_name in processes_block_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
+            else: # Processes are given in the new format
+                for process_name in processes_block_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        raise Exception("Mixing of process initialization is not alowed!")
+        elif parameter_name == "output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                #KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                gid_output= self._SetUpGiDOutput()
+                list_of_processes += [gid_output,]
+        else:
+            raise NameError("wrong parameter name")
 
-            return list_of_processes
+        return list_of_processes
     
     def _SetUpGiDOutput(self):
         '''Initialize a GiD output instance'''
@@ -97,12 +103,6 @@ class AdjointFluidAnalysis(AnalysisStage):
     def RunSolutionLoop(self):
         """Note that the adjoint problem is solved in reverse time
         """
-
-        # dummy time step to correctly calculate DELTA_TIME
-        dt = self._solver._ComputeDeltaTime()
-        new_time = self.time - dt
-        self._solver.main_model_part.CloneTimeStep(new_time)
-
         for step in range(self.number_of_steps):
             self.time = self._solver.AdvanceInTime(self.time)
             self.InitializeSolutionStep()
