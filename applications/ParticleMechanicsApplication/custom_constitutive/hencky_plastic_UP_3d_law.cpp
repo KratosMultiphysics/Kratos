@@ -214,7 +214,7 @@ void HenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const Ma
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(PRESSURE); //NOOOOO
+        rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(PRESSURE);
     }
 
 }
@@ -230,9 +230,11 @@ void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPM
 
     Pressure *= rElasticVariables.DeterminantF;
 
+    // material parameters
     double Young = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     double Nu = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
+    // bulk modulus
     double K = Young / (3.0 * (1.0 - 2.0*Nu));
 
     for (unsigned int i = 0; i < 3; ++i)
@@ -277,8 +279,6 @@ void HenckyElasticPlasticUP3DLaw::CalculateGreenLagrangeStrain( const Matrix & r
     rStrainVector[5] = rRightCauchyGreen( 0, 2 ); // xz
 
 }
-
-
 
 //***********************COMPUTE TOTAL STRAIN*****************************************
 //************************************************************************************
