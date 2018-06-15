@@ -19,6 +19,7 @@
 
 // Project includes
 #include "interface_search_structure_mpi.h"
+#include "custom_utilities/mapper_utilities_mpi.h"
 
 namespace Kratos
 {
@@ -34,12 +35,10 @@ namespace Kratos
                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                         InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
+        InterfaceSearchStructureBase::PrepareSearch(rOptions, rpRefInterfaceInfo, InterfaceObjectTypeOrigin);
 
-    }
-
-    void InterfaceSearchStructureMPI::FinalizeSearch()
-    {
-
+        // Exchange Bounding Boxes => has to be done every time
+        MapperUtilitiesMPI::ComputeGlobalBoundingBoxes(mrModelPartOrigin, mGlobalBoundingBoxes);
     }
 
 
@@ -48,7 +47,19 @@ namespace Kratos
                                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
-        // TODO pass mappingoptions!
+        // Apply tolerance to bounding boxes
+        // const auto global_bounding_boxes_with_tolerance = MapperUtilities::ComputeGlobalBoundingBoxesWithTolerance(
+        //     mGlobalBoundingBoxes, mSearchRadius); // TODO implement
+
+        // Compute Candidate Partitions
+
+
+        // Send Information to Candidate Partitions
+
+        // Construct MapperInterfaceInfos
+
+
+
         // TODO print info saying that ORIGIN_ONLY has no effect in MPI, the destination also has to be updated
         // => since the origin changes also the destination might be sent to other partitions!
 

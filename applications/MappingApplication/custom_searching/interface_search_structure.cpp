@@ -34,25 +34,6 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructure::PrepareSearch(const Kratos::Flags& rOptions,
-                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
-    {
-        if (mpInterfaceObjectsOrigin == nullptr || rOptions.Is(MapperFlags::REMESHED))
-            CreateInterfaceObjectsOrigin(InterfaceObjectTypeOrigin);
-        else
-            UpdateInterfaceObjectsOrigin();
-
-        if (mpLocalBinStructure == nullptr || !rOptions.Is(MapperFlags::DESTINATION_ONLY))
-            InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
-    }
-
-    void InterfaceSearchStructure::FinalizeSearch()
-    {
-        mpMapperInterfaceInfos->clear();
-    }
-
-
     void InterfaceSearchStructure::PrepareSearchIteration(const Kratos::Flags& rOptions,
                                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                                     InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)

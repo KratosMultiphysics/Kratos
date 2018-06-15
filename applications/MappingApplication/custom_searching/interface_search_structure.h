@@ -158,15 +158,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void PrepareSearch(const Kratos::Flags& rOptions,
-                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
-
-    void FinalizeSearch() override;
-
-    // This function constructs the InterfaceObjects on the Destination
-    // In serial it only does it once, whereas in MPI this involves Data-Exchange!
-    // Imagine a sliding interface, there the partitions might change!
     void PrepareSearchIteration(const Kratos::Flags& rOptions,
                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                           InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;

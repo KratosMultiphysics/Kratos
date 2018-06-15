@@ -191,6 +191,12 @@ inline double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2
 
 void CheckInterfaceModelParts(const int CommRank);
 
+std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart);
+
+void ComputeBoundingBoxWithTolerance(std::vector<double>& rLocalBoundingBox,
+                                     const double Tolerance,
+                                     std::vector<double>& rLocalBoundingBoxWithTolerance);
+
 }  // namespace MapperUtilities.
 
 }  // namespace Kratos.

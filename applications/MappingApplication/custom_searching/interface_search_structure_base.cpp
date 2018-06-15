@@ -71,6 +71,24 @@ namespace Kratos
     /***********************************************************************************/
     /* PROTECTED Methods */
     /***********************************************************************************/
+    void InterfaceSearchStructureBase::PrepareSearch(const Kratos::Flags& rOptions,
+                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+    {
+        if (mpInterfaceObjectsOrigin == nullptr || rOptions.Is(MapperFlags::REMESHED))
+            CreateInterfaceObjectsOrigin(InterfaceObjectTypeOrigin);
+        else
+            UpdateInterfaceObjectsOrigin();
+
+        if (mpLocalBinStructure == nullptr || !rOptions.Is(MapperFlags::DESTINATION_ONLY))
+            InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
+    }
+
+    void InterfaceSearchStructureBase::FinalizeSearch()
+    {
+        mpMapperInterfaceInfos->clear();
+    }
+
     void InterfaceSearchStructureBase::CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
         mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
@@ -89,6 +107,7 @@ namespace Kratos
                 (*mpInterfaceObjectsOrigin)[i] = Kratos::make_unique<InterfaceNode>(*(it_node));
             }
         }
+
         else if (InterfaceObjectTypeOrigin == InterfaceObject::Geometry_Center)
         {
             const SizeType num_elements = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfElements();

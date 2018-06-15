@@ -97,7 +97,6 @@ public:
     /// Destructor.
     virtual ~InterfaceSearchStructureMPI()
     {
-        delete [] mLocalBoundingBox;
     }
 
 
@@ -184,9 +183,6 @@ protected:
                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                         InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
 
-    void FinalizeSearch() override;
-
-
     // This function constructs the InterfaceObjects on the Destination
     // In serial it only does it once, whereas in MPI this involves Data-Exchange!
     // Imagine a sliding interface, there the partitions might change!
@@ -222,14 +218,14 @@ private:
     ///@name Member Variables
     ///@{
 
-    double* mLocalBoundingBox = new double[6] { -1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
+    std::vector<double> mGlobalBoundingBoxes;
     // xmax, xmin,  ymax, ymin,  zmax, zmin
 
-    int mSendBufferSize;
-    int mReceiveBufferSize;
+    // int mSendBufferSize;
+    // int mReceiveBufferSize;
 
-    GraphType mDomainsColoredGraph;
-    int mMaxColors;  // size aka the number of columns
+    // GraphType mDomainsColoredGraph;
+    // int mMaxColors;  // size aka the number of columns
 
     ///@}
     ///@name Private Operators

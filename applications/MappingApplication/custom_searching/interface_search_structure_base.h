@@ -198,18 +198,12 @@ protected:
 
     void InitializeBinsSearchStructure();
 
-    // This function constructs the InterfaceObjects on the Destination
-    // In serial it only does it once, whereas in MPI this involves Data-Exchange!
-    // Imagine a sliding interface, there the partitions might change!
     virtual void PrepareSearch(const Kratos::Flags& rOptions,
                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) = 0;
+                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
 
-    virtual void FinalizeSearch() = 0;
+    virtual void FinalizeSearch();
 
-    // This function constructs the InterfaceObjects on the Destination
-    // In serial it only does it once, whereas in MPI this involves Data-Exchange!
-    // Imagine a sliding interface, there the partitions might change!
     virtual void PrepareSearchIteration(const Kratos::Flags& rOptions,
                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                         InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) = 0;

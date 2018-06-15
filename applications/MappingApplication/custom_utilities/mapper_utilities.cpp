@@ -129,5 +129,39 @@ void CheckInterfaceModelParts(const int CommRank)
     // }
 }
 
+std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart)
+{
+    std::vector<double> local_bounding_box {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
+    // xmax, xmin,  ymax, ymin,  zmax, zmin
+
+    // loop over all nodes (local and ghost(necessary if conditions have only ghost nodes) )
+    for (auto &r_node : rModelPart.Nodes())
+    {
+        local_bounding_box[0] = std::max(r_node.X(), local_bounding_box[0]);
+        local_bounding_box[1] = std::min(r_node.X(), local_bounding_box[1]);
+        local_bounding_box[2] = std::max(r_node.Y(), local_bounding_box[2]);
+        local_bounding_box[3] = std::min(r_node.Y(), local_bounding_box[3]);
+        local_bounding_box[4] = std::max(r_node.Z(), local_bounding_box[4]);
+        local_bounding_box[5] = std::min(r_node.Z(), local_bounding_box[5]);
+    }
+    return local_bounding_box;
+}
+
+void ComputeBoundingBoxWithTolerance(std::vector<double>& rLocalBoundingBox,
+                                     const double Tolerance,
+                                     std::vector<double>& rLocalBoundingBoxWithTolerance)
+{
+    KRATOS_DEBUG_ERROR_IF_NOT(rLocalBoundingBox.size() == 6);
+    KRATOS_DEBUG_ERROR_IF_NOT(rLocalBoundingBoxWithTolerance.size() == 6);
+
+    // xmax, xmin,  ymax, ymin,  zmax, zmin
+    rLocalBoundingBoxWithTolerance[0] = rLocalBoundingBox[0] + Tolerance;
+    rLocalBoundingBoxWithTolerance[1] = rLocalBoundingBox[1] - Tolerance;
+    rLocalBoundingBoxWithTolerance[2] = rLocalBoundingBox[2] + Tolerance;
+    rLocalBoundingBoxWithTolerance[3] = rLocalBoundingBox[3] - Tolerance;
+    rLocalBoundingBoxWithTolerance[4] = rLocalBoundingBox[4] + Tolerance;
+    rLocalBoundingBoxWithTolerance[5] = rLocalBoundingBox[5] - Tolerance;
+}
+
 } // namespace MapperUtilities
 } // namespace Kratos.

@@ -28,7 +28,9 @@ namespace Kratos
 namespace MapperUtilitiesMPI
 {
 
-}  // namespace MapperUtilities.
+void ComputeGlobalBoundingBoxes(ModelPart& rModelPart, std::vector<double>& rGlobalBoundingBoxes);
+
+}  // namespace MapperUtilitiesMPI.
 
 }  // namespace Kratos.
 
