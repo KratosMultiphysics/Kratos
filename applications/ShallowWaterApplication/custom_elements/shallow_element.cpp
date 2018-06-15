@@ -215,7 +215,7 @@ void ShallowElement::CalculateLocalSystem(
     double grad_norm = norm_2(height_grad);
     array_1d<double,9> residual = rRightHandSideVector - prod(rLeftHandSideMatrix, data.unknown);
     double h_residual = data.lumping_factor * (residual[2] + residual[5] + residual[8]);
-    if (grad_norm > 1e-6)
+    if (grad_norm > 1e-3)
         k_dc *= std::abs(h_residual / grad_norm);
         // k_dc *= grad_norm; // The easiest and heaviest way. Not good for complex free surface problems
         // k_dc *= std::abs(inner_prod(vel, height_grad)) / grad_norm;
@@ -229,20 +229,38 @@ void ShallowElement::CalculateLocalSystem(
     array_1d<double,2> tau_h_stab;// = tau * vel / norm_2(vel);
     tau_h_stab[0] = tau;
     tau_h_stab[1] = tau;
-    array_1d<double,elem_size> DN_DX_h_stab = prod(DN_DX_height, tau_h_stab);
+    array_1d<double,elem_size> DN_DX_h_stab = ZeroVector(elem_size); // = prod(tau_h_stab, DN_DX_height);
+    BoundedMatrix<double,2,elem_size> DN_DX_v_stab = ZeroMatrix(2,elem_size);
 
-    // KRATOS_WATCH(DN_DX_h_stab)
-    // KRATOS_WATCH(DN_DX_vel)
-    // KRATOS_WATCH(DN_DX_height)
-    // KRATOS_WATCH(tau_h_stab)
+    for (unsigned int node = 0; node < nnodes; node++)
+    {
+        DN_DX_v_stab(0,3*node  ) = tau_h_stab[0]*DN_DX(node,0);
+        DN_DX_v_stab(0,3*node+1) = tau_h_stab[0]*DN_DX(node,0);
+        DN_DX_v_stab(1,3*node  ) = tau_h_stab[1]*DN_DX(node,1);
+        DN_DX_v_stab(1,3*node+1) = tau_h_stab[1]*DN_DX(node,1);
+        DN_DX_h_stab[3*node+2] = tau_h_stab[0]*DN_DX(node,0) + tau_h_stab[1]*DN_DX(node,1);
+    }
 
-    // LHS stabilization term
+    // Mass balance LHS stabilization terms
     BoundedMatrix<double,9,9> stab_h_mass = outer_prod(DN_DX_h_stab, N_height);
     noalias(rLeftHandSideMatrix) += tau * height * outer_prod(DN_DX_h_stab, DN_DX_vel);
     noalias(rLeftHandSideMatrix) += tau * data.dt_inv * stab_h_mass;
 
-    // RHS stabilization term
+    // Mass balance RHS stabilization terms
     noalias(rRightHandSideVector) += tau * data.dt_inv * prod(stab_h_mass, data.proj_unk);
+
+    // Momentum balance stabilization terms
+    BoundedMatrix<double,9,9> mass_v_stab = prod(trans(DN_DX_v_stab), N_vel);
+    BoundedMatrix<double,9,9> wave_v_stab = prod(trans(DN_DX_v_stab), DN_DX_height);
+    // KRATOS_WATCH(mass_v_stab);
+    // KRATOS_WATCH(wave_v_stab);
+    noalias(rLeftHandSideMatrix) += tau * data.gravity * wave_v_stab;
+    noalias(rLeftHandSideMatrix) += tau * data.dt_inv * mass_v_stab;
+    noalias(rLeftHandSideMatrix) += tau * data.gravity * data.manning2 * abs_vel / height4_3 * mass_v_stab;
+
+    // Momentum balance stabilization terms
+    noalias(rRightHandSideVector) -= tau * data.gravity * prod(wave_v_stab, data.depth);
+    noalias(rRightHandSideVector) += tau * data.dt_inv * prod(mass_v_stab, data.proj_unk);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
