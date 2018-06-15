@@ -58,7 +58,7 @@ namespace Kratos
 
             ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = inode->FastGetSolutionStepValue(HEIGHT) + (inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightConvert);
@@ -76,7 +76,7 @@ namespace Kratos
 
             ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 inode->FastGetSolutionStepValue(HEIGHT) = inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - (inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightConvert);
@@ -94,7 +94,7 @@ namespace Kratos
 
             ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 inode->GetSolutionStepValue(VELOCITY) = inode->FastGetSolutionStepValue(MOMENTUM) / (inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightConvert);
@@ -112,7 +112,7 @@ namespace Kratos
 
             ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 inode->GetSolutionStepValue(MOMENTUM) = inode->FastGetSolutionStepValue(VELOCITY) * (inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightConvert);
@@ -127,7 +127,7 @@ namespace Kratos
 
             ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold &&
@@ -147,7 +147,7 @@ namespace Kratos
 
             ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             #pragma omp parallel for
-            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold &&
@@ -173,7 +173,7 @@ namespace Kratos
             //~ ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
             //~ // We loop all the nodes to check if they are dry
             //~ #pragma omp parallel for
-            //~ for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            //~ for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             //~ {
                 //~ ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 //~ // If current node is dry, is candidate to be inactive
@@ -203,13 +203,13 @@ namespace Kratos
             // Way B: elements
             
             // Getting the elements from the model
-            const unsigned int nelements = static_cast<int>(mrModelPart.Elements().size());
+            const int nelements = static_cast<int>(mrModelPart.Elements().size());
             int nnodes;
             bool wet_node;
             
             // And now, if an element has all nodes dry, it is not active
             #pragma omp parallel for
-            for(unsigned int k = 0; k < nelements; k++)
+            for(int k = 0; k < nelements; k++)
             {
                 ModelPart::ElementsContainerType::iterator it = mrModelPart.ElementsBegin() + k;
                 nnodes = it->GetGeometry().size();
@@ -227,6 +227,39 @@ namespace Kratos
             }
             
             KRATOS_CATCH("")
+        }
+
+        void ResetMeshPosition(ModelPart& rModelPart)
+        {
+            // Move mesh to the original position
+            const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+            ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
+
+            #pragma omp parallel for
+            for(int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator inode = node_begin + i;
+
+                inode->Z() = inode->Z0();
+            }
+        }
+
+        void SetMeshPosition(ModelPart& rModelPart)
+        {
+            // Move mesh to the current position
+            const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+            ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
+
+            #pragma omp parallel for
+            for(int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator inode = node_begin + i;
+
+                if (inode->FastGetSolutionStepValue(HEIGHT) <= mThreshold)
+                    inode->Z() = inode->FastGetSolutionStepValue(BATHYMETRY);
+                else
+                    inode->Z() = inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+            }
         }
 
     protected:
