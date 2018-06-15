@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
+#include "shell_utilities.h"
 #include "properties_extensions.hpp"
 #include "containers/flags.h"
 
@@ -414,7 +415,7 @@ public:
 
     private:
 
-        double mThickness;
+        int mPlyIndex;
         double mLocation;
         double mOrientationAngle;
         IntegrationPointCollection mIntegrationPoints;
@@ -423,15 +424,15 @@ public:
     public:
 
         Ply()
-            : mThickness(0.0)
+            : mPlyIndex(0)
             , mLocation(0.0)
             , mOrientationAngle(0.0)
             , mIntegrationPoints()
             , mpProperties(Properties::Pointer())
         {}
 
-        Ply(double thickness, double location, double orientationAngle, int numPoints, const Properties::Pointer & pProperties)
-            : mThickness(thickness)
+        Ply(const int PlyIndex, double location, double orientationAngle, int numPoints, const Properties::Pointer & pProperties)
+            : mPlyIndex(PlyIndex)
             , mLocation(location)
             , mIntegrationPoints()
             , mpProperties(pProperties)
@@ -441,7 +442,7 @@ public:
         }
 
         Ply(const Ply& other)
-            : mThickness(other.mThickness)
+            : mPlyIndex(other.mPlyIndex)
             , mLocation(other.mLocation)
             , mOrientationAngle(other.mOrientationAngle)
             , mIntegrationPoints(other.mIntegrationPoints)
@@ -452,7 +453,7 @@ public:
         {
             if(this != &other)
             {
-                mThickness = other.mThickness;
+                mPlyIndex = other.mPlyIndex;
                 mLocation = other.mLocation;
                 mOrientationAngle = other.mOrientationAngle;
                 mIntegrationPoints = other.mIntegrationPoints;
@@ -465,11 +466,7 @@ public:
 
         inline double GetThickness()const
         {
-            return mThickness;
-        }
-        inline void SetThickness(double thickness)
-        {
-            mThickness = thickness;
+            return ShellUtilities::GetThickness(*mpProperties, mPlyIndex);
         }
 
         inline double GetLocation()const
@@ -520,7 +517,7 @@ public:
 
         inline double CalculateMassPerUnitArea()const
         {
-            return mpProperties->GetValue(DENSITY) * mThickness;
+            return mpProperties->GetValue(DENSITY) * GetThickness();
         }
 
         inline IntegrationPointCollection::size_type NumberOfIntegrationPoints()const
@@ -565,8 +562,8 @@ public:
             Vector ip_loc(n, 0.0);
             if(n >= 3)
             {
-                double loc_start = mLocation + 0.5 * mThickness;
-                double loc_incr = mThickness / double(n-1);
+                double loc_start = mLocation + 0.5 * GetThickness();
+                double loc_incr = GetThickness() / double(n-1);
                 for(int i = 0; i < n; i++)
                 {
                     ip_loc(i) = loc_start;
@@ -580,7 +577,7 @@ public:
             for(int i = 0; i < n; i++)
             {
                 IntegrationPoint& intp = mIntegrationPoints[i];
-                intp.SetWeight(ip_w(i) * mThickness);
+                intp.SetWeight(ip_w(i) * GetThickness());
                 intp.SetLocation(ip_loc(i));
                 intp.SetConstitutiveLaw(pMaterial->Clone());
             }
@@ -594,7 +591,7 @@ public:
 
         virtual void save(Serializer& rSerializer) const
         {
-            rSerializer.save("T", mThickness);
+            rSerializer.save("idx", mPlyIndex);
             rSerializer.save("L", mLocation);
             rSerializer.save("O", mOrientationAngle);
             rSerializer.save("IntP", mIntegrationPoints);
@@ -603,7 +600,7 @@ public:
 
         virtual void load(Serializer& rSerializer)
         {
-            rSerializer.load("T", mThickness);
+            rSerializer.load("idx", mPlyIndex);
             rSerializer.load("L", mLocation);
             rSerializer.load("O", mOrientationAngle);
             rSerializer.load("IntP", mIntegrationPoints);
@@ -696,7 +693,7 @@ public:
     				   For numPoints = odd number > 3, the composite Simpson rule is used.
     * @param pProperties the pointer to the properties assigned to the new ply.
     */
-    void AddPly(double thickness, double orientationAngle, int numPoints, const Properties::Pointer & pProperties);
+    void AddPly(const IndexType PlyIndex, double orientationAngle, int numPoints, const Properties::Pointer & pProperties);
 
     /**
     * Finalizes the editing of the Composite Layup.
@@ -1102,7 +1099,10 @@ public:
     */
     inline double GetThickness()const
     {
-        return mThickness;
+        double thickness = 0.0;
+    	for (const auto& r_ply : mStack)
+    		thickness += r_ply.GetThickness();
+        return thickness;
     }
 
     /**
@@ -1231,7 +1231,7 @@ public:
     */
     inline double CalculateAvarageDensity()const
     {
-        return CalculateMassPerUnitArea() / mThickness;
+        return CalculateMassPerUnitArea() / GetThickness();
     }
 
     /**
@@ -1302,12 +1302,6 @@ public:
     }
 
     /**
-    * Checks if the shell is an orthotropic material
-    * @return the true/false
-    */
-    static bool CheckIsOrthotropic(const Properties& rProps);
-
-    /**
     * Parses the shell orthotropic material data from properties
     */
     void ParseOrthotropicPropertyMatrix(const Properties::Pointer & pProps);
@@ -1360,7 +1354,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mThickness;
     double mOffset;
     PlyCollection mStack;
     bool mEditingStack;
@@ -1385,7 +1378,6 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("th", mThickness);
         rSerializer.save("offs", mOffset);
         rSerializer.save("stack", mStack);
         rSerializer.save("edit", mEditingStack);
@@ -1406,7 +1398,6 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        rSerializer.load("th", mThickness);
         rSerializer.load("offs", mOffset);
         rSerializer.load("stack", mStack);
         rSerializer.load("edit", mEditingStack);
