@@ -22,9 +22,13 @@ class VisualizationMeshProcess(KratosMultiphysics.Process):
             )
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.process = KratosShallow.ShallowWaterVariablesUtility(Model.GetModelPart(settings.GetString("model_part_name")))
+        self.process = KratosShallow.ShallowWaterVariablesUtility(Model.GetModelPart(settings["model_part_name"].GetString()))
+
+    def ExecuteBeforeSolutionLoop(self):
+        self.process.DefineDryProperties()
 
     def ExecuteBeforeOutputStep(self):
+        self.process.AssignDryWetProperties()
         self.process.SetMeshPosition()
 
     def ExecuteAfterOutputStep(self):

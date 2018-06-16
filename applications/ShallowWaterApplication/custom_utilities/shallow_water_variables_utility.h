@@ -27,6 +27,12 @@
 namespace Kratos
 {
 
+    typedef std::size_t IndexType;
+
+    typedef std::vector<IndexType> IndexVectorType;
+
+    typedef std::map<int, Properties::Pointer> PropertiesMapType;
+
     class ShallowWaterVariablesUtility
     {
     public:
@@ -229,36 +235,126 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        void ResetMeshPosition(ModelPart& rModelPart)
+        /**
+         * This method creates the dry properties as a copy of the wet properties
+         * The only difference between them is for visualization purpose
+         */
+        void DefineDryProperties()
         {
-            // Move mesh to the original position
-            const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-            ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
+            // Create a copy for each property
+            const int nprop = static_cast<int>(mrModelPart.NumberOfProperties());
+            ModelPart::PropertiesContainerType::iterator prop_begin = mrModelPart.PropertiesBegin();
+            IndexType last_id = 0;
+            IndexVectorType prop_id;
 
-            #pragma omp parallel for
-            for(int i = 0; i < nnodes; i++)
+            for (int i = 0; i < nprop; i++)
             {
-                ModelPart::NodesContainerType::iterator inode = node_begin + i;
+                ModelPart::PropertiesContainerType::iterator prop = prop_begin + i;
 
-                inode->Z() = inode->Z0();
+                if (prop->Id() > last_id)
+                    last_id = prop->Id();
+                prop_id.push_back(prop->Id());
+            }
+
+            // for (int i = 0; i < nprop; i++)
+            // {
+            //     ModelPart::PropertiesContainerType::iterator prop = prop_begin + i;
+            for (auto id : prop_id)
+            {
+                // Get pointers to the properties and create the dry property
+                Properties::Pointer wet_prop = mrModelPart.pGetProperties(id); // This work around is inefficient. TODO: find another way
+                Properties::Pointer dry_prop(new Properties(*wet_prop));
+                dry_prop->SetId(++last_id);
+
+                // Add the new property and add them to the maps
+                mrModelPart.AddProperties(dry_prop, dry_prop->Id());
+                mWetToDryPropertiesMap[wet_prop->Id()] = dry_prop;
+                mDryToWetPropertiesMap[dry_prop->Id()] = wet_prop;
             }
         }
 
-        void SetMeshPosition(ModelPart& rModelPart)
+        /**
+         * This method assign the wet and dry properties
+         * Wet and dry are tween properties 
+         * The only difference between them is for visualization purpose
+         * ExecuteBeforOutputStep
+         * @see DefineDryProperties
+         */
+        void AssignDryWetProperties()
+        {
+            const int nelem = static_cast<int>(mrModelPart.Elements().size());
+            ModelPart::ElementsContainerType::iterator elem_begin = mrModelPart.ElementsBegin();
+
+            #pragma omp parallel for
+            for (int i = 0; i < nelem; i++)
+            {
+                ModelPart::ElementsContainerType::iterator elem = elem_begin + i;
+
+                if (elem->Is(FLUID))
+                {
+                    auto search = mDryToWetPropertiesMap.find(elem->GetProperties().Id());
+                    if (search != mDryToWetPropertiesMap.end()) // The element was dry
+                        elem->SetProperties(search->second);
+                }
+                else
+                {
+                    auto search = mWetToDryPropertiesMap.find(elem->GetProperties().Id());
+                    if (search != mWetToDryPropertiesMap.end()) // The element was wet
+                    {
+                        elem->SetProperties(search->second);
+                    }
+                }
+            }
+        }
+
+        /**
+         * This method sets the mesh position for visualization purpose
+         * ExecuteBeforeOutputStep
+         * @see ResetMeshPosition
+         */
+        void SetMeshPosition()
         {
             // Move mesh to the current position
-            const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-            ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
+            const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+            ModelPart::NodesContainerType::iterator node_begin = mrModelPart.NodesBegin();
 
             #pragma omp parallel for
             for(int i = 0; i < nnodes; i++)
             {
-                ModelPart::NodesContainerType::iterator inode = node_begin + i;
+                ModelPart::NodesContainerType::iterator node = node_begin + i;
 
-                if (inode->FastGetSolutionStepValue(HEIGHT) <= mThreshold)
-                    inode->Z() = inode->FastGetSolutionStepValue(BATHYMETRY);
+                if (node->FastGetSolutionStepValue(HEIGHT) <= mThreshold)
+                {
+                    double value = node->FastGetSolutionStepValue(BATHYMETRY);
+                    node->Z() = value;
+                    node->FastGetSolutionStepValue(DISTANCE) = value;
+                }
                 else
-                    inode->Z() = inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+                {
+                    double value = node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+                    node->Z() = value;
+                    node->FastGetSolutionStepValue(DISTANCE) = value;
+                }
+            }
+        }
+
+        /**
+         * This method resets the mesh to the original position (Z0 = 0)
+         * ExecuteAfterOutputStep
+         * @see SetMeshPosition
+         */
+        void ResetMeshPosition()
+        {
+            // Move mesh to the original position
+            const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+            ModelPart::NodesContainerType::iterator node_begin = mrModelPart.NodesBegin();
+
+            #pragma omp parallel for
+            for(int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator node = node_begin + i;
+
+                node->Z() = node->Z0();
             }
         }
 
@@ -270,6 +366,8 @@ namespace Kratos
         double mWaterHeightConvert;
         double mThreshold;
         double mZeroValue;
+        PropertiesMapType mWetToDryPropertiesMap;
+        PropertiesMapType mDryToWetPropertiesMap;
 
     }; // class ShallowWaterVariablesUtility
 
