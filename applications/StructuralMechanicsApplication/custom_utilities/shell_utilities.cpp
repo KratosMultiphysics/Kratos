@@ -10,177 +10,143 @@
 //  Main authors:    Philipp Bucher
 //
 
-
 // System includes
-
 
 // External includes
 
-
 // Project includes
-#include "includes/checks.h"
 #include "shell_utilities.h"
-#include "structural_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
     namespace ShellUtilities
 	{
-        typedef Properties PropertiesType; // TODO remove this?
+        using SizeType = std::size_t;
+        using IndexType = std::size_t;
 
-		double dN_seren_dxi(const int actualNodeNumber,const double xi,
-			const double eta)
+		double dN_seren_dxi(const int nNode, const double Xi, const double Eta)
 		{
 			// Natural derivatives of 8-node serendipity shape functions
-
-			double returnValue;
-			switch (actualNodeNumber)
+			switch (nNode)
 			{
 			case 1:
-				returnValue = -(-eta + 1.0)*(-0.25*xi + 0.25) -
-					0.25*(-eta + 1.0)*(-eta - xi - 1.0);
-				break;
+				return -(-Eta + 1.0)*(-0.25*Xi + 0.25) -
+					0.25*(-Eta + 1.0)*(-Eta - Xi - 1.0);
 			case 2:
-				returnValue = (-eta + 1.0)*(0.25*xi + 0.25) +
-					0.25*(-eta + 1.0)*(-eta + xi - 1.0);
-				break;
+				return (-Eta + 1.0)*(0.25*Xi + 0.25) +
+					0.25*(-Eta + 1.0)*(-Eta + Xi - 1.0);
 			case 3:
-				returnValue = (eta + 1.0)*(0.25*xi + 0.25) +
-					0.25*(eta + 1.0)*(eta + xi - 1.0);
-				break;
+				return (Eta + 1.0)*(0.25*Xi + 0.25) +
+					0.25*(Eta + 1.0)*(Eta + Xi - 1.0);
 			case 4:
-				returnValue = -(eta + 1.0)*(-0.25*xi + 0.25) -
-					0.25*(eta + 1.0)*(eta - xi - 1.0);
-				break;
+				return -(Eta + 1.0)*(-0.25*Xi + 0.25) -
+					0.25*(Eta + 1.0)*(Eta - Xi - 1.0);
 			case 5:
-				returnValue = -1.0*xi*(-eta + 1.0);
-				break;
+				return -1.0*Xi*(-Eta + 1.0);
 			case 6:
-				returnValue = -0.5*eta*eta + 0.5;
-				break;
+				return -0.5*Eta*Eta + 0.5;
 			case 7:
-				returnValue = -1.0*xi*(eta + 1.0);
-				break;
+				return -1.0*Xi*(Eta + 1.0);
 			case 8:
-				returnValue = 0.5*eta*eta - 0.5;
-				break;
+				return 0.5*Eta*Eta - 0.5;
 			default:
 				KRATOS_ERROR <<
 					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
 					<< std::endl;
 			}
-
-			return returnValue;
 		}
 
-		double dN_seren_deta(const int actualNodeNumber,const double xi,
-			const double eta)
+		double dN_seren_deta(const int nNode, const double Xi, const double Eta)
 		{
 			// Natural derivatives of 8-node serendipity shape functions
-
-			double returnValue;
-			switch (actualNodeNumber)
+			switch (nNode)
 			{
 			case 1:
-				returnValue = -(-eta + 1.0)*(-0.25*xi + 0.25) -
-					(-0.25*xi + 0.25)*(-eta - xi - 1.0);
-				break;
+				return -(-Eta + 1.0)*(-0.25*Xi + 0.25) -
+					(-0.25*Xi + 0.25)*(-Eta - Xi - 1.0);
 			case 2:
-				returnValue = -(-eta + 1.0)*(0.25*xi + 0.25) -
-					(0.25*xi + 0.25)*(-eta + xi - 1.0);
-				break;
+				return -(-Eta + 1.0)*(0.25*Xi + 0.25) -
+					(0.25*Xi + 0.25)*(-Eta + Xi - 1.0);
 			case 3:
-				returnValue = (eta + 1.0)*(0.25*xi + 0.25) +
-					(0.25*xi + 0.25)*(eta + xi - 1.0);
-				break;
+				return (Eta + 1.0)*(0.25*Xi + 0.25) +
+					(0.25*Xi + 0.25)*(Eta + Xi - 1.0);
 			case 4:
-				returnValue = (eta + 1.0)*(-0.25*xi + 0.25) +
-					(-0.25*xi + 0.25)*(eta - xi - 1.0);
-				break;
+				return (Eta + 1.0)*(-0.25*Xi + 0.25) +
+					(-0.25*Xi + 0.25)*(Eta - Xi - 1.0);
 			case 5:
-				returnValue = 0.5*xi*xi - 0.5;
-				break;
+				return 0.5*Xi*Xi - 0.5;
 			case 6:
-				returnValue = -1.0*eta*(xi + 1.0);
-				break;
+				return -1.0*Eta*(Xi + 1.0);
 			case 7:
-				returnValue = -0.5*xi*xi + 0.5;
-				break;
+				return -0.5*Xi*Xi + 0.5;
 			case 8:
-				returnValue = -1.0*eta*(-xi + 1.0);
-				break;
+				return -1.0*Eta*(-Xi + 1.0);
 			default:
 				KRATOS_ERROR <<
 					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
 					<< std::endl;
 			}
-
-			return returnValue;
 		}
 
-		void InterpToStandardGaussPoints(double& v1, double& v2,
-			double& v3)
+		void InterpToStandardGaussPoints(double& rV1, double& rV2,double& rV3)
 		{
-			double vg1 = v1;
-			double vg2 = v2;
-			double vg3 = v3;
+			double vg1 = rV1;
+			double vg2 = rV2;
+			double vg3 = rV3;
 #ifdef OPT_AVERAGE_RESULTS
-			v1 = (vg1 + vg2 + vg3) / 3.0;
-			v2 = (vg1 + vg2 + vg3) / 3.0;
-			v3 = (vg1 + vg2 + vg3) / 3.0;
+			rV1 = (vg1 + vg2 + vg3) / 3.0;
+			rV2 = (vg1 + vg2 + vg3) / 3.0;
+			rV3 = (vg1 + vg2 + vg3) / 3.0;
 #else
-			v1 = (2.0*vg1) / 3.0 - vg2 / 3.0 + (2.0*vg3) / 3.0;
-			v2 = (2.0*vg1) / 3.0 + (2.0*vg2) / 3.0 - vg3 / 3.0;
-			v3 = (2.0*vg2) / 3.0 - vg1 / 3.0 + (2.0*vg3) / 3.0;
+			rV1 = (2.0*vg1) / 3.0 - vg2 / 3.0 + (2.0*vg3) / 3.0;
+			rV2 = (2.0*vg1) / 3.0 + (2.0*vg2) / 3.0 - vg3 / 3.0;
+			rV3 = (2.0*vg2) / 3.0 - vg1 / 3.0 + (2.0*vg3) / 3.0;
 #endif // OPT_AVERAGE_RESULTS
 		}
 
-		void InterpToStandardGaussPoints(std::vector< double >& v)
+		void InterpToStandardGaussPoints(std::vector< double >& rV)
 		{
-			if (v.size() != 3) return;
-			InterpToStandardGaussPoints(v[0], v[1], v[2]);
+			if (rV.size() != 3) return;
+			InterpToStandardGaussPoints(rV[0], rV[1], rV[2]);
 		}
 
-		void InterpToStandardGaussPoints(std::vector< array_1d<double,
-			3> >& v)
+		void InterpToStandardGaussPoints(std::vector< array_1d<double, 3> >& rV)
 		{
-			if (v.size() != 3) return;
-			for (size_t i = 0; i < 3; i++)
-				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
+			if (rV.size() != 3) return;
+			for (IndexType i = 0; i < 3; ++i)
+				InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
 		}
 
-		void InterpToStandardGaussPoints(std::vector< array_1d<double,
-			6> >& v)
+		void InterpToStandardGaussPoints(std::vector< array_1d<double, 6> >& rV)
 		{
-			if (v.size() != 3) return;
-			for (size_t i = 0; i < 6; i++)
-				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
+			if (rV.size() != 3) return;
+			for (IndexType i = 0; i < 6; ++i)
+				InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
 		}
 
-		void InterpToStandardGaussPoints(std::vector< Vector >& v)
+		void InterpToStandardGaussPoints(std::vector< Vector >& rV)
 		{
-			if (v.size() != 3) return;
-			size_t ncomp = v[0].size();
-			for (int i = 1; i < 3; i++)
-				if (v[i].size() != ncomp)
+			if (rV.size() != 3) return;
+			SizeType ncomp = rV[0].size();
+			for (int i = 1; i < 3; ++i)
+				if (rV[i].size() != ncomp)
 					return;
-			for (size_t i = 0; i < ncomp; i++)
-				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
+			for (IndexType i = 0; i < ncomp; ++i)
+				InterpToStandardGaussPoints(rV[0][i], rV[1][i], rV[2][i]);
 		}
 
-		void InterpToStandardGaussPoints(std::vector< Matrix >& v)
+		void InterpToStandardGaussPoints(std::vector< Matrix >& rV)
 		{
-			if (v.size() != 3) return;
-			size_t nrows = v[0].size1();
-			size_t ncols = v[0].size2();
-			for (int i = 1; i < 3; i++)
-				if (v[i].size1() != nrows || v[i].size2() != ncols)
+			if (rV.size() != 3) return;
+			SizeType nrows = rV[0].size1();
+			SizeType ncols = rV[0].size2();
+			for (int i = 1; i < 3; ++i)
+				if (rV[i].size1() != nrows || rV[i].size2() != ncols)
 					return;
-			for (size_t i = 0; i < nrows; i++)
-				for (size_t j = 0; j < ncols; j++)
+			for (IndexType i = 0; i < nrows; ++i)
+				for (IndexType j = 0; j < ncols; ++j)
 					InterpToStandardGaussPoints
-					(v[0](i, j), v[1](i, j), v[2](i, j));
+					(rV[0](i, j), rV[1](i, j), rV[2](i, j));
 		}
     } // namespace ShellUtilities
 }  // namespace Kratos.
