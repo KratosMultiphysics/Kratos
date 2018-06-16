@@ -28,6 +28,7 @@ class VisualizationMeshProcess(KratosMultiphysics.Process):
         self.process.DefineDryProperties()
 
     def ExecuteBeforeOutputStep(self):
+        self.process.SetElementsActive()
         self.process.AssignDryWetProperties()
         self.process.SetMeshPosition()
 

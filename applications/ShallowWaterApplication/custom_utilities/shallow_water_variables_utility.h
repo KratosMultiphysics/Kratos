@@ -226,10 +226,17 @@ namespace Kratos
                         it->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mThreshold )
                         wet_node = true;  // It means there is almost a wet node
                 }
+
                 if (wet_node)
+                {
+                    it->Set(FLUID, true);
                     it->Set(ACTIVE, true);
+                }
                 else
+                {
+                    it->Set(FLUID, false);
                     it->Set(ACTIVE, false);
+                }
             }
             
             KRATOS_CATCH("")
@@ -327,13 +334,13 @@ namespace Kratos
                 {
                     double value = node->FastGetSolutionStepValue(BATHYMETRY);
                     node->Z() = value;
-                    node->FastGetSolutionStepValue(DISTANCE) = value;
+                    node->FastGetSolutionStepValue(DISPLACEMENT_Z) = value;
                 }
                 else
                 {
                     double value = node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
                     node->Z() = value;
-                    node->FastGetSolutionStepValue(DISTANCE) = value;
+                    node->FastGetSolutionStepValue(DISPLACEMENT_Z) = value;
                 }
             }
         }
@@ -355,6 +362,26 @@ namespace Kratos
                 ModelPart::NodesContainerType::iterator node = node_begin + i;
 
                 node->Z() = node->Z0();
+            }
+        }
+
+        /**
+         * This method sets the all the elements active for visualization purpose
+         * ExecuteBeforeOutputStep
+         * @see AssignDryWetProperties
+         * @see SetDryWetState
+         */
+        void SetElementsActive()
+        {
+            const int nelem = static_cast<int>(mrModelPart.Elements().size());
+            ModelPart::ElementsContainerType::iterator elem_begin = mrModelPart.ElementsBegin();
+
+            #pragma omp parallel for
+            for (int i = 0; i < nelem; i++)
+            {
+                ModelPart::ElementsContainerType::iterator elem = elem_begin + i;
+
+                elem->Set(ACTIVE, true);
             }
         }
 

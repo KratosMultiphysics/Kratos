@@ -65,6 +65,7 @@ namespace Python
         .def("AssignDryWetProperties", &ShallowWaterVariablesUtility::AssignDryWetProperties)
         .def("ResetMeshPosition", &ShallowWaterVariablesUtility::ResetMeshPosition)
         .def("SetMeshPosition", &ShallowWaterVariablesUtility::SetMeshPosition)
+        .def("SetElementsActive", &ShallowWaterVariablesUtility::SetElementsActive)
         ;
   }
 
