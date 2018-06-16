@@ -48,6 +48,7 @@ class SPRISMProcess(KM.Process):
                 "output_name"                          : "output",
                 "computing_model_part_name"            : "computing_domain",
                 "create_submodelparts_external_layers" : false,
+                "append_submodelparts_external_layers" : false,
                 "initialize_elements"                  : false
             }
         }
@@ -85,6 +86,7 @@ class SPRISMProcess(KM.Process):
             parameters_shell_to_solidshell.AddValue("output_name", self.settings["parameters_shell_to_solidshell"]["output_name"])
             parameters_shell_to_solidshell.AddValue("computing_model_part_name", self.settings["parameters_shell_to_solidshell"]["computing_model_part_name"])
             parameters_shell_to_solidshell.AddValue("create_submodelparts_external_layers", self.settings["parameters_shell_to_solidshell"]["create_submodelparts_external_layers"])
+            parameters_shell_to_solidshell.AddValue("append_submodelparts_external_layers", self.settings["parameters_shell_to_solidshell"]["append_submodelparts_external_layers"])
             parameters_shell_to_solidshell.AddValue("initialize_elements", self.settings["parameters_shell_to_solidshell"]["initialize_elements"])
 
             preprocess_shell_to_solidshell = SMA.TriangleShellToSolidShellProcess(self.main_model_part, parameters_shell_to_solidshell)

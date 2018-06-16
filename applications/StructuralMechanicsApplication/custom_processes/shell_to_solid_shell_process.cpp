@@ -40,6 +40,7 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
         "output_name"                          : "output",
         "computing_model_part_name"            : "computing_domain",
         "create_submodelparts_external_layers" : false,
+        "append_submodelparts_external_layers" : false,
         "initialize_elements"                  : false
     })" );
 
@@ -66,6 +67,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     // Auxiliar model part where to store new nodes and elements
     ModelPart auxiliar_model_part;
     const bool create_submodelparts_external_layers = mThisParameters["create_submodelparts_external_layers"].GetBool();
+    const bool append_submodelparts_external_layers = mThisParameters["append_submodelparts_external_layers"].GetBool();
     ModelPart auxiliar_model_part_upper, auxiliar_model_part_lower;
 
     // Auxiliar values
@@ -242,10 +244,12 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     
     // We copy the external layers
     if (create_submodelparts_external_layers) {
-        ModelPart::Pointer p_upper_model_part = mrThisModelPart.CreateSubModelPart("Upper_"+model_part_name);
+        const std::string name_upper = "Upper_"+model_part_name;
+        ModelPart::Pointer p_upper_model_part = append_submodelparts_external_layers ? geometry_model_part.CreateSubModelPart(name_upper) : mrThisModelPart.CreateSubModelPart(name_upper);
         p_upper_model_part->AddNodes( auxiliar_model_part_upper.NodesBegin(), auxiliar_model_part_upper.NodesEnd() );
         p_upper_model_part->AddConditions( auxiliar_model_part_upper.ConditionsBegin(), auxiliar_model_part_upper.ConditionsEnd() );
-        ModelPart::Pointer p_lower_model_part = mrThisModelPart.CreateSubModelPart("Lower_"+model_part_name);
+        const std::string name_lower = "Lower_"+model_part_name;
+        ModelPart::Pointer p_lower_model_part = append_submodelparts_external_layers ? geometry_model_part.CreateSubModelPart(name_lower) : mrThisModelPart.CreateSubModelPart(name_lower);
         p_lower_model_part->AddNodes( auxiliar_model_part_lower.NodesBegin(), auxiliar_model_part_lower.NodesEnd() );
         p_lower_model_part->AddConditions( auxiliar_model_part_lower.ConditionsBegin(), auxiliar_model_part_lower.ConditionsEnd() );
     }
