@@ -146,7 +146,7 @@
         "Parameters"            : {
             "model_part_name"             : "Structure",
             "contact_model_part"          : ["Contact_Part"],
-            "assume_master_slave"         : "Parts_Part_punch",
+            "assume_master_slave"         : ["Parts_Part_punch"],
             "contact_type"                : "Frictionless"
         }
     }

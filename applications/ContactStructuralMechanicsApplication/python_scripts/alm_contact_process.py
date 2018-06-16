@@ -58,7 +58,7 @@ class ALMContactProcess(KM.Process):
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
             "contact_model_part"          : [],
-            "assume_master_slave"         : "",
+            "assume_master_slave"         : [],
             "contact_type"                : "Frictionless",
             "interval"                    : [0.0,"End"],
             "normal_variation"            : "no_derivatives_computation",
@@ -106,7 +106,7 @@ class ALMContactProcess(KM.Process):
         self.dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
         # When all conditions are simultaneously master and slave
-        if (self.settings["assume_master_slave"].GetString() == ""):
+        if (self.settings["assume_master_slave"].size() == 0):
             self.predefined_master_slave = False
         else:
             self.predefined_master_slave = True
@@ -305,14 +305,17 @@ class ALMContactProcess(KM.Process):
         """
 
         if (self.predefined_master_slave is True):
-            model_part_slave_name = self.settings["assume_master_slave"].GetString()
-            model_part_slave = self.main_model_part.GetSubModelPart(model_part_slave_name)
-            KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Nodes)
-            KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Nodes)
+            if not self.settings["assume_master_slave"].IsArray():
+                raise Exception("{0} Error: Model part list is unreadable".format(self.__class__.__name__))
+            for i in range(0, self.settings["assume_master_slave"].size()):
+                model_part_slave_name = self.settings["assume_master_slave"][i].GetString()
+                model_part_slave = self.main_model_part.GetSubModelPart(model_part_slave_name)
+                KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Nodes)
+                KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Nodes)
 
-            if (len(self.contact_model_part.Conditions) > 0):
-                KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Conditions)
-                KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Conditions)
+                if (len(model_part_slave.Conditions) > 0):
+                    KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Conditions)
+                    KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Conditions)
 
     def _interface_preprocess(self, partial_model_part):
         """ This method creates the process used to compute the contact interface
@@ -605,7 +608,7 @@ class ALMContactProcess(KM.Process):
 
         # At least verify that the input is a string
         if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+            raise Exception("{0} Error: Model part list is unreadable".format(self.__class__.__name__))
 
         if (self.computing_model_part.HasSubModelPart("Contact")):
             self.preprocess = False
