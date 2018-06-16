@@ -733,7 +733,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "output_file_name" : "node_output",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node",
-                            "save_output_file_in_folder"  : false
+                            "save_output_in_folder"  : false
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",
@@ -777,7 +777,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "model_part_name"  : "Main",
                             "output_file_name" : "element_output",
                             "output_variables" : ["DISPLACEMENT_X", "VISCOSITY", "ACCELERATION"],
-                            "save_output_file_in_folder"  : false
+                            "save_output_in_folder"  : false
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",
@@ -823,7 +823,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "output_file_name" : "condition_output",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "condition",
-                            "save_output_file_in_folder"  : false
+                            "save_output_in_folder"  : false
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",
@@ -870,7 +870,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "output_file_name" : "point_output_rest",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node",
-                            "save_output_file_in_folder"  : false
+                            "save_output_in_folder"  : false
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",
@@ -933,7 +933,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "output_file_name" : "node_output_failed_restart",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node",
-                            "save_output_file_in_folder"  : false
+                            "save_output_in_folder"  : false
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",
@@ -984,7 +984,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "output_file_name" : "node_output",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node",
-                            "save_output_file_in_folder"  : false
+                            "save_output_in_folder"  : false
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",
@@ -1051,7 +1051,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "model_part_name"  : "Main",
                             "output_file_name" : "line_output",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
-                            "save_output_file_in_folder"  : false
+                            "save_output_in_folder"  : false
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",

@@ -29,7 +29,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             "output_variables"            : [],
             "flush_frequency"             : "",
             "output_file_name"            : "",
-            "save_output_file_in_folder"  : true,
+            "save_output_in_folder"       : true,
             "output_folder_relative_path" : "TabularResults"
         }''')
 
@@ -53,9 +53,9 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
         if output_file_name_base == "":
             raise Exception('No "output_file_name" was specified!')
 
-        if params["save_output_file_in_folder"].GetBool():
+        if params["save_output_in_folder"].GetBool():
             if params["output_folder_relative_path"].GetString() == "":
-                raise Exception('No "save_output_file_in_folder" was specified!')
+                raise Exception('No "save_output_in_folder" was specified!')
             else:
                 output_folder_relative_path = os.path.join(params["output_folder_relative_path"].GetString(),
                                                             "mp_" + output_file_name_base)
@@ -67,7 +67,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
         else:
             if raw_path != "":
                 warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ params["output_file_name"].GetString() +'"\n'
-                warn_msg += 'Use the "save_output_file_in_folder" and "output_folder_relative_path" to specify correctly\n'
+                warn_msg += 'Use the "save_output_in_folder" and "output_folder_relative_path" to specify correctly\n'
                 warn_msg += 'Using the current directory instead'
                 KratosMultiphysics.Logger.PrintWarning("MultiplePointsOutputProcess", warn_msg)
 
@@ -82,7 +82,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             output_file_name = output_file_name_base + "_" + str(i+1)
 
             point_proc_params["output_file_name"].SetString(output_file_name)
-            if params["save_output_file_in_folder"].GetBool():
+            if params["save_output_in_folder"].GetBool():
                 point_proc_params["output_folder_relative_path"].SetString(output_folder_relative_path)
             self.point_output_processes.append(PointOutputProcess(model, point_proc_params))
 

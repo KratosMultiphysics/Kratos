@@ -33,7 +33,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "output_variables"            : [],
             "flush_frequency"             : "",
             "output_file_name"            : "",
-            "save_output_file_in_folder"  : true,
+            "save_output_in_folder"       : true,
             "output_folder_relative_path" : "TabularResults"
         }''')
 
@@ -130,9 +130,9 @@ class PointOutputProcess(KratosMultiphysics.Process):
             if not output_file_name.endswith('.dat'):
                 output_file_name += ".dat"
 
-            if self.params["save_output_file_in_folder"].GetBool():
+            if self.params["save_output_in_folder"].GetBool():
                 if self.params["output_folder_relative_path"].GetString() == "":
-                    raise Exception('No "save_output_file_in_folder" was specified!')
+                    raise Exception('No "save_output_in_folder" was specified!')
                 else:
                     output_folder_relative_path = self.params["output_folder_relative_path"].GetString()
                     if raw_path != "":
@@ -145,7 +145,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 output_folder_path = os.getcwd()
                 if raw_path != "":
                     warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ self.params["output_file_name"].GetString() +'"\n'
-                    warn_msg += 'Use the "save_output_file_in_folder" and "output_folder_relative_path" to specify correctly\n'
+                    warn_msg += 'Use the "save_output_in_folder" and "output_folder_relative_path" to specify correctly\n'
                     warn_msg += 'Using the current directory instead'
                     KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
 

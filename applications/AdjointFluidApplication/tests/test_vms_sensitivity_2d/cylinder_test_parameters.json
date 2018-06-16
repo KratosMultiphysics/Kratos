@@ -154,7 +154,8 @@
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
-                "PRESSURE"]
+                "PRESSURE"],
+            "save_output_in_folder"  : false
         }
      },{
         "kratos_module"   : "KratosMultiphysics",
@@ -168,7 +169,8 @@
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
-                "PRESSURE"]
+                "PRESSURE"],
+            "save_output_in_folder"  : false
         }
     },{
         "python_module"   : "compare_two_files_check_process",
