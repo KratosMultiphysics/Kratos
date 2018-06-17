@@ -209,13 +209,13 @@ public:
         // Way B: elements
         
         // Getting the elements from the model
-        const int nelements = static_cast<int>(mrModelPart.Elements().size());
+        const int nelem = static_cast<int>(mrModelPart.Elements().size());
         int nnodes;
         bool wet_node;
         
         // And now, if an element has all nodes dry, it is not active
         #pragma omp parallel for
-        for(int k = 0; k < nelements; k++)
+        for(int k = 0; k < nelem; k++)
         {
             ModelPart::ElementsContainerType::iterator it = mrModelPart.ElementsBegin() + k;
             nnodes = it->GetGeometry().size();
