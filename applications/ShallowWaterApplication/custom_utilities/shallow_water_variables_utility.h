@@ -39,14 +39,14 @@ namespace Kratos
 
         KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterVariablesUtility);
 
-        ShallowWaterVariablesUtility(ModelPart& model_part) :
-            mrModelPart(model_part)  
+        ShallowWaterVariablesUtility(ModelPart& rModelPart, const double& rDryHeight = 1e-3)
+            : mrModelPart(rModelPart)  
         {
             KRATOS_TRY
             
             std::cout << "Initializing shallow water variables utility" << std::endl; 
             mWaterHeightConvert = mrModelPart.GetProcessInfo()[WATER_HEIGHT_UNIT_CONVERTER];
-            mThreshold = 1e-3;
+            mDryHeight = rDryHeight;
             mZeroValue = 1e-8;
             
             KRATOS_CATCH("")
@@ -136,8 +136,8 @@ namespace Kratos
             for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold &&
-                    inode->FastGetSolutionStepValue(RAIN)   < mThreshold )
+                if (inode->FastGetSolutionStepValue(HEIGHT) < mDryHeight &&
+                    inode->FastGetSolutionStepValue(RAIN)   < mDryHeight )
                 {
                     inode->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
                     inode->FastGetSolutionStepValue(MOMENTUM_X) = 0;
@@ -156,8 +156,8 @@ namespace Kratos
             for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
             {
                 ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-                if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold &&
-                    inode->FastGetSolutionStepValue(RAIN)   < mThreshold )
+                if (inode->FastGetSolutionStepValue(HEIGHT) < mDryHeight &&
+                    inode->FastGetSolutionStepValue(RAIN)   < mDryHeight )
                 {
                     inode->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
                     inode->FastGetSolutionStepValue(VELOCITY_X) = 0;
@@ -183,8 +183,8 @@ namespace Kratos
             //~ {
                 //~ ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
                 //~ // If current node is dry, is candidate to be inactive
-                //~ if (inode->FastGetSolutionStepValue(HEIGHT) < mThreshold && 
-                    //~ inode->FastGetSolutionStepValue(RAIN)   < mThreshold )
+                //~ if (inode->FastGetSolutionStepValue(HEIGHT) < mDryHeight && 
+                    //~ inode->FastGetSolutionStepValue(RAIN)   < mDryHeight )
                 //~ {
                     //~ WeakPointerVector< Node<3> >& rneigh = inode->GetValue(NEIGHBOUR_NODES);
                     //~ // We loop all the neighbour nodes to check if they are dry
@@ -192,8 +192,8 @@ namespace Kratos
                     //~ bool neigh_wet = false;
                     //~ for( WeakPointerVector<Node<3> >::iterator jnode = rneigh.begin(); jnode!=rneigh.end(); jnode++)
                     //~ {
-                        //~ if (jnode->FastGetSolutionStepValue(HEIGHT) >= mThreshold ||
-                            //~ jnode->FastGetSolutionStepValue(RAIN)   >= mThreshold )
+                        //~ if (jnode->FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
+                            //~ jnode->FastGetSolutionStepValue(RAIN)   >= mDryHeight )
                             //~ neigh_wet = true;
                     //~ }
                     //~ if (neigh_wet)
@@ -222,8 +222,8 @@ namespace Kratos
                 wet_node = false;
                 for(int l = 0; l < nnodes; l++)
                 {
-                    if (it->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT) >= mThreshold ||
-                        it->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mThreshold )
+                    if (it->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
+                        it->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mDryHeight )
                         wet_node = true;  // It means there is almost a wet node
                 }
 
@@ -330,7 +330,7 @@ namespace Kratos
             {
                 ModelPart::NodesContainerType::iterator node = node_begin + i;
 
-                if (node->FastGetSolutionStepValue(HEIGHT) <= mThreshold)
+                if (node->FastGetSolutionStepValue(HEIGHT) <= mDryHeight)
                 {
                     double value = node->FastGetSolutionStepValue(BATHYMETRY);
                     node->Z() = value;
@@ -391,7 +391,7 @@ namespace Kratos
 
         ModelPart& mrModelPart;
         double mWaterHeightConvert;
-        double mThreshold;
+        double mDryHeight;
         double mZeroValue;
         PropertiesMapType mWetToDryPropertiesMap;
         PropertiesMapType mDryToWetPropertiesMap;
