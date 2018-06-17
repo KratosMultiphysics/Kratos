@@ -440,14 +440,14 @@ public:
             
             it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
             
-            const unsigned int number_nodes = this_geometry.PointsNumber();
+            const SizeType number_nodes = this_geometry.PointsNumber();
             
-            for (unsigned int i = 0; i < number_nodes; ++i) {
+            for (IndexType i = 0; i < number_nodes; ++i) {
                 auto& this_node = this_geometry[i];
                 aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
                 const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
                 auto& aux_normal = this_node.FastGetSolutionStepValue(NORMAL);
-                for (unsigned int index = 0; index < 3; ++index) {
+                for (IndexType index = 0; index < 3; ++index) {
                     #pragma omp atomic
                     aux_normal[index] += normal[index];
                 }
@@ -465,6 +465,23 @@ public:
         }
     }
     
+    /**
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal
+     * @param rModelPart The model part to compute
+     */
+
+    static inline void InvertNormalConditions(ModelPart& rModelPart) {
+        // Iterate over conditions
+        ConditionsArrayType& conditions_array = rModelPart.Conditions();
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
+            auto it_cond = conditions_array.begin() + i;
+            GeometryType& this_geometry = it_cond->GetGeometry();
+            std::reverse(this_geometry.begin(),this_geometry.end());
+        }
+    }
+
     /**
      * @brief It calculates the matrix of coordinates of a geometry
      * @param ThisNodes The geometry to calculate
