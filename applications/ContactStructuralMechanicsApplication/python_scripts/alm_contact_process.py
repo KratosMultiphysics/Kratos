@@ -480,6 +480,8 @@ class ALMContactProcess(KM.Process):
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
+            "origin_variable_historical"       : false,
+            "destination_variable_historical"  : false,
             "integration_order"                : 2
         }
         """)
@@ -510,12 +512,12 @@ class ALMContactProcess(KM.Process):
                     slave_interface_model_part.AddNode(node, 0)
             del(node)
         if (self.dimension == 2):
-            mortar_mapping = KM.SimpleMortarMapperProcess2D2NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+            mortar_mapping1 = KM.SimpleMortarMapperProcess2D2NDouble(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
         else:
             if (num_nodes == 3):
-                mortar_mapping = KM.SimpleMortarMapperProcess3D3NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+                mortar_mapping1 = KM.SimpleMortarMapperProcess3D3NDouble(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
             else:
-                mortar_mapping = KM.SimpleMortarMapperProcess3D4NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+                mortar_mapping1 = KM.SimpleMortarMapperProcess3D4NDouble(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
 
         mortar_mapping.Execute()
 
