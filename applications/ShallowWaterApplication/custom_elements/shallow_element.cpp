@@ -183,8 +183,8 @@ void ShallowElement::CalculateLocalSystem(
 
     // Auxiliary values to compute friction and stabilization terms
     double abs_vel = norm_2(vel);
-    double height4_3 = std::pow(std::abs(height), 1.33333333);
-    double h_aux = std::max(0.001, std::abs(height));
+    double height4_3 = std::pow(std::abs(height)+0.005, 1.33333333);
+    double c = std::sqrt(data.gravity * (std::abs(height)+0.01));
 
     // Build LHS
     // Wave equation terms
@@ -197,7 +197,7 @@ void ShallowElement::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) += data.dt_inv * h_mass_matrix;   // Height lumped mass matrix
 
     // Friction term
-    // noalias(rLeftHandSideMatrix) += data.gravity * data.manning2 * abs_vel / height4_3 * vel_mass_matrix;
+    noalias(rLeftHandSideMatrix) += data.gravity * data.manning2 * abs_vel / height4_3 * vel_mass_matrix;
 
     // Build RHS
     // Source terms (bathymetry contribution)
@@ -222,50 +222,58 @@ void ShallowElement::CalculateLocalSystem(
     else
         k_dc *= 0;
 
-    tau_h += tau_h + k_dc;
+    // tau_h += tau_h + k_dc;
     
     this->SetValue(RESIDUAL_NORM, h_residual);
     this->SetValue(MIU, k_dc);
     this->SetValue(PR_ART_VISC, tau_h);
     this->SetValue(VEL_ART_VISC, tau_v);
 
-    array_1d<double,2> tau_h_stab;// = tau_h * vel / norm_2(vel);
-    array_1d<double,2> tau_v_stab;
-    tau_h_stab[0] = tau_h;
-    tau_h_stab[1] = tau_h;
-    tau_v_stab[0] = tau_v;
-    tau_v_stab[1] = tau_v;
+    // array_1d<double,2> tau_h_stab;// = tau_h * vel / norm_2(vel);
+    // array_1d<double,2> tau_v_stab;
+    // tau_h_stab[0] = tau_h;
+    // tau_h_stab[1] = tau_h;
+    // tau_v_stab[0] = tau_v;
+    // tau_v_stab[1] = tau_v;
 
-    array_1d<double,elem_size> DN_DX_h_stab = ZeroVector(elem_size); // = prod(tau_h_stab, DN_DX_height);
-    BoundedMatrix<double,2,elem_size> DN_DX_v_stab = ZeroMatrix(2,elem_size);
+    // array_1d<double,elem_size> DN_DX_h_stab = ZeroVector(elem_size); // = prod(tau_h_stab, DN_DX_height);
+    // BoundedMatrix<double,2,elem_size> DN_DX_v_stab = ZeroMatrix(2,elem_size);
 
-    for (unsigned int node = 0; node < nnodes; node++)
-    {
-        DN_DX_v_stab(0,3*node  ) = tau_v_stab[0]*DN_DX(node,0);
-        DN_DX_v_stab(0,3*node+1) = tau_v_stab[0]*DN_DX(node,0);
-        DN_DX_v_stab(1,3*node  ) = tau_v_stab[1]*DN_DX(node,1);
-        DN_DX_v_stab(1,3*node+1) = tau_v_stab[1]*DN_DX(node,1);
-        DN_DX_h_stab[3*node+2] = tau_h_stab[0]*DN_DX(node,0) + tau_h_stab[1]*DN_DX(node,1);
-    }
+    // for (unsigned int node = 0; node < nnodes; node++)
+    // {
+    //     DN_DX_v_stab(0,3*node  ) = tau_v_stab[0]*DN_DX(node,0);
+    //     DN_DX_v_stab(0,3*node+1) = tau_v_stab[0]*DN_DX(node,0);
+    //     DN_DX_v_stab(1,3*node  ) = tau_v_stab[1]*DN_DX(node,1);
+    //     DN_DX_v_stab(1,3*node+1) = tau_v_stab[1]*DN_DX(node,1);
+    //     DN_DX_h_stab[3*node+2] = tau_h_stab[0]*DN_DX(node,0) + tau_h_stab[1]*DN_DX(node,1);
+    // }
+    double art = length * data.c_tau / c;
 
     // Mass balance LHS stabilization terms
-    BoundedMatrix<double,9,9> stab_h_mass = outer_prod(DN_DX_h_stab, N_height);
-    noalias(rLeftHandSideMatrix) += height * outer_prod(DN_DX_h_stab, DN_DX_vel);
+    // BoundedMatrix<double,9,9> stab_h_mass = outer_prod(DN_DX_h_stab, N_height);
+    // noalias(rLeftHandSideMatrix) += height * outer_prod(DN_DX_h_stab, DN_DX_vel);
     // noalias(rLeftHandSideMatrix) += data.dt_inv * stab_h_mass;
+    BoundedMatrix<double,9,9> diff_h = prod(trans(DN_DX_height), DN_DX_height);
+    noalias(rLeftHandSideMatrix) += k_dc * diff_h; // Second order FIC shock capturing
+    noalias(rRightHandSideVector) -= k_dc * prod(diff_h, data.depth); // Substracting the bottom diffusion
+    // noalias(rRightHandSideVector) += k_dc * data.dt_inv * prod(diff_h, data.proj_unk);
 
     // Mass balance RHS stabilization terms
     // noalias(rRightHandSideVector) += data.dt_inv * prod(stab_h_mass, data.proj_unk);
 
     // Momentum balance stabilization terms
-    BoundedMatrix<double,9,9> mass_v_stab = prod(trans(DN_DX_v_stab), N_vel);
-    BoundedMatrix<double,9,9> wave_v_stab = prod(trans(DN_DX_v_stab), DN_DX_height);
-    noalias(rLeftHandSideMatrix) += data.gravity * wave_v_stab;
+    // BoundedMatrix<double,9,9> mass_v_stab = prod(trans(DN_DX_v_stab), N_vel);
+    // BoundedMatrix<double,9,9> wave_v_stab = prod(trans(DN_DX_v_stab), DN_DX_height);
+    // noalias(rLeftHandSideMatrix) += data.gravity * wave_v_stab;
     // noalias(rLeftHandSideMatrix) += data.dt_inv * mass_v_stab;
     // noalias(rLeftHandSideMatrix) += data.gravity * data.manning2 * abs_vel / height4_3 * mass_v_stab;
 
     // Momentum balance stabilization terms
-    noalias(rRightHandSideVector) -= data.gravity * prod(wave_v_stab, data.depth);
+    // noalias(rRightHandSideVector) -= data.gravity * prod(wave_v_stab, data.depth);
     // noalias(rRightHandSideVector) += data.dt_inv * prod(mass_v_stab, data.proj_unk);
+    BoundedMatrix<double,9,9> diff_v = outer_prod(DN_DX_vel, DN_DX_vel);
+    noalias(rLeftHandSideMatrix) += art * diff_v; // Second order FIC
+    // noalias(rRightHandSideVector) += art * data.dt_inv * prod(diff_v, data.proj_unk);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, data.unknown);
