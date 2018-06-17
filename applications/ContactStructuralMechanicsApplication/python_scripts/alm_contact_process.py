@@ -140,7 +140,7 @@ class ALMContactProcess(KM.Process):
             self.gid_mode = KM.GiDPostMode.GiD_PostBinary
             self.singlefile = KM.MultiFileFlag.SingleFile
             self.deformed_mesh_flag = KM.WriteDeformedMeshFlag.WriteUndeformed
-            self.write_conditions = KM.WriteConditionsFlag.WriteElementsOnly
+            self.write_conditions = KM.WriteConditionsFlag.WriteConditions
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
