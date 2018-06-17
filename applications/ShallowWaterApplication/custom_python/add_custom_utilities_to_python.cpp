@@ -55,6 +55,7 @@ namespace Python
 
     class_< ShallowWaterVariablesUtility > (m, "ShallowWaterVariablesUtility")
         .def(init<ModelPart&>())
+        .def(init<ModelPart&, double&>())
         .def("ComputeFreeSurfaceElevation", &ShallowWaterVariablesUtility::ComputeFreeSurfaceElevation)
         .def("ComputeHeightFromFreeSurface", &ShallowWaterVariablesUtility::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterVariablesUtility::ComputeVelocity)

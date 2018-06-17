@@ -27,6 +27,7 @@ class ShallowWaterBaseSolver(object):
             "solver_echo_level"            : 0,
             "buffer_size"                  : 2,
             "dynamic_tau"                  : 0.005,
+            "dry_height"                   : 0.01,
             "relative_tolerance"           : 1e-6,
             "absolute_tolerance"           : 1e-9,
             "maximum_iterations"           : 20,
@@ -61,7 +62,7 @@ class ShallowWaterBaseSolver(object):
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         # Initialize shallow water variables utility
-        self.ShallowVariableUtils = KratosShallow.ShallowWaterVariablesUtility(self.model_part)
+        self.ShallowVariableUtils = KratosShallow.ShallowWaterVariablesUtility(self.model_part, self.settings["dry_height"].GetDouble())
 
     def AddVariables(self):
         # Basic variables
