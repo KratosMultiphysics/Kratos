@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-#import kratos core and applications
+
+# Importing the Kratos Library
 import KratosMultiphysics
 from python_solver import PythonSolver
 
@@ -7,33 +8,56 @@ from python_solver import PythonSolver
 KratosMultiphysics.CheckRegisteredApplications("PoromechanicsApplication")
 
 # Import applications
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 def CreateSolver(model, custom_settings):
-
     return UPwSolver(model, custom_settings)
 
 class UPwSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-
         settings = self._ValidateSettings(custom_settings)
 
-        #TODO: seguir
         super(UPwSolver,self).__init__(model, settings)
 
-        self.main_model_part = main_model_part
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
+
+        self.min_buffer_size = 2
+
+        # Either retrieve the model part from the model or create a new one
+        model_part_name = self.settings["model_part_name"].GetString()
+
+        if model_part_name == "":
+            raise Exception('Please specify a model_part name!')
+        
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model.GetModelPart(model_part_name)
+        else:
+            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
+                                                  self.settings["domain_size"].GetInt())
+        
+        # Construct the linear solver
+        import linear_solver_factory
+        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+
+        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
+
+    def _ValidateSettings(self, settings):
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "poromechanics_U_Pw_solver",
+            "model_part_name": "PorousDomain",
+            "domain_size": 2,
             "model_import_settings":{
                 "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "input_file_label": 0
+                "input_filename": "unknown_name"
             },
             "buffer_size": 2,
             "echo_level": 0,
@@ -77,21 +101,14 @@ class UPwSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [],
+            "body_domain_sub_model_part_list": [""],
             "loads_sub_model_part_list": [],
             "loads_variable_list": []
         }
         """)
 
-        # Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
-        # Construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
-        print("Construction of UPwSolver finished")
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 
     def AddVariables(self):
 
@@ -128,38 +145,47 @@ class UPwSolver(PythonSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
             self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
 
-
-        print("Variables correctly added")
+        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Variables added correctly.")
 
     def ImportModelPart(self):
+        # we can use the default implementation in the base class
+        self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+    def PrepareModelPart(self):
 
-            # Read ModelPart
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-
-            # Create computing_model_part, set constitutive law and buffer size
-            self._ExecuteAfterReading()
-
+        # Set ProcessInfo variables
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
+        if(self.settings["nodal_smoothing"].GetBool() == True):
+            self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, True)
         else:
-            raise Exception("Other input options are not yet implemented.")
+            self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
+        
+        ### TODO
+        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME,
+        #                                           parameters["problem_data"]["start_time"].GetDouble())
+        # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 
+        #                                           parameters["problem_data"]["time_step"].GetDouble())
+        ### TODO
 
-        print ("Model reading finished")
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            ## Executes the check and prepare model process (Create computing_model_part and set constitutive law)
+            self._ExecuteCheckAndPrepare()
+            ## Set buffer size
+            self._SetBufferSize()
 
-    def ExportModelPart(self):
-        ## Model part writing
-        name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
-        KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
+        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
+            self.model.AddModelPart(self.main_model_part)
+
+        if self._is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Model reading finished.")
 
     def AddDofs(self):
-
-        for node in self.main_model_part.Nodes:
-            ## Solid dofs
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X,KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y,KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z,KratosMultiphysics.REACTION_Z)
-            ## Fluid dofs
-            node.AddDof(KratosMultiphysics.WATER_PRESSURE,KratosMultiphysics.REACTION_WATER_PRESSURE)
+        ## Solid dofs
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+        ## Fluid dofs
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
         if(self.settings["solution_type"].GetString() == "Dynamic"):
             for node in self.main_model_part.Nodes:
@@ -172,33 +198,18 @@ class UPwSolver(PythonSolver):
                 node.AddDof(KratosMultiphysics.ACCELERATION_Y)
                 node.AddDof(KratosMultiphysics.ACCELERATION_Z)
 
-        print("DOFs correctly added")
-
-    def AdaptMesh(self):
-        pass
-
-    def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-
-    def GetOutputVariables(self):
-        pass
-
-    def ComputeDeltaTime(self):
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "DOFs added correctly.")
 
     def GetMinimumBufferSize(self):
-        return 2
+        return self.min_buffer_size
 
     def Initialize(self):
 
+        self.computing_model_part = self.GetComputingModelPart()
+
         # Fill the previous steps of the buffer with the initial conditions
         self._FillBuffer()
-
-        # Set ProcessInfo variables
-        if(self.settings["nodal_smoothing"].GetBool() == True):
-            self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, True)
-        else:
-            self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
 
         # Builder and solver creation
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
@@ -229,6 +240,18 @@ class UPwSolver(PythonSolver):
         self.Check()
 
         print ("Initialization UPwSolver finished")
+
+    def AdaptMesh(self):
+        pass
+
+    def GetComputingModelPart(self):
+        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
+
+    def GetOutputVariables(self):
+        pass
+
+    def ComputeDeltaTime(self):
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
     def SaveRestart(self):
         pass #one should write the restart file here
@@ -276,31 +299,49 @@ class UPwSolver(PythonSolver):
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
 
+
+
     #### Specific internal functions ####
 
-    def _ExecuteAfterReading(self):
+    def _ExecuteCheckAndPrepare(self):
+        
+        self.computing_model_part_name = "porous_computational_model_part"
 
-        self.computing_model_part_name = "porous_computing_domain"
+        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
+        self.body_domain_sub_sub_model_part_list = []
+        for i in range(self.settings["body_domain_sub_model_part_list"].size()):
+            self.body_domain_sub_sub_model_part_list.append("sub_"+self.settings["body_domain_sub_model_part_list"][i].GetString())
+        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.body_domain_sub_sub_model_part_list))
 
-        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
-        aux_params = KratosMultiphysics.Parameters("{}")
-        aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
+        self.loads_sub_sub_model_part_list = []
+        for i in range(self.settings["loads_sub_model_part_list"].size()):
+            self.loads_sub_sub_model_part_list.append("sub_"+self.settings["loads_sub_model_part_list"][i].GetString())
+        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
 
-        # CheckAndPrepareModelProcess creates the solid_computational_model_part
+        # Auxiliary parameters object for the CheckAndPepareModelProcess
+        params = KratosMultiphysics.Parameters("{}")
+        params.AddValue("computing_model_part_name",self.computing_model_part_name)
+        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+        params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
+        params.AddValue("body_domain_sub_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
+        params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
+        params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
+        # CheckAndPrepareModelProcess creates the porous_computational_model_part
         import check_and_prepare_model_process_poro
-        check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+        check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # Constitutive law import
         import poromechanics_constitutivelaw_utility
         poromechanics_constitutivelaw_utility.SetConstitutiveLaw(self.main_model_part)
 
-        self._SetBufferSize()
-
     def _SetBufferSize(self):
-        self.main_model_part.SetBufferSize( self.settings["buffer_size"].GetInt() )
-        minimum_buffer_size = self.GetMinimumBufferSize()
-        if(minimum_buffer_size > self.main_model_part.GetBufferSize()):
-            self.main_model_part.SetBufferSize( minimum_buffer_size )
+        required_buffer_size = self.settings["buffer_size"].GetInt()
+        if required_buffer_size < self.GetMinimumBufferSize():
+            required_buffer_size = self.GetMinimumBufferSize()
+        current_buffer_size = self.main_model_part.GetBufferSize()
+        buffer_size = max(current_buffer_size, required_buffer_size)
+        self.main_model_part.SetBufferSize(buffer_size)
 
     def _FillBuffer(self):
         buffer_size = self.main_model_part.GetBufferSize()
