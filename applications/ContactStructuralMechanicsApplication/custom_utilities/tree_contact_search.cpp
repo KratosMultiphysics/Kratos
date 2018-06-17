@@ -34,7 +34,7 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
 {
     KRATOS_ERROR_IF(mrMainModelPart.HasSubModelPart("Contact") == false) << "WARNING:: Please add the Contact submodelpart to your modelpart list" << std::endl;
 
-    Parameters DefaultParameters = Parameters(R"(
+    Parameters default_parameters = Parameters(R"(
     {
         "allocation_size"                      : 1000,
         "bucket_size"                          : 4,
@@ -45,28 +45,36 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
         "final_string"                         : "",
         "inverted_search"                      : false,
         "dynamic_search"                       : false,
-        "predefined_master_slave"              : true
+        "predefined_master_slave"              : true,
+        "id_name"                              : ""
     })" );
 
-    mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+    mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mCheckGap = ConvertCheckGap(mThisParameters["check_gap"].GetString());
     mInvertedSearch = mThisParameters["inverted_search"].GetBool();
     mPredefinedMasterSlave = mThisParameters["predefined_master_slave"].GetBool();
 
     // Check if the computing contact submodelpart
-    if (mrMainModelPart.HasSubModelPart("ComputingContact") == false) // We check if the submodelpart where the actual conditions used to compute contact are going to be computed
-        mrMainModelPart.CreateSubModelPart("ComputingContact");
-    else { // We clean the existing modelpart
-        ModelPart& computing_rcontact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
-        ConditionsArrayType& conditions_array = computing_rcontact_model_part.Conditions();
-        const int num_conditions = static_cast<int>(conditions_array.size());
+    const std::string sub_computing_model_part_name = "ComputingContactSub" + mThisParameters["id_name"].GetString();
+    if (!(mrMainModelPart.HasSubModelPart("ComputingContact"))) {// We check if the submodelpart where the actual conditions used to compute contact are going to be computed
+        ModelPart::Pointer p_computing_model_part = mrMainModelPart.CreateSubModelPart("ComputingContact");
+        p_computing_model_part->CreateSubModelPart(sub_computing_model_part_name);
+    } else {
+        ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
+        if (!(r_computing_contact_model_part.HasSubModelPart(sub_computing_model_part_name))) {
+            r_computing_contact_model_part.CreateSubModelPart(sub_computing_model_part_name);
+        } else { // We clean the existing modelpart
+            ModelPart& r_sub_computing_contact_model_part = r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
+            ConditionsArrayType& conditions_array = r_sub_computing_contact_model_part.Conditions();
+            const int num_conditions = static_cast<int>(conditions_array.size());
 
-        #pragma omp parallel for
-        for(int i = 0; i < num_conditions; ++i)
-            (conditions_array.begin() + i)->Set(TO_ERASE, true);
+            #pragma omp parallel for
+            for(int i = 0; i < num_conditions; ++i)
+                (conditions_array.begin() + i)->Set(TO_ERASE, true);
 
-        mrMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+            mrMainModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+        }
     }
 
     // Updating the base condition
@@ -315,10 +323,12 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
 
     // We get the computing model part
     IndexType condition_id = GetMaximumConditionsIds();
-    ModelPart& computing_rcontact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
+    const std::string sub_computing_model_part_name = "ComputingContactSub" + mThisParameters["id_name"].GetString();
+    ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
+    ModelPart& r_sub_computing_contact_model_part = r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
 
     // We reset the computing contact model part in case of already initialized
-    if (computing_rcontact_model_part.Conditions().size() > 0)
+    if (r_sub_computing_contact_model_part.Conditions().size() > 0)
         ClearMortarConditions();
 
     // We check if we are in a dynamic or static case
@@ -415,7 +425,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
                             p_indexes_pairs->AddId(p_cond_master->Id());
                     }
                 } else
-                    AddPotentialPairing(computing_rcontact_model_part, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
+                    AddPotentialPairing(r_sub_computing_contact_model_part, condition_id, (*it_cond.base()), points_found, number_points_found, p_indexes_pairs);
             }
         }
     }
@@ -429,7 +439,7 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
 
     // We map the Coordinates to the slave side from the master
     if (mCheckGap == CheckGap::MappingCheck)
-        CheckPairing(computing_rcontact_model_part, condition_id);
+        CheckPairing(r_sub_computing_contact_model_part, condition_id);
     else {
         // We revert the nodes to the original position
         if (mThisParameters["dynamic_search"].GetBool()) {
@@ -1409,8 +1419,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeWeightedReaction()
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
             break;
     }
+    const std::string sub_computing_model_part_name = "ComputingContactSub" + mThisParameters["id_name"].GetString();
     ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
-    ConditionsArrayType& computing_conditions_array = r_computing_contact_model_part.Conditions();
+    ModelPart& r_sub_computing_contact_model_part = r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
+    ConditionsArrayType& computing_conditions_array = r_sub_computing_contact_model_part.Conditions();
     auto process_info = mrMainModelPart.GetProcessInfo();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(computing_conditions_array.size()); ++i) {
@@ -1488,8 +1500,10 @@ void TreeContactSearch<TDim, TNumNodes>::ResetContactOperators()
         }
 
         // We remove all the computing conditions conditions
-        ModelPart& computing_rcontact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
-        ConditionsArrayType& computing_conditions_array = computing_rcontact_model_part.Conditions();
+        const std::string sub_computing_model_part_name = "ComputingContactSub" + mThisParameters["id_name"].GetString();
+        ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
+        ModelPart& r_sub_computing_contact_model_part = r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
+        ConditionsArrayType& computing_conditions_array = r_sub_computing_contact_model_part.Conditions();
         const int num_computing_conditions = static_cast<int>(computing_conditions_array.size());
 
         #pragma omp parallel for
