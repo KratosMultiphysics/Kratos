@@ -601,6 +601,7 @@ class ALMContactProcess(KM.Process):
         detect_skin.Execute()
         self.settings["contact_model_part"][key].Append(sub_contact_model_part_name)
         # Assigning master and slave sides
+        self.__assume_master_slave()
         self._assign_master_flags(self.contact_model_part)
         self._assign_slave_flags(key)
 
