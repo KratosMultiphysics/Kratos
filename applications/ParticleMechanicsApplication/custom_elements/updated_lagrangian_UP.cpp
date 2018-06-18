@@ -194,18 +194,18 @@ void UpdatedLagrangianUP::InitializeGeneralVariables (GeneralVariables& rVariabl
 
     UpdatedLagrangian::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
-    //stabilization factor
-    double StabilizationFactor = 1.0;
-    if( GetProperties().Has(STABILIZATION_FACTOR) )
-    {
-        StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
-    }
-    else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR) )
-    {
-        StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
-    }
-    
-    GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
+    // //stabilization factor
+    // double StabilizationFactor = 1.0;
+    // if( GetProperties().Has(STABILIZATION_FACTOR) )
+    // {
+    //     StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    // }
+    // else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR) )
+    // {
+    //     StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
+    // }
+
+    // GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
 
     //ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     //Flags &ConstitutiveLawOptions=Values.GetOptions();
