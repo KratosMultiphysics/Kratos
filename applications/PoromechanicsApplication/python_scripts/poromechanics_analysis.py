@@ -44,7 +44,6 @@ class PoromechanicsAnalysis(AnalysisStage):
                 "loads_process_list"]
 
     def _CreateProcesses(self, parameter_name, initialization_order):
-        ### TODO: seguir...
         """Create a list of Processes
         This method is TEMPORARY to not break existing code
         It will be removed in the future
@@ -73,119 +72,6 @@ class PoromechanicsAnalysis(AnalysisStage):
 
         return list_of_processes
 
-
-
-
-    # def Initialize(self):
-    #     '''
-    #     Construct and initialize all classes and tools used in the simulation loop.
-    #     '''
-
-    #     self._SetUpRestart()
-
-    #     if self.load_restart:
-    #         self.restart_utility.LoadRestart()
-    #     else:
-    #         self.solver.AddVariables()
-    #         self.solver.ImportModelPart()
-    #         self.solver.AddDofs()
-
-    #     self.model.AddModelPart(self.main_model_part)
-
-    #     # Print model_part and properties
-    #     if(self.echo_level > 1):
-    #         print(self.main_model_part)
-    #         for properties in self.main_model_part.Properties:
-    #             print(properties)
-
-    #     # this should let eventual derived stages modify the model after reading.
-    #     self.ModifyInitialProperties()
-    #     self.ModifyInitialGeometry()
-
-    #     self._SetUpListOfProcesses()
-    #     self._SetUpAnalysis()
-
-    #     for process in self.list_of_processes:
-    #         process.ExecuteBeforeSolutionLoop()
-
-    # def InitializeSolutionStep(self):
-
-    #     if self.is_printing_rank:
-    #         Kratos.Logger.PrintInfo("Poromechanics Analysis","STEP = ", self.main_model_part.ProcessInfo[Kratos.STEP])
-    #         Kratos.Logger.PrintInfo("Poromechanics Analysis","TIME = ", self.time)
-
-    #     super(PoromechanicsAnalysis,self).InitializeSolutionStep()
-
-    # def OutputSolutionStep(self):
-
-    #     if self.have_output and self.output.IsOutputStep():
-
-    #         for process in self.list_of_processes:
-    #             process.ExecuteBeforeOutputStep()
-
-    #         self.output.PrintOutput()
-
-    #         for process in self.list_of_processes:
-    #             process.ExecuteAfterOutputStep()
-
-    #     if self.save_restart:
-    #         self.restart_utility.SaveRestart()
-
-    def Finalize(self):
-
-        super(PoromechanicsAnalysis,self).Finalize()
-
-        # Finalizing strategy
-        if self.parallel_type == "OpenMP":
-            self.solver.Clear()
-
-        # Time control
-        print("Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
-        print(timer.ctime())
-
-    # def _SetUpListOfProcesses(self):
-    #     '''
-    #     Read the definition of initial and boundary conditions for the problem and initialize the processes that will manage them.
-    #     Also initialize any additional processes present in the problem (such as those used to calculate additional results).
-    #     '''
-    #     from process_factory import KratosProcessFactory
-    #     factory = KratosProcessFactory(self.model)
-    #     # The list of processes will contain a list with each individual process already constructed
-    #     self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["constraints_process_list"] )
-    #     self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["loads_process_list"] )
-
-    #     #TODO this should be generic
-    #     # initialize GiD  I/O
-    #     self.output = self._SetUpGiDOutput()
-    #     if self.output is not None:
-    #         self.list_of_processes += [self.output,]
-
-    # def _SetUpAnalysis(self):
-    #     '''
-    #     Initialize the Python solver and its auxiliary tools and processes.
-    #     This function should prepare everything so that the simulation
-    #     can start immediately after exiting it.
-    #     '''
-
-    #     for process in self.list_of_processes:
-    #         process.ExecuteInitialize()
-
-    #     self.solver.Initialize()
-
-    #     ## If the echo level is high enough, write the complete list of settings used to run the simulation
-    #     if self.is_printing_rank and self.echo_level > 1:
-    #         with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
-    #             parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
-
-    #     ## Stepping and time settings
-    #     self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
-
-    #     if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
-    #         self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
-    #     else:
-    #         self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-
-
     def _SetUpGiDOutput(self):
         '''Initialize a GiD output instance.'''
         if self.parallel_type == "OpenMP":
@@ -201,13 +87,20 @@ class PoromechanicsAnalysis(AnalysisStage):
 
         return output
 
-    # def _SetUpRestart(self):
-    #     """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
-    #     self.load_restart = False
-    #     self.save_restart = False
-
     def _GetSimulationName(self):
         return "Poromechanics Analysis"
+
+    def Finalize(self):
+        super(PoromechanicsAnalysis,self).Finalize()
+
+        # Finalizing strategy
+        if self.parallel_type == "OpenMP":
+            self._GetSolver().Clear()
+
+        # Time control
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
+
 
 if __name__ == '__main__':
     from sys import argv

@@ -17,12 +17,12 @@ def CreateSolver(main_model_part, custom_settings):
 
     return MPIUPwSolver(main_model_part, custom_settings)
 
+#TODO
 
 class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
 
     def __init__(self, main_model_part, custom_settings):
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
         ##settings string in json format
