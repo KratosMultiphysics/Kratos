@@ -32,7 +32,7 @@ class UPwSolver(PythonSolver):
 
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
-        
+
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
@@ -46,69 +46,6 @@ class UPwSolver(PythonSolver):
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
-
-    def _ValidateSettings(self, settings):
-
-        ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "solver_type": "poromechanics_U_Pw_solver",
-            "model_part_name": "PorousDomain",
-            "domain_size": 2,
-            "model_import_settings":{
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
-            },
-            "buffer_size": 2,
-            "echo_level": 0,
-            "reform_dofs_at_each_step": false,
-            "clear_storage": false,
-            "compute_reactions": false,
-            "move_mesh_flag": false,
-            "nodal_smoothing": false,
-            "periodic_interface_conditions": false,
-            "solution_type": "Quasi-Static",
-            "scheme_type": "Newmark",
-            "newmark_beta": 0.25,
-            "newmark_gamma": 0.5,
-            "newmark_theta": 0.5,
-            "rayleigh_m": 0.0,
-            "rayleigh_k": 0.0,
-            "strategy_type": "Newton-Raphson",
-            "convergence_criterion": "Displacement_criterion",
-            "displacement_relative_tolerance": 1.0e-4,
-            "displacement_absolute_tolerance": 1.0e-9,
-            "residual_relative_tolerance": 1.0e-4,
-            "residual_absolute_tolerance": 1.0e-9,
-            "max_iteration": 15,
-            "desired_iterations": 4,
-            "max_radius_factor": 20.0,
-            "min_radius_factor": 0.5,
-            "block_builder": true,
-            "nonlocal_damage": false,
-            "characteristic_length": 0.05,
-            "search_neighbours_step": false,
-            "linear_solver_settings":{
-                "solver_type": "AMGCL",
-                "tolerance": 1.0e-6,
-                "max_iteration": 100,
-                "scaling": false,
-                "verbosity": 0,
-                "preconditioner_type": "ILU0Preconditioner",
-                "smoother_type": "ilu0",
-                "krylov_type": "gmres",
-                "coarsening_type": "aggregation"
-            },
-            "problem_domain_sub_model_part_list": [""],
-            "processes_sub_model_part_list": [""],
-            "body_domain_sub_model_part_list": [""],
-            "loads_sub_model_part_list": [],
-            "loads_variable_list": []
-        }
-        """)
-
-        settings.ValidateAndAssignDefaults(default_settings)
-        return settings
 
     def AddVariables(self):
 
@@ -156,10 +93,10 @@ class UPwSolver(PythonSolver):
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME,
                                                   self.settings["start_time"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
                                                   self.settings["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
-        
+
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, 1.0)
         if(self.settings["nodal_smoothing"].GetBool() == True):
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, True)
@@ -231,7 +168,7 @@ class UPwSolver(PythonSolver):
                                             self.settings["strategy_type"].GetString())
 
         # Set echo_level
-        self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.solver.Initialize()
 
@@ -240,31 +177,19 @@ class UPwSolver(PythonSolver):
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Solver initialization finished.")
 
-    def AdaptMesh(self):
-        pass
-
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-
-    def GetOutputVariables(self):
-        pass
 
     def ComputeDeltaTime(self):
         return self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-    def SaveRestart(self):
-        pass #one should write the restart file here
-
     def Clear(self):
-
         self.solver.Clear()
 
     def Check(self):
-
         self.solver.Check()
 
     def SetEchoLevel(self, level):
-
         self.solver.SetEchoLevel(level)
 
     def AdvanceInTime(self, current_time):
@@ -298,12 +223,75 @@ class UPwSolver(PythonSolver):
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
 
-
-
     #### Specific internal functions ####
 
+    def _ValidateSettings(self, settings):
+
+        ##settings string in json format
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "solver_type": "poromechanics_U_Pw_solver",
+            "model_part_name": "PorousDomain",
+            "domain_size": 2,
+            "start_time": 0.0,
+            "time_step": 0.1,
+            "model_import_settings":{
+                "input_type": "mdpa",
+                "input_filename": "unknown_name"
+            },
+            "buffer_size": 2,
+            "echo_level": 0,
+            "reform_dofs_at_each_step": false,
+            "clear_storage": false,
+            "compute_reactions": false,
+            "move_mesh_flag": false,
+            "nodal_smoothing": false,
+            "periodic_interface_conditions": false,
+            "solution_type": "Quasi-Static",
+            "scheme_type": "Newmark",
+            "newmark_beta": 0.25,
+            "newmark_gamma": 0.5,
+            "newmark_theta": 0.5,
+            "rayleigh_m": 0.0,
+            "rayleigh_k": 0.0,
+            "strategy_type": "Newton-Raphson",
+            "convergence_criterion": "Displacement_criterion",
+            "displacement_relative_tolerance": 1.0e-4,
+            "displacement_absolute_tolerance": 1.0e-9,
+            "residual_relative_tolerance": 1.0e-4,
+            "residual_absolute_tolerance": 1.0e-9,
+            "max_iteration": 15,
+            "desired_iterations": 4,
+            "max_radius_factor": 20.0,
+            "min_radius_factor": 0.5,
+            "block_builder": true,
+            "nonlocal_damage": false,
+            "characteristic_length": 0.05,
+            "search_neighbours_step": false,
+            "linear_solver_settings":{
+                "solver_type": "AMGCL",
+                "tolerance": 1.0e-6,
+                "max_iteration": 100,
+                "scaling": false,
+                "verbosity": 0,
+                "preconditioner_type": "ILU0Preconditioner",
+                "smoother_type": "ilu0",
+                "krylov_type": "gmres",
+                "coarsening_type": "aggregation"
+            },
+            "problem_domain_sub_model_part_list": [""],
+            "processes_sub_model_part_list": [""],
+            "body_domain_sub_model_part_list": [""],
+            "loads_sub_model_part_list": [],
+            "loads_variable_list": []
+        }
+        """)
+
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
     def _ExecuteCheckAndPrepare(self):
-        
+
         self.computing_model_part_name = "porous_computational_model_part"
 
         # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
