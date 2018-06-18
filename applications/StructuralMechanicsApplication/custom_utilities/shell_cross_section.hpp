@@ -430,13 +430,18 @@ public:
             , mpProperties(Properties::Pointer())
         {}
 
-        Ply(const int PlyIndex, double location , int numPoints, const Properties::Pointer & pProperties)
+        Ply(const int PlyIndex, double location, int NumIntegrationPoints, const Properties::Pointer & pProperties)
             : mPlyIndex(PlyIndex)
             , mLocation(location)
             , mIntegrationPoints()
             , mpProperties(pProperties)
         {
-            this->SetUpIntegrationPoints(numPoints);
+            // make sure the number is greater than 0 and odd
+            KRATOS_ERROR_IF(NumIntegrationPoints < 1) << "Number of Integration points must be larger than 0!" << std::endl;
+            if(NumIntegrationPoints < 0) NumIntegrationPoints = -NumIntegrationPoints;
+            if(NumIntegrationPoints == 0) NumIntegrationPoints = 5;
+            if(NumIntegrationPoints % 2 == 0) NumIntegrationPoints += 1;
+            InitializeIntegrationPoints(NumIntegrationPoints);
         }
 
         Ply(const Ply& other)
@@ -495,12 +500,14 @@ public:
 
 		void RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps);
 
-        inline const IntegrationPointCollection& GetIntegrationPoints()const
-        {
-            return mIntegrationPoints;
-        }
+        // inline const IntegrationPointCollection& GetIntegrationPoints()const
+        // {
+        //     UpdateIntegrationPoints();
+        //     return mIntegrationPoints;
+        // }
         inline IntegrationPointCollection& GetIntegrationPoints()
         {
+            UpdateIntegrationPoints();
             return mIntegrationPoints;
         }
 
@@ -532,7 +539,7 @@ public:
 
     private:
 
-        void SetUpIntegrationPoints(int n)
+        void InitializeIntegrationPoints(const int NumIntegrationPoints)
         {
             KRATOS_TRY
 
@@ -540,16 +547,25 @@ public:
             if(pMaterial == NULL)
                 KRATOS_THROW_ERROR(std::logic_error, "A Ply needs a constitutive law to be set. Missing constitutive law in property : ", GetProperties().Id());
 
-            // make sure the number is greater than 0 and odd
-            if(n < 0) n = -n;
-            if(n == 0) n = 5;
-            if(n % 2 == 0) n += 1;
+            // generate the integration points
+            mIntegrationPoints.clear();
+            mIntegrationPoints.resize(NumIntegrationPoints);
+            for(int i=0; i<NumIntegrationPoints; ++i)
+                mIntegrationPoints[i].SetConstitutiveLaw(pMaterial->Clone());
+
+            KRATOS_CATCH("")
+        }
+        void UpdateIntegrationPoints()
+        {
+            KRATOS_TRY
+
+            const SizeType num_int_points = mIntegrationPoints.size();
 
             // generate the weights (composite simpson rule)
-            Vector ip_w(n, 1.0);
-            if(n >= 3)
+            Vector ip_w(num_int_points, 1.0);
+            if(num_int_points >= 3)
             {
-                for(int i = 1; i < n-1; i++)
+                for(IndexType i=1; i<num_int_points-1; ++i)
                 {
                     double iw = (i % 2 == 0) ? 2.0 : 4.0;
                     ip_w(i) = iw;
@@ -558,27 +574,23 @@ public:
             }
 
             // generate locations (direction: top(+thickness/2) to bottom(-thickness/2)
-            Vector ip_loc(n, 0.0);
-            if(n >= 3)
+            Vector ip_loc(num_int_points, 0.0);
+            if(num_int_points >= 3)
             {
                 double loc_start = mLocation + 0.5 * GetThickness();
-                double loc_incr = GetThickness() / double(n-1);
-                for(int i = 0; i < n; i++)
+                double loc_incr = GetThickness() / double(num_int_points-1);
+                for(IndexType i=0; i<num_int_points; ++i)
                 {
                     ip_loc(i) = loc_start;
                     loc_start -= loc_incr;
                 }
             }
 
-            // generate the integration points
-            mIntegrationPoints.clear();
-            mIntegrationPoints.resize(n);
-            for(int i = 0; i < n; i++)
+            for(IndexType i=0; i < num_int_points; ++i)
             {
                 IntegrationPoint& intp = mIntegrationPoints[i];
                 intp.SetWeight(ip_w(i) * GetThickness());
                 intp.SetLocation(ip_loc(i));
-                intp.SetConstitutiveLaw(pMaterial->Clone());
             }
 
             KRATOS_CATCH("")

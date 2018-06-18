@@ -78,44 +78,44 @@ void ShellCrossSection::EndStack()
 std::string ShellCrossSection::GetInfo()const
 {
     std::stringstream ss;
-    ss << std::fixed;
+    // ss << std::fixed;
 
-    ss << std::endl;
-    ss << "===============================================================" << std::endl;
-    ss << "                      SellCrossSection Info:" << std::endl;
-    ss << "===============================================================" << std::endl;
-    ss << "Total Thickness: " << GetThickness() << std::endl;
-    ss << "Offset from the midplane: " << GetOffset() << std::endl;
-    ss << "Number of Plies: " << mStack.size() << std::endl;
-    ss << "===============================================================" << std::endl;
-    ss << "=======================       STACK      ======================" << std::endl;
-    ss << "===============================================================" << std::endl;
-    if(mStack.size() < 1)
-    {
-        ss << " EMPTY STACK" << std::endl;
-        ss << "===============================================================" << std::endl;
-    }
-    else
-    {
-        for(PlyCollection::const_iterator it = mStack.begin(); it != mStack.end(); ++it)
-        {
-            const Ply& iPly = *it;
+    // ss << std::endl;
+    // ss << "===============================================================" << std::endl;
+    // ss << "                      SellCrossSection Info:" << std::endl;
+    // ss << "===============================================================" << std::endl;
+    // ss << "Total Thickness: " << GetThickness() << std::endl;
+    // ss << "Offset from the midplane: " << GetOffset() << std::endl;
+    // ss << "Number of Plies: " << mStack.size() << std::endl;
+    // ss << "===============================================================" << std::endl;
+    // ss << "=======================       STACK      ======================" << std::endl;
+    // ss << "===============================================================" << std::endl;
+    // if(mStack.size() < 1)
+    // {
+    //     ss << " EMPTY STACK" << std::endl;
+    //     ss << "===============================================================" << std::endl;
+    // }
+    // else
+    // {
+    //     for(auto it = mStack.begin(); it != mStack.end(); ++it)
+    //     {
+    //         const Ply& iPly = *it;
 
-            ss << " - Thickness :" << iPly.GetThickness() << std::endl;
-            ss << " - Location :" << iPly.GetLocation() << std::endl;
-            ss << " - Orientation Angle: " << iPly.GetOrientationAngle() << " (degrees)" << std::endl;
-            ss << " - Through-The-Thickness Integration Points (" << iPly.GetIntegrationPoints().size() << "):" << std::endl;
-            for(unsigned int i = 0; i < iPly.GetIntegrationPoints().size(); i++)
-            {
-                const IntegrationPoint& iPoint = iPly.GetIntegrationPoints()[i];
-                ss << " - - [" << i << "] "
-                   << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
-                   << std::endl;
-            }
-            ss << "===============================================================" << std::endl;
-        }
-    }
-    ss << std::endl;
+    //         ss << " - Thickness :" << iPly.GetThickness() << std::endl;
+    //         ss << " - Location :" << iPly.GetLocation() << std::endl;
+    //         ss << " - Orientation Angle: " << iPly.GetOrientationAngle() << " (degrees)" << std::endl;
+    //         ss << " - Through-The-Thickness Integration Points (" << iPly.GetIntegrationPoints().size() << "):" << std::endl;
+    //         for(unsigned int i = 0; i < iPly.GetIntegrationPoints().size(); i++)
+    //         {
+    //             const IntegrationPoint& iPoint = iPly.GetIntegrationPoints()[i];
+    //             ss << " - - [" << i << "] "
+    //                << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
+    //                << std::endl;
+    //         }
+    //         ss << "===============================================================" << std::endl;
+    //     }
+    // }
+    // ss << std::endl;
     return ss.str();
 }
 
@@ -160,15 +160,16 @@ double& ShellCrossSection::GetValue(const Variable<double>& rThisVariable, doubl
     {
         Ply& iPly = *ply_it;
         //const Properties& iPlyProps = iPly.GetProperties();
-        for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it)
+        for (auto& int_point : iPly.GetIntegrationPoints())
+        // for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it)
         {
-            IntegrationPoint& iPoint = *intp_it;
+            // IntegrationPoint& iPoint = *intp_it;
             iValue = 0.0;
-            if(iPoint.GetConstitutiveLaw()->Has(rThisVariable))
+            if(int_point.GetConstitutiveLaw()->Has(rThisVariable))
             {
-                iValue = iPoint.GetConstitutiveLaw()->GetValue(rThisVariable, iValue);
-                meanValue += iValue * iPoint.GetWeight();
-                accum += iPoint.GetWeight();
+                iValue = int_point.GetConstitutiveLaw()->GetValue(rThisVariable, iValue);
+                meanValue += iValue * int_point.GetWeight();
+                accum += int_point.GetWeight();
             }
         }
     }
