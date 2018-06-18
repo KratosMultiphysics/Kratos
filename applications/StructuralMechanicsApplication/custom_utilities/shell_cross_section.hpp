@@ -1130,15 +1130,11 @@ public:
     /**
     * Stores the thicknesses of plies of this cross section.
     */
-    void GetPlyThicknesses(Vector& rply_thicknesses)
+    void GetPlyThicknesses(Vector& rPlyThicknesses)
     {
-    	int counter = 0;
-    	for (PlyCollection::const_iterator it = mStack.begin(); it != mStack.end(); ++it)
-    	{
-    		const Ply& iPly = *it;
-    		rply_thicknesses[counter] = iPly.GetThickness();
-    		++counter;
-    	}
+        KRATOS_DEBUG_ERROR_IF_NOT(mStack.size() == rPlyThicknesses.size()) << "Size mismatch!" << std::endl;
+        for (IndexType i_ply=0; i_ply<mStack.size(); ++i_ply)
+    		rPlyThicknesses[i_ply] = mStack[i_ply].GetThickness();
     }
 
     /**
@@ -1151,16 +1147,10 @@ public:
     	mStorePlyConstitutiveMatrices = true;
     	mPlyConstitutiveMatrices = std::vector<Matrix>(this->NumberOfPlies());
 
-    	for (unsigned int ply = 0; ply < this->NumberOfPlies(); ++ply)
+    	for (IndexType ply = 0; ply < this->NumberOfPlies(); ++ply)
     	{
-    		if (mBehavior == Thick)
-    		{
-    			mPlyConstitutiveMatrices[ply].resize(8, 8, false);
-    		}
-    		else
-    		{
-    			mPlyConstitutiveMatrices[ply].resize(6, 6, false);
-    		}
+    		if (mBehavior == Thick) mPlyConstitutiveMatrices[ply].resize(8, 8, false);
+    		else mPlyConstitutiveMatrices[ply].resize(6, 6, false);
 
     		mPlyConstitutiveMatrices[ply].clear();
     	}
@@ -1169,41 +1159,41 @@ public:
     /**
     * Get the integrated constitutive matrices for each ply
     */
-    Matrix GetPlyConstitutiveMatrix(const unsigned int ply_number)
+    Matrix GetPlyConstitutiveMatrix(const IndexType PlyIndex)
     {
-    	return mPlyConstitutiveMatrices[ply_number];
+    	return mPlyConstitutiveMatrices[PlyIndex];
     }
 
     /**
     * Returns the number of plies of this cross section.
     * @return the number of plies
     */
-    inline PlyCollection::size_type NumberOfPlies()const
+    inline SizeType NumberOfPlies() const
     {
         return mStack.size();
     }
 
     /**
     * Returns the number of integration points in the specified ply
-    * @param ply_id the 0-based index of the target ply
+    * @param PlyIndex the 0-based index of the target ply
     * @return the number of integration points
     */
-    inline SizeType NumberOfIntegrationPointsAt(SizeType ply_id)const
+    inline SizeType NumberOfIntegrationPointsAt(const IndexType PlyIndex)const
     {
-        if(ply_id < mStack.size())
-            return mStack[ply_id].NumberOfIntegrationPoints();
+        if(PlyIndex < mStack.size())
+            return mStack[PlyIndex].NumberOfIntegrationPoints();
         return 0;
     }
 
     /**
     * Sets a constitutive law pointer to the specified location
-    * @param ply_id the 0-based index of the target ply
+    * @param PlyIndex the 0-based index of the target ply
     * @param point_id the 0-based index of the target integration point in the target ply
     */
-    inline void SetConstitutiveLawAt(SizeType ply_id, SizeType point_id, const ConstitutiveLaw::Pointer& pNewConstitutiveLaw)
+    inline void SetConstitutiveLawAt(const IndexType PlyIndex, SizeType point_id, const ConstitutiveLaw::Pointer& pNewConstitutiveLaw)
     {
-        if(ply_id < mStack.size())
-            mStack[ply_id].SetConstitutiveLawAt(point_id, pNewConstitutiveLaw);
+        if(PlyIndex < mStack.size())
+            mStack[PlyIndex].SetConstitutiveLawAt(point_id, pNewConstitutiveLaw);
     }
 
     /**
@@ -1213,8 +1203,8 @@ public:
     inline double CalculateMassPerUnitArea()const
     {
         double vol(0.0);
-        for(PlyCollection::const_iterator it = mStack.begin(); it != mStack.end(); ++it)
-            vol += (*it).CalculateMassPerUnitArea();
+        for (const auto& r_ply : mStack)
+            vol += r_ply.CalculateMassPerUnitArea();
         return vol;
     }
 

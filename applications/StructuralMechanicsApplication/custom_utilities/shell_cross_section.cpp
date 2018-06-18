@@ -256,7 +256,7 @@ void ShellCrossSection::InitializeCrossSection(const Properties& rMaterialProper
 
         if(mNeedsOOPCondensation)
         {
-            unsigned int condensed_strain_size = mBehavior == Thick ? 1 : 3;
+            SizeType condensed_strain_size = mBehavior == Thick ? 1 : 3;
 
             if(mOOP_CondensedStrains.size() != condensed_strain_size)
                 mOOP_CondensedStrains.resize(condensed_strain_size, false);
@@ -284,8 +284,7 @@ void ShellCrossSection::InitializeSolutionStep(const Properties& rMaterialProper
             r_int_point.GetConstitutiveLaw()->InitializeSolutionStep(r_ply_props, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
     }
 
-    if(mNeedsOOPCondensation)
-        mOOP_CondensedStrains = mOOP_CondensedStrains_converged;
+    if(mNeedsOOPCondensation) mOOP_CondensedStrains = mOOP_CondensedStrains_converged;
 }
 
 void ShellCrossSection::FinalizeSolutionStep(const Properties& rMaterialProperties,
@@ -300,8 +299,7 @@ void ShellCrossSection::FinalizeSolutionStep(const Properties& rMaterialProperti
             r_int_point.GetConstitutiveLaw()->FinalizeSolutionStep(r_ply_props, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
     }
 
-    if(mNeedsOOPCondensation)
-        mOOP_CondensedStrains_converged = mOOP_CondensedStrains;
+    if(mNeedsOOPCondensation) mOOP_CondensedStrains_converged = mOOP_CondensedStrains;
 }
 
 void ShellCrossSection::InitializeNonLinearIteration(const Properties& rMaterialProperties,
@@ -807,20 +805,17 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties::Pointer
 
 void ShellCrossSection::GetLaminaeOrientation(Vector& rOrientation_Vector)
 {
-    if(mStack.size() != rOrientation_Vector.size()) rOrientation_Vector.resize(mStack.size(), false);
+    const SizeType num_plies = mStack.size();
+    if(rOrientation_Vector.size() != num_plies) rOrientation_Vector.resize(num_plies, false);
 
-    IndexType counter = 0;
-    for (const auto& r_ply : mStack)
-    {
-        rOrientation_Vector[counter] = r_ply.GetOrientationAngle() / 180.0 * Globals::Pi;
-        counter++;
-    }
+    for (IndexType i_ply=0; i_ply<num_plies; ++i_ply)
+        rOrientation_Vector[i_ply] = mStack[i_ply].GetOrientationAngle() / 180.0 * Globals::Pi;
 }
 
 void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Strengths, const Properties& rProps)
 {
     // ascertain how many plies there are
-    unsigned int plies = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size1();
+    SizeType plies = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size1();
 
     // figure out the format of material properties based on it's width
     int my_format = (rProps)[SHELL_ORTHOTROPIC_LAYERS].size2();
