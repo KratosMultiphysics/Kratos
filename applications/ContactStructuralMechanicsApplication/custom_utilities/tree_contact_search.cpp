@@ -130,13 +130,55 @@ void TreeContactSearch<TDim, TNumNodes>::InitializeMortarConditions()
     ConditionsArrayType& conditions_array = r_sub_contact_model_part.Conditions();
     const int num_conditions = static_cast<int>(conditions_array.size());
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = conditions_array.begin() + i;
+    const SizeType total_number_conditions = mrMainModelPart.GetRootModelPart().NumberOfConditions();
 
-        if (it_cond->Has(INDEX_MAP) == false) it_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
-//             it_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
+    IndexType new_conditions_id = total_number_conditions;
+    std::vector<Condition::Pointer> auxiliar_conditions_vector;
+
+    #pragma omp parallel
+    {
+        std::vector<Condition::Pointer> auxiliar_conditions_vector_buffer;
+
+        #pragma omp for
+        for(int i = 0; i < num_conditions; ++i) {
+            auto it_cond = conditions_array.begin() + i;
+
+            if (it_cond->IsNot(MARKER)) {
+                if (!(it_cond->Has(INDEX_MAP))) {
+                    it_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+                    it_cond->Set(MARKER, true);
+        //             it_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
+                }
+            } else {
+                // Setting the flag to remove
+                it_cond->Set(TO_ERASE, true);
+
+                // Updating condition id
+                #pragma omp atomic
+                new_conditions_id += 1;
+
+                Condition::Pointer p_new_cond = it_cond->Clone(new_conditions_id, it_cond->GetGeometry());
+                auxiliar_conditions_vector_buffer.push_back(p_new_cond);
+                if (!(p_new_cond->Has(INDEX_MAP))) {
+                    p_new_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+                    p_new_cond->Set(MARKER, true);
+        //             p_new_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
+                }
+            }
+        }
+
+        // Combine buffers together
+        #pragma omp critical
+        {
+            std::move(auxiliar_conditions_vector_buffer.begin(),auxiliar_conditions_vector_buffer.end(),back_inserter(auxiliar_conditions_vector));
+        }
     }
+
+    // Finally we add the new conditions to the model part
+    ConditionsArrayType aux_conds;
+    aux_conds.GetContainer() = auxiliar_conditions_vector;
+    r_sub_contact_model_part.AddConditions(aux_conds.begin(), aux_conds.end());
+    r_sub_contact_model_part.RemoveConditions(TO_ERASE);
 }
 
 /***********************************************************************************/
