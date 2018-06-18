@@ -326,10 +326,10 @@ void HenckyElasticPlastic3DLaw::CalculatePrincipalStressTrial(const MaterialResp
 
     // Calculate the elastic matrix
     Matrix ElasticMatrix = ZeroMatrix(3,3);
-    const double& Young       = MaterialProperties[YOUNG_MODULUS];
-    const double& Nu = MaterialProperties[POISSON_RATIO];
-    const double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);//
-    const double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);//
+    const double& Young     = MaterialProperties[YOUNG_MODULUS];
+    const double& Nu        = MaterialProperties[POISSON_RATIO];
+    const double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
+    const double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
 
     for (unsigned int i = 0; i<3; ++i)
     {
