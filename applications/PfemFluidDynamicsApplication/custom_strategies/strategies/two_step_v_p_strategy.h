@@ -231,10 +231,7 @@ public:
 
       unsigned int maxNonLinearIterations=mMaxPressureIter;
 
-      if ( BaseType::GetEchoLevel() > 0)
-      {
-          std::cout << "\n                   Solve with two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
-      }
+      KRATOS_INFO("TwoStepVPStrategy") << "\n                   Solve with two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
 
       if(timeIntervalChanged==true && currentTime>10*timeInterval ){
 	maxNonLinearIterations*=2;
@@ -288,10 +285,8 @@ public:
 	      rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
 	      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE,false);
 
-          if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-          {
-            std::cout << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
-          }
+          KRATOS_INFO("TwoStepVPStrategy") << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
+
 	      break;
 	    }
 
@@ -631,10 +626,9 @@ protected:
       ConvergedMomentum = this->CheckVelocityConvergence(NormDv,DvErrorNorm);
       // Check convergence
       if(it==maxIt-1){
-        if(BaseType::GetEchoLevel() > 0 && Rank == 0)
-        {
-	        std::cout<<"iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
-        }
+
+        KRATOS_INFO("TwoStepVPStrategy") << "iteration("<<it<<") Final Velocity error: "<< DvErrorNorm <<" velTol: " << mVelocityTolerance<< std::endl;
+
 	fixedTimeStep=this->FixTimeStepMomentum(DvErrorNorm);
       }
 
@@ -673,10 +667,9 @@ protected:
 
       // Check convergence
       if(it==maxIt-1){
-        if(BaseType::GetEchoLevel() > 0 && Rank == 0)
-        {
-	        std::cout<<"       iteration("<<it<<") Final Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
-        }
+
+          KRATOS_INFO("TwoStepVPStrategy") <<"       iteration("<<it<<") Final Pressure error: "<<DpErrorNorm <<" presTol: "<<mPressureTolerance << std::endl;
+
       	ConvergedContinuity=this->FixTimeStepContinuity(DpErrorNorm);
       }
 

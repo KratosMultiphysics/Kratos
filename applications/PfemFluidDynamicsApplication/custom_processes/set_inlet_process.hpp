@@ -68,10 +68,9 @@ public:
 				int EchoLevel)
       : mrModelPart(rModelPart)
     {
-      mEchoLevel = EchoLevel;
+        KRATOS_INFO("SetInletProcess") << " inlet_management CONSTRUCTOR ";
 
-      if( mEchoLevel > 1 )
-        std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
+        mEchoLevel = EchoLevel;
     }
 
 

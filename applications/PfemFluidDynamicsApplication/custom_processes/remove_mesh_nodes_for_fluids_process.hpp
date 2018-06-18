@@ -79,10 +79,12 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-      mEchoLevel = EchoLevel;
-			if( mEchoLevel > 1 )
-				std::cout<<" remove_mesh_nodes_process_for_fluids "<<std::endl;
-    }
+      KRATOS_INFO("RemoveMeshNodesForFluidsProcess") << " remove_mesh_nodes_process_for_fluids ";
+
+			mEchoLevel = EchoLevel;
+		}
+
+
 
 
   /// Destructor.
