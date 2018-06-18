@@ -428,7 +428,7 @@ public:
             , mpProperties(Properties::Pointer())
         {}
 
-        Ply(const int PlyIndex, double location, int NumIntegrationPoints, const Properties::Pointer & pProperties)
+        Ply(const int PlyIndex, int NumIntegrationPoints, const Properties::Pointer & pProperties)
             : mPlyIndex(PlyIndex)
             , mIntegrationPoints()
             , mpProperties(pProperties)

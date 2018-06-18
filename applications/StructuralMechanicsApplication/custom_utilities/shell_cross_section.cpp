@@ -54,7 +54,7 @@ void ShellCrossSection::BeginStack()
 void ShellCrossSection::AddPly(const IndexType PlyIndex, int numPoints, const Properties::Pointer & pProperties)
 {
     if((mEditingStack) && (pProperties != nullptr))
-        mStack.push_back( Ply( PlyIndex, 0.0, numPoints, pProperties ) );
+        mStack.push_back( Ply( PlyIndex, numPoints, pProperties ) );
 }
 
 void ShellCrossSection::EndStack()
