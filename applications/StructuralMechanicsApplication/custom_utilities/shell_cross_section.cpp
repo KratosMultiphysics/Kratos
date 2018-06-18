@@ -59,20 +59,7 @@ void ShellCrossSection::AddPly(const IndexType PlyIndex, int numPoints, const Pr
 
 void ShellCrossSection::EndStack()
 {
-    if(mEditingStack)
-    {
-        double currentLocation = GetThickness() * 0.5; // TODO take a close look
-
-        for(PlyCollection::iterator it = mStack.begin(); it != mStack.end(); ++it)
-        {
-            Ply& iPly = *it;
-            double iTh = iPly.GetThickness();
-            iPly.SetLocation(currentLocation - iTh * 0.5 - GetOffset());
-            currentLocation -= iTh;
-        }
-
-        mEditingStack = false;
-    }
+    if(mEditingStack) mEditingStack = false;
 }
 
 std::string ShellCrossSection::GetInfo()const

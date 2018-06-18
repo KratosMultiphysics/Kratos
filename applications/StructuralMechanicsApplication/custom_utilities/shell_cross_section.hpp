@@ -416,7 +416,6 @@ public:
     private:
 
         int mPlyIndex;
-        double mLocation;
         double mOrientationAngle;
         IntegrationPointCollection mIntegrationPoints;
         Properties::Pointer mpProperties;
@@ -425,14 +424,12 @@ public:
 
         Ply()
             : mPlyIndex(0)
-            , mLocation(0.0)
             , mIntegrationPoints()
             , mpProperties(Properties::Pointer())
         {}
 
         Ply(const int PlyIndex, double location, int NumIntegrationPoints, const Properties::Pointer & pProperties)
             : mPlyIndex(PlyIndex)
-            , mLocation(location)
             , mIntegrationPoints()
             , mpProperties(pProperties)
         {
@@ -446,7 +443,6 @@ public:
 
         Ply(const Ply& other)
             : mPlyIndex(other.mPlyIndex)
-            , mLocation(other.mLocation)
             , mIntegrationPoints(other.mIntegrationPoints)
             , mpProperties(other.mpProperties)
         {}
@@ -456,7 +452,6 @@ public:
             if(this != &other)
             {
                 mPlyIndex = other.mPlyIndex;
-                mLocation = other.mLocation;
                 mIntegrationPoints = other.mIntegrationPoints;
                 mpProperties = other.mpProperties;
             }
@@ -472,17 +467,28 @@ public:
 
         inline double GetLocation()const
         {
-            return mLocation;
-        }
-        inline void SetLocation(double location)
-        {
-            if(location != mLocation)
+            double my_location(0.0);
+
+            double current_location = ShellUtilities::GetThickness(*mpProperties) * 0.5;
+            const double offset = GetOffset();
+
+            for (int i=0; i<mPlyIndex+1; ++i)
             {
-                for(IntegrationPointCollection::iterator it = mIntegrationPoints.begin(); it != mIntegrationPoints.end(); ++it)
-                    (*it).SetLocation((*it).GetLocation() + location - mLocation); // remove the last location and add the new one (this avoids to re-setup the integration points.
-                mLocation = location; // update the current location
+                double ply_thickness = GetThickness();
+                my_location = current_location - ply_thickness*0.5 - offset;
+                current_location -= ply_thickness;
             }
+            return my_location;
         }
+        // inline void SetLocation(double location)
+        // {
+        //     if(location != mLocation)
+        //     {
+        //         for(IntegrationPointCollection::iterator it = mIntegrationPoints.begin(); it != mIntegrationPoints.end(); ++it)
+        //             (*it).SetLocation((*it).GetLocation() + location - mLocation); // remove the last location and add the new one (this avoids to re-setup the integration points.
+        //         mLocation = location; // update the current location
+        //     }
+        // }
 
         inline double GetOrientationAngle()const
         {
@@ -500,11 +506,6 @@ public:
 
 		void RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps);
 
-        // inline const IntegrationPointCollection& GetIntegrationPoints()const
-        // {
-        //     UpdateIntegrationPoints();
-        //     return mIntegrationPoints;
-        // }
         inline IntegrationPointCollection& GetIntegrationPoints()
         {
             UpdateIntegrationPoints();
@@ -574,10 +575,12 @@ public:
             }
 
             // generate locations (direction: top(+thickness/2) to bottom(-thickness/2)
+            const double location = GetLocation();
+
             Vector ip_loc(num_int_points, 0.0);
             if(num_int_points >= 3)
             {
-                double loc_start = mLocation + 0.5 * GetThickness();
+                double loc_start = location + 0.5 * GetThickness();
                 double loc_incr = GetThickness() / double(num_int_points-1);
                 for(IndexType i=0; i<num_int_points; ++i)
                 {
@@ -603,7 +606,6 @@ public:
         virtual void save(Serializer& rSerializer) const
         {
             rSerializer.save("idx", mPlyIndex);
-            rSerializer.save("L", mLocation);
             rSerializer.save("IntP", mIntegrationPoints);
             rSerializer.save("Prop", mpProperties);
         }
@@ -611,7 +613,6 @@ public:
         virtual void load(Serializer& rSerializer)
         {
             rSerializer.load("idx", mPlyIndex);
-            rSerializer.load("L", mLocation);
             rSerializer.load("IntP", mIntegrationPoints);
             rSerializer.load("Prop", mpProperties);
         }

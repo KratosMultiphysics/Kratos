@@ -72,6 +72,8 @@ void InterpToStandardGaussPoints(std::vector< Matrix >& rV);
 
 bool IsOrthotropic(const Properties& rProps);
 
+double GetThickness(const Properties& rProps);
+
 double GetThickness(const Properties& rProps, const IndexType Index);
 
 double GetDensity(const Properties& rProps, const IndexType Index);
