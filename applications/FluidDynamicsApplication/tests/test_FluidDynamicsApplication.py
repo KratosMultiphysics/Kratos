@@ -19,6 +19,9 @@ from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from volume_source_test import VolumeSourceTest
 from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
+from vms_adjoint_element_2d import VMSAdjointElement2D
+from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
+from adjoint_mpi_vms_sensitivity_2d import AdjointMPIVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 
 def AssambleTestSuites():
@@ -76,6 +79,13 @@ def AssambleTestSuites():
     nightSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
+    nightSuite.addTest(VMSAdjointElement2D('testCalculateSecondDerivativesLHS'))
+    nightSuite.addTest(VMSAdjointElement2D('testCalculateFirstDerivativesLHS1'))
+    nightSuite.addTest(VMSAdjointElement2D('testCalculateFirstDerivativesLHS2'))
+    nightSuite.addTest(VMSAdjointElement2D('testCalculateSensitivityMatrix'))
+    nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
+    # nightSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
