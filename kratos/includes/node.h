@@ -333,12 +333,12 @@ public:
 #endif
     }
 
-    typename Node<TDimension>::Pointer Clone()
+    Pointer Clone()
     {
-        Node<3>::Pointer p_new_node = Kratos::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        Pointer p_new_node = Kratos::make_shared<Node<TDimension> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
 
-        Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
+        DofsContainerType& my_dofs = (this)->GetDofs();
         for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
         {
             p_new_node->pAddDof(*it_dof);
@@ -363,8 +363,8 @@ public:
     void SetId(IndexType NewId) override
     {
         IndexedObject::SetId(NewId);
-        Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
-        for(Node<3>::DofsContainerType::iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
+        Node<TDimension>::DofsContainerType& my_dofs = (this)->GetDofs();
+        for(Node<TDimension>::DofsContainerType::iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
         {
             it_dof->SetId(NewId);
         }
