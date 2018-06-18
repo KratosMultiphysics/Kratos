@@ -468,17 +468,15 @@ public:
     
     /**
      * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal
-     * @param rModelPart The model part to compute
+     * @param rContainer reference to the objective container
      */
 
-    static inline void InvertNormalConditions(ModelPart& rModelPart) {
-        // Iterate over conditions
-        ConditionsArrayType& conditions_array = rModelPart.Conditions();
-
+    template<class TContainerType>
+    static inline void InvertNormal(TContainerType& rContainer) {
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-            auto it_cond = conditions_array.begin() + i;
-            GeometryType& this_geometry = it_cond->GetGeometry();
+        for(int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
+            auto it_cont = rContainer.begin() + i;
+            GeometryType& this_geometry = it_cont->GetGeometry();
 
             auto& data_geom = this_geometry.GetContainer();
             std::reverse(data_geom.begin(), data_geom.end());

@@ -53,7 +53,7 @@ class TestMortarUtilities(KratosUnittest.TestCase):
         detect_skin.Execute()
 
         normal_compute = KratosMultiphysics.MortarUtilities
-        normal_compute.InvertNormalConditions(model_part)
+        normal_compute.InvertNormalConditions(model_part.Conditions)
         normal_compute.ComputeNodesMeanNormalModelPart(model_part)
 
         ## DEBUG

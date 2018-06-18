@@ -452,7 +452,8 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
     .def(init<>())
     .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
-    .def("InvertNormalConditions",&MortarUtilities::InvertNormalConditions)
+    .def("InvertNormalElements",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>)
+    .def("InvertNormalConditions",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>)
     ;
 
     // SubModelParts List Utility
