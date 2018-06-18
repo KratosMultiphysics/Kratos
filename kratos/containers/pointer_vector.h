@@ -300,8 +300,7 @@ public:
     template <class InputIterator>
     void insert(InputIterator First, InputIterator Last)
     {
-        for(; First != Last; ++First)
-            insert(*First);
+        mData.insert(First, Last);
     }
 
 
