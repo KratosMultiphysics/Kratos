@@ -20,6 +20,7 @@
 #include "includes/constitutive_law.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
@@ -50,6 +51,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     class_< TrussConstitutiveLaw, typename TrussConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "TrussConstitutiveLaw").def(init<>() )
+    ;
+
+    class_< TrussPlasticityConstitutiveLaw, typename TrussPlasticityConstitutiveLaw::Pointer, ConstitutiveLaw >
+    (m, "TrussPlasticityConstitutiveLaw").def(init<>() )
     ;
 
     class_< BeamConstitutiveLaw, typename BeamConstitutiveLaw::Pointer, ConstitutiveLaw >

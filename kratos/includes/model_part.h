@@ -469,7 +469,7 @@ public:
     template<class TDataType>
     void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
     {
-        if (!mpVariablesList->Has(ThisVariable))
+        if (!HasNodalSolutionStepVariable(ThisVariable))
         {
             // This error prevents memory leaks if variables are being added to a non-empty modelpart
             KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
@@ -478,6 +478,12 @@ public:
 
             mpVariablesList->Add(ThisVariable);
         }
+    }
+
+    template<class TDataType>
+    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable) const
+    {
+        return mpVariablesList->Has(ThisVariable);
     }
 
     VariablesList& GetNodalSolutionStepVariablesList()
