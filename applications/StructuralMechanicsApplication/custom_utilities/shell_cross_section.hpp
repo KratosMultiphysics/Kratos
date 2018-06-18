@@ -1317,9 +1317,9 @@ private:
 
     void InitializeParameters(SectionParameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
 
-    void UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
+    void UpdateIntegrationPointParameters(const IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
 
-    void CalculateIntegrationPointResponse(IntegrationPoint& rPoint,
+    void CalculateIntegrationPointResponse(const IntegrationPoint& rPoint,
     	ConstitutiveLaw::Parameters& rMaterialValues,
     	SectionParameters& rValues,
     	GeneralVariables& rVariables,
