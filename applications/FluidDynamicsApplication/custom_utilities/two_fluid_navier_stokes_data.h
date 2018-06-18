@@ -19,6 +19,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
 #include "custom_utilities/element_size_calculator.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos {
 
@@ -40,6 +41,8 @@ using NodalScalarData = typename FluidElementData<TDim,TNumNodes, true>::NodalSc
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVectorData;
 using ShapeFunctionsType = typename FluidElementData<TDim, TNumNodes, true>::ShapeFunctionsType;
 using ShapeDerivativesType = typename FluidElementData<TDim, TNumNodes, true>::ShapeDerivativesType;
+typedef Geometry<Node<3>> GeometryType;
+typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
 ///@}
 ///@name Public Members
@@ -67,14 +70,25 @@ double bdf1;
 double bdf2;
 
 // Auxiliary containers for the symbolically-generated matrices
-boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
+BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
-boost::numeric::ublas::bounded_matrix<double, TNumNodes*(TDim + 1), TNumNodes> V;
-boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes*(TDim + 1)> H;
-boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Kee;
+BoundedMatrix<double, TNumNodes*(TDim + 1), TNumNodes> V;
+BoundedMatrix<double, TNumNodes, TNumNodes*(TDim + 1)> H;
+BoundedMatrix<double, TNumNodes, TNumNodes> Kee;
 array_1d<double, TNumNodes> rhs_ee;
 
 double ElementSize;
+
+Matrix N_pos_side;
+Matrix N_neg_side;
+ShapeFunctionsGradientsType DN_DX_pos_side;
+ShapeFunctionsGradientsType DN_DX_neg_side;
+
+BoundedMatrix<double,TNumNodes,TNumNodes> Enr_Pos_Interp;
+BoundedMatrix<double,TNumNodes,TNumNodes> Enr_Neg_Interp;
+
+Vector w_gauss_pos_side;
+Vector w_gauss_neg_side;
 
 ShapeFunctionsType Nenr;
 ShapeDerivativesType DN_DXenr;
@@ -82,8 +96,6 @@ ShapeDerivativesType DN_DXenr;
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
 unsigned int NumberOfDivisions;
-Vector PartitionsVolumes;
-Vector PartitionsSigns; //ATTENTION: this shall be initialized of size 6
 
 
 ///@}
@@ -131,18 +143,13 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
         else
             NumNegativeNodes++;
     }
-
-	
-	NumberOfDivisions = 1;
-	PartitionsSigns.resize(6, false);
-
 }
 
 void UpdateGeometryValues(
     unsigned int IntegrationPointIndex,
     double NewWeight,
     const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX) override
+    const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX) override
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight,rN,rDN_DX);
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
@@ -152,9 +159,9 @@ void UpdateGeometryValues(
     unsigned int IntegrationPointIndex,
 	double NewWeight,
 	const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-	const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
+	const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX,
 	const boost::numeric::ublas::matrix_row<Kratos::Matrix> rNenr,
-	const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DXenr)
+	const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXenr)
 {
 	FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
 	ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
@@ -285,8 +292,8 @@ void CalculateAirMaterialResponse() {
 
 void ComputeStrain()
 {
-    const bounded_matrix<double, TNumNodes, TDim>& v = Velocity;
-    const bounded_matrix<double, TNumNodes, TDim>& DN = this->DN_DX;
+    const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity;
+    const BoundedMatrix<double, TNumNodes, TDim>& DN = this->DN_DX;
     
     // Compute strain (B*v)
     // 3D strain computation

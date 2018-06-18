@@ -289,13 +289,17 @@ protected:
 
 
 private:
-
-	unsigned int ComputeSplitting(
+    
+    void ComputeSplitting(
 		TElementData& data,
-		MatrixType& shape_functions,
-		ShapeFunctionDerivativesArrayType& shape_derivatives,
-		std::vector<MatrixType>& DNenr,
-		MatrixType& Nner);
+		MatrixType& rShapeFunctionsPos,
+        MatrixType& rShapeFunctionsNeg,
+        MatrixType& rEnrichedShapeFunctionsPos,
+        MatrixType& rEnrichedShapeFunctionsNeg,
+        GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesPos,
+        GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
+        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
+        GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg);
 
 	void CondenseEnrichment(
 		TElementData& data,
