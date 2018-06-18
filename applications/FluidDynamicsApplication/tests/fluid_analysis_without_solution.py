@@ -16,7 +16,7 @@ class FluidAnalysisWithoutSolution(FluidDynamicsAnalysis):
         """
 
         while self.time < self.end_time:
-            self.time = self.solver.AdvanceInTime(self.time)
+            self.time = self._solver.AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             #self.solver.Predict()
             #self.solver.SolveSolutionStep()
