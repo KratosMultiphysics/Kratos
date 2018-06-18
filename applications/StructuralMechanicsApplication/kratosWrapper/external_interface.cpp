@@ -1,8 +1,7 @@
 #include "includes/model_part_io.h"
 #include "includes/variables.h"
-
 #include "external_interface.h"
-#include <iostream>
+
 using namespace KratosWrapper;
 
 
@@ -27,10 +26,8 @@ void Interface::loadMDPAFile(char* mdpaPath){
 	Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
 	pFile->open(mdpaPath, std::fstream::in);
 
-	Kratos::ModelPartIO * modelPartIO = new Kratos::ModelPartIO(pFile);
-	modelPartIO->ReadModelPart(mMainModelPart);
-
-	delete modelPartIO;
+	Kratos::ModelPartIO(pFile).ReadModelPart(mMainModelPart);
+	pFile->close();
 }
 
 void Interface::saveTriangles(MeshConverter& meshConverter) {

@@ -1,3 +1,6 @@
+
+
+
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -6,52 +9,45 @@
 #include "vector3.h"
 
 using namespace KratosWrapper;
+using namespace std;
 
 struct element {
 	int nodes[4];
 	Kratos::shared_ptr<Kratos::Element> pKratosElement;
 };
 
-void convert(std::vector<element>& converted, std::vector<Kratos::shared_ptr<Kratos::Element>>& input) {
-	for (auto &kratosElement : input) {
+struct node {
+	std::vector<element> elements;
+};
+
+void convert(std::vector<element>& elements, std::vector<node>& nodes, std::vector<Kratos::shared_ptr<Kratos::Element>>& kratosElements) {
+	for (auto& kratosElement : kratosElements) {
 		Kratos::GeometricalObject::GeometryType* pElementGeometry = &kratosElement->GetGeometry();
-		struct element e = { { static_cast<int>(pElementGeometry->GetPoint(0).GetId()),
-			static_cast<int>(pElementGeometry->GetPoint(1).GetId()),
-			static_cast<int>(pElementGeometry->GetPoint(2).GetId()),
-			static_cast<int>(pElementGeometry->GetPoint(3).GetId())
-			}, kratosElement };
-		converted.push_back(e);
-	}
-}
-
-bool elementSorter(element const& e1, element const& e2) {
-	for (int i = 0; i < 4; i++) {
-		if (e1.nodes[i] != e2.nodes[i]) return e1.nodes[i] < e2.nodes[i];
-	}
-	return false;
-}
-
-void sortElements(std::vector<element>& elements) {
-	for (auto &e : elements) {
+		struct element e = {
+			{ static_cast<int>(pElementGeometry->GetPoint(0).GetId()),
+				static_cast<int>(pElementGeometry->GetPoint(1).GetId()),
+				static_cast<int>(pElementGeometry->GetPoint(2).GetId()),
+				static_cast<int>(pElementGeometry->GetPoint(3).GetId())
+			}, kratosElement
+		};
 		std::sort(std::begin(e.nodes), std::end(e.nodes));
+		for (int i = 0; i < 4; i++) {
+			if (nodes.size() <= e.nodes[i]) {
+				nodes.resize(e.nodes[i] + 1);
+			}
+			nodes[e.nodes[i]].elements.push_back(e);
+		}
+		elements.push_back(e);
 	}
-	std::sort(elements.begin(), elements.end(), elementSorter);
 }
 
-bool checkContains(int(&el)[4], int(&face)[4], bool* faceWasUsed) {
+bool checkContains(element& e, int(&face)[4]) {
+	
 	int f = 0;
-	int nface = -1;
 	for (int i = 0; i < 4; i++) {
-		if (el[i] == face[f]) {
-			if (nface == -1) {
-				if (f == 0 && i == 1)nface = 3;
-				else if (f == 1 && i == 2)nface = 2;
-				else if (f == 2 && i == 3)nface = 1;
-				else if (f == 2 && i == 2)nface = 0;
-			}
+		if (e.nodes[i] == face[f]) {
 			f++;
 			if (f >= 3) {
-				faceWasUsed[nface] = true;
 				return true;
 			}
 		}
@@ -59,8 +55,6 @@ bool checkContains(int(&el)[4], int(&face)[4], bool* faceWasUsed) {
 	}
 	return false;
 }
-
-
 
 void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
 	Kratos::array_1d<double, 3> points[4];
@@ -75,12 +69,15 @@ void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
 		}
 
 	}
+
+	//Given tertrahedra ABCD, check sign([ABxBC]*AD)
+
 	Vector3* AB = new Vector3(points[1][0], points[1][1], points[1][2]);
 	AB->sub(points[0][0], points[0][1], points[0][2]);
 
 	Vector3* BC = new Vector3(points[2][0], points[2][1], points[2][2]);
 	BC->sub(points[1][0], points[1][1], points[1][2]);
-	
+
 	Vector3* AD = new Vector3(points[3][0], points[3][1], points[3][2]);
 	AD->sub(points[0][0], points[0][1], points[0][2]);
 
@@ -99,48 +96,32 @@ void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
 	}
 }
 
-void process(std::vector<element>& elements, std::vector<face>& result) {
-	bool** wasUsed = new bool*[elements.size()];
-
-	for (int i = 0; i < elements.size(); i++) {
-		wasUsed[i] = new bool[4];
-		for (int j = 0; j < 4; j++)wasUsed[i][j] = false;
-	}
-
-	for (int i = 0; i < elements.size(); i++) {
-		element& e = elements[i];
+void process(std::vector<element>& elements, std::vector<node>& nodes, std::vector<face>& result) {
+	for (auto& e : elements) {
+		
 		int faces[4][4] = {
 			{ e.nodes[0], e.nodes[1], e.nodes[2], e.nodes[3] },
 		{ e.nodes[0], e.nodes[1], e.nodes[3], e.nodes[2] },
 		{ e.nodes[0], e.nodes[2], e.nodes[3], e.nodes[1] },
 		{ e.nodes[1], e.nodes[2], e.nodes[3], e.nodes[0] },
 		};
-
 		for (int f = 0; f < 4; f++) {
-			if (!wasUsed[i][f]) {
-				int current = i + 1;
-				bool faceFound = false;
-				while (!faceFound && current < elements.size() && elements[current].nodes[0] <= faces[f][0]) {
-					faceFound = checkContains(elements[current].nodes, faces[f], wasUsed[current]);
-					current++;
-				}
 
-				if (!faceFound) {
-					face resultFace = { { faces[f][0], faces[f][1], faces[f][2], faces[f][3] } };
-					fixFace(resultFace, e.pKratosElement);
-					result.push_back(resultFace);
-				}
+			bool contains = false;
+			for (auto& toCheck : nodes[faces[f][0]].elements) {
+				if (toCheck.pKratosElement != e.pKratosElement)
+					contains = checkContains(toCheck, faces[f]);
+				if (contains) break;
+			}
+			if (!contains) {
+				face resultFace = { { faces[f][0], faces[f][1], faces[f][2], faces[f][3] } };
+				fixFace(resultFace, e.pKratosElement);
+				result.push_back(resultFace);
 			}
 		}
 	}
-
-	for (int i = 0; i < elements.size(); i++) {
-		delete wasUsed[i];
-	}
-	delete wasUsed;
 }
-
-int findMaxNode(std::vector<element> elements) {
+int findMaxNode(std::vector<element>& elements) {
 	int max = -1;
 	for (auto& element : elements)
 		if (element.nodes[3] > max) max = element.nodes[3];
@@ -148,9 +129,9 @@ int findMaxNode(std::vector<element> elements) {
 }
 
 void extractNodes(std::vector<face>& faces, std::vector<int>& nodes, int maxNode) {
-	bool* nodeFlags = new bool[maxNode+1];
-	for (int i = 0; i < maxNode+1; i++)nodeFlags[i] = false;
-	
+	bool* nodeFlags = new bool[maxNode + 1];
+	for (int i = 0; i < maxNode + 1; i++)nodeFlags[i] = false;
+
 	//mark nodes that are used at least once
 	for (auto& face : faces) {
 		for (int i = 0; i < 3; i++)
@@ -161,14 +142,14 @@ void extractNodes(std::vector<face>& faces, std::vector<int>& nodes, int maxNode
 	for (int i = 0; i < maxNode + 1; i++)
 		if (nodeFlags[i])
 			nodes.push_back(i);
-	
+
 	delete nodeFlags;
 }
 
 int findNode(int toFind, std::vector<int>& nodes) {
 	int mid;
 	int start = 0;
-	int end = nodes.size()-1;
+	int end = nodes.size() - 1;
 	while (start <= end)
 	{
 		mid = start + ((end - start) >> 1);
@@ -188,24 +169,14 @@ void translateFaces(std::vector<face>& faces, std::vector<int>& nodes) {
 	}
 }
 
-void printFaces(std::vector<face>& faces) {
-	for (auto& f : faces) {
-		std::cout << f.nodes[0] << " " << f.nodes[1] << " " << f.nodes[2] << std::endl;
-	}
-	std::cout << "---------------------------" << std::endl;
-
-}
-
 void MeshConverter::ProcessMesh(std::vector<Kratos::shared_ptr<Kratos::Element>>& kratosElements) {
 	std::vector<element> elements;
-	convert(elements, kratosElements);
-	sortElements(elements);
-	process(elements, mFaces);
+	std::vector<node> nodes;
+	convert(elements, nodes, kratosElements);
+	process(elements, nodes, mFaces);
 	int maxNode = findMaxNode(elements);
 	extractNodes(mFaces, mNodes, maxNode);
-	//printFaces(mFaces);
 	translateFaces(mFaces, mNodes);
-	//printFaces(mFaces);
 }
 
 
@@ -217,4 +188,3 @@ std::vector<face>& MeshConverter::GetFaces() {
 std::vector<int>& MeshConverter::GetNodes() {
 	return mNodes;
 }
-
