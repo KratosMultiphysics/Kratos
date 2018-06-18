@@ -89,11 +89,11 @@ double dN_seren_deta(const int nNode, const double Xi, const double Eta)
     }
 }
 
-void InterpToStandardGaussPoints(double& rV1, double& rV2,double& rV3)
+void InterpToStandardGaussPoints(double& rV1, double& rV2, double& rV3)
 {
-    double vg1 = rV1;
-    double vg2 = rV2;
-    double vg3 = rV3;
+    const double vg1 = rV1;
+    const double vg2 = rV2;
+    const double vg3 = rV3;
 #ifdef OPT_AVERAGE_RESULTS
     rV1 = (vg1 + vg2 + vg3) / 3.0;
     rV2 = (vg1 + vg2 + vg3) / 3.0;
