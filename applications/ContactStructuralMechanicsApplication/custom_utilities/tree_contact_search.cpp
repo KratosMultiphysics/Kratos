@@ -1006,9 +1006,9 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeMappedGap(const bool Sear
         SwitchFlagNodes(nodes_array);
 
     // We set the mapper parameters
-    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24})" );
+    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24,         "origin_variable_historical" : false, "destination_variable_historical" : false})" );
     mapping_parameters["distance_threshold"].SetDouble(distance_threshold);
-    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
+    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>> MapperType;
     MapperType mapper = MapperType(r_master_model_part, r_slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
     mapper.Execute();
 
