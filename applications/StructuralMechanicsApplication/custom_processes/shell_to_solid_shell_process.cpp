@@ -72,7 +72,6 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 
     // Auxiliar values
     NodesArrayType& nodes_array = geometry_model_part.Nodes();
-    ConditionsArrayType& conditions_array = geometry_model_part.Conditions();
     ElementsArrayType& elements_array = geometry_model_part.Elements();
     const SizeType geometry_number_of_nodes = nodes_array.size();
     const SizeType geometry_number_of_elements = elements_array.size();
