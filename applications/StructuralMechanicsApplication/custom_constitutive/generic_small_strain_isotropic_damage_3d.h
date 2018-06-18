@@ -109,6 +109,10 @@ public:
 
         if (yield == "VonMises") {
             if (potential == "VonMises") {
+                // constitutive_law = Kratos::make_shared
+                //     <GenericConstitutiveLawIntegratorDamage
+                //         <VonMisesYieldSurface
+                //             <VonMisesPlasticPotential>>>()
                 constitutive_law = GenericSmallStrainIsotropicDamage3D 
                     <GenericConstitutiveLawIntegratorDamage
                         <VonMisesYieldSurface
@@ -355,7 +359,7 @@ public:
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
             
-            noalias(TangentTensor) = (1 - Damage)*C;
+            noalias(TangentTensor) = (1.0 - Damage)*C;
         } else { // Damage case
             const double CharacteristicLength = rValues.GetElementGeometry().Length();
 

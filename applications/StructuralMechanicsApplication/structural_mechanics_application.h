@@ -402,8 +402,7 @@ private:
     const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
     const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
 	
-	//const GenericSmallStrainIsotropicPlasticity3D<class YieldSurfaceType,class ConstLawIntegratorType> mGenericSmallStrainIsotropicPlasticity3D;
-
+	
     ///@}
     ///@name Private Operators
     ///@{

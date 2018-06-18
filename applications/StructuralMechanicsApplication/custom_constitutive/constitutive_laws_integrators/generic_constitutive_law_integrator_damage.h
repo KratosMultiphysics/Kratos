@@ -43,6 +43,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
 /**
  * @class GenericConstitutiveLawIntegratorDamage
  * @ingroup StructuralMechanicsApplication
@@ -52,7 +53,7 @@ namespace Kratos
  * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TYieldSurfaceType, class TVoigtSize>
+template <class TYieldSurfaceType> //, class TVoigtSize>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorDamage
 {
 public:
@@ -97,7 +98,16 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
+        
+    /**
+     * @brief This method integrates the predictive stress vector with the CL using linear or exponential softening
+     * @param PredictiveStressVector The predictive stress vector
+     * @param UniaxialStress The equivalent uniaxial stress 
+     * @param Damage The internal variable of the damage model
+     * @param Threshold The maximum uniaxial stress achieved previously
+     * @param rMaterialProperties The material properties
+     * @param CharacteristicLength The equivalent length of the FE
+     */
     static void IntegrateStressVector(
         Vector& PredictiveStressVector,
         const double UniaxialStress,
@@ -130,6 +140,14 @@ public:
         Threshold = UniaxialStress;
     }
 
+    /**
+     * @brief This computes the damage variable according to exponential softening
+     * @param UniaxialStress The equivalent uniaxial stress
+     * @param Threshold The maximum uniaxial stress achieved previously
+     * @param Damage The internal variable of the damage model
+     * @param rMaterialProperties The material properties
+     * @param CharacteristicLength The equivalent length of the FE
+     */
     static void CalculateExponentialDamage(
         const double UniaxialStress,
         const double Threshold,
@@ -141,9 +159,17 @@ public:
     {
         double InitialThreshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
-        Damage = 1 - (InitialThreshold / UniaxialStress)*std::exp(DamageParameter*(1.0 - UniaxialStress / InitialThreshold));
+        Damage = 1.0 - (InitialThreshold / UniaxialStress)*std::exp(DamageParameter*(1.0 - UniaxialStress / InitialThreshold));
     }
 
+    /**
+     * @brief This computes the damage variable according to linear softening
+     * @param UniaxialStress The equivalent uniaxial stress
+     * @param Threshold The maximum uniaxial stress achieved previously
+     * @param Damage The internal variable of the damage model
+     * @param rMaterialProperties The material properties
+     * @param CharacteristicLength The equivalent length of the FE
+     */
     static void CalculateLinearDamage(
         const double UniaxialStress,
         const double Threshold,
