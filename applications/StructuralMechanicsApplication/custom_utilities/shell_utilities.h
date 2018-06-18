@@ -80,6 +80,8 @@ double GetDensity(const Properties& rProps, const IndexType Index);
 
 double GetOrientationAngle(const Properties& rProps, const IndexType Index);
 
+double GetOffset(const Properties& rProps);
+
 }  // namespace Shell Utilities.
 
 }  // namespace Kratos.

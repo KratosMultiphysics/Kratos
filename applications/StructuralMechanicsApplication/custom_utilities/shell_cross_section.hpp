@@ -480,15 +480,6 @@ public:
             }
             return my_location;
         }
-        // inline void SetLocation(double location)
-        // {
-        //     if(location != mLocation)
-        //     {
-        //         for(IntegrationPointCollection::iterator it = mIntegrationPoints.begin(); it != mIntegrationPoints.end(); ++it)
-        //             (*it).SetLocation((*it).GetLocation() + location - mLocation); // remove the last location and add the new one (this avoids to re-setup the integration points.
-        //         mLocation = location; // update the current location
-        //     }
-        // }
 
         inline double GetOrientationAngle()const
         {
@@ -497,11 +488,7 @@ public:
 
         inline double GetOffset()const
         {
-            // TODO!!!
-            // if (mpProperties->Has(SHELL_OFFSET))
-            //     return mpProperties->GetValue(SHELL_OFFSET);
-            // else
-                return 0.0;
+            return ShellUtilities::GetOffset(*mpProperties);
         }
 
 		void RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps);
@@ -544,9 +531,9 @@ public:
         {
             KRATOS_TRY
 
-            const ConstitutiveLaw::Pointer & pMaterial = GetProperties()[CONSTITUTIVE_LAW];
-            if(pMaterial == NULL)
-                KRATOS_THROW_ERROR(std::logic_error, "A Ply needs a constitutive law to be set. Missing constitutive law in property : ", GetProperties().Id());
+            const ConstitutiveLaw::Pointer& pMaterial = GetProperties()[CONSTITUTIVE_LAW];
+            KRATOS_ERROR_IF(pMaterial == nullptr) << "A Ply needs a constitutive law to be set. "
+                << "Missing constitutive law in property: " <<  GetProperties().Id() << std::endl;;
 
             // generate the integration points
             mIntegrationPoints.clear();

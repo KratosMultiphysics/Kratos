@@ -217,6 +217,14 @@ double GetOrientationAngle(const Properties& rProps, const IndexType Index)
 }
 
 
+double GetOffset(const Properties& rProps)
+{
+if (rProps.Has(SHELL_OFFSET))
+    return rProps.GetValue(SHELL_OFFSET);
+else
+    return 0.0;
+}
+
 } // namespace ShellUtilities
 
 } // namespace Kratos.
