@@ -333,12 +333,12 @@ public:
 #endif
     }
 
-    typename Node<TDimension>::Pointer Clone()
+    Pointer Clone()
     {
-        Node<TDimension>::Pointer p_new_node = Kratos::make_shared<Node<TDimension> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        Pointer p_new_node = Kratos::make_shared<Node<TDimension> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
 
-        Node<TDimension>::DofsContainerType& my_dofs = (this)->GetDofs();
+        DofsContainerType& my_dofs = (this)->GetDofs();
         for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
         {
             p_new_node->pAddDof(*it_dof);
