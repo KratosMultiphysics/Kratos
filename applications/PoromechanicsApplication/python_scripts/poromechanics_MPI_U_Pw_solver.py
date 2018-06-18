@@ -17,12 +17,12 @@ def CreateSolver(main_model_part, custom_settings):
 
     return MPIUPwSolver(main_model_part, custom_settings)
 
+#TODO
 
 class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
 
     def __init__(self, main_model_part, custom_settings):
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
         ##settings string in json format
@@ -113,6 +113,9 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
 
     def Initialize(self):
 
+        # Fill the previous steps of the buffer with the initial conditions
+        self._FillBuffer()
+
         # Construct the communicator
         self.EpetraCommunicator = TrilinosApplication.CreateCommunicator()
 
@@ -138,8 +141,14 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         # Set echo_level
         self.Solver.SetEchoLevel(self.settings["echo_level"].GetInt())
 
+        # Initialize Strategy
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
+
+        self.Solver.Initialize()
+
         # Check if everything is assigned correctly
-        self.Solver.Check()
+        self.Check()
 
         print ("Initialization MPI UPwSolver finished")
 
