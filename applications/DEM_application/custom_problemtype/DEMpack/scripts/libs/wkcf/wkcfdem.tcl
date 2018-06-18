@@ -3354,6 +3354,8 @@ proc ::wkcf::WriteDSOLIDVolumeAccelerationOnNodes {AppId} {
 
 proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
     variable demfemchannel
+    variable demfem_ref_to_props_number
+    set demfem_ref_to_props_number  0
     global KPriv
     set rootid $AppId
 
@@ -3382,6 +3384,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	#set nlist [::wkcf::GetDemFemWallGroupNodes $AppId $cgroupid]
 
 	if {[llength $nlist]} {
+
 	    set cproperty "dv"
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.LinearVelocity//i.LinearVelocityX"
 	    set LinearVelocityX [::xmlutils::setXml $cxpath $cproperty]
@@ -3441,11 +3444,9 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.AngularVelocity//i.AngularEndTime"
 	    set AngularVelocityEndTime [::xmlutils::setXml $cxpath $cproperty]
 	    set RigidBodyMotionOption 1
-	    variable dem_group_mesh_property_number
-	    incr dem_group_mesh_property_number
 	    set TableNumber 0
 	    set TableVelocityComponent 0
-	    foreach {FreeBodyMotion RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 "No"} {}
+	    foreach {FreeBodyMotion RigidBodyMass CentroidX CentroidY CentroidZ InertiaX InertiaY InertiaZ Buoyancy} {0 0 0.0 0.0 0.0 1.0 1.0 1.0 "No"} {}
 	    set type_of_motion [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//i.DEM-RBImposedMotion" dv]
 	    if {$type_of_motion=="None"} {
 		foreach {LinearVelocityX LinearVelocityY LinearVelocityZ AngularVelocityX AngularVelocityY AngularVelocityZ RigidBodyMotionOption} {0.0 0.0 0.0 0.0 0.0 0.0 0} {}
@@ -3495,9 +3496,14 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		    set dragconstantz [::xmlutils::setXml $cxpath dv]
 	    }
 	}
-	    GiD_File fprintf $demfemchannel "Begin SubModelPart $dem_group_mesh_property_number // DEM-FEM-Wall. Group name: $cgroupid"
+	    # Write mesh properties for this group
+	    GiD_File fprintf $demfemchannel "%s" "Begin SubModelPart $demfem_ref_to_props_number \/\/ DEM-FEM-Wall. Group name: $cgroupid"
 	    GiD_File fprintf $demfemchannel "  Begin SubModelPartData // DEM-FEM-Wall. Group name: $cgroupid"
+	    GiD_File fprintf $demfemchannel "  PROPERTIES_ID $demfem_ref_to_props_number"
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
+	    GiD_File fprintf $demfemchannel "  FREE_BODY_MOTION $FreeBodyMotion"
 	    if {$type_of_motion=="LinearPeriodic"} {
+	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
 	    GiD_File fprintf $demfemchannel "  LINEAR_VELOCITY \[3\] ($LinearVelocityX,$LinearVelocityY,$LinearVelocityZ)"
 	    GiD_File fprintf $demfemchannel "  VELOCITY_PERIOD $Period"
 	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY \[3\] ($AngularVelocityX,$AngularVelocityY,$AngularVelocityZ)"
@@ -3509,6 +3515,9 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    GiD_File fprintf $demfemchannel "  ANGULAR_VELOCITY_STOP_TIME $AngularVelocityEndTime"
 	    }
 	    if {$type_of_motion=="FreeMotion"} {
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
+	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
 	    #Imposed velocities
 	    if {[::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Ax" "dv"] eq "Yes"} {
 		GiD_File fprintf $demfemchannel "  IMPOSED_VELOCITY_X_VALUE [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBE-DOFS//i.Vx" "dv"]"
@@ -3562,13 +3571,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 		GiD_File fprintf $demfemchannel "  DEM_DRAG_CONSTANT_Z $dragconstantz"
 	    }
 	    }
-	    GiD_File fprintf $demfemchannel "  FIXED_MESH_OPTION $fixed_wall_value"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MOTION $RigidBodyMotionOption"
-	    GiD_File fprintf $demfemchannel "  FREE_BODY_MOTION $FreeBodyMotion"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_MASS $RigidBodyMass"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_CENTER_OF_MASS \[3\] ($CentroidX,$CentroidY,$CentroidZ)"
-	    GiD_File fprintf $demfemchannel "  RIGID_BODY_INERTIAS \[3\] ($InertiaX,$InertiaY,$InertiaZ)"
-            GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
+        GiD_File fprintf $demfemchannel "  IS_GHOST $ghost_wall_value"
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER $TableNumber"
 	    GiD_File fprintf $demfemchannel "  //TABLE_VELOCITY_COMPONENT $TableVelocityComponent"
 	    GiD_File fprintf $demfemchannel "  IDENTIFIER $cgroupid"
@@ -3604,7 +3607,7 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    #
 	    GiD_File fprintf $demfemchannel "End SubModelPart"
 	    GiD_File fprintf $demfemchannel ""
-
+	    incr demfem_ref_to_props_number
 	    if {$type_of_motion=="FromATable"} {
 	    set filename [::xmlutils::setXml "$rootid//c.DEM-Conditions//c.DEM-FEM-Wall//c.[list ${cgroupid}]//i.VelocitiesFilename" dv]
 	    GiD_File fprintf $demfemchannel "Begin Table $TableNumber TIME VELOCITY"
