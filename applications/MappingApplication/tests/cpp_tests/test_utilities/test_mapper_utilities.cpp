@@ -33,9 +33,7 @@ void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
                                              i*0.3*rank*6.13*size);
 }
 
-// Function to check if the INTERFACE_EQUATION_IDs (EquationIds of the MappingMatrix) are being assigned correctly
-// Note that this test also exists for MPI
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMappingApplicationGeneralTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMappingApplicationSerialTestSuite)
 {
     const int num_nodes = 11;
     ModelPart model_part("ForTest");
@@ -53,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMapp
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingApplicationGeneralTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingApplicationSerialTestSuite)
 {
     ModelPart model_part("ForTest");
     model_part.CreateNewNode(1, 0.2, 5.3, -8.3);
@@ -74,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingAppli
     KRATOS_CHECK_DOUBLE_EQUAL(bbox[5], -8.3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappingApplicationGeneralTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappingApplicationSerialTestSuite)
 {
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
