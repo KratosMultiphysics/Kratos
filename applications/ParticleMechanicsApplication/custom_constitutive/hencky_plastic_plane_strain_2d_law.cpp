@@ -132,14 +132,12 @@ Matrix HenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToAppropiateDi
         rConstitutiveMatrix(2, 1) = rElastoPlasticTangentMatrix(3, 1);
         rConstitutiveMatrix(2, 2) = rElastoPlasticTangentMatrix(3, 3);
 
-
         rConstitutiveMatrix(0, 2) = rElastoPlasticTangentMatrix(0, 3);
         rConstitutiveMatrix(1, 2) = rElastoPlasticTangentMatrix(1, 3);
     }
     return rConstitutiveMatrix;
 
 }
-
 
 
 void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyGreenMatrix,
