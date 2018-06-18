@@ -93,6 +93,17 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This  script  calculates  the derivatives  of the plastic potential
+    according   to   NAYAK-ZIENKIEWICZ   paper International
+    journal for numerical methods in engineering vol 113-135 1972.
+     As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+     * @param StressVector The stress vector 
+     * @param Deviator The deviatoric part of the stress vector
+     * @param J2 The second invariant of the Deviator 
+     * @param rGFlux The derivative of the plastic potential
+     * @param rMaterialProperties The material properties
+     */
     static void CalculatePlasticPotentialDerivative(
         const Vector& StressVector, 
         const Vector& Deviator,

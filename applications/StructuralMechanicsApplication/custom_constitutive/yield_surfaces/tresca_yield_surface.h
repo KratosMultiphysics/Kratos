@@ -90,6 +90,12 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method the uniaxial equivalent stress
+     * @param StressVector The stress vector 
+     * @param StrainVector The StrainVector vector
+     * @param rMaterialProperties The material properties
+     */
     static void CalculateEquivalentStress(
         const Vector& StressVector,
         const Vector& StrainVector, 
@@ -108,11 +114,22 @@ public:
         rEqStress = 2.0*std::cos(LodeAngle)*std::sqrt(J2);
     }
 
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * @param rThreshold The uniaxial stress threshold
+     * @param rMaterialProperties The material properties
+     */
     static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
     {
         rThreshold = std::abs(rMaterialProperties[YIELD_STRESS_TENSION]);  // TODO Check
     }
 
+    /**
+     * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
+     * @param AParameter The damage parameter
+     * @param rMaterialProperties The material properties
+     * @param CharacteristicLength The equivalent length of the FE
+     */
     static void CalculateDamageParameter(
         const Properties& rMaterialProperties, 
         double& AParameter, 
@@ -132,7 +149,14 @@ public:
         }
     }
 
-    // Computes dG/dS
+    /**
+     * @brief This method calculates the derivative of the plastic potential DG/DS
+     * @param StressVector The stress vector 
+     * @param Deviator The deviatoric part of the stress vector
+     * @param J2 The second invariant of the Deviator 
+     * @param rg The derivative of the plastic potential
+     * @param rMaterialProperties The material properties
+     */
     static void CalculatePlasticPotentialDerivative(
         const Vector& StressVector,
         const Vector& Deviator,
@@ -144,12 +168,17 @@ public:
         TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
     }
 
-    /*
-    This  script  calculates  the derivatives  of the Yield Surf
+    /**
+     * @brief This  script  calculates  the derivatives  of the Yield Surf
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
-    As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-    */
+     As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+     * @param StressVector The stress vector 
+     * @param Deviator The deviatoric part of the stress vector
+     * @param J2 The second invariant of the Deviator 
+     * @param rFFlux The derivative of the yield surface
+     * @param rMaterialProperties The material properties
+     */
     static void CalculateYieldSurfaceDerivative(
         const Vector& StressVector, 
         const Vector& Deviator,

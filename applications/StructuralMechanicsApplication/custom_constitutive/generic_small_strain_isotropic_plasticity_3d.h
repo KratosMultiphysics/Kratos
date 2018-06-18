@@ -105,7 +105,7 @@ public:
     // ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
     // {
     // }
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -147,7 +147,7 @@ public:
         this->CalculateMaterialResponseCauchy(rValues);
     }
 
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
     {
         // Integrate Stress plasticity
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
@@ -181,16 +181,16 @@ public:
 
         const double F = UniaxialStress - Threshold; 
 
-        if (F <= std::abs(1.0e-8 * Threshold)) 
-        {   // Elastic case
+        if (F <= std::abs(1.0e-8 * Threshold)) {   // Elastic case
+
             IntegratedStressVector = PredictiveStressVector;
             TangentTensor = C;
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
-        }
-        else // Plastic case
-        {
+
+        } else { // Plastic case
+        
             // while loop backward euler
             /* Inside "IntegrateStressVector" the PredictiveStressVector
                is updated to verify the yield criterion */
@@ -225,7 +225,8 @@ public:
     }
 
 
-    void CalculateElasticMatrix(Matrix &rElasticityTensor,
+    void CalculateElasticMatrix(
+        Matrix &rElasticityTensor,
         const Properties &rMaterialProperties
     )
     {
