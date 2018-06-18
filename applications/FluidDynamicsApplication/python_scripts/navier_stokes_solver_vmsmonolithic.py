@@ -238,7 +238,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
 
     def PrepareModelPart(self):
-        self._set_physical_properties()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._set_physical_properties()
         super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
     def Initialize(self):

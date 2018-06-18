@@ -140,6 +140,8 @@ class FluidSolver(PythonSolver):
         self.FinalizeSolutionStep()
 
     def GetComputingModelPart(self):
+        if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
+            raise Exception("The ComputingModelPart was not created yet!")
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     ## FluidSolver specific methods.
