@@ -978,7 +978,10 @@ void UpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHa
 
     //use of this variable for the complete parameter:
     double AlphaStabilization  = 1.0;
-    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    double StabilizationFactor = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+        StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    }
     AlphaStabilization *= StabilizationFactor;
 
     const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
@@ -1419,7 +1422,10 @@ void UpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatri
     unsigned int indexpi = dimension;
 
     double AlphaStabilization  = 1.0;
-    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    double StabilizationFactor = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+        StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    }
     AlphaStabilization *= StabilizationFactor;
 
     const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
