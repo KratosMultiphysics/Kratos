@@ -437,7 +437,7 @@ public:
             // Aux coordinates
             CoordinatesArrayType aux_coords;
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
-            
+
             it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
             
             const SizeType number_nodes = this_geometry.PointsNumber();
@@ -460,6 +460,7 @@ public:
 
             array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
             const double norm_normal = norm_2(normal);
+
             if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
             else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
@@ -478,7 +479,9 @@ public:
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
             GeometryType& this_geometry = it_cond->GetGeometry();
-            std::reverse(this_geometry.begin(),this_geometry.end());
+
+            auto& data_geom = this_geometry.GetContainer();
+            std::reverse(data_geom.begin(), data_geom.end());
         }
     }
 
