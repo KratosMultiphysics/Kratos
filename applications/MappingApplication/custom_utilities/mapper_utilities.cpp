@@ -26,6 +26,9 @@ namespace Kratos
 namespace MapperUtilities
 {
 
+using IndexType = std::size_t;
+using SizeType = std::size_t;
+
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 {
     const int num_nodes_local = rModelPartCommunicator.LocalMesh().NumberOfNodes();
@@ -147,20 +150,37 @@ std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart)
     return local_bounding_box;
 }
 
-void ComputeBoundingBoxWithTolerance(std::vector<double>& rLocalBoundingBox,
-                                     const double Tolerance,
-                                     std::vector<double>& rLocalBoundingBoxWithTolerance)
+void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
+                                       const double Tolerance,
+                                       std::vector<double>& rBoundingBoxesWithTolerance)
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(rLocalBoundingBox.size() == 6);
-    KRATOS_DEBUG_ERROR_IF_NOT(rLocalBoundingBoxWithTolerance.size() == 6);
+    const SizeType size_vec = rBoundingBoxes.size();
 
+    KRATOS_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0)
+        << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
+
+    if (rBoundingBoxesWithTolerance.size() != size_vec)
+        rBoundingBoxesWithTolerance.resize(size_vec);
+
+    // Apply Tolerances
+    for (IndexType i=0; i<size_vec; i+=2)
+        rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] + Tolerance;
+
+    for (IndexType i=1; i<size_vec; i+=2)
+        rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] - Tolerance;
+}
+
+std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
+{
     // xmax, xmin,  ymax, ymin,  zmax, zmin
-    rLocalBoundingBoxWithTolerance[0] = rLocalBoundingBox[0] + Tolerance;
-    rLocalBoundingBoxWithTolerance[1] = rLocalBoundingBox[1] - Tolerance;
-    rLocalBoundingBoxWithTolerance[2] = rLocalBoundingBox[2] + Tolerance;
-    rLocalBoundingBoxWithTolerance[3] = rLocalBoundingBox[3] - Tolerance;
-    rLocalBoundingBoxWithTolerance[4] = rLocalBoundingBox[4] + Tolerance;
-    rLocalBoundingBoxWithTolerance[5] = rLocalBoundingBox[5] - Tolerance;
+    std::stringstream buffer;
+    buffer << "[" << rBoundingBox[1] << " "    // xmin
+                  << rBoundingBox[3] << " "    // ymin
+                  << rBoundingBox[5] << "]|["  // zmin
+                  << rBoundingBox[0] << " "    // xmax
+                  << rBoundingBox[2] << " "    // ymax
+                  << rBoundingBox[4] << "]";   // zmax
+    return buffer.str();
 }
 
 } // namespace MapperUtilities

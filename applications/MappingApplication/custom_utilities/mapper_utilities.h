@@ -193,9 +193,11 @@ void CheckInterfaceModelParts(const int CommRank);
 
 std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart);
 
-void ComputeBoundingBoxWithTolerance(std::vector<double>& rLocalBoundingBox,
-                                     const double Tolerance,
-                                     std::vector<double>& rLocalBoundingBoxWithTolerance);
+void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
+                                       const double Tolerance,
+                                       std::vector<double>& rBoundingBoxesWithTolerance);
+
+std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 
 }  // namespace MapperUtilities.
 

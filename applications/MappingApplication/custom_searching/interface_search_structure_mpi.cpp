@@ -19,6 +19,7 @@
 
 // Project includes
 #include "interface_search_structure_mpi.h"
+#include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapper_utilities_mpi.h"
 
 namespace Kratos
@@ -48,8 +49,10 @@ namespace Kratos
                                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
         // Apply tolerance to bounding boxes
-        // const auto global_bounding_boxes_with_tolerance = MapperUtilities::ComputeGlobalBoundingBoxesWithTolerance(
-        //     mGlobalBoundingBoxes, mSearchRadius); // TODO implement
+        std::vector<double> bounding_boxes_with_tol;
+        MapperUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
+                                                           mSearchRadius*0.2,
+                                                           bounding_boxes_with_tol);
 
         // Compute Candidate Partitions
 
