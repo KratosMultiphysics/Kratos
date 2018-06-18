@@ -64,7 +64,7 @@ public:
     typedef TYieldSurfaceType YieldSurfaceType;
 
     /// The type of plastic potential 
-    typedef typename YieldSurfaceType::TPlasticPotentialType PlasticPotentialType;
+    typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegratorPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorPlasticity);
@@ -206,8 +206,8 @@ public:
     {
         // BoundedVector<double, TVoigtSize> Deviator = ZeroVector(TVoigtSize); 
         // BoundedVector<double, TVoigtSize> HCapa    = ZeroVector(TVoigtSize);
-        BoundedVector<double, 6> Deviator = ZeroVector(6); 
-        BoundedVector<double, 6> HCapa    = ZeroVector(6);
+        Vector Deviator = ZeroVector(6); 
+		Vector HCapa    = ZeroVector(6);
         double J2, r0, r1, Slope, HardParam;
 
         YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, StrainVector,

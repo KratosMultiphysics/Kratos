@@ -9,8 +9,8 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined (KRATOS_SMALL_STRAIN_ISOTROPIC_PLASTICITY_FACTORY_3D_H_INCLUDED)
-#define  KRATOS_SMALL_STRAIN_ISOTROPIC_PLASTICITY_FACTORY_3D_H_INCLUDED
+#if !defined (KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED)
+#define  KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED
 
 // System includes
 #include <string>
@@ -26,7 +26,7 @@
 #include "structural_mechanics_application_variables.h"
 
 // Integrator
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
@@ -44,8 +44,7 @@
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
-// Constitutive law
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
 
 namespace Kratos
 {
@@ -68,13 +67,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class SmallStrainIsotropicPlasticityFactory3D
+ * @class SmallStrainIsotropicDamageFactory3D
  * @ingroup StructuralMechanicsApplication
  * @brief: dummy class to register, only implements create()
  * @details
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticityFactory3D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicDamageFactory3D
     : public ConstitutiveLaw
 {
 public:
@@ -82,7 +81,7 @@ public:
     ///@{
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicPlasticityFactory3D);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamageFactory3D);
 
     ///@}
     ///@name Life Cycle
@@ -91,7 +90,7 @@ public:
     /**
     * Default constructor.
     */
-    SmallStrainIsotropicPlasticityFactory3D()
+    SmallStrainIsotropicDamageFactory3D()
     {
     }
 
@@ -100,147 +99,204 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        SmallStrainIsotropicPlasticityFactory3D::Pointer p_clone
-            (new SmallStrainIsotropicPlasticityFactory3D(*this));
+        SmallStrainIsotropicDamageFactory3D::Pointer p_clone
+            (new SmallStrainIsotropicDamageFactory3D(*this));
         return p_clone;
     }
 
     /**
     * Copy constructor.
     */
-    SmallStrainIsotropicPlasticityFactory3D (const SmallStrainIsotropicPlasticityFactory3D& rOther)
+    SmallStrainIsotropicDamageFactory3D (const SmallStrainIsotropicDamageFactory3D& rOther)
     : ConstitutiveLaw(rOther)
     {
     }
     /**
     * Destructor.
     */
-    ~SmallStrainIsotropicPlasticityFactory3D() override
+    ~SmallStrainIsotropicDamageFactory3D() override
     {
     }
 
-    ConstitutiveLaw::Pointer Create(Kratos::Parameters& NewParameters) const override
+ConstitutiveLaw::Pointer Create(Kratos::Parameters& NewParameters) const override
     {
         const std::string& yield = NewParameters["yield_surface"].GetString();
         const std::string& potential = NewParameters["plastic_potential"].GetString();
 
-        KRATOS_ERROR_IF(yield == "SimoJu")  << "SimoJu yield surface not available in plasticity "  << yield << std::endl;
-        KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity " << yield << std::endl;
-
-       if (yield == "VonMises") {
+        if (yield == "VonMises") {
             if (potential == "VonMises") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                // return Kratos::make_shared
+                //     <GenericConstitutiveLawIntegratorDamage
+                //         <VonMisesYieldSurface
+                //             <VonMisesPlasticPotential>>>()
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <VonMisesYieldSurface
                             <VonMisesPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "ModifiedMohrCoulomb") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <VonMisesYieldSurface
                             <ModifiedMohrCoulombPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "DruckerPrager") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <VonMisesYieldSurface
                             <DruckerPragerPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "Tresca") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <VonMisesYieldSurface
                             <TrescaPlasticPotential>>>().Clone()
                 ;
             } else {
-                KRATOS_ERROR << "Plastic Potential not defined or wrong: " << potential <<std::endl;
+                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
             }
         } else if (yield == "ModifiedMohrCoulomb") {
             if (potential == "VonMises") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <ModifiedMohrCoulombYieldSurface
                             <VonMisesPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "ModifiedMohrCoulomb") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <ModifiedMohrCoulombYieldSurface
                             <ModifiedMohrCoulombPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "DruckerPrager") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <ModifiedMohrCoulombYieldSurface
                             <DruckerPragerPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "Tresca") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <ModifiedMohrCoulombYieldSurface
                             <TrescaPlasticPotential>>>().Clone()
                 ;
             } else {
-                KRATOS_ERROR << "Plastic Potential not defined or wrong: " << potential <<std::endl;
+                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
             }
         } else if (yield == "Tresca") {
             if (potential == "VonMises") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <TrescaYieldSurface
                             <VonMisesPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "ModifiedMohrCoulomb") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <TrescaYieldSurface
                             <ModifiedMohrCoulombPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "DruckerPrager") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <TrescaYieldSurface
                             <DruckerPragerPlasticPotential>>>().Clone() 
                 ;
             } else if (potential == "Tresca") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <TrescaYieldSurface
                             <TrescaPlasticPotential>>>().Clone()
                 ;
             } else {
-                KRATOS_ERROR << "Plastic Potential not defined or wrong: " << potential <<std::endl;
+                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
             }
         } else if (yield == "DruckerPrager") {
             if (potential == "VonMises") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <DruckerPragerYieldSurface
                             <VonMisesPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "ModifiedMohrCoulomb") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <DruckerPragerYieldSurface
                             <ModifiedMohrCoulombPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "DruckerPrager") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <DruckerPragerYieldSurface
                             <DruckerPragerPlasticPotential>>>().Clone()
                 ;
             } else if (potential == "Tresca") {
-                return GenericSmallStrainIsotropicPlasticity3D 
-                    <GenericConstitutiveLawIntegratorPlasticity
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
                         <DruckerPragerYieldSurface
                             <TrescaPlasticPotential>>>().Clone()
                 ;
             } else {
-                KRATOS_ERROR << "Plastic Potential not defined or wrong: " << potential <<std::endl;
+                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
+            }
+        } else if (yield == "Rankine") {
+            if (potential == "VonMises") {
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
+                        <RankineYieldSurface
+                            <VonMisesPlasticPotential>>>().Clone()
+                ;
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
+                        <RankineYieldSurface
+                            <ModifiedMohrCoulombPlasticPotential>>>().Clone()
+                ;
+            } else if (potential == "DruckerPrager") {
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
+                        <RankineYieldSurface
+                            <DruckerPragerPlasticPotential>>>().Clone()
+                ;
+            } else if (potential == "Tresca") {
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
+                        <RankineYieldSurface
+                            <TrescaPlasticPotential>>>().Clone()
+                ;
+            } else {
+                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
+            }
+        } else if (yield == "SimoJu") {
+                        if (potential == "VonMises") {
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
+                        <SimoJuYieldSurface
+                            <VonMisesPlasticPotential>>>().Clone()
+                ;
+            } else if (potential == "ModifiedMohrCoulomb") {
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
+                        <SimoJuYieldSurface
+                            <ModifiedMohrCoulombPlasticPotential>>>().Clone()
+                ;
+            } else if (potential == "DruckerPrager") {
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
+                        <SimoJuYieldSurface
+                            <DruckerPragerPlasticPotential>>>().Clone()
+                ;
+            } else if (potential == "Tresca") {
+                return GenericSmallStrainIsotropicDamage3D 
+                    <GenericConstitutiveLawIntegratorDamage
+                        <SimoJuYieldSurface
+                            <TrescaPlasticPotential>>>().Clone()
+                ;
+            } else {
+                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
             }
         } else {
-            KRATOS_ERROR << "Yield Surface not defined or wrong: " << yield << std::endl;
+            KRATOS_ERROR << "Yield Surface not defined or wrong" << std::endl;
         }
     }
 

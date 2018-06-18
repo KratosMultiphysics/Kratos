@@ -65,7 +65,7 @@ public:
     typedef TYieldSurfaceType YieldSurfaceType;
 
     /// The type of plastic potential 
-    typedef typename YieldSurfaceType::TPlasticPotentialType PlasticPotentialType;
+    typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegratorDamage
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorDamage);

@@ -90,13 +90,12 @@
 #include "custom_constitutive/linear_j2_plasticity_3d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
-// Acornejo
-//#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+// Custom Constitutive laws
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_factory_3d.h"
+#include "custom_constitutive/viscous_generalized_kelvin_3d.h"
+#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
 
-/* UTILITIES */
-// Cross sections
-// #include "custom_utilities/shell_cross_section.hpp"
-// #include "custom_utilities/multipoint_constraint_data.hpp"
 
 namespace Kratos
 {
@@ -401,6 +400,12 @@ private:
     const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
     const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
     const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
+
+    // Damage and plasticity laws
+    const SmallStrainIsotropicPlasticityFactory3D mSmallStrainIsotropicPlasticityFactory3D;
+    const SmallStrainIsotropicDamageFactory3D mSmallStrainIsotropicDamageFactory3D;
+    const ViscousGeneralizedKelvin3D mViscousGeneralizedKelvin3D;
+    const ViscousGeneralizedMaxwell3D mViscousGeneralizedMaxwell3D;
 	
 	
     ///@}

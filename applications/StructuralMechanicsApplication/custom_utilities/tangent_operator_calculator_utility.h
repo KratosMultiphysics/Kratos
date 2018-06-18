@@ -69,7 +69,7 @@ public:
 
     static void CalculateTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw::Pointer pConstitutiveLaw
+        ConstitutiveLaw* pConstitutiveLaw
     )
     {
         const Vector StrainVectorGP = rValues.GetStrainVector();
@@ -137,7 +137,7 @@ public:
 
     static void IntegratePerturbedStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw::Pointer pConstitutiveLaw
+        ConstitutiveLaw* pConstitutiveLaw
     )
     {
         pConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);

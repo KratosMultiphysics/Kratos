@@ -98,7 +98,7 @@ public:
     )
     {
         double I1, J2, J3, LodeAngle;
-        Vector Deviator = ZeroVector(TVoigtSize);
+        Vector Deviator = ZeroVector(6);
 
         ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
         ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, Deviator, J2);
@@ -122,6 +122,8 @@ public:
         const double Gf = rMaterialProperties[FRACTURE_ENERGY];
         const double E  = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+		const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
+		const double n = sigma_c / sigma_t;
 
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf*n*n*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);

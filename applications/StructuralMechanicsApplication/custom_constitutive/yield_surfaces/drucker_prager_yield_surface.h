@@ -111,7 +111,7 @@ public:
 
         double I1, J2;
         ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
-        Vector Deviator = ZeroVector(TVoigtSize);
+        Vector Deviator = ZeroVector(6);
         ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector,I1, Deviator, J2);
 
         if (I1 == 0.0) { rEqStress = 0; }
