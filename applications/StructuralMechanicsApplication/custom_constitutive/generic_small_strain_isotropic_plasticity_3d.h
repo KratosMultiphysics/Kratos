@@ -27,6 +27,7 @@
 
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
+// Integrator
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
 
 // Yield surfaces
@@ -45,6 +46,7 @@
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
 
 namespace Kratos
 {
@@ -75,7 +77,7 @@ namespace Kratos
  */
 template <class ConstLawIntegratorType>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity3D
-    : public ConstitutiveLaw
+    : public SmallStrainIsotropicPlasticityFactory3D
 {
 public:
     ///@name Type Definitions
@@ -125,8 +127,8 @@ public:
         const std::string& potential = NewParameters["plastic_potential"].GetString();
         ConstitutiveLaw::Pointer constitutive_law;
 
-        KRATOS_ERROR_IF(yield == "SimoJu")  << "SimoJu yield surface not available in plasticity " << yield << std::endl;
-        KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity " << yield << std::endl;
+        KRATOS_ERROR_IF(yield == "SimoJu")  << "SimoJu yield surface not available in plasticity :"  << yield << std::endl;
+        KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity :" << yield << std::endl;
 
         if (yield == "VonMises") {
             if (potential == "VonMises") {
@@ -154,7 +156,7 @@ public:
                             <TrescaPlasticPotential>>>().Clone()
                 ;
             } else {
-                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
+                KRATOS_ERROR << "Plastic Potential not defined or wrong: " << potential <<std::endl;
             }
         } else if (yield == "ModifiedMohrCoulomb") {
             if (potential == "VonMises") {
@@ -182,7 +184,7 @@ public:
                             <TrescaPlasticPotential>>>().Clone()
                 ;
             } else {
-                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
+                KRATOS_ERROR << "Plastic Potential not defined or wrong: " << potential <<std::endl;
             }
         } else if (yield == "Tresca") {
             if (potential == "VonMises") {
@@ -210,7 +212,7 @@ public:
                             <TrescaPlasticPotential>>>().Clone()
                 ;
             } else {
-                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
+                KRATOS_ERROR << "Plastic Potential not defined or wrong: " << potential <<std::endl;
             }
         } else if (yield == "DruckerPrager") {
             if (potential == "VonMises") {
@@ -238,10 +240,10 @@ public:
                             <TrescaPlasticPotential>>>().Clone()
                 ;
             } else {
-                KRATOS_ERROR << "Plastic Potential not defined or wrong" << std::endl;
+                KRATOS_ERROR << "Plastic Potential not defined or wrong: " << potential <<std::endl;
             }
         } else {
-            KRATOS_ERROR << "Yield Surface not defined or wrong" << std::endl;
+            KRATOS_ERROR << "Yield Surface not defined or wrong: " << yield << std::endl;
         }
         return constitutive_law;
     }
