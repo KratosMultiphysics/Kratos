@@ -754,7 +754,9 @@ namespace Kratos {
 
                 int Element_Id_1 = mpParticleCreatorDestructor->FindMaxElementIdInModelPart(fem_model_part);
 
-                Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(submp[PROPERTIES_ID]);
+                Properties::Pointer properties;
+                if (submp.Has(PROPERTIES_ID)) properties = fem_model_part.GetMesh().pGetProperties(submp[PROPERTIES_ID]);
+                else properties = fem_model_part.GetMesh().pGetProperties(fem_model_part.GetMesh(0).PropertiesBegin()->GetId()); // JIG: Backward compatibility, it should be removed in the future
 
                 std::string ElementNameString = "RigidBodyElement3D";
 
@@ -774,7 +776,7 @@ namespace Kratos {
                 std::vector<std::size_t> ElementIds;
                 ElementIds.push_back(element_id);
 
-                if (submp.Has(FREE_BODY_MOTION)) {
+                if (submp.Has(FREE_BODY_MOTION)) { // JIG: Backward compatibility, it should be removed in the future
                     if (submp[FREE_BODY_MOTION]) {
 
                         std::vector<std::vector<Node<3>::Pointer> > thread_vectors_of_node_pointers;
@@ -1055,7 +1057,7 @@ namespace Kratos {
 
             rigid_body_elements_counter++;
 
-            if (submp.Has(FREE_BODY_MOTION)) {
+            if (submp.Has(FREE_BODY_MOTION)) { // JIG: Backward compatibility, it should be removed in the future
                 if (submp[FREE_BODY_MOTION]) {
                     double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
                     if (submp.Has(VELOCITY_START_TIME)) vel_start = submp[VELOCITY_START_TIME];
