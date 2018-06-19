@@ -141,11 +141,14 @@ public:
             TDataType ratio = 0.0;
 
             CalculateReferenceNorm(rDofSet);
+            if (mReferenceDispNorm < tolerance) {
+                KRATOS_WARNING("DisplacementCriteria") << "NaN norm is detected. Setting reference to convergence criteria" << std::endl;
+                mReferenceDispNorm = final_correction_norm/mRatioTolerance;
+            }
 
             if(final_correction_norm < tolerance) {
                 ratio = 0.0;
             } else {
-                KRATOS_ERROR_IF(mReferenceDispNorm < tolerance) << "NaN norm is detected" << std::endl;
                 ratio = final_correction_norm/mReferenceDispNorm;
             }
 
@@ -161,7 +164,6 @@ public:
 
             if ( ratio <= mRatioTolerance  ||  absolute_norm<mAlwaysConvergedNorm )  { //  || (final_correction_norm/x.size())<=1e-7)
                 KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
-
                 return true;
             } else {
                 return false;
