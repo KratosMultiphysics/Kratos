@@ -81,7 +81,7 @@ ConstitutiveLaw::Pointer ConstitutiveLaw::Clone() const
  * Create function (should be implemented by any derived class)
  * @return a pointer to a new instance of this constitutive law
  */
-ConstitutiveLaw::Pointer ConstitutiveLaw::Create(Kratos::Parameters& NewParameters) const
+ConstitutiveLaw::Pointer ConstitutiveLaw::Create(Kratos::Parameters NewParameters) const
 {
     const std::string& name = NewParameters["name"].GetString();
     return KratosComponents<ConstitutiveLaw>::Get(name).Clone();

@@ -118,7 +118,7 @@ public:
     {
     }
 
-ConstitutiveLaw::Pointer Create(Kratos::Parameters& NewParameters) const override
+ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
     {
         const std::string& yield = NewParameters["yield_surface"].GetString();
         const std::string& potential = NewParameters["plastic_potential"].GetString();
