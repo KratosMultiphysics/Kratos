@@ -21,7 +21,7 @@
 #include "includes/node.h"
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
-#include "containers/constraint_equation.h"
+#include "containers/master_slave_relation.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
