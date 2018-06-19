@@ -136,8 +136,8 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             # calculate sensitivity by finite difference
             step_size = 0.00000001
             FDSensitivity = self._compute_finite_difference_drag_sensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./AdjointVMSSensitivity2DTest/one_element_test.dat')
-            # self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
-            # self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
             self._remove_h5_files("MainModelPart")
             self._remove_file("./AdjointVMSSensitivity2DTest/one_element_test.dat")
             self._remove_file("./AdjointVMSSensitivity2DTest/one_element_test.time")
