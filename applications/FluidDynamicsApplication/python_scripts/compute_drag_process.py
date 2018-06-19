@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import python_process
+
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -9,7 +9,7 @@ def Factory(settings, Model):
     return ComputeDragProcess(Model, settings["Parameters"])
 
 
-class ComputeDragProcess(python_process.PythonProcess):
+class ComputeDragProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         """ Auxiliary class to output total flow forces over obstacles in fluid dynamics problems.
         """
