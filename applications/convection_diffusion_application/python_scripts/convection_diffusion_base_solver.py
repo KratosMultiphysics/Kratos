@@ -34,7 +34,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     _create_linear_solver
     _create_builder_and_solver
     _create_convection_diffusion_solution_strategy
-    _create_restart_utility
 
     The convection_diffusion_solution_strategy, builder_and_solver, etc. should alway be retrieved
     using the getter functions get_convection_diffusion_solution_strategy, get_builder_and_solver,
@@ -59,10 +58,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
-            },
-            "restart_settings" : {
-                "load_restart"  : false,
-                "save_restart"  : false
             },
             "computing_model_part_name" : "ThermicModelPart",
             "material_import_settings" :{
@@ -166,13 +161,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
 
-        # Set if the analysis is restarted
-        if self.settings["restart_settings"].Has("load_restart"):
-            load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
-        else:
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-
     def AddVariables(self):
         ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
         '''
@@ -256,7 +244,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return 2
 
     def AddDofs(self):
-        # this can safely be called also for restarts, it is internally checked if the dofs exist already
         settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
         if settings.IsDefinedReactionVariable():
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
@@ -312,14 +299,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
     def GetOutputVariables(self):
         pass
-
-    def SaveRestart(self):
-        # Check could be integrated in the utility
-        # It is here intentionally, this way the utility is only created if it is actually needed!
-        if self.settings["restart_settings"].Has("save_restart"):
-            if (self.settings["restart_settings"]["save_restart"].GetBool() == True):
-                # the check if this step is a restart-output step is done internally
-                self.get_restart_utility().SaveRestart()
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
@@ -395,11 +374,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         if not hasattr(self, '_convection_diffusion_solution_strategy'):
             self._convection_diffusion_solution_strategy = self._create_convection_diffusion_solution_strategy()
         return self._convection_diffusion_solution_strategy
-
-    def get_restart_utility(self):
-        if not hasattr(self, '_restart_utility'):
-            self._restart_utility = self._create_restart_utility()
-        return self._restart_utility
 
     def import_materials(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -583,15 +557,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
 
-    def _get_restart_settings(self):
-        restart_settings = self.settings["restart_settings"].Clone()
-        restart_settings.AddValue("input_filename", self.settings["model_import_settings"]["input_filename"])
-        restart_settings.AddValue("echo_level", self.settings["echo_level"])
-        restart_settings.RemoveValue("load_restart")
-        restart_settings.RemoveValue("save_restart")
-
-        return restart_settings
-
     def _get_element_condition_replace_settings(self):
         # Duplicate model part
         num_nodes_elements = 0
@@ -751,10 +716,3 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                             self.settings["compute_reactions"].GetBool(),
                             self.settings["reform_dofs_at_each_step"].GetBool(),
                             self.settings["move_mesh_flag"].GetBool())
-
-    def _create_restart_utility(self):
-        """Create the restart utility. Has to be overridden for MPI/trilinos-solvers"""
-        import restart_utility
-        rest_utility = restart_utility.RestartUtility(self.main_model_part,
-                                                      self._get_restart_settings())
-        return rest_utility
