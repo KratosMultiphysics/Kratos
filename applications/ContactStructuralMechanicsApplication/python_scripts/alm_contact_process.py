@@ -218,6 +218,7 @@ class ALMContactProcess(KM.Process):
         for key in self.settings["contact_model_part"].keys():
             if (self.settings["contact_model_part"][key].size() > 0):
                 # We initialize the search utility
+                self.contact_search[key].CheckContactModelParts()
                 self.contact_search[key].CreatePointListMortar()
                 self.contact_search[key].InitializeMortarConditions()
 

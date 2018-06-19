@@ -156,6 +156,11 @@ public:
     void ClearMortarConditions();
       
     /**
+     * @brief This method checks that the contact model part is unique (so the model parts contain unique contact pairs)
+     */
+    void CheckContactModelParts();
+
+    /**
      * @brief This function creates a lists  points ready for the Mortar method
      */
     void CreatePointListMortar();
