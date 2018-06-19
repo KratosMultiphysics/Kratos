@@ -92,10 +92,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "max_iteration": 10,
             "linear_solver_settings":{
                 "solver_type": "AMGCL",
-                "smoother_type":"ILU0",
-                "krylov_type":"GMRES",
-                "coarsening_type":"AGGREGATION",
-                "preconditioner_type": "DiagonalPreconditioner",
+                "smoother_type":"ilu0",
+                "krylov_type":"gmres",
+                "coarsening_type":"aggregation",
                 "max_iteration": 5000,
                 "tolerance": 1e-9,
                 "scaling": false
@@ -258,6 +257,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
+        # This will be removed once the Model is fully supported! => It wont e necessary anymore
+        if not self.model.HasModelPart(self.main_model_part.Name):
+            self.model.AddModelPart(self.main_model_part)
+
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
@@ -268,10 +271,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
         
             self._set_and_fill_buffer()
-        
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
 
         if (self.settings["echo_level"].GetInt() > 0):
             self.print_on_rank_zero(self.model)
