@@ -143,7 +143,7 @@ public:
             CalculateReferenceNorm(rDofSet);
             if (mReferenceDispNorm < tolerance) {
                 KRATOS_WARNING("DisplacementCriteria") << "NaN norm is detected. Setting reference to convergence criteria" << std::endl;
-                mReferenceDispNorm = final_correction_norm/mRatioTolerance;
+                mReferenceDispNorm = final_correction_norm;
             }
 
             if(final_correction_norm < tolerance) {
