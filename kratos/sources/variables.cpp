@@ -26,7 +26,7 @@
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
-#include "utilities/master_slave_constraint.h"
+#include "includes/master_slave_constraint.h"
 
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"

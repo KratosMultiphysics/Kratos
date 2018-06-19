@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "add_constraint_to_python.h"
-#include "utilities/master_slave_constraint.h"
+#include "includes/master_slave_constraint.h"
 
 namespace Kratos
 {

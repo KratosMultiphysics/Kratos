@@ -25,7 +25,7 @@
 #include "includes/condition.h"
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
-#include "utilities/master_slave_constraint.h"
+#include "includes/master_slave_constraint.h"
 
 namespace Kratos {
 ///@name Kratos Classes

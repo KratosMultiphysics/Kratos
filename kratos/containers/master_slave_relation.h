@@ -31,16 +31,20 @@ namespace Kratos
 /**
  * @class MasterSlaveRelation
  * @ingroup KratosCore
- * @brief This class stores the information regarding the MasterSlaveRelation equation. Naming convenction is defined like this. (each object of this class will store one equation in the given form
- * @details *   SlaveEquationId = w_1*MasterEquationId_1 + w_2*MasterEquationId_2 + ..... + w_n*MasterEquationId_n
+ * @brief This class stores the information regarding the MasterSlaveRelation equation.
+ *         Naming convenction is defined like this. (each object of this class will store one equation in the given form
  *
- *   each slaveDOF and each of its masterDOF have the following attributes
- *   a. dof ID
- *   b. dof KEY
- *   c. equation ID
+ *   SlaveEquationId = w_1*MasterEquationId_1 + w_2*MasterEquationId_2 + ..... + w_n*MasterEquationId_n
  *
- *   one should be able to access the constraint equation both with (dofID , dofKEY) pair and/or equationID of the slave.
- *   This equation is imposed on the linear system of equations either element wise or on the global system.
+ *   This stores the condensed form of the MasterSlaveConstraint objects into one object. if only one relation for a slave is added as
+ *   MasterSlaveConstraint then there will only be one entry for master for its corresponding MasterSlaveRelation.
+ *   Currently this class is designed to hold only one equation.
+ *
+ *   Future plan is to also make it possible to work with matrices (T) and vectors (for slave and master equation ids and constants)
+ *
+ *
+ *  IMPORTANT : This is not seen by the user. This is a helper data structure which is created in the builder and solver and destroyed there.
+ *
  * @author Aditya Ghantasala
  */
 class MasterSlaveRelation : public IndexedObject

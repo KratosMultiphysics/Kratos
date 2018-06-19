@@ -30,8 +30,32 @@
 #include "includes/process_info.h"
 namespace Kratos
 {
-/** \brief Constraint
-	* A class that implements the interface for different constraints to be applied on a system.
+/** \brief Constraint * @class MasterSlaveRelation
+    * @ingroup KratosCore
+    * @brief
+	* A class that implements the interface for different master-slave constraints to be applied on a system.
+    * This is the part that is seen by the user from the python level. Objects of this class are
+    * first class citizens of the modelpart.
+    *
+    * This class allows to add a master-slave constraint which is of the form
+    *
+    * SlaveDofVector = T * MasterDofVector + ConstantVector. (Processing of this is currently not implemented.)
+    *
+    * or
+    *
+    * SlaveDof = weight * MasterDof + Constant
+    *
+    * This class's object will provide its slave, master details and relation matrix between them.
+    *
+    * One can add two MasterSlaveConstraint objects with same slave but different masters and weights.
+    * Consider user adds : SlaveDof = weight1 * MasterDof1 + Constant1
+    *              and   : SlaveDof = weight2 * MasterDof2 + Constant2
+    *
+    * These are later consolidated in the builder and solver to make
+    *                    : SlaveDof = weight1 * MasterDof1 + weight2 * MasterDof2 + Constant1+Constant2
+    *       and then converted to :
+    *                    : SlaveEqID = weight1 * MasterEqId1 + weight2 * MasterEqId2 + Constant1+Constant2
+    * This unique equation is used later on to modify the equation system.
     */
 class MasterSlaveConstraint :  public IndexedObject, public Flags
 {
