@@ -262,7 +262,7 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	KRATOS_INFO("Element") << " Call base class element Clone " << std::endl; 
+	KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl; 
         Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties()); 
         p_new_elem->SetData(this->GetData());
         p_new_elem->Set(Flags(*this)); 
