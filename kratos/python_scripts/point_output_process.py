@@ -123,6 +123,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
         if my_rank == writing_rank:
             # setting up the output_file
             output_file_name = self.params["output_file_name"].GetString()
+            if not output_file_name.endswith(".dat"):
+                output_file_name += ".dat"
 
             file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
             file_handler_params["output_file_name"].SetString(output_file_name)
