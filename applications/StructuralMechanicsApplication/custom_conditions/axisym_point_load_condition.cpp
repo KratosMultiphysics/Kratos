@@ -46,10 +46,22 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
     
-    Condition::Pointer AxisymPointLoadCondition::Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+    Condition::Pointer AxisymPointLoadCondition::Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const
+    {
+        return Kratos::make_shared<AxisymPointLoadCondition>( NewId, pGeom, pProperties );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    Condition::Pointer AxisymPointLoadCondition::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const
     {
         return Kratos::make_shared<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );

@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -46,14 +46,26 @@ namespace Kratos
 
     //********************************* CREATE *******************************************
     //************************************************************************************
-    
-    Element::Pointer AxisymSmallDisplacement::Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+
+    Element::Pointer AxisymSmallDisplacement::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const
     {
         return Kratos::make_shared<AxisymSmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    Element::Pointer AxisymSmallDisplacement::Create( 
+        IndexType NewId, 
+         GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties 
+        ) const
+    {
+        return Kratos::make_shared<AxisymSmallDisplacement>( NewId, pGeom, pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************
