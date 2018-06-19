@@ -6,9 +6,11 @@
         "problem_name"    : "cylinder_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
-        "start_step"      : 0.0,
-        "nsteps"          : 10,
-        "time_step"       : 0.01
+        "start_time"      : 0.0,
+        "end_time"        : 0.095,
+        "time_step"       : 0.01,
+        "echo_level"      : 0,
+        "parallel_type"   : "OpenMP"
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -60,7 +62,11 @@
         },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
-        "no_skin_parts"                : []
+        "no_skin_parts"                : [],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
@@ -113,7 +119,7 @@
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
-    "list_other_processes" :[{
+    "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
         "python_module" : "single_mesh_temporal_output_process",
         "help"          : "",
