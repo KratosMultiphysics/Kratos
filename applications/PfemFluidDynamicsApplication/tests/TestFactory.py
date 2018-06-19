@@ -25,9 +25,6 @@ class TestFactory(KratosUnittest.TestCase):
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
 
-            if( self.file_parameters == None ):
-                self.file_parameters = self.file_name + "_parameters.json"
-
             # Reading the ProjectParameters
             with open(self.file_parameters,'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())

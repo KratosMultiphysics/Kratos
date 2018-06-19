@@ -5,7 +5,7 @@
         "dimension"       : 2,
         "time_step"       : 0.001,
         "start_time"      : 0.0,
-        "end_time"        : 0.3,
+        "end_time"        : 0.15,
         "echo_level"      : 0,
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
