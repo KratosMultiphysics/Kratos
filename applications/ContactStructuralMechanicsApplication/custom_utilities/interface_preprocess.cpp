@@ -74,7 +74,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
     
     // NOTE: Reorder ID if parallellization
     
-    const IndexType num_nodes = mrMainModelPart.Nodes().size();
+    const IndexType num_nodes = rInterfacePart.Nodes().size();
     PrintNodesAndConditions(num_nodes, cond_counter);
     
     KRATOS_CATCH("");
@@ -130,7 +130,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
     
     // NOTE: Reorder ID if parallellization
     
-    const IndexType num_nodes = mrMainModelPart.Nodes().size();
+    const IndexType num_nodes = rInterfacePart.Nodes().size();
     PrintNodesAndConditions(num_nodes, cond_counter);
     
     KRATOS_CATCH("");

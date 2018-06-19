@@ -6,11 +6,11 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED)
-#define  KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED
+#if !defined (KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED)
+#define  KRATOS_TRUSS_CONSTITUTIVE_LAW_H_INCLUDED
 
 // System includes
 
@@ -21,6 +21,14 @@
 
 namespace Kratos
 {
+
+/** 
+ * @namespace TrussConstitutiveLaw
+ * 
+ * @brief This constitutive law represents a linear elastic 1D law
+ * 
+ * @author Klaus B Sautter
+ */
 
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussConstitutiveLaw : public ConstitutiveLaw
@@ -97,6 +105,23 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
+        array_1d<double, 3 > & rValue) override;
+
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,double& rValue) override;
+        
+    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue) override;
+
+    void CalculateMaterialResponse(
+        const Vector& rStrainVector,const Matrix& rDeformationGradient,
+        Vector& rStressVector,Matrix& rAlgorithmicTangent,
+        const ProcessInfo& rCurrentProcessInfo,const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues,
+        bool CalculateStresses,int CalculateTangent,bool SaveInternalVariables) override;
+
 protected:
 
     ///@name Protected static Member Variables
@@ -123,7 +148,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    double mStressState = 0.0; // The current stress state
     ///@}
     ///@name Private Operators
     ///@{
@@ -146,12 +171,14 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        rSerializer.save("StressState", this->mStressState);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
+        rSerializer.load("StressState", this->mStressState);
     }
 
 

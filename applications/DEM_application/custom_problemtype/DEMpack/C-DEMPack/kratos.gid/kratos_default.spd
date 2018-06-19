@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.35">
+<Kratos_Data version="1.2.36">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -134,7 +134,7 @@
             <Item id="DEM-Thermal" pid="Thermal Analysis" dv="No" class="DEM-Thermal" ivalues="No,Yes" values="No,Yes" help="Changes the default DEM element to Thermal-type elements and shows additional options"/>
             <Item id="DEM-ExportModelDataInformation" pid="Export model data information" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Export Model Data Information"/>
         </Container>
-    </Container>
+        </Container>
         <Container id="DEM-SolutionStrategy" pid="Solution strategy" class="Tab" help="Options and parameters that change the numerical strategy" icon="gear.gif" open="0">
             <Item id="DEM-TimeTranslationalIntegrationScheme" pid="Translational integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Newmark_Beta_Method,Velocity_Verlet" values="Symplectic Euler,Forward Euler,Taylor Scheme,Newmark Beta Method,Velocity Verlet" help="Time Integration Scheme for translational motion"/>
             <Item id="DEM-TimeRotationalIntegrationScheme" pid="Rotational integration scheme" dv="Direct_Integration" ivalues="Direct_Integration,Runge_Kutta,Quaternion_Integration" values="Direct Integration,Runge Kutta,Quaternion Integration" help="Time Integration Scheme for rotational motion"/>
@@ -150,7 +150,7 @@
             <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
             <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency" dv="10" unit="Hz" help="Neighbour search frequency can be modified to speed up the simulation. Set to 1 to search every timestep with increased accuracy and increased computational cost."/>
         </Container>
-    </Container>
+        </Container>
         <Container id="DEM-MaterialTest" pid="Material test" DEM-MaterialTestLab="Yes" class="Tab" help="Material test virtual lab (UCS,Triaxial,Oedometric,Hydrostatic,BTS) " >
             <Item id="DEM-TestType" pid="Test type" dv="UCS" ivalues="UCS,Triaxial,Oedometric,Hydrostatic,BTS,Shear" values="UCS,Triaxial,Oedometric,Hydrostatic,BTS,Shear" class="DEM-TestType" help="Select test type"/>
             <Item id="DEM-LoadVelocity" pid="Load velocity" dv="0.1" help="Applied velocity on the press"/>
@@ -385,7 +385,7 @@
             </Container>
         </Template>
         <Template id="DEM-VelocityIC" help="DEM velocity initial conditions">
-            <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>   
+            <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>
             <Container id="Values" pid="Values" DEM-GeneralActivation="Yes" help="Velocities Values">
                 <Item id="Vx" pid="Velocity X (m/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Velocity X"/>
                 <Item id="Vy" pid="Velocity Y (m/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Velocity Y"/>
@@ -544,10 +544,10 @@
         <Class>,DEM-CohesiveWall,DEM-ShowGraphsVars,DEM-ComputeEnergy,DEM-InletElementType,DEM-RigidWall,DEM-AdvancedMeshingFeatures,DEM-VelocityBCMotionType,DEM-InletImposedMotion,</Class>
         <Class>,DEM-FEMImposedMotion,DEM-FEMWallActivation,DEM-VelocityBCActivation,DEM-InletBCActivation,DEM-ElementActivation,DEM-FEMtoDEMAlgorithm,DEM-RBImposedMotion,</Class>
         <Class>,DEM-GeneralActivation,DEM-FixVelocityX,DEM-FixVelocityY,DEM-FixVelocityZ,DEM-FixAngularVelocityX,DEM-FixAngularVelocityY,DEM-FixAngularVelocityZ,DEM-ConstitutiveLaw,</Class>
-        <Class>,DEM-Cluster,DEM-AdvancedMeshingFeaturesAlgorithmType,DEM-PrintSeaSurface,DEM-RBE-FixVelocityX,DEM-RBE-FixVelocityY,DEM-RBE-FixVelocityZ,</Class> 
+        <Class>,DEM-Cluster,DEM-AdvancedMeshingFeaturesAlgorithmType,DEM-PrintSeaSurface,DEM-RBE-FixVelocityX,DEM-RBE-FixVelocityY,DEM-RBE-FixVelocityZ,</Class>
         <Class>,DEM-RBE-FixAngularVelocityX,DEM-RBE-FixAngularVelocityY,DEM-RBE-FixAngularVelocityZ,</Class>
         <Class>,DEM-RBE-SetInitialVelocityX,DEM-RBE-SetInitialVelocityY,DEM-RBE-SetInitialVelocityZ,</Class>
         <Class>,DEM-RBE-SetInitialAngularVelocityX,DEM-RBE-SetInitialAngularVelocityY,DEM-RBE-SetInitialAngularVelocityZ,</Class>
-        <Class>,DEM-Inlet_measurement_type,DEM-ShipElement</Class> 
+        <Class>,DEM-Inlet_measurement_type,DEM-ShipElement</Class>
     </ClassConfiguration>
 </Kratos_Data>
