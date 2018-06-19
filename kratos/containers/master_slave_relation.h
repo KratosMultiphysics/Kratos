@@ -187,7 +187,7 @@ class MasterSlaveRelation : public IndexedObject
     std::unordered_map<IndexType, double> mMasterDataSet;
 
     double mConstant;
-    double mConstantUpdate;
+    //double mConstantUpdate;
 
 }; // End of ConstraintEquation class
 
