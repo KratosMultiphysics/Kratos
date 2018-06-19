@@ -56,14 +56,14 @@ class MasterSlaveRelation : public IndexedObject
     MasterSlaveRelation() : IndexedObject(0)
     {
         SetConstant(0.0);
-        SetConstantUpdate(0.0);
+        //SetConstantUpdate(0.0);
     }
 
 
     MasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId)
     {
         SetConstant(0.0);
-        SetConstantUpdate(0.0);
+        //SetConstantUpdate(0.0);
     }
 
     void SetConstant(double Constant) { mConstant = Constant; }
