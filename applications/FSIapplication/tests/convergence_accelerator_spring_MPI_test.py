@@ -60,7 +60,7 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
 
         residual = self.space.CreateEmptyVectorPointer(self.epetra_comm)
         self.partitioned_utilities.SetUpInterfaceVector(model_part,residual)
-        self.partitioned_utilities.ComputeInterfaceVectorResidual(model_part,KratosMultiphysics.FORCE,KratosMultiphysics.REACTION,residual.GetReference())
+        self.partitioned_utilities.ComputeInterfaceResidualVector(model_part,KratosMultiphysics.FORCE,KratosMultiphysics.REACTION,residual.GetReference())
         return residual
 
     def ComputeResidualNorm(self,residual):
