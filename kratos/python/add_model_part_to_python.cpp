@@ -871,8 +871,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1)
         .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2)
         .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3)
-
-		;
+        
          .def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
         ;
 }
