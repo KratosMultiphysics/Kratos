@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
+#include "includes/process_info.h"
 
 namespace Kratos
 {
