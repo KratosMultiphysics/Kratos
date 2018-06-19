@@ -23,6 +23,7 @@
 
 namespace Kratos
 {
+
 int PointLocator::FindNode(const Point& rThePoint,
                            const double DistanceThreshold) const
 {
@@ -131,12 +132,13 @@ void PointLocator::CheckResults(const std::string& rObjectName,
     }
 }
 
-
 bool PointLocator::NodeIsCloseEnough(const Node<3>& rNode,
-                                        const Point& rThePoint,
-                                        double DistanceThreshold) const
+                                     const Point& rThePoint,
+                                     double DistanceThreshold) const
 {
-    const double distance = inner_prod(rNode.GetInitialPosition(), rThePoint.Coordinates());
+    const double distance = std::sqrt( std::pow(rNode.X0() - rThePoint.X(),2)
+                                     + std::pow(rNode.Y0() - rThePoint.Y(),2)
+                                     + std::pow(rNode.Z0() - rThePoint.Z(),2) );
 
     return (distance < DistanceThreshold);
 }
