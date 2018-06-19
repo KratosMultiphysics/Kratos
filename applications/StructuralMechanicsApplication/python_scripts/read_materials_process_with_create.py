@@ -109,6 +109,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
         """
         my_string = param["name"].GetString()
+
         cl = self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
         return cl.Create(param)
 
