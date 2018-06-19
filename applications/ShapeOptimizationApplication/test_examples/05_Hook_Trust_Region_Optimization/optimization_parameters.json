@@ -86,9 +86,11 @@
             }
         },
         "optimization_algorithm" : {
-            "name"            : "trust_region",
-            "max_step_length" : 3.0,
-            "max_iterations"  : 10
+            "name"                  : "trust_region",
+            "max_step_length"       : 3.0,
+            "max_iterations"        : 10,
+            "min_share_objective"   : 0.1,
+            "max_share_constraints" : [10]
         },
         "output" : {
             "output_directory"        : "Optimization_Results",

@@ -18,7 +18,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # Additional imports
 from algorithm_base import OptimizationAlgorithm
-from custom_math import NormInf3D, DotProduct, ScalarVectorProduct
+from custom_math import NormInf3D, DotProduct, ScalarVectorProduct, ProjectOntoInterval, Norm2, Zeros
 from custom_variable_utilities import WriteDictionaryDataOnNodalVariable, ReadNodalVariableToList, WriteNodeCoordinatesToList, WriteListToNodalVariable
 from custom_timer import Timer
 import mapper_factory
@@ -29,13 +29,16 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = Parameters("""
         {
-            "name"                        : "trust_region",
-            "max_step_length"             : 1.0,
-            "step_length_tolerance"       : 1e-3,
-            "step_length_decrease_factor" : 2.0,
-            "step_length_increase_factor" : 1.2,
-            "feasibility_frequency"       : 5,
-            "max_iterations"              : 10
+            "name"                          : "trust_region",
+            "max_step_length"               : 1.0,
+            "step_length_tolerance"         : 1e-3,
+            "step_length_decrease_factor"   : 2.0,
+            "step_length_increase_factor"   : 1.2,
+            "min_share_objective"           : 0.1,
+            "max_share_constraints"         : [],
+            "default_max_share_constraints" : 1.0,
+            "feasibility_frequency"         : 5,
+            "max_iterations"                : 10
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -60,13 +63,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.max_step_length = self.algorithm_settings["max_step_length"].GetDouble()
-        self.step_length_tolerance = self.algorithm_settings["step_length_tolerance"].GetDouble()
-        self.step_length_decrease_factor = self.algorithm_settings["step_length_decrease_factor"].GetDouble()
-        self.step_length_increase_factor = self.algorithm_settings["step_length_increase_factor"].GetDouble()
-        self.feasibility_frequency = self.algorithm_settings["feasibility_frequency"].GetDouble()
-        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt()
-
         self.algo_is_in_termination_phase = False
         self.algo_is_in_feasibility_phase = False
         self.next_iteration_to_enforce_feasibility = 9999
@@ -74,6 +70,21 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         self.number_of_design_variables = 3*self.design_surface.NumberOfNodes()
         self.x_init = WriteNodeCoordinatesToList(self.design_surface)
+
+        self.max_share_eqs = []
+        self.max_share_ineqs = []
+        if self.algorithm_settings["max_share_constraints"].size() == 0:
+            for eq in self.equality_constraints:
+                self.max_share_eqs.append(self.algorithm_settings["default_max_share_constraints"].GetDouble())
+            for ineq in self.inequality_constraints:
+                self.max_share_ineqs.append(self.algorithm_settings["default_max_share_constraints"].GetDouble())
+        else:
+            for eq in self.equality_constraints:
+                eq_number = eq["number"]
+                self.max_share_eqs.append(self.algorithm_settings["max_share_constraints"][eq_number].GetDouble())
+            for ineq in self.inequality_constraints:
+                ineq_number = ineq["number"]
+                self.max_share_ineqs.append(self.algorithm_settings["max_share_constraints"][ineq_number].GetDouble())
 
         self.value_history = {}
         self.value_history["val_obj"] = []
@@ -109,17 +120,20 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             if self.__CheckConvergence(val_eqs, val_ineqs):
                 break
 
-            dir_objs, len_eqs, dir_eqs, len_ineqs, dir_ineqs =  self.__ConvertAnalysisResultsToLengthDirectionFormat()
+            # Conversion to length-direction-format to allow for an intuitive definition of step lengths (shares)
+            dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs =  self.__ConvertAnalysisResultsToLengthDirectionFormat()
 
             step_length = self.__ApplyStepLengthRule(val_obj, len_eqs, len_ineqs)
 
+            # Express lengths in step length unit (indicated by the term "bar")
             len_bar_eqs = ScalarVectorProduct(1/step_length, len_eqs)
             len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
 
-            # # convert (stepLength,lInequality,lEquality) into delta_x
-            # deltaXBar,lambdaBarObjective,lambdaBarInequality,lambdaBarEquality,sInit,sDx = stepDirectionRule(eObjective,lBarInequality,eInequality,lBarEquality,eEquality,self)
-            # deltaX = [stepLength*deltaXBar[i] for i in range(self.n)]
-            dx = [0.0 for i in range(self.number_of_design_variables)]
+            # Compute step direction in step length units
+            x_bar = self.__ApplyStepDirectionRule(dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
+
+            # Compute actual step
+            dx = [step_length*x_bar[i] for i in range(self.n)]
 
             self.__UpdateMesh(dx)
 
@@ -155,10 +169,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     def __AnalyzeShape(self):
             self.communicator.initializeCommunication()
 
-            for obj in self.objectives:
-                obj_id = obj["settings"]["identifier"].GetString()
-                self.communicator.requestValueOf(obj_id)
-                self.communicator.requestGradientOf(obj_id)
+            obj_id = self.objectives[0]["settings"]["identifier"].GetString()
+            self.communicator.requestValueOf(obj_id)
+            self.communicator.requestGradientOf(obj_id)
 
             for eq in self.equality_constraints:
                 eq_id = eq["settings"]["identifier"].GetString()
@@ -179,8 +192,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __ProcessAnalysisResults(self):
         # Process objective results
-        obj_value = None
-
         obj = self.objectives[0]
         obj_number = obj["number"]
         obj_id = obj["settings"]["identifier"].GetString()
@@ -248,12 +259,16 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __CheckConvergence(self, val_eqs, val_ineqs):
 
+        step_length_tolerance = self.algorithm_settings["step_length_tolerance"].GetDouble()
+        feasibility_frequency = self.algorithm_settings["feasibility_frequency"].GetDouble()
+        max_iterations = self.algorithm_settings["max_iterations"].GetInt()
+
         # Check termination conditions
-        if self.opt_iteration == self.max_iterations:
+        if self.opt_iteration == max_iterations:
             self.algo_is_in_termination_phase = True
             print("> Algorithm: Begin enforcing feasibility for termination (max number of optimization iterations reached)!")
 
-        if self.opt_iteration > 1 and self.value_history["step_length"][-1] < self.step_length_tolerance:
+        if self.opt_iteration > 1 and self.value_history["step_length"][-1] < step_length_tolerance:
             self.algo_is_in_termination_phase = True
             print("> Algorithm: Begin enforcing feasibility for termination (step length < tolerance)!")
 
@@ -271,7 +286,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         if feasibility_is_enforced and self.algo_is_in_feasibility_phase:
             print("> Algorithm: Feasibility was enforced")
             self.algo_is_in_feasibility_phase = False
-            self.next_iteration_to_enforce_feasibility = iterCounter + self.feasibility_frequency
+            self.next_iteration_to_enforce_feasibility = iterCounter + feasibility_frequency
 
         if feasibility_is_enforced and not self.algo_is_in_feasibility_phase:
             print("> Algorithm: Feasibility is spontaneously enforced.")
@@ -303,19 +318,18 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __ConvertAnalysisResultsToLengthDirectionFormat(self):
         # Convert objective results
-        dir_objs = []
-        for obj in self.objectives:
-            obj_number = obj["number"]
-            obj_id = obj["settings"]["identifier"].GetString()
+        obj = self.objectives[0]
+        obj_number = obj["number"]
+        obj_id = obj["settings"]["identifier"].GetString()
 
-            nodal_variable = KratosGlobals.GetVariable("DF"+str(obj_number+1)+"DX")
-            nodal_variable_mapped = KratosGlobals.GetVariable("DF"+str(obj_number+1)+"DX_MAPPED")
+        nodal_variable = KratosGlobals.GetVariable("DF"+str(obj_number+1)+"DX")
+        nodal_variable_mapped = KratosGlobals.GetVariable("DF"+str(obj_number+1)+"DX_MAPPED")
 
-            obj_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
-            obj_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
+        obj_gradient = ReadNodalVariableToList(self.design_surface, nodal_variable)
+        obj_gradient_mapped = ReadNodalVariableToList(self.design_surface, nodal_variable_mapped)
 
-            dir_obj = self.__ConvertToLengthDirectionFormat(obj_gradient, obj_gradient_mapped)
-            dir_objs.append(dir_obj)
+        dir_obj = self.__ConvertToLengthDirectionFormat(obj_gradient, obj_gradient_mapped)
+        dir_obj = dir_obj
 
         # Convert equality constraint results
         len_eqs = []
@@ -355,7 +369,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             dir_ineqs.append(dir_ineq)
             len_ineqs.append(len_ineq)
 
-        return dir_objs, len_eqs, dir_eqs, len_ineqs, dir_ineqs
+        return dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs
 
     # --------------------------------------------------------------------------
     def __ConvertToLengthDirectionFormat(self, gradient, modified_gradient, value=None):
@@ -372,9 +386,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __ApplyStepLengthRule(self, val_obj, len_eqs, len_ineqs):
 
-        step_length = self.max_step_length
+        max_step_length = self.algorithm_settings["max_step_length"].GetDouble()
+        step_length_decrease_factor = self.algorithm_settings["step_length_decrease_factor"].GetDouble()
+        step_length_increase_factor = self.algorithm_settings["step_length_increase_factor"].GetDouble()
 
-        # dont change step lenght with final feasibility is enforced
+        step_length = max_step_length
+
+        # dont change step lenght if final feasibility is enforced
         if self.algo_is_in_feasibility_phase:
             self.last_itr_with_step_length_update = self.opt_iteration
             return step_length
@@ -387,13 +405,13 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         if self.__IsStepLengthToBeDecreased(val_obj, len_eqs, len_ineqs):
             self.last_itr_with_step_length_update = self.opt_iteration
             print("> Algorithm: Decreasing step length!")
-            return step_length / self.step_length_decrease_factor
+            return step_length / step_length_decrease_factor
 
         # Increase slowly step length if necessary conditions are met
         if self.__IsStepLengthToBeIncreased(val_obj, len_eqs, len_ineqs):
             self.last_itr_with_step_length_update = self.opt_iteration
             print("> Algorithm: Increasing step length")
-            return min(self.max_step_length, step_length * self.step_length_increase_factor)
+            return min(max_step_length, step_length * step_length_increase_factor)
 
         #do nothing
         return step_length
@@ -461,6 +479,91 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 return True
             else:
                 return False
+
+    # --------------------------------------------------------------------------
+    def __ApplyStepDirectionRule(self, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
+
+        # 1. Check if for a minimal objective share and no effective threshold, feasible design may be reached in one step (3d infinity norm of dx < 1)
+        dx, norm_inf_dx = self.__ApplyProjection(-10, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, 10)
+
+        # 2. Identify how the step length shares have to be readjusted according the previos finding
+
+        # # Corrective behavior --> choose only a minimal objective share and adjust the constraint shares within the limits of the trust region (3d infinity norm of dx = 1)
+        # if norm_inf_dx>1:
+        #     func = *NormInf3D(*self.__ApplyProjection(-10, dir_obj, len_share_eqs, dir_eqs, len_share_ineqs, threshold))
+
+        # # Minimizing behavior --> increase the objective share as much as possible within the limits of the trust region (3d infinity norm of dx = 1)
+        # elif norm_inf_dx<1:
+        #     pss
+
+        # # No room for adjustments
+        # else:
+        #     pass
+
+
+
+        return dx,lObjective,lInequality,lEquality,sInit,sDx
+
+    # --------------------------------------------------------------------------
+    def __ApplyProjection(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, threshold):
+        # Filter lengths to consider specified step length shares in case usable and feasible domain is left (lenths are positive)
+        len_obj_filtered, len_eqs_filtered, len_ineqs_filtered = self.__FilterLengths(len_obj, len_eqs, len_ineqs, threshold)
+
+        # Conversion to position direction format for a more intuitive description of halfspaces and hyperplanes and the location of the current design within
+        hpPos,hpDir,hsPos,hsDir = self.__ConvertToPositionDirectionFormat(len_obj_filtered, dir_obj, len_eqs_filtered, dir_eqs, len_ineqs_filtered, dir_ineqs)
+
+        # Perform projection
+        zero_vec = Zeros(self.number_of_design_variables)
+
+        dx = self.__ProjectToHalfSpacesAndHyperPlanes(zero_vec, hpPos, hpDir, hsPos, hsDir)
+        norm_dx = NormInf3D(dx)
+
+        return dx, norm_dx
+
+    # --------------------------------------------------------------------------
+    def __FilterLengths(self, len_obj, len_eqs, len_ineqs, threshold):
+        min_share_obj = self.algorithm_settings["min_share_objective"].GetDouble()
+
+        #apply min/maxShare
+        lo = max(len_obj, min_share_obj)
+        li = [min(l,maxshare) for l,maxshare in zip(len_ineqs,self.max_share_ineqs)]
+        le = [ProjectOntoInterval(l,maxshare) for l,maxshare in zip(len_eqs,self.max_share_eqs)]
+
+        #apply threshold
+        lo = min(lo,threshold)
+        li = [min(l,threshold) for l in li]
+        le = [ProjectOntoInterval(l,max(threshold,0)) for l in le] # if threshold negative, lEquality = 0
+
+        if self.algo_is_in_feasibility_phase: # remove objective contribution
+            lo = -10 # too low value
+
+        return lo,le,li
+
+    # --------------------------------------------------------------------------
+    def __ConvertToPositionDirectionFormat(self, len_obj_filtered, dir_obj, len_eqs_filtered, dir_eqs, len_ineqs_filtered, dir_ineqs):
+        hsPos = []
+        hsDir = []
+        hpPos = []
+        hpDir = []
+
+        hsPos.append(ScalarVectorProduct(len_obj_filtered,dir_obj))
+        hsDir.append(ScalarVectorProduct(1.0/Norm2(dir_obj),dir_obj))
+
+        for i in range(len(len_eqs_filtered)):
+            if Norm2(dir_eqs[i])>0:
+                hpPos.append(ScalarVectorProduct(len_eqs_filtered[i],dir_eqs[i]))
+                hpDir.append(ScalarVectorProduct(1.0/Norm2(dir_eqs[i]),dir_eqs[i]))
+
+        for i in range(len(len_ineqs_filtered)):
+            if Norm2(dir_ineqs[i])>0:
+                hsPos.append(ScalarVectorProduct(len_ineqs_filtered[i],dir_ineqs[i]))
+                hsDir.append(ScalarVectorProduct(1.0/Norm2(dir_ineqs[i]),dir_ineqs[i]))
+
+        return hpPos, hpDir, hsPos, hsDir
+
+    # --------------------------------------------------------------------------
+    def __ProjectToHalfSpacesAndHyperPlanes(xOriginal0, hpPos0, hpDir0, hsPos0, hsDir0):
+
 
     # --------------------------------------------------------------------------
     def __UpdateMesh(self, dx):

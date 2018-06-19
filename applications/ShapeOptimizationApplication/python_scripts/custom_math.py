@@ -34,4 +34,14 @@ def DotProduct(_X,_Y):
 def ScalarVectorProduct(scal, _X):
     return [x*scal for x in _X]
 
+# ------------------------------------------------------------------------------
+def ProjectOntoInterval(value, bound):
+    if bound<0:
+        raise ValueError("bound negative")
+    return min(max(value,-bound),bound)
+
+# ------------------------------------------------------------------------------
+def Zeros(n):
+    return [0.0 for i in range(n)]
+
 # ==============================================================================
