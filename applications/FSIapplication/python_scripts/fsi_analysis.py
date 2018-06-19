@@ -40,6 +40,7 @@ class FSIAnalysis(AnalysisStage):
             from KratosMultiphysics.mpi import mpi
             import KratosMultiphysics.MetisApplication
             import KratosMultiphysics.TrilinosApplication
+            import KratosMultiphysics.MappingApplication #TODO: Import always once we use the serial version of the mapper
             self.is_printing_rank = (mpi.rank == 0)
         else:
             self.is_printing_rank = True
