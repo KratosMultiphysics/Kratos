@@ -1,8 +1,16 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.FluidDynamicsApplication as KFluid
+import KratosMultiphysics.HDF5Application as KHdf5
+import KratosMultiphysics.AdjointFluidApplication as KAdjoint
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+except ImportError:
+    pass
 
 from analysis_stage import AnalysisStage
+from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 class AdjointFluidAnalysis(AnalysisStage):
     '''Main script for adjoint sensitivity optimization in fluid dynamics simulations.'''
@@ -98,7 +106,7 @@ class AdjointFluidAnalysis(AnalysisStage):
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                 self.project_parameters["output_configuration"])
 
-        return output            
+        return output 
 
     def RunSolutionLoop(self):
         """Note that the adjoint problem is solved in reverse time
