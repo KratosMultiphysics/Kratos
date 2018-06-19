@@ -56,7 +56,7 @@ class AdjointFluidAnalysis(AnalysisStage):
         super(self.__class__, self).Initialize()
 
         # dummy time step to correctly calculate DELTA_TIME
-        self._solver.main_model_part.CloneTimeStep(self.time)
+        self._GetSolver().main_model_part.CloneTimeStep(self.time)
 
     def _CreateSolver(self):
         import python_solvers_wrapper_adjoint_fluid
@@ -112,10 +112,10 @@ class AdjointFluidAnalysis(AnalysisStage):
         """Note that the adjoint problem is solved in reverse time
         """
         for step in range(self.number_of_steps):
-            self.time = self._solver.AdvanceInTime(self.time)
+            self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            self._solver.Predict()
-            self._solver.SolveSolutionStep()
+            self._GetSolver().Predict()
+            self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 

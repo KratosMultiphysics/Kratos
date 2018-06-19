@@ -130,8 +130,8 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             test = AdjointFluidAnalysis(Model(), self._read_parameters('AdjointVMSSensitivity2DTest/one_element_test_adjoint'))
             test.Run()
             Sensitivity = [[]]
-            Sensitivity[0].append(test._solver.main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
-            Sensitivity[0].append(test._solver.main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
@@ -151,8 +151,8 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             test = self._create_adjoint_test('AdjointVMSSensitivity2DTest/cylinder_test_adjoint')
             test.Run()
             Sensitivity = [[]]
-            Sensitivity[0].append(test._solver.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
-            Sensitivity[0].append(test._solver.main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
