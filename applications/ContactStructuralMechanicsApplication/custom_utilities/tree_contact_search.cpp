@@ -940,7 +940,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::AddPotentialPairing(
             GeometryType& geom_master = p_cond_master->GetGeometry();
 
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                if (geom_slave[i_node].Is(ACTIVE) == false) {
+                if (geom_slave[i_node].IsNot(ACTIVE)) {
                     Point projected_point;
                     double aux_distance = 0.0;
                     const array_1d<double, 3> normal = geom_slave[i_node].GetValue(NORMAL);
@@ -1170,10 +1170,11 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeActiveInactiveNodes()
                 const double nodal_area = it_node->Has(NODAL_AREA) ? it_node->GetValue(NODAL_AREA) : 1.0;
                 auxiliar_check = (it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area < auxiliar_length) ? true : false;
             }
-            if ((it_node->GetValue(NORMAL_GAP) < auxiliar_length) || auxiliar_check)
+            if ((it_node->GetValue(NORMAL_GAP) < auxiliar_length) || auxiliar_check) {
                 SetActiveNode(it_node, a, b);
-            else
+            } else {
                 SetInactiveNode(it_node);
+            }
         }
     }
 }
@@ -1224,6 +1225,9 @@ inline void TreeContactSearch<TDim, TNumNodes>::SetActiveNode(
                 break;
         }
     }
+
+    // If finally is active we set as visited
+    if (ItNode->Is(ACTIVE)) ItNode->Set(VISITED);
 }
 
 /***********************************************************************************/
@@ -1232,26 +1236,29 @@ inline void TreeContactSearch<TDim, TNumNodes>::SetActiveNode(
 template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::SetInactiveNode(NodesArrayType::iterator ItNode)
 {
-    // Auxiliar zero array
-    const array_1d<double, 3> zero_array(3, 0.0);
+    // If the node has been already actived we do not inactivate
+    if (ItNode->Is(VISITED)) {
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
 
-    if (ItNode->Is(ACTIVE) ) {
-        ItNode->Set(ACTIVE, false);
-        switch(mTypeSolution) {
-            case TypeSolution::VectorLagrangeMultiplier :
-                noalias(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = zero_array;
-                break;
-            case TypeSolution::ScalarLagrangeMultiplier :
-                ItNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
-                break;
-            case TypeSolution::NormalContactStress :
-                ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
-                break;
+        if (ItNode->Is(ACTIVE) ) {
+            ItNode->Set(ACTIVE, false);
+            switch(mTypeSolution) {
+                case TypeSolution::VectorLagrangeMultiplier :
+                    noalias(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = zero_array;
+                    break;
+                case TypeSolution::ScalarLagrangeMultiplier :
+                    ItNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+                    break;
+                case TypeSolution::NormalContactStress :
+                    ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
+                    break;
+            }
         }
-    }
 
-    // We set the gap to zero (in order to have something "visible" to post process)
-    ItNode->SetValue(NORMAL_GAP, 0.0);
+        // We set the gap to zero (in order to have something "visible" to post process)
+        ItNode->SetValue(NORMAL_GAP, 0.0);
+    }
 }
 
 /***********************************************************************************/

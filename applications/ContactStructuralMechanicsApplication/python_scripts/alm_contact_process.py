@@ -252,6 +252,9 @@ class ALMContactProcess(KM.Process):
                         self.contact_search[key].UpdateMortarConditions()
                         #self.contact_search[key].CheckMortarConditions()
 
+                # We unset the flag VISITED (used in the nodes to not deactivate it)
+                KM.VariableUtils().SetFlag(KM.VISITED, False, self.contact_model_part.Nodes)
+
                 # Debug
                 if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
                     self._debug_output(self.global_step, "")
