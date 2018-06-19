@@ -631,9 +631,9 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return conv_params
 
     def _create_convergence_criterion(self):
-        import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
-        return convergence_criterion.convection_diffusion_convergence_criterion
+        import base_convergence_criteria_factory as convergence_criteria_factory
+        convergence_criterion = convergence_criteria_factory.ConvergenceCriteriaFactory(self._get_convergence_criterion_settings())
+        return convergence_criterion.convergence_criterion
 
     def _create_linear_solver(self):
         import linear_solver_factory
