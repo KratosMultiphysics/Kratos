@@ -254,7 +254,7 @@ void TreeContactSearch<TDim, TNumNodes>::ClearMortarConditions()
 template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
 {
-        // Iterate in the conditions
+    // Iterate in the conditions
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ConditionsArrayType& conditions_array = r_sub_contact_model_part.Conditions();
@@ -284,9 +284,8 @@ void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
                 Condition::Pointer p_new_cond = it_cond->Clone(new_conditions_id, it_cond->GetGeometry());
                 auxiliar_conditions_vector_buffer.push_back(p_new_cond);
 
-                p_new_cond->Data() = it_cond->Data();
+                p_new_cond->Data() = it_cond->Data(); // TODO: Remove when fixed on the core
                 p_new_cond->Set(Flags(*it_cond));
-                p_new_cond->Set(TO_ERASE, false);
                 p_new_cond->Set(MARKER, true);
             } else {
                 // Setting the flag to mark
@@ -306,6 +305,9 @@ void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
     ConditionsArrayType aux_conds;
     aux_conds.GetContainer() = auxiliar_conditions_vector;
     r_sub_contact_model_part.AddConditions(aux_conds.begin(), aux_conds.end());
+
+    // Unsetting TO_ERASE
+    VariableUtils().SetFlag(TO_ERASE, false, r_contact_model_part.Conditions());
 }
 
 /***********************************************************************************/
@@ -628,8 +630,9 @@ void TreeContactSearch<TDim, TNumNodes>::ClearScalarMortarConditions(NodesArrayT
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(NodesArray.size()); ++i) {
         auto it_node = NodesArray.begin() + i;
-        if (it_node->Is(ACTIVE) == false)
+        if (it_node->IsNot(ACTIVE)) {
             it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+        }
     }
 }
 
@@ -639,11 +642,12 @@ void TreeContactSearch<TDim, TNumNodes>::ClearScalarMortarConditions(NodesArrayT
 template<std::size_t TDim, std::size_t TNumNodes>
 void TreeContactSearch<TDim, TNumNodes>::ClearComponentsMortarConditions(NodesArrayType& NodesArray)
 {
+    const array_1d<double, 3> zero_array(3, 0.0);
+
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(NodesArray.size()); ++i) {
         auto it_node = NodesArray.begin() + i;
-        if (it_node->Is(ACTIVE) == false) {
-            const array_1d<double, 3> zero_array(3, 0.0);
+        if (it_node->IsNot(ACTIVE)) {
             noalias((NodesArray.begin() + i)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = zero_array;
         }
     }
@@ -658,8 +662,9 @@ void TreeContactSearch<TDim, TNumNodes>::ClearALMFrictionlessMortarConditions(No
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(NodesArray.size()); ++i) {
         auto it_node = NodesArray.begin() + i;
-        if (it_node->Is(ACTIVE) == false)
+        if (it_node->IsNot(ACTIVE)) {
             (NodesArray.begin() + i)->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
+        }
     }
 }
 
