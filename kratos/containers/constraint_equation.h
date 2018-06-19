@@ -53,14 +53,14 @@ class MasterSlaveRelation : public IndexedObject
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveRelation);
 
     // empty constructor and methods to add master and slave independently.
-    MasterSlaveRelation() : IndexedObject(0), mSlaveEquationId(0)
+    MasterSlaveRelation() : IndexedObject(0)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
     }
 
 
-    MasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId), mSlaveEquationId(rSlaveEquationId)
+    MasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
@@ -70,7 +70,7 @@ class MasterSlaveRelation : public IndexedObject
     void SetConstantUpdate(double ConstantUpdate) { mConstantUpdate = ConstantUpdate; }
     double Constant() const { return mConstant; }
     double ConstantUpdate() const { return mConstantUpdate; }
-    IndexType SlaveEquationId() const { return mSlaveEquationId; }
+    IndexType SlaveEquationId() const { return this->Id(); }
 
 
 
@@ -186,7 +186,6 @@ class MasterSlaveRelation : public IndexedObject
 
     std::unordered_map<IndexType, double> mMasterDataSet;
 
-    IndexType mSlaveEquationId;
     double mConstant;
     double mConstantUpdate;
 
