@@ -91,19 +91,19 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
         if entity_type == "node":
             tol = 1e-12
-            found_id = KratosMultiphysics.PointLocator(self.model_part).FindNode(point, tol)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindNode(point, tol)
             if found_id > -1:
                 self.entity.append(self.model_part.Nodes[found_id]) # note that this is a find!
                 self.area_coordinates.append("dummy") # needed for looping later
         elif entity_type == "element":
             self.sf_values = KratosMultiphysics.Vector()
-            found_id = KratosMultiphysics.PointLocator(self.model_part).FindElement(point, self.sf_values)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindElement(point, self.sf_values)
             if found_id > -1:
                 self.entity.append(self.model_part.Elements[found_id]) # note that this is a find!
                 self.area_coordinates.append(self.sf_values)
         elif entity_type == "condition":
             self.sf_values = KratosMultiphysics.Vector()
-            found_id = KratosMultiphysics.PointLocator(self.model_part).FindCondition(point, self.sf_values)
+            found_id = KratosMultiphysics.BruteForcePointLocator(self.model_part).FindCondition(point, self.sf_values)
             if found_id > -1:
                 self.entity.append(self.model_part.Conditions[found_id]) # note that this is a find!
                 self.area_coordinates.append(self.sf_values)

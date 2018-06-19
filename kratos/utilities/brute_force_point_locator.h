@@ -10,8 +10,8 @@
 //  Main authors:    Philipp Bucher (based on work of Pablo Becker)
 //
 
-#if !defined(KRATOS_POINT_LOCATOR_H_INCLUDED)
-#define  KRATOS_POINT_LOCATOR_H_INCLUDED
+#if !defined(KRATOS_BRUTE_FORCE_POINT_LOCATOR_H_INCLUDED)
+#define  KRATOS_BRUTE_FORCE_POINT_LOCATOR_H_INCLUDED
 
 
 // System includes
@@ -50,31 +50,31 @@ namespace Kratos
   ///@{
 
 /**
- * @class PointLocator
+ * @class BruteForcePointLocator
  * @ingroup KratosCore
  * @brief Utility class to find an entity of a mesh based on a location
  * @details Based on the location of a point, the corresponding entity
  * (node, element or condition) in a mesh is found and it's id is returned
  * @author Philipp Bucher
  */
-class KRATOS_API(KRATOS_CORE) PointLocator
+class KRATOS_API(KRATOS_CORE) BruteForcePointLocator
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PointLocator
-    KRATOS_CLASS_POINTER_DEFINITION(PointLocator);
+    /// Pointer definition of BruteForcePointLocator
+    KRATOS_CLASS_POINTER_DEFINITION(BruteForcePointLocator);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLocator(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
+    BruteForcePointLocator(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
 
     /// Destructor.
-    virtual ~PointLocator() {}
+    virtual ~BruteForcePointLocator() {}
 
 
     ///@}
@@ -128,12 +128,12 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "PointLocator" ;
+        buffer << "BruteForcePointLocator" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "PointLocator";}
+    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "BruteForcePointLocator";}
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
@@ -253,7 +253,7 @@ private:
 
     ///@}
 
-}; // Class PointLocator
+}; // Class BruteForcePointLocator
 
 ///@}
 
@@ -267,7 +267,7 @@ private:
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const PointLocator& rThis)
+                const BruteForcePointLocator& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -281,4 +281,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_LOCATOR_H_INCLUDED  defined
+#endif // KRATOS_BRUTE_FORCE_POINT_LOCATOR_H_INCLUDED  defined

@@ -31,7 +31,7 @@ namespace Kratos {
             const int elem_id_to_be_found = 43;
 			model_part.CreateNewElement("Element2D3N", elem_id_to_be_found, {1, 2, 3}, p_properties);
 
-            PointLocator point_locator(model_part);
+            BruteForcePointLocator point_locator(model_part);
 
             Point the_point(0.1, 0.25, 0.0);
 
@@ -61,7 +61,7 @@ namespace Kratos {
             const int elem_id_to_be_found = 181;
 			model_part.CreateNewElement("Element2D4N", elem_id_to_be_found, {1, 2, 3, 4}, p_properties);
 
-            PointLocator point_locator(model_part);
+            BruteForcePointLocator point_locator(model_part);
 
             Point the_point(0.13, 0.52, 0.0);
 
@@ -92,7 +92,7 @@ namespace Kratos {
             const int elem_id_to_be_found = 23;
 			model_part.CreateNewElement("Element3D4N", elem_id_to_be_found, {1, 2, 3, 4}, p_properties);
 
-            PointLocator point_locator(model_part);
+            BruteForcePointLocator point_locator(model_part);
 
             Point the_point(0.25, 0.12, 0.32);
 
@@ -127,7 +127,7 @@ namespace Kratos {
             const int elem_id_to_be_found = 69;
 			model_part.CreateNewElement("Element3D8N", elem_id_to_be_found, {1,2,3,4,5,6,7,8}, p_properties);
 
-            PointLocator point_locator(model_part);
+            BruteForcePointLocator point_locator(model_part);
 
             Point the_point(0.28, 0.32, 0.72);
 
@@ -162,7 +162,7 @@ namespace Kratos {
 			model_part.CreateNewNode(node_id_to_be_found, coord_x, coord_y, coord_z);
 			model_part.CreateNewNode(5123, coord_x, coord_y, coord_z+0.001);
 
-            PointLocator point_locator(model_part);
+            BruteForcePointLocator point_locator(model_part);
 
             Point the_point(coord_x, coord_y, coord_z);
 
@@ -185,7 +185,7 @@ namespace Kratos {
             const int cond_id_to_be_found = 86;
 			model_part.CreateNewCondition("SurfaceCondition3D4N", cond_id_to_be_found, {1, 2, 3, 4}, p_properties);
 
-            PointLocator point_locator(model_part);
+            BruteForcePointLocator point_locator(model_part);
 
             Point the_point(0.13, 0.52, 0.0);
 

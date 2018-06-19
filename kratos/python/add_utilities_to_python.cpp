@@ -27,7 +27,7 @@
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/point_locator.h"
+#include "utilities/brute_force_point_locator.h"
 #include "utilities/deflation_utils.h"
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
@@ -260,11 +260,11 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
     ;
 
-    class_<PointLocator> (m, "PointLocator")
+    class_<BruteForcePointLocator> (m, "BruteForcePointLocator")
     .def(init<ModelPart& >())
-    .def("FindNode", &PointLocator::FindNode)
-    .def("FindElement", &PointLocator::FindElement)
-    .def("FindCondition", &PointLocator::FindCondition)
+    .def("FindNode", &BruteForcePointLocator::FindNode)
+    .def("FindElement", &BruteForcePointLocator::FindElement)
+    .def("FindCondition", &BruteForcePointLocator::FindCondition)
     ;
 
     class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")

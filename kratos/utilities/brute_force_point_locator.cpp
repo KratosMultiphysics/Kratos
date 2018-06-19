@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-int PointLocator::FindNode(const Point& rThePoint,
+int BruteForcePointLocator::FindNode(const Point& rThePoint,
                            const double DistanceThreshold) const
 {
     int found_node_id = -1; // if no node is found this will be returned
@@ -49,7 +49,7 @@ int PointLocator::FindNode(const Point& rThePoint,
     return found_node_id;
 }
 
-int PointLocator::FindElement(const Point& rThePoint,
+int BruteForcePointLocator::FindElement(const Point& rThePoint,
                               Vector& rShapeFunctionValues) const
 {
     int found_element_id = -1; // if no element is found this will be returned
@@ -60,7 +60,7 @@ int PointLocator::FindElement(const Point& rThePoint,
     return found_element_id;
 }
 
-int PointLocator::FindCondition(const Point& rThePoint,
+int BruteForcePointLocator::FindCondition(const Point& rThePoint,
                                 Vector& rShapeFunctionValues) const
 {
     int found_condition_id = -1; // if no condition is found this will be returned
@@ -72,7 +72,7 @@ int PointLocator::FindCondition(const Point& rThePoint,
 }
 
 template<typename TObjectType>
-void PointLocator::FindObject(const TObjectType& rObjects,
+void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
                               const std::string& rObjectName,
                               const Point& rThePoint,
                               int& rObjectId,
@@ -110,7 +110,7 @@ void PointLocator::FindObject(const TObjectType& rObjects,
     CheckResults(rObjectName, rThePoint, local_objects_found);
 }
 
-void PointLocator::CheckResults(const std::string& rObjectName,
+void BruteForcePointLocator::CheckResults(const std::string& rObjectName,
                                 const Point& rThePoint,
                                 int LocalObjectsFound) const
 {
@@ -132,7 +132,7 @@ void PointLocator::CheckResults(const std::string& rObjectName,
     }
 }
 
-bool PointLocator::NodeIsCloseEnough(const Node<3>& rNode,
+bool BruteForcePointLocator::NodeIsCloseEnough(const Node<3>& rNode,
                                      const Point& rThePoint,
                                      double DistanceThreshold) const
 {
