@@ -27,7 +27,7 @@
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/variable_data.h"
-
+#include "includes/process_info.h"
 namespace Kratos
 {
 /** \brief Constraint
@@ -296,12 +296,46 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     }
 
+
+    /**
+     * Check if the Data exists with Has(..) methods:
+     */
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    /**
+     * Set Data with SetValue and the Variable to set:
+     */
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        mData.SetValue(rThisVariable, rValue);
+    }
+
+    /**
+     * Get Data with GetValue and the Variable to get:
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+
   private:
     ///@}
     DofPointerVectorType mSlaveDofsVector;
     DofPointerVectorType mMasterDofsVector;
     MatrixType mRelationMatrix;
     VectorType mConstantVector;
+
+    /**
+     * pointer to the data related to this element
+     */
+    DataValueContainer mData;
     ///@}
 };
 
