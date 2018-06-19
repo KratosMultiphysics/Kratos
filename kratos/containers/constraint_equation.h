@@ -97,9 +97,9 @@ class MasterSlaveRelation : public IndexedObject
 
         rSlaveEquationIds[0] = this->SlaveEquationId();
 
-        auto &master_it = mMasterDataSet.Begin();
+        auto master_it = mMasterDataSet.begin();
         for (IndexType i=0; i<this->GetNumberOfMasters(); i++)
-            rMasterEquationIds[i] = (++master_it).first;
+            rMasterEquationIds[i] = (*(++master_it)).first;
     }
 
     /**
@@ -119,14 +119,16 @@ class MasterSlaveRelation : public IndexedObject
     	rTransformationMatrix.resize(1, this->GetNumberOfMasters(), false);
       }
 
-      if (rConstantVector.size1() != 0)
+      if (rConstantVector.size() != 0)
       {
     	rConstantVector.resize(1, false);
       }
 
-        auto &master_it = mMasterDataSet.Begin();
+        auto master_it = mMasterDataSet.begin();
         for (IndexType i=0; i<this->GetNumberOfMasters(); i++)
-            rMasterEquationIds[0,i] = (++master_it).second;
+            rTransformationMatrix(0,i) = (*(++master_it)).second;
+
+      rConstantVector(0) = Constant();
     }
 
     void PrintInfo(std::ostream& rOutput) const override
@@ -149,6 +151,20 @@ class MasterSlaveRelation : public IndexedObject
         mMasterDataSet.clear();
     }
 
+    // This is only for serializer. Not to be used outside
+    void AddMaster(std::size_t MasterEquationId, double Weight)
+    {
+        auto res = mMasterDataSet.find(MasterEquationId);
+        if (res != mMasterDataSet.end())
+        {
+            (*res).second += Weight;
+        }
+        else
+        {
+            mMasterDataSet[MasterEquationId] = Weight;
+        }
+    }
+
   private:
     ///@name Serialization
     ///@{
@@ -162,20 +178,6 @@ class MasterSlaveRelation : public IndexedObject
     virtual void load(Serializer &rSerializer) override
     {
 
-    }
-
-    // This is only for serializer. Not to be used outside
-    void AddMaster(std::size_t MasterEquationId, double Weight)
-    {
-        auto res = mMasterDataSet.find(MasterEquationId);
-        if (res != mMasterDataSet.end())
-        {
-            (*res).second += Weight;
-        }
-        else
-        {
-            mMasterDataSet[MasterEquationId] = Weight;
-        }
     }
 
     ///@}
