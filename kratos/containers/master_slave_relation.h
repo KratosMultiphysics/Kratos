@@ -67,9 +67,9 @@ class MasterSlaveRelation : public IndexedObject
     }
 
     void SetConstant(double Constant) { mConstant = Constant; }
-    void SetConstantUpdate(double ConstantUpdate) { mConstantUpdate = ConstantUpdate; }
+    //void SetConstantUpdate(double ConstantUpdate) { mConstantUpdate = ConstantUpdate; }
     double Constant() const { return mConstant; }
-    double ConstantUpdate() const { return mConstantUpdate; }
+    //double ConstantUpdate() const { return mConstantUpdate; }
     IndexType SlaveEquationId() const { return this->Id(); }
 
 
