@@ -29,8 +29,6 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(ExampleTest, KratosConvectionDiffusionFastSuite) 
         {
-            constexpr double tolerance = 1e-6;
-            
             // Check
             KRATOS_CHECK(true);
         }
