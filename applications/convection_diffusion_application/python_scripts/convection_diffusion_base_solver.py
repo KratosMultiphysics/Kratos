@@ -273,7 +273,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
 
-        print(self.model)
+        if (self.settings["echo_level"].GetInt() > 0):
+            self.print_on_rank_zero(self.model)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
 
@@ -379,11 +380,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
             import read_materials_process
-            # Create a dictionary of model parts.
-            Model = KratosMultiphysics.Model()
-            Model.AddModelPart(self.main_model_part)
             # Add constitutive laws and material properties from json file to model parts.
-            read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
+            read_materials_process.ReadMaterialsProcess(self.model, self.settings["material_import_settings"])
             
             # We set the properties that are nodal
             self._assign_nodally_properties()
