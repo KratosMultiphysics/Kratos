@@ -280,7 +280,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         : mrSkinModelPart(rThisModelPartStruc), mrFluidModelPart(rThisModelPartFluid)
     {
         //this->pDistanceCalculator = typename ParallelDistanceCalculator<2>::Pointer(new ParallelDistanceCalculator<2>());
-        dist_limit = 1e-6;
+        dist_limit = 1e-10;
     }
 
     /// Destructor.
@@ -310,7 +310,6 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
         //GenerateFluidModelPartbasedOnBoundingBox();
         GenerateQuadtree();
-
 
         DistanceFluidStructure();
         //std::size_t max_level = 100;
@@ -477,6 +476,18 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         // --> now synchronize these values by finding the minimal distance and assign to each node a minimal nodal distance
         AssignMinimalNodalDistance(); // revisit -nav
 
+        ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin();
+        ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_end();
+
+        for (ModelPart::ElementIterator it = it_begin; it != it_end; ++it)
+        {
+            if ((it->Id() == 56873) || (it->Id() == 56875) || (it->Id() == 56869) || (it->Id() == 56866))
+            {
+
+                KRATOS_WATCH(it->GetValue(ELEMENTAL_DISTANCES));
+            }
+        }
+
         /* ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();*/
 
         // reset the node distance to 1.0 which is the maximum distance in our normalized space.
@@ -512,7 +523,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         // also initialize the embedded velocity of the fluid Element
         int ElementsSize = fluid_Elements.size();
 
-//#pragma omp parallel for firstprivate(ElementsSize) no omp because it allocates the memory!
+        //#pragma omp parallel for firstprivate(ElementsSize) no omp because it allocates the memory!
         for (int i = 0; i < ElementsSize; i++)
         {
             fluid_Elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
@@ -1478,12 +1489,11 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             {
                 low[i] = i_node->Coordinates()[i] < low[i] ? i_node->Coordinates()[i] : low[i];
                 high[i] = i_node->Coordinates()[i] > high[i] ? i_node->Coordinates()[i] : high[i];
-
             }
         }
 
-   /*      ///rishtih
-        low[0] -=  0.3*(high[0]-low[0] );
+        ///rishtih
+        /*      low[0] -=  0.3*(high[0]-low[0] );
         low[1] -=  0.3*(high[1]-low[1] );
 
         high[0] +=  0.3*(high[0]-low[0] );
@@ -1625,18 +1635,18 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         Timer::Start("Calculate Distances2");
         ModelPart::NodesContainerType::ContainerType &nodes = mrFluidModelPart.NodesArray();
         int nodes_size = nodes.size();
-//         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
-//#pragma omp parallel for firstprivate(nodes_size)
-//         for(int i = 0 ; i < nodes_size ; i++)
-//             nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
+        //         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
+        //#pragma omp parallel for firstprivate(nodes_size)
+        //         for(int i = 0 ; i < nodes_size ; i++)
+        //             nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
 
-//std::vector<CellType*> leaves;
+        //std::vector<CellType*> leaves;
 
-//mpQuadtree->GetAllLeavesVector(leaves);
-//int leaves_size = leaves.size();
+        //mpQuadtree->GetAllLeavesVector(leaves);
+        //int leaves_size = leaves.size();
 
-//         for(int i = 0 ; i < leaves_size ; i++)
-//             CalculateNotEmptyLeavesDistance(leaves[i]);
+        //         for(int i = 0 ; i < leaves_size ; i++)
+        //             CalculateNotEmptyLeavesDistance(leaves[i]);
 
 #pragma omp parallel for firstprivate(nodes_size)
         for (int i = 0; i < nodes_size; i++)
@@ -1961,7 +1971,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         //#endif
         double distance = (fabs(distances[0]) > fabs(distances[1])) ? distances[1] : distances[0];
 
-        if (distances[0]*distances[1] < 0)
+        if (distances[0] * distances[1] < 0)
             distance = fabs(distance);
         //distance = (fabs(distance) > fabs(distances[2])) ? distances[2] : distance;
 

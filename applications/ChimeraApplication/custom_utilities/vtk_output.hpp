@@ -310,7 +310,7 @@ class VtkOutput
         std::string outputFileName = GetOutputFileName(model_part);
         std::ofstream outputFile;
         outputFile.open(outputFileName, std::ios::out | std::ios::app);
-        std::vector<std::string> elementResults = {}; // list of element results
+        std::vector<std::string> elementResults = {"ELEMENTAL_DISTANCES"}; // list of element results
         // write cells header
         if (model_part.NumberOfElements() > 0)
         {
@@ -349,6 +349,7 @@ class VtkOutput
                 else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(elementResultName))
                 {
                     dataCharacteristic = 2;
+                    std::cout<<"RISHITH "<<elementResultName<<std::endl;
                     outputFile << "VECTORS " << elementResultName << " float"
                                << "\n";
                 }
@@ -374,7 +375,7 @@ class VtkOutput
                     }
                 }
             }
-            /*
+
         outputFile << "SCALARS SPLIT_ELEMENT float 1\nLOOKUP_TABLE default\n";
 
         // write element results for active
@@ -384,7 +385,9 @@ class VtkOutput
             bool is_split = elem_i->GetValue(SPLIT_ELEMENT);
             outputFile << is_split << "\n";
         }
-*/
+
+
+
             outputFile.close();
         }
     }
@@ -700,7 +703,7 @@ class VtkOutput
                     }
                 }
             }
-            /*
+
         outputFile << "SCALARS SPLIT_ELEMENT float \nLOOKUP_TABLE default\n";
 
         // write element results for active
@@ -710,7 +713,7 @@ class VtkOutput
             float is_split = elem_i->GetValue(SPLIT_ELEMENT);
             force_big_endian((unsigned char *)&is_split);
             outputFile.write((char *)(&is_split), sizeof(float));
-        }*/
+        }
 
             outputFile.close();
         }

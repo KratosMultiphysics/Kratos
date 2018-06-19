@@ -218,12 +218,10 @@ class CustomHoleCuttingProcess
 			for (j = 0; j < geom.size(); j++)
 			{
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
-
 				if (elementDistance < distance)
 				{
 					numPointsOutside++;
 				}
-
 			}
 
 			if (numPointsOutside == geom.size())
@@ -383,6 +381,23 @@ class CustomHoleCuttingProcess
 
 		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
 		{
+			/* bool is_split = it->GetValue(SPLIT_ELEMENT);
+            if (is_split == false)
+			{
+				double elementDistance = 0.0;
+				Geometry<Node<3>> &geom = it->GetGeometry();
+				bool sign = it->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE)<0 ? 0:1;
+				for (int j = 1; j < geom.size(); j++)
+				{
+
+					bool newsign = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE)<0 ? 0:1;
+					if(sign != newsign)
+						 it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE)=* -1;
+
+				}
+			} */
+
+
 
 			double elementDistance = 0.0;
 			std::size_t numPointsOutside = 0;

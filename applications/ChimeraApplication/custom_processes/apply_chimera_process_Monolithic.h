@@ -237,7 +237,10 @@ class ApplyChimeraProcessMonolithic : public Process
 		Clear();
 		//for multipatch
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
+			{
 			it->Set(VISITED, false);
+			it->SetValue(SPLIT_ELEMENT,false);
+			}
 	}
 
 	void ExecuteBeforeOutputStep() override

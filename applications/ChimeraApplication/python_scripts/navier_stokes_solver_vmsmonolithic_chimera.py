@@ -35,6 +35,8 @@ class NavierStokesSolverMonolithicChimera(NavierStokesSolverMonolithic):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
 
+
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithicChimera", "Fluid solver variables added correctly.")
 
     def Initialize(self):

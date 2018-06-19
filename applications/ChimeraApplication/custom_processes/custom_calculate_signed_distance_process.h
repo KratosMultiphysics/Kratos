@@ -244,7 +244,7 @@ class CustomCalculateSignedDistanceProcess
 			p2DSignedDistanceCalculator = CalculateSignedDistanceTo2DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo2DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
 			p2DSignedDistanceCalculator->Execute();
 
-			std::cout << "2Signeddistance is called nav" << std::endl;
+			std::cout << "2d Signed distance calculation completed    " << std::endl;
 		}
 
 		if (TDim == 3)
@@ -260,6 +260,8 @@ class CustomCalculateSignedDistanceProcess
 
 		std::size_t max_level = 100;
 		double max_distance = 200;
+//rishith
+		//CorrectSign(toBackgroundModelPart);
 //nav
 		pDistanceCalculator->CalculateDistances(toBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
 	}
@@ -275,6 +277,37 @@ class CustomCalculateSignedDistanceProcess
 		}
 	}
 
+	//rishith
+ 	void CorrectSign(ModelPart &rModelPart)
+	 {
+		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
+		{
+			bool is_split = it->GetValue(SPLIT_ELEMENT);
+            if (is_split == false)
+			{
+				double elementDistance = 0.0;
+				Geometry<Node<3>> &geom = it->GetGeometry();
+				int positive =0;
+				int negative =0;
+				for (int j = 0; j < geom.size(); j++)
+				{
+					bool newsign = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE)<0 ? 0:1;
+					if(newsign == true )
+						positive ++;
+					else
+						negative++;
+				}
+				for (int j = 0; j < geom.size(); j++)
+				{
+					elementDistance = fabs (it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE));
+					if(positive > negative)
+						it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE)= elementDistance;
+					else
+						it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE)= -elementDistance;
+				}
+			}
+		}
+	 }
 
 
 	///@}
