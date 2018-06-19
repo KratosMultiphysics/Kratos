@@ -32,7 +32,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "position"                    : [],
             "output_variables"            : [],
             "flush_frequency"             : "",
-            "output_file_name"            : ""
+            "output_file_name"            : "",
+            "print_format"              : ""
         }''')
 
         self.model = model
@@ -46,6 +47,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.entity = []
         self.area_coordinates = []
         self.output_variables = []
+
+        self.format = self.params["print_format"].GetString()
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
@@ -151,9 +154,9 @@ class PointOutputProcess(KratosMultiphysics.Process):
                 value = Interpolate(var, ent, coord)
 
                 if IsArrayVariable(var):
-                    out += " " + " ".join( "{0:.16g}".format(v) for v in value )
+                    out += " " + " ".join( format(v,self.format) for v in value )
                 else:
-                    out += " " + "{0:.16g}".format(value)
+                    out += " " + format(value,self.format)
 
             out += "\n"
             f.write(out)
