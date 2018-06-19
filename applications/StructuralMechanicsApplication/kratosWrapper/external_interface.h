@@ -1,8 +1,7 @@
-#include "includes/kernel.h"
-#include "structural_mechanics_application.h"
+#include "kratos_internals.h"
 #include "includes/node.h"
 #include "mesh_converter.h"
-#include "includes/model_part_io.h"
+#include "id_translator.h"
 
 
 namespace KratosWrapper {
@@ -28,9 +27,9 @@ namespace KratosWrapper {
 		static float* pmXCoordinates;
 		static float* pmYCoordinates;
 		static float* pmZCoordinates;
-		static Kratos::Kernel mKernel;
-		static Kratos::KratosStructuralMechanicsApplication mApplication;
-		static Kratos::ModelPart mMainModelPart;
+		static KratosInternals mKratosInternals;
+		static IdTranslator idTranslator;
+
 		static std::vector<Kratos::NodeType::Pointer> mFixedNodes;
 
 		static void initInternals();

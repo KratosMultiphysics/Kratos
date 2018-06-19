@@ -2,6 +2,7 @@
 #include "includes/model_part.h"
 
 namespace KratosWrapper {
+
 	struct face {
 		int nodes[4];
 	};

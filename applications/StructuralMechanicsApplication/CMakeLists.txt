@@ -124,6 +124,10 @@ set( KRATOS_WRAPPER_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/mesh_converter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/vector3.h
 	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/vector3.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/kratos_internals.h
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/kratos_internals.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/id_translator.h
+	${CMAKE_CURRENT_SOURCE_DIR}/kratosWrapper/id_translator.cpp
 )
 
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
