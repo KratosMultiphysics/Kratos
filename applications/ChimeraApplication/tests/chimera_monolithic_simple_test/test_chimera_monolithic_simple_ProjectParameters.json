@@ -35,7 +35,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-            "solver_type": "navier_stokes_solver_vmsmonolithic_chimera",
+            "solver_type": "monolithic",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "test_chimera_monolithic_simple_Input"

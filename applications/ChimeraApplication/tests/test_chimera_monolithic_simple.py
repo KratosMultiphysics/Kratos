@@ -68,8 +68,8 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
             #main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
             ## Solver construction
-            solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-            solver = solver_module.CreateSolver(fluid_model, ProjectParameters["solver_settings"])
+            import python_solvers_wrapper_fluid_chimera
+            solver = python_solvers_wrapper_fluid_chimera.CreateSolver(fluid_model, ProjectParameters)
 
             solver.AddVariables()
 
@@ -141,24 +141,22 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
                 process.ExecuteBeforeSolutionLoop()
 
             ChimeraParamaters = KratosMultiphysics.Parameters(R"""{
-                                            "process_name":"apply_chimera_process_monolithic",
-                                            "background": {
-                                                            "model_part_name":"GENERIC_background",
-                                                            "pressure_coupling":"all"
-
-                                                          },
-                                            "patch"  : {
-                                                            "model_part_name":"GENERIC_patch",
-                                                            "pressure_coupling" : "all"
-                                                          },
-                                            "type" : "nearest_element",
-                                            "IsWeak" : true,
-                                            "pressure_coupling_node" : 0.0,
-                                            "patch_boundary_model_part_name":"GENERIC_patchBoundary",
-                                            "domain_boundary_model_part_name":"GENERIC_DomainBoundary",
-                                            "patch_inside_boundary_model_part_name":"GENERIC_StrctureOne",
-                                            "overlap_distance":0.01
-                                            }""")
+                                "process_name":"apply_chimera_process_monolithic",
+                                "Chimera_levels" : [ [{ "model_part_name":"GENERIC_background",
+                                                        "model_part_boundary_name":"GENERIC_DomainBoundary",
+                                                        "model_part_inside_boundary_name" :"GENERIC_DomainBoundary"
+		                        }],
+                                       [{ "model_part_name":"GENERIC_patch",
+                                        "model_part_boundary_name":"GENERIC_patchBoundary",
+                                        "model_part_inside_boundary_name":"GENERIC_StrctureOne"
+                                        }]
+                                        ],
+                                "type" : "nearest_element",
+                                "IsWeak" : true,
+                                "pressure_coupling" : "all",
+                                "pressure_coupling_node" : 0.0,
+                                "overlap_distance":0.01
+                                }""")
 
             ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,ChimeraParamaters)
 
