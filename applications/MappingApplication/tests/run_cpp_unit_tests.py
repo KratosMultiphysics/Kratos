@@ -38,7 +38,7 @@ def run():
     # This suite contains tests that work both with and without MPI
     # Note that if the partitioned mdpa files were not created before the MPI tests are skipped
     Logger.PrintInfo("\ncpp tests MappingApplication", "Running General tests\n")
-    Tester.RunTestSuite("KratosMappingApplicationGeneralTestSuite")
+    # Tester.RunTestSuite("KratosMappingApplicationGeneralTestSuite")
 
     folder_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "partitioned_mdpa_files")
     kratos_utils.DeleteDirectoryIfExisting(folder_path)

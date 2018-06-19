@@ -76,6 +76,8 @@ public:
     using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
     using MapperLocalSystemPointerVectorPointer = typename BaseType::MapperLocalSystemPointerVectorPointer;
 
+    using BufferType = std::vector<std::vector<double>>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -235,6 +237,9 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+
+    void FillSendBuffer(BufferType& rSendBuffer, const std::vector<double>& rBoundingBoxes);
 
     // void ConductSearchIteration(const bool LastIteration) override
     // {

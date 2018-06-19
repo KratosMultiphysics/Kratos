@@ -16,6 +16,7 @@
 // System includes
 
 // External includes
+#include "mpi.h"
 
 // Project includes
 #include "interface_search_structure_mpi.h"
@@ -24,6 +25,8 @@
 
 namespace Kratos
 {
+    using IndexType = std::size_t;
+    using SizeType = std::size_t;
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
@@ -51,11 +54,29 @@ namespace Kratos
         // Apply tolerance to bounding boxes
         std::vector<double> bounding_boxes_with_tol;
         MapperUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
-                                                           mSearchRadius*0.2,
+                                                           mSearchRadius*1.2, // apply +20%
                                                            bounding_boxes_with_tol);
 
-        // Compute Candidate Partitions
+        // set up the buffers
+        int comm_rank;
+        int comm_size;
 
+        MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+
+        std::vector<int> send_sizes(comm_size, 0);
+        std::vector<int> recv_sizes(comm_size, 0);
+
+        BufferType send_buffer(comm_size); // TODO reserve space!
+        BufferType recv_buffer(comm_size); // TODO reserve space!
+
+        // Compute Candidate Partitions and fill the send buffer
+        FillSendBuffer(send_buffer, bounding_boxes_with_tol);
+
+        // ComputeBufferSizes();
+
+        // Exchange the buffer sizes
+        MPI_Alltoall(send_sizes.data(), 1, MPI_INT, recv_sizes.data(), 1, MPI_INT, MPI_COMM_WORLD);
 
         // Send Information to Candidate Partitions
 
@@ -77,7 +98,7 @@ namespace Kratos
         */
     }
 
-        void InterfaceSearchStructureMPI::FinalizeSearchIteration()
+    void InterfaceSearchStructureMPI::FinalizeSearchIteration()
     {
         /*
         1. Check with which Partitions I have to communicate
@@ -93,6 +114,37 @@ namespace Kratos
     /***********************************************************************************/
     /* PRIVATE Methods */
     /***********************************************************************************/
+    void InterfaceSearchStructureMPI::FillSendBuffer(BufferType& rSendBuffer, const std::vector<double>& rBoundingBoxes)
+    {
+        const SizeType comm_size = rSendBuffer.size();
+        const SizeType num_local_sys = mpMapperLocalSystems->size();
 
+        std::vector<double> bounding_box(6);
+
+        // #pragma omp parallel for => bounding box has to be threadprivate!
+        for (IndexType i_rank=0; i_rank < comm_size; ++i_rank)
+        {
+            for (IndexType i=0; i<num_local_sys; ++i)
+            {
+                for (IndexType j=0; j<6; ++j)
+                    bounding_box[j] = rBoundingBoxes[(i_rank*6) + j]; // retrieve bounding box of partition
+
+                const auto& rp_local_sys = (*mpMapperLocalSystems)[i];
+
+                if (!rp_local_sys->HasInterfaceInfo())
+                {
+                    const auto& r_coords = rp_local_sys->Coordinates();
+                    if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords))
+                    {
+                        // These push_backs are threadsafe!
+                        rSendBuffer[i_rank].push_back(static_cast<double>(i)); // this it the "mSourceLocalSystemIndex" of the MapperInterfaceInfo
+                        rSendBuffer[i_rank].push_back(r_coords[0]);
+                        rSendBuffer[i_rank].push_back(r_coords[1]);
+                        rSendBuffer[i_rank].push_back(r_coords[2]);
+                    }
+                }
+            }
+        }
+    }
 
 }  // namespace Kratos.

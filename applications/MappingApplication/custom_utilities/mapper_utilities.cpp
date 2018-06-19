@@ -183,5 +183,19 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
     return buffer.str();
 }
 
+bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
+                              const Point& rPoint)
+{   // The Bounding Box should have some tolerance already!
+    if (rPoint.X() < rBoundingBox[0] && rPoint.X() > rBoundingBox[1])   // check x-direction
+    {
+        if (rPoint.Y() < rBoundingBox[2] && rPoint.Y() > rBoundingBox[3])   // check y-direction
+        {
+            if (rPoint.Z() < rBoundingBox[4] && rPoint.Z() > rBoundingBox[5])   // check z-direction
+                return true;
+        }
+    }
+    return false;
+}
+
 } // namespace MapperUtilities
 } // namespace Kratos.

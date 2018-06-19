@@ -199,6 +199,9 @@ void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes
 
 std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 
+bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
+                              const Point& rPoint);
+
 }  // namespace MapperUtilities.
 
 }  // namespace Kratos.
