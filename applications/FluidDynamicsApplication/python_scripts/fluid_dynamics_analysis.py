@@ -25,7 +25,8 @@ class FluidDynamicsAnalysis(AnalysisStage):
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
 
-        ## Import parallel modules if needed
+        # Import parallel modules if needed
+        # has to be done before the base-class constuctor is called (in which the solver is constructed)
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication

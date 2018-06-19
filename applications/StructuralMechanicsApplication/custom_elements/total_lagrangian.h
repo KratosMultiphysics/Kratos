@@ -256,6 +256,7 @@ private:
                          ProcessInfo const& rCurrentProcessInfo);
 
     void CalculateShapeSensitivity(ShapeParameter Deriv,
+                                   Matrix& rDN_DX0,
                                    Matrix& rDN_DX0_Deriv,
                                    Matrix& rF_Deriv,
                                    double& rDetJ0_Deriv,
