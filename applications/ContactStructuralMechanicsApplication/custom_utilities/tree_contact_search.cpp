@@ -286,6 +286,8 @@ void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
 
                 p_new_cond->Data() = it_cond->Data();
                 p_new_cond->Set(Flags(*it_cond));
+                p_new_cond->Set(TO_ERASE, false);
+                p_new_cond->Set(MARKER, true);
             } else {
                 // Setting the flag to mark
                 it_cond->Set(MARKER, true);
@@ -300,10 +302,10 @@ void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
     }
 
     // Finally we add the new conditions to the model part
+    r_sub_contact_model_part.RemoveConditions(TO_ERASE);
     ConditionsArrayType aux_conds;
     aux_conds.GetContainer() = auxiliar_conditions_vector;
     r_sub_contact_model_part.AddConditions(aux_conds.begin(), aux_conds.end());
-    r_sub_contact_model_part.RemoveConditions(TO_ERASE);
 }
 
 /***********************************************************************************/
