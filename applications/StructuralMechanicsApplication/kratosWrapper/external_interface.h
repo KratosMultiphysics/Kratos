@@ -1,6 +1,9 @@
 #include "includes/kernel.h"
 #include "structural_mechanics_application.h"
+#include "includes/node.h"
 #include "mesh_converter.h"
+#include "includes/model_part_io.h"
+
 
 namespace KratosWrapper {
 
@@ -18,6 +21,7 @@ namespace KratosWrapper {
 		
 	private:
 		static int* pmKratosNodeIds;
+		static int* pmUnityNodeIds;
 		static int* pmTriangles;
 		static int mTrianglesCount;
 		static int mNodesCount;
@@ -27,10 +31,13 @@ namespace KratosWrapper {
 		static Kratos::Kernel mKernel;
 		static Kratos::KratosStructuralMechanicsApplication mApplication;
 		static Kratos::ModelPart mMainModelPart;
+		static std::vector<Kratos::NodeType::Pointer> mFixedNodes;
 
 		static void initInternals();
 		static void loadMDPAFile(char* mdpaPath);
 		static void saveTriangles(MeshConverter& meshConverter);
 		static void saveNodes(MeshConverter& meshConverter);
+		static void retrieveNodesPos();
+		static void freeNodes();
 	};
 }
