@@ -130,7 +130,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             len_bar_ineqs = ScalarVectorProduct(1/step_length, len_ineqs)
 
             # Compute step direction in step length units
-            x_bar = self.__ApplyStepDirectionRule(dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
+            x_bar = self.__DetermineStep(dir_obj, len_bar_eqs, dir_eqs, len_bar_ineqs, dir_ineqs)
 
             # Compute actual step
             dx = [step_length*x_bar[i] for i in range(self.n)]
@@ -481,7 +481,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 return False
 
     # --------------------------------------------------------------------------
-    def __ApplyStepDirectionRule(self, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
+    def __DetermineStep(self, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs):
 
         # 1. Check if for a minimal objective share and no effective threshold, feasible design may be reached in one step (3d infinity norm of dx < 1)
         dx, norm_inf_dx = self.__ApplyProjection(-10, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, 10)
@@ -500,17 +500,15 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         # else:
         #     pass
 
-
-
         return dx,lObjective,lInequality,lEquality,sInit,sDx
 
     # --------------------------------------------------------------------------
     def __ApplyProjection(self, len_obj, dir_obj, len_eqs, dir_eqs, len_ineqs, dir_ineqs, threshold):
         # Filter lengths to consider specified step length shares in case usable and feasible domain is left (lenths are positive)
-        len_obj_filtered, len_eqs_filtered, len_ineqs_filtered = self.__FilterLengths(len_obj, len_eqs, len_ineqs, threshold)
+        len_obj_filtered, len_eqs_filtered, len_ineqs_filtered = self.__FilterAccordingStepDirectionRule(len_obj, len_eqs, len_ineqs, threshold)
 
         # Conversion to position direction format for a more intuitive description of halfspaces and hyperplanes and the location of the current design within
-        hpPos,hpDir,hsPos,hsDir = self.__ConvertToPositionDirectionFormat(len_obj_filtered, dir_obj, len_eqs_filtered, dir_eqs, len_ineqs_filtered, dir_ineqs)
+        hpPos, hpDir, hsPos, hsDir = self.__ConvertToPositionDirectionFormat(len_obj_filtered, dir_obj, len_eqs_filtered, dir_eqs, len_ineqs_filtered, dir_ineqs)
 
         # Perform projection
         zero_vec = Zeros(self.number_of_design_variables)
@@ -521,7 +519,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         return dx, norm_dx
 
     # --------------------------------------------------------------------------
-    def __FilterLengths(self, len_obj, len_eqs, len_ineqs, threshold):
+    def __FilterAccordingStepDirectionRule(self, len_obj, len_eqs, len_ineqs, threshold):
         min_share_obj = self.algorithm_settings["min_share_objective"].GetDouble()
 
         #apply min/maxShare
