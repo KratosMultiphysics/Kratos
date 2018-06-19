@@ -72,6 +72,7 @@ set( KRATOS_CORE_SOURCES
 
 ## Kratos python interface code
 set( KRATOS_PYTHON_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constraint_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_part_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
