@@ -42,7 +42,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
             self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
 
-    def ReadModelPart(self):
+    def ImportModelPart(self):
         self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Reading model part.")
         if self.is_restarted():
             self.get_restart_utility().LoadRestart()
