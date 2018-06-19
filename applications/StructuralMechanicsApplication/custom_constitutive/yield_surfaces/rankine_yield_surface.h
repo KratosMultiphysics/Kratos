@@ -134,7 +134,7 @@ public:
         const double E  = rMaterialProperties[YOUNG_MODULUS];
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
 
-        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<std::size_t>(SofteningType::Exponential)) {
+        if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
         } else { // linear
             AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf / CharacteristicLength);

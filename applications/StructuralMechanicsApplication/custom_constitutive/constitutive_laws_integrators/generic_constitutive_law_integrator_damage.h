@@ -117,18 +117,17 @@ public:
         const double CharacteristicLength
     )
     {
-        const std::size_t softening_type = rMaterialProperties[SOFTENING_TYPE];
+        const int softening_type = rMaterialProperties[SOFTENING_TYPE];
         double DamageParameter;
         TYieldSurfaceType::CalculateDamageParameter(rMaterialProperties, DamageParameter, CharacteristicLength);
 
-        switch(softening_type)
-        {
-            case static_cast<std::size_t>(SofteningType::Linear):
+        switch(softening_type) {
+            case static_cast<int>(SofteningType::Linear):
                 CalculateLinearDamage(UniaxialStress, Threshold, DamageParameter,
                     CharacteristicLength, rMaterialProperties, Damage);
                 break;
 
-            case static_cast<std::size_t>(SofteningType::Exponential):
+            case static_cast<int>(SofteningType::Exponential):
                 CalculateExponentialDamage(UniaxialStress, Threshold, DamageParameter,
                     CharacteristicLength, rMaterialProperties, Damage);
                 break;
