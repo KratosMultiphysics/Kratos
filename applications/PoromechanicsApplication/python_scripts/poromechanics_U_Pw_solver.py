@@ -41,10 +41,6 @@ class UPwSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
                                                   self.settings["domain_size"].GetInt())
 
-        # Construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
 
     def AddVariables(self):
@@ -141,34 +137,34 @@ class UPwSolver(PythonSolver):
         return self.min_buffer_size
 
     def Initialize(self):
-
         self.computing_model_part = self.GetComputingModelPart()
 
         # Fill the previous steps of the buffer with the initial conditions
         self._FillBuffer()
 
-        # Initialize Strategy
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
+        # Construct the linear solver
+        self.linear_solver = _ConstructLinearSolver()
 
         # Builder and solver creation
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
 
         # Solution scheme creation
-        scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
+        self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
                                          self.settings["solution_type"].GetString())
 
         # Get the convergence criterion
-        convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
+        self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
         # Solver creation
         self.solver = self._ConstructSolver(builder_and_solver,
-                                            scheme,
-                                            convergence_criterion,
                                             self.settings["strategy_type"].GetString())
 
         # Set echo_level
         self.SetEchoLevel(self.settings["echo_level"].GetInt())
+
+        # Initialize Strategy
+        if self.settings["clear_storage"].GetBool():
+            self.Clear()
 
         self.solver.Initialize()
 
@@ -345,6 +341,11 @@ class UPwSolver(PythonSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
 
+    def _ConstructLinearSolver(self):
+        import linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        return linear_solver
+
     def _ConstructBuilderAndSolver(self, block_builder):
 
         # Creating the builder and solver
@@ -407,7 +408,7 @@ class UPwSolver(PythonSolver):
 
         return convergence_criterion
 
-    def _ConstructSolver(self, builder_and_solver, scheme, convergence_criterion, strategy_type):
+    def _ConstructSolver(self, builder_and_solver, strategy_type):
 
         nonlocal_damage = self.settings["nonlocal_damage"].GetBool()
         max_iters = self.settings["max_iteration"].GetInt()
@@ -424,9 +425,9 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.computing_model_part,
-                                                                               scheme,
+                                                                               self.scheme,
                                                                                self.linear_solver,
-                                                                               convergence_criterion,
+                                                                               self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
                                                                                max_iters,
@@ -435,9 +436,9 @@ class UPwSolver(PythonSolver):
                                                                                move_mesh_flag)
             else:
                 solver = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.computing_model_part,
-                                                                       scheme,
+                                                                       self.scheme,
                                                                        self.linear_solver,
-                                                                       convergence_criterion,
+                                                                       self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,
                                                                        max_iters,
@@ -457,9 +458,9 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
                 solver = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.computing_model_part,
-                                                                               scheme,
+                                                                               self.scheme,
                                                                                self.linear_solver,
-                                                                               convergence_criterion,
+                                                                               self.convergence_criterion,
                                                                                builder_and_solver,
                                                                                self.strategy_params,
                                                                                max_iters,
@@ -468,9 +469,9 @@ class UPwSolver(PythonSolver):
                                                                                move_mesh_flag)
             else:
                 solver = KratosPoro.PoromechanicsRammArcLengthStrategy(self.computing_model_part,
-                                                                       scheme,
+                                                                       self.scheme,
                                                                        self.linear_solver,
-                                                                       convergence_criterion,
+                                                                       self.convergence_criterion,
                                                                        builder_and_solver,
                                                                        self.strategy_params,
                                                                        max_iters,
