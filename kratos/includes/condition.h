@@ -264,7 +264,7 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	KRATOS_INFO("Condition") << " Call base class condition Clone " << std::endl;
+	KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
         Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
 	p_new_cond->SetData(this->GetData());
 	p_new_cond->Set(Flags(*this));
