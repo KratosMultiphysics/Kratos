@@ -32,9 +32,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "position"                    : [],
             "output_variables"            : [],
             "flush_frequency"             : "",
-            "output_file_name"            : "",
-            "save_output_in_folder"       : true,
-            "output_folder_relative_path" : "TabularResults"
+            "output_file_name"            : ""
         }''')
 
         self.model = model
@@ -124,35 +122,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
         if my_rank == writing_rank:
             # setting up the output_file
-            raw_path, output_file_name = os.path.split(self.params["output_file_name"].GetString())
-            if output_file_name == "":
-                raise Exception('No "output_file_name" was specified!')
-            if not output_file_name.endswith('.dat'):
-                output_file_name += ".dat"
-
-            if self.params["save_output_in_folder"].GetBool():
-                if self.params["output_folder_relative_path"].GetString() == "":
-                    raise Exception('No "save_output_in_folder" was specified!')
-                else:
-                    output_folder_relative_path = self.params["output_folder_relative_path"].GetString()
-                    if raw_path != "":
-                        warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ self.params["output_file_name"].GetString() +'"\n'
-                        warn_msg += 'Use "output_folder_relative_path" to specify correctly\n'
-                        warn_msg += 'Using the default relative path "' + output_folder_relative_path + '" instead'
-                        KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
-                    output_folder_path = os.path.join(os.getcwd(), output_folder_relative_path)
-            else:
-                output_folder_path = os.getcwd()
-                if raw_path != "":
-                    warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ self.params["output_file_name"].GetString() +'"\n'
-                    warn_msg += 'Use the "save_output_in_folder" and "output_folder_relative_path" to specify correctly\n'
-                    warn_msg += 'Using the current directory instead'
-                    KratosMultiphysics.Logger.PrintWarning("PointOutputProcess", warn_msg)
-
-            if not os.path.isdir(output_folder_path):
-                os.makedirs(output_folder_path)
-
-            output_file_name = os.path.join(output_folder_path, output_file_name)
+            output_file_name = self.params["output_file_name"].GetString()
 
             file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
             file_handler_params["output_file_name"].SetString(output_file_name)
