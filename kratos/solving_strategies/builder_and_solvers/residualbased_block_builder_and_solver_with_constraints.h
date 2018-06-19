@@ -35,7 +35,7 @@
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_flags.h"
 #include "utilities/master_slave_constraint.h"
-#include "containers/constraint_equation.h"
+#include "containers/master_slave_relation.h"
 
 #include "containers/variable.h"
 #include "containers/variable_component.h"
