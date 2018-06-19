@@ -191,7 +191,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             if (self.resultant_solution == False):
                                 data["ELEMENT_" + str(elem.Id)][variable_name + "_X"] = {}
                                 data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"] = {}
-                                data["ELEMENT_" + str(node.Id)][variable_name + "_Z"] = {}
+                                data["ELEMENT_" + str(elem.Id)][variable_name + "_Z"] = {}
                                 for gp in range(gauss_point_number):
                                     data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)] = []
                                     data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"][str(gp)] = []

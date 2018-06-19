@@ -73,6 +73,7 @@
 #include "custom_conditions/point_moment_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
+#include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -382,6 +383,7 @@ private:
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
     const TrussConstitutiveLaw mTrussConstitutiveLaw;
+    const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
     const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;

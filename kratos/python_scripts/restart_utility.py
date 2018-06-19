@@ -24,7 +24,8 @@ class RestartUtility(object):
             "load_restart_files_from_folder" : true,
             "restart_save_frequency"         : 0.0,
             "restart_control_type"           : "time",
-            "save_restart_files_in_folder"   : true
+            "save_restart_files_in_folder"   : true,
+            "set_mpi_communicator"           : true
         }
         """)
 
@@ -112,8 +113,9 @@ class RestartUtility(object):
         """
         if self.save_restart_files_in_folder:
             folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path):
+            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
                 os.makedirs(folder_path)
+            self.model_part.GetCommunicator().Barrier()
 
         if self.restart_control_type_is_time:
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
