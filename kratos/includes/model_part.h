@@ -42,7 +42,7 @@
 #include "containers/pointer_hash_map_set.h"
 #include "input_output/logger.h"
 #include "includes/kratos_flags.h"
-#include "utilities/constraint.h"
+#include "utilities/master_slave_constraint.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
