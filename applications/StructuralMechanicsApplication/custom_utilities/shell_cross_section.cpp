@@ -62,47 +62,46 @@ void ShellCrossSection::EndStack()
     if(mEditingStack) mEditingStack = false;
 }
 
-std::string ShellCrossSection::GetInfo()const
+std::string ShellCrossSection::GetInfo()
 {
     std::stringstream ss;
-    // ss << std::fixed;
+    ss << std::fixed;
 
-    // ss << std::endl;
-    // ss << "===============================================================" << std::endl;
-    // ss << "                      SellCrossSection Info:" << std::endl;
-    // ss << "===============================================================" << std::endl;
-    // ss << "Total Thickness: " << GetThickness() << std::endl;
-    // ss << "Offset from the midplane: " << GetOffset() << std::endl;
-    // ss << "Number of Plies: " << mStack.size() << std::endl;
-    // ss << "===============================================================" << std::endl;
-    // ss << "=======================       STACK      ======================" << std::endl;
-    // ss << "===============================================================" << std::endl;
-    // if(mStack.size() < 1)
-    // {
-    //     ss << " EMPTY STACK" << std::endl;
-    //     ss << "===============================================================" << std::endl;
-    // }
-    // else
-    // {
-    //     for(auto it = mStack.begin(); it != mStack.end(); ++it)
-    //     {
-    //         const Ply& iPly = *it;
-
-    //         ss << " - Thickness :" << iPly.GetThickness() << std::endl;
-    //         ss << " - Location :" << iPly.GetLocation() << std::endl;
-    //         ss << " - Orientation Angle: " << iPly.GetOrientationAngle() << " (degrees)" << std::endl;
-    //         ss << " - Through-The-Thickness Integration Points (" << iPly.GetIntegrationPoints().size() << "):" << std::endl;
-    //         for(unsigned int i = 0; i < iPly.GetIntegrationPoints().size(); i++)
-    //         {
-    //             const IntegrationPoint& iPoint = iPly.GetIntegrationPoints()[i];
-    //             ss << " - - [" << i << "] "
-    //                << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
-    //                << std::endl;
-    //         }
-    //         ss << "===============================================================" << std::endl;
-    //     }
-    // }
-    // ss << std::endl;
+    ss << std::endl;
+    ss << "===============================================================" << std::endl;
+    ss << "                      SellCrossSection Info:" << std::endl;
+    ss << "===============================================================" << std::endl;
+    ss << "Total Thickness: " << GetThickness() << std::endl;
+    ss << "Offset from the midplane: " << GetOffset() << std::endl;
+    ss << "Number of Plies: " << mStack.size() << std::endl;
+    ss << "===============================================================" << std::endl;
+    ss << "=======================       STACK      ======================" << std::endl;
+    ss << "===============================================================" << std::endl;
+    if(mStack.size() < 1)
+    {
+        ss << " EMPTY STACK" << std::endl;
+        ss << "===============================================================" << std::endl;
+    }
+    else
+    {
+        for (auto& r_ply : mStack)
+        {
+            ss << " - Thickness :" << r_ply.GetThickness() << std::endl;
+            ss << " - Location :" << r_ply.GetLocation() << std::endl;
+            ss << " - Orientation Angle: " << r_ply.GetOrientationAngle() << " (degrees)" << std::endl;
+            const auto& r_integration_points = r_ply.GetIntegrationPoints();
+            ss << " - Through-The-Thickness Integration Points (" << r_integration_points.size() << "):" << std::endl;
+            for(IndexType i = 0; i < r_integration_points.size(); ++i)
+            {
+                const IntegrationPoint& iPoint = r_integration_points[i];
+                ss << " - - [" << i << "] "
+                   << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
+                   << std::endl;
+            }
+            ss << "===============================================================" << std::endl;
+        }
+    }
+    ss << std::endl;
     return ss.str();
 }
 
@@ -714,45 +713,49 @@ int ShellCrossSection::Check(const Properties& rMaterialProperties,
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(this->mEditingStack) << "The Ply Stack of a ShellCrossSection is in Editing mode" << std::endl;
+    KRATOS_ERROR_IF(this->mEditingStack)
+        << "The Ply Stack of a ShellCrossSection is in Editing mode" << std::endl;
 
-    if(this->mStack.size() < 1)
-        KRATOS_THROW_ERROR(std::logic_error, "The Ply Stack of a ShellCrossSection cannot be empty", "")
+    KRATOS_ERROR_IF(this->mStack.size() < 1)
+        << "The Ply Stack of a ShellCrossSection cannot be empty" << std::endl;
 
-    if(this->GetThickness() <= 0.0)
-        KRATOS_THROW_ERROR(std::logic_error, "The Thickness of a ShellCrossSection should be a positive real number", this->GetThickness())
+    KRATOS_ERROR_IF(this->GetThickness() <= 0.0)
+        << "The Thickness of a ShellCrossSection should be a "
+        << "positive real number" << std::endl;
 
     for (auto& r_ply : mStack)
     {
-        Ply::IntegrationPointCollection::size_type numip( r_ply.NumberOfIntegrationPoints() );
-        if(numip < 1)
-            KRATOS_THROW_ERROR(std::logic_error, "The number of integration points in a Ply is not set properly", numip);
+        KRATOS_ERROR_IF(r_ply.NumberOfIntegrationPoints() < 1)
+            << "The number of integration points "
+            << "in a Ply is not set properly" << std::endl;
 
-        if(r_ply.GetPropertiesPointer() == NULL)
-            KRATOS_THROW_ERROR(std::logic_error, "The Properties of a Ply cannot be NULL", "");
+        KRATOS_ERROR_IF(r_ply.GetPropertiesPointer() == nullptr)
+            << "The Properties of a Ply cannot be nullptr" << std::endl;
 
-        const Properties & r_ply_props = r_ply.GetProperties();
+        const Properties& r_ply_props = r_ply.GetProperties();
 
-        if(!r_ply_props.Has(DENSITY))
-            KRATOS_THROW_ERROR(std::logic_error, "DENSITY not provided for a Ply object","");
+        KRATOS_ERROR_IF_NOT(r_ply_props.Has(DENSITY))
+            << "DENSITY not provided for a Ply object" << std::endl;
 
         for (const auto& r_int_point : r_ply.GetIntegrationPoints())
         {
-            if(r_int_point.GetWeight() <= 0.0)
-                KRATOS_THROW_ERROR(std::logic_error, "The Weight of a ShellCrossSection.IntegrationPoint should be a positive real number", r_int_point.GetWeight());
+            KRATOS_ERROR_IF(r_int_point.GetWeight() <= 0.0)
+                << "The Weight of a ShellCrossSection.IntegrationPoint "
+                << "should be a positive real number" << std::endl;
 
             const ConstitutiveLaw::Pointer& iPointLaw = r_int_point.GetConstitutiveLaw();
 
-            if(iPointLaw == NULL)
-                KRATOS_THROW_ERROR(std::logic_error, "The Constitutive law of a ShellCrossSection.IntegrationPoint is NULL", iPointLaw);
+            KRATOS_ERROR_IF(iPointLaw == nullptr)
+                << "The Constitutive law of a ShellCrossSection.IntegrationPoint "
+                << "is nullptr" << std::endl;
 
             ConstitutiveLaw::Features iPointLawFeatures;
             iPointLaw->GetLawFeatures(iPointLawFeatures);
 
-            int correct_strain_size = iPointLawFeatures.mStrainSize;
-            if(correct_strain_size != 3 && correct_strain_size != 6)
-                KRATOS_THROW_ERROR(std::logic_error,
-                                    "The Constitutive law of a ShellCrossSection.IntegrationPoint needs a ConstitutiveLaw with 3 or 6 components, instead of ", correct_strain_size);
+            const int strain_size = iPointLawFeatures.mStrainSize;
+            KRATOS_ERROR_IF(strain_size != 3 && strain_size != 6)
+                << "The Constitutive law of a ShellCrossSection.IntegrationPoint needs a "
+                << "ConstitutiveLaw with 3 or 6 components, instead of " << strain_size << std::endl;
 
             //bool correct_strain_measure = false;
             //for(unsigned int i=0; i<iPointLawFeatures.mStrainMeasures.size(); i++)
@@ -865,14 +868,12 @@ void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Stren
             (rProps)[SHELL_ORTHOTROPIC_LAYERS](currentPly, offset + 6);
 
         // Check all values are positive
-        for(SizeType i = 0; i < 3; i++)
+        for(SizeType i=0; i<3; ++i)
         {
-            for(SizeType j = 0; j < 3; j++)
+            for(SizeType j=0; j<3; ++j)
             {
-                if(rLaminae_Strengths[currentPly](i, j) < 0.0)
-                {
-                    KRATOS_THROW_ERROR(std::logic_error, "A negative lamina strength has been defined. All lamina strengths must be positive.", "")
-                }
+                KRATOS_ERROR_IF(rLaminae_Strengths[currentPly](i, j) < 0.0) << "A negative lamina "
+                    << "strength has been defined. All lamina strengths must be positive" << std::endl;
             }
         }
     }

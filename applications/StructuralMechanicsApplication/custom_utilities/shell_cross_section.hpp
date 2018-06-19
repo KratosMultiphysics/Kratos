@@ -416,7 +416,6 @@ public:
     private:
 
         int mPlyIndex;
-        double mOrientationAngle;
         IntegrationPointCollection mIntegrationPoints;
         Properties::Pointer mpProperties;
 
@@ -701,7 +700,7 @@ public:
     * Returns the string containing a detailed description of this object.
     * @return the string with informations
     */
-    virtual std::string GetInfo()const;
+    virtual std::string GetInfo();
 
     /**
     * Clone function
@@ -1137,8 +1136,10 @@ public:
 
     	for (IndexType ply = 0; ply < this->NumberOfPlies(); ++ply)
     	{
-    		if (mBehavior == Thick) mPlyConstitutiveMatrices[ply].resize(8, 8, false);
-    		else mPlyConstitutiveMatrices[ply].resize(6, 6, false);
+    		if (mBehavior == Thick)
+                mPlyConstitutiveMatrices[ply].resize(8, 8, false);
+    		else
+                mPlyConstitutiveMatrices[ply].resize(6, 6, false);
 
     		mPlyConstitutiveMatrices[ply].clear();
     	}
@@ -1399,7 +1400,7 @@ public:
 
 inline std::istream & operator >> (std::istream & rIStream, ShellCrossSection & rThis);
 
-inline std::ostream & operator << (std::ostream & rOStream, const ShellCrossSection & rThis)
+inline std::ostream & operator << (std::ostream & rOStream, ShellCrossSection & rThis)
 {
     return rOStream << rThis.GetInfo();
 }
