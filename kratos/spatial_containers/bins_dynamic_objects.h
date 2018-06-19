@@ -19,6 +19,7 @@
 #include <cmath>
 #include <algorithm>
 #include <time.h>
+#include <array>
 
 // Project includes
 #include "tree.h"
@@ -107,21 +108,25 @@ public:
   BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
       : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd) {
 
+    std::size_t GridSize[3] = {0, 0, 0};
+
     mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
-    CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
-    CalculateCellSize(mObjectsSize);  // Calculate number of Cells
-    AllocateContainer();              // Allocate cell list
-    GenerateBins();                   // Fill Cells with objects
+    CalculateBoundingBox();                                                 // Calculate mMinPoint, mMaxPoint
+    CalculateCellSize(mObjectsSize, GridSize);                              // Calculate number of Cells
+    AllocateContainer();                                                    // Allocate cell list
+    GenerateBins();                                                         // Fill Cells with objects
   }
 
   BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, CoordinateType CellSize)
       : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd) {
 
     mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
-    CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
-    CalculateCellSize(CellSize);      // Calculate number of Cells
-    AllocateContainer();              // Allocate cell list
-    GenerateBins();                   // Fill Cells with objects
+    std::size_t expCellNum = mObjectsSize / std::pow(CellSize, 3);
+    std::size_t GridSize[3] = {expCellNum, expCellNum, expCellNum};
+    CalculateBoundingBox();                                                 // Calculate mMinPoint, mMaxPoint
+    CalculateCellSize(mObjectsSize, GridSize);                              // Calculate number of Cells
+    AllocateContainer();                                                    // Allocate cell list
+    GenerateBins();                                                         // Fill Cells with objects
   }
 
   BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
@@ -132,20 +137,28 @@ public:
       mMaxPoint[i] = MaxPoint[i];
     }
 
-    CalculateCellSize(CellSize);
-    AllocateContainer();
+    std::size_t GridSize[3] = {
+        static_cast<std::size_t>((mMaxPoint[0] - mMinPoint[0]) / CellSize), 
+        static_cast<std::size_t>((mMaxPoint[1] - mMinPoint[1]) / CellSize),
+        static_cast<std::size_t>((mMaxPoint[2] - mMinPoint[2]) / CellSize)
+    };
+
+    CalculateCellSize(mObjectsSize, GridSize);                              // Calculate number of Cells
+    AllocateContainer();                                                    // Allocate cell list
   }
 
   BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, SizeType NumPoints)
       : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0) {
+
+    std::size_t GridSize[3] = {0, 0, 0};
 
     for(SizeType i = 0; i < Dimension; i++) {
       mMinPoint[i] = MinPoint[i];
       mMaxPoint[i] = MaxPoint[i];
     }
 
-    CalculateCellSize(NumPoints);
-    AllocateContainer();
+    CalculateCellSize(NumPoints, GridSize);                                // Calculate number of Cells
+    AllocateContainer();                                                   // Allocate cell list
   }
 
   /// Destructor.
@@ -808,96 +821,49 @@ protected:
 //************************************************************************
 //************************************************************************
 
-    virtual void CalculateCellSize()
+    void CalculateCellSize(std::size_t ApproximatedSize, const std::size_t GridSize[3])
     {
+        std::size_t average_number_of_cells = static_cast< std::size_t >(
+            std::pow(static_cast<double>(ApproximatedSize), 1.00 / Dimension)
+        );
+        
+        std::array<double, 3 > lengths;
+        double average_length = 0.00;
 
-        CoordinateType delta[Dimension];
-        CoordinateType alpha[Dimension];
-        CoordinateType mult_delta = 1.00;
-        SizeType index = 0;
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            delta[i] = mMaxPoint[i] - mMinPoint[i];
-            if ( delta[i] > delta[index] )
-                index = i;
-            delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
+        for(int i = 0; i < Dimension; i++) {
+            lengths[i] = mMaxPoint[i] - mMinPoint[i];
+            average_length += lengths[i];
         }
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            alpha[i] = delta[i] / delta[index];
-            mult_delta *= alpha[i];
-        }
+        average_length *= 1.00 / 3.00;
 
-
-        mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(mObjectsSize/mult_delta), 1.00/Dimension) +1 );
-
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            if(i!=index)
-            {
-                mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
-                mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
+        if((GridSize[0] == 0) || (GridSize[1] == 0) || (GridSize[2] == 0)) {
+            // Calculated grid size
+            if(average_length<std::numeric_limits<double>::epsilon()) {
+                for(int i = 0; i < Dimension; i++) {
+                    mN[i] = 1;
+                }
+            } else {
+                for(int i = 0; i < Dimension; i++) {
+                    mN[i] = static_cast<std::size_t>(lengths[i] / average_length * ( double)average_number_of_cells) + 1;
+                }
+            }
+        } else {
+            // User defined grid size
+            for (int i = 0; i < Dimension; i++ ) {
+                mN[i] = GridSize[i];
             }
         }
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            mCellSize[i] = delta[i] / mN[i];
-            mInvCellSize[i] = 1.00 / mCellSize[i];
-        }
-
-
-    }
-
-    virtual void CalculateCellSize(const CoordinateType& CellSize)
-    {
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            mCellSize[i] = CellSize;
-            mInvCellSize[i] = 1.00 / mCellSize[i];
-            mN[i] = static_cast<SizeType>( (mMaxPoint[i]-mMinPoint[i]) / mCellSize[i]) + 1;
-        }
-    }
-
-    virtual void CalculateCellSize( const SizeType& NumPoints )
-    {
-
-        CoordinateType delta[Dimension];
-        CoordinateType alpha[Dimension];
-        CoordinateType mult_delta = 1.00;
-        SizeType index = 0;
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            delta[i] = mMaxPoint[i] - mMinPoint[i];
-            if ( delta[i] > delta[index] )
-                index = i;
-            delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
-        }
-
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            alpha[i] = delta[i] / delta[index];
-            mult_delta *= alpha[i];
-        }
-
-        mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(NumPoints/mult_delta), 1.00/Dimension) +1 );
-
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            if(i!=index)
-            {
-                mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
-                mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
+        for(int i = 0; i < Dimension; i++ ) {
+            if(mN[i] > 1) {
+                mCellSize[i] = lengths[i] / (double)mN[i];
+            } else {
+                mCellSize[i] = average_length;
             }
+        
+            mInvCellSize[ i ] = 1.00 / mCellSize[i];
         }
-
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            mCellSize[i] = delta[i] / mN[i];
-            mInvCellSize[i] = 1.00 / mCellSize[i];
-        }
-
     }
 
 //************************************************************************
