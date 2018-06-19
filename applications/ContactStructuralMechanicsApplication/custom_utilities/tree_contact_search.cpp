@@ -285,6 +285,8 @@ void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
                 auxiliar_conditions_vector_buffer.push_back(p_new_cond);
 
                 p_new_cond->Data() = it_cond->Data(); // TODO: Remove when fixed on the core
+                p_new_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+//                 p_new_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
                 p_new_cond->Set(Flags(*it_cond));
                 p_new_cond->Set(MARKER, true);
             } else {
