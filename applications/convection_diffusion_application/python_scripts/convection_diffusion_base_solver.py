@@ -257,10 +257,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
-
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
@@ -272,6 +268,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         
             self._set_and_fill_buffer()
 
+        # This will be removed once the Model is fully supported! => It wont e necessary anymore
+        if not self.model.HasModelPart(self.main_model_part.Name):
+            self.model.AddModelPart(self.main_model_part)
+            
         if (self.settings["echo_level"].GetInt() > 0):
             self.print_on_rank_zero(self.model)
 
@@ -524,6 +524,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
+        # This will be removed once the Model is fully supported! => It wont e necessary anymore
+        if not self.model.HasModelPart(self.main_model_part.Name):
+            self.model.AddModelPart(self.main_model_part)
+        
         # Import constitutive laws.
         materials_imported = self.import_materials()
         if materials_imported:
