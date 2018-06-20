@@ -726,6 +726,8 @@ public:
     {
     }
 
+#ifndef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
+
     /*
      * Calculate variables on Integration points.
      * This gives access to variables computed in the constitutive law on each integration point.
@@ -848,6 +850,8 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
+
+#else
 
     /// Set data on the integration points of the condition. Version for boolean variables.
     /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
@@ -1045,6 +1049,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo)
     {}
 
+#endif
 
     /**
      * This method provides the place to perform checks on the completeness of the input

@@ -731,6 +731,8 @@ public:
     {
     }
 
+#ifndef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
+
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     /**
      * Calculate variables on Integration points.
@@ -903,6 +905,8 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
+
+#else
 
     /// Set data on the integration points of the element. Version for boolean variables.
     /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
@@ -1127,7 +1131,7 @@ public:
         std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
     {}
-
+#endif
     /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
