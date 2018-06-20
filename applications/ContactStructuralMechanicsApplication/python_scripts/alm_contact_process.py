@@ -261,6 +261,27 @@ class ALMContactProcess(KM.Process):
                 # Debug
                 if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
                     self._debug_output(self.global_step, "")
+                    # We compute the total integrated area, for debugging
+                    total_area = 0.0
+                    if (self.dimension == 2):
+                        exact_integration = KM.ExactMortarIntegrationUtility2D2N(3)
+                    else:
+                        #num_nodes = len(self.contact_model_part.Conditions[1].GetNodes())
+                        for cond in self.contact_model_part.Conditions:
+                            num_nodes = len(cond.GetNodes())
+                            break
+                        if (num_nodes == 3):
+                            exact_integration = KM.ExactMortarIntegrationUtility3D3N(3)
+                        else:
+                            exact_integration = KM.ExactMortarIntegrationUtility3D4N(3)
+
+                    # We iterate over the conditions
+                    for cond in self.contact_model_part.Conditions:
+                        if cond.Is(KM.SLAVE):
+                            area = exact_integration.TestGetExactAreaIntegration(self.contact_model_part, cond)
+                            total_area += area
+
+                    KM.Logger.PrintWarning("TOTAL INTEGRATED AREA: ", "{:.2e}".format(total_area))
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
