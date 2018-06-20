@@ -140,7 +140,7 @@ public:
     mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
 
     CalculateBoundingBox();                                                 // Calculate mMinPoint, mMaxPoint
-    AsignCellSize(CellSize);                                                // Calculate number of Cells
+    AssignCellSize(CellSize);                                                // Calculate number of Cells
     AllocateContainer();                                                    // Allocate cell list
     GenerateBins();                                                         // Fill Cells with objects
 }
@@ -182,7 +182,7 @@ public:
       mMaxPoint[i] = MaxPoint[i];
     }
 
-    AsignCellSize(CellSize);                                                // Calculate number of Cells
+    AssignCellSize(CellSize);                                                // Calculate number of Cells
     AllocateContainer();                                                    // Allocate cell list
   }
 
@@ -926,13 +926,13 @@ protected:
     }
 
     /**
-     * @brief Asigns the cell size of the bins using the provided CellSize.
+     * @brief Assigns the cell size of the bins using the provided CellSize.
      * 
-     * Asigns the cell size of the bins using the provided CellSize.
+     * Assigns the cell size of the bins using the provided CellSize.
      * 
      * @param CellSize Desired size of the cells.
      */
-    void AsignCellSize(CoordinateType CellSize)
+    void AssignCellSize(CoordinateType CellSize)
     {
         for(SizeType i = 0 ; i < Dimension ; i++)
         {
