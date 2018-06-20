@@ -551,8 +551,8 @@ void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties,
         mpParentModelPart->AddProperties(pNewProperties, ThisIndex);
     }
 
-    auto pprop_it = GetMesh(0).Properties().find(ThisIndex);
-    if( pprop_it != GetMesh(0).Properties().end() )
+    auto pprop_it = GetMesh(ThisIndex).Properties().find(pNewProperties->Id());
+    if( pprop_it != GetMesh(ThisIndex).Properties().end() )
     {
         if( &(*(pprop_it.base())) != &pNewProperties )
         {
@@ -561,7 +561,7 @@ void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties,
     }
     else
     {
-        GetMesh(0).AddProperties(pNewProperties);
+        GetMesh(ThisIndex).AddProperties(pNewProperties);
     }
 }
 
