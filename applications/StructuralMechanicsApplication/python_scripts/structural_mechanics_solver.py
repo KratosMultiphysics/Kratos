@@ -432,6 +432,7 @@ class MechanicalSolver(PythonSolver):
         check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
+        # NOTE: We do this here in case the model is empty, so the properties can be assigned 
         if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
         
