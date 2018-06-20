@@ -283,6 +283,8 @@ class ALMContactProcess(KM.Process):
 
                     KM.Logger.PrintWarning("TOTAL INTEGRATED AREA: ", "{:.2e}".format(total_area))
 
+                    #exact_integration.TestGiDDebug(self.contact_model_part)
+
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
 
