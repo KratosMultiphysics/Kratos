@@ -10,7 +10,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return JsonOutputProcess(Model, settings["Parameters"])
 
-# All the processes python processes should be derived from "python_process"
+# All the processes python processes should be derived from "Process"
 
 class JsonOutputProcess(KratosMultiphysics.Process):
     """This class is used in order to create a json file containing

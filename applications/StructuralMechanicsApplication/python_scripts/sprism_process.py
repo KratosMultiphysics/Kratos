@@ -13,7 +13,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SPRISMProcess(Model, settings["Parameters"])
 
-# All the processes python processes should be derived from "python_process"
+# All the processes python processes should be derived from "Process"
 
 class SPRISMProcess(KM.Process):
     """This class is used in order to compute some pre and post process on the SPRISM solid shell elements

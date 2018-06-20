@@ -16,7 +16,7 @@
 
 // System includes
 
-// Project includes 
+// Project includes
 #include "containers/variables_list_data_value_container.h"
 #include "spatial_containers/spatial_containers.h"
 
@@ -25,12 +25,12 @@
 #include "custom_utilities/modeler_utilities.hpp"
 
 ///VARIABLES used:
-//Data:      
+//Data:
 //StepData: CONTACT_FORCE, DISPLACEMENT
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -66,11 +66,11 @@ public:
     /// Default constructor.
     InletManagementProcess(ModelPart& rModelPart,
 			   ModelerUtilities::MeshingParameters& rRemeshingParameters,
-			   int EchoLevel) 
+			   int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-      std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
+      KRATOS_INFO("InletManagementProcess") << " inlet_management CONSTRUCTOR ";
 
       mEchoLevel = EchoLevel;
     }
@@ -105,7 +105,7 @@ public:
 
     if( mrModelPart.Name() != mrRemesh.SubModelPartName )
       std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
-      
+
     const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
     double currentTime = rCurrentProcessInfo[TIME];
     double timeInterval = rCurrentProcessInfo[DELTA_TIME];
@@ -139,7 +139,7 @@ public:
 
     /// this function will be executed at every time step BEFORE performing the solve phase
     void ExecuteInitializeSolutionStep() override
-    {	
+    {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
@@ -211,10 +211,10 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
+
     ModelerUtilities::MeshingParameters& mrRemesh;
 
-    ModelerUtilities mModelerUtilities;  
+    ModelerUtilities mModelerUtilities;
 
     int mEchoLevel;
 
@@ -229,7 +229,7 @@ private:
 
 
 
- 
+
  void CheckAndCreateNewInletLayer()
 
   {
@@ -251,7 +251,7 @@ private:
 	  if((neighb_elems.size()==0 && rN.size()==0) || i_node->Is(RIGID)){
 
 	    const array_1d<double,3>& inletDisplacement = i_node->FastGetSolutionStepValue(DISPLACEMENT);
-	    double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] + 
+	    double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
 					   inletDisplacement[1]*inletDisplacement[1]);
 	    if(dimension==3){
 	      distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
@@ -274,7 +274,7 @@ private:
     	    }
 
     	  }
-	 
+
     	}
 
       }
@@ -290,7 +290,7 @@ private:
     	    if(rGeometry[n].Is(INLET) && rGeometry[n].IsNot(RIGID)){
 
     	      const array_1d<double,3>& inletDisplacement =rGeometry[n].FastGetSolutionStepValue(DISPLACEMENT);
-    	      double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] + 
+    	      double distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
     					     inletDisplacement[1]*inletDisplacement[1]);
     	      if(dimension==3){
     		distanceFromOrigin=sqrt(inletDisplacement[0]*inletDisplacement[0] +
@@ -359,16 +359,16 @@ private:
 		    rGeometry[n].FastGetSolutionStepValue(ACCELERATION_Z,0)=0;
 		    rGeometry[n].FastGetSolutionStepValue(ACCELERATION_Z,1)=0;
 		  }
-	
+
 
     	      }
-	 
+
     	    }
     	  }
 
 
       }
- 
+
     KRATOS_CATCH( "" )
       }
 
@@ -396,14 +396,14 @@ private:
 
 	}
       }
- 
+
     KRATOS_CATCH( "" )
       }
 
 
 
 
- 
+
 
     ///@}
     ///@name Private  Access
@@ -465,6 +465,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INLET_MANAGEMENT_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_INLET_MANAGEMENT_PROCESS_H_INCLUDED  defined
 
 

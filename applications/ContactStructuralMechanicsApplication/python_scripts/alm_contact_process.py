@@ -16,7 +16,7 @@ def Factory(settings, Model):
 
 import sys
 
-# All the processes python processes should be derived from "python_process"
+# All the processes python processes should be derived from "Process"
 
 class ALMContactProcess(KM.Process):
     """This class is used in order to compute the contact using a mortar ALM formulation
