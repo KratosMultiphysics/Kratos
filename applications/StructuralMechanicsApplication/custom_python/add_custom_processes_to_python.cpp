@@ -15,8 +15,8 @@
 
 
 // Project includes
-#include "includes/model_part.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "includes/model_part.h"
 #include "structural_mechanics_application_variables.h"
 
 //Processes
@@ -45,12 +45,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
 	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
         .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
-        .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
+        .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)
         .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
 
     class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
         .def(init<ModelPart&, Parameters>());
-    
+
     class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
         .def(init<ModelPart&>())
         ;
@@ -81,7 +81,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 }
 
-}  // namespace Python.  
+}  // namespace Python.
 
 } // Namespace Kratos
 
