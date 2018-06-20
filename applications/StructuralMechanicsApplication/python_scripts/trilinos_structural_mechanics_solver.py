@@ -130,10 +130,3 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                  self.settings["compute_reactions"].GetBool(),
                                                                  self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                  self.settings["move_mesh_flag"].GetBool())
-
-    def _create_restart_utility(self):
-        """Create the restart utility."""
-        import trilinos_restart_utility as restart_utility
-        rest_utility = restart_utility.RestartUtility(self.main_model_part,
-                                                      self._get_restart_settings())
-        return rest_utility
