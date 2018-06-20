@@ -1237,7 +1237,7 @@ template<std::size_t TDim, std::size_t TNumNodes>
 inline void TreeContactSearch<TDim, TNumNodes>::SetInactiveNode(NodesArrayType::iterator ItNode)
 {
     // If the node has been already actived we do not inactivate
-    if (ItNode->Is(VISITED)) {
+    if (ItNode->IsNot(VISITED)) {
         // Auxiliar zero array
         const array_1d<double, 3> zero_array(3, 0.0);
 
