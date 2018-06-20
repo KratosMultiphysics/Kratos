@@ -62,12 +62,13 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
+        for(int i = 0; i < nnodes; i++)
         {
-            ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-            inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = inode->FastGetSolutionStepValue(HEIGHT) + (inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightConvert);
+            auto node = nodes_begin + i;
+            node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = node->FastGetSolutionStepValue(HEIGHT) + (node->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightConvert);
         }
 
         KRATOS_CATCH("")
@@ -80,12 +81,14 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
+
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
+        for(int i = 0; i < nnodes; i++)
         {
-            ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-            inode->FastGetSolutionStepValue(HEIGHT) = inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - (inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightConvert);
+            auto node = nodes_begin + i;
+            node->FastGetSolutionStepValue(HEIGHT) = node->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - (node->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightConvert);
         }
 
         KRATOS_CATCH("")
@@ -98,12 +101,13 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
+        for(int i = 0; i < nnodes; i++)
         {
-            ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-            inode->GetSolutionStepValue(VELOCITY) = inode->FastGetSolutionStepValue(MOMENTUM) / (inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightConvert);
+            auto node = nodes_begin + i;
+            node->GetSolutionStepValue(VELOCITY) = node->FastGetSolutionStepValue(MOMENTUM) / (node->FastGetSolutionStepValue(HEIGHT) * mWaterHeightConvert);
         }
 
         KRATOS_CATCH("")
@@ -116,12 +120,14 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
+
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
+        for(int i = 0; i < nnodes; i++)
         {
-            ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-            inode->GetSolutionStepValue(MOMENTUM) = inode->FastGetSolutionStepValue(VELOCITY) * (inode->FastGetSolutionStepValue(HEIGHT) * mWaterHeightConvert);
+            auto node = nodes_begin + i;
+            node->GetSolutionStepValue(MOMENTUM) = node->FastGetSolutionStepValue(VELOCITY) * (node->FastGetSolutionStepValue(HEIGHT) * mWaterHeightConvert);
         }
 
         KRATOS_CATCH("")
@@ -134,17 +140,20 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
+
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
+        for(int i = 0; i < nnodes; i++)
         {
-            ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-            if (inode->FastGetSolutionStepValue(HEIGHT) < mDryHeight &&
-                inode->FastGetSolutionStepValue(RAIN)   < mDryHeight )
+            auto node = nodes_begin + i;
+
+            if (node->FastGetSolutionStepValue(HEIGHT) < mDryHeight &&
+                node->FastGetSolutionStepValue(RAIN)   < mDryHeight )
             {
-                inode->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
-                inode->FastGetSolutionStepValue(MOMENTUM_X) = 0;
-                inode->FastGetSolutionStepValue(MOMENTUM_Y) = 0;
+                node->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
+                node->FastGetSolutionStepValue(MOMENTUM_X) = 0;
+                node->FastGetSolutionStepValue(MOMENTUM_Y) = 0;
             }
         }
         KRATOS_CATCH("")
@@ -157,17 +166,20 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
+
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
+        for(int i = 0; i < nnodes; i++)
         {
-            ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-            if (inode->FastGetSolutionStepValue(HEIGHT) < mDryHeight &&
-                inode->FastGetSolutionStepValue(RAIN)   < mDryHeight )
+            auto node = nodes_begin + i;
+
+            if (node->FastGetSolutionStepValue(HEIGHT) < mDryHeight &&
+                node->FastGetSolutionStepValue(RAIN)   < mDryHeight )
             {
-                inode->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
-                inode->FastGetSolutionStepValue(VELOCITY_X) = 0;
-                inode->FastGetSolutionStepValue(VELOCITY_Y) = 0;
+                node->FastGetSolutionStepValue(HEIGHT)     = mZeroValue;
+                node->FastGetSolutionStepValue(VELOCITY_X) = 0;
+                node->FastGetSolutionStepValue(VELOCITY_Y) = 0;
             }
         }
         KRATOS_CATCH("")
@@ -182,32 +194,35 @@ public:
         
         // Getting the elements from the model
         const int nelem = static_cast<int>(mrModelPart.Elements().size());
-        int nodes;
-        bool wet_node;
+        ModelPart::ElementsContainerType::iterator elem_begin = mrModelPart.ElementsBegin();
+
+        int nodes;      // Number of element nodes
+        bool wet_node;  // The nodal flag
         
         // And now, if an element has all nodes dry, it is not active
         #pragma omp parallel for
         for(int k = 0; k < nelem; k++)
         {
-            ModelPart::ElementsContainerType::iterator it = mrModelPart.ElementsBegin() + k;
-            nodes = it->GetGeometry().size();
+            auto elem = elem_begin + k;
+
+            nodes = elem->GetGeometry().size();
             wet_node = false;
             for(int l = 0; l < nodes; l++)
             {
-                if (it->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
-                    it->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mDryHeight )
+                if (elem->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
+                    elem->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mDryHeight )
                     wet_node = true;  // It means there is almost a wet node
             }
 
             if (wet_node)
             {
-                it->Set(FLUID, true);
-                it->Set(ACTIVE, true);
+                elem->Set(FLUID, true);
+                elem->Set(ACTIVE, true);
             }
             else
             {
-                it->Set(FLUID, false);
-                it->Set(ACTIVE, false);
+                elem->Set(FLUID, false);
+                elem->Set(ACTIVE, false);
             }
         }
         
@@ -223,21 +238,19 @@ public:
         // Create a copy for each property
         const int nprop = static_cast<int>(mrModelPart.NumberOfProperties());
         ModelPart::PropertiesContainerType::iterator prop_begin = mrModelPart.PropertiesBegin();
+
         IndexType last_id = 0;
         IndexVectorType prop_id;
 
         for (int i = 0; i < nprop; i++)
         {
-            ModelPart::PropertiesContainerType::iterator prop = prop_begin + i;
+            auto prop = prop_begin + i;
 
             if (prop->Id() > last_id)
                 last_id = prop->Id();
             prop_id.push_back(prop->Id());
         }
 
-        // for (int i = 0; i < nprop; i++)
-        // {
-        //     ModelPart::PropertiesContainerType::iterator prop = prop_begin + i;
         for (auto id : prop_id)
         {
             // Get pointers to the properties and create the dry property
@@ -267,7 +280,7 @@ public:
         #pragma omp parallel for
         for (int i = 0; i < nelem; i++)
         {
-            ModelPart::ElementsContainerType::iterator elem = elem_begin + i;
+            auto elem = elem_begin + i;
 
             if (elem->Is(FLUID))
             {
@@ -300,7 +313,7 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < nodes; i++)
         {
-            ModelPart::NodesContainerType::iterator node = node_begin + i;
+            auto node = node_begin + i;
 
             if (node->FastGetSolutionStepValue(HEIGHT) <= mDryHeight)
             {
@@ -331,8 +344,7 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < nodes; i++)
         {
-            ModelPart::NodesContainerType::iterator node = node_begin + i;
-
+            auto node = node_begin + i;
             node->Z() = node->Z0();
         }
     }
@@ -351,8 +363,7 @@ public:
         #pragma omp parallel for
         for (int i = 0; i < nelem; i++)
         {
-            ModelPart::ElementsContainerType::iterator elem = elem_begin + i;
-
+            auto elem = elem_begin + i;
             elem->Set(ACTIVE, true);
         }
     }

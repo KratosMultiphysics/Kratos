@@ -127,11 +127,12 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY
-        return Element::Pointer(new ShallowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        KRATOS_CATCH("")
+        return Kratos::make_shared<ShallowElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**
@@ -141,11 +142,12 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
-        KRATOS_TRY
-        return Element::Pointer(new ShallowElement(NewId, pGeom, pProperties));
-        KRATOS_CATCH("")
+        return Kratos::make_shared<ShallowElement>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -265,6 +267,9 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    static constexpr unsigned int msNodes = 3;
+    static constexpr unsigned int msElemSize = 3 * msNodes;
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -283,8 +288,8 @@ protected:
 
     void ComputeMassMatrices(
         const ElementData& rData,
-        BoundedMatrix<double,9,9>& rVelMatrix,
-        BoundedMatrix<double,9,9>& rHeightMatrix);
+        BoundedMatrix<double,msElemSize,msElemSize>& rVelMatrix,
+        BoundedMatrix<double,msElemSize,msElemSize>& rHeightMatrix);
 
     void ComputeElementValues(
         const ElementData& rData,

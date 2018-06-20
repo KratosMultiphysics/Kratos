@@ -37,8 +37,6 @@ int ShallowElement::Check(const ProcessInfo& rCurrentProcessInfo)
     int ierr = Element::Check(rCurrentProcessInfo);
     if(ierr != 0) return ierr;
 
-    constexpr unsigned int nnodes = 3;
-
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
     KRATOS_CHECK_VARIABLE_KEY(HEIGHT)
@@ -52,7 +50,7 @@ int ShallowElement::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( unsigned int i = 0; i < nnodes; i++ )
+    for ( unsigned int i = 0; i < msNodes; i++ )
     {
         Node<3>& node = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, node)
@@ -78,15 +76,12 @@ void ShallowElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo
 {
     KRATOS_TRY
 
-    constexpr unsigned int nnodes = 3;
-    constexpr unsigned int elem_size = nnodes*3;
-
-    if(rResult.size() != elem_size)
-        rResult.resize(elem_size,false); // False says not to preserve existing storage!!
+    if(rResult.size() != msElemSize)
+        rResult.resize(msElemSize,false); // False says not to preserve existing storage!!
 
     GeometryType& rGeom = GetGeometry();
     int counter=0;
-    for (unsigned int i = 0; i < nnodes; i++)
+    for (unsigned int i = 0; i < msNodes; i++)
     {
         rResult[counter++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
         rResult[counter++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
@@ -102,15 +97,12 @@ void ShallowElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& r
 {
     KRATOS_TRY
 
-    constexpr unsigned int nnodes = 3;
-    constexpr unsigned int elem_size = nnodes*3;
-
-    if(rElementalDofList.size() != elem_size)
-        rElementalDofList.resize(elem_size);
+    if(rElementalDofList.size() != msElemSize)
+        rElementalDofList.resize(msElemSize);
     
     GeometryType& rGeom = GetGeometry();
     int counter=0;
-    for (unsigned int i = 0; i < nnodes; i++)
+    for (unsigned int i = 0; i < msNodes; i++)
     {
         rElementalDofList[counter++] = rGeom[i].pGetDof(VELOCITY_X);
         rElementalDofList[counter++] = rGeom[i].pGetDof(VELOCITY_Y);
@@ -129,15 +121,12 @@ void ShallowElement::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    constexpr unsigned int nnodes = 3;
-    constexpr unsigned int elem_size = nnodes*3;
-
     // Resize of the Left and Right Hand side
-    if(rLeftHandSideMatrix.size1() != elem_size)
-        rLeftHandSideMatrix.resize(elem_size,elem_size,false); // False says not to preserve existing storage!!
+    if(rLeftHandSideMatrix.size1() != msElemSize)
+        rLeftHandSideMatrix.resize(msElemSize,msElemSize,false); // False says not to preserve existing storage!!
 
-    if(rRightHandSideVector.size() != elem_size)
-        rRightHandSideVector.resize(elem_size,false);          // False says not to preserve existing storage!!
+    if(rRightHandSideVector.size() != msElemSize)
+        rRightHandSideVector.resize(msElemSize,false);          // False says not to preserve existing storage!!
 
     // Struct to pass around the data
     ElementData data;
@@ -151,18 +140,18 @@ void ShallowElement::CalculateLocalSystem(
     double length = GetGeometry().Length();
 
     // Mass matrix
-    BoundedMatrix<double,elem_size,elem_size> vel_mass_matrix = ZeroMatrix(elem_size,elem_size);
-    BoundedMatrix<double,elem_size,elem_size> h_mass_matrix = ZeroMatrix(elem_size,elem_size);
+    BoundedMatrix<double,msElemSize,msElemSize> vel_mass_matrix = ZeroMatrix(msElemSize,msElemSize);
+    BoundedMatrix<double,msElemSize,msElemSize> h_mass_matrix = ZeroMatrix(msElemSize,msElemSize);
     ComputeMassMatrices(data, vel_mass_matrix, h_mass_matrix);
 
     // main loop (one Gauss point)
 
     // Build shape functions and derivatives at the Gauss point
-    BoundedMatrix<double,2,elem_size> N_vel = ZeroMatrix(2,elem_size);        // Shape functions matrix (for velocity)
-    array_1d<double,elem_size> N_height = ZeroVector(elem_size);              // Shape functions vector (for height)
-    array_1d<double,elem_size> DN_DX_vel = ZeroVector(elem_size);             // Gradients vector (for velocity)
-    BoundedMatrix<double,2,elem_size> DN_DX_height = ZeroMatrix(2,elem_size); // Gradients matrix (for height)
-    for(unsigned int node = 0; node < nnodes; node++)
+    BoundedMatrix<double,2,msElemSize> N_vel = ZeroMatrix(2,msElemSize);        // Shape functions matrix (for velocity)
+    array_1d<double,msElemSize> N_height = ZeroVector(msElemSize);              // Shape functions vector (for height)
+    array_1d<double,msElemSize> DN_DX_vel = ZeroVector(msElemSize);             // Gradients vector (for velocity)
+    BoundedMatrix<double,2,msElemSize> DN_DX_height = ZeroMatrix(2,msElemSize); // Gradients matrix (for height)
+    for(unsigned int node = 0; node < msNodes; node++)
     {
         // Velocity divergence
         DN_DX_vel[  node*3] = DN_DX(node,0);
@@ -182,13 +171,15 @@ void ShallowElement::CalculateLocalSystem(
     ComputeElementValues(data, vel, height);
 
     // Auxiliary values to compute friction and stabilization terms
-    double abs_vel = norm_2(vel);
-    double height4_3 = std::pow(std::abs(height)+0.005, 1.33333333);
-    double c = std::sqrt(data.gravity * (std::abs(height)+0.01));
+    const double epsilon = 0.005;
+    const double abs_vel = norm_2(vel);
+    const double aux_height = std::abs(height) + epsilon;
+    const double height4_3 = std::pow(aux_height, 1.33333333);
+    const double c = std::sqrt(data.gravity * aux_height);
 
     // Build LHS
     // Wave equation terms
-    BoundedMatrix<double,9,9> vel_wave = prod(trans(N_vel),DN_DX_height);
+    BoundedMatrix<double,msElemSize,msElemSize> vel_wave = prod(trans(N_vel),DN_DX_height);
     noalias(rLeftHandSideMatrix)  = data.gravity * vel_wave;                  // Add <w*g*grad(h)> to Momentum Eq
     noalias(rLeftHandSideMatrix) += height * outer_prod(N_height, DN_DX_vel); // Add <q*h*div(u)> to Mass Eq
 
@@ -209,11 +200,11 @@ void ShallowElement::CalculateLocalSystem(
 
     // Computing stabilization terms
     double art = length * data.c_tau / c;
-    array_1d<double,2> height_grad = prod(DN_DX_height, data.unknown);
     double k_dc = 0.5 * length * data.c_tau;
-    double grad_norm = norm_2(height_grad);
-    array_1d<double,9> residual = rRightHandSideVector - prod(rLeftHandSideMatrix, data.unknown);
-    double h_residual = data.lumping_factor * (residual[2] + residual[5] + residual[8]);
+    const array_1d<double,2> height_grad = prod(DN_DX_height, data.unknown);
+    const array_1d<double,msElemSize> residual = rRightHandSideVector - prod(rLeftHandSideMatrix, data.unknown);
+    const double grad_norm = norm_2(height_grad);
+    const double h_residual = data.lumping_factor * (residual[2] + residual[5] + residual[8]);
     if (grad_norm > 1e-3)
         k_dc *= std::abs(h_residual / grad_norm);
         // k_dc *= grad_norm; // The easiest and heaviest way. Not good for complex free surface problems
@@ -226,12 +217,12 @@ void ShallowElement::CalculateLocalSystem(
     this->SetValue(VEL_ART_VISC, art);
 
     // Mass balance LHS stabilization terms
-    BoundedMatrix<double,9,9> diff_h = prod(trans(DN_DX_height), DN_DX_height);
+    BoundedMatrix<double,msElemSize,msElemSize> diff_h = prod(trans(DN_DX_height), DN_DX_height);
     noalias(rLeftHandSideMatrix) += k_dc * diff_h; // Second order FIC shock capturing
     noalias(rRightHandSideVector) -= k_dc * prod(diff_h, data.depth); // Substracting the bottom diffusion
 
     // Momentum balance stabilization terms
-    BoundedMatrix<double,9,9> diff_v = outer_prod(DN_DX_vel, DN_DX_vel);
+    BoundedMatrix<double,msElemSize,msElemSize> diff_v = outer_prod(DN_DX_vel, DN_DX_vel);
     noalias(rLeftHandSideMatrix) += art * diff_v; // Second order FIC
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
@@ -249,7 +240,7 @@ void ShallowElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_ERROR << "ShallowElement: CalculateLeftHandSide not implemented" << std::endl;
 }
 
 //----------------------------------------------------------------------
@@ -258,7 +249,7 @@ void ShallowElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_ERROR << "ShallowElement: CalculateRightHandSide not implemented" << std::endl;
 }
 
 //----------------------------------------------------------------------
@@ -283,10 +274,9 @@ void ShallowElement::GetValueOnIntegrationPoints(
 void ShallowElement::InitializeElement(ElementData& rData, const ProcessInfo& rCurrentProcessInfo)
 {
     // Global values
-    constexpr unsigned int nnodes = 3;
     const double delta_t = rCurrentProcessInfo[DELTA_TIME];
     rData.dt_inv = 1.0 / delta_t;
-    rData.lumping_factor = 1.0 / nnodes;
+    rData.lumping_factor = 1.0 / msNodes;
     rData.c_tau = rCurrentProcessInfo[DYNAMIC_TAU];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rData.manning2 = std::pow( GetProperties()[MANNING], 2);
@@ -294,7 +284,7 @@ void ShallowElement::InitializeElement(ElementData& rData, const ProcessInfo& rC
     // Nodal data
     GeometryType& rGeom = GetGeometry();
     unsigned int counter = 0;
-    for (unsigned int i = 0; i < nnodes; i++)
+    for (unsigned int i = 0; i < msNodes; i++)
     {
         rData.depth[counter] = 0;
         rData.rain[counter]  = 0;
@@ -318,8 +308,8 @@ void ShallowElement::InitializeElement(ElementData& rData, const ProcessInfo& rC
 
 void ShallowElement::ComputeMassMatrices(
     const ElementData& rData,
-    BoundedMatrix<double,9,9>& rVelMatrix,
-    BoundedMatrix<double,9,9>& rHeightMatrix)
+    BoundedMatrix<double,msElemSize,msElemSize>& rVelMatrix,
+    BoundedMatrix<double,msElemSize,msElemSize>& rHeightMatrix)
 {
     for (unsigned int i = 0; i < 3; i++)
     {
