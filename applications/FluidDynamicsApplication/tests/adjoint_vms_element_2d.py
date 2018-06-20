@@ -1,9 +1,11 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
+missing_applications_message = ["Missing required application(s):",]
+have_required_applications = True
+
 try:
     from KratosMultiphysics.AdjointFluidApplication import *
-    have_adjoint_fluid = True
 except ImportError:
     have_required_applications = False
     missing_applications_message.append("AdjointFluidApplication")

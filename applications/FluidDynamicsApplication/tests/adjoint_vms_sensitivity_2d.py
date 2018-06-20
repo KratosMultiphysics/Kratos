@@ -3,6 +3,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.FluidDynamicsApplication
 
+missing_applications_message = ["Missing required application(s):",]
 have_required_applications = True
 
 try:
