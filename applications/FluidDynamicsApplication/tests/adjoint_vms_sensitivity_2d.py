@@ -3,12 +3,19 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.FluidDynamicsApplication
 
+have_required_applications = True
+
 try:
     import KratosMultiphysics.AdjointFluidApplication
-    have_required_applications = True
 except ImportError:
     have_required_applications = False
     missing_applications_message.append("AdjointFluidApplication")
+
+try:
+    import KratosMultiphysics.HDF5Application as kh5
+except ImportError:
+    have_required_applications = False
+    missing_applications_message.append("HDF5Application")
 
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
