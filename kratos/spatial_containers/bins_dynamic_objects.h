@@ -105,30 +105,75 @@ public:
   BinsObjectDynamic() {}
   /// Constructor de bins a bounding box
 
+  /**
+   * @brief Constructs a new BinsObjectDynamic
+   * 
+   * Construct a new BinsObjectDynamic using a list of objects and an automatically calculate cell size.
+   * 
+   * @param ObjectsBegin Iterator to the first object of the bins
+   * @param ObjectsEnd Iterator to the last object of the bins
+   */
   BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
       : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd) {
 
     std::size_t GridSize[3] = {0, 0, 0};
-
     mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
+
     CalculateBoundingBox();                                                 // Calculate mMinPoint, mMaxPoint
     CalculateCellSize(mObjectsSize, GridSize);                              // Calculate number of Cells
     AllocateContainer();                                                    // Allocate cell list
     GenerateBins();                                                         // Fill Cells with objects
   }
 
+  /**
+   * @brief Constructs a new BinsObjectDynamic
+   * 
+   * Constructs a new BinsObjectDynamic using a list of objects and a user provided cell size.
+   * 
+   * @param ObjectsBegin Iterator to the first object of the bins
+   * @param ObjectsEnd Iterator to the last object of the bins
+   * @param CellSize Size of the cells (equal for every dimension)
+   */
   BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, CoordinateType CellSize)
       : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd) {
 
     mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
-    std::size_t expCellNum = mObjectsSize / std::pow(CellSize, 3);
-    std::size_t GridSize[3] = {expCellNum, expCellNum, expCellNum};
+
+    CalculateBoundingBox();                                                 // Calculate mMinPoint, mMaxPoint
+    AsignCellSize(CellSize);                                                // Calculate number of Cells
+    AllocateContainer();                                                    // Allocate cell list
+    GenerateBins();                                                         // Fill Cells with objects
+}
+
+  /**
+   * @brief Constructs a new BinsObjectDynamic
+   * 
+   * Constructs a new BinsObjectDynamic using a list of objects and a user provided number of cells for every dimension.
+   * 
+   * @param ObjectsBegin Iterator to the first object of the bins
+   * @param ObjectsEnd Iterator to the last object of the bins
+   * @param GridSize Number of cells for every dimension
+   */
+  BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const std::size_t GridSize[3])
+      : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd) {
+
+    mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
+
     CalculateBoundingBox();                                                 // Calculate mMinPoint, mMaxPoint
     CalculateCellSize(mObjectsSize, GridSize);                              // Calculate number of Cells
     AllocateContainer();                                                    // Allocate cell list
     GenerateBins();                                                         // Fill Cells with objects
   }
 
+  /**
+   * @brief Constructs a new BinsObjectDynamic
+   * 
+   * Constructs a new BinsObjectDynamic using a given bounding box and a user provided cell size.
+   * 
+   * @param MinPoint Min point of the boundingbox containing the bins
+   * @param MaxPoint Max point of the boundingbox containing the bins 
+   * @param CellSize Size of the cells (equal for very dimension)
+   */
   BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
       : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0) {
 
@@ -137,16 +182,20 @@ public:
       mMaxPoint[i] = MaxPoint[i];
     }
 
-    std::size_t GridSize[3] = {
-        static_cast<std::size_t>((mMaxPoint[0] - mMinPoint[0]) / CellSize), 
-        static_cast<std::size_t>((mMaxPoint[1] - mMinPoint[1]) / CellSize),
-        static_cast<std::size_t>((mMaxPoint[2] - mMinPoint[2]) / CellSize)
-    };
-
-    CalculateCellSize(mObjectsSize, GridSize);                              // Calculate number of Cells
+    AsignCellSize(CellSize);                                                // Calculate number of Cells
     AllocateContainer();                                                    // Allocate cell list
   }
 
+  /**
+   * @brief Constructs a new BinsObjectDynamic object
+   * 
+   * Constructs a new BinsObjectDynamic using a given bounding box and a provided aproximation of the number
+   * of objects that will be added to the bins.
+   * 
+   * @param MinPoint Min point of the boundingbox containing the bins
+   * @param MaxPoint Max point of the boundingbox containing the bins 
+   * @param NumPoints Expected number of elements in the bins
+   */
   BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, SizeType NumPoints)
       : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0) {
 
@@ -157,8 +206,8 @@ public:
       mMaxPoint[i] = MaxPoint[i];
     }
 
-    CalculateCellSize(NumPoints, GridSize);                                // Calculate number of Cells
-    AllocateContainer();                                                   // Allocate cell list
+    CalculateCellSize(NumPoints, GridSize);                                 // Calculate number of Cells
+    AllocateContainer();                                                    // Allocate cell list
   }
 
   /// Destructor.
@@ -821,6 +870,16 @@ protected:
 //************************************************************************
 //************************************************************************
 
+    /** 
+     * @brief Calculates the cell size of the bins.
+     * 
+     * Calculates the cell size of the bins. If GridSize is provided and none of its components is different from 0, 
+     * it will override the automatic calculation and use the number of cells indicated.
+     * 
+     * @param ApproximatedSize Aproximate numver of elements that will be stored in the bins
+     * @param GridSize Number of desired cells in each dimension. If any dimension is set to 0, the
+     * number of cells will be calculated automatically for every dimension.
+     */
     void CalculateCellSize(std::size_t ApproximatedSize, const std::size_t GridSize[3])
     {
         std::size_t average_number_of_cells = static_cast< std::size_t >(
@@ -863,6 +922,23 @@ protected:
             }
         
             mInvCellSize[ i ] = 1.00 / mCellSize[i];
+        }
+    }
+
+    /**
+     * @brief Asigns the cell size of the bins using the provided CellSize.
+     * 
+     * Asigns the cell size of the bins using the provided CellSize.
+     * 
+     * @param CellSize Desired size of the cells.
+     */
+    void AsignCellSize(CoordinateType CellSize)
+    {
+        for(SizeType i = 0 ; i < Dimension ; i++)
+        {
+            mCellSize[i] = CellSize;
+            mInvCellSize[i] = 1.00 / mCellSize[i];
+            mN[i] = static_cast<SizeType>( (mMaxPoint[i]-mMinPoint[i]) / mCellSize[i]) + 1;
         }
     }
 
