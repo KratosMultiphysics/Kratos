@@ -5,7 +5,7 @@ import KratosMultiphysics.FluidDynamicsApplication
 
 try:
     import KratosMultiphysics.AdjointFluidApplication
-    have_adjoint_fluid = True
+    have_required_applications = True
 except ImportError:
     have_required_applications = False
     missing_applications_message.append("AdjointFluidApplication")
