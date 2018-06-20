@@ -301,6 +301,10 @@ void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
 
     // Finally we add the new conditions to the model part
     r_sub_contact_model_part.RemoveConditions(TO_ERASE);
+    // Reorder ids (in order to keep the ids consistent)
+    for (int i = 0; i < static_cast<int>(auxiliar_conditions_vector.size()); ++i) {
+        auxiliar_conditions_vector[i]->SetId(total_number_conditions + i);
+    }
     ConditionsArrayType aux_conds;
     aux_conds.GetContainer() = auxiliar_conditions_vector;
     r_sub_contact_model_part.AddConditions(aux_conds.begin(), aux_conds.end());
