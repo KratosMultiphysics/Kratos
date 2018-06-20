@@ -330,12 +330,12 @@ class ExplicitStrategy(object):
     def AddDofs(self, spheres_model_part):
 
         for node in spheres_model_part.Nodes:
-            node.AddDof(VELOCITY_X, REACTION_X)
-            node.AddDof(VELOCITY_Y, REACTION_Y)
-            node.AddDof(VELOCITY_Z, REACTION_Z)
-            node.AddDof(ANGULAR_VELOCITY_X, REACTION_X)
-            node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y)
-            node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
+            node.AddDof(VELOCITY_X)
+            node.AddDof(VELOCITY_Y)
+            node.AddDof(VELOCITY_Z)
+            node.AddDof(ANGULAR_VELOCITY_X)
+            node.AddDof(ANGULAR_VELOCITY_Y)
+            node.AddDof(ANGULAR_VELOCITY_Z)
 
         Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
 
