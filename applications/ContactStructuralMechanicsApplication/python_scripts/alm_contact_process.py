@@ -243,6 +243,9 @@ class ALMContactProcess(KM.Process):
             self.global_step = self.main_model_part.ProcessInfo[KM.STEP]
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
             if (self.database_step >= database_step_update or self.global_step == 1):
+                # We unset the flag MARKER (used in the nodes to not deactivate it)
+                KM.VariableUtils().SetFlag(KM.MARKER, False, self.contact_model_part.Nodes)
+
                 # We solve one linear step with a linear strategy if needed
                 for key in self.settings["contact_model_part"].keys():
                     if (self.settings["contact_model_part"][key].size() > 0):
@@ -252,8 +255,8 @@ class ALMContactProcess(KM.Process):
                         self.contact_search[key].UpdateMortarConditions()
                         #self.contact_search[key].CheckMortarConditions()
 
-                # We unset the flag VISITED (used in the nodes to not deactivate it)
-                KM.VariableUtils().SetFlag(KM.VISITED, False, self.contact_model_part.Nodes)
+                # We unset the flag MARKER (used in the nodes to not deactivate it)
+                KM.VariableUtils().SetFlag(KM.MARKER, False, self.contact_model_part.Nodes)
 
                 # Debug
                 if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
