@@ -51,8 +51,8 @@ class ShallowWaterAnalysis(object): # TODO in the future this could derive from 
             self.main_model_part.ProcessInfo[Kratos.STEP] = self.step
 
             if self.is_printing_rank:
-                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
-                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
+                Kratos.Logger.PrintInfo("Shallow water analysis","STEP = ", self.step)
+                Kratos.Logger.PrintInfo("Shallow water analysis","TIME = ", self.time)
 
             self.InitializeSolutionStep()
             self.SolveSingleStep()
