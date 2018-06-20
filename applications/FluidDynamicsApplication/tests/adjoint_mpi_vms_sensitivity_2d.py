@@ -37,6 +37,8 @@ class ControlledExecutionScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
+@UnitTest.skipUnless(have_required_applications," ".join(missing_applications_message))
+
 class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
 
     def setUp(self):
