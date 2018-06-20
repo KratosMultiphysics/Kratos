@@ -809,6 +809,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         reference_file_name = GetFilePath("point_output_process_ref_files/condition_output_ref.dat")
 
+        # Here we also test if setting the write_buffer_size works
         settings = Parameters("""{
                 "process_list" : [ {
                         "python_module"  : "point_output_process",
@@ -819,7 +820,8 @@ class TestProcesses(KratosUnittest.TestCase):
                             "model_part_name"  : "Main",
                             "output_file_name" : "condition_output",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
-                            "entity_type"      : "condition"
+                            "entity_type"      : "condition",
+                            "write_buffer_size" : 512
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",

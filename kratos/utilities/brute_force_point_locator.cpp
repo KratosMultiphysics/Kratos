@@ -18,7 +18,7 @@
 
 
 // Project includes
-#include "point_locator.h"
+#include "brute_force_point_locator.h"
 
 
 namespace Kratos
@@ -28,14 +28,12 @@ int BruteForcePointLocator::FindNode(const Point& rThePoint,
                            const double DistanceThreshold) const
 {
     int found_node_id = -1; // if no node is found this will be returned
-    bool is_close_enough = false;
-
     int local_nodes_found = 0;
 
     // note that this cannot be omp bcs breaking is not allowed in omp
     for (auto& r_node : mrModelPart.GetCommunicator().LocalMesh().Nodes())
     {
-        is_close_enough = NodeIsCloseEnough(r_node, rThePoint, DistanceThreshold);
+        const bool is_close_enough = NodeIsCloseEnough(r_node, rThePoint, DistanceThreshold);
         if (is_close_enough)
         {
             local_nodes_found = 1;
@@ -88,15 +86,13 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
         << r_geom.WorkingSpaceDimension() << ") of the " << rObjectName
         << " are not equal!" << std::endl;
 
-    bool is_inside;
-
     int local_objects_found = 0;
     array_1d<double, 3> local_coordinates;
 
     // note that this cannot be omp bcs breaking is not allowed in omp
     for (auto& r_object : rObjects)
     {
-        is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates);
+        const bool is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates);
         if (is_inside)
         {
             local_objects_found = 1;

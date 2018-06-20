@@ -4,8 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # other imports
-import os
-from file_handler_utility import FileHandlerUtility
+from time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -27,13 +26,13 @@ class PointOutputProcess(KratosMultiphysics.Process):
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
-            "model_part_name"             : "",
-            "entity_type"                 : "element",
-            "position"                    : [],
-            "output_variables"            : [],
-            "flush_frequency"             : "",
-            "output_file_name"            : "",
-            "print_format"              : ""
+            "model_part_name"   : "",
+            "entity_type"       : "element",
+            "position"          : [],
+            "output_variables"  : [],
+            "output_file_name"  : "",
+            "write_buffer_size" : -1,
+            "print_format"      : ""
         }''')
 
         self.model = model
@@ -131,10 +130,10 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
             file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
             file_handler_params["output_file_name"].SetString(output_file_name)
-            file_handler_params.AddValue("flush_frequency", self.params["flush_frequency"])
+            file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
 
             file_header = GetFileHeader(entity_type, found_id, point, self.output_variables[0])
-            self.output_file.append(FileHandlerUtility(self.model_part, file_handler_params, file_header))
+            self.output_file.append(TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_params, file_header))
 
     def ExecuteBeforeSolutionLoop(self):
         pass
