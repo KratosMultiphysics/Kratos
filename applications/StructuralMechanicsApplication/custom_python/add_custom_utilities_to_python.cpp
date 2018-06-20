@@ -17,26 +17,34 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/volume_calculation_under_plane_utility.h"
+#include "custom_utilities/vtk_output.hpp"
 
 //Utilities
-
 
 namespace Kratos
 {
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython()
+void AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
 
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    //     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    //     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    //     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+     class_<VolumeCalculationUnderPlaneUtility, boost::noncopyable>("VolumeCalculationUnderPlaneUtility", init<ModelPart &>())
+        //.def("CalculateVolumeEnclosedByClosedSurface", &VolumeCalcUsingSurfaceUtility::CalculateVolumeEnclosedByClosedSurface)
+        .def("CalculateVolume", &VolumeCalculationUnderPlaneUtility::CalculateVolume)
+        .def("UpdatePositionOfPlaneBasedOnTargetVolume", &VolumeCalculationUnderPlaneUtility::UpdatePositionOfPlaneBasedOnTargetVolume)
+        .def("GetIntersectedArea", &VolumeCalculationUnderPlaneUtility::GetIntersectedArea); 
 
+    class_<VtkOutput, boost::noncopyable>("VtkOutput", init<ModelPart &, std::string, Parameters>())
+        .def("PrintOutput", &VtkOutput::PrintOutput)
+        .def("PrintOutput", &VtkOutput::PrintOutputSubModelPart);
 }
 
-}  // namespace Python.  
+} // namespace Python.
 
 } // Namespace Kratos
-
