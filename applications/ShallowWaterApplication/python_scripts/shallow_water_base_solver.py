@@ -102,8 +102,6 @@ class ShallowWaterBaseSolver(object):
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            #self.EstimateDeltaTimeUtility = KratosFluid.EstimateDtUtility2D(self.model_part,
-            #                                                                self.settings["time_stepping"])
             raise Exception("Estimation Dt utility not yet implemented")
 
         # Creating the solution strategy for the mesh stage

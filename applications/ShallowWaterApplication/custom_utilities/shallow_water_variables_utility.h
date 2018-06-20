@@ -127,6 +127,9 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * Set the dry nodes to zero
+     */
     void CheckDryConservedVariables()
     {
         KRATOS_TRY
@@ -147,6 +150,9 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * Set the dry nodes to zero
+     */
     void CheckDryPrimitiveVariables()
     {
         KRATOS_TRY
@@ -167,50 +173,16 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * This method looks for the dry elements and sets the proper flag
+     */
     void SetDryWetState()
     {
         KRATOS_TRY
         
-        //~ int expected_neigh_elems = 6;
-        //~ int expected_neigh_nodes = 6;
-        //~ FindNodalNeighboursProcess find_nodes_process(mrModelPart, expected_neigh_elems, expected_neigh_nodes);
-        //~ find_nodes_process.Execute();
-
-        //~ ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
-        //~ // We loop all the nodes to check if they are dry
-        //~ #pragma omp parallel for
-        //~ for(int i = 0; i < static_cast<int>(r_nodes.size()); i++)
-        //~ {
-            //~ ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
-            //~ // If current node is dry, is candidate to be inactive
-            //~ if (inode->FastGetSolutionStepValue(HEIGHT) < mDryHeight && 
-                //~ inode->FastGetSolutionStepValue(RAIN)   < mDryHeight )
-            //~ {
-                //~ WeakPointerVector< Node<3> >& rneigh = inode->GetValue(NEIGHBOUR_NODES);
-                //~ // We loop all the neighbour nodes to check if they are dry
-                //~ // If a neighbour node is wet, current node is candidate to be wet, so it is active
-                //~ bool neigh_wet = false;
-                //~ for( WeakPointerVector<Node<3> >::iterator jnode = rneigh.begin(); jnode!=rneigh.end(); jnode++)
-                //~ {
-                    //~ if (jnode->FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
-                        //~ jnode->FastGetSolutionStepValue(RAIN)   >= mDryHeight )
-                        //~ neigh_wet = true;
-                //~ }
-                //~ if (neigh_wet)
-                    //~ inode->Set(ACTIVE, true);
-                //~ else
-                    //~ inode->Set(ACTIVE, false);
-            //~ }
-            //~ // If current element is wet, set active
-            //~ else
-                //~ inode->Set(ACTIVE, true);
-        //~ }
-        
-        // Way B: elements
-        
         // Getting the elements from the model
         const int nelem = static_cast<int>(mrModelPart.Elements().size());
-        int nnodes;
+        int nodes;
         bool wet_node;
         
         // And now, if an element has all nodes dry, it is not active
@@ -218,9 +190,9 @@ public:
         for(int k = 0; k < nelem; k++)
         {
             ModelPart::ElementsContainerType::iterator it = mrModelPart.ElementsBegin() + k;
-            nnodes = it->GetGeometry().size();
+            nodes = it->GetGeometry().size();
             wet_node = false;
-            for(int l = 0; l < nnodes; l++)
+            for(int l = 0; l < nodes; l++)
             {
                 if (it->GetGeometry()[l].FastGetSolutionStepValue(HEIGHT) >= mDryHeight ||
                     it->GetGeometry()[l].FastGetSolutionStepValue(RAIN)   >= mDryHeight )
@@ -322,11 +294,11 @@ public:
     void SetMeshPosition()
     {
         // Move mesh to the current position
-        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        const int nodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator node_begin = mrModelPart.NodesBegin();
 
         #pragma omp parallel for
-        for(int i = 0; i < nnodes; i++)
+        for(int i = 0; i < nodes; i++)
         {
             ModelPart::NodesContainerType::iterator node = node_begin + i;
 
@@ -353,11 +325,11 @@ public:
     void ResetMeshPosition()
     {
         // Move mesh to the original position
-        const int nnodes = static_cast<int>(mrModelPart.Nodes().size());
+        const int nodes = static_cast<int>(mrModelPart.Nodes().size());
         ModelPart::NodesContainerType::iterator node_begin = mrModelPart.NodesBegin();
 
         #pragma omp parallel for
-        for(int i = 0; i < nnodes; i++)
+        for(int i = 0; i < nodes; i++)
         {
             ModelPart::NodesContainerType::iterator node = node_begin + i;
 
