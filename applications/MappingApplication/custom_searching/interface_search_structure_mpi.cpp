@@ -51,6 +51,7 @@ namespace Kratos
                                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
+        KRATOS_INFO("InterfaceSearchStructureMPI") << "BEFORE exchanging informations in MPI" << std::endl;
         // Apply tolerance to bounding boxes
         std::vector<double> bounding_boxes_with_tol;
         MapperUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
@@ -71,17 +72,63 @@ namespace Kratos
         BufferType recv_buffer(comm_size); // TODO reserve space!
 
         // Compute Candidate Partitions and fill the send buffer
-        FillSendBuffer(send_buffer, bounding_boxes_with_tol);
-
-        // ComputeBufferSizes();
+        FillSendBuffer(send_buffer, send_sizes, bounding_boxes_with_tol);
 
         // Exchange the buffer sizes
         MPI_Alltoall(send_sizes.data(), 1, MPI_INT, recv_sizes.data(), 1, MPI_INT, MPI_COMM_WORLD);
 
         // Send Information to Candidate Partitions
 
-        // Construct MapperInterfaceInfos
+        int num_comm_events     = 0;
+        int num_comm_events_idx = 0;
 
+        for(int i=0; i<comm_size; ++i)
+        {
+            if(i != comm_rank && recv_sizes[i]) num_comm_events++;
+            if(i != comm_rank && send_sizes[i]) num_comm_events++;
+        }
+
+        std::vector<MPI_Request> reqs(num_comm_events);
+        std::vector<MPI_Status> stats(num_comm_events);
+
+        //Set up all receive and send events
+        for(int i=0; i<comm_size; ++i)
+        {
+            if(i != comm_rank && recv_sizes[i])
+            {
+                recv_buffer[i].resize(recv_sizes[i]);
+                MPI_Irecv(recv_buffer[i].data(),recv_sizes[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[num_comm_events_idx++]);
+            }
+
+            if(i != comm_rank && send_sizes[i])
+            {
+                MPI_Isend(send_buffer[i].data(),send_sizes[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[num_comm_events_idx++]);
+            }
+        }
+
+        //wait untill all communications finish
+        int err = MPI_Waitall(num_comm_events, reqs.data(), stats.data());
+
+        KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the information for "
+            << "the construction of the MapperInterfaceInfos in MPI" << std::endl;
+
+
+        KRATOS_INFO("InterfaceSearchStructureMPI") << "AFTER exchanging informations in MPI" << std::endl;
+
+        // Construct MapperInterfaceInfos
+        mpMapperInterfaceInfosContainer->clear();
+        mpMapperInterfaceInfosContainer->reserve(comm_size);
+
+        // IndexType local_sys_idx = 0;
+        // for (const auto& r_local_sys : (*mpMapperLocalSystems))
+        // {
+        //     if (!r_local_sys->HasInterfaceInfo()) // Only the local_systems that have not received an InterfaceInfo create a new one
+        //     {
+        //         const auto& r_coords = r_local_sys->Coordinates();
+        //         (*mpMapperInterfaceInfosContainer).push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx));
+        //     }
+        //     ++local_sys_idx;
+        // }
 
 
         // TODO print info saying that ORIGIN_ONLY has no effect in MPI, the destination also has to be updated
@@ -96,6 +143,7 @@ namespace Kratos
         6. Create Objects in the CandidatePartitions
         Afterwards do local search ...
         */
+        MPI_Barrier(MPI_COMM_WORLD);
     }
 
     void InterfaceSearchStructureMPI::FinalizeSearchIteration()
@@ -114,15 +162,17 @@ namespace Kratos
     /***********************************************************************************/
     /* PRIVATE Methods */
     /***********************************************************************************/
-    void InterfaceSearchStructureMPI::FillSendBuffer(BufferType& rSendBuffer, const std::vector<double>& rBoundingBoxes)
+    void InterfaceSearchStructureMPI::FillSendBuffer(BufferType& rSendBuffer,
+                                                     std::vector<int>& rSendSizes,
+                                                     const std::vector<double>& rBoundingBoxes)
     {
         const SizeType comm_size = rSendBuffer.size();
         const SizeType num_local_sys = mpMapperLocalSystems->size();
 
         std::vector<double> bounding_box(6);
 
-        // #pragma omp parallel for => bounding box has to be threadprivate!
-        for (IndexType i_rank=0; i_rank < comm_size; ++i_rank)
+        // #pragma omp parallel for => "bounding_box" has to be threadprivate!
+        for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
         {
             for (IndexType i=0; i<num_local_sys; ++i)
             {
@@ -141,6 +191,8 @@ namespace Kratos
                         rSendBuffer[i_rank].push_back(r_coords[0]);
                         rSendBuffer[i_rank].push_back(r_coords[1]);
                         rSendBuffer[i_rank].push_back(r_coords[2]);
+
+                        rSendSizes[i_rank] += 4;
                     }
                 }
             }

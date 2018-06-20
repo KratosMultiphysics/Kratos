@@ -36,7 +36,7 @@ namespace Kratos
     {
         KRATOS_ERROR_IF_NOT(SparseSpaceType::IsDistributed())
             << "Using a non-distributed Space!" << std::endl;
-        KRATOS_WATCH("MPI-Ctor")
+        KRATOS_WATCH("Trilinos MPI-Ctor of MatrixBasedMappingOperationUtility")
 
     }
 

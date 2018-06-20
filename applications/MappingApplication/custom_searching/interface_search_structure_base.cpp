@@ -86,7 +86,7 @@ namespace Kratos
 
     void InterfaceSearchStructureBase::FinalizeSearch()
     {
-        mpMapperInterfaceInfos->clear();
+        mpMapperInterfaceInfosContainer->clear();
     }
 
     void InterfaceSearchStructureBase::CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
@@ -173,33 +173,37 @@ namespace Kratos
             std::vector<double> neighbor_distances(num_interface_obj_bin);
             auto interface_obj = Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0));
 
-            // #pragma omp parallel for // TODO this requires to make some things thread-local!
-            for (SizeType i = 0; i < mpMapperInterfaceInfos->size(); ++i)
+            for (auto& r_interface_infos_rank : (*mpMapperInterfaceInfosContainer)) // loop the ranks
             {
-                const auto& r_interface_info = (*mpMapperInterfaceInfos)[i];
-
-                interface_obj->UpdateCoordinates(r_interface_info->Coordinates());
-                double search_radius = mSearchRadius; // reset search radius // TODO check this
-
-                // reset the containers
-                auto results_itr = neighbor_results.begin();
-                auto distance_itr = neighbor_distances.begin();
-
-                const SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
-                    interface_obj, search_radius, results_itr,
-                    distance_itr, num_interface_obj_bin);
-
-                for (SizeType j=0; j<number_of_results; ++j)
-                    r_interface_info->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
-
-                // If the search did not result in a "valid" result (e.g. the projection fails)
-                // we try to compute an approximation
-                if (!r_interface_info->GetLocalSearchWasSuccessful())
+                // #pragma omp parallel for // TODO this requires to make some things thread-local!
+                // it makes more sense to omp this loop even though it is not the outermost one ...
+                for (IndexType i=0; i<r_interface_infos_rank.size(); ++i)
                 {
-                    for (SizeType j=0; j<number_of_results; ++j)
+                    auto& r_interface_info = r_interface_infos_rank[i];
+
+                    interface_obj->UpdateCoordinates(r_interface_info->Coordinates());
+                    double search_radius = mSearchRadius; // reset search radius // TODO check this
+
+                    // reset the containers
+                    auto results_itr = neighbor_results.begin();
+                    auto distance_itr = neighbor_distances.begin();
+
+                    const SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
+                        interface_obj, search_radius, results_itr,
+                        distance_itr, num_interface_obj_bin);
+
+                    for (IndexType j=0; j<number_of_results; ++j)
+                        r_interface_info->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
+
+                    // If the search did not result in a "valid" result (e.g. the projection fails)
+                    // we try to compute an approximation
+                    if (!r_interface_info->GetLocalSearchWasSuccessful())
                     {
-                        r_interface_info->ProcessSearchResultForApproximation(
-                            neighbor_results[j], neighbor_distances[j]);
+                        for (IndexType j=0; j<number_of_results; ++j)
+                        {
+                            r_interface_info->ProcessSearchResultForApproximation(
+                                neighbor_results[j], neighbor_distances[j]);
+                        }
                     }
                 }
             }

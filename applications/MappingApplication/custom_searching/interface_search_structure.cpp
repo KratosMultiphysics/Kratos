@@ -38,36 +38,12 @@ namespace Kratos
                                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                                     InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
-        CreateInterfaceInfos(rpRefInterfaceInfo);
-    }
+        // Creating the MapperInterfaceInfos
+        mpMapperInterfaceInfosContainer->clear();
+        mpMapperInterfaceInfosContainer->resize(1);
 
-    void InterfaceSearchStructure::FinalizeSearchIteration()
-    {
-        const int num_interface_infos = mpMapperInterfaceInfos->size();
-
-        // This is threadsafe bcs there will never be more than one InterfaceInfo per LocalSystem (only true in serial!)
-        #pragma omp parallel for
-        for (int i = 0; i<num_interface_infos; ++i)
-        {
-            const auto& r_interface_info = (*mpMapperInterfaceInfos)[i];
-
-            if (r_interface_info->GetLocalSearchWasSuccessful())
-            {
-                const IndexType local_sys_idx = r_interface_info->GetLocalSystemIndex();
-                KRATOS_DEBUG_ERROR_IF_NOT(local_sys_idx == static_cast<IndexType>(i))
-                    << "Index mismatch!" << std::endl; // This has to be ensured in serial!
-                (*mpMapperLocalSystems)[local_sys_idx]->AddInterfaceInfo(r_interface_info);
-            }
-        }
-    }
-
-    /***********************************************************************************/
-    /* PRIVATE Methods */
-    /***********************************************************************************/
-    void InterfaceSearchStructure::CreateInterfaceInfos(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
-    {
-        mpMapperInterfaceInfos->clear();
-        mpMapperInterfaceInfos->reserve(mpMapperLocalSystems->size());
+        auto& r_mapper_interface_infos = (*mpMapperInterfaceInfosContainer)[0];
+        r_mapper_interface_infos.reserve(mpMapperLocalSystems->size());
 
         IndexType local_sys_idx = 0;
         for (const auto& r_local_sys : (*mpMapperLocalSystems))
@@ -75,11 +51,36 @@ namespace Kratos
             if (!r_local_sys->HasInterfaceInfo()) // Only the local_systems that have not received an InterfaceInfo create a new one
             {
                 const auto& r_coords = r_local_sys->Coordinates();
-                (*mpMapperInterfaceInfos).push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx));
+                r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx));
             }
             ++local_sys_idx;
         }
     }
+
+    void InterfaceSearchStructure::FinalizeSearchIteration()
+    {
+        const auto& r_mapper_interface_infos = (*mpMapperInterfaceInfosContainer)[0];
+        const int num_interface_infos = r_mapper_interface_infos.size();
+
+        // This is threadsafe bcs there will never be more than one InterfaceInfo per LocalSystem (only true in serial!)
+        #pragma omp parallel for
+        for (int i = 0; i<num_interface_infos; ++i)
+        {
+            const auto& rp_interface_info = r_mapper_interface_infos[i];
+
+            if (rp_interface_info->GetLocalSearchWasSuccessful())
+            {
+                const IndexType local_sys_idx = rp_interface_info->GetLocalSystemIndex();
+                KRATOS_DEBUG_ERROR_IF_NOT(local_sys_idx == static_cast<IndexType>(i))
+                    << "Index mismatch!" << std::endl; // This has to be ensured in serial!
+                (*mpMapperLocalSystems)[local_sys_idx]->AddInterfaceInfo(rp_interface_info);
+            }
+        }
+    }
+
+    /***********************************************************************************/
+    /* PRIVATE Methods */
+    /***********************************************************************************/
 
 
 }  // namespace Kratos.

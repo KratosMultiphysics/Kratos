@@ -89,6 +89,7 @@ public:
                                  pMapperLocalSystems,
                                  SearchSettings)
     {
+        KRATOS_WATCH("MPI-Ctor of InterfaceSearchStructureMPI")
         // mCommRank = CommRank;
         // mCommSize = CommSize;
 
@@ -239,7 +240,9 @@ private:
     ///@{
 
 
-    void FillSendBuffer(BufferType& rSendBuffer, const std::vector<double>& rBoundingBoxes);
+    void FillSendBuffer(BufferType& rSendBuffer,
+                        std::vector<int>& rSendSizes,
+                        const std::vector<double>& rBoundingBoxes);
 
     // void ConductSearchIteration(const bool LastIteration) override
     // {

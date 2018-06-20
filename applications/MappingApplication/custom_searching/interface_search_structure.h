@@ -82,7 +82,7 @@ public:
                                  pMapperLocalSystems,
                                  SearchSettings)
     {
-        // mEchoLevel = EchoLevel;
+        KRATOS_WATCH("Ctor of InterfaceSearchStructure")
     }
 
 
@@ -201,10 +201,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void CreateInterfaceInfos(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
-
-    void UpdateInterfaceInfos();
 
     ///@}
     ///@name Private  Access

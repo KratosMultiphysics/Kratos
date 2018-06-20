@@ -116,7 +116,7 @@ template<>
 UtilityType::MatrixBasedMappingOperationUtility(Parameters Settings)
     : MappingOperationUtility<SparseSpaceType, DenseSpaceType>(Settings)
 {
-    KRATOS_WATCH("Non-MPI-Ctor")
+    KRATOS_WATCH("Non-MPI-Ctor of MatrixBasedMappingOperationUtility")
     KRATOS_ERROR_IF(SparseSpaceType::IsDistributed())
         << "Using a distributed Space!" << std::endl;
 }
