@@ -53,7 +53,7 @@ class TimeBasedAsciiFileWriterUtility(object):
             self.file.close()
 
     def __OpenOutputFile(self):
-        if self.write_buffer_size == -1: # user didn't specify a buffer size
+        if self.write_buffer_size == -1: # user didn't specify a buffer size, -1 means we use the system default
             return open(self.output_file_name,"w")
         else:
             return open(self.output_file_name,"w", buffering=self.write_buffer_size)
