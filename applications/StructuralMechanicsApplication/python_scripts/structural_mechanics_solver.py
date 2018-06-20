@@ -219,7 +219,7 @@ class MechanicalSolver(PythonSolver):
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
         if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
-
+            
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def Initialize(self):
@@ -339,11 +339,8 @@ class MechanicalSolver(PythonSolver):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
             import read_materials_process
-            # Create a dictionary of model parts.
-            Model = KratosMultiphysics.Model()
-            Model.AddModelPart(self.main_model_part)
             # Add constitutive laws and material properties from json file to model parts.
-            read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
+            read_materials_process.ReadMaterialsProcess(self.model, self.settings["material_import_settings"])
             materials_imported = True
         else:
             materials_imported = False
@@ -434,6 +431,11 @@ class MechanicalSolver(PythonSolver):
         import check_and_prepare_model_process_structural
         check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
+        # This will be removed once the Model is fully supported! => It wont e necessary anymore
+        # NOTE: We do this here in case the model is empty, so the properties can be assigned 
+        if not self.model.HasModelPart(self.main_model_part.Name):
+            self.model.AddModelPart(self.main_model_part)
+        
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
