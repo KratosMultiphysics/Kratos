@@ -133,7 +133,22 @@ public:
     void SetNonConvPlasticDissipation(const double& toCapap) {mNonConvPlasticDissipation = toCapap;}
     void SetNonConvPlasticStrain(const Vector& Ep){mNonConvPlasticStrain = Ep;}
 
+    /**
+     * @brief Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override
+    {
+        return 3;
+    };
 
+    /**
+     * @brief Voigt tensor size:
+     */
+    SizeType GetStrainSize() override
+    {
+        return 6;
+    };
+    
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
     {
         this->CalculateMaterialResponseCauchy(rValues);
@@ -175,11 +190,18 @@ public:
         Vector Fflux = ZeroVector(VoigtSize), Gflux = ZeroVector(VoigtSize); // DF/DS & DG/DS
         Vector PlasticStrainIncrement = ZeroVector(VoigtSize);
 
+		//KRATOS_WATCH(PredictiveStressVector)
+		//KRATOS_WATCH(rValues.GetStrainVector())
+
         ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, rValues.GetStrainVector(),
             UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation,
             PlasticStrainIncrement, C, rMaterialProperties, CharacteristicLength);
 
         const double F = UniaxialStress - Threshold; 
+
+		//KRATOS_WATCH(F)
+		//KRATOS_WATCH(UniaxialStress)
+		//KRATOS_WATCH(Threshold)
 
         if (F <= std::abs(1.0e-8 * Threshold)) {   // Elastic case
 
@@ -190,20 +212,24 @@ public:
             this->SetNonConvThreshold(Threshold);
 
         } else { // Plastic case
-        
-            // while loop backward euler
+			//KRATOS_WATCH(UniaxialStress)
+			//KRATOS_WATCH(Threshold)
+            // while loop backward euler 
             /* Inside "IntegrateStressVector" the PredictiveStressVector
                is updated to verify the yield criterion */
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, rValues.GetStrainVector(), 
                 UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, PlasticStrain, rMaterialProperties, CharacteristicLength);
 
+			//KRATOS_WATCH(PlasticDissipation)
+
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
 
-            this->CalculateTangentTensor(rValues); // this modifies the C
-            TangentTensor = rValues.GetConstitutiveMatrix();
+            //this->CalculateTangentTensor(rValues); // this modifies the C
+            //TangentTensor = rValues.GetConstitutiveMatrix();
+			TangentTensor = C;
         }
     } // End CalculateMaterialResponseCauchy
 
@@ -252,6 +278,20 @@ public:
         rElasticityTensor(3, 3) = mu;
         rElasticityTensor(4, 4) = mu;
         rElasticityTensor(5, 5) = mu;
+    }
+
+
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    {
     }
 
     ///@}

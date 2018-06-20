@@ -108,6 +108,7 @@ public:
     ///@name Operations
     ///@{
 
+
     /**
      * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
      * @param PredictiveStressVector The predictive stress vector S = C:(E-Ep)
@@ -156,7 +157,19 @@ public:
             noalias(PlasticStrain) += PlasticStrainIncrement; 
             noalias(DS) = prod(C, PlasticStrainIncrement); 
             noalias(DSigma) -= DS; 
-            noalias(PredictiveStressVector) -= DSigma; 
+            //noalias(PredictiveStressVector) -= DSigma; 
+			noalias(PredictiveStressVector) -= DS;
+
+			std::cout << "iteration: " << iteration <<std::endl;
+			KRATOS_WATCH(PredictiveStressVector)
+			KRATOS_WATCH(DSigma)
+			KRATOS_WATCH(UniaxialStress)
+			KRATOS_WATCH(Gflux)
+			KRATOS_WATCH(PlasticStrainIncrement)
+			KRATOS_WATCH(PlasticStrain)
+			KRATOS_WATCH(PlasticConsistencyFactorIncrement)
+			KRATOS_WATCH(PlasticDenominator)
+			std::cout << "**********************" << std::endl;
 
             CalculatePlasticParameters(PredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
@@ -352,6 +365,12 @@ public:
 
         rPlasticDissipation += DPlasticdissipation;
         if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999; // warning vicente
+
+		// KRATOS_WATCH(DPlasticdissipation)
+		// KRATOS_WATCH(rPlasticDissipation)
+		// 	KRATOS_WATCH(r0)
+		// 	KRATOS_WATCH(r1)
+
     }
 
     /**
@@ -464,7 +483,7 @@ public:
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rMaterialProperties The material properties
      */
-    static void CalculateEqStressThresholdHardCurve3(        
+    static void CalculateEqStressThresholdHardCurve3(
         const double PlasticDissipation,
         const double r0,
         const double r1, 
@@ -530,7 +549,7 @@ public:
 
         const double A2 = 0.0; // Only for isotropic hard
         const double A3 = rHardParameter;
-        rHardParameter = 1 / (A1 + A2 + A3);
+        PlasticDenominator = 1 / (A1 + A2 + A3);
     }
 
     ///@}

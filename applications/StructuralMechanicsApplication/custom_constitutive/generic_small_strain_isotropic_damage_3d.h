@@ -126,6 +126,22 @@ public:
     void SetNonConvThreshold(const double& toThreshold) {mNonConvThreshold = toThreshold;}
     void SetNonConvDamage(const double& toDamage) {mNonConvDamage = toDamage;}
 
+    /**
+     * @brief Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override
+    {
+        return 3;
+    };
+
+    /**
+     * @brief Voigt tensor size:
+     */
+    SizeType GetStrainSize() override
+    {
+        return 6;
+    };
+    
 
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
     {

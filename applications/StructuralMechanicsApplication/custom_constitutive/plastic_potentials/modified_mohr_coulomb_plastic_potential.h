@@ -38,6 +38,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+    
 /**
  * @class ModifiedMohrCoulombPlasticPotential
  * @ingroup StructuralMechanicsApplication

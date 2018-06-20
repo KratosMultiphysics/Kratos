@@ -168,6 +168,7 @@ public:
         Vector& SecondVector
         )
     {
+		if (SecondVector.size() == 0) SecondVector.resize(6);
         const double twosqrtJ2 = 2.0*std::sqrt(J2);
         for (int i = 0; i < 6; i++) {
             SecondVector[i] = Deviator[i] / (twosqrtJ2);
