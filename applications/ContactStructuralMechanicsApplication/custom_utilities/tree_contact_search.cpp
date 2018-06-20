@@ -261,7 +261,6 @@ void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
 
     const SizeType total_number_conditions = mrMainModelPart.GetRootModelPart().NumberOfConditions();
 
-    IndexType new_conditions_id = total_number_conditions;
     std::vector<Condition::Pointer> auxiliar_conditions_vector;
 
     #pragma omp parallel
@@ -277,15 +276,13 @@ void TreeContactSearch<TDim, TNumNodes>::CheckContactModelParts()
                 // Setting the flag to remove
                 it_cond->Set(TO_ERASE, true);
 
-                // Updating condition id
-                #pragma omp atomic
-                new_conditions_id += 1;
-
-                Condition::Pointer p_new_cond = it_cond->Clone(new_conditions_id, it_cond->GetGeometry());
+                // Creating new condition
+                Condition::Pointer p_new_cond = it_cond->Clone(total_number_conditions + it_cond->Id(), it_cond->GetGeometry());
                 auxiliar_conditions_vector_buffer.push_back(p_new_cond);
 
-                p_new_cond->Data() = it_cond->Data(); // TODO: Remove when fixed on the core
+                p_new_cond->SetData(it_cond->GetData()); // TODO: Remove when fixed on the core
                 p_new_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+//                 p_new_cond->GetValue(INDEX_MAP)->clear();
 //                 p_new_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
                 p_new_cond->Set(Flags(*it_cond));
                 p_new_cond->Set(MARKER, true);
