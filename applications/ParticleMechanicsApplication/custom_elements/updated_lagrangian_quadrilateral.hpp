@@ -830,7 +830,7 @@ protected:
     /**
      * Calculate local coordinated of a given point in 3 dimension
      */
-    virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
+    // virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
 
     /**
      * Calculation of the Volume Change of the Element

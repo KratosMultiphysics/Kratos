@@ -209,10 +209,8 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
-    //reading shape functions local gradients
+    // Reading shape functions local gradients
     rVariables.DN_De = this->MPMShapeFunctionsLocalGradients( rVariables.DN_De);
-
-    //**********************************************************************************************************************
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
@@ -222,9 +220,6 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
 
     // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
     rVariables.J = this->MPMJacobian( rVariables.J, xg);
-
-    //*************************************************************************************************************************
-
 }
 //************************************************************************************
 //************************************************************************************
@@ -404,7 +399,10 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
     1. By: noalias( rVariables.F ) = prod( rVariables.j, InvJ);
-    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee  */
+    2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee  
+    
+    (NOTICE: Here, we are using method no. 2)
+    */
     Matrix I = identity_matrix<double>( dimension );
 
     Matrix GradientDisp = ZeroMatrix(dimension, dimension);
@@ -812,14 +810,14 @@ void UpdatedLagrangian::CalculateLocalSystem( std::vector< MatrixType >& rLeftHa
     }
     LocalSystem.CalculationFlags.Set(UpdatedLagrangian::COMPUTE_LHS_MATRIX,true);
 
-    //Set Variables to Local system components
+    // Set Variables to Local system components
     LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
     LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
 
     LocalSystem.SetLeftHandSideVariables(rLHSVariables);
     LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
-    //Calculate elemental system
+    // Calculate elemental system
     CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 }
 
@@ -1102,7 +1100,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
     array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
     const array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
     const array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
-    //double MP_Mass = this->GetValue(MP_MASS);
+
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_Acceleration = ZeroVector(3);
     array_1d<double,3> MP_Velocity = ZeroVector(3);
@@ -1249,39 +1247,26 @@ void UpdatedLagrangian::CalculateAlmansiStrain(const Matrix& rF,
 
     if( dimension == 2 )
     {
-
         // Almansi Strain Calculation
         rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
-
         rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
-
         rStrainVector[2] = - InverseLeftCauchyGreen( 0, 1 ); // xy
-
     }
     else if( dimension == 3 )
     {
 
         // Almansi Strain Calculation
         if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-
         rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
-
         rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
-
         rStrainVector[2] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 2, 2 ) );
-
         rStrainVector[3] = - InverseLeftCauchyGreen( 0, 1 ); // xy
-
         rStrainVector[4] = - InverseLeftCauchyGreen( 1, 2 ); // yz
-
         rStrainVector[5] = - InverseLeftCauchyGreen( 0, 2 ); // xz
-
     }
     else
     {
-
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
-
+        KRATOS_THROW_ERROR( std::invalid_argument, "Dimension given is wrong", "Something is wrong with the given dimension in function: CalculateAlmansiStrain" )
     }
 
     KRATOS_CATCH( "" )
@@ -1304,37 +1289,24 @@ void UpdatedLagrangian::CalculateGreenLagrangeStrain(const Matrix& rF,
     {
         // Green Lagrange Strain Calculation
         if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-
         rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
-
         rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
-
         rStrainVector[2] = C( 0, 1 ); // xy
-
     }
     else if( dimension == 3 )
     {
         // Green Lagrange Strain Calculation
         if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-
         rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
-
         rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
-
         rStrainVector[2] = 0.5 * ( C( 2, 2 ) - 1.00 );
-
         rStrainVector[3] = C( 0, 1 ); // xy
-
         rStrainVector[4] = C( 1, 2 ); // yz
-
         rStrainVector[5] = C( 0, 2 ); // xz
-
     }
     else
     {
-
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
-
+        KRATOS_THROW_ERROR( std::invalid_argument, "Dimension given is wrong", "Something is wrong with the given dimension in function: CalculateGreenLagrangeStrain" )
     }
 
     KRATOS_CATCH( "" )
