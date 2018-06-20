@@ -1,6 +1,13 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.AdjointFluidApplication import *
+
+try:
+    from KratosMultiphysics.AdjointFluidApplication import *
+    have_adjoint_fluid = True
+except ImportError:
+    have_required_applications = False
+    missing_applications_message.append("AdjointFluidApplication")
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
 

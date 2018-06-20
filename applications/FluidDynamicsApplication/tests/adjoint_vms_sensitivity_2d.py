@@ -2,9 +2,18 @@ import os
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.FluidDynamicsApplication
-import KratosMultiphysics.AdjointFluidApplication
+
+try:
+    import KratosMultiphysics.AdjointFluidApplication
+    have_adjoint_fluid = True
+except ImportError:
+    have_required_applications = False
+    missing_applications_message.append("AdjointFluidApplication")
+
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
-from adjoint_fluid_analysis import AdjointFluidAnalysis
+
+if have_required_applications:
+    from adjoint_fluid_analysis import AdjointFluidAnalysis
 
 class ControlledExecutionScope:
     def __init__(self, scope):
@@ -103,7 +112,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             # return mdpa file to unperturbed state
             self._write_nodal_coordinates(node_id,coord,model_part_file_name)
         return sensitivity
-    
+
     def _read_parameters(self, parameter_file_name):
         with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
             project_parameters = Parameters(parameter_file.read())
@@ -116,7 +125,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
     def _create_adjoint_test(self, parameter_file_name):
         test = AdjointFluidAnalysis(Model(), self._read_parameters(parameter_file_name))
-        return test        
+        return test
 
     def solve(self, parameter_file_name):
         test = self._create_fluid_test(parameter_file_name)
