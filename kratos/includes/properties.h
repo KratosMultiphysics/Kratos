@@ -97,10 +97,10 @@ public:
     ///@{
 
     /// Default constructor.
-    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables() {}
+    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mpAccessor(this) {}
 
     /// Copy constructor.
-    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}
+    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mpAccessor(rOther.mpAccessor) {}
 
     /// Destructor.
     ~Properties() override {}
@@ -291,7 +291,15 @@ public:
         return mData;
     }
 
+    void SetAccessor(Properties::Pointer pAccessor)
+    {
+        mpAccessor = pAccessor;
+    }
 
+    Properties::Pointer GetAccessor() const
+    {
+        return mpAccessor;
+    }
 
     ///@}
     ///@name Inquiry
@@ -389,6 +397,7 @@ private:
 
     ContainerType mData;
     TablesContainerType mTables;
+    Properties::Pointer mpAccessor;
 
     ///@}
     ///@name Private Operators
