@@ -1,6 +1,8 @@
 # import Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
+# TODO: To be removed after completely migrating everything from AdjointFluidApplication to FluidDynamicsApplication
+from KratosMultiphysics.AdjointFluidApplication import *
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
