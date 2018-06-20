@@ -10,19 +10,13 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // Project includes
-#include "processes/process.h"
 #include "custom_python/add_custom_modelers_to_python.h"
 
 // Meshers
 #include "custom_modelers/contact_domain_2D_modeler.hpp"
 #include "custom_modelers/contact_domain_3D_modeler.hpp"
-
-// Bounding Boxes
-
 
 namespace Kratos
 {
@@ -30,29 +24,24 @@ namespace Kratos
 namespace Python
 {
 
-  typedef MeshModeler                        MeshModelerBaseType;
+void  AddCustomModelersToPython(pybind11::module& m)
+{
 
-  void  AddCustomModelersToPython()
-  {
+  using namespace pybind11;
 
-    using namespace boost::python;
-    //class that allows 3D adaptive remeshing (inserting and erasing nodes)
-
-    
-    //class that allows 2D adaptive remeshing (inserting and erasing nodes)
-
-
-    //class that allows 3D contact domain spatial search
-    class_<ContactDomain3DModeler, bases<MeshModelerBaseType>, boost::noncopyable >
-      ("ContactDomain3DModeler", init< >())
+  // Class that allows 3D contact domain spatial search
+  class_<ContactDomain3DModeler, typename ContactDomain3DModeler::Pointer, MeshModeler>
+      (m,"ContactDomain3DModeler")
+      .def(init< >())
       ;
 
-    //class that allows 2D contact domain spatial search
-    class_<ContactDomain2DModeler, bases<MeshModelerBaseType>, boost::noncopyable >
-      ("ContactDomain2DModeler", init< >())
+  // Class that allows 2D contact domain spatial search
+  class_<ContactDomain2DModeler, typename ContactDomain2DModeler::Pointer, MeshModeler>
+      (m,"ContactDomain2DModeler")
+      .def(init< >())
       ;
      
-  }
+}
 
 }  // namespace Python.
 

@@ -119,7 +119,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
 
       KRATOS_TRY
@@ -222,8 +222,8 @@ namespace Kratos
 
 	  //********************************************************************
 
-	  boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-	  boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	  DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+	  DenseVector<unsigned int> lnofa; //number of points defining faces
 	 	    
 	  Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 	  unsigned int size=rConditionGeometry.size();
@@ -263,8 +263,8 @@ namespace Kratos
 			    WeakPointerVector< Element > MasterElements;
 			    MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
 			    if( mEchoLevel >= 1 ){
-			      if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
-				std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+			      //if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id()) 
+				//std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
 			    }
 			    i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 			    
@@ -425,19 +425,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "BuildModelPartBoundaryProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "BuildModelPartBoundaryProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -638,8 +638,8 @@ namespace Kratos
 	    //********************************************************************
 
 	    //finding boundaries and creating the "skin"	   
-	    boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
-	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
+	    DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
+	    DenseVector<unsigned int> lnofa; //number of points defining faces
 	 
 	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 

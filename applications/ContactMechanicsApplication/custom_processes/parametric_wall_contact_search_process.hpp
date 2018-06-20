@@ -114,6 +114,7 @@ namespace Kratos
       Parameters DefaultParameters( R"(
             {
                    "contact_condition_type": "PointContactCondition2D1N",
+                   "hydraulic_condition_type": "HydraulicPointContactCondition2D1N",
                    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
                    "friction_law_type": "FrictionLaw",
                    "variables_of_properties":{
@@ -167,7 +168,7 @@ namespace Kratos
 
 
     /// Execute method is used to execute the Process algorithms.
-    virtual void Execute()
+    void Execute() override
     {
       KRATOS_TRY
 
@@ -187,7 +188,7 @@ namespace Kratos
       SearchContactConditions();
 
       //create contact conditions
-      CreateContactConditions();
+      this->CreateContactConditions();
 
       if( mEchoLevel > 1 )
 	std::cout<<"  [PARAMETRIC_CONTACT_SEARCH]:: -END- "<<std::endl;
@@ -197,7 +198,7 @@ namespace Kratos
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
       KRATOS_TRY
 
@@ -244,38 +245,38 @@ namespace Kratos
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
+    void ExecuteBeforeSolutionLoop() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
     }
 
 	   
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
     }
      
 
     /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
+    void ExecuteBeforeOutputStep() override
     {
     }
 
      
     /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
+    void ExecuteAfterOutputStep() override
     {
     }
      
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 
@@ -295,19 +296,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "ParametricWallContactSearchProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "ParametricWallContactSearchProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -328,11 +329,143 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
+    ModelPart&  mrMainModelPart;
+
+    SpatialBoundingBox::Pointer  mpParametricWall;
+
+    ConditionType::Pointer  mpConditionType;
+
+    PropertiesType::Pointer mpProperties;
+     
+    std::string  mContactModelPartName;
+
+    int  mEchoLevel;
 
     ///@}
     ///@name Protected Operators
     ///@{
 
+    virtual void CreateContactConditions()
+    {
+      KRATOS_TRY
+
+      ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo();
+      double Dimension = rCurrentProcessInfo[SPACE_DIMENSION];
+
+      ModelPart::ConditionsContainerType ContactConditions;
+      
+      ModelPart& rContactModelPart = mrMainModelPart.GetSubModelPart(mContactModelPartName);
+
+      if( mEchoLevel > 1 ){
+	std::cout<<"    ["<<rContactModelPart.Name()<<" :: CONDITIONS [OLD:"<<rContactModelPart.NumberOfConditions();
+      }
+
+      unsigned int id = mrMainModelPart.Conditions().back().Id() + 1;
+
+      ModelPart::NodesContainerType& rNodes = mrMainModelPart.Nodes();
+
+      // create contact condition for rigid and deformable bodies
+      for(ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
+	{
+	  if( (*nd)->Is(BOUNDARY) && (*nd)->Is(CONTACT) ){
+
+	    ConditionType::Pointer pCondition;
+		   
+		   
+	    if( (*nd)->Is(RIGID) ){  //rigid wall contacting with a rigid body 
+		     
+	      GeometryType::Pointer pGeometry;
+	      if( Dimension == 2 )
+		pGeometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+	      else if( Dimension == 3 )
+		pGeometry = GeometryType::Pointer(new Point3DType( (*nd) ));
+	      
+	      //pCondition= ModelPart::ConditionType::Pointer(new RigidBodyPointRigidContactCondition(id, pGeometry, mpProperties, mpParametricWall) );
+
+	      ContactConditions.push_back(pCondition);
+		     		     
+	    }
+	    else{ //rigid wall contacting with a deformable body 
+
+	      Condition::NodesArrayType  pConditionNode;
+	      pConditionNode.push_back( (*nd) );
+	      
+	      ConditionType::Pointer  pConditionType = FindPointCondition(rContactModelPart, (*nd) );
+	    
+	      pCondition = pConditionType->Clone(id, pConditionNode);
+
+	      pCondition->Set(CONTACT);
+
+	      ContactConditions.push_back(pCondition);
+		     
+	    }
+	    
+	    id +=1;	   		
+	  }       		     
+
+	}
+
+
+      rContactModelPart.Conditions().swap(ContactConditions);
+
+
+      if( mEchoLevel > 1 ){
+	std::cout<<" / NEW:"<<rContactModelPart.NumberOfConditions()<<"] "<<std::endl;
+      }
+
+      std::string ModelPartName;
+
+      //Add contact conditions to computing domain
+      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
+	    ModelPartName = i_mp->Name();
+	}
+      
+      AddContactConditions(rContactModelPart, mrMainModelPart.GetSubModelPart(ModelPartName));
+
+      //Add contact conditions to  main domain( with AddCondition are already added )
+      //AddContactConditions(rContactModelPart, mrMainModelPart);
+ 
+      if( mEchoLevel >= 1 )
+	std::cout<<"  [CONTACT CANDIDATES : "<<rContactModelPart.NumberOfConditions()<<"] ("<<mContactModelPartName<<") "<<std::endl;
+
+      KRATOS_CATCH( "" )
+
+    }
+
+
+    //**************************************************************************
+    //**************************************************************************
+
+    void AddContactConditions(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
+    {
+
+      KRATOS_TRY
+
+      //*******************************************************************
+      //adding contact conditions
+      //
+	
+      if( mEchoLevel > 1 ){
+	std::cout<<"    ["<<rDestinationModelPart.Name()<<" :: CONDITIONS [OLD:"<<rDestinationModelPart.NumberOfConditions();
+      }
+
+      for(ModelPart::ConditionsContainerType::iterator ic = rOriginModelPart.ConditionsBegin(); ic!= rOriginModelPart.ConditionsEnd(); ic++)
+	{
+
+	  if(ic->Is(CONTACT))
+	    rDestinationModelPart.AddCondition(*(ic.base()));
+	  
+	}
+      
+      if( mEchoLevel > 1 ){
+	std::cout<<" / NEW:"<<rDestinationModelPart.NumberOfConditions()<<"] "<<std::endl;
+      }
+            
+      KRATOS_CATCH( "" )
+	
+    }
 
     ///@}
     ///@name Protected Operations
@@ -363,17 +496,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart&  mrMainModelPart;
 
-    SpatialBoundingBox::Pointer  mpParametricWall;
-
-    ConditionType::Pointer  mpConditionType;
-
-    PropertiesType::Pointer mpProperties;
-     
-    std::string  mContactModelPartName;
-
-    int  mEchoLevel;
 
     ///@}
     ///@name Private Operators
@@ -580,133 +703,6 @@ namespace Kratos
 
     }
     
-    
-    //**************************************************************************
-    //**************************************************************************
-
-    void CreateContactConditions()
-    {
-      KRATOS_TRY
-
-      ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo();
-      double Dimension = rCurrentProcessInfo[SPACE_DIMENSION];
-
-      ModelPart::ConditionsContainerType ContactConditions;
-      
-      ModelPart& rContactModelPart = mrMainModelPart.GetSubModelPart(mContactModelPartName);
-
-      if( mEchoLevel > 1 ){
-	std::cout<<"    ["<<rContactModelPart.Name()<<" :: CONDITIONS [OLD:"<<rContactModelPart.NumberOfConditions();
-      }
-
-      unsigned int id = mrMainModelPart.Conditions().back().Id() + 1;
-
-      ModelPart::NodesContainerType& rNodes = mrMainModelPart.Nodes();
-
-      // create contact condition for rigid and deformable bodies
-      for(ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
-	{
-	  if( (*nd)->Is(BOUNDARY) && (*nd)->Is(CONTACT) ){
-
-	    ConditionType::Pointer pCondition;
-		   
-		   
-	    if( (*nd)->Is(RIGID) ){  //rigid wall contacting with a rigid body 
-		     
-	      GeometryType::Pointer pGeometry;
-	      if( Dimension == 2 )
-		pGeometry = GeometryType::Pointer(new Point2DType( (*nd) ));
-	      else if( Dimension == 3 )
-		pGeometry = GeometryType::Pointer(new Point3DType( (*nd) ));
-	      
-	      //pCondition= ModelPart::ConditionType::Pointer(new RigidBodyPointRigidContactCondition(id, pGeometry, mpProperties, mpParametricWall) );
-
-	      ContactConditions.push_back(pCondition);
-		     		     
-	    }
-	    else{ //rigid wall contacting with a deformable body 
-
-	      Condition::NodesArrayType  pConditionNode;
-	      pConditionNode.push_back( (*nd) );
-	      
-	      ConditionType::Pointer  pConditionType = FindPointCondition(rContactModelPart, (*nd) );
-	    
-	      pCondition = pConditionType->Clone(id, pConditionNode);
-              pCondition->SetData( pConditionType->GetData() );
-
-	      pCondition->Set(CONTACT);
-
-	      ContactConditions.push_back(pCondition);
-		     
-	    }
-	    
-	    id +=1;	   		
-	  }       		     
-
-	}
-
-
-      rContactModelPart.Conditions().swap(ContactConditions);
-
-
-      if( mEchoLevel > 1 ){
-	std::cout<<" / NEW:"<<rContactModelPart.NumberOfConditions()<<"] "<<std::endl;
-      }
-
-      std::string ModelPartName;
-
-      //Add contact conditions to computing domain
-      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
-	{
-	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
-	    ModelPartName = i_mp->Name();
-	}
-      
-      AddContactConditions(rContactModelPart, mrMainModelPart.GetSubModelPart(ModelPartName));
-
-      //Add contact conditions to  main domain( with AddCondition are already added )
-      //AddContactConditions(rContactModelPart, mrMainModelPart);
- 
-      if( mEchoLevel >= 1 )
-	std::cout<<"  [CONTACT CANDIDATES : "<<rContactModelPart.NumberOfConditions()<<"] ("<<mContactModelPartName<<") "<<std::endl;
-
-      KRATOS_CATCH( "" )
-
-    }
-
-
-    //**************************************************************************
-    //**************************************************************************
-
-    void AddContactConditions(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
-    {
-
-      KRATOS_TRY
-
-      //*******************************************************************
-      //adding contact conditions
-      //
-	
-      if( mEchoLevel > 1 ){
-	std::cout<<"    ["<<rDestinationModelPart.Name()<<" :: CONDITIONS [OLD:"<<rDestinationModelPart.NumberOfConditions();
-      }
-
-      for(ModelPart::ConditionsContainerType::iterator ic = rOriginModelPart.ConditionsBegin(); ic!= rOriginModelPart.ConditionsEnd(); ic++)
-	{
-
-	  if(ic->Is(CONTACT))
-	    rDestinationModelPart.AddCondition(*(ic.base()));
-	  
-	}
-      
-      if( mEchoLevel > 1 ){
-	std::cout<<" / NEW:"<<rDestinationModelPart.NumberOfConditions()<<"] "<<std::endl;
-      }
-            
-      KRATOS_CATCH( "" )
-	
-    }
-
 
     //**************************************************************************
     //**************************************************************************

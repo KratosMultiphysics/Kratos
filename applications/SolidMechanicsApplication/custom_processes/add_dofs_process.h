@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ADD_DOFS_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ADD_DOFS_PROCESS_H_INCLUDED)
 #define  KRATOS_ADD_DOFS_PROCESS_H_INCLUDED
 
 
@@ -48,7 +48,7 @@ public:
     ///@{
     AddDofsProcess(ModelPart& model_part,
 		   Parameters rParameters
-		   ) : Process() , mr_model_part(model_part)
+		   ) : Process() , mrModelPart(model_part)
     {
         KRATOS_TRY
 	  
@@ -163,9 +163,9 @@ public:
 
     
     AddDofsProcess(ModelPart& model_part,
-		   const boost::python::list& rVariablesList,
-		   const boost::python::list& rReactionsList
-		   ) : Process(), mr_model_part(model_part)
+		   const pybind11::list& rVariablesList,
+		   const pybind11::list& rReactionsList
+		   ) : Process(), mrModelPart(model_part)
     {
         KRATOS_TRY
 	  
@@ -179,8 +179,10 @@ public:
 	for(unsigned int i=0; i<number_variables; i++)
 	  {
 
-	    std::string variable_name = boost::python::extract<std::string>(rVariablesList[i]);
-	    std::string reaction_name = boost::python::extract<std::string>(rReactionsList[i]);
+	    //std::string variable_name = boost::python::extract<std::string>(rVariablesList[i]);
+	    //std::string reaction_name = boost::python::extract<std::string>(rReactionsList[i]);
+	    std::string variable_name = pybind11::cast<std::string>(rVariablesList[i]);
+	    std::string reaction_name = pybind11::cast<std::string>(rReactionsList[i]);
 
 	    bool supplied_reaction = true;
 	    if(reaction_name == "NOT_DEFINED")
@@ -285,13 +287,13 @@ public:
 
 
     /// Execute method is used to execute the AddDofsProcess algorithms.
-    virtual void Execute() 
+    void Execute() override
     {
 
         KRATOS_TRY;
 
-	int number_of_nodes = mr_model_part.NumberOfNodes();
-	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
+	int number_of_nodes = mrModelPart.NumberOfNodes();
+	ModelPart::NodeConstantIterator nodes_begin = mrModelPart.NodesBegin();
 
 	/*
 	//1nd way: (fastest) generating the dofs for the initial node and add to others (still fails if a variable or a dof is set when mdpa is read)
@@ -331,43 +333,43 @@ public:
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
+    void ExecuteBeforeSolutionLoop() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
+    void ExecuteBeforeOutputStep() override
     {
     }
 
 
     /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
+    void ExecuteAfterOutputStep() override
     {
     }
 
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 
@@ -387,19 +389,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "AddDofsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "AddDofsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -445,7 +447,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
 
     const std::vector<std::string> ms_components {"_X", "_Y", "_Z"};
     
@@ -467,8 +469,8 @@ private:
     {
       KRATOS_TRY
 
-	int number_of_nodes = mr_model_part.NumberOfNodes();
-	ModelPart::NodeConstantIterator nodes_begin = mr_model_part.NodesBegin();
+	int number_of_nodes = mrModelPart.NumberOfNodes();
+	ModelPart::NodeConstantIterator nodes_begin = mrModelPart.NodesBegin();
 	
 	for( unsigned int i=0; i < m_component_variables_list.size(); i++ )
 	  {

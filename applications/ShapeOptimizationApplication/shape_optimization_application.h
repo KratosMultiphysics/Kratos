@@ -35,6 +35,7 @@
 // Variables
 #include "includes/variables.h"
 
+
 // ==============================================================================
 
 namespace Kratos
@@ -65,11 +66,6 @@ namespace Kratos
 
     // For mapping
     KRATOS_DEFINE_VARIABLE(int,MAPPING_ID);
-
-    // For Structure Sensitivity Analysis
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 	///@}
 	///@name Type Definitions
@@ -120,7 +116,7 @@ namespace Kratos
 		///@name Operations
 		///@{
 
-		virtual void Register();
+	    void Register() override;
 
 
 
@@ -139,20 +135,20 @@ namespace Kratos
 		///@{
 
 		/// Turn back information as a string.
-		virtual std::string Info() const
+		std::string Info() const override
 		{
 			return "KratosShapeOptimizationApplication";
 		}
 
 		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
+		void PrintInfo(std::ostream& rOStream) const override
 		{
 			rOStream << Info();
 			PrintData(rOStream);
 		}
 
 		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
+       void PrintData(std::ostream& rOStream) const override
       {
       	KRATOS_WATCH("in my application");
       	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -223,12 +219,11 @@ namespace Kratos
 		///@name Member Variables
 		///@{
 
-        // elements
-
         //conditions
         const ShapeOptimizationCondition mShapeOptimizationCondition3D3N;
 		const ShapeOptimizationCondition mShapeOptimizationCondition3D4N;
         const ShapeOptimizationCondition mShapeOptimizationCondition2D2N;
+		const ShapeOptimizationCondition mShapeOptimizationCondition3D2N;
 
 
 		///@}

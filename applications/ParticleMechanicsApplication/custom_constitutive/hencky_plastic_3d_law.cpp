@@ -468,7 +468,7 @@ void HenckyElasticPlastic3DLaw::GetDomainPressure( double& rPressure, const Mate
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(PRESSURE); //NOOOOO
+        rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(PRESSURE); //NOOOOO
     }
 
 }

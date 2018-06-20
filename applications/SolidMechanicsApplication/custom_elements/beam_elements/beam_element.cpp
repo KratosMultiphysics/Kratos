@@ -25,8 +25,6 @@ namespace Kratos
    */
   KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_RHS_VECTOR,                 0 );
   KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_LHS_MATRIX,                 1 );
-  KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-  KRATOS_CREATE_LOCAL_FLAG( BeamElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
   //******************************CONSTRUCTOR*******************************************
@@ -1315,7 +1313,15 @@ namespace Kratos
 	LocalX[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
       }
 
-    BeamMathUtilsType::CalculateLocalAxesMatrix(LocalX,rRotationMatrix);
+
+    if(this->Has(LOCAL_AXIS_2)){
+      Vector LocalY(3);
+      noalias(LocalY) = this->GetValue(LOCAL_AXIS_2);
+      BeamMathUtilsType::CalculateLocalAxesMatrix(LocalX,LocalY,rRotationMatrix);
+    }
+    else{
+      BeamMathUtilsType::CalculateLocalAxesMatrix(LocalX,rRotationMatrix);
+    }
 
     KRATOS_CATCH( "" )
 

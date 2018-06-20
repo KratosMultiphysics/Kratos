@@ -30,7 +30,7 @@ namespace Kratos
 {
     namespace Testing 
     {
-        typedef Node<3>                                                    NodeType;
+        typedef Node<3> NodeType;
         
         void GiDIODebugMMG(ModelPart& ThisModelPart)
         {
@@ -43,6 +43,7 @@ namespace Kratos
             gid_io.FinalizeMesh();
             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
             gid_io.WriteNodalResults(NODAL_H, ThisModelPart.Nodes(), label, 0);
+            gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
         }
         
         /** 
@@ -50,7 +51,7 @@ namespace Kratos
         * Test triangle 
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess1, KratosMMGProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess1, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -101,6 +102,10 @@ namespace Kratos
             Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D3N", 3, triangle_2, p_elem_prop);
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
             
+            // We set the flag to check that is transfered
+            for (auto& i_elem : this_model_part.Elements())
+                i_elem.Set(ACTIVE, true);
+
             // Set DISTANCE and other variables
             Vector ref_metric(3);
             ref_metric[0] = 1.0;
@@ -120,12 +125,17 @@ namespace Kratos
             FindNodalHProcess process = FindNodalHProcess(this_model_part);
             process.Execute();
             
-//             // DEBUG         
+//             // DEBUG
 //             GiDIODebugMMG(this_model_part);
             
             const double tolerance = 1.0e-4;
             for (auto& i_node : this_model_part.Nodes())
-                KRATOS_CHECK_LESS_EQUAL(std::abs(i_node.FastGetSolutionStepValue(NODAL_H) - 1.0/std::sqrt(2.0))*std::sqrt(2.0), tolerance);
+                if (i_node.X() < 0.001 || i_node.X() > 1.9999)
+                    KRATOS_CHECK_LESS_EQUAL(i_node.FastGetSolutionStepValue(NODAL_H) - 1.0, tolerance);
+
+            for (auto& i_elem : this_model_part.Elements())
+                KRATOS_CHECK(i_elem.Is(ACTIVE));
+
         }
         
         /** 
@@ -133,7 +143,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess2, KratosMMGProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestMMGProcess2, KratosMeshingApplicationFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -262,6 +272,10 @@ namespace Kratos
             Element::Pointer p_elem_10 = this_model_part.CreateNewElement("Element3D4N", 11, tetrahedra_10, p_elem_prop);
             Element::Pointer p_elem_11 = this_model_part.CreateNewElement("Element3D4N", 12, tetrahedra_11, p_elem_prop);
             
+            // We set the flag to check that is transfered
+            for (auto& i_elem : this_model_part.Elements())
+                i_elem.Set(ACTIVE, true);
+
             // Set DISTANCE and other variables
             Vector ref_metric = ZeroVector(6);
             ref_metric[0] = 1.0;
@@ -291,6 +305,9 @@ namespace Kratos
                 
             const double tolerance = 1.0e-2;
             KRATOS_CHECK_LESS_EQUAL(std::abs(max - 1.0/std::sqrt(2.0))/max, tolerance);
+
+            for (auto& i_elem : this_model_part.Elements())
+                KRATOS_CHECK(i_elem.Is(ACTIVE));
         }
     } // namespace Testing
 }  // namespace Kratos.

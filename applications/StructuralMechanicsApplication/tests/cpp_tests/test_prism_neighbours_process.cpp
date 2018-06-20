@@ -124,7 +124,7 @@ namespace Kratos
         * Test 3 neighbours
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestPrismNeighboursProcess1, KratosPrismNeighboursProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(PrismNeighboursProcess1, KratosStructuralMechanicsFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -144,7 +144,7 @@ namespace Kratos
         * Checks the correct work of the prism neighbour process
         * Test 2 neighbours
         */
-        KRATOS_TEST_CASE_IN_SUITE(TestPrismNeighboursProcess2, KratosPrismNeighboursProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(PrismNeighboursProcess2, KratosStructuralMechanicsFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -164,7 +164,7 @@ namespace Kratos
         * Checks the correct work of the prism neighbour process
         * Test 1 neighbours
         */
-        KRATOS_TEST_CASE_IN_SUITE(TestPrismNeighboursProcess3, KratosPrismNeighboursProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(PrismNeighboursProcess3, KratosStructuralMechanicsFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
@@ -184,7 +184,7 @@ namespace Kratos
         * Checks the correct work of the prism neighbour process
         * Test 0 neighbours (It will return the ID of the original element)
         */
-        KRATOS_TEST_CASE_IN_SUITE(TestPrismNeighboursProcess4, KratosPrismNeighboursProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(PrismNeighboursProcess4, KratosStructuralMechanicsFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);

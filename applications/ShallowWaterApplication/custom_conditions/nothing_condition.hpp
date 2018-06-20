@@ -11,13 +11,12 @@
 //
 
 #if !defined(KRATOS_NOTHING_CONDITION_H_INCLUDED)
-#define  KRATOS_NOTHING_CONDITION_H_INCLUDED 
+#define  KRATOS_NOTHING_CONDITION_H_INCLUDED
 
-// System includes 
+// System includes
 
 
-// External includes 
-#include "boost/smart_ptr.hpp"
+// External includes
 
 
 // Project includes
@@ -34,7 +33,7 @@ namespace Kratos
   class NothingCondition : public Condition
   {
   public:
-     
+
     /// Counted pointer of NothingCondition
     KRATOS_CLASS_POINTER_DEFINITION( NothingCondition );
 
@@ -84,7 +83,7 @@ namespace Kratos
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Condition::Pointer(new NothingCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
@@ -93,13 +92,13 @@ namespace Kratos
 
 //----------------------------------------------------------------------
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& rConditionDofList,ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------
 

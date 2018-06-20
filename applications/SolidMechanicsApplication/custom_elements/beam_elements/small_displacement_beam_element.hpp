@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED)
 #define  KRATOS_SMALL_DISPLACEMENT_BEAM_ELEMENT_H_INCLUDED
 
 // System includes
@@ -40,7 +40,7 @@ namespace Kratos
  * Implements a Small Displacement definition for structural analysis.
  */
 
-class SmallDisplacementBeamElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) SmallDisplacementBeamElement
     :public BeamElement
 {
 public:

@@ -39,6 +39,8 @@
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
+#include "custom_elements/d_vms.h"
+#include "custom_elements/fic.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 //#include "custom_elements/dynamic_vms.h"
@@ -66,10 +68,13 @@
 #include "custom_elements/navier_stokes.h"
 #include "custom_elements/embedded_navier_stokes.h"
 #include "custom_elements/embedded_ausas_navier_stokes.h"
+#include "custom_elements/compressible_navier_stokes.h"
 
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/fic_data.h"
+#include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
@@ -78,6 +83,7 @@
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 
 
 namespace Kratos
@@ -105,7 +111,7 @@ namespace Kratos
 ///@{
 
 /// Main class of the Fluid Dynamics Application
-class KratosFluidDynamicsApplication : public KratosApplication
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) KratosFluidDynamicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -249,6 +255,14 @@ private:
     const QSVMS< QSVMSData<3,8> > mQSVMS3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
+    const DVMS< QSVMSData<2,3> > mDVMS2D3N;
+    const DVMS< QSVMSData<3,4> > mDVMS3D4N;
+    const FIC< FICData<2,3> > mFIC2D3N;
+    const FIC< FICData<2,4> > mFIC2D4N;
+    const FIC< FICData<3,4> > mFIC3D4N;
+    const FIC< FICData<3,8> > mFIC3D8N;
+    const FIC< TimeIntegratedFICData<2,3> > mTimeIntegratedFIC2D3N;
+    const FIC< TimeIntegratedFICData<3,4> > mTimeIntegratedFIC3D4N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
@@ -349,6 +363,10 @@ private:
     const EmbeddedAusasNavierStokesWallCondition<2> mEmbeddedAusasNavierStokesWallCondition2D;
     const EmbeddedAusasNavierStokesWallCondition<3> mEmbeddedAusasNavierStokesWallCondition3D;
 
+    /// Compressible Navier-Stokes symbolic element
+    const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
+    const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
+
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
     const Euler2DLaw mEuler2DLaw;
@@ -356,6 +374,7 @@ private:
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
     const Newtonian2DLaw mNewtonian2DLaw;
     const Newtonian3DLaw mNewtonian3DLaw;
+    const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
 
     ///@}
     ///@name Private Operators

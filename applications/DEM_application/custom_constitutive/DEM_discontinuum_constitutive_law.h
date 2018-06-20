@@ -132,7 +132,7 @@ namespace Kratos {
     };
 
     //This definition is done here to avoid recursive inclusion of header files
-    KRATOS_DEFINE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
+    KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
 
 } /* namespace Kratos.*/
 #endif /* DEM_CONSTITUTIVE_LAW_H_INCLUDED  defined */

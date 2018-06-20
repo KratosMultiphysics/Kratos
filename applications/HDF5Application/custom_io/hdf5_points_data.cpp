@@ -34,7 +34,7 @@ void PointsData::CreateNodes(NodesContainerType& rNodes)
     for (unsigned i = 0; i < num_new_nodes; ++i)
     {
         const array_1d<double, 3>& r_coord = mCoords[i];
-        NodeType::Pointer p_node = boost::make_shared<NodeType>(
+        NodeType::Pointer p_node = Kratos::make_shared<NodeType>(
             mIds[i], r_coord[0], r_coord[1], r_coord[2]);
         rNodes.push_back(p_node);
     }

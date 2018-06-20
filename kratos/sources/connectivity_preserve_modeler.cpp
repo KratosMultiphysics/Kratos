@@ -58,15 +58,15 @@ void ConnectivityPreserveModeler::ResetModelPart(ModelPart &rDestinationModelPar
 {
     for(auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); it++)
         it->Set(TO_ERASE);
-    rDestinationModelPart.RemoveNodes(TO_ERASE);
+    rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
     for(auto it = rDestinationModelPart.ElementsBegin(); it != rDestinationModelPart.ElementsEnd(); it++)
         it->Set(TO_ERASE);
-    rDestinationModelPart.RemoveElements(TO_ERASE);
+    rDestinationModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
-    for(auto it = rDestinationModelPart.ElementsBegin(); it != rDestinationModelPart.ElementsEnd(); it++)
+    for(auto it = rDestinationModelPart.ConditionsBegin(); it != rDestinationModelPart.ConditionsEnd(); it++)
         it->Set(TO_ERASE);
-    rDestinationModelPart.RemoveConditions(TO_ERASE);
+    rDestinationModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
 
@@ -211,7 +211,10 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
 {
     for(auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part)
     {
-        ModelPart& destination_part = *(rDestinationModelPart.CreateSubModelPart(i_part->Name()));
+        if( ! rDestinationModelPart.HasSubModelPart(i_part->Name()))
+            rDestinationModelPart.CreateSubModelPart(i_part->Name());
+            
+        ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
 
         destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
 

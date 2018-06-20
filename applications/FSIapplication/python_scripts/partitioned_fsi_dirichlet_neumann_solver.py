@@ -13,27 +13,27 @@ import KratosMultiphysics
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications(
     "FSIApplication",
-    "ALEApplication",
+    "MeshMovingApplication",
     "FluidDynamicsApplication",
     "StructuralMechanicsApplication")
 
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.ALEApplication as KratosALE
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 # Import base class file
 import partitioned_fsi_base_solver
 
-def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
-    return PartitionedFSIDirichletNeumannSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
+def CreateSolver(model, project_parameters):
+    return PartitionedFSIDirichletNeumannSolver(model, project_parameters)
 
 class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.PartitionedFSIBaseSolver):
-    def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
+    def __init__(self, model, project_parameters):
 
         print("*** Partitioned Dirichlet-Neumann FSI solver construction starts...")
-        super(PartitionedFSIDirichletNeumannSolver, self).__init__(structure_main_model_part, fluid_main_model_part, project_parameters)
+        super(PartitionedFSIDirichletNeumannSolver, self).__init__(model, project_parameters)
         print("*** Partitioned Dirichlet-Neumann FSI solver construction finished.")
 
 
@@ -140,7 +140,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
                     print("***********************************************************")
                     print("       NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED       ")
                     print("***********************************************************")
-                    print("***********************************************************")           
+                    print("***********************************************************")
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
         self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
@@ -273,9 +273,9 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
-        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(), 
-                                                                      KratosMultiphysics.MESH_DISPLACEMENT, 
-                                                                      KratosMultiphysics.VECTOR_PROJECTED, 
+        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(),
+                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
+                                                                      KratosMultiphysics.VECTOR_PROJECTED,
                                                                       disp_residual)
 
         return disp_residual
@@ -300,9 +300,9 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
-        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(), 
-                                                                      KratosMultiphysics.MESH_DISPLACEMENT, 
-                                                                      KratosFSI.VECTOR_PROJECTED, 
+        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(),
+                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
+                                                                      KratosFSI.VECTOR_PROJECTED,
                                                                       disp_residual)
 
         return disp_residual

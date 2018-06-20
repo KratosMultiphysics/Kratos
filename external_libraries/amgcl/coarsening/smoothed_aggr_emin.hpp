@@ -81,8 +81,8 @@ struct smoothed_aggr_emin {
     /// \copydoc amgcl::coarsening::aggregation::transfer_operators
     template <class Matrix>
     static boost::tuple<
-        boost::shared_ptr<Matrix>,
-        boost::shared_ptr<Matrix>
+        std::shared_ptr<Matrix>,
+        std::shared_ptr<Matrix>
         >
     transfer_operators(const Matrix &A, params &prm)
     {
@@ -95,7 +95,7 @@ struct smoothed_aggr_emin {
         AMGCL_TOC("aggregates");
 
         AMGCL_TIC("interpolation");
-        boost::shared_ptr<Matrix> P_tent = tentative_prolongation<Matrix>(
+        std::shared_ptr<Matrix> P_tent = tentative_prolongation<Matrix>(
                 rows(A), aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
 
@@ -155,8 +155,8 @@ struct smoothed_aggr_emin {
 
         std::vector<Val> omega;
 
-        boost::shared_ptr<Matrix> P = interpolation(Af, dia, *P_tent, omega);
-        boost::shared_ptr<Matrix> R = restriction  (Af, dia, *P_tent, omega);
+        std::shared_ptr<Matrix> P = interpolation(Af, dia, *P_tent, omega);
+        std::shared_ptr<Matrix> R = restriction  (Af, dia, *P_tent, omega);
         AMGCL_TOC("interpolation");
 
         if (prm.nullspace.cols > 0)
@@ -166,7 +166,7 @@ struct smoothed_aggr_emin {
     }
 
     template <class Matrix>
-    static boost::shared_ptr<Matrix>
+    static std::shared_ptr<Matrix>
     coarse_operator(
             const Matrix &A,
             const Matrix &P,
@@ -179,7 +179,7 @@ struct smoothed_aggr_emin {
 
     private:
         template <class AMatrix, typename Val, typename Col, typename Ptr>
-        static boost::shared_ptr< backend::crs<Val, Col, Ptr> >
+        static std::shared_ptr< backend::crs<Val, Col, Ptr> >
         interpolation(
                 const AMatrix &A, const std::vector<Val> &Adia,
                 const backend::crs<Val, Col, Ptr> &P_tent,
@@ -194,7 +194,7 @@ struct smoothed_aggr_emin {
             const size_t n  = rows(P_tent);
             const size_t nc = cols(P_tent);
 
-            boost::shared_ptr<PMatrix> AP = product(A, P_tent, /*sort rows: */true);
+            std::shared_ptr<PMatrix> AP = product(A, P_tent, /*sort rows: */true);
 
             omega.resize(nc, math::zero<Val>());
             std::vector<Val> denum(nc, math::zero<Val>());
@@ -313,7 +313,7 @@ struct smoothed_aggr_emin {
         }
 
         template <typename AMatrix, typename Val, typename Col, typename Ptr>
-        static boost::shared_ptr< backend::crs<Val, Col, Ptr> >
+        static std::shared_ptr< backend::crs<Val, Col, Ptr> >
         restriction(
                 const AMatrix &A, const std::vector<Val> &Adia,
                 const backend::crs<Val, Col, Ptr> &P_tent,
@@ -324,10 +324,10 @@ struct smoothed_aggr_emin {
 
             const size_t nc = cols(P_tent);
 
-            boost::shared_ptr<PMatrix> R_tent = transpose(P_tent);
+            std::shared_ptr<PMatrix> R_tent = transpose(P_tent);
             sort_rows(*R_tent);
 
-            boost::shared_ptr<PMatrix> RA = product(*R_tent, A, /*sort rows: */true);
+            std::shared_ptr<PMatrix> RA = product(*R_tent, A, /*sort rows: */true);
 
             // Compute R = R_tent - Omega R_tent A D^-1.
             /*

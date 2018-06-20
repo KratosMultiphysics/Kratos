@@ -10,13 +10,13 @@
 //
 
 // System includes 
-#include <boost/python.hpp>
 
 // External includes 
 
 // Project includes
 #include "includes/node.h"
 #include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "containers/flags.h"
 
@@ -32,32 +32,27 @@ namespace Kratos
 {
 namespace Python
 {
-void  AddCustomProcessesToPython()
+using namespace pybind11;
+
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
     typedef Process  ProcessBaseType;
 
-    class_<ALMFastInit, bases<ProcessBaseType>, boost::noncopyable >
-    (
-        "ALMFastInit", init<ModelPart&>()
-    )
-    .def("Execute", &ALMFastInit::Execute)
+    class_<ALMFastInit, ALMFastInit::Pointer, ProcessBaseType >
+    (m, "ALMFastInit")
+    .def(init<ModelPart&>())
     ;
     
-    class_<MasterSlaveProcess, bases<ProcessBaseType>, boost::noncopyable >
-    (
-        "MasterSlaveProcess", init<ModelPart&>()
-    )
-    .def("Execute", &MasterSlaveProcess::Execute)
+    class_<MasterSlaveProcess, MasterSlaveProcess::Pointer, ProcessBaseType >
+    (m, "MasterSlaveProcess")
+    .def(init<ModelPart&>())
     ;
     
-    class_<ALMVariablesCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
-    (
-        "ALMVariablesCalculationProcess", init<ModelPart&, Variable<double>&, Parameters>()
-    )
+    class_<ALMVariablesCalculationProcess, ALMVariablesCalculationProcess::Pointer, ProcessBaseType >
+    (m, "ALMVariablesCalculationProcess")
+    .def(init<ModelPart&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, Variable<double>&>()) // Considering default variables
     .def(init<ModelPart&>()) 
-    .def("Execute", &ALMVariablesCalculationProcess::Execute)
     ;
 }
 }  // namespace Python.

@@ -26,8 +26,6 @@ namespace Kratos
  */
 KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBeamElement3D2N, COMPUTE_RHS_VECTOR,                 0 );
 KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBeamElement3D2N, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBeamElement3D2N, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( SmallDisplacementBeamElement3D2N, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
 //******************************CONSTRUCTOR*******************************************

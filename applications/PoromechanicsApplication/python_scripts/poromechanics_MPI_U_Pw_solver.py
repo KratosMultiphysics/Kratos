@@ -14,17 +14,17 @@ import poromechanics_U_Pw_solver
 
 
 def CreateSolver(main_model_part, custom_settings):
-    
+
     return MPIUPwSolver(main_model_part, custom_settings)
 
 
 class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
 
-    def __init__(self, main_model_part, custom_settings): 
-        
+    def __init__(self, main_model_part, custom_settings):
+
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -39,7 +39,8 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
             "reform_dofs_at_each_step": false,
             "clear_storage": false,
             "compute_reactions": false,
-            "move_mesh_flag": true,
+            "move_mesh_flag": false,
+            "nodal_smoothing": false,
             "periodic_interface_conditions": false,
             "solution_type": "Quasi-Static",
             "scheme_type": "Newmark",
@@ -82,21 +83,21 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         # Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
+
         # Construct the linear solver
         import trilinos_linear_solver_factory
         self.linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        
+
         print("Construction of MPI UPwSolver finished")
 
     def AddVariables(self):
-        
+
         super(MPIUPwSolver, self).AddVariables()
-        
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
     def ImportModelPart(self):
-        
+
         # Construct the Trilinos import model part utility
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
@@ -111,23 +112,23 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         TrilinosModelPartImporter.CreateCommunicators()
 
     def Initialize(self):
-        
+
         # Construct the communicator
         self.EpetraCommunicator = TrilinosApplication.CreateCommunicator()
-        
+
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
-        
+
         # Builder and solver creation
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
-        
+
         # Solution scheme creation
         scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
                                          self.settings["solution_type"].GetString())
-                
+
         # Get the convergence criterion
         convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
-                
+
         # Solver creation
         self.Solver = self._ConstructSolver(builder_and_solver,
                                             scheme,
@@ -181,17 +182,17 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
                 scheme = KratosPoro.TrilinosNewmarkDynamicUPwScheme(beta,gamma,theta,rayleigh_m,rayleigh_k)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
-        
+
         return scheme
 
     def _ConstructConvergenceCriterion(self, convergence_criterion):
-        
+
         D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
         D_AT = self.settings["displacement_absolute_tolerance"].GetDouble()
         R_RT = self.settings["residual_relative_tolerance"].GetDouble()
         R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
         echo_level = self.settings["echo_level"].GetInt()
-        
+
         if(convergence_criterion == "Displacement_criterion"):
             convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT, self.EpetraCommunicator)
             convergence_criterion.SetEchoLevel(echo_level)
@@ -210,16 +211,16 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
             Residual = TrilinosApplication.TrilinosResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = TrilinosApplication.TrilinosOrCriteria(Residual, Displacement)
-        
+
         return convergence_criterion
-    
+
     def _ConstructSolver(self, builder_and_solver, scheme, convergence_criterion, strategy_type):
-        
+
         max_iters = self.settings["max_iteration"].GetInt()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
-                
+
         if strategy_type == "Newton-Raphson":
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)
             solver = TrilinosApplication.TrilinosNewtonRaphsonStrategy(self.main_model_part,
@@ -234,5 +235,5 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
                                                                        )
         else:
             raise Exception("Apart from Newton-Raphson, other strategy_type are not available.")
-        
+
         return solver

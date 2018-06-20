@@ -16,8 +16,6 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
@@ -33,13 +31,12 @@ namespace Kratos
 
 namespace Python
 {
-void  AddCustomProcessesToPython()
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-
-    
-    class_<ParticleEraseProcess, bases<Process> >("ParticleEraseProcess", init < ModelPart& >());
+    class_<ParticleEraseProcess, ParticleEraseProcess::Pointer, Process>(m,"ParticleEraseProcess")
+    .def(init<ModelPart&>());
       
 }
 

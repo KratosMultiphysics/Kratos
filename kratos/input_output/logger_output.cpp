@@ -43,7 +43,10 @@ namespace Kratos
 		auto message_severity = TheMessage.GetSeverity();
         if (message_severity <= mSeverity)
         {
-            mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+            if(TheMessage.GetLabel().size())
+                mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+            else
+                mrStream << TheMessage.GetMessage();
         }
     }
 

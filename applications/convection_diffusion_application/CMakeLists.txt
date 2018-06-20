@@ -5,38 +5,38 @@ message("**** configuring KratosConvectionDiffusionApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
-set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}/convection_diffusion_application.cpp 
+set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/convection_diffusion_application.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_convection_diffusion_python_application.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_convection_diffusion_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/eulerian_conv_diff.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_3d.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_element.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face2D.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face3D.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face2D.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face3D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/flux_condition.cpp
 )
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 # add_library(KratosConvectionDiffusionApplicationStaticLib STATIC ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES})
-add_library(KratosConvectionDiffusionApplication SHARED ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES})
-target_link_libraries(KratosConvectionDiffusionApplication KratosCore )
+pybind11_add_module(KratosConvectionDiffusionApplication MODULE THIN_LTO ${KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES})
+target_link_libraries(KratosConvectionDiffusionApplication PRIVATE KratosCore )
 set_target_properties(KratosConvectionDiffusionApplication PROPERTIES PREFIX "")
 set_target_properties(KratosConvectionDiffusionApplication PROPERTIES COMPILE_DEFINITIONS "CONVECTION_DIFFUSION_APPLICATION=EXPORT,API")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosConvectionDiffusionApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosConvectionDiffusionApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -50,7 +50,7 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 if(USE_COTIRE MATCHES ON)
   cotire(KratosConvectionDiffusionApplication)
 endif(USE_COTIRE MATCHES ON)
- 
+
 install(TARGETS KratosConvectionDiffusionApplication DESTINATION libs )
 
 

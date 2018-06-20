@@ -239,8 +239,8 @@ namespace Kratos
     //FORCE CONDITION:
     
     //defined on condition
-    if( this->Has( SURFACE_LOAD ) ){
-      array_1d<double, 3 > & SurfaceLoad = this->GetValue( SURFACE_LOAD );
+    if( this->Has( FORCE_LOAD ) ){
+      array_1d<double, 3 > & SurfaceLoad = this->GetValue( FORCE_LOAD );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
@@ -249,8 +249,8 @@ namespace Kratos
     }
 
     //defined on condition nodes
-    if( this->Has( SURFACE_LOAD_VECTOR ) ){
-      Vector& SurfaceLoads = this->GetValue( SURFACE_LOAD_VECTOR );
+    if( this->Has( FORCE_LOAD_VECTOR ) ){
+      Vector& SurfaceLoads = this->GetValue( FORCE_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
@@ -265,8 +265,8 @@ namespace Kratos
     //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_LOAD ) ){
-	  array_1d<double, 3 > & SurfaceLoad = GetGeometry()[i].FastGetSolutionStepValue( SURFACE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( FORCE_LOAD ) ){
+	  array_1d<double, 3 > & SurfaceLoad = GetGeometry()[i].FastGetSolutionStepValue( FORCE_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * SurfaceLoad[k];
 	}
@@ -297,9 +297,9 @@ namespace Kratos
 	}
       else
 	{
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-	  boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+	  BoundedMatrix<double, 3, 3 > Kij;
+	  BoundedMatrix<double, 3, 3 > Cross_ge;
+	  BoundedMatrix<double, 3, 3 > Cross_gn;
 
 	  double coeff;
 	  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -354,8 +354,8 @@ namespace Kratos
     KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE);
     KRATOS_CHECK_VARIABLE_KEY(POSITIVE_FACE_PRESSURE_VECTOR);
     
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_LOAD);
-    KRATOS_CHECK_VARIABLE_KEY(SURFACE_LOAD_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(FORCE_LOAD_VECTOR);
         
     return ErrorCode;
     

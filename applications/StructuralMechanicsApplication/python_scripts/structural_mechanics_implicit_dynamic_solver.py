@@ -13,8 +13,8 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import structural_mechanics_solver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return ImplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return ImplicitMechanicalSolver(model, custom_settings)
 
 
 class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
@@ -28,7 +28,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
@@ -42,7 +42,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
 
         # Construct the base solver.
-        super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(ImplicitMechanicalSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
         # Setting minimum buffer
@@ -75,7 +75,16 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):
             order = self._bdf_integration_order()
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(order)
+            # In case of rotation dof we declare the dynamic variables
+            if self.settings["rotation_dofs"].GetBool():
+                dynamic_variables = KratosMultiphysics.Parameters(""" {
+                    "variable"              : ["DISPLACEMENT","ROTATION"],
+                    "first_derivative"      : ["VELOCITY","ANGULAR_VELOCITY"],
+                    "second_derivative"     : ["ACCELERATION","ANGULAR_ACCELERATION"]
+                    } """)
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(order, dynamic_variables)
+            else:
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(order)
         elif(scheme_type == "relaxation"):
             damp_factor_f =-0.3
             dynamic_factor_m = 10.0

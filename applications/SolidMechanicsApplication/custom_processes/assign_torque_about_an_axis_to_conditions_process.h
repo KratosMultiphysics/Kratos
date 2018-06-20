@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_TORQUE_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ASSIGN_TORQUE_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED)
 #define  KRATOS_ASSIGN_TORQUE_ABOUT_AN_AXIS_TO_CONDITIONS_PROCESS_H_INCLUDED
 
 
@@ -44,13 +44,13 @@ public:
     ///@{
 
 
-    AssignTorqueAboutAnAxisToConditionsProcess(ModelPart& model_part) : Process(Flags()) , mr_model_part(model_part) {}
+    AssignTorqueAboutAnAxisToConditionsProcess(ModelPart& model_part) : Process(Flags()) , mrModelPart(model_part) {}
 
 
 
     AssignTorqueAboutAnAxisToConditionsProcess(ModelPart& model_part,
 					       Parameters rParameters
- 				              ) : Process(Flags()) , mr_model_part(model_part)
+ 				              ) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -116,7 +116,7 @@ public:
 
 
     /// Execute method is used to execute the AssignTorqueAboutAnAxisToConditionsProcess algorithms.
-    virtual void Execute()
+    void Execute() override
     {
 
         KRATOS_TRY;
@@ -129,43 +129,43 @@ public:
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
+    void ExecuteBeforeSolutionLoop() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
+    void ExecuteBeforeOutputStep() override
     {
     }
 
 
     /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
+    void ExecuteAfterOutputStep() override
     {
     }
 
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
 	array_1d<double,3> vector_value;
 	vector_value.clear();
@@ -188,19 +188,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "AssignTorqueAboutAnAxisToConditionsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "AssignTorqueAboutAnAxisToConditionsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -218,7 +218,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     std::string mvariable_name;
     double mvalue;
     array_1d<double,3> mdirection;
@@ -260,11 +260,11 @@ private:
     void InternalAssignValue(const Variable<array_1d<double,3> >& rVariable,
 			     const array_1d<double,3>& rvector_value)
     {
-        const int nconditions = mr_model_part.GetMesh().Conditions().size();
+        const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
             #pragma omp parallel for
             for(int i = 0; i<nconditions; i++)
@@ -280,11 +280,11 @@ private:
     {
 	KRATOS_TRY
 
-	const int nconditions = mr_model_part.GetMesh().Conditions().size();
+	const int nconditions = mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-            ModelPart::ConditionsContainerType::iterator it_begin = mr_model_part.GetMesh().ConditionsBegin();
+            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
 
 	    std::vector<array_1d<double,3> > Couples(nconditions);
 	    std::vector<array_1d<double,3> > Forces(nconditions);

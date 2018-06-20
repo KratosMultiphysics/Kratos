@@ -29,9 +29,9 @@
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
-        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_relative_tolerance"    : 0.00001,
         "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
+        "residual_relative_tolerance"        : 0.00001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
         "linear_solver_settings"             : {
@@ -89,7 +89,7 @@
         "Parameters"            : {
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_body_upper",
-            "contact_model_part"          : "Contact_Part",
+            "contact_model_part"          : ["Contact_Part"],
             "contact_type"                : "Frictionless"
         }
     }
@@ -108,7 +108,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
             "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]

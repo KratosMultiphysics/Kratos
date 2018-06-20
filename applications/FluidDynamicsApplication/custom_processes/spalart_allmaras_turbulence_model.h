@@ -36,7 +36,6 @@
 #include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "spaces/ublas_space.h"
 
 // Application includes
 #include "custom_utilities/periodic_condition_utilities.h"

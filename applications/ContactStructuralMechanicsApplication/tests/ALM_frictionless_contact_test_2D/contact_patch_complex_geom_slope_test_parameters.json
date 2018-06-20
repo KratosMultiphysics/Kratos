@@ -91,7 +91,7 @@
         "Parameters"    : {
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_Parts_Auto2",
-            "contact_model_part"          : "CONTACT_Contact_Auto1",
+            "contact_model_part"          : ["CONTACT_Contact_Auto1"],
             "contact_type"                : "Frictionless"
         }
     }],
@@ -137,7 +137,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
             "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]

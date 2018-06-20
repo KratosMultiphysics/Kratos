@@ -8,201 +8,177 @@
 //
 
 // System includes 
-#include <boost/python.hpp>
 
 // External includes 
 
 // Project includes
-#include "includes/node.h"
-#include "includes/define.h"
-#include "processes/process.h"
-
-//Application includes
 #include "custom_python/add_custom_processes_to_python.h"
 
-//General model processes
 
-//Processes
+// Processes
 #include "custom_processes/elemental_neighbours_search_process.hpp"
 #include "custom_processes/nodal_neighbours_search_process.hpp"
 #include "custom_processes/build_model_part_boundary_process.hpp"
 #include "custom_processes/model_volume_calculation_process.hpp"
 
-//MeshModeler initialization and finalization processes
+// MeshModeler initialization and finalization processes
 #include "custom_processes/model_start_end_meshing_process.hpp"
 
-//PreMeshing processes
+// PreMeshing processes
 #include "custom_processes/refine_mesh_elements_on_threshold_process.hpp"
 #include "custom_processes/refine_mesh_elements_in_edges_process.hpp"
 #include "custom_processes/refine_mesh_boundary_process.hpp"
 #include "custom_processes/remove_mesh_nodes_process.hpp"
 
-//MiddleMeshing processes
+// MiddleMeshing processes
 #include "custom_processes/refine_mesh_elements_on_size_process.hpp"
 #include "custom_processes/print_output_mesh_process.hpp"
 
-//PostMeshing processes
+// PostMeshing processes
 #include "custom_processes/generate_new_nodes_process.hpp"
 #include "custom_processes/select_mesh_elements_process.hpp"
 #include "custom_processes/build_mesh_elements_process.hpp"
 #include "custom_processes/build_mesh_boundary_process.hpp"
 
-//Kinematics
+// Kinematics
 #include "custom_processes/constant_rotation_process.h"
 
 
 namespace Kratos
 {
 	
-  namespace Python
-  {
+namespace Python
+{
 
-    typedef Process                        ProcessBaseType;
-    typedef Process::Pointer                ProcessPointer;
-    typedef std::vector<Process::Pointer> ProcessContainer;
+typedef Process                        ProcessBaseType;
+typedef Process::Pointer                ProcessPointer;
+typedef std::vector<Process::Pointer> ProcessContainer;
 
-    void Push_Back_Process( ProcessContainer& ThisProcessContainer,
-			       ProcessPointer ThisProcess )
-    {
-       ThisProcessContainer.push_back( ThisProcess );
-    }
+void Push_Back_Process( ProcessContainer& ThisProcessContainer,
+                        ProcessPointer ThisProcess )
+{
+  ThisProcessContainer.push_back( ThisProcess );
+}
   	
-    void  AddCustomProcessesToPython()
-    {
+void  AddCustomProcessesToPython(pybind11::module& m)
+{
 
-      using namespace boost::python;
-      typedef Process                                         ProcessBaseType;
+  using namespace pybind11;
 
-
-      //process container
-      class_< ProcessContainer >( "ProcessContainer", init<>() )
-        .def( "PushBack", Push_Back_Process )
+  //process container
+  class_<ProcessContainer>(m,"ProcessContainer")
+      .def( init<>() )
+      .def( "PushBack", Push_Back_Process )
       ;
 
 
-     //***************NEIGHBOURS**************//
+  //***************NEIGHBOURS**************//
       
-      class_<NodalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "NodalNeighboursSearch", init<ModelPart&, int, int, int>()
-	 )
-	.def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
-	;
+  class_<NodalNeighboursSearchProcess, NodalNeighboursSearchProcess::Pointer, Process>
+      (m,"NodalNeighboursSearch")
+      .def(init<ModelPart&, int, int, int>())
+      .def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
+      ;
       
-      class_<ElementalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "ElementalNeighboursSearch", init<ModelPart&, int, int, int>()
-	 )
-	.def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
-	;
+  class_<ElementalNeighboursSearchProcess, ElementalNeighboursSearchProcess::Pointer, Process>
+      (m,"ElementalNeighboursSearch")
+      .def(init<ModelPart&, int, int, int>())
+      .def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
+      ;
 
 
-      //***************BOUNDARY**************//
+  //***************BOUNDARY**************//
 
-      class_<BuildModelPartBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "BuildModelPartBoundary", init<ModelPart&, std::string, int>()
-	 )
-	.def("SearchConditionMasters", &BuildModelPartBoundaryProcess::SearchConditionMasters)
-	;
-
-
-      //**********MESH MODELLER PROCESS*********//
-
-      class_<ModelStartEndMeshingProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "ModelMeshing", init<ModelPart&, Flags, int>()
-	 )
-	;
+  class_<BuildModelPartBoundaryProcess, BuildModelPartBoundaryProcess::Pointer, Process>
+      (m,"BuildModelPartBoundary")
+      .def(init<ModelPart&, std::string, int>())
+      .def("SearchConditionMasters", &BuildModelPartBoundaryProcess::SearchConditionMasters)
+      ;
 
 
-      class_<RefineMeshElementsOnThresholdProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "SetElementNodesToRefineOnThreshold", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  //**********MESH MODELLER PROCESS*********//
 
-      class_<RefineMeshElementsInEdgesProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "SetElementEdgesToRefine", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  class_<ModelStartEndMeshingProcess, ModelStartEndMeshingProcess::Pointer, Process>
+      (m,"ModelMeshing")
+      .def(init<ModelPart&, Flags, int>())
+      ;
+
+
+  class_<RefineMeshElementsOnThresholdProcess, RefineMeshElementsOnThresholdProcess::Pointer, Process>
+      (m,"SetElementNodesToRefineOnThreshold")
+      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+      ;
+
+  class_<RefineMeshElementsInEdgesProcess, RefineMeshElementsInEdgesProcess::Pointer, Process>
+      (m,"SetElementEdgesToRefine")
+      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
+      ;
       
-      class_<RefineMeshElementsOnSizeProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "SetElementsToRefineOnSize", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  class_<RefineMeshElementsOnSizeProcess, RefineMeshElementsOnSizeProcess::Pointer, Process>
+      (m,"SetElementsToRefineOnSize")
+      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+      ;
 
-      class_<RefineMeshBoundaryProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "RefineMeshBoundary", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-      	 )
-      	;
+  class_<RefineMeshBoundaryProcess, RefineMeshBoundaryProcess::Pointer, Process>
+      (m,"RefineMeshBoundary")
+      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+      ;
 
-      class_<RemoveMeshNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "RemoveMeshNodes", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  class_<RemoveMeshNodesProcess, RemoveMeshNodesProcess::Pointer, Process>
+      (m,"RemoveMeshNodes")
+      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
+      ;
 
 
-      class_<GenerateNewNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "GenerateNewNodes", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  class_<GenerateNewNodesProcess, GenerateNewNodesProcess::Pointer, Process>
+      (m,"GenerateNewNodes")
+      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+      ;
 
-      class_<SelectMeshElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "SelectMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  class_<SelectMeshElementsProcess, SelectMeshElementsProcess::Pointer, Process>
+      (m,"SelectMeshElements")
+      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+      ;
 
-      class_<BuildMeshElementsProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "BuildMeshElements", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  class_<BuildMeshElementsProcess, BuildMeshElementsProcess::Pointer, Process>
+      (m,"BuildMeshElements")
+      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+      ;
 
 
-      class_<BuildMeshBoundaryProcess, bases<BuildModelPartBoundaryProcess>, boost::noncopyable >
-	(
-	 "BuildMeshBoundary", init<ModelPart&, ModelerUtilities::MeshingParameters&, int>()
-	 )
-	;
+  class_<BuildMeshBoundaryProcess, BuildMeshBoundaryProcess::Pointer, BuildModelPartBoundaryProcess>
+      (m,"BuildMeshBoundary")
+      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
+      ;
 
 
-      class_<PrintOutputMeshProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	  "PrintOutputMeshProcess", init<ModelPart&,  ModelerUtilities::MeshingParameters&, std::string, int>()
-	 )
-	;
+  class_<PrintOutputMeshProcess, PrintOutputMeshProcess::Pointer, Process>
+      (m,"PrintOutputMeshProcess")
+      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, std::string, int>())
+      ;
       
 
-      //********MODEL VOLUME CALCULATION*********//
+  //********MODEL VOLUME CALCULATION*********//
 
-      class_<ModelVolumeCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "ModelVolumeCalculation", init<ModelPart&, bool, int>()
-	 )
-	 .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
-	 .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
-	;
+  class_<ModelVolumeCalculationProcess, ModelVolumeCalculationProcess::Pointer, Process>
+      (m,"ModelVolumeCalculation")
+      .def(init<ModelPart&, bool, int>())
+      .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
+      .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
+      ;
       
-      //********MODEL VOLUME CALCULATION*********//
+  //********MODEL VOLUME CALCULATION*********//
 
-      class_<ConstantRotationProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "ConstantRotationProcess", init<ModelPart&, const double, const double, const double, const double, const double, const double>()
-	 )	 
-         .def(init< ModelPart&, Parameters& >())
-	;
+  class_<ConstantRotationProcess, ConstantRotationProcess::Pointer, Process>
+      (m,"ConstantRotationProcess")
+      .def(init<ModelPart&, const double, const double, const double, const double, const double, const double>())	 
+      .def(init< ModelPart&, Parameters& >())
+      ;
       
       
-    }
+}
  
-  }  // namespace Python.
+}  // namespace Python.
 
 } // Namespace Kratos
 

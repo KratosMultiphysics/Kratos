@@ -16,7 +16,6 @@
 #define  KRATOS_MODEL_H_INCLUDED
 
 
-
 // System includes
 #include <string>
 #include <iostream>
@@ -79,9 +78,11 @@ namespace Kratos
       ///@}
       ///@name Operators
       ///@{
-      void AddModelPart( ModelPart::Pointer pmodel_part); //TODO: change this conveniently
-      
-      ModelPart& GetModelPart(std::string name);
+      void AddModelPart(ModelPart::Pointer pModelPart); //TODO: change this conveniently
+
+      ModelPart& GetModelPart(const std::string& rFullModelPartName);
+
+      bool HasModelPart(const std::string& rFullModelPartName);
 
       ///@}
       ///@name Operations
@@ -132,7 +133,7 @@ namespace Kratos
       ///@}
       ///@name Protected Operators
       ///@{
-      void AddModelPartRawPointer( ModelPart* pmodel_part); //TODO: change this conveniently
+      void AddModelPartRawPointer(ModelPart* pModelPart); //TODO: change this conveniently
 
       ///@}
       ///@name Protected Operations
@@ -165,7 +166,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
       std::unordered_map< std::string, ModelPart* > mflat_map; //TODO: deprecate this
-      std::unordered_map< std::string, ModelPart* > mroot_map; 
+      std::unordered_map< std::string, ModelPart* > mRootModelPartMap;
 
 
       ///@}
@@ -176,6 +177,9 @@ namespace Kratos
       ///@}
       ///@name Private Operations
       ///@{
+
+      void GetSubPartsList(const std::string& rFullModelPartName,
+                           std::vector<std::string>& rSubPartsList);
 
 
       ///@}

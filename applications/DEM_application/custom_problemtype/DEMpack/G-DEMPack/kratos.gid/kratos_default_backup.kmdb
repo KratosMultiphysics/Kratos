@@ -546,7 +546,7 @@
 	      <Property id="ParticleDiameter" pid="Diameter" value="0.002" unit=" " icon="prop.gif" state="normal" help="Particle diameter" open="0"/>
 	      <Property id="ParticleSphericity" pid="Sphericity" value="1.0" unit=" " icon="prop.gif" state="normal" help="Particle sphericity" open="0"/>
 	      <Property id="ParticleFrictionAngle" pid="Friction angle" value="45.0" unit=" " icon="prop.gif" state="normal" help="Particle friction angle" open="0"/>
-	      <Property id="RestitutionCoefficient" pid="Restitution coefficient" value="0.0" unit=" " icon="prop.gif" state="normal" help="Restitution coefficient" open="0"/>
+	      <Property id="CoefficientOfRestitution" pid="Restitution coefficient" value="0.0" unit=" " icon="prop.gif" state="normal" help="Restitution coefficient" open="0"/>
 	      <Property id="RollingFriction" pid="Rolling friction" value="0.0" unit=" " icon="prop.gif" state="normal" help="Rolling friction" open="0"/>
 	      <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="normal" help="Rotational damping ratio" open="0"/>
 	      <Property id="Color" pid="Color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
@@ -674,7 +674,7 @@
 	    <Property id="ParticleDiameter" pid="Diameter" value="0.002" unit=" " icon="prop.gif" state="normal" help="Particle diameter" open="0"/>
 	    <Property id="ParticleSphericity" pid="Sphericity" value="1.0" unit=" " icon="prop.gif" state="normal" help="Particle sphericity" open="0"/>
 	    <Property id="ParticleFrictionAngle" pid="Friction angle" value="45.0" unit=" " icon="prop.gif" state="normal" help="Particle friction angle" open="0"/>
-	    <Property id="RestitutionCoefficient" pid="Restitution coefficient" value="0.0" unit=" " icon="prop.gif" state="normal" help="Restitution coefficient" open="0"/>
+	    <Property id="CoefficientOfRestitution" pid="Restitution coefficient" value="0.0" unit=" " icon="prop.gif" state="normal" help="Restitution coefficient" open="0"/>
 	    <Property id="RollingFriction" pid="Rolling friction" value="0.0" unit=" " icon="prop.gif" state="normal" help="Rolling friction" open="0"/>
 	    <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="normal" help="Rotational damping ratio" open="0"/>
 	    <Property id="Color" pid="Color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>

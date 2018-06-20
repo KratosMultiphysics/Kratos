@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_NEW_CONVERGENCE_CRITERIA )
@@ -22,9 +22,8 @@
 
 
 /* Project includes */
-#include "includes/model_part.h"
 #include "includes/define.h"
-#include "includes/dof.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -85,7 +84,7 @@ public:
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    typedef Dof<double> TDofType;
+    //typedef Dof<double> TDofType;
     typedef ModelPart::DofsArrayType DofsArrayType;
 
     /** Counted pointer of ConvergenceCriteria */
@@ -122,10 +121,8 @@ public:
     ///@name Member Variables
     ///@{
 
-    bool mActualizeRHSIsNeeded;
-    bool mConvergenceCriteriaIsInitialized;
-    int  mEchoLevel;
-    
+
+
     ///@}
     ///@name Operators
     ///@{
@@ -134,33 +131,33 @@ public:
      * Get component wise element components
      */
     virtual std::vector<TSystemVectorType>&  GetRHS_Element_Components()
-    { 
+    {
       KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    } 
+    }
 
     /**
      * Get component wise element variables
      */
     virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Element_Variables()
-    { 
+    {
       KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    } 
+    }
 
     /**
      * Get component wise condition components
      */
     virtual std::vector<TSystemVectorType>&  GetRHS_Condition_Components()
-    { 
+    {
       KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    } 
+    }
 
     /**
      * Get component wise condition variables
      */
     virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Condition_Variables()
-    { 
+    {
       KRATOS_ERROR <<"Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable" << std::endl;
-    } 
+    }
 
     //*********************************************************************************
 
@@ -220,6 +217,11 @@ public:
     {
         mConvergenceCriteriaIsInitialized = true;
     }
+
+    virtual bool IsInitialized()
+    {return mConvergenceCriteriaIsInitialized;}
+
+
 
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
@@ -301,6 +303,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+    bool mActualizeRHSIsNeeded = false;
+    bool mConvergenceCriteriaIsInitialized = false  ;
+    int  mEchoLevel;
 
     ///@}
     ///@name Protected Operators
@@ -319,7 +324,7 @@ protected:
     ///@{
 
     ///@}
-    ///@name Protected LifeCycle 
+    ///@name Protected LifeCycle
     ///@{
 
     ///@}
@@ -345,7 +350,7 @@ private:
     ///@{
 
     ///@}
-    ///@name Private Inquiry 
+    ///@name Private Inquiry
     ///@{
 
     ///@}

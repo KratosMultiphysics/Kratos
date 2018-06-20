@@ -34,7 +34,7 @@ namespace Kratos
 
       public:
 
-         typedef bounded_matrix<double,3,3> MatrixType;
+         typedef BoundedMatrix<double,3,3> MatrixType;
 
          typedef array_1d<double, 6> VectorType;
 

@@ -54,7 +54,7 @@ class DamTSolAirHeatFluxProcess : public Process
                 "emisivity"                       : 0.0,
                 "delta_R"                         : 0.0,
                 "absorption_index"                : 0.0,
-                "total_insolation"                : 0.0               
+                "total_insolation"                : 0.0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -90,7 +90,7 @@ class DamTSolAirHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
 
         KRATOS_TRY;
@@ -121,7 +121,7 @@ class DamTSolAirHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -161,19 +161,19 @@ class DamTSolAirHeatFluxProcess : public Process
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamTSolAirHeatFluxProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamTSolAirHeatFluxProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

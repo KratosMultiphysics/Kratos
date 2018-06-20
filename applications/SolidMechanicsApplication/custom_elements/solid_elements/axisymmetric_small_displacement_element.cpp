@@ -125,7 +125,7 @@ void AxisymmetricSmallDisplacementElement::InitializeElementVariables (ElementVa
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -266,9 +266,10 @@ void AxisymmetricSmallDisplacementElement::CalculateRadius(double & rRadius,
     {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            array_1d<double, 3 > & ReferencePosition = GetGeometry()[i].Coordinates();
+            //array_1d<double, 3 > & ReferencePosition = GetGeometry()[i].Coordinates();
+            //rRadius   += ReferencePosition[0]*rN[i];
 
-            rRadius   += ReferencePosition[0]*rN[i];
+           rRadius += rN[i] * GetGeometry()[i].X0(); 
         }
     }
 

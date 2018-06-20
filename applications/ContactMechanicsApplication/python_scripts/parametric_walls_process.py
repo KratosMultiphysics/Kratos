@@ -19,8 +19,6 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
-
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -36,7 +34,6 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.search_frequency  = self.settings["search_frequency"].GetDouble()
 
         self.search_control_is_time = False
@@ -46,6 +43,20 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         elif(search_control_type == "step"):
             self.search_control_is_time = False
 
+
+        self.step_count   = 1
+        self.counter      = 1
+        self.next_search  = 0.0
+
+        self.Model = Model
+
+    #
+    def ExecuteInitialize(self):
+
+
+        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
+        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
+
         #construct parametric wall domains
         self.parametric_walls = []
         walls_list = self.settings["parametric_walls"]
@@ -53,7 +64,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         for i in range(0,self.number_of_walls):
             item = walls_list[i]
             parametric_wall_module = __import__(item["python_module"].GetString())
-            wall = parametric_wall_module.CreateParametricWall( self.main_model_part, item)
+            wall = parametric_wall_module.CreateParametricWall(self.main_model_part, item)
             self.parametric_walls.append(wall)
 
         # mesh modeler initial values
@@ -61,13 +72,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         if( self.number_of_walls ):
             self.search_contact_active = True
 
-        self.step_count   = 1
-        self.counter      = 1
-        self.next_search  = 0.0
-
-    #
-    def ExecuteInitialize(self):
-
+        # build parametric walls
         for i in range(0,self.number_of_walls):
             self.parametric_walls[i].BuildParametricWall()
 
@@ -110,8 +115,6 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
     #
     def ExecuteFinalizeSolutionStep(self):
-
-
         pass
 
 
@@ -179,7 +182,8 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
     #
     def GetVariables(self):
-        nodal_variables = ['RIGID_WALl']
-        nodal_variables = nodal_variables + ['CONTACT_FORCE', 'CONTACT_NORMAL']
-        #nodal_variables = nodal_variables + ['VOLUME_ACCELERATION']
+        nodal_variables = ['RIGID_WALL']
+        nodal_variables = nodal_variables + ['CONTACT_FORCE','CONTACT_NORMAL']
+        nodal_variables = nodal_variables + ['VOLUME_ACCELERATION']
+        nodal_variables = nodal_variables + ['NORMAL', 'NODAL_H']
         return nodal_variables

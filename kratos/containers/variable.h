@@ -281,7 +281,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << Name() << " variable";
+        buffer << Name() << " variable" <<" #" << static_cast<unsigned int>(Key());
         return buffer.str();
     }
 

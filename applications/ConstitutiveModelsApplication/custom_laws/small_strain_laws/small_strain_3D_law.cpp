@@ -391,6 +391,18 @@ namespace Kratos
 
     rConstitutiveMatrix ( 1 , 2 ) = rConstitutiveMatrix ( 0 , 1 );
     rConstitutiveMatrix ( 2 , 1 ) = rConstitutiveMatrix ( 0 , 1 );
+
+
+    //initialize to zero other values
+    for(unsigned int i=0; i<3; i++)
+    {
+          for(unsigned int j=3; i<6; i++)
+          {
+            rConstitutiveMatrix ( i , j ) = 0;
+            rConstitutiveMatrix ( j , i ) = 0;
+          }
+          
+    }
     
     KRATOS_CATCH(" ")
   }

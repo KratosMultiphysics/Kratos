@@ -17,8 +17,8 @@ namespace Kratos
 
 	/** \brief EICR ShellQ4_CorotationalCoordinateTransformation
 	*
-	* This class represents a corotational (nonlinear) coordinate transformation 
-	* that can be used by any element whose geometry is a QUAD 4 in 3D space, 
+	* This class represents a corotational (nonlinear) coordinate transformation
+	* that can be used by any element whose geometry is a QUAD 4 in 3D space,
 	* with 6 D.O.F.s per node.
 	* It's main aim is to:
 	* 1) Create the local coordinate system
@@ -28,7 +28,7 @@ namespace Kratos
 	*    with rigid body displacements and rotations.
 	*
 	* Updated version:
-	* - Makes use of Quaternions (Euler Parameters) to parametrize finite rotations 
+	* - Makes use of Quaternions (Euler Parameters) to parametrize finite rotations
 	*   in an efficient and robust way.
 	*
 	* References:
@@ -49,7 +49,7 @@ namespace Kratos
 
 		typedef double RealType;
 
-		typedef bounded_matrix<RealType, 3, 3> TransformationMatrixType;
+		typedef BoundedMatrix<RealType, 3, 3> TransformationMatrixType;
 
 		typedef array_1d<RealType, 3> Vector3Type;
 
@@ -80,7 +80,7 @@ namespace Kratos
 
 		void Initialize() override
 		{
-			KRATOS_TRY 
+			KRATOS_TRY
 
 			if(!mInitialized)
 			{
@@ -114,7 +114,7 @@ namespace Kratos
 				mQN[i] = mQN_converged[i];
 			}
 		}
-    
+
 		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override
 		{
 			for(int i = 0; i < 4; i++)
@@ -123,11 +123,11 @@ namespace Kratos
 				mQN_converged[i] = mQN[i];
 			}
 		}
-    
+
 		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
 		{
 		}
-    
+
 		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override
 		{
 			const GeometryType & geom = GetGeometry();
@@ -188,12 +188,12 @@ namespace Kratos
 			// F = R*U -> find R such that R'*F = U
 			double alpha = std::atan2( f21 - f12, f11 + f22 );
 
-			// this final coordinate system is the one in which 
+			// this final coordinate system is the one in which
 			// the deformation gradient is equal to the stretch tensor
 			return ShellQ4_LocalCoordinateSystem( geom[0], geom[1], geom[2], geom[3], alpha );
 		}
 
-		VectorType CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS, 
+		VectorType CalculateLocalDisplacements(const ShellQ4_LocalCoordinateSystem & LCS,
 													   const VectorType & globalDisplacements) override
 		{
 			const GeometryType & geom = GetGeometry();
@@ -215,7 +215,7 @@ namespace Kratos
 				unsigned int index = i * 6;
 
 				// get deformational displacements
-            
+
 				noalias( deformationalDisplacements )  = prod( T , geom[i] - C );
 				noalias( deformationalDisplacements ) -= prod( T0, geom[i].GetInitialPosition() - mC0 );
 
@@ -227,8 +227,8 @@ namespace Kratos
 
 				QuaternionType Qd = Q * mQN[i] * mQ0.conjugate();
 
-				Qd.ToRotationVector( localDisplacements[index + 3], 
-									 localDisplacements[index + 4], 
+				Qd.ToRotationVector( localDisplacements[index + 3],
+									 localDisplacements[index + 4],
 									 localDisplacements[index + 5] );
 			}
 
@@ -269,23 +269,23 @@ namespace Kratos
 			// so projectedLocalForces = - P' * Ke * U
 
 			VectorType projectedLocalForces( prod( trans( P ), rRightHandSideVector ) );
-        
+
 			// Compute the Right-Hand-Side vector in global coordinate system (- T' * P' * Km * U).
 			// At this point the computation of the Right-Hand-Side is complete.
 
 			noalias( rRightHandSideVector ) = prod( trans( T ), projectedLocalForces );
 
 			// Begin the computation of the Left-Hand-Side Matrix :
-        
+
 			if(!LHSrequired) return; // avoid useless calculations!
-        
+
 			// This is a temporary matrix to store intermediate values
 			// to avoid extra dynamic memory allocations!
 
 			MatrixType temp(24, 24);
 
 			// H: Axial Vector Jacobian
-			MatrixType H( EICR::Compute_H(localDisplacements) );  
+			MatrixType H( EICR::Compute_H(localDisplacements) );
 
 			// Step 1: ( K.M : Material Stiffness Matrix )
 			// Apply the projector to the Material Stiffness Matrix (Ke = P' * Km * H * P)
@@ -394,9 +394,9 @@ namespace Kratos
 		* @param area the element area
 		* @return the Spin Fitter Matrix
 		*/
-		inline MatrixType Compute_G(const Vector3Type & P1, 
-									const Vector3Type & P2, 
-									const Vector3Type & P3, 
+		inline MatrixType Compute_G(const Vector3Type & P1,
+									const Vector3Type & P2,
+									const Vector3Type & P3,
 									const Vector3Type & P4,
 									RealType area)
 		{
@@ -416,9 +416,9 @@ namespace Kratos
 			RealType y31 = D13(1);
 			RealType y13 = - y31;
 
-			// Note, assuming the input vectors are in local CR, 
+			// Note, assuming the input vectors are in local CR,
 			// l12 is the length of the side 1-2 projected onto the xy plane.
-			RealType l12 = std::sqrt( D12(0)*D12(0) + D12(1)*D12(1) ); 
+			RealType l12 = std::sqrt( D12(0)*D12(0) + D12(1)*D12(1) );
 
 			MatrixType G(3, 24, 0.0);
 
@@ -467,7 +467,7 @@ namespace Kratos
 			double aX1 = a.X1(); double aY1 = a.Y1();
 			double aX2 = a.X2(); double aY2 = a.Y2();
 			double aX3 = a.X3(); double aY3 = a.Y3();
-			double aX4 = a.X4(); double aY4 = a.Y4();		
+			double aX4 = a.X4(); double aY4 = a.Y4();
 
 			double pert = std::sqrt(a.Area()) * 1.0E-2;
 
@@ -570,7 +570,7 @@ namespace Kratos
 			rSerializer.load("RV", mRV);
 			rSerializer.load("QN_conv", mQN_converged);
 			rSerializer.load("RV_conv", mRV_converged);
-			
+
 		}
 
 	};

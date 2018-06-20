@@ -64,7 +64,7 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
     SolidElement::operator=(rOther);
 
     mFinalizedStep = rOther.mFinalizedStep;
-    
+
     return *this;
 }
 
@@ -74,7 +74,7 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
 
 Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    KRATOS_ERROR << " calling the default method Create for a large displacement element " << std::endl;   
+    KRATOS_ERROR << " calling the default method Create for a large displacement element " << std::endl;
     return Element::Pointer( new LargeDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
@@ -94,14 +94,14 @@ Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
       {
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
+
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_ERROR << " constitutive law not has the correct size large displacement element " << std::endl;
       }
-    
+
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-       
+
     return Element::Pointer( new LargeDisplacementElement(NewElement) );
 }
 
@@ -129,7 +129,7 @@ void LargeDisplacementElement::GetHistoricalVariables( ElementVariables& rVariab
     noalias(rVariables.F) = IdentityMatrix(size);
 
 }
-  
+
 void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 						   ConstitutiveLaw::Parameters& rValues,
 						   const int & rPointNumber)
@@ -139,9 +139,9 @@ void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
     if( mFinalizedStep ){
       this->GetHistoricalVariables(rVariables,rPointNumber);
     }
-  
+
     if(rVariables.detF<0){
-        
+
 	std::cout<<" Element: "<<this->Id()<<std::endl;
 
 	unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -167,7 +167,7 @@ void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 	      std::cout<<" ---Contact_Force: NULL "<<std::endl;
 	    }
 	  }
-	
+
         KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
     }
 
@@ -192,7 +192,7 @@ void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-      
+
     SolidElement::InitializeSolutionStep(rCurrentProcessInfo);
 
     mFinalizedStep = false;
@@ -209,7 +209,7 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 {
     KRATOS_TRY
 
-    SolidElement::FinalizeSolutionStep(rCurrentProcessInfo);  
+    SolidElement::FinalizeSolutionStep(rCurrentProcessInfo);
 
     mFinalizedStep = true;
 
@@ -347,7 +347,7 @@ void LargeDisplacementElement::CalculateAlmansiStrain(const Matrix& rF, Vector& 
     KRATOS_CATCH( "" )
 }
 
-      
+
 //************************************************************************************
 //************************************************************************************
 
@@ -356,11 +356,11 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
     KRATOS_TRY
 
     SolidElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
-      
-  
+
+
 //************************************************************************************
 //************************************************************************************
 
@@ -373,7 +373,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
-   
+
     if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
     {
         //create and initialize element variables:
@@ -391,21 +391,21 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 	      this->GetHistoricalVariables(Variables,PointNumber);
 	      noalias(Variables.H) = prod(Variables.F,Variables.F0);
 	    }
-	    
+
             //Compute Green-Lagrange Strain
-	    
+
 	    if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
 	      this->CalculateGreenLagrangeStrain( Variables.H, Variables.StrainVector );
             else
 	      this->CalculateAlmansiStrain( Variables.H, Variables.StrainVector );
-	    
+
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
 	      rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
-	    
+
             rOutput[PointNumber] = Variables.StrainVector;
-	    
+
         }
-	
+
     }
     else
     {
@@ -423,34 +423,24 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
     KRATOS_TRY
 
     SolidElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    
+
     KRATOS_CATCH( "" )
 }
-  
+
 //************************************************************************************
 //************************************************************************************
-  
+
 int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     // Perform base element checks
     int ErrorCode = 0;
-    ErrorCode = SolidElement::Check(rCurrentProcessInfo);     
+    ErrorCode = SolidElement::Check(rCurrentProcessInfo);
 
     // Check compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
-
-    bool correct_strain_measure = false;
-    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
-    {
-      if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
-	correct_strain_measure = true;
-    }
-    
-    if( correct_strain_measure == false )
-      KRATOS_ERROR <<  "constitutive law is not compatible with the small displacements element type" << std::endl;
 
     // Check that the constitutive law has the correct dimension
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
@@ -459,7 +449,7 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
       if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )
 	KRATOS_ERROR <<  "wrong constitutive law used. This is a 2D element. Expected plane state or axisymmetric :: element id = " << this->Id() << std::endl;
     }
-    
+
     return ErrorCode;
 
     KRATOS_CATCH( "" );
@@ -482,5 +472,3 @@ void LargeDisplacementElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

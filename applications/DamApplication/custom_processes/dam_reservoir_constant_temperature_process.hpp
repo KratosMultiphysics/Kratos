@@ -52,7 +52,7 @@ class DamReservoirConstantTemperatureProcess : public Process
                 "Gravity_Direction"                                : "Y",
                 "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
                 "Water_temp"                                       : 0.0,
-                "Water_temp_Table"                                 : 0,                
+                "Water_temp_Table"                                 : 0,
                 "Water_level"                                      : 0.0,
                 "Water_level_Table"                                : 0
             }  )");
@@ -93,7 +93,7 @@ class DamReservoirConstantTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void Execute() override
     {
 
         KRATOS_TRY;
@@ -135,7 +135,7 @@ class DamReservoirConstantTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -191,10 +191,10 @@ class DamReservoirConstantTemperatureProcess : public Process
 
         KRATOS_CATCH("");
     }
-    
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -205,7 +205,7 @@ class DamReservoirConstantTemperatureProcess : public Process
 
         if (nnodes != 0)
         {
-            
+
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             #pragma omp parallel for
@@ -220,19 +220,19 @@ class DamReservoirConstantTemperatureProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamReservoirConstantTemperatureProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamReservoirConstantTemperatureProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

@@ -49,7 +49,7 @@ in nearly incompressible deformations (Hughes TJR, "The Finite Element Method:
 Linear Static and Dynamic Finite Element Analysis" 1st Edition, section 4.5.2,
 page 232)
  * @author Marcelo Raschi
- * @author Manuel caicedo
+ * @author Manuel Caicedo
  * @author Javier Mroginski
  */
 
@@ -86,24 +86,32 @@ public:
         ///@}
         ///@name Operations
         ///@{
-        /**
-         * Returns the currently selected integration method
-         * @return current integration method selected
-         */
-        Element::Pointer Create(IndexType NewId,
-                                NodesArrayType const& ThisNodes,
-                                PropertiesType::Pointer pProperties) const override;
 
         /**
-         * creates a new element pointer
-         * @param NewId the ID of the new element
-         * @param pGeom the geometry to be employed
-         * @param pProperties the properties assigned to the new element
-         * @return a Pointer to the new element
-         */
-        Element::Pointer Create(IndexType NewId,
-                               GeometryType::Pointer pGeom,
-                               PropertiesType::Pointer pProperties) const override;
+        * @brief Creates a new element
+        * @param NewId The Id of the new created element
+        * @param pGeom The pointer to the geometry of the element
+        * @param pProperties The pointer to property
+        * @return The pointer to the created element
+        */
+        Element::Pointer Create(
+            IndexType NewId,
+            GeometryType::Pointer pGeom,
+            PropertiesType::Pointer pProperties
+            ) const override;
+
+        /**
+        * @brief Creates a new element
+        * @param NewId The Id of the new created element
+        * @param ThisNodes The array containing nodes
+        * @param pProperties The pointer to property
+        * @return The pointer to the created element
+        */
+        Element::Pointer Create(
+            IndexType NewId,
+            NodesArrayType const& ThisNodes,
+            PropertiesType::Pointer pProperties
+            ) const override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -201,7 +209,7 @@ public:
         void CalculateKinematicVariables(
                 KinematicVariables& rThisKinematicVariables,
                 const unsigned int PointNumber,
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+                const GeometryType::IntegrationMethod& rIntegrationMethod
                 ) override;
 
         /**
@@ -245,9 +253,7 @@ public:
          */
         virtual void CalculateB(
                 Matrix& rB,
-                const Matrix& DN_DX,
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                const unsigned int PointNumber
+                const Matrix& DN_DX
         );
         virtual Matrix ComputeEquivalentF(const Vector& rStrainTensor);
 

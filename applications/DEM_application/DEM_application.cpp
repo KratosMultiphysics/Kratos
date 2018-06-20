@@ -36,6 +36,7 @@
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
+#include "custom_constitutive/DEM_compound_constitutive_law.h"
 
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_strategies/schemes/forward_euler_scheme.h"
@@ -82,7 +83,7 @@ KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_OPTION)
 KRATOS_CREATE_VARIABLE(int, SEARCH_CONTROL)
 KRATOS_CREATE_VARIABLE(double, COORDINATION_NUMBER)
 KRATOS_CREATE_VARIABLE(double, MAX_AMPLIFICATION_RATIO_OF_THE_SEARCH_RADIUS)
-KRATOS_CREATE_VARIABLE(vector<int>, SEARCH_CONTROL_VECTOR)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, SEARCH_CONTROL_VECTOR)
 KRATOS_CREATE_VARIABLE(int, CLEAN_INDENT_OPTION)
 KRATOS_CREATE_VARIABLE(int, TRIHEDRON_OPTION)
 KRATOS_CREATE_VARIABLE(int, ROLLING_FRICTION_OPTION)
@@ -103,6 +104,14 @@ KRATOS_CREATE_VARIABLE(ClusterInformation, CLUSTER_INFORMATION)
 KRATOS_CREATE_VARIABLE(std::string, CLUSTER_FILE_NAME)
 KRATOS_CREATE_VARIABLE(std::string, INJECTOR_ELEMENT_TYPE)
 KRATOS_CREATE_VARIABLE(int, CONTINUUM_OPTION)
+KRATOS_CREATE_VARIABLE(int, FLOATING_OPTION)
+KRATOS_CREATE_VARIABLE(double, DEM_ENGINE_POWER)
+KRATOS_CREATE_VARIABLE(double, DEM_MAX_ENGINE_FORCE)
+KRATOS_CREATE_VARIABLE(double, DEM_THRESHOLD_VELOCITY)
+KRATOS_CREATE_VARIABLE(double, DEM_ENGINE_PERFORMANCE)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_X)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_Y)
+KRATOS_CREATE_VARIABLE(double, DEM_DRAG_CONSTANT_Z)
 
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_X_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_Y_VALUE)
@@ -110,6 +119,7 @@ KRATOS_CREATE_VARIABLE(double, INITIAL_VELOCITY_Z_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_X_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_Y_VALUE)
 KRATOS_CREATE_VARIABLE(double, INITIAL_ANGULAR_VELOCITY_Z_VALUE)
+KRATOS_CREATE_VARIABLE(bool, IS_GHOST)
 
 // *************** Continuum only BEGIN *************
 KRATOS_CREATE_VARIABLE(bool, DELTA_OPTION)
@@ -124,7 +134,7 @@ KRATOS_CREATE_VARIABLE(double, PARTICLE_TENSION)
 KRATOS_CREATE_VARIABLE(double, PARTICLE_COHESION)
 KRATOS_CREATE_VARIABLE(int, IF_BOUNDARY_ELEMENT)
 KRATOS_CREATE_VARIABLE(Vector, IF_BOUNDARY_FACE)
-KRATOS_CREATE_VARIABLE(vector<int>, PARTICLE_CONTACT_FAILURE_ID)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, PARTICLE_CONTACT_FAILURE_ID)
 
 // *************** Continuum only END ***************
 
@@ -183,6 +193,7 @@ KRATOS_CREATE_VARIABLE(double, FAILURE_CRITERION_STATE)
 KRATOS_CREATE_VARIABLE(double, UNIDIMENSIONAL_DAMAGE)
 KRATOS_CREATE_VARIABLE(double, CONTACT_ORIENTATION)
 KRATOS_CREATE_VARIABLE(double, CONTACT_SIGMA_MIN)
+KRATOS_CREATE_VARIABLE(double, TENSION_LIMIT_INCREASE_SLOPE)
 KRATOS_CREATE_VARIABLE(double, CONTACT_TAU_ZERO)
 KRATOS_CREATE_VARIABLE(double, CONTACT_INTERNAL_FRICC)
 
@@ -194,9 +205,8 @@ KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_HIGH)
 KRATOS_CREATE_VARIABLE(double, LOCAL_CONTACT_AREA_LOW)
 KRATOS_CREATE_VARIABLE(double, MEAN_CONTACT_AREA)
 KRATOS_CREATE_VARIABLE(double, REPRESENTATIVE_VOLUME)
-KRATOS_CREATE_VARIABLE(boost::numeric::ublas::vector<int>, NEIGHBOUR_IDS)
-KRATOS_CREATE_VARIABLE(
-    boost::numeric::ublas::vector<double>, NEIGHBOURS_CONTACT_AREAS)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, NEIGHBOUR_IDS)
+KRATOS_CREATE_VARIABLE(DenseVector<double>, NEIGHBOURS_CONTACT_AREAS)
 // *************** Continuum only END ***************
 
 //INLET PARAMETERS
@@ -207,6 +217,9 @@ KRATOS_CREATE_VARIABLE(double, STANDARD_DEVIATION)
 KRATOS_CREATE_VARIABLE(double, MAX_RAND_DEVIATION_ANGLE)
 KRATOS_CREATE_VARIABLE(bool, IMPOSED_MASS_FLOW_OPTION)
 KRATOS_CREATE_VARIABLE(double, MASS_FLOW)
+//KRATOS_CREATE_VARIABLE(double, MAX_RADIUS)
+//KRATOS_CREATE_VARIABLE(double, MIN_RADIUS)
+KRATOS_CREATE_VARIABLE(bool, DENSE_INLET)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LINEAR_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_VELOCITY)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_PARTICLES_VELOCITY)
@@ -218,10 +231,8 @@ KRATOS_CREATE_VARIABLE(bool, DOMAIN_IS_PERIODIC)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MIN_CORNER)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MAX_CORNER)
 KRATOS_CREATE_VARIABLE(Quaternion<double>, ORIENTATION)
-KRATOS_CREATE_VARIABLE(
-    double, ORIENTATION_REAL)  // JIG: SHOULD BE REMOVED IN THE FUTURE
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(
-    ORIENTATION_IMAG)  // JIG: SHOULD BE REMOVED IN THE FUTURE
+KRATOS_CREATE_VARIABLE(double, ORIENTATION_REAL)  // JIG: SHOULD BE REMOVED IN THE FUTURE
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG)  // JIG: SHOULD BE REMOVED IN THE FUTURE
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
 KRATOS_CREATE_VARIABLE(double, VELOCITY_START_TIME)
@@ -388,6 +399,8 @@ KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_STRESS_TENSOR, 12);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR, 13);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR2, 14);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, PRINT_STRESS_TENSOR, 15);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, CUMULATIVE_ZONE, 16);
+
 
 //ELEMENTS
 
@@ -406,9 +419,10 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mRigidFace3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -416,29 +430,29 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
 
+// Explicit instantiation of composed constituive laws
+template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Hertz_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_JKR_Cohesive_Law>;
+template class DEM_compound_constitutive_law<DEM_D_Linear_viscous_Coulomb, DEM_D_DMT_Cohesive_Law>;
+
 void KratosDEMApplication::Register() {
     // Calling base class register to register Kratos components
 
     KratosApplication::Register();
 
-    std::cout << std::endl;
-    std::cout
-        << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "
-        << std::endl;
-    std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "
-              << std::endl;
-    std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "
-              << std::endl;
-    std::cout
-        << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      "
-        << std::endl
-        << std::endl;
-    std::cout << "Importing DEMApplication... ";
+    KRATOS_INFO("DEM") << std::endl;
+    KRATOS_INFO("DEM") << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
+    KRATOS_INFO("DEM") << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
+    KRATOS_INFO("DEM") << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
+    KRATOS_INFO("DEM") << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      " << std::endl;
+    KRATOS_INFO("DEM") << std::endl;
+    KRATOS_INFO("DEM") << "Importing DEMApplication... ";
 
 #ifdef KRATOS_BUILD_TYPE
 #define ____CONVERT_INNER_VALUE_TO_STRING(S) ____CONVERT_TO_STRING(S)
 #define ____CONVERT_TO_STRING(S) #S
-    std::cout << "( compiled in mode \""
+    KRATOS_INFO("") << "( compiled in mode \""
               << ____CONVERT_INNER_VALUE_TO_STRING(KRATOS_BUILD_TYPE) << "\" )";
 #undef ____CONVERT_INNER_VALUE_TO_STRING
 #undef ____CONVERT_TO_STRING
@@ -467,7 +481,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(BOTTOM)
     KRATOS_REGISTER_VARIABLE(FORCE_INTEGRATION_GROUP)
     KRATOS_REGISTER_VARIABLE(TABLE_NUMBER)
-    KRATOS_REGISTER_VARIABLE(TABLE_VELOCITY_COMPONENT)        
+    KRATOS_REGISTER_VARIABLE(TABLE_VELOCITY_COMPONENT)
     KRATOS_REGISTER_VARIABLE(SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION)
     KRATOS_REGISTER_VARIABLE(POISSON_EFFECT_OPTION)
     KRATOS_REGISTER_VARIABLE(ROLLING_FRICTION_OPTION)
@@ -495,6 +509,14 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(CLUSTER_FILE_NAME)
     KRATOS_REGISTER_VARIABLE(INJECTOR_ELEMENT_TYPE)
     KRATOS_REGISTER_VARIABLE(CONTINUUM_OPTION)
+    KRATOS_REGISTER_VARIABLE(FLOATING_OPTION)
+    KRATOS_REGISTER_VARIABLE(DEM_ENGINE_POWER)
+    KRATOS_REGISTER_VARIABLE(DEM_MAX_ENGINE_FORCE)
+    KRATOS_REGISTER_VARIABLE(DEM_THRESHOLD_VELOCITY)
+    KRATOS_REGISTER_VARIABLE(DEM_ENGINE_PERFORMANCE)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_X)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_Y)
+    KRATOS_REGISTER_VARIABLE(DEM_DRAG_CONSTANT_Z)
 
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_VELOCITY_Y_VALUE)
@@ -502,6 +524,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(INITIAL_ANGULAR_VELOCITY_X_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_ANGULAR_VELOCITY_Y_VALUE)
     KRATOS_REGISTER_VARIABLE(INITIAL_ANGULAR_VELOCITY_Z_VALUE)
+    KRATOS_REGISTER_VARIABLE(IS_GHOST)
 
     // *************** Continuum only BEGIN *************
     KRATOS_REGISTER_VARIABLE(DELTA_OPTION)
@@ -569,6 +592,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(FAILURE_CRITERION_STATE)
     KRATOS_REGISTER_VARIABLE(UNIDIMENSIONAL_DAMAGE)
     KRATOS_REGISTER_VARIABLE(CONTACT_SIGMA_MIN)
+    KRATOS_REGISTER_VARIABLE(TENSION_LIMIT_INCREASE_SLOPE)
     KRATOS_REGISTER_VARIABLE(CONTACT_TAU_ZERO)
     KRATOS_REGISTER_VARIABLE(CONTACT_INTERNAL_FRICC)
     // *************** Continuum only END *************
@@ -594,6 +618,9 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(MAX_RAND_DEVIATION_ANGLE)
     KRATOS_REGISTER_VARIABLE(IMPOSED_MASS_FLOW_OPTION)
     KRATOS_REGISTER_VARIABLE(MASS_FLOW)
+    //KRATOS_REGISTER_VARIABLE(MAX_RADIUS)
+    //KRATOS_REGISTER_VARIABLE(MIN_RADIUS)
+    KRATOS_REGISTER_VARIABLE(DENSE_INLET)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINEAR_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INLET_INITIAL_VELOCITY)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(
@@ -606,10 +633,8 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MIN_CORNER)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MAX_CORNER)
     KRATOS_REGISTER_VARIABLE(ORIENTATION)
-    KRATOS_REGISTER_VARIABLE(
-        ORIENTATION_REAL)  // JIG: SHOULD BE REMOVED IN THE FUTURE
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(
-        ORIENTATION_IMAG)  // JIG: SHOULD BE REMOVED IN THE FUTURE
+    KRATOS_REGISTER_VARIABLE(ORIENTATION_REAL)  // JIG: SHOULD BE REMOVED IN THE FUTURE
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG)  // JIG: SHOULD BE REMOVED IN THE FUTURE
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
     KRATOS_REGISTER_VARIABLE(VELOCITY_START_TIME)
@@ -777,16 +802,17 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
-    
+
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D3N", mSolidFace3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
-    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("RigidFace3D2N", mRigidFace3D2N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
-    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D4N", mRigidFace3D4N)
+    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D", mRigidEdge3D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)
 
@@ -829,6 +855,6 @@ void KratosDEMApplication::Register() {
     Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
 
-    std::cout << " done." << std::endl;
+    KRATOS_INFO("") << " done." << std::endl;
 }
 }  // namespace Kratos.

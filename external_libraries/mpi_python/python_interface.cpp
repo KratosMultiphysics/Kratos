@@ -1,5 +1,3 @@
-#include <boost/python.hpp>
-//#include <boost/python/init.hpp>
 
 #include "mpi_python.h"
 
@@ -9,14 +7,13 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-boost::python::list (PythonMPI::*gather_list)(PythonMPIComm&,
-	        boost::python::list, int) = &PythonMPI::gather;
+list (PythonMPI::*gather_list)(PythonMPIComm&,list, int) = &PythonMPI::gather;
 
-BOOST_PYTHON_MODULE(mpipython)
+PYBIND11_MODULE(mpipython, m)
 {
-    class_<PythonMPIComm,boost::noncopyable>("PythonMPIComm")
+    class_<PythonMPIComm>(m,"PythonMPIComm")
     .def(init<>())
     .def("barrier",&PythonMPIComm::barrier)
     ;
@@ -26,18 +23,18 @@ BOOST_PYTHON_MODULE(mpipython)
     RankFuncType FRank = &PythonMPI::rank;
     SizeFuncType FSize = &PythonMPI::size;
 
-    class_<PythonMPI,boost::noncopyable>("PythonMPI",no_init) //  init<boost::python::list>())
-    .add_property("rank",FRank)
-    .add_property("size",FSize)
+    class_<PythonMPI>(m,"PythonMPI") 
+    .def_property_readonly("rank",FRank)
+    .def_property_readonly("size",FSize)
     .def("gather",&PythonMPI::gather<double>)
     .def("gather",&PythonMPI::gather<int>)
     .def("gather", gather_list)
     .def("allgather",&PythonMPI::allgather<double>)
     .def("allgather",&PythonMPI::allgather<int>)
-    .add_property("world",make_function(&PythonMPI::GetWorld,return_internal_reference<1,with_custodian_and_ward_postcall<1,0> >() ) )
+    .def_property_readonly("world",&PythonMPI::GetWorld,return_value_policy::reference_internal )
     ;
 
-    def("GetMPIInterface",&GetMPIInterface,return_value_policy<reference_existing_object>());
+    m.def("GetMPIInterface",&GetMPIInterface,return_value_policy::reference);
 }
 
 } // Namespace Python

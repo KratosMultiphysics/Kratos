@@ -40,7 +40,7 @@ namespace coarsening {
 namespace detail {
 
 template <class Matrix>
-boost::shared_ptr<Matrix> galerkin(
+std::shared_ptr<Matrix> galerkin(
         const Matrix &A, const Matrix &P, const Matrix &R
         )
 {

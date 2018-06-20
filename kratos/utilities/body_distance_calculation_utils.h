@@ -182,7 +182,7 @@ public:
         //KRATOS_WATCH(elements_to_solve.size());
 
         //this is the "total" solution loop
-        boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+        BoundedMatrix<double, TDim + 1, TDim> DN_DX;
         array_1d<double, TDim + 1 > N;
 
         array_1d<double, TDim> d;

@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_AXISYMMETRIC_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_AXISYMMETRIC_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED)
 #define  KRATOS_AXISYMMETRIC_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
 
 // System includes
@@ -203,11 +203,11 @@ protected:
     /**
      * Calculation of the Deformation Gradient F
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition,
-                                      double & rCurrentRadius,
-                                      double & rReferenceRadius);
+    void CalculateDeformationGradient(Matrix& rF,
+                                      const Matrix& rDN_DX,
+                                      const Matrix& rDeltaPosition,
+                                      const double & rCurrentRadius,
+                                      const double & rReferenceRadius);
 
     /**
      * Calculation of the Displacement Gradient H

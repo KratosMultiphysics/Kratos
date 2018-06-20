@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_MOMENT_CONDITION_H_INCLUDED )
+#if !defined(KRATOS_MOMENT_CONDITION_H_INCLUDED)
 #define  KRATOS_MOMENT_CONDITION_H_INCLUDED
 
 // System includes

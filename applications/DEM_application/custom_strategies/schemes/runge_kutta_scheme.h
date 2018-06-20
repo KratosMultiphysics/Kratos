@@ -7,7 +7,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cfloat>
 
 // Project includes
@@ -20,7 +20,7 @@
 
 namespace Kratos {
 
-    class RungeKuttaScheme : public DEMIntegrationScheme {
+    class KRATOS_API(DEM_APPLICATION) RungeKuttaScheme : public DEMIntegrationScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
@@ -33,12 +33,12 @@ namespace Kratos {
 
         /// Destructor.
         virtual ~RungeKuttaScheme() {}
-        
+
         DEMIntegrationScheme* CloneRaw() const override {
             DEMIntegrationScheme* cloned_scheme(new RungeKuttaScheme(*this));
             return cloned_scheme;
         }
-        
+
         DEMIntegrationScheme::Pointer CloneShared() const override {
             DEMIntegrationScheme::Pointer cloned_scheme(new RungeKuttaScheme(*this));
             return cloned_scheme;
@@ -46,7 +46,7 @@ namespace Kratos {
 
         void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const override;
-        
+
         void UpdateTranslationalVariables(
                 int StepFlag,
                 Node < 3 >& i,
@@ -72,7 +72,7 @@ namespace Kratos {
                 array_1d<double, 3 >& delta_rotation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
-    
+
         void CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
                 Node < 3 >& i,
@@ -85,7 +85,7 @@ namespace Kratos {
                 Quaternion<double  >& Orientation,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
-                
+
         virtual void UpdateRotationalVariables(
                 int StepFlag,
                 Node < 3 >& i,
@@ -109,7 +109,7 @@ namespace Kratos {
                 array_1d<double, 3 >& angular_velocity,
                 const double delta_t,
                 const bool Fix_Ang_vel[3]) override;
-    
+
         void UpdateAngularVelocity(
                 const Quaternion<double>& Orientation,
                 const double LocalTensorInv[3][3],

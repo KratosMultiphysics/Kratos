@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_ISOTROPIC_DAMAGE_UTILITIES )
-#define  KRATOS_ISOTROPIC_DAMAGE_UTILITIES
+#if !defined(KRATOS_ISOTROPIC_DAMAGE_UTILITIES_H_INCLUDED)
+#define  KRATOS_ISOTROPIC_DAMAGE_UTILITIES_H_INCLUDED
 
 
 /* System includes */
@@ -86,4 +86,4 @@ public:
 }; /* Class IsotropicDamageUtilities */
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_ISOTROPIC_DAMAGE_UTILITIES defined */
+#endif /* KRATOS_ISOTROPIC_DAMAGE_UTILITIES_H_INCLUDED defined */

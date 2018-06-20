@@ -71,7 +71,7 @@
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "contact_model_part"          : "Contact_Part",
+            "contact_model_part"          : ["Contact_Part"],
             "assume_master_slave"         : "Parts_Parts_Auto1",
             "contact_type"                : "Frictionless"
         }
@@ -91,7 +91,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP"],
             "nodal_nonhistorical_results": ["NORMAL"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","CAUCHY_STRESS_TENSOR"]
@@ -105,7 +105,7 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Z","NORMAL_CONTACT_STRESS"],
+            "check_variables"      : ["DISPLACEMENT_Z","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE"],
             "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.0
@@ -119,7 +119,7 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["DISPLACEMENT_Z","NORMAL_CONTACT_STRESS"],
+            "output_variables"     : ["DISPLACEMENT_Z","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.0

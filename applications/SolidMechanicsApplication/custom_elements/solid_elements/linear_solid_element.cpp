@@ -388,7 +388,7 @@ void LinearSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 
 
 
-//METHOD TO BUILD ALL TERMA OF THE LOCAL SYSTEM: FOR SINGLE TERMS IT MUST BE SIMPLIFIED 
+//METHOD TO BUILD ALL TERMS OF THE LOCAL SYSTEM: FOR SINGLE TERMS IT MUST BE SIMPLIFIED 
 //IS NEEDED IN IMPLICIT AND IN EXPLICIT CALCULATIONS
 
 //************************************************************************************

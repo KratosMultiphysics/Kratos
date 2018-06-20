@@ -15,7 +15,7 @@
 
 // External includes
 #include <cmath>
-#include <boost/python.hpp>
+#include <boost/python.h>
 
 // Project includes
 #include "includes/constitutive_law.h"

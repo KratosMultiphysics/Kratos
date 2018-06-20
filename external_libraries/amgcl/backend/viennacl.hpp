@@ -106,30 +106,30 @@ struct viennacl {
     static std::string name() { return "viennacl"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
+    static std::shared_ptr<matrix>
     copy_matrix(
-            boost::shared_ptr< typename builtin<value_type>::matrix > A,
+            std::shared_ptr< typename builtin<value_type>::matrix > A,
             const params&
             )
     {
-        boost::shared_ptr<matrix> m = boost::make_shared<matrix>();
+        std::shared_ptr<matrix> m = std::make_shared<matrix>();
         ::viennacl::copy(viennacl_matrix_adapter(*A), *m);
         return m;
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(typename builtin<value_type>::vector const &x, const params&)
     {
-        boost::shared_ptr<vector> v = boost::make_shared<vector>(x.size());
+        std::shared_ptr<vector> v = std::make_shared<vector>(x.size());
         ::viennacl::fast_copy(x.data(), x.data() + x.size(), v->begin());
         return v;
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(
-            boost::shared_ptr< typename builtin<value_type>::vector > x,
+            std::shared_ptr< typename builtin<value_type>::vector > x,
             const params &prm
             )
     {
@@ -137,17 +137,17 @@ struct viennacl {
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
     /// Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr< typename builtin<value_type>::matrix > A, const params &prm)
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr< typename builtin<value_type>::matrix > A, const params &prm)
     {
-        return boost::make_shared<direct_solver>(A, prm);
+        return std::make_shared<direct_solver>(A, prm);
     }
 
     private:

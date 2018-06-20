@@ -58,7 +58,7 @@ int UseOSS;
 double ElementSize;
 
 /// Auxiliary container for the local matrix at the integration point (stored to save reallocation at each point)
-boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> LHS;
+BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> LHS;
 
 ///@}
 ///@name Public Operations
@@ -68,7 +68,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 {
     // Base class Initialize manages constitutive law parameters
     FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::Initialize(rElement,rProcessInfo);
-    
+
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
@@ -90,7 +90,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
-    
+
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);

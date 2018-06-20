@@ -28,7 +28,7 @@ namespace Kratos
  * 1) DYNAMIC_VISCOSITY
  */
 
-class Newtonian2DLaw : public FluidConstitutiveLaw
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) Newtonian2DLaw : public FluidConstitutiveLaw
 {
 public:
     /**

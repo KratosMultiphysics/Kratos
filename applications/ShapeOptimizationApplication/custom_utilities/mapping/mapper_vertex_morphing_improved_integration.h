@@ -108,19 +108,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MapperVertexMorphingImprovedIntegration";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MapperVertexMorphingImprovedIntegration";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -240,7 +240,7 @@ private:
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
-                                        double& sum_of_weights )
+                                        double& sum_of_weights ) override
     {
         for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
         {
@@ -318,9 +318,9 @@ private:
             }
         }
     }
-    
+
     // --------------------------------------------------------------------------
-    virtual void InitializeComputationOfMappingMatrix()
+    void InitializeComputationOfMappingMatrix() override
     {
         // from base class
         MapperVertexMorphing::InitializeComputationOfMappingMatrix();

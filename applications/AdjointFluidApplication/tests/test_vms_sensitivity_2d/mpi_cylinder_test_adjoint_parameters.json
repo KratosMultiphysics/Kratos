@@ -143,34 +143,37 @@
             "output_variables" : ["SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"]
         }
     },{
-        "python_module"   : "compare_two_point_output_files_mpi_process",
+        "python_module"   : "compare_two_files_check_process",
         "kratos_module"   : "KratosMultiphysics",
         "help"            : "",
-        "process_name"    : "CompareTwoPointOutputFilesMPIProcess",
+        "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "file_name_1"         : "test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe1.dat",
-            "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe1_ref.dat",
-        "decimal_places" : 4
+            "output_file_name"    : "test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe1.dat",
+            "reference_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe1_ref.dat",
+            "comparison_type"     : "dat_file",
+            "decimal_places"      : 4
         }
     },{
-        "python_module"   : "compare_two_point_output_files_mpi_process",
+        "python_module"   : "compare_two_files_check_process",
         "kratos_module"   : "KratosMultiphysics",
         "help"            : "",
-        "process_name"    : "CompareTwoPointOutputFilesMPIProcess",
+        "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "file_name_1"         : "test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe2.dat",
-            "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe2_ref.dat",
-	    "decimal_places" : 2
+            "output_file_name"    : "test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe2.dat",
+            "reference_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe2_ref.dat",
+            "comparison_type"     : "dat_file",
+	        "decimal_places"      : 2
         }
     },{
-        "python_module"   : "compare_two_point_output_files_mpi_process",
+        "python_module"   : "compare_two_files_check_process",
         "kratos_module"   : "KratosMultiphysics",
         "help"            : "",
-        "process_name"    : "CompareTwoPointOutputFilesMPIProcess",
+        "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "file_name_1"         : "test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe3.dat",
-            "file_name_2"         : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3_ref.dat",
-	    "decimal_places" : 7
+            "output_file_name"    : "test_vms_sensitivity_2d/mpi_cylinder_test_adjoint_probe3.dat",
+            "reference_file_name" : "test_vms_sensitivity_2d/cylinder_test_adjoint_probe3_ref.dat",
+            "comparison_type"     : "dat_file",
+	        "decimal_places"      : 7
         }
     }]
 }

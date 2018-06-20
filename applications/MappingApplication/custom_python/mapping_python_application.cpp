@@ -17,16 +17,11 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "mapping_application.h"
 #include "mapping_application_variables.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_mappers_to_python.h"
 
 
@@ -36,30 +31,18 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-
-
-BOOST_PYTHON_MODULE(KratosMappingApplication)
+PYBIND11_MODULE(KratosMappingApplication, m)
 {
-
     class_<KratosMappingApplication,
-           KratosMappingApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosMappingApplication")
-           ;
+            KratosMappingApplication::Pointer,
+            KratosApplication >(m,"KratosMappingApplication")
+            .def(init<>())
+            ;
 
-    AddCustomStrategiesToPython();
-    AddCustomUtilitiesToPython();
-    AddCustomProcessesToPython();
-    AddCustomMappersToPython();
-
-    //registering variables in python
-
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
-
-
+    AddCustomMappersToPython(m);
 }
-
 
 }  // namespace Python.
 

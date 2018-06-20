@@ -10,7 +10,7 @@
 
 namespace Kratos {
 
-    class ContinuumExplicitSolverStrategy : public ExplicitSolverStrategy {
+    class KRATOS_API(DEM_APPLICATION) ContinuumExplicitSolverStrategy : public ExplicitSolverStrategy {
     public:
 
         typedef ExplicitSolverStrategy BaseType;

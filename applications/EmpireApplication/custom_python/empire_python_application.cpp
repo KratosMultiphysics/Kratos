@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
@@ -67,19 +67,13 @@ namespace Kratos
 
 namespace Python
 {
+  using namespace pybind11;
 
-  using namespace boost::python;
-
-
-
-  BOOST_PYTHON_MODULE(KratosEmpireApplication)
+  PYBIND11_MODULE(KratosEmpireApplication,m)
   {
-
-	  class_<KratosEmpireApplication,
-			  KratosEmpireApplication::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosEmpireApplication")
-			;
-
+    class_<KratosEmpireApplication, KratosEmpireApplication::Pointer,
+         KratosApplication>(m,"KratosEmpireApplication")
+         .def(init<>());
 
   }
 

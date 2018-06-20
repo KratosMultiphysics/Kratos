@@ -157,7 +157,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY;
 
@@ -173,12 +173,12 @@ public:
         // calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
         for(IO::ConnectivitiesContainerType::iterator i_element = mrElementsConnectivities.begin() ; i_element != mrElementsConnectivities.end() ; i_element++)
             for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
-            {    
+            {
                 if(static_cast<int>(*i_node_id) > number_of_nodes)
                     number_of_nodes = *i_node_id;
-                
+
                 real_r_of_nodes++;
-            }   
+            }
 
         //verify that all of the nodes exist
         std::vector< bool > aux(number_of_nodes,false);
@@ -216,19 +216,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MortonPartitioningProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MortonPartitioningProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -255,8 +255,8 @@ protected:
     PartitionIndicesType& mrElementsPartitions;
     SizeType mNumberOfPartitions;
     SizeType mDimension;
-    
-    
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -267,12 +267,12 @@ protected:
     ///@{
 
     void AssignPartition(SizeType NumberOfNodes, SizeType NumberOfElements, idxtype* NPart, idxtype* EPart)
-    {  
+    {
         for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++)
         {
             for(IO::ConnectivitiesContainerType::value_type::iterator i_node = mrElementsConnectivities[i_element].begin() ;
                     i_node != mrElementsConnectivities[i_element].end() ; i_node++)
-            { 
+            {
                 //IO::NodesContainerType::iterator i_nod = mrNodesContainer.begin() + (*i_node-1);
 
                 NPart[(*i_node-1)] = i_element%mNumberOfPartitions;
@@ -371,6 +371,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MORTON_PARTITIONING_PROCESS_INCLUDED defined 
+#endif // KRATOS_MORTON_PARTITIONING_PROCESS_INCLUDED defined
 
 

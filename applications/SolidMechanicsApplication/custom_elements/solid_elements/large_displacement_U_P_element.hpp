@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED)
 #define  KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED
 
 // System includes
@@ -206,52 +206,52 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    double& rIntegrationWeight) override;
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                            ElementVariables& rVariables,
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    double& rIntegrationWeight) override;
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                            ElementVariables& rVariables,
+                            Vector& rVolumeForce,
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
-					   ElementVariables& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo, 
-					   double& rIntegrationWeight) override;
+    void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
+                                   ElementVariables& rVariables, 
+                                   ProcessInfo& rCurrentProcessInfo, 
+                                   double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
-					   ElementVariables& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo, 
-					   double& rIntegrationWeight) override;
+    void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
+                                   ElementVariables& rVariables, 
+                                   ProcessInfo& rCurrentProcessInfo, 
+                                   double& rIntegrationWeight) override;
     
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
+    void CalculateAndAddKuum(MatrixType& rK,
+                             ElementVariables & rVariables,
+                             double& rIntegrationWeight
+                             ) override;
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
+    void CalculateAndAddKuug(MatrixType& rK,
+                             ElementVariables & rVariables,
+                             double& rIntegrationWeight
+                             ) override;
 
     /**
      * Calculation of the Kup matrix
@@ -322,22 +322,12 @@ protected:
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
             ElementVariables & rVariables,
-            double& rIntegrationWeight
-                                                  );
-
+            double& rIntegrationWeight);
 
     /**
-     * Initialize System Matrices
-     */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                  VectorType& rRightHandSideVector,
-                                  Flags& rCalculationFlags) override;
-
-
-    /**
-     * Initialize Element General Variables
-     */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+     * Get element size from the dofs
+     */    
+    virtual unsigned int GetDofsSize() override;
 
 
     /**

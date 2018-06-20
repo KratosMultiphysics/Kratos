@@ -140,7 +140,7 @@
         "Parameters"            : {
             "reference_file_name"   : "mmg_lagrangian_test/beam3D_test_result.sol",
             "output_file_name"      : "mmg_lagrangian_test/beam3D_test_step=3.sol",
-            "tolerance"             : 5.0e-2,
+            "decimal_places"        : 3,
             "comparison_type"       : "sol_file"
         }
     }

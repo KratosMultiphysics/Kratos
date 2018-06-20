@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.PfemApplication as KratosPfem
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -13,23 +13,23 @@ class DomainUtilities(object):
     def InitializeDomains(self, model_part, echo_level):
 
         if( model_part.ProcessInfo[KratosPfem.INITIALIZED_DOMAINS] == False ):
-            
-            # initialize the modeler 
+
+            # initialize the modeler
             print("::[Domain_Utilities]:: Initialize", model_part.Name)
-                   
+
             # find node neighbours
             self.SearchNodeNeighbours(model_part, echo_level)
-            
+
             # find element neighbours
             self.SearchElementNeighbours(model_part, echo_level)
-            
+
 
             # set modeler utilities
             modeler_utils = KratosPfem.ModelerUtilities()
-        
+
             # set the domain labels to conditions
             modeler_utils.SetModelPartNameToConditions(model_part)
-        
+
             # find skin and boundary normals
             if( model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
                 # build boundary of a volumetric body domain
@@ -37,17 +37,17 @@ class DomainUtilities(object):
 
                 # search nodal h
                 self.SearchNodalH(model_part, echo_level)
-                                       
+
                 # set the domain labels to nodes
                 modeler_utils.SetModelPartNameToNodes(model_part)
 
-                
+
             model_part.ProcessInfo.SetValue(KratosPfem.INITIALIZED_DOMAINS, True)
 
             print("::[Domain_Utilities]:: Resultant ModelPart")
             print(model_part)
-            
-        
+
+
     #
     def SearchNodeNeighbours(self, model_part, echo_level):
 
@@ -66,11 +66,11 @@ class DomainUtilities(object):
 
     #
     def SearchElementNeighbours(self, model_part, echo_level):
-        
+
         dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         # set search options:
         number_of_avg_elems = 10
-         
+
         # define search utility
         elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(model_part, dimension, echo_level, number_of_avg_elems)
 
@@ -87,7 +87,7 @@ class DomainUtilities(object):
 
         print("::[Domain_Utilities]:: Build Mesh Boundary ")
         # set building options:
-        
+
 
         # define building utility
         skin_build = KratosPfem.BuildModelPartBoundary(model_part, model_part.Name, echo_level)
@@ -97,7 +97,7 @@ class DomainUtilities(object):
 
         # search condition masters: (check)
         # skin_build.SearchConditionMasters()
-        
+
         if( echo_level > 0 ):
             print("::[Domain_Utilities]:: Mesh Boundary Build executed ")
 
@@ -111,11 +111,11 @@ class DomainUtilities(object):
         nodal_h_search = KratosMultiphysics.FindNodalHProcess(model_part)
         # execute search:
         nodal_h_search.Execute()
-        
+
         # for node in self.main_model_part.Nodes:
         # nodal_h  = node.GetSolutionStepValue(NODAL_H);
         # print "nodal_h:",nodal_h
-        
+
         if( echo_level > 0 ):
             print("::[Domain_Utilities]:: Nodal H Search executed ")
 
@@ -133,5 +133,3 @@ class DomainUtilities(object):
 
         if( echo_level > 0 ):
             print("::[Domain_Utilities]:: Boundary Normals computed ")
-
-

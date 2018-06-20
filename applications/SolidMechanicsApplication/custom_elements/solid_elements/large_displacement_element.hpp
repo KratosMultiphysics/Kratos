@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED)
 #define  KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED
 
 // System includes
@@ -213,16 +213,16 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     ElementVariables& rVariables,
-                                     double& rIntegrationWeight) override;
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+                             ElementVariables& rVariables,
+                             double& rIntegrationWeight) override;
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    virtual void SetElementVariables(ElementVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues,
-                                     const int & rPointNumber) override;
+    void SetElementVariables(ElementVariables& rVariables,
+                             ConstitutiveLaw::Parameters& rValues,
+                             const int & rPointNumber) override;
     
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step

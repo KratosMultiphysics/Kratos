@@ -38,15 +38,22 @@ CableElement3D2N::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                                                pProperties);
 }
 
+Element::Pointer
+CableElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
+                         PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CableElement3D2N>(NewId, pGeom,
+                                               pProperties);
+}
+
 CableElement3D2N::~CableElement3D2N() {}
 
-bounded_matrix<double, TrussElement3D2N::msLocalSize,
+BoundedMatrix<double, TrussElement3D2N::msLocalSize,
                TrussElement3D2N::msLocalSize>
 CableElement3D2N::CreateElementStiffnessMatrix(
     ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-  bounded_matrix<double, msLocalSize, msLocalSize> local_stiffness_matrix =
+  BoundedMatrix<double, msLocalSize, msLocalSize> local_stiffness_matrix =
       ZeroMatrix(msLocalSize, msLocalSize);
 
   if (this->mIsCompressed) {
@@ -56,7 +63,7 @@ CableElement3D2N::CreateElementStiffnessMatrix(
   else {
     this->CalculateElasticStiffnessMatrix(local_stiffness_matrix,
                                           rCurrentProcessInfo);
-    bounded_matrix<double, msLocalSize, msLocalSize> K_geo =
+    BoundedMatrix<double, msLocalSize, msLocalSize> K_geo =
         ZeroMatrix(msLocalSize, msLocalSize);
     this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
 
@@ -73,7 +80,7 @@ void CableElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 
   KRATOS_TRY
   // calculate internal forces
-  bounded_vector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
+  BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
   this->UpdateInternalForces(internal_forces);
   // resizing the matrices + create memory for LHS
   rLeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
@@ -99,7 +106,7 @@ void CableElement3D2N::CalculateRightHandSide(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
-  bounded_vector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
+  BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
   this->UpdateInternalForces(internal_forces);
 
   if (this->mIsCompressed) {
@@ -115,10 +122,10 @@ void CableElement3D2N::CalculateRightHandSide(
 }
 
 void CableElement3D2N::UpdateInternalForces(
-    bounded_vector<double, TrussElement3D2N::msLocalSize> &rinternalForces) {
+    BoundedVector<double, TrussElement3D2N::msLocalSize> &rinternalForces) {
 
   KRATOS_TRY
-  bounded_matrix<double, msLocalSize, msLocalSize> transformation_matrix =
+  BoundedMatrix<double, msLocalSize, msLocalSize> transformation_matrix =
       ZeroMatrix(msLocalSize, msLocalSize);
 
   this->CreateTransformationMatrix(transformation_matrix);
@@ -143,7 +150,7 @@ void CableElement3D2N::UpdateInternalForces(
     this->mIsCompressed = false;
 
   // internal force vectors
-  bounded_vector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
+  BoundedVector<double, msLocalSize> f_local = ZeroVector(msLocalSize);
   f_local[0] = -1.00 * normal_force;
   f_local[3] = 1.00 * normal_force;
   rinternalForces = ZeroVector(msLocalSize);

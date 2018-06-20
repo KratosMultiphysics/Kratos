@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ASSIGN_ROTATION_FIELD_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_ASSIGN_ROTATION_FIELD_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED)
 #define  KRATOS_ASSIGN_ROTATION_FIELD_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED
 
 
@@ -41,8 +41,8 @@ public:
     ///@name Life Cycle
     ///@{
     AssignRotationFieldAboutAnAxisToNodesProcess(ModelPart& model_part,
-					 PyObject* pPyObject,
-					 const char* pPyMethodName,
+					 pybind11::object& rPyObject,
+					 const std::string& rPyMethodName,
 					 const bool SpatialFieldFunction,
 					 Parameters rParameters
 				       ) : AssignRotationAboutAnAxisToNodesProcess(model_part)
@@ -63,8 +63,8 @@ public:
 
         mvariable_name  = rParameters["variable_name"].GetString();
 
-	mpPyObject      =  pPyObject;	
-	mpPyMethodName  =  pPyMethodName;
+	mPyObject      =  rPyObject;	
+	mPyMethodName  =  rPyMethodName;
 
 	mIsSpatialField = SpatialFieldFunction;
 	
@@ -104,14 +104,14 @@ public:
 
 
     /// Execute method is used to execute the AssignRotationFieldAboutAnAxisToNodesProcess algorithms.
-    virtual void Execute() 
+    void Execute()  override
     {
 
         KRATOS_TRY;
 	
 	if( ! mIsSpatialField ){
 
-	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+	  const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	  const double& rCurrentTime  = rCurrentProcessInfo[TIME];
 	  const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
 	  const double& rPreviousTime = rPreviousProcessInfo[TIME];
@@ -133,43 +133,43 @@ public:
     
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
     }
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
+    void ExecuteBeforeSolutionLoop() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
     }
 
     /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
     }
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
+    void ExecuteBeforeOutputStep() override
     {
     }
 
 
     /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
+    void ExecuteAfterOutputStep() override
     {
     }
 
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
+    void ExecuteFinalize() override
     {
     }
 
@@ -189,19 +189,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "AssignRotationFieldAboutAnAxisToNodesProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "AssignRotationFieldAboutAnAxisToNodesProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -247,8 +247,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    PyObject* mpPyObject;  
-    const char* mpPyMethodName;
+    pybind11::object mPyObject;  
+    std::string mPyMethodName;
    
     bool mIsSpatialField;
 
@@ -263,14 +263,13 @@ private:
       if( mIsSpatialField ){
 
 	double x = pNode->X(), y = pNode->Y(), z = pNode->Z();
-	   
-	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, x, y, z, time);
-	
+	rValue = mPyObject.attr(mPyMethodName.c_str())(x,y,z,time).cast<double>();
+        
       }
       else{
-	
-	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
-	
+
+        rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
+        
       }
       
      KRATOS_CATCH( "" )
@@ -282,8 +281,8 @@ private:
       
       KRATOS_TRY
 	
-      rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
-	      
+      rValue = mPyObject.attr(mPyMethodName.c_str())(0.0,0.0,0.0,time).cast<double>();
+      
       KRATOS_CATCH( "" )
       
     }
@@ -293,11 +292,11 @@ private:
     {
       KRATOS_TRY
    
-      const int nnodes = mr_model_part.GetMesh().Nodes().size();
+      const int nnodes = mrModelPart.GetMesh().Nodes().size();
 
       if(nnodes != 0)
         {
-	  ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
+	  ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
 
 	  Matrix rotation_matrix;
 	  Quaternion<double> total_quaternion;
@@ -312,7 +311,7 @@ private:
 	  bool dynamic_angular_velocity = false;
 	  bool dynamic_angular_acceleration = false;
 
-	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
+	  const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 	  const double& rDeltaTime = rCurrentProcessInfo[DELTA_TIME];
 	  const double& rCurrentTime = rCurrentProcessInfo[TIME];
 	  const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();

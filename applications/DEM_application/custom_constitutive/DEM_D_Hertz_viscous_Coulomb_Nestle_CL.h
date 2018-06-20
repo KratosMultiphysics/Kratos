@@ -8,7 +8,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Hertz_viscous_Coulomb_Nestle : public DEM_D_Hertz_viscous_Coulomb {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_viscous_Coulomb_Nestle : public DEM_D_Hertz_viscous_Coulomb {
     
     public:
 

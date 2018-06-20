@@ -19,8 +19,6 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
-
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -38,7 +36,6 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = self.settings["echo_level"].GetInt()
-        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
 
         self.meshing_control_is_time = False
@@ -47,16 +44,6 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
             self.meshing_control_is_time = True
         elif(meshing_control_type == "step"):
             self.meshing_control_is_time = False
-
-        #construct meshing domains
-        self.meshing_domains = []
-        domains_list = self.settings["meshing_domains"]
-        self.number_of_domains = domains_list.size()
-        for i in range(0,self.number_of_domains):
-            item = domains_list[i]
-            domain_module = __import__(item["python_module"].GetString())
-            domain = domain_module.CreateMeshingDomain(self.main_model_part,item)
-            self.meshing_domains.append(domain)
 
         # mesh modeler initial values
         self.remesh_domains_active = False
@@ -69,6 +56,21 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
     #
     def ExecuteInitialize(self):
+
+
+        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
+
+        #construct meshing domains
+        self.meshing_domains = []
+        domains_list = self.settings["meshing_domains"]
+        self.number_of_domains = domains_list.size()
+        for i in range(0,self.number_of_domains):
+            item = domains_list[i]
+            domain_module = __import__(item["python_module"].GetString())
+            domain = domain_module.CreateMeshingDomain(self.main_model_part,item)
+            self.meshing_domains.append(domain)
+
 
         # check restart
         self.restart = False

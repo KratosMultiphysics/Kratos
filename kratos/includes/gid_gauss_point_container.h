@@ -62,6 +62,9 @@ public:
         mGidElementFamily(gid_element_type), mSize(number_of_integration_points),
         mIndexContainer(index_container) {}
 
+    ///Destructor
+  virtual ~GidGaussPointsContainer(){};
+
     bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
     {
         KRATOS_TRY

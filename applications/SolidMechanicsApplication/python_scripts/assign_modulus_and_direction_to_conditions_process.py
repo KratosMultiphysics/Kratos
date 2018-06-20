@@ -20,7 +20,7 @@ def Factory(custom_settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignModulusAndDirectionToConditionsProcess(Model, custom_settings["Parameters"])
 
-## All the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -194,8 +194,8 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
                 params["value"][counter].SetDouble(i)
                 counter+=1
 
-            self.AssignValueProcess = KratosSolid.AssignVectorFieldToConditionsProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
-
+            params.AddEmptyValue("entity_type").SetString("CONDITIONS")
+            self.AssignValueProcess = KratosSolid.AssignVectorFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
     #
     def IsInsideInterval(self):

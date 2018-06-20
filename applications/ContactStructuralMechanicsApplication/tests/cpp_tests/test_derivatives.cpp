@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 
 /* Utilities */
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "custom_utilities/derivatives_utilities.h"
@@ -34,6 +35,7 @@ namespace Kratos
         typedef Geometry<PointType>                              GeometryPointType;
         typedef Vector                                                  VectorType;
         typedef Matrix                                                  MatrixType;
+        typedef std::size_t                                              IndexType;
 
         ///Type definition for integration methods
         typedef GeometryData::IntegrationMethod                   IntegrationMethod;
@@ -56,17 +58,17 @@ namespace Kratos
          * @param Derivative Derivative to check
          * @param Check Check type to consider
          */
-        template<unsigned int TDim, unsigned int TNumNodes>
+        template<std::size_t TDim, std::size_t TNumNodes>
         static inline void TestDerivatives(
             ModelPart& ThisModelPart,
             Condition::Pointer SlaveCondition0,
             Condition::Pointer MasterCondition0,
             Condition::Pointer SlaveCondition1,
             Condition::Pointer MasterCondition1,
-            const std::vector<unsigned int> NodesPerturbation,
-            unsigned int IndexPerturbation,
+            const std::vector<IndexType> NodesPerturbation,
+            IndexType IndexPerturbation,
             const std::vector<double> Coeff,
-            const unsigned int NumberIterations,
+            const IndexType NumberIterations,
             const DerivateToCheck Derivative = CHECK_SHAPE_FUNCTION,
             const CheckLevel Check = LEVEL_QUADRATIC_CONVERGENCE
             )
@@ -108,8 +110,9 @@ namespace Kratos
 
             Vector error_vector_slave(NumberIterations, 0.0);
             Vector error_vector_master(NumberIterations, 0.0);
-            for (unsigned int iter = 0; iter < NumberIterations; ++iter) {
-                for (unsigned int i_per = 0; i_per < NodesPerturbation.size(); ++i_per) {
+            for (IndexType iter = 0; iter < NumberIterations; ++iter) {
+                ThisModelPart.GetProcessInfo()[STEP] = iter + 1;
+                for (IndexType i_per = 0; i_per < NodesPerturbation.size(); ++i_per) {
                     // We add displacement to the corresponding node
                     array_1d<double, 3> aux_delta_disp = ZeroVector(3);
                     aux_delta_disp[IndexPerturbation] = static_cast<double>(iter + 1) * Coeff[i_per];
@@ -128,7 +131,7 @@ namespace Kratos
                     aux_point.Coordinates() = ZeroVector(3);
                     const array_1d<double, 3>& normal_slave = slave_geometry_1.UnitNormal(aux_point);
                     SlaveCondition1->SetValue(NORMAL, normal_slave);
-                    for (unsigned int i_node = 0; i_node < slave_geometry_1.size(); ++i_node)
+                    for (IndexType i_node = 0; i_node < slave_geometry_1.size(); ++i_node)
                     {
                         GeometryType::CoordinatesArrayType point_local;
                         slave_geometry_1.PointLocalCoordinates( point_local, slave_geometry_1[i_node].Coordinates( ) ) ;
@@ -140,7 +143,7 @@ namespace Kratos
                     }
                     const array_1d<double, 3>& normal_master = master_geometry_1.UnitNormal(aux_point);
                     MasterCondition1->SetValue(NORMAL, normal_master);
-                    for (unsigned int i_node = 0; i_node < master_geometry_1.size(); ++i_node) {
+                    for (IndexType i_node = 0; i_node < master_geometry_1.size(); ++i_node) {
                         GeometryType::CoordinatesArrayType point_local;
                         master_geometry_1.PointLocalCoordinates( point_local, master_geometry_1[i_node].Coordinates( ) ) ;
                         const array_1d<double, 3>& node_normal_master = master_geometry_1.UnitNormal(point_local);
@@ -181,18 +184,18 @@ namespace Kratos
                     rVariables.Initialize();
 
                     // Update slave element info
-                    rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry());
-                    rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry());
+                    rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry(), ThisModelPart.GetProcessInfo());
+                    rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry(), ThisModelPart.GetProcessInfo());
                     
                     if (conditions_points_slave.size() == conditions_points_slave0.size()) {// Just in case we have the "same configuration"
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_1, normal_slave_1, MasterCondition1->GetGeometry(), rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_0, normal_slave_0, MasterCondition0->GetGeometry(), rDerivativeData0, rVariables0, consider_normal_variation, conditions_points_slave0, this_integration_method);
 
-                        for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+                        for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
                             std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
                             std::vector<PointType::Pointer> points_array0 (TDim);
                             array_1d<BelongType, TDim> belong_array;
-                            for (unsigned int i_node = 0; i_node < TDim; ++i_node) {
+                            for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                                 PointType global_point;
                                 slave_geometry_1.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                                 points_array[i_node] = PointType::Pointer( new PointType(global_point) );
@@ -213,7 +216,7 @@ namespace Kratos
                                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
 
                                 // Integrating the mortar operators
-                                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
+                                for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                                     // We reset the derivatives
                                     rDerivativeData.ResetDerivatives();
 
@@ -239,7 +242,7 @@ namespace Kratos
 
                                     GeometryType::CoordinatesArrayType slave_gp_global;
                                     slave_geometry_0.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    MortarUtilities::FastProjectDirection( master_geometry_0, slave_gp_global, projected_gp_global, normal_master_0, -gp_normal ); // The opposite direction
+                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_0, slave_gp_global, projected_gp_global, normal_master_0, -gp_normal ); // The opposite direction
 
                                     GeometryType::CoordinatesArrayType projected_gp_local;
 
@@ -265,7 +268,7 @@ namespace Kratos
                                     gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, slave_geometry_1);
 
                                     slave_geometry_1.GlobalCoordinates( slave_gp_global, local_point_parent );
-                                    MortarUtilities::FastProjectDirection( master_geometry_1, slave_gp_global, projected_gp_global, normal_master_1, -gp_normal ); // The opposite direction
+                                    GeometricalProjectionUtilities::FastProjectDirection( master_geometry_1, slave_gp_global, projected_gp_global, normal_master_1, -gp_normal ); // The opposite direction
 
                                     master_geometry_1.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
@@ -287,11 +290,11 @@ namespace Kratos
                                         // Now we compute the error of the delta N
                                         Vector aux_N_dx_slave  = rVariables0.NSlave;
                                         Vector aux_N_dx_master = rVariables0.NMaster;
-                                        for (unsigned int i_node = 0; i_node < (TDim - 1) * TNumNodes; ++i_node) {
+                                        for (IndexType i_node = 0; i_node < (TDim - 1) * TNumNodes; ++i_node) {
                                             array_1d<double, 3> delta_disp;
                                             if (i_node < TNumNodes) delta_disp = slave_geometry_1[i_node].FastGetSolutionStepValue(DISPLACEMENT);
                                             else delta_disp = master_geometry_1[i_node - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT);
-                                            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof) {
+                                            for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                                                 const auto& delta_n1 = rDerivativeData.DeltaN1[i_node * TDim + i_dof];
                                                 const auto& delta_n2 = rDerivativeData.DeltaN2[i_node * TDim + i_dof];
                                                 aux_N_dx_slave  += delta_n1 * delta_disp[i_dof];
@@ -314,11 +317,11 @@ namespace Kratos
                                         Vector aux_Phi_dx_slave  = rVariables0.PhiLagrangeMultipliers;
                                         Vector aux_N_dx_slave  = rVariables0.NSlave;
 
-                                        for (unsigned int i_node = 0; i_node < (TDim - 1) * TNumNodes; ++i_node) {
+                                        for (IndexType i_node = 0; i_node < (TDim - 1) * TNumNodes; ++i_node) {
                                             array_1d<double, 3> delta_disp;
                                             if (i_node < TNumNodes) delta_disp = slave_geometry_1[i_node].FastGetSolutionStepValue(DISPLACEMENT);
                                             else delta_disp = master_geometry_1[i_node - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT);
-                                            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof) {
+                                            for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                                                 const auto& delta_phi = rDerivativeData.DeltaPhi[i_node * TDim + i_dof];
                                                 aux_Phi_dx_slave  += delta_phi * delta_disp[i_dof];
                                                 const auto& delta_ae = rDerivativeData.DeltaAe[i_node * TDim + i_dof];
@@ -340,11 +343,11 @@ namespace Kratos
                                     } else if (Derivative == CHECK_JACOBIAN) {
                                         // Now we compute the error of the delta Jacobian
                                         double aux_Detj_dx_slave = rVariables0.DetjSlave;
-                                        for (unsigned int i_node = 0; i_node < (TDim - 1) * TNumNodes; ++i_node) {
+                                        for (IndexType i_node = 0; i_node < (TDim - 1) * TNumNodes; ++i_node) {
                                             array_1d<double, 3> delta_disp;
                                             if (i_node < TNumNodes) delta_disp = slave_geometry_1[i_node].FastGetSolutionStepValue(DISPLACEMENT);
                                             else delta_disp = master_geometry_1[i_node - TNumNodes].FastGetSolutionStepValue(DISPLACEMENT);
-                                            for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof) {
+                                            for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                                                 const auto& delta_detj = rDerivativeData.DeltaDetjSlave[i_node * TDim + i_dof];
                                                 aux_Detj_dx_slave += delta_detj * delta_disp[i_dof];
                                             }
@@ -367,11 +370,11 @@ namespace Kratos
                             array_1d<double, 3> aux_normal_0 = normal_slave_0;
                             const array_1d<array_1d<double, 3>, TDim * TNumNodes>& delta_normal_0 = DerivativesUtilitiesType::DeltaNormalCenter(slave_geometry_1);
 
-                            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+                            for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                                 const array_1d<double, 3>& delta_disp_slave = slave_geometry_1[i_node].FastGetSolutionStepValue(DISPLACEMENT);
                                 const array_1d<double, 3>& delta_disp_master = master_geometry_1[i_node].FastGetSolutionStepValue(DISPLACEMENT);
 
-                                for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof) {
+                                for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                                     const auto& delta_normal_slave = rDerivativeData.DeltaNormalSlave[i_node * TDim + i_dof];
                                     const auto& delta_normal_master = rDerivativeData.DeltaNormalMaster[i_node * TDim + i_dof];
                                     aux_Normal_dx_slave  += delta_normal_slave * delta_disp_slave[i_dof];
@@ -410,18 +413,17 @@ namespace Kratos
                         }
                     } else
                         KRATOS_ERROR << "YOUR INITIAL SPLITTING DOES NOT COINCIDE WITH THE CURRENT ONE" << std::endl;
-                }
-                else
+                } else
                     KRATOS_ERROR << "WRONG, YOU ARE SUPPOSED TO HAVE AN INTERSECTION" << std::endl;
             }
 
             if (Check == LEVEL_EXACT) { // LEVEL_EXACT SOLUTION
-                for (unsigned int iter = 0; iter < NumberIterations; ++iter) {
+                for (IndexType iter = 0; iter < NumberIterations; ++iter) {
                     KRATOS_CHECK_LESS_EQUAL(error_vector_slave[iter], tolerance);
                     KRATOS_CHECK_LESS_EQUAL(error_vector_master[iter], tolerance);
                 }
             } else if (Check == LEVEL_QUADRATIC_CONVERGENCE) {
-                 for (unsigned int iter = 0; iter < NumberIterations - 1; ++iter) {
+                 for (IndexType iter = 0; iter < NumberIterations - 1; ++iter) {
                      const double log_coeff = std::log((static_cast<double>(iter) + 2.0)/(static_cast<double>(iter) + 1.0));
 
                      // First "exact" check
@@ -460,7 +462,7 @@ namespace Kratos
          * Case 1 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -505,7 +507,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -528,7 +530,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -536,7 +538,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 1);
+            std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
 
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_PHI, LEVEL_QUADRATIC_CONVERGENCE);
@@ -548,7 +550,7 @@ namespace Kratos
          * Case 2 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -593,7 +595,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -616,7 +618,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -624,7 +626,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 1);
+            std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
 
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_PHI, LEVEL_QUADRATIC_CONVERGENCE);
@@ -636,7 +638,7 @@ namespace Kratos
          * Case 1 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -681,7 +683,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -704,7 +706,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -712,7 +714,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 1);
+            std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, -5.0e-1);
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 1, CHECK_JACOBIAN, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -723,7 +725,7 @@ namespace Kratos
          * Case 2 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -768,7 +770,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -791,7 +793,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -799,7 +801,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 1);
+            std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_JACOBIAN, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -810,7 +812,7 @@ namespace Kratos
          * Case 1 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -855,7 +857,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -878,7 +880,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -886,7 +888,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1,1);
+            std::vector<IndexType> nodes_perturbed(1,1);
             std::vector<double> coeff_perturbation(1,1.0e-1);
             //nodes_perturbed[0] = 3;
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_NORMAL, LEVEL_QUADRATIC_CONVERGENCE);
@@ -898,7 +900,7 @@ namespace Kratos
          * Case 2 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -943,7 +945,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -966,7 +968,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -974,7 +976,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1,1);
+            std::vector<IndexType> nodes_perturbed(1,1);
             std::vector<double> coeff_perturbation(1,1.0e-1);
             //nodes_perturbed[0] = 3;
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_NORMAL, LEVEL_QUADRATIC_CONVERGENCE);
@@ -986,7 +988,7 @@ namespace Kratos
          * Case 1 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1031,7 +1033,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1054,7 +1056,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1062,7 +1064,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 1);
+            std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -1073,7 +1075,7 @@ namespace Kratos
          * Case 2 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1118,7 +1120,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1141,7 +1143,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1149,7 +1151,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -1160,7 +1162,7 @@ namespace Kratos
          * Case 3 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine3, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine3, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1205,7 +1207,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1228,7 +1230,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1236,7 +1238,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 1);
+            std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -1247,7 +1249,7 @@ namespace Kratos
          * Case 4 of the Line2D2
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine4, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine4, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1292,7 +1294,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1315,7 +1317,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 4, line0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1323,7 +1325,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 1);
+            std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
 //             TestDerivatives<2, 2>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -1334,7 +1336,7 @@ namespace Kratos
          * Case 1 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1385,7 +1387,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1410,7 +1412,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1418,7 +1420,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-1);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 1, CHECK_JACOBIAN, LEVEL_EXACT);
         }
@@ -1428,7 +1430,7 @@ namespace Kratos
          * Case 2 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1479,7 +1481,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1504,7 +1506,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1512,7 +1514,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 0, coeff_perturbation, 6, CHECK_JACOBIAN, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -1522,7 +1524,7 @@ namespace Kratos
          * Case 1 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1579,7 +1581,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1606,7 +1608,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 4, quadrilateral0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1614,7 +1616,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 5);
+            std::vector<IndexType> nodes_perturbed(1, 5);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
             TestDerivatives<3, 4>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_JACOBIAN, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -1624,7 +1626,7 @@ namespace Kratos
          * Case 1 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1675,7 +1677,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1700,7 +1702,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1708,7 +1710,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_EXACT);
         }
@@ -1718,7 +1720,7 @@ namespace Kratos
          * Case 2 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1769,7 +1771,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1794,7 +1796,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1802,7 +1804,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_EXACT);
         }
@@ -1812,7 +1814,7 @@ namespace Kratos
          * Case 3 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle3, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle3, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1863,7 +1865,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1888,7 +1890,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1896,7 +1898,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 0, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -1906,7 +1908,7 @@ namespace Kratos
          * Case 4 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle4, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle4, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -1957,7 +1959,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -1982,7 +1984,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -1990,7 +1992,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 3);
+            std::vector<IndexType> nodes_perturbed(1, 3);
             std::vector<double> coeff_perturbation(1, -1.0e-3);
 //             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 2, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE); // FIXME: Not quadratic convergence when normal derivative is taken into account
         }
@@ -2000,7 +2002,7 @@ namespace Kratos
          * Case 1 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2057,7 +2059,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2084,7 +2086,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 4, quadrilateral0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2092,7 +2094,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 5);
+            std::vector<IndexType> nodes_perturbed(1, 5);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
             TestDerivatives<3, 4>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -2102,7 +2104,7 @@ namespace Kratos
          * Case 2 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2159,7 +2161,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2186,7 +2188,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 4, quadrilateral0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2194,7 +2196,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 5);
+            std::vector<IndexType> nodes_perturbed(1, 5);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
             TestDerivatives<3, 4>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -2204,7 +2206,7 @@ namespace Kratos
          * Case 3 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral3, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral3, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2260,7 +2262,7 @@ namespace Kratos
             Condition::Pointer p_cond0_0 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 3, quadrilateral0_0, p_cond_prop);
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2287,7 +2289,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 4, quadrilateral0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2295,7 +2297,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 5);
+            std::vector<IndexType> nodes_perturbed(1, 5);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
             TestDerivatives<3, 4>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_SHAPE_FUNCTION, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -2305,7 +2307,7 @@ namespace Kratos
          * Case 1 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2356,7 +2358,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2381,7 +2383,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2389,7 +2391,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_PHI, LEVEL_EXACT);
         }
@@ -2399,7 +2401,7 @@ namespace Kratos
          * Case 2 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2450,7 +2452,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2475,7 +2477,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2483,7 +2485,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 0, coeff_perturbation, 6, CHECK_PHI, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -2493,7 +2495,7 @@ namespace Kratos
          * Case 1 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2549,7 +2551,7 @@ namespace Kratos
             Condition::Pointer p_cond0_0 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 3, quadrilateral0_0, p_cond_prop);
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2576,7 +2578,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 4, quadrilateral0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2584,7 +2586,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 5);
+            std::vector<IndexType> nodes_perturbed(1, 5);
             std::vector<double> coeff_perturbation(1, -5.0e-3);
             TestDerivatives<3, 4>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 1, coeff_perturbation, 6, CHECK_PHI, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -2594,7 +2596,7 @@ namespace Kratos
          * Case 1 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2645,7 +2647,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2670,7 +2672,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2678,7 +2680,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 4);
+            std::vector<IndexType> nodes_perturbed(1, 4);
             std::vector<double> coeff_perturbation(1, 5.0e-3);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 2, coeff_perturbation, 6, CHECK_NORMAL, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -2688,7 +2690,7 @@ namespace Kratos
          * Case 2 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle2, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle2, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2739,7 +2741,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2764,7 +2766,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2772,7 +2774,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 3);
+            std::vector<IndexType> nodes_perturbed(1, 3);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 2, coeff_perturbation, 1, CHECK_NORMAL, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -2782,7 +2784,7 @@ namespace Kratos
          * Case 3 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle3, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle3, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2833,7 +2835,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2858,7 +2860,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2866,7 +2868,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(2);
+            std::vector<IndexType> nodes_perturbed(2);
             std::vector<double> coeff_perturbation(2, 1.0e-1);
             nodes_perturbed[0] = 4;
             nodes_perturbed[1] = 5;
@@ -2878,7 +2880,7 @@ namespace Kratos
          * Case 4 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle4, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle4, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -2929,7 +2931,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -2954,7 +2956,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -2962,7 +2964,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(2);
+            std::vector<IndexType> nodes_perturbed(2);
             std::vector<double> coeff_perturbation(2);
             nodes_perturbed[0] = 4;
             nodes_perturbed[1] = 5;
@@ -2976,7 +2978,7 @@ namespace Kratos
          * Case 5 of the Triangle3D3
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle5, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle5, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -3027,7 +3029,7 @@ namespace Kratos
 
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -3052,7 +3054,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 4, triangle0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -3060,7 +3062,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 1);
+            std::vector<IndexType> nodes_perturbed(1, 1);
             std::vector<double> coeff_perturbation(1, 5.0e-2);
             TestDerivatives<3, 3>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 2, coeff_perturbation, 6, CHECK_NORMAL, LEVEL_QUADRATIC_CONVERGENCE);
         }
@@ -3070,7 +3072,7 @@ namespace Kratos
          * Case 1 of the Quadrilateral3D4
          */
 
-        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral1, KratosContactStructuralMechanicsFastSuite)
         {
             ModelPart model_part("Main");
             model_part.SetBufferSize(2);
@@ -3126,7 +3128,7 @@ namespace Kratos
             Condition::Pointer p_cond0_0 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 3, quadrilateral0_0, p_cond_prop);
             p_cond0_0->SetValue(NORMAL, normal_0);
             p_cond_0->SetValue(NORMAL, normal_0);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_0->GetGeometry().PointLocalCoordinates( point_local, p_cond0_0->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_0->GetGeometry().UnitNormal(point_local);
@@ -3153,7 +3155,7 @@ namespace Kratos
             Condition::Pointer p_cond0_1 = model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 4, quadrilateral0_1, p_cond_prop);
             p_cond0_1->SetValue(NORMAL, normal_1);
             p_cond_1->SetValue(NORMAL, normal_1);
-            for (unsigned int i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < p_cond0_0->GetGeometry().size(); ++i_node) {
                 GeometryType::CoordinatesArrayType point_local;
                 p_cond0_1->GetGeometry().PointLocalCoordinates( point_local, p_cond0_1->GetGeometry()[i_node].Coordinates( ) ) ;
                 const array_1d<double, 3>& node_normal = p_cond0_1->GetGeometry().UnitNormal(point_local);
@@ -3161,7 +3163,7 @@ namespace Kratos
                 p_cond_1->GetGeometry()[i_node].FastGetSolutionStepValue(NORMAL) = node_normal;
             }
 
-            std::vector<unsigned int> nodes_perturbed(1, 5);
+            std::vector<IndexType> nodes_perturbed(1, 5);
             std::vector<double> coeff_perturbation(1, -5.0e-2);
             TestDerivatives<3, 4>( model_part, p_cond0_0, p_cond0_1, p_cond_0, p_cond_1, nodes_perturbed, 2, coeff_perturbation, 6, CHECK_NORMAL, LEVEL_QUADRATIC_CONVERGENCE);
         }

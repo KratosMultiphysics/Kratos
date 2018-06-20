@@ -19,8 +19,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/kratos_export_api.h"
@@ -165,13 +163,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3)); \
 \
     /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component1(#component1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
+                  component1(#component1, #name, 0, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 0)); \
 \
     /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component2(#component2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1)); \
+                  component2(#component2, #name, 1, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 1)); \
 \
     /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > \
-                  component3(#component3, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2));
+                  component3(#component3, #name, 2, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(name, 2));
 
 #ifdef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS
@@ -237,6 +235,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
   static const Kratos::Flags name;			\
   static const Kratos::Flags NOT_##name
 
+#ifdef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
+#undef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
+#endif
+#define KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(application, name)		\
+  static KRATOS_API(DEM_APPLICATION) const Kratos::Flags name;			\
+  static KRATOS_API(DEM_APPLICATION) const Kratos::Flags NOT_##name
+
 #ifdef KRATOS_CREATE_LOCAL_FLAG
 #undef KRATOS_CREATE_LOCAL_FLAG
 #endif
@@ -277,7 +282,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_VARIABLE(variable) \
-	scope().attr(#variable) = boost::ref(variable);
+	scope().attr(#variable) = std::ref(variable);
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
@@ -292,7 +297,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
-    scope().attr(#flag) = boost::ref(flag)      \
+    scope().attr(#flag) = std::ref(flag)      \
  
 #ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
 #undef KRATOS_REGISTER_IN_PYTHON_FLAG
@@ -303,14 +308,19 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 
     
     
-    
-#ifdef __GNUC__
+#if __cplusplus >= 201402L
+#define KRATOS_DEPRECATED [[deprecated]]
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) [[deprecated(deprecated_message)]]
+#elif __GNUC__
 #define KRATOS_DEPRECATED __attribute__((deprecated))
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
 #elif defined(_MSC_VER)
 #define KRATOS_DEPRECATED __declspec(deprecated)
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message) KRATOS_DEPRECATED
 #else
 #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
 #define KRATOS_DEPRECATED
+#define KRATOS_DEPRECATED_MESSAGE(deprecated_message)
 #endif
     
 

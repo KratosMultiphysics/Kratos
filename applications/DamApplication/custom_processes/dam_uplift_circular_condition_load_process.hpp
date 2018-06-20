@@ -60,7 +60,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                 "Height_drain"                                          : 0.0,
                 "Distance"                                              : 0.0,
                 "Effectiveness"                                         : 0.0,
-                "table"                                                 : 0 
+                "table"                                                 : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -115,7 +115,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
 
         KRATOS_TRY;
@@ -232,7 +232,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -356,19 +356,19 @@ class DamUpliftCircularConditionLoadProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamUpliftCircularConditionLoadProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamUpliftCircularConditionLoadProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

@@ -40,23 +40,28 @@ namespace Kratos {
     //Register Constitutive Laws
 
     //outfitted python laws
-    Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
+    //Serializer::Register( "PythonOutfittedConstitutiveLaw", mPythonOutfittedConstitutiveLaw );
     
     //general constitutive laws
     
     //elasticity laws
     
     //small strain laws
-    Serializer::Register( "SmallStrain3DLaw", mSmallStrain3DLaw );
-    Serializer::Register( "SmallStrainOrthotropic3DLaw", mSmallStrainOrthotropic3DLaw );
-    Serializer::Register( "SmallStrainPlaneStrain2DLaw", mSmallStrainPlaneStrain2DLaw );
-    Serializer::Register( "SmallStrainPlaneStress2DLaw", mSmallStrainPlaneStress2DLaw );
-    Serializer::Register( "SmallStrainAxisymmetric2DLaw", mSmallStrainAxisymmetric2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrain3DLaw", mSmallStrain3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrainOrthotropic3DLaw", mSmallStrainOrthotropic3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrainPlaneStrain2DLaw", mSmallStrainPlaneStrain2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrainPlaneStress2DLaw", mSmallStrainPlaneStress2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "SmallStrainAxisymmetric2DLaw", mSmallStrainAxisymmetric2DLaw );
     
     //large strain laws
-    Serializer::Register( "LargeStrain3DLaw", mLargeStrain3DLaw );
-    Serializer::Register( "LargeStrainPlaneStrain2DLaw", mLargeStrainPlaneStrain2DLaw );
-    Serializer::Register( "LargeStrainAxisymmetric2DLaw", mLargeStrainAxisymmetric2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "LargeStrain3DLaw", mLargeStrain3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "LargeStrainPlaneStrain2DLaw", mLargeStrainPlaneStrain2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "LargeStrainAxisymmetric2DLaw", mLargeStrainAxisymmetric2DLaw );
+
+    //strain rate laws
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "StrainRate3DLaw", mStrainRate3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "StrainRatePlaneStrain2DLaw", mStrainRatePlaneStrain2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "Newtonian3DLaw", mNewtonian3DLaw );
     
     //general constitutive models
     
@@ -72,7 +77,10 @@ namespace Kratos {
     Serializer::Register( "BorjaModel", mBorjaModel );
     Serializer::Register( "OgdenModel", mOgdenModel );
     Serializer::Register( "IsochoricOgdenModel", mIsochoricOgdenModel );
-    
+    Serializer::Register( "HypoElasticModel", mHypoElasticModel );
+    Serializer::Register( "IsochoricHypoElasticModel", mIsochoricHypoElasticModel );
+    Serializer::Register( "IncompressibleHypoElasticModel", mIncompressibleHypoElasticModel );
+
     //plasticity models
     Serializer::Register( "VonMisesLinearElasticPlasticityModel", mVonMisesLinearElasticPlasticityModel );
     Serializer::Register( "VonMisesNeoHookeanPlasticityModel", mVonMisesNeoHookeanPlasticityModel );

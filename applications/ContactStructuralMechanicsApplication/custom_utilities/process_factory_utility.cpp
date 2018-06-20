@@ -23,7 +23,7 @@ ProcessFactoryUtility::ProcessFactoryUtility(ListType& ProcessesList)
     const std::size_t size_processes = len(ProcessesList);
     mProcesses.resize(size_processes);
     for (std::size_t i_process = 0; i_process < size_processes; ++i_process)
-        mProcesses[i_process] = boost::python::extract<ObjectType>(ProcessesList[i_process]);
+        mProcesses[i_process] = pybind11::cast<ObjectType>(ProcessesList[i_process]);
 }
 
 /***********************************************************************************/
@@ -31,16 +31,8 @@ ProcessFactoryUtility::ProcessFactoryUtility(ListType& ProcessesList)
 
 ProcessFactoryUtility::ProcessFactoryUtility(ObjectType& rProcess)
 {
-    // It could be a list
-    if (PyObject_HasAttrString(rProcess.ptr(), "__len__")) {
-        const std::size_t size_processes = len(rProcess);
-        mProcesses.resize(size_processes);
-        for (std::size_t i_process = 0; i_process < size_processes; ++i_process)
-            mProcesses[i_process] = boost::python::extract<ObjectType>(rProcess[i_process]);
-    } else {
-        mProcesses.resize(1);
-        mProcesses[0] = rProcess;
-    }
+    mProcesses.resize(1);
+    mProcesses[0] = rProcess;
 }
 
 /***********************************************************************************/
@@ -58,7 +50,7 @@ void ProcessFactoryUtility::AddProcesses(ListType& ProcessesList)
 {
     const std::size_t size_processes = len(ProcessesList);
     for (std::size_t i_process = 0; i_process < size_processes; ++i_process)
-        mProcesses.push_back(boost::python::extract<ObjectType>(ProcessesList[i_process]));
+        mProcesses.push_back(pybind11::cast<ObjectType>(ProcessesList[i_process]));
 }
 
 /***********************************************************************************/

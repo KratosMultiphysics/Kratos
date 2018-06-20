@@ -50,6 +50,14 @@ Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType cons
 /***********************************************************************************/
 /***********************************************************************************/
 
+Element::Pointer SmallDisplacement::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+{
+    return Kratos::make_shared<SmallDisplacement>( NewId, pGeom, pProperties );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 SmallDisplacement::~SmallDisplacement()
 {
 }
@@ -101,7 +109,9 @@ void SmallDisplacement::CalculateAll(
     }
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+    const GeometryType::IntegrationMethod integration_method =
+        GetGeometry().GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
     
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
@@ -119,7 +129,7 @@ void SmallDisplacement::CalculateAll(
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
         
         // Compute element kinematics B, F, DN_DX ...
-        CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+        CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
         
         // Compute material reponse
         CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
@@ -149,18 +159,20 @@ void SmallDisplacement::CalculateAll(
 void SmallDisplacement::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables, 
     const unsigned int PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {        
+    const GeometryType::IntegrationPointsArrayType& r_integration_points =
+        GetGeometry().IntegrationPoints(rIntegrationMethod);
     // Shape functions
-    rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, IntegrationPoints[PointNumber].Coordinates());
+    rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(rThisKinematicVariables.N, r_integration_points[PointNumber].Coordinates());
     
-    rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, GetGeometry().GetDefaultIntegrationMethod()); 
+    rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod); 
     
     KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
     
     // Compute B
-    CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, IntegrationPoints, PointNumber );
+    CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, r_integration_points, PointNumber );
     
     // Compute equivalent F
     Vector displacements;

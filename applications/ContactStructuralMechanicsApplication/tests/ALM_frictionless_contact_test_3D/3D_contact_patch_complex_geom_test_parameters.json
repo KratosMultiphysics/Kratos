@@ -88,7 +88,7 @@
         "process_name"  : "ALMContactProcess",
         "Parameters"    : {
             "mesh_id"                   : 0,
-            "contact_model_part"        : "CONTACT_Contact_Auto1",
+            "contact_model_part"        : ["CONTACT_Contact_Auto1"],
             "computing_model_part_name" : "computing_domain",
             "model_part_name"           : "Structure",
             "assume_master_slave"       : "Parts_Parts_Auto1",
@@ -167,7 +167,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP","VOLUME_ACCELERATION"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","LAGRANGE_MULTIPLIER_CONTACT_PRESSURE","WEIGHTED_GAP","VOLUME_ACCELERATION"],
             "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]

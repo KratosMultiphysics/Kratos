@@ -39,7 +39,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         #material properties
         self.main_model_part = self.model_part.GetRootModelPart()
         self.properties      = self.main_model_part.Properties[self.settings["properties_id"].GetInt()]
-
+        
         #read variables
         self.variables = self.settings["variables"]
         for key, value in self.variables.items():
@@ -49,9 +49,11 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
             except:
                 my_key = "KratosMultiphysics.SolidMechanicsApplication."+key
                 variable = self._GetItemFromModule(my_key)
- 
+
             if( value.IsDouble() ):
                 self.properties.SetValue(variable, value.GetDouble())
+            elif( value.IsInt() ):
+                self.properties.SetValue(variable, value.GetInt())
             elif( value.IsArray() ):
                 vector_value = KratosMultiphysics.Vector(value.size())
                 for i in range(0, value.size() ):
@@ -71,13 +73,16 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                 new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
                 
             self.properties.SetTable(input_variable,output_variable,new_table)
-
         
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())
-        
+
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
+        #pybind11 not working anymore
+        #self.model_part.Properties[self.settings["properties_id"].GetInt())] = self.properties
+        self.model_part.SetProperties(self.main_model_part.GetProperties())
+        
         splitted_law_name = (self.settings["constitutive_law"]["name"].GetString()).split(".")
         
         print("::[Material]:: -"+self.material_name+"- [Model: "+splitted_law_name[len(splitted_law_name)-1]+"]")

@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(SHELL_THICK_ELEMENT_3D4N_H_INCLUDED )
+#if !defined(SHELL_THICK_ELEMENT_3D4N_H_INCLUDED)
 #define  SHELL_THICK_ELEMENT_3D4N_H_INCLUDED
 
 
@@ -59,7 +59,7 @@ class ShellQ4_LocalCoordinateSystem;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class ShellThickElement3D4N : public Element
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Element
 {
  public:
 
@@ -182,8 +182,8 @@ class ShellThickElement3D4N : public Element
     array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the displacement vector */
 
     array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
-    bounded_matrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
-    bounded_matrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
+    BoundedMatrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
+    BoundedMatrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
 
     bool mInitialized;                      /*!< Initialization flag */
 
@@ -289,56 +289,56 @@ class ShellThickElement3D4N : public Element
 
   // Basic
 
-  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-  void Initialize();
+  void Initialize() override;
 
-  void ResetConstitutiveLaw();
+  void ResetConstitutiveLaw() override;
 
-  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+  void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-  int Check(const ProcessInfo& rCurrentProcessInfo);
+  int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-  void CleanMemory();
+  void CleanMemory() override;
 
-  void GetValuesVector(Vector& values, int Step = 0);
+  void GetValuesVector(Vector& values, int Step = 0) override;
 
-  void GetFirstDerivativesVector(Vector& values, int Step = 0);
+  void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
     
-  void GetSecondDerivativesVector(Vector& values, int Step = 0);
+  void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
-  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
-  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
 
-  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
   void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                             VectorType& rRightHandSideVector,
-                            ProcessInfo& rCurrentProcessInfo);
+                            ProcessInfo& rCurrentProcessInfo) override;
 
   void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+                              ProcessInfo& rCurrentProcessInfo) override;
 
   // Results calculation on integration points
 
-  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+  void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   ///@}
 
@@ -415,9 +415,9 @@ class ShellThickElement3D4N : public Element
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const;
+  void save(Serializer& rSerializer) const override;
 
-  virtual void load(Serializer& rSerializer);
+  void load(Serializer& rSerializer) override;
     
   ///@}
     

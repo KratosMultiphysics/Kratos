@@ -11,7 +11,7 @@
 //#include "../applications/convection_diffusion_application/convection_diffusion_application.h"
 //#include "includes/convection_diffusion_settings.h"
 #include "utilities/math_utils.h"
-#include "utilities/geometry_utilities.h" 
+#include "utilities/geometry_utilities.h"
 #include "includes/constitutive_law.h"
 
 #include <string>
@@ -319,7 +319,7 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		const unsigned int integration_points_number = GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
-		
+
 		if (rValues.size() != integration_points_number)
 			rValues.resize(integration_points_number);
 
@@ -427,12 +427,12 @@ namespace Kratos
 		//			heat_flux.resize(6,false);
 
 		//		heat_flux(0) = q(0); //[W/mm^2]
-		//		heat_flux(1) = q(1); 
+		//		heat_flux(1) = q(1);
 		//		heat_flux(2) = 0.0;
 		//		if (nDim == 3)
 		//		{
 		//			heat_flux(2) = q(2); //[W/mm^2]
-		//			heat_flux(3) = 0.0;  
+		//			heat_flux(3) = 0.0;
 		//			heat_flux(4) = 0.0;
 		//			heat_flux(5) = 0.0;
 		//		}
@@ -441,7 +441,7 @@ namespace Kratos
 
 		//	}
 		//}
-		//else 
+		//else
 		if (rVariable == FLUX_RVE || rVariable == HEAT_FLUX_RVE)
 		{
 			for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
@@ -563,7 +563,7 @@ namespace Kratos
 			/******************** equivalent CLaw for determine Conductivity and HeatFlux *********************/
 
 			// compute material response
-			
+
 			ConstitutiveLaw::Parameters matpar;
 			matpar.SetElementGeometry(geom);
 			matpar.SetMaterialProperties(props);

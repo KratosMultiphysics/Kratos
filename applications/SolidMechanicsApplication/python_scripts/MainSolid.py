@@ -33,16 +33,8 @@ class Solution(object):
         # Set input file name
         self._set_input_file_name(file_name)
 
-        # Set echo level
-        self.echo_level = 0
-        if( self.ProjectParameters.Has("problem_data") ):
-            if( self.ProjectParameters["problem_data"].Has("echo_level") ):
-                self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
-
-        # Print solving time
-        self.report = False
-        if( self.echo_level > 0 ):
-            self.report = True
+        # Set logger severity level
+        self._set_severity_level()
 
         # Defining the number of threads
         num_threads =  self._get_parallel_size()
@@ -89,6 +81,9 @@ class Solution(object):
 
         sys.stdout.flush()
 
+        # Set time settings
+        self._get_time_settings()
+
         # Initialize Solver
         computing_model_part = self.model.GetComputingModelPart()
         self.solver.SetComputingModelPart(computing_model_part)
@@ -102,14 +97,6 @@ class Solution(object):
         # Initiliaze processes
         self.processes.ExecuteInitialize()
 
-        # Print model_part and properties
-        if(self.echo_level>0):
-            print("")
-            print(self.main_model_part)
-            for properties in self.main_model_part.Properties:
-                print(properties)
-
-
         # Start graphical output (GiD)
         output_model_part = self.model.GetOutputModelPart()
         self.output = self._get_graphical_output(output_model_part)
@@ -122,18 +109,17 @@ class Solution(object):
         if( self._is_not_restarted() ):
             self.output.ExecuteBeforeSolutionLoop()
 
-
         self.solver.ExecuteBeforeSolutionLoop()
+
+        # Print model_part and properties
+        if(self.echo_level>0):
+            print("")
+            print(self.main_model_part)
+            for properties in self.main_model_part.Properties:
+                print(properties)
 
         print(" ")
         print("::[KSM Simulation]:: Analysis -START- ")
-
-        # Set time settings
-        self.step       = self.process_info[KratosMultiphysics.STEP]
-        self.time       = self.process_info[KratosMultiphysics.TIME]
-
-        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
-        self.end_time   = self.solver.GetEndTime()
 
         sys.stdout.flush()
 
@@ -170,7 +156,8 @@ class Solution(object):
 
         self.output.ExecuteInitializeSolutionStep()
 
-        self.solver.InitializeSolutionStep()
+        # Step by step (1)
+        #self.solver.InitializeSolutionStep()
 
         self._stop_time_measuring(self.clock_time,"Initialize Step", self.report);
 
@@ -179,12 +166,10 @@ class Solution(object):
 
         self.clock_time = self._start_time_measuring();
 
-        #self.solver.Predict()
-
+        # Step by step (2)
         #self.solver.SolveSolutionStep()
 
-        #self.solver.FinalizeSolutionStep()
-
+        # All steps included (1)(2)(3)
         self.solver.Solve()
 
         self._stop_time_measuring(self.clock_time,"Solve Step", self.report);
@@ -193,6 +178,9 @@ class Solution(object):
     def FinalizeSolutionStep(self):
 
         self.clock_time = self._start_time_measuring();
+
+        # Step by step (3)
+        #self.solver.FinalizeSolutionStep()
 
         self.output.ExecuteFinalizeSolutionStep()
 
@@ -289,6 +277,32 @@ class Solution(object):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
         return (solver_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"]))
 
+    def _get_time_settings(self):
+
+        # Get time parameters
+        if( self._is_not_restarted() ):
+            if( self.ProjectParameters.Has("time_settings") ):
+                time_settings = self.ProjectParameters["time_settings"]
+                time_increment = 1.0
+                if( self.ProjectParameters["time_settings"].Has("time_step") ):
+                    time_increment = time_settings["time_step"].GetDouble()
+                    self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_increment)
+                initial_time = 0.0
+                if( self.ProjectParameters["time_settings"].Has("start_time") ):
+                    initial_time = time_settings["start_time"].GetDouble()
+                self.process_info.SetValue(KratosMultiphysics.TIME, initial_time)
+
+        # Set time parameters
+        self.step       = self.process_info[KratosMultiphysics.STEP]
+        self.time       = self.process_info[KratosMultiphysics.TIME]
+
+        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
+
+        self.end_time   = self.time + self.delta_time
+        if( self.ProjectParameters.Has("time_settings") ):
+            if( self.ProjectParameters["time_settings"].Has("end_time") ):
+                self.end_time = self.ProjectParameters["time_settings"]["end_time"].GetDouble()
+
     def _import_materials(self):
         # Assign material to model_parts (if Materials.json exists)
         import process_factory
@@ -319,6 +333,8 @@ class Solution(object):
             constitutive_law.Initialize();
 
             problem_path = os.getcwd()
+
+            self.model.CleanModel()
 
             print("   Reading constitutive law from file :" + os.path.join(problem_path, "materials") + ".py ")
 
@@ -361,6 +377,30 @@ class Solution(object):
         else:
             print("::[KSM Simulation]:: No Output")
             return (KratosMultiphysics.Process())
+
+    def _set_severity_level(self):
+        # Set echo level
+        self.echo_level = 0
+        if( self.ProjectParameters.Has("problem_data") ):
+            if( self.ProjectParameters["problem_data"].Has("echo_level") ):
+                self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+
+        self.severity = KratosMultiphysics.Logger.Severity.WARNING
+        if( self.echo_level == 1 ):
+            self.severity = KratosMultiphysics.Logger.Severity.INFO
+        elif( self.echo_level == 2 ):
+            self.severity = KratosMultiphysics.Logger.Severity.DETAIL
+        elif( self.echo_level == 3 ):
+            self.severity = KratosMultiphysics.Logger.Severity.DEBUG
+        elif( self.echo_level == 4 ):
+            self.severity = KratosMultiphysics.Logger.Severity.TRACE
+
+        # Print solving time
+        self.report = False
+        if( self.echo_level > 0 ):
+            self.report = True
+
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(self.severity)
 
     def _set_parallel_size(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()
