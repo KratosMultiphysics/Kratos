@@ -160,6 +160,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             self._remove_file("./AdjointVMSSensitivity2DTest/one_element_test.dat")
             self._remove_file("./AdjointVMSSensitivity2DTest/one_element_test.time")
             self._remove_file("./one_element.post.bin")
+            self._remove_file("./tests.post.lst")
 
     def testCylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
