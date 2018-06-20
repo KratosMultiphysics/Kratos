@@ -38,6 +38,13 @@ CableElement3D2N::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                                                pProperties);
 }
 
+Element::Pointer
+CableElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
+                         PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CableElement3D2N>(NewId, pGeom,
+                                               pProperties);
+}
+
 CableElement3D2N::~CableElement3D2N() {}
 
 BoundedMatrix<double, TrussElement3D2N::msLocalSize,

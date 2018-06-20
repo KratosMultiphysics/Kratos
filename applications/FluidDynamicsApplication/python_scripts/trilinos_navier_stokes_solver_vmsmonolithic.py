@@ -14,27 +14,20 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dyna
 
 # Import base class file
 import navier_stokes_solver_vmsmonolithic
+import trilinos_import_model_part_utility
 
-def CreateSolver(main_model_part, custom_settings):
-    return TrilinosNavierStokesSolverMonolithic(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
 
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        self.element_name = "VMS"
-        self.condition_name = "MonolithicWallCondition"
-        self.min_buffer_size = 2
-
-        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    def _ValidateSettings(self, settings):
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "trilinos_navier_stokes_solver_vmsmonolithic",
+            "model_part_name": "FluidModelPart",
+            "domain_size": 2,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -64,7 +57,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "skin_parts": [""],
             "no_skin_parts":[""],
             "time_stepping": {
-                "automatic_time_step" : true,
+                "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
@@ -78,9 +71,19 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "turbulence_model": "None"
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+
+    def __init__(self, model, custom_settings):
+        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
+        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
+
+        self.element_name = "VMS"
+        self.condition_name = "MonolithicWallCondition"
+        self.min_buffer_size = 2
+
+        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
 
         ## Construct the linear solver
         import trilinos_linear_solver_factory
@@ -103,28 +106,20 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.Print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
 
-
     def ImportModelPart(self):
         ## Construct the Trilinos import model part utility
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
-        ## Replace default elements and conditions
-        super(TrilinosNavierStokesSolverMonolithic, self)._replace_elements_and_conditions()
-        ## Executes the check and prepare model process
-        super(TrilinosNavierStokesSolverMonolithic, self)._execute_check_and_prepare()
-        ## Call the base class set buffer size
-        super(TrilinosNavierStokesSolverMonolithic, self)._set_buffer_size()
-        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
-        super(TrilinosNavierStokesSolverMonolithic, self)._set_physical_properties()
-        ## Construct Trilinos the communicators
-        TrilinosModelPartImporter.CreateCommunicators()
+        self.trilinos_model_part_importer.ImportModelPart()
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.Print("MPI model reading finished.")
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
 
+    def PrepareModelPart(self):
+        super(TrilinosNavierStokesSolverMonolithic,self).PrepareModelPart()
+        ## Construct Trilinos the communicators
+        self.trilinos_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
         ## Base class DOFs addition

@@ -22,7 +22,6 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "geometries/point.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
@@ -196,7 +195,7 @@ private:
  * If the pairs sets are not provided a serach will be performed using a KDTree
  * @author Vicente Mataix Ferrandiz
  */
-template< std::size_t TDim, std::size_t TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination = THistOrigin>
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType>
 class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess
         : public Process
 {
@@ -409,6 +408,9 @@ private:
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
     
+    bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
+    bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical
+
     unsigned int mEchoLevel;                      /// The verbosity level    
     Parameters mThisParameters;                   /// The configuration parameters
     

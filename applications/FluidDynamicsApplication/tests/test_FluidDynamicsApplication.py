@@ -18,6 +18,7 @@ from navier_stokes_wall_condition_test import NavierStokesWallConditionTest
 from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from volume_source_test import VolumeSourceTest
 from fluid_analysis_test import FluidAnalysisTest
+from adjoint_fluid_test import AdjointFluidTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -44,6 +45,7 @@ def AssambleTestSuites():
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
+    smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -71,11 +73,13 @@ def AssambleTestSuites():
     nightSuite.addTest(TimeIntegratedFluidElementTest('testCavity'))
     nightSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
+    nightSuite.addTest(AdjointFluidTest('testCylinder'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(VolumeSourceTest('validationEulerian'))
+    validationSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']

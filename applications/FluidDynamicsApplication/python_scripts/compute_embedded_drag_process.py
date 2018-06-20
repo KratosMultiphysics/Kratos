@@ -8,7 +8,7 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-import python_process
+
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -17,7 +17,7 @@ def Factory(settings, Model):
     return ComputeEmbeddedDragProcess(Model, settings["Parameters"])
 
 
-class ComputeEmbeddedDragProcess(python_process.PythonProcess):
+class ComputeEmbeddedDragProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
 
         default_settings = KratosMultiphysics.Parameters("""

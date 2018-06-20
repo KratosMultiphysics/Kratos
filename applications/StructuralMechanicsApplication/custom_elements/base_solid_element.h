@@ -252,6 +252,10 @@ public:
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               ProcessInfo& rCurrentProcessInfo) override;
+
+
     /**
       * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
       * @param rRightHandSideVector the elemental right hand side vector

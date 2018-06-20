@@ -1,10 +1,10 @@
 import KratosMultiphysics
-import python_process
 
-##all the processes python processes should be derived from "python_process"
-class IGAApplySupport(python_process.PythonProcess):
+
+## All the processes python should be derived from "Process"
+class IGAApplySupport(KratosMultiphysics.Process):
     def __init__(self, model_part, variable_name, is_fixed_x, is_fixed_y, is_fixed_z, is_fixed_rot, value, mesh_id=0 ):
-        python_process.PythonProcess.__init__(self) 
+        KratosMultiphysics.Process.__init__(self) 
        
         DisplacementRotationFix = 0 #defined by rot, dispx, dispy, dispz
         if (is_fixed_rot):
