@@ -13,7 +13,7 @@ except ImportError:
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
 
-@UnitTest.skipUnless(have_required_applications," ".join(missing_applications_message))
+@KratosUnittest.skipUnless(have_required_applications," ".join(missing_applications_message))
 class AdjointVMSElement2D(KratosUnittest.TestCase):
 
     def setUp(self):

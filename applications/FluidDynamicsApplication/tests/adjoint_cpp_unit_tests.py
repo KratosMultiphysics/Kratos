@@ -4,11 +4,11 @@ class AdjointCPPUnitTests(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
-    
+
     def testSensitivityCPP(self):
         Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)
         Tester.RunTestSuite("KratosSensitivityTestSuite")
-    
+
     def tearDown(self):
         pass
 
