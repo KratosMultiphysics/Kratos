@@ -7,7 +7,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignTimeDerivativeProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignTimeDerivativeProcess(assign_vector_variable_process.AssignVectorVariableProcess):
     '''this process fixes the components of the value named "variable_to_be_solved_for" 
     in case the components of "variable_name" is fixed.

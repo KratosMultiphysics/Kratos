@@ -140,9 +140,14 @@ class PythonSolver(object):
         input_type = model_part_import_settings["input_type"].GetString()
 
         if (input_type == "mdpa"):
+            import_flags = KratosMultiphysics.ModelPartIO.READ
+            if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
+                if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
+                    import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|KratosMultiphysics.ModelPartIO.READ
+
             # Import model part from mdpa file.
             KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
+            KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
             if (model_part_import_settings.Has("reorder") and model_part_import_settings["reorder"].GetBool()):
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()

@@ -22,7 +22,7 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "LinearElasticPlaneStress2DLaw"
+                            "name": "TrussConstitutiveLaw"
                     },
                     "Variables": {
                             "YOUNG_MODULUS": 0.0000001,
