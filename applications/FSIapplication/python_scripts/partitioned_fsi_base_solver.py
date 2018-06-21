@@ -5,6 +5,7 @@ from math import sqrt   # Import the square root from python library
 import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
+import python_solvers_wrapper_mesh_motion      # Import the mesh motion Python solvers wrapper
 import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
 # Importing the Kratos Library
@@ -27,7 +28,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 def CreateSolver(model, project_parameters):
     return PartitionedFSIBaseSolver(model, project_parameters)
 
-#TODO: DERIVE FROM PYTHON SOLVER
 class PartitionedFSIBaseSolver(PythonSolver):
     def __init__(self, model, project_parameters):
         super(PartitionedFSIBaseSolver,self).__init__(model, project_parameters)
@@ -39,9 +39,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
         end_time_fluid = self.settings["fluid_solver_settings"]["problem_data"]["end_time"].GetDouble()
 
         if start_time_structure != start_time_fluid:
-            raise("ERROR: Different initial time among subdomains!")
+            raise Exception('Different initial time among subdomains.')
         if end_time_structure != end_time_fluid:
-            raise("ERROR: Different final time among subdomains!")
+            raise Exception('Different final time among subdomains.')
 
         solver_settings = self.settings["fluid_solver_settings"]["solver_settings"]
         problem_data = self.settings["fluid_solver_settings"]["problem_data"]
@@ -64,11 +64,11 @@ class PartitionedFSIBaseSolver(PythonSolver):
         if (self.settings["fluid_solver_settings"]["solver_settings"]["time_stepping"]["automatic_time_step"].GetBool()):
             self.settings["fluid_solver_settings"]["solver_settings"]["time_stepping"]["automatic_time_step"].SetBool(False)
             time_step_fluid = time_step_structure
-            print("WARNING: Automatic fluid time stepping cannot be used. Setting structure time step as fluid time step.")
+            self._PrintWarningOnRankZero("::[PartitionedFSIBaseSolver]::", "Automatic fluid time stepping cannot be used. Setting structure time step as fluid time step.")
         else:
             time_step_fluid = self.settings["fluid_solver_settings"]["solver_settings"]["time_stepping"]["time_step"].GetDouble()
             if time_step_structure != time_step_fluid:
-                raise("ERROR: Different time step among subdomains! No sub-stepping implemented yet.")
+                raise Exception('Different time step among subdomains! No sub-stepping implemented yet.')
 
         self.time_step = time_step_fluid
 
@@ -85,43 +85,48 @@ class PartitionedFSIBaseSolver(PythonSolver):
         # Construct the structure solver
         structural_solver_settings = self.settings["structure_solver_settings"]["solver_settings"]
         if not structural_solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Using the old way to pass the time_step, this will be removed!")
+            self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Using the old way to pass the time_step, this will be removed!")
             time_stepping_params = KratosMultiphysics.Parameters("{}")
             time_stepping_params.AddValue("time_step", self.settings["structure_solver_settings"]["problem_data"]["time_step"])
             structural_solver_settings.AddValue("time_stepping", time_stepping_params)
         if not structural_solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Using the old way to pass the domain_size, this will be removed!")
+            self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Using the old way to pass the domain_size, this will be removed!")
             structural_solver_settings.AddEmptyValue("domain_size")
             structural_solver_settings["domain_size"].SetInt(self.settings["structure_solver_settings"]["problem_data"]["domain_size"].GetInt())
         if not structural_solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Using the old way to pass the model_part_name, this will be removed!")
+            self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Using the old way to pass the model_part_name, this will be removed!")
             structural_solver_settings.AddEmptyValue("model_part_name")
             structural_solver_settings["model_part_name"].SetString(self.settings["structure_solver_settings"]["problem_data"]["model_part_name"].GetString())
 
-        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(
-            self.model,
-            self.settings["structure_solver_settings"])
-        KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Structure solver construction finished.")
+        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.model,
+                                                                               self.settings["structure_solver_settings"])
+        self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Structure solver construction finished.")
 
         # Construct the fluid solver
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolver(
-            self.model,
-            self.settings["fluid_solver_settings"])
-        KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Fluid solver construction finished.")
+        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolver(self.model,
+                                                                      self.settings["fluid_solver_settings"])
+        self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Fluid solver construction finished.")
 
         # Construct the coupling partitioned strategy
         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(coupling_utility_parameters)
-        KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Coupling strategy construction finished.")
+        self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
 
         # Construct the ALE mesh solver
         mesh_solver_settings = KratosMultiphysics.Parameters("{}")
-        self.mesh_solver_module = __import__(coupling_solver_settings["mesh_solver"].GetString())
-        self.mesh_solver = self.mesh_solver_module.CreateSolver(
-            self.fluid_solver.main_model_part,
-            mesh_solver_settings)
-        KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "ALE mesh solver construction finished.")
+        mesh_solver_settings.AddEmptyValue("problem_data")
+        mesh_solver_settings.AddEmptyValue("solver_settings")
+        parallel_type = KratosMultiphysics.Parameters('''{"parallel_type" : ""}''')
+        parallel_type["parallel_type"].SetString(self.settings["fluid_solver_settings"]["problem_data"]["parallel_type"].GetString())
+        mesh_solver_type = KratosMultiphysics.Parameters('''{"solver_type" : ""}''')
+        mesh_solver_type["solver_type"].SetString(self.settings["coupling_solver_settings"]["solver_settings"]["mesh_solver"].GetString())
+        mesh_solver_settings["problem_data"] = parallel_type
+        mesh_solver_settings["solver_settings"] = mesh_solver_type
+        #TODO: UPDATE TO MODEL ONCE MESH MOVING APPLICATION SUPPORTS IT
+        self.mesh_solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.fluid_solver.main_model_part,
+                                                                           mesh_solver_settings)
+        self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "ALE mesh solver construction finished.")
 
-        KratosMultiphysics.Logger.PrintInfo("PartitionedFSIBaseSolver", "Partitioned FSI base solver construction finished.")
+        self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Partitioned FSI base solver construction finished.")
 
     def GetMinimumBufferSize(self):
         # Get structure buffer size
@@ -160,9 +165,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self.fluid_solver.ImportModelPart()
         self.structure_solver.ImportModelPart()
 
-        # self.fluid_main_model_part = self.model.GetModelPart(self.fluid_model_part_name)
-
     def PrepareModelPart(self):
+        # Get the minimum buffer size between the mesh, fluid and structure solvers
+        self._GetAndSetMinimumBufferSize()
         # Fluid and structure solvers PrepareModelPart() call
         self.fluid_solver.PrepareModelPart()
         self.structure_solver.PrepareModelPart()
@@ -242,7 +247,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         ## Non-Linear interface coupling iteration ##
         for nl_it in range(1,self.max_nl_it+1):
 
-            KratosMultiphysics.Logger.PrintInfo("","\tFSI non-linear iteration = ", nl_it)
+            self._PrintInfoOnRankZero("","\tFSI non-linear iteration = ", nl_it)
 
             self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
             self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
@@ -267,23 +272,23 @@ class PartitionedFSIBaseSolver(PythonSolver):
             # Check convergence
             if nl_res_norm/sqrt(interface_dofs) < self.nl_tol:
                 self.coupling_utility.FinalizeNonLinearIteration()
-                KratosMultiphysics.Logger.PrintInfo("","\tNon-linear iteration convergence achieved")
-                KratosMultiphysics.Logger.PrintInfo("","\tTotal non-linear iterations: ", nl_it, " |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
+                self._PrintInfoOnRankZero("","\tNon-linear iteration convergence achieved")
+                self._PrintInfoOnRankZero("","\tTotal non-linear iterations: ", nl_it, " |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
                 break
             else:
                 # If convergence is not achieved, perform the correction of the prediction
-                KratosMultiphysics.Logger.PrintInfo("","\tResidual computation finished. |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
+                self._PrintInfoOnRankZero("","\tResidual computation finished. |res|/sqrt(nDOFS) = ", nl_res_norm/sqrt(interface_dofs))
                 self.coupling_utility.UpdateSolution(dis_residual, self.iteration_value)
                 self.coupling_utility.FinalizeNonLinearIteration()
 
                 if (nl_it == self.max_nl_it):
-                    KratosMultiphysics.Logger.PrintWarning("","FSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
+                    self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
         self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
         mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL_NORM)
-        KratosMultiphysics.Logger.PrintInfo("","\tNL residual norm: ", nl_res_norm)
-        KratosMultiphysics.Logger.PrintInfo("","\tMesh residual norm: ", mesh_res_norm)
+        self._PrintInfoOnRankZero("","\tNL residual norm: ", nl_res_norm)
+        self._PrintInfoOnRankZero("","\tMesh residual norm: ", mesh_res_norm)
 
         ## Finalize solution step
         self.fluid_solver.FinalizeSolutionStep()
@@ -315,18 +320,37 @@ class PartitionedFSIBaseSolver(PythonSolver):
     #######################################################################
 
     ### AUXILIAR METHODS ###
+    # This method is to be overwritten in the MPI solver
+    def _PrintInfoOnRankZero(self, *args):
+        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str, args)))
+
+    # This method is to be overwritten in the MPI solver
+    def _PrintWarningOnRankZero(self, *args):
+        KratosMultiphysics.Logger.PrintWarning(" ".join(map(str, args)))
+
+    # This method finds the maximum buffer size between mesh, 
+    # fluid and structure solvers and sets it to all the solvers.
+    def _GetAndSetMinimumBufferSize(self):
+        fluid_buffer_size = self.fluid_solver.min_buffer_size
+        mesh_buffer_size = self.mesh_solver.settings["buffer_size"].GetInt()
+        str_buffer_size = self.structure_solver.settings["buffer_size"].GetInt()
+
+        buffer_size = max(fluid_buffer_size, mesh_buffer_size)
+        buffer_size = max(buffer_size, str_buffer_size)
+
+        self.fluid_solver.min_buffer_size = buffer_size
+        self.mesh_solver.settings["buffer_size"].SetInt(buffer_size)
+        self.structure_solver.settings["buffer_size"].SetInt(buffer_size)
+
     def _GetFluidInterfaceSubmodelPart(self):
         # Returns the fluid interface submodelpart that will be used in the residual minimization
         return self.fluid_solver.main_model_part.GetSubModelPart(self.fluid_interface_submodelpart_name)
-
 
     def _GetStructureInterfaceSubmodelPart(self):
         # Returns the structure interface submodelpart that will be used in the residual minimization
         return self.structure_solver.main_model_part.GetSubModelPart(self.structure_interface_submodelpart_name)
 
-
     def _GetDomainSize(self):
-
         fluid_domain_size = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         structure_domain_size = self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
@@ -335,9 +359,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
         return fluid_domain_size
 
-
     def _GetNodalUpdateUtilities(self):
-
         structure_time_scheme = self.structure_solver.dynamic_settings["scheme_type"].GetString()
         if (structure_time_scheme == "newmark"):
             damp_factor_m = 0.0
@@ -353,17 +375,13 @@ class PartitionedFSIBaseSolver(PythonSolver):
         else:
             return KratosFSI.NodalUpdateNewmark3D(damp_factor_m)
 
-
     def _GetPartitionedFSIUtilities(self):
-
         if (self.domain_size == 2):
             return KratosFSI.PartitionedFSIUtilities2D()
         else:
             return KratosFSI.PartitionedFSIUtilities3D()
 
-
     def _SetUpMapper(self):
-
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
         search_radius_factor = 2.0
         mapper_max_iterations = 200
@@ -418,67 +436,44 @@ class PartitionedFSIBaseSolver(PythonSolver):
                              In case you are considering double faced immersed bodies (shells or membranes), set all the positive faces \
                              in a unique submodelpart and all the negative ones in another submodelpart.")
 
-
     def _SetStructureNeumannCondition(self):
 
         structure_computational_submodelpart = self.structure_solver.GetComputingModelPart()
 
-        aux_count = 0
-        for cond in self.structure_solver.main_model_part.Conditions:
-            if(cond.Id > aux_count):
-                aux_count = cond.Id
+        # Get the maximum condition id
+        max_cond_id = 0
+        for condition in self.structure_solver.main_model_part.Conditions:
+            max_cond_id = max(max_cond_id, condition.Id)
 
+        max_cond_id = self.structure_solver.main_model_part.GetCommunicator().MaxAll(max_cond_id)
+
+        # Set up the point load condition in the structure interface
         structure_interfaces_list = self.settings["coupling_solver_settings"]["solver_settings"]["structure_interfaces_list"]
         for i in range(structure_interfaces_list.size()):
             interface_submodelpart_name = structure_interfaces_list[i].GetString()
             interface_submodelpart_i = self.structure_solver.main_model_part.GetSubModelPart(interface_submodelpart_name)
-            # NOTE: In this manner, two interface submodelparts cannot share a node (it would be repeated in the pointload conditions...)
+
+            # Get the number of conditions to be set in each processor
+            local_nodes_number_accumulated = -1
+            local_nodes_number = len(interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes)
+            local_nodes_number_accumulated = interface_submodelpart_i.GetCommunicator().ScanSum(local_nodes_number, local_nodes_number_accumulated)
 
             # Create the point load condition
+            aux_count = max_cond_id + local_nodes_number_accumulated
             if self.domain_size == 2:
-                for node in interface_submodelpart_i.Nodes:
+                for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:
                     aux_count+=1
-                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N",aux_count,[node.Id],self.structure_solver.main_model_part.Properties[0])
-
+                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N", 
+                                                                            int(aux_count), 
+                                                                            [node.Id], 
+                                                                            self.structure_solver.main_model_part.Properties[0])
             elif self.domain_size == 3:
-                for node in interface_submodelpart_i.Nodes:
+                for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:
                     aux_count+=1
-                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition3D1N",aux_count,[node.Id],self.structure_solver.main_model_part.Properties[0])
-
-
-    # TODO: This function must be checked as soon as the fluid Neumann BC has been implemented.
-    def _SetFluidNeumannCondition(self):
-
-        fluid_computational_volume_submodelpart = self.fluid_solver.GetComputingModelPart()
-
-        aux_count = len(self.fluid_solver.main_model_part.Conditions)       # Get the last existing condition numbering
-        aux_count += 1
-        print("max aux_count",aux_count)
-        aux_count = 0
-        for cond in self.fluid_solver.main_model_part.Conditions:
-            if(cond.Id > aux_count):
-                aux_count = cond.Id
-        aux_count += 1
-        print("max aux_count",aux_count)
-
-
-        for i in range(self.settings["coupling_solver_settings"]["fluid_interfaces_list"].size()):
-            interface_submodelpart_name = self.settings["coupling_solver_settings"]["fluid_interfaces_list"][i].GetString()
-            interface_submodelpart_i = self.fluid_solver.main_model_part.GetSubModelPart(interface_submodelpart_name)
-            # NOTE: In this manner, two interface submodelparts cannot share a node (it would be repeated in the pointload conditions...)
-            # DO CreateNewCondition CHECK IF THERE EXIST A CONDITION IN A NODE?
-
-            for node in interface_submodelpart_i.Nodes:
-
-                # NOTE: THIS CONDITION REMAINS TO BE IMPLEMENTED IN THE FluidDynamicsApplication, DECIDE WHAT TO DO.
-                # Create the fluid load condition
-                if self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                    fluid_computational_volume_submodelpart.CreateNewCondition("PointForce2Dfluid",aux_count,[node.Id],self.fluid_solver.main_model_part.Properties[0])
-                elif self.structure_solver.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-                    fluid_computational_volume_submodelpart.CreateNewCondition("PointForce3Dfluid",aux_count,[node.Id],self.fluid_solver.main_model_part.Properties[0])
-
-                aux_count+=1
-
+                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition3D1N",
+                                                                            int(aux_count),
+                                                                            [node.Id],
+                                                                            self.structure_solver.main_model_part.Properties[0])
 
     def _ComputeMeshPredictionSingleFaced(self):
 

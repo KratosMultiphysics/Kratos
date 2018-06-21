@@ -31,7 +31,7 @@ def CreateSolver(model, project_parameters):
 class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.PartitionedFSIBaseSolver):
     def __init__(self, model, project_parameters):
         super(PartitionedFSIDirichletNeumannSolver, self).__init__(model, project_parameters)
-        KratosMultiphysics.Logger.PrintInfo("PartitionedFSIDirichletNeumannSolver", "Solver construction finished.")
+        self._PrintInfoOnRankZero("::[PartitionedFSIDirichletNeumannSolver]::", "Solver construction finished.")
 
     def Initialize(self):
 
@@ -118,7 +118,6 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
 
     def _SolveMeshAndFluid(self):
-
         # Set the iteration_value displacement as MESH_DISPLACEMENT
         coupling_solver_settings = self.settings["coupling_solver_settings"]["solver_settings"]
         num_fl_interfaces = coupling_solver_settings["fluid_interfaces_list"].size()
@@ -130,7 +129,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
                                                                  self.iteration_value)
 
         # Solve the mesh problem (or moves the interface nodes)
-        if (self.solve_mesh_at_each_iteration == True):
+        if self.solve_mesh_at_each_iteration:
             self.mesh_solver.Solve()
         else:
             self.mesh_solver.MoveMesh()
@@ -198,7 +197,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
-        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(),
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
                                                                       KratosMultiphysics.MESH_DISPLACEMENT,
                                                                       KratosMultiphysics.VECTOR_PROJECTED,
                                                                       disp_residual)
@@ -225,7 +224,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
-        self.partitioned_fsi_utilities.ComputeInterfaceVectorResidual(self._GetFluidInterfaceSubmodelPart(),
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
                                                                       KratosMultiphysics.MESH_DISPLACEMENT,
                                                                       KratosFSI.VECTOR_PROJECTED,
                                                                       disp_residual)

@@ -70,12 +70,10 @@ class FSIAnalysis(AnalysisStage):
             self._GetSolver().ImportModelPart()
             self._GetSolver().PrepareModelPart()
             self._GetSolver().AddDofs()
-            print(self.model)
             self.fluid_main_model_part = self.model.GetModelPart(
                 self.project_parameters["fluid_solver_settings"]["solver_settings"]["model_part_name"].GetString())
             self.structure_main_model_part = self.model.GetModelPart(
                 self.project_parameters["structure_solver_settings"]["solver_settings"]["model_part_name"].GetString())
-            print(self.structure_main_model_part)
 
         # This should let eventual derived stages modify the model after reading.
         self.ModifyInitialProperties()
