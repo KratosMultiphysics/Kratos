@@ -430,6 +430,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3>::TestGiDDebug)
     ;
 
     class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
@@ -437,6 +438,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4>::TestGiDDebug)
     ;
 
     // Sparse matrix multiplication utility
