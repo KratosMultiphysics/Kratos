@@ -105,7 +105,7 @@ public:
         const Properties& rMaterialProperties
     )
     {   
-        double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double SinPhi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
@@ -136,7 +136,7 @@ public:
     static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
     {
         const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
-        const double friction_angle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
         const double SinPhi = std::sin(friction_angle);
         rThreshold = std::abs(YieldTension*(3.0 + SinPhi) / (3.0*SinPhi - 3.0));
     }
@@ -212,7 +212,7 @@ public:
         double c1, c2, c3;
         c3 = 0.0;
 
-        const double FrictionAngle = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
+        const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE];
         const double SinPhi    = std::sin(FrictionAngle);
         const double Root3     = std::sqrt(3.0);
 

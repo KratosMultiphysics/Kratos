@@ -223,6 +223,10 @@ public:
             // Aux value Remove TODO
             this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
 
+   //         KRATOS_WATCH(Threshold)
+   //         KRATOS_WATCH(UniaxialStress)
+			//KRATOS_WATCH(PredictiveStressVector)
+
             // this->CalculateTangentTensor(rValues); // this modifies the C
             // TangentTensor = rValues.GetConstitutiveMatrix();
 			TangentTensor = C;
@@ -298,7 +302,7 @@ public:
     {
         if(rThisVariable == UNIAXIAL_STRESS) {
             mUniaxialStress = rValue;
-            
+
         } else if (rThisVariable == PLASTIC_DISSIPATION) {
             mPlasticDissipation = rValue;
         }

@@ -175,19 +175,20 @@ public:
 
 			F = UniaxialStress - Threshold;
 
-			// std::cout << "while loop iteration: " << iteration << std::endl;
-			// KRATOS_WATCH(PredictiveStressVector)
-			// KRATOS_WATCH(DS)
-			// KRATOS_WATCH(UniaxialStress)
-			// KRATOS_WATCH(Gflux)
-			// KRATOS_WATCH(PlasticStrainIncrement)
-			// KRATOS_WATCH(PlasticStrain)
-			// KRATOS_WATCH(PlasticConsistencyFactorIncrement)
-			// KRATOS_WATCH(PlasticDenominator)
-			// KRATOS_WATCH(Threshold)
-			// KRATOS_WATCH(PlasticDissipation)
-			// KRATOS_WATCH(F)
-			// std::cout << "**********************" << std::endl;
+			 //std::cout << "while loop iteration: " << iteration << std::endl;
+			 //KRATOS_WATCH(PredictiveStressVector)
+			 //KRATOS_WATCH(DS)
+			 //KRATOS_WATCH(UniaxialStress)
+			 //KRATOS_WATCH(Gflux)
+    //         KRATOS_WATCH(Fflux)
+			 //KRATOS_WATCH(PlasticStrainIncrement)
+			 //KRATOS_WATCH(PlasticStrain)
+			 //KRATOS_WATCH(PlasticConsistencyFactorIncrement)
+			 //KRATOS_WATCH(PlasticDenominator)
+			 //KRATOS_WATCH(Threshold)
+			 //KRATOS_WATCH(PlasticDissipation)
+			 //KRATOS_WATCH(F)
+			 //std::cout << "**********************" << std::endl;
 
             
 
@@ -242,8 +243,6 @@ public:
         const double CharacteristicLength
     )
     {
-        // BoundedVector<double, TVoigtSize> Deviator = ZeroVector(TVoigtSize); 
-        // BoundedVector<double, TVoigtSize> HCapa    = ZeroVector(TVoigtSize);
         Vector Deviator = ZeroVector(6); 
 		Vector HCapa    = ZeroVector(6);
         double J2, r0, r1, Slope, HardParam;
@@ -390,12 +389,6 @@ public:
 
         rPlasticDissipation += DPlasticdissipation;
         if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999; // warning vicente
-
-		// KRATOS_WATCH(DPlasticdissipation)
-		// KRATOS_WATCH(rPlasticDissipation)
-		// 	KRATOS_WATCH(r0)
-		// 	KRATOS_WATCH(r1)
-
     }
 
     /**
@@ -446,9 +439,9 @@ public:
                     break;
 
                 // Add more cases...
-                
+
                 default:
-                    KRATOS_ERROR << " The Evolution Law of plasticity is not available or wrong..."<< CurveType << std::endl;     
+                    KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not available or wrong..."<< CurveType << std::endl;     
                     break;
             }
         }

@@ -106,7 +106,7 @@ public:
     {
         const double YieldCompression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
-        double FrictionAngle = rMaterialProperties[INTERNAL_FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        double FrictionAngle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 		
         // Check input variables
         if (FrictionAngle < tolerance) {
@@ -228,7 +228,7 @@ public:
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
         double c1, c2, c3;
-        const double FrictionAngle = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
+        const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0;
         const double SinPhi    = std::sin(FrictionAngle);
         const double CosPhi    = std::cos(FrictionAngle);
         const double SinTheta  = std::sin(LodeAngle);
