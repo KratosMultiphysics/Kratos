@@ -59,28 +59,33 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
     const Variable<TValueType>& rDistributedVariable,
     const Variable<TValueType>& rPointVariable)
 {
-    // This function only dispatches the call to the correct specialization
-    Geometry< Node<3> >& rReferenceGeometry = rModelPart.ConditionsBegin()->GetGeometry();
-    const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
-    const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
+    // Check if there is any condition in the current partition
+    const unsigned int n_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
 
-    if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2)
-    {
-        VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<GeometryData::Kratos_Linear,2,TValueType>(
-            rModelPart,
-            rDistributedVariable,
-            rPointVariable);
-    }
-    else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3)
-    {
-        VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<GeometryData::Kratos_Triangle,3,TValueType>(
-            rModelPart,
-            rDistributedVariable,
-            rPointVariable);
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported geometry type with " << PointsNumber << " points." << std::endl;
+    // If there is conditions, this function dispatches the call to the correct specialization
+    if (n_conds != 0){
+        Geometry< Node<3> >& rReferenceGeometry = rModelPart.ConditionsBegin()->GetGeometry();
+        const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
+        const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
+
+        if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2)
+        {
+            VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<GeometryData::Kratos_Linear,2,TValueType>(
+                rModelPart,
+                rDistributedVariable,
+                rPointVariable);
+        }
+        else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3)
+        {
+            VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<GeometryData::Kratos_Triangle,3,TValueType>(
+                rModelPart,
+                rDistributedVariable,
+                rPointVariable);
+        }
+        else
+        {
+            KRATOS_ERROR << "Unsupported geometry type with " << PointsNumber << " points." << std::endl;
+        }
     }
 }
 
@@ -92,32 +97,37 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     double Tolerance,
     unsigned int MaximumIterations)
 {
-    // This function only dispatches the call to the correct specialization
-    Geometry< Node<3> >& rReferenceGeometry = rModelPart.ConditionsBegin()->GetGeometry();
-    const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
-    const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
+    // Check if there is any condition in the current partition
+    const unsigned int n_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
 
-    if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2)
-    {
-        VariableRedistributionUtility::SpecializedDistributePointValues<GeometryData::Kratos_Linear,2,TValueType>(
-            rModelPart,
-            rPointVariable,
-            rDistributedVariable,
-            Tolerance,
-            MaximumIterations);
-    }
-    else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3)
-    {
-        VariableRedistributionUtility::SpecializedDistributePointValues<GeometryData::Kratos_Triangle,3,TValueType>(
-            rModelPart,
-            rPointVariable,
-            rDistributedVariable,
-            Tolerance,
-            MaximumIterations);
-    }
-    else
-    {
-        KRATOS_ERROR << "Unsupported geometry type with " << PointsNumber << " points." << std::endl;
+    // If there is conditions, this function dispatches the call to the correct specialization
+    if (n_conds != 0){
+        Geometry< Node<3> >& rReferenceGeometry = rModelPart.ConditionsBegin()->GetGeometry();
+        const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
+        const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
+
+        if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2)
+        {
+            VariableRedistributionUtility::SpecializedDistributePointValues<GeometryData::Kratos_Linear,2,TValueType>(
+                rModelPart,
+                rPointVariable,
+                rDistributedVariable,
+                Tolerance,
+                MaximumIterations);
+        }
+        else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3)
+        {
+            VariableRedistributionUtility::SpecializedDistributePointValues<GeometryData::Kratos_Triangle,3,TValueType>(
+                rModelPart,
+                rPointVariable,
+                rDistributedVariable,
+                Tolerance,
+                MaximumIterations);
+        }
+        else
+        {
+            KRATOS_ERROR << "Unsupported geometry type with " << PointsNumber << " points." << std::endl;
+        }
     }
 }
 
@@ -140,8 +150,11 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
         node_iter->FastGetSolutionStepValue(rPointVariable) = Zero;
     }
 
-    boost::numeric::ublas::bounded_matrix<double,TPointNumber,TPointNumber> MassMatrix;
+    BoundedMatrix<double,TPointNumber,TPointNumber> MassMatrix;
     ConsistentMassMatrix<TFamily,TPointNumber>(MassMatrix);
+
+    // Make sure that the distributed values are equal between processors
+    rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
 
     const int number_of_conditions = rModelPart.NumberOfConditions();
     #pragma omp for
@@ -149,7 +162,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
     {
         auto condition_iterator = rModelPart.ConditionsBegin()+i;
         Geometry< Node<3> >& r_geometry = condition_iterator->GetGeometry();
-        double size = r_geometry.DomainSize();
+        const double size = r_geometry.DomainSize();
 
         for (unsigned int j = 0; j < TPointNumber; j++)
         {
@@ -163,6 +176,9 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
             ThreadsafeAdd(r_geometry[j].FastGetSolutionStepValue(rPointVariable), value_j);
         }
     }
+
+    // Add the contributions between processors
+    rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,7 +193,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
 {
     ComputeNodalSizes(rModelPart);
 
-    boost::numeric::ublas::bounded_matrix< double, TPointNumber, TPointNumber > mass_matrix;
+    BoundedMatrix< double, TPointNumber, TPointNumber > mass_matrix;
     ConsistentMassMatrix<TFamily,TPointNumber>(mass_matrix);
 
     const int number_of_nodes_in_model_part = rModelPart.NumberOfNodes();
@@ -190,13 +206,17 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         node_iter->FastGetSolutionStepValue(rDistributedVariable) = node_iter->FastGetSolutionStepValue(rPointVariable) / node_iter->GetValue(NODAL_MAUX);
     }
 
+    // Make sure that the initial approximation is the same between processes
+    rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+
     // Iteration: LumpedMass * delta_distributed = point_value - ConsistentMass * distributed_old
+    double error_l2_norm = 0.0;
     unsigned int iteration = 0;
     while ( iteration < MaximumIterations )
     {
         UpdateDistributionRHS<TPointNumber,TValueType>(rModelPart,rPointVariable, rDistributedVariable, mass_matrix);
 
-        double error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
+        error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
 
         // Check convergence
         iteration++;
@@ -206,9 +226,11 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         }
     }
 
-    if (iteration == MaximumIterations)
-    {
-        std::cout << "WARNING: DistributePointValues did not converge in " << iteration << " iterations." << std::endl;
+    // Synchronize the obtained resultas
+    rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
+
+    if (iteration == MaximumIterations){
+        KRATOS_WARNING("VariableRedistributionUtility") << "DistributePointValues did not converge in " << iteration << " iterations. L2 error norm: " << error_l2_norm << std::endl;
     }
 }
 
@@ -246,7 +268,7 @@ void VariableRedistributionUtility::ComputeNodalSizes(ModelPart& rModelPart)
 
 template<>
 void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Linear, 2 >(
-    boost::numeric::ublas::bounded_matrix<double, 2, 2>& rMassMatrix)
+    BoundedMatrix<double, 2, 2>& rMassMatrix)
 {
     // First row
     rMassMatrix(0, 0) = 2.0/6.0;
@@ -260,7 +282,7 @@ void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_L
  
 template<>
 void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Triangle, 3 >(
-    boost::numeric::ublas::bounded_matrix<double, 3, 3>& rMassMatrix)
+    BoundedMatrix<double, 3, 3>& rMassMatrix)
 {
     // First row
     rMassMatrix(0, 0) = 1.0/ 6.0;
