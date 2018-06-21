@@ -51,7 +51,7 @@ namespace Kratos
         // projection, more search iterations are necessary
         ConductSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
-        while (++num_iteration < max_search_iterations && !AllNeighborsFound(rComm))
+        while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm))
         {
             mSearchRadius *= increase_factor;
 

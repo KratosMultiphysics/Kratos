@@ -77,6 +77,27 @@ namespace Kratos
         // Exchange the buffer sizes
         MPI_Alltoall(send_sizes.data(), 1, MPI_INT, recv_sizes.data(), 1, MPI_INT, MPI_COMM_WORLD);
 
+
+        MPI_Barrier(MPI_COMM_WORLD); // TODO remove me!
+        std::stringstream ss_send;
+        ss_send << "Rank: " << comm_rank << "; ";
+
+        for (const auto& i : send_sizes)
+            ss_send << " , " << i;
+
+        KRATOS_INFO("send_sizes") << ss_send.str() << std::endl;
+
+        std::stringstream ss_recv;
+        ss_recv << "Rank: " << comm_rank << "; ";
+
+        for (const auto& i : recv_sizes)
+            ss_recv << " , " << i;
+
+        KRATOS_INFO("recv_sizes") << ss_recv.str() << std::endl;
+        std::cout << std::endl;
+        MPI_Barrier(MPI_COMM_WORLD); // TODO remove me!
+
+
         // Send Information to Candidate Partitions
 
         int num_comm_events     = 0;
@@ -90,6 +111,8 @@ namespace Kratos
 
         std::vector<MPI_Request> reqs(num_comm_events);
         std::vector<MPI_Status> stats(num_comm_events);
+
+        KRATOS_INFO("num_comm_events") << "Rank: " << comm_rank << "; " << num_comm_events << std::endl;
 
         //Set up all receive and send events
         for(int i=0; i<comm_size; ++i)
@@ -105,6 +128,9 @@ namespace Kratos
                 MPI_Isend(send_buffer[i].data(),send_sizes[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[num_comm_events_idx++]);
             }
         }
+
+
+        // KRATOS_INFO("DONE With Communication") << "Rank: " << comm_rank << std::endl;
 
         //wait untill all communications finish
         int err = MPI_Waitall(num_comm_events, reqs.data(), stats.data());
@@ -144,6 +170,7 @@ namespace Kratos
         Afterwards do local search ...
         */
         MPI_Barrier(MPI_COMM_WORLD);
+        KRATOS_INFO("InterfaceSearchStructureMPI") << "Leaving PrepareSearchIteration" << std::endl;
     }
 
     void InterfaceSearchStructureMPI::FinalizeSearchIteration()
