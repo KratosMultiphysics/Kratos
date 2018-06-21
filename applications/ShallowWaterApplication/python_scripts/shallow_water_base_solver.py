@@ -23,8 +23,6 @@ class ShallowWaterBaseSolver(object):
                 "input_filename"      : "unknown_name"
             },
             "echo_level"                   : 0,
-            "convergence_echo_level"       : 1,
-            "solver_echo_level"            : 0,
             "buffer_size"                  : 2,
             "dynamic_tau"                  : 0.005,
             "dry_height"                   : 0.01,
@@ -99,6 +97,10 @@ class ShallowWaterBaseSolver(object):
 
     def Initialize(self):
         #self.computing_model_part = self.GetComputingModelPart()
+        conv_echo_level = self.settings["echo_level"].GetInt()
+        solver_echo_level = 0
+        if conv_echo_level > 1:
+            solver_echo_level = conv_echo_level - 1
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -107,7 +109,7 @@ class ShallowWaterBaseSolver(object):
         # Creating the solution strategy for the mesh stage
         self.conv_criteria = KratosMultiphysics.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),
                                                                      self.settings["absolute_tolerance"].GetDouble())
-        (self.conv_criteria).SetEchoLevel(self.settings["convergence_echo_level"].GetInt())
+        (self.conv_criteria).SetEchoLevel(conv_echo_level)
 
         #~ self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # DomainSize
@@ -127,7 +129,7 @@ class ShallowWaterBaseSolver(object):
         
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
-        (self.solver).SetEchoLevel(self.settings["solver_echo_level"].GetInt())
+        (self.solver).SetEchoLevel(solver_echo_level)
         (self.solver).Check()
 
         (self.solver).Initialize()
