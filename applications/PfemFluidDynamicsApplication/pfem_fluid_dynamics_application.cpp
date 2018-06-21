@@ -57,30 +57,34 @@ namespace Kratos
     mTwoStepUpdatedLagrangianVPImplicitElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianVPImplicitElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mTwoStepUpdatedLagrangianVPImplicitElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
-    mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
-    mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mTwoStepUpdatedLagrangianVPImplicitSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoStepUpdatedLagrangianVPImplicitSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianVPImplicitSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mTwoStepUpdatedLagrangianVPImplicitSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
-    mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
-    mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mUpdatedLagrangianVImplicitSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mUpdatedLagrangianVImplicitSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mUpdatedLagrangianVImplicitSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mUpdatedLagrangianVImplicitSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
-    mUpdatedLagrangianVImplicitNodalIntegratedSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mUpdatedLagrangianVImplicitNodalIntegratedSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
-    mUpdatedLagrangianVImplicitNodalIntegratedSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mUpdatedLagrangianVImplicitNodalIntegratedSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
+    mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mTwoStepUpdatedLagrangianVPImplicitFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoStepUpdatedLagrangianVPImplicitFluidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianVPImplicitFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mTwoStepUpdatedLagrangianVPImplicitFluidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10)))),
     mTwoStepUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoStepUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -149,15 +153,30 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY);
     KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION);
 
+    KRATOS_REGISTER_VARIABLE(NODAL_CAUCHY_STRESS);
+    KRATOS_REGISTER_VARIABLE(NODAL_DEVIATORIC_CAUCHY_STRESS);
+    KRATOS_REGISTER_VARIABLE(NODAL_SHAPE_FUNCTION_DERIVATIVE);
+    KRATOS_REGISTER_VARIABLE(NODAL_SFD_NEIGHBOURS);
+    KRATOS_REGISTER_VARIABLE(NODAL_SFD_NEIGHBOURS_ORDER);
+    KRATOS_REGISTER_VARIABLE(NODAL_SFD_NEIGHBOURS_COMMON_ELEMENTS);
+    KRATOS_REGISTER_VARIABLE(NODAL_SFD_NEIGHBOURS_VOLUME_COMMON_ELEMENTS);
+    KRATOS_REGISTER_VARIABLE(NODAL_SFD_X);
+    KRATOS_REGISTER_VARIABLE(NODAL_SFD_Y);
+    KRATOS_REGISTER_VARIABLE(NODAL_SFD_Z);
+    KRATOS_REGISTER_VARIABLE(NODAL_DEFORMATION_GRAD);
+    KRATOS_REGISTER_VARIABLE(NODAL_DEFORMATION_GRAD_VEL);
+    KRATOS_REGISTER_VARIABLE(NODAL_SPATIAL_DEF_RATE);
+    KRATOS_REGISTER_VARIABLE(NODAL_SPATIAL_DEF_RATE_BIS);
+
     //Register Elements
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement2D",mTwoStepUpdatedLagrangianVPImplicitElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement3D",mTwoStepUpdatedLagrangianVPImplicitElement3D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement3Dquadratic",mTwoStepUpdatedLagrangianVPImplicitElement3Dquadratic);
-    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2D",mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2D);
-    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2Dquadratic);
-    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3D",mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3D);
-    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3Dquadratic);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2D",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2Dquadratic);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3D",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPSolidElement2D",mTwoStepUpdatedLagrangianVPImplicitSolidElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPSolidElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitSolidElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPSolidElement3D",mTwoStepUpdatedLagrangianVPImplicitSolidElement3D);
@@ -166,18 +185,22 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVSolidElement2Dquadratic",mUpdatedLagrangianVImplicitSolidElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVSolidElement3D",mUpdatedLagrangianVImplicitSolidElement3D);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVSolidElement3Dquadratic",mUpdatedLagrangianVImplicitSolidElement3Dquadratic);
-    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodalIntegratedSolidElement2D",mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement2D);
-    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodalIntegratedSolidElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement2Dquadratic);
-    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodalIntegratedSolidElement3D",mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement3D);
-    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodalIntegratedSolidElement3Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement3Dquadratic);
-    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVNodalIntegratedSolidElement2D",mUpdatedLagrangianVImplicitNodalIntegratedSolidElement2D);
-    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVNodalIntegratedSolidElement2Dquadratic",mUpdatedLagrangianVImplicitNodalIntegratedSolidElement2Dquadratic);
-    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVNodalIntegratedSolidElement3D",mUpdatedLagrangianVImplicitNodalIntegratedSolidElement3D);
-    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVNodalIntegratedSolidElement3Dquadratic",mUpdatedLagrangianVImplicitNodalIntegratedSolidElement3Dquadratic);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedSolidElement2D",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedSolidElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2Dquadratic);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedSolidElement3D",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedSolidElement3Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3Dquadratic);
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVNodallyIntegratedSolidElement2D",mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement2D);
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVNodallyIntegratedSolidElement2Dquadratic",mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement2Dquadratic);
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVNodallyIntegratedSolidElement3D",mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement3D);
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianVNodallyIntegratedSolidElement3Dquadratic",mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement3Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement2D",mTwoStepUpdatedLagrangianVPImplicitFluidElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitFluidElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3D",mTwoStepUpdatedLagrangianVPImplicitFluidElement3D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPFluidElement3Dquadratic",mTwoStepUpdatedLagrangianVPImplicitFluidElement3Dquadratic);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedFluidElement2D",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedFluidElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2Dquadratic);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedFluidElement3D",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3D);
+    KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPNodallyIntegratedFluidElement3Dquadratic",mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianElement2D",mTwoStepUpdatedLagrangianElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianElement2Dquadratic",mTwoStepUpdatedLagrangianElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianElement3D",mTwoStepUpdatedLagrangianElement3D);

@@ -13,20 +13,20 @@
 // External includes
  
 // Project includes
-#include "custom_elements/updated_lagrangian_V_implicit_nodal_integrated_solid_element.h"
+#include "custom_elements/updated_lagrangian_V_implicit_nodally_integrated_solid_element.h"
 #include "includes/cfd_variables.h"  
 
 namespace Kratos {
 
   /*
-   * public UpdatedLagrangianVImplicitNodalIntegratedSolidElement<TDim> functions
+   * public UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<TDim> functions
    */
   
   template< unsigned int TDim >
-  Element::Pointer UpdatedLagrangianVImplicitNodalIntegratedSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  Element::Pointer UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
     // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
-    UpdatedLagrangianVImplicitNodalIntegratedSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+    UpdatedLagrangianVImplicitNodallyIntegratedSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
  
     if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
       NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
@@ -66,15 +66,16 @@ namespace Kratos {
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new UpdatedLagrangianVImplicitNodalIntegratedSolidElement(NewElement) );
+    return Element::Pointer( new UpdatedLagrangianVImplicitNodallyIntegratedSolidElement(NewElement) );
   }
 
 
-
-  template < > 
-  void UpdatedLagrangianVImplicitNodalIntegratedSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+ template < > 
+  void UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int i)
   {
+    std::cout<<"DO NOT ENTER HERE CalcElasticPlasticCauchySplitted"<<std::endl;
 
+    unsigned int g=0;
     rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
@@ -101,10 +102,16 @@ namespace Kratos {
     sigmaDev_xx+=rElementalVariables.CurrentDeviatoricCauchyStress[0];
     sigmaDev_yy+=rElementalVariables.CurrentDeviatoricCauchyStress[1];
     sigmaDev_xy+=rElementalVariables.CurrentDeviatoricCauchyStress[2];
-
-    sigmaTot_xx+=rElementalVariables.CurrentTotalCauchyStress[0];
-    sigmaTot_yy+=rElementalVariables.CurrentTotalCauchyStress[1];
-    sigmaTot_xy+=rElementalVariables.CurrentTotalCauchyStress[2];
+    
+    GeometryType& rGeom = this->GetGeometry();
+    
+    double nodalSigmaTot_xx=sigmaTot_xx+rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[0];
+    double nodalSigmaTot_yy=sigmaTot_yy+rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[1];
+    double nodalSigmaTot_xy=sigmaTot_xy+rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[2];
+    
+    sigmaTot_xx+=rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[0];
+    sigmaTot_yy+=rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[1];
+    sigmaTot_xy+=rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[2];
 
     rElementalVariables.UpdatedDeviatoricCauchyStress[0]=sigmaDev_xx;
     rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
@@ -114,14 +121,23 @@ namespace Kratos {
     rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
     rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_xy;
 
+    rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
+    rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
+    rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_xy;
+    
     this->mUpdatedTotalCauchyStress[g]=rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
+    // if(rGeom[i].X() < 0.03 && rGeom[i].Y() <0.03)
+    //   std::cout<<"cauchy previous= "<<rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[0]<<" current="<<rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]<<std::endl;
 
+	    
   }
 
   template < > 
-  void UpdatedLagrangianVImplicitNodalIntegratedSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+  void UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
+
+    std::cout<<"DO NOT ENTER HERE CalcElasticPlasticCauchySplitted"<<std::endl;
 
     rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
@@ -191,9 +207,9 @@ namespace Kratos {
     this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
 
   }
-  
 
-  template class UpdatedLagrangianVImplicitNodalIntegratedSolidElement<2>;
-  template class UpdatedLagrangianVImplicitNodalIntegratedSolidElement<3>;
+
+  template class UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<2>;
+  template class UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<3>;
 
 }

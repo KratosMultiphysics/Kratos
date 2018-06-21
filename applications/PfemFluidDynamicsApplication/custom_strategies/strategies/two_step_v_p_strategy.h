@@ -226,8 +226,8 @@ public:
       double NormDp = 0.0;
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      bool timeIntervalChanged=  rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+      /* double timeInterval = rCurrentProcessInfo[DELTA_TIME]; */
+      /* bool timeIntervalChanged=  rCurrentProcessInfo[TIME_INTERVAL_CHANGED]; */
  
       unsigned int maxNonLinearIterations=mMaxPressureIter;
       /* if ( BaseType::GetEchoLevel() > 1) */
@@ -237,19 +237,19 @@ public:
       std::cout << "\n                   Solve with two_step_vp strategy at t="<< currentTime<<"s"<<std::endl;
 
 
-      if(timeIntervalChanged==true && currentTime>10*timeInterval ){
-	maxNonLinearIterations*=2;
-      }
-      if(currentTime<10*timeInterval){
-	if ( BaseType::GetEchoLevel() > 1)
-	  std::cout << "within the first 10 time steps, I consider the given iteration number x3"<< std::endl;
-	maxNonLinearIterations*=3;
-      }
-      if(currentTime<20*timeInterval && currentTime>=10*timeInterval){
-	if ( BaseType::GetEchoLevel() > 1)
-	  std::cout << "within the second 10 time steps, I consider the given iteration number x2"<< std::endl;
-	maxNonLinearIterations*=2;
-      }
+      /* if(timeIntervalChanged==true && currentTime>10*timeInterval ){ */
+      /* 	maxNonLinearIterations*=2; */
+      /* } */
+      /* if(currentTime<10*timeInterval){ */
+      /* 	if ( BaseType::GetEchoLevel() > 1) */
+      /* 	  std::cout << "within the first 10 time steps, I consider the given iteration number x3"<< std::endl; */
+      /* 	maxNonLinearIterations*=3; */
+      /* } */
+      /* if(currentTime<20*timeInterval && currentTime>=10*timeInterval){ */
+      /* 	if ( BaseType::GetEchoLevel() > 1) */
+      /* 	  std::cout << "within the second 10 time steps, I consider the given iteration number x2"<< std::endl; */
+      /* 	maxNonLinearIterations*=2; */
+      /* } */
       bool momentumConverged = true;
       bool continuityConverged = false;
       bool fixedTimeStep=false;

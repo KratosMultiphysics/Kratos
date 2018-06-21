@@ -36,12 +36,13 @@
 
 /* //elements */
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h"
-#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodal_integrated_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_solid_element.h"
-#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodal_integrated_solid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_solid_element.h"
 #include "custom_elements/updated_lagrangian_V_implicit_solid_element.h"
-#include "custom_elements/updated_lagrangian_V_implicit_nodal_integrated_solid_element.h"
+#include "custom_elements/updated_lagrangian_V_implicit_nodally_integrated_solid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_explicit_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.h"
@@ -235,13 +236,13 @@ namespace Kratos
     const TwoStepUpdatedLagrangianVPImplicitElement<3> mTwoStepUpdatedLagrangianVPImplicitElement3D;
     const TwoStepUpdatedLagrangianVPImplicitElement<3> mTwoStepUpdatedLagrangianVPImplicitElement3Dquadratic;
 
-    /// 2D two step v-p implicit NodalIntegrated element
-    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<2> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2D;
-    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<2> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement2Dquadratic;
+    /// 2D two step v-p implicit NodallyIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2Dquadratic;
 
-    /// 3D two step v-p implicit NodalIntegrated element
-    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<3> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3D;
-    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<3> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement3Dquadratic;
+    /// 3D two step v-p implicit NodallyIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3Dquadratic;
 
     /// 2D two step v-p solid element
     const TwoStepUpdatedLagrangianVPImplicitSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitSolidElement2D;
@@ -251,13 +252,13 @@ namespace Kratos
     const TwoStepUpdatedLagrangianVPImplicitSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitSolidElement3D;
     const TwoStepUpdatedLagrangianVPImplicitSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitSolidElement3Dquadratic;
     
-    /// 2D two step v-p solid NodalIntegrated element
-    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement2D;
-    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement2Dquadratic;
+    /// 2D two step v-p solid NodallyIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2Dquadratic;
 
-    /// 3D two step v-p solid NodalIntegrated element
-    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement3D;
-    const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement3Dquadratic;
+    /// 3D two step v-p solid NodallyIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3Dquadratic;
 
     /// 2D velocity solid element
     const UpdatedLagrangianVImplicitSolidElement<2> mUpdatedLagrangianVImplicitSolidElement2D;
@@ -267,13 +268,13 @@ namespace Kratos
     const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3D;
     const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3Dquadratic;
     
-    /// 2D velocity solid NodalIntegrated element
-    const UpdatedLagrangianVImplicitNodalIntegratedSolidElement<2> mUpdatedLagrangianVImplicitNodalIntegratedSolidElement2D;
-    const UpdatedLagrangianVImplicitNodalIntegratedSolidElement<2> mUpdatedLagrangianVImplicitNodalIntegratedSolidElement2Dquadratic;
+    /// 2D velocity solid NodallyIntegrated element
+    const UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<2> mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement2D;
+    const UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<2> mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement2Dquadratic;
 
-    /// 3D velocity solid NodalIntegrated element
-    const UpdatedLagrangianVImplicitNodalIntegratedSolidElement<3> mUpdatedLagrangianVImplicitNodalIntegratedSolidElement3D;
-    const UpdatedLagrangianVImplicitNodalIntegratedSolidElement<3> mUpdatedLagrangianVImplicitNodalIntegratedSolidElement3Dquadratic;
+    /// 3D velocity solid NodallyIntegrated element
+    const UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<3> mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement3D;
+    const UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<3> mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement3Dquadratic;
 
     /// 2D two step v-p fluid element
     const TwoStepUpdatedLagrangianVPImplicitFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidElement2D;
@@ -282,6 +283,14 @@ namespace Kratos
     /// 3D two step v-p fluid element
     const TwoStepUpdatedLagrangianVPImplicitFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidElement3D;
     const TwoStepUpdatedLagrangianVPImplicitFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidElement3Dquadratic;
+
+    /// 2D two step v-p fluid element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2Dquadratic;
+
+    /// 3D two step v-p fluid element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3Dquadratic;
 
     /// 2D two step v-p  element
     const TwoStepUpdatedLagrangianElement<2> mTwoStepUpdatedLagrangianElement2D;

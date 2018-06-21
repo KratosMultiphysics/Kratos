@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_NODAL_INTEGRATED_ELEMENT_H_INCLUDED )
-#define  KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_NODAL_INTEGRATED_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_NODALLY_INTEGRATED_ELEMENT_H_INCLUDED )
+#define  KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_NODALLY_INTEGRATED_ELEMENT_H_INCLUDED
 
 // System includes
 #include <string>
@@ -62,7 +62,7 @@ namespace Kratos
    */
 
   template< unsigned int TDim >
-    class TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement : public TwoStepUpdatedLagrangianElement<TDim>
+    class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement : public TwoStepUpdatedLagrangianElement<TDim>
     {
   
     protected:
@@ -81,8 +81,8 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement
-      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement);
+      /// Pointer definition of TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement
+      KRATOS_CLASS_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement);
 
       ///base type:
       typedef TwoStepUpdatedLagrangianElement<TDim> BaseType;
@@ -142,7 +142,7 @@ namespace Kratos
       /**
        * @param NewId Index number of the new element (optional)
        */
-    TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement(IndexType NewId = 0) :
+    TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(IndexType NewId = 0) :
       BaseType(NewId)
       {}
 
@@ -151,7 +151,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param ThisNodes An array containing the nodes of the new element
        */
-    TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement(IndexType NewId, const NodesArrayType& ThisNodes) :
+    TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(IndexType NewId, const NodesArrayType& ThisNodes) :
       BaseType(NewId, ThisNodes)
         {}
 
@@ -160,7 +160,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
        */
-    TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement(IndexType NewId, GeometryType::Pointer pGeometry) :
+    TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(IndexType NewId, GeometryType::Pointer pGeometry) :
       BaseType(NewId, pGeometry)
         {}
 
@@ -170,7 +170,7 @@ namespace Kratos
        * @param pGeometry Pointer to a geometry object
        * @param pProperties Pointer to the element's properties
        */
-    TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) :
+    TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) :
       BaseType(NewId, pGeometry, pProperties)
         {}
 
@@ -178,12 +178,12 @@ namespace Kratos
 
       /// copy constructor
 
-    TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement(TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement const& rOther):
+    TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement const& rOther):
       BaseType(rOther)
       {}
       
       /// Destructor.
-      virtual ~TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement()
+      virtual ~TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement()
         {}
 
 
@@ -198,7 +198,7 @@ namespace Kratos
 
       /// Create a new element of this type
       /**
-       * Returns a pointer to a new TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement element, created using given input
+       * Returns a pointer to a new TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement element, created using given input
        * @param NewId: the ID of the new element
        * @param ThisNodes: the nodes of the new element
        * @param pProperties: the properties assigned to the new element
@@ -207,7 +207,7 @@ namespace Kratos
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
 			      pPropertiesType pProperties) const override
         {
-	  return Element::Pointer(new TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+	  return Element::Pointer(new TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
         }
 
 
@@ -218,8 +218,7 @@ namespace Kratos
       /// Initializes the element and all geometric information required for the problem.
       void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override{};
 
-
-      void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override{};
+      void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override;
 
       /// Calculate the element's local contribution to the system for the current step.
       void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -228,18 +227,13 @@ namespace Kratos
 
 
       void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				 ProcessInfo& rCurrentProcessInfo) override
-      {
-	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement::CalculateLeftHandSide not implemented","");
-	KRATOS_CATCH("");
-      }
+				 ProcessInfo& rCurrentProcessInfo) override;
 
       void CalculateRightHandSide(VectorType& rRightHandSideVector,
 				  ProcessInfo& rCurrentProcessInfo) override
       {
 	KRATOS_TRY;
-	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement::CalculateRightHandSide not implemented","");
+	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement::CalculateRightHandSide not implemented","");
 	KRATOS_CATCH("");
       }
 
@@ -265,7 +259,15 @@ namespace Kratos
 
     
       /* virtual GeometryData::IntegrationMethod GetIntegrationMethod() const; */
-    
+
+      void CalcElementalStrains(ElementalVariables & rElementalVariables,
+				const ProcessInfo &rCurrentProcessInfo,
+				const ShapeFunctionDerivativesType& rDN_DX);
+            
+      void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
+				 Matrix& rNContainer,
+				 Vector& rGaussWeights);
+      
       void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo) override{};
 
       void InitializeElementalVariables(ElementalVariables & rElementalVariables) override{
@@ -273,6 +275,13 @@ namespace Kratos
 	KRATOS_THROW_ERROR(std::logic_error,"InitializeElementalVariables","");
 	KRATOS_CATCH("");
       };
+
+      void ComputeExternalForces(Vector& rRHSVector,const double Density,const double Weight);
+
+      void ComputeInternalForces(Vector& rRHSVector,
+				 const ShapeFunctionDerivativesType& rDN_DX,
+				 ElementalVariables& rElementalVariables,
+				 const double Weight);
 
       /* void CalculateDeltaPosition (Matrix & rDeltaPosition); */
 
@@ -308,14 +317,14 @@ namespace Kratos
       std::string Info() const override
 	{
 	  std::stringstream buffer;
-	  buffer << "TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement #" <<  BaseType::Id();
+	  buffer << "TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement #" <<  BaseType::Id();
 	  return buffer.str();
 	}
 
       /// Print information about this object.
       void PrintInfo(std::ostream& rOStream) const override
       {
-	rOStream << "TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement" << TDim << "D";
+	rOStream << "TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement" << TDim << "D";
       }
 
       //        /// Print object's data.
@@ -412,7 +421,6 @@ namespace Kratos
 				      const double theta,
 				      const double Weight);
 
-         
       virtual void ComputeBulkMatrixLump(MatrixType& BulkMatrix,
 					 const double Weight){};
       
@@ -466,13 +474,13 @@ namespace Kratos
 					     const ShapeFunctionsType& rN,
 					     const double Weight){};
 
-      virtual void AddStabilizationNodalTermsLHS(MatrixType& rLeftHandSideMatrix,
+      virtual void AddStabilizationNodallyTermsLHS(MatrixType& rLeftHandSideMatrix,
 						 const double Tau,
 						 const double Weight,
 						 const ShapeFunctionDerivativesType& rDN_DX,
 						 const SizeType i){};
 
-      virtual void AddStabilizationNodalTermsRHS(VectorType& rRightHandSideVector,
+      virtual void AddStabilizationNodallyTermsRHS(VectorType& rRightHandSideVector,
 						 const double Tau,
 						 const double Density,
 						 const double Weight,
@@ -546,14 +554,14 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement & operator=(TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement const& rOther);
+      TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement & operator=(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement const& rOther);
 
       /* /// Copy constructor. */
-      /* TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement(TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement const& rOther); */
+      /* TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement const& rOther); */
 
       ///@}
 
-    }; // Class TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement
+    }; // Class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement
 
   ///@}
 
@@ -569,7 +577,7 @@ namespace Kratos
   /// input stream function
   template< unsigned int TDim >
     inline std::istream& operator >>(std::istream& rIStream,
-                                     TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<TDim>& rThis)
+                                     TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>& rThis)
     {
       return rIStream;
     }
@@ -577,7 +585,7 @@ namespace Kratos
   /// output stream function
   template< unsigned int TDim >
     inline std::ostream& operator <<(std::ostream& rOStream,
-                                     const TwoStepUpdatedLagrangianVPImplicitNodalIntegratedElement<TDim>& rThis)
+                                     const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -588,4 +596,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_NODAL_INTEGRATED_ELEMENT  defined
+#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_V_P_IMPLICIT_NODALLY_INTEGRATED_ELEMENT  defined

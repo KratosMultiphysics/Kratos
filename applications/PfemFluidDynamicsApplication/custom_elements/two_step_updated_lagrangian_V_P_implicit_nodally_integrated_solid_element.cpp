@@ -13,20 +13,20 @@
 // External includes
  
 // Project includes
-#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodal_integrated_solid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_solid_element.h"
 #include "includes/cfd_variables.h"  
 
 namespace Kratos {
 
   /*
-   * public TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim> functions
+   * public TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim> functions
    */
   
   template< unsigned int TDim >
-  Element::Pointer TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+  Element::Pointer TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
     // return Element::Pointer( BaseType::Clone(NewId,rThisNodes) );
-    TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
+    TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
 
     if ( NewElement.mCurrentTotalCauchyStress.size() != this->mCurrentTotalCauchyStress.size() )
       NewElement.mCurrentTotalCauchyStress.resize(this->mCurrentTotalCauchyStress.size());
@@ -66,12 +66,12 @@ namespace Kratos {
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement(NewElement) );
+    return Element::Pointer( new TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement(NewElement) );
   }
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize()
   {
     KRATOS_TRY;
 
@@ -108,7 +108,7 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -126,13 +126,7 @@ namespace Kratos {
   }
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
-  {
-
-  }
-
-  template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::ComputeMaterialParameters(double& Density,
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::ComputeMaterialParameters(double& Density,
 												      double& DeviatoricCoeff,
 												      double& VolumetricCoeff,
 												      ProcessInfo &currentProcessInfo,
@@ -171,7 +165,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  int TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -233,7 +227,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::ComputeBulkMatrixForPressureVelLump(Matrix& BulkVelMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::ComputeBulkMatrixForPressureVelLump(Matrix& BulkVelMatrix,
 														const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -270,7 +264,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::ComputeBulkMatrixForPressureVel(Matrix& BulkVelMatrix,
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::ComputeBulkMatrixForPressureVel(Matrix& BulkVelMatrix,
 													    const ShapeFunctionsType& rN,
 													    const double Weight)
   {
@@ -292,7 +286,7 @@ namespace Kratos {
 
 
   // template< unsigned int TDim>
-  // bool TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
+  // bool TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::CalcMechanicsUpdated(ElementalVariables & rElementalVariables,
   // 									const ProcessInfo& rCurrentProcessInfo,
   // 									const ShapeFunctionDerivativesType& rDN_DX,
   // 									unsigned int g)
@@ -307,7 +301,7 @@ namespace Kratos {
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
 
     GeometryType& rGeom = this->GetGeometry();
@@ -329,7 +323,7 @@ namespace Kratos {
 
 
   template<>
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -353,7 +347,7 @@ namespace Kratos {
 
 
   template <  unsigned int TDim> 
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
   {
     unsigned int voigtsize  = 3;
     if( TDim == 3 )
@@ -385,7 +379,7 @@ namespace Kratos {
 
 
   template < > 
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
 
     rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -438,11 +432,32 @@ namespace Kratos {
     // this->mCurrentDeviatoricCauchyStress[g]=rElementalVariables.CurrentDeviatoricCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g]=rElementalVariables.UpdatedDeviatoricCauchyStress;
 
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    // for (SizeType j = 0; j < NumNodes; ++j)
+    //   {
+    // Vector cauchy_stress = rGeom[j].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
+    //rGeom[j].GetValue(CAUCHY_STRESS).resize(1,3);
+    //rGeom[j].GetValue(CAUCHY_STRESS)=ZeroMatrix(1,3);
+    // rGeom[j].GetValue(CAUCHY_STRESS)[0]=0;
+    // std::cout<<"the nodal_mass is "<<nodal_mass<<" x,y="<< rGeom[j].X()<<" "<<rGeom[j].Y()<<std::endl;
+    // rGeom[j].GetValue(NODAL_CAUCHY_STRESS)[0]=rElementalVariables.UpdatedTotalCauchyStress[0];
+    // cauchy_stress[0]=sigmaTot_xx;
+    // cauchy_stress[1]=sigmaTot_yy;
+    // cauchy_stress[2]=sigmaTot_xy;
+    //rGeom[j].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS)=cauchy_stress;
+    // }
+    // for (SizeType j = 0; j < NumNodes; ++j)
+    //   {
+    // 	Vector cauchy_stress = rGeom[j].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
+    // 	// std::cout<<"the nodal_mass is "<<nodal_mass<<" x,y="<< rGeom[j].X()<<" "<<rGeom[j].Y()<<std::endl;
+    // 	std::cout<<"the CAUCHY STress vector is "<<cauchy_stress[0]<<" "<<cauchy_stress[1]<<" "<<cauchy_stress[2]<<std::endl;
 
+    //   }
   }
 
   template < > 
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
 
     rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
@@ -511,11 +526,10 @@ namespace Kratos {
   }
 
 
-
   template < unsigned int TDim > 
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
   {
-   
+    std::cout<<"UpdateCauchyStress "<<std::endl;
     double theta=this->GetThetaContinuity();
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
@@ -586,7 +600,7 @@ namespace Kratos {
 
 
   template< unsigned int TDim >
-  void TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -618,8 +632,13 @@ namespace Kratos {
     this->InitializeElementalVariables(rElementalVariables);
  
     // double Density  = mMaterialDensity;
-    // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
-    double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
+    // double DeviatoricCoeff = mMaterialDeviatoricCoefficient;
+    double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
+    
+    double youngModulus=0.25;
+    double poissonRatio=21000000;
+    double deviatoricCoeff = 0.001*youngModulus/(1.0+poissonRatio)*0.5;
+    VolumetricCoeff = 0.001*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
     
     double totalVolume=0;
 
@@ -640,8 +659,21 @@ namespace Kratos {
 	    {
 	      // RHS contribution
 	      // Velocity divergence
-	      double RHSi =  N[i] * rElementalVariables.VolumetricDefRate;
+	      double DefVol=0;
+	      double count=3.0;
+	      if(TDim==3){
+		count=4.0;
+	      }
+	      for (SizeType j = 0; j < TDim; ++j)
+		{
+		  DefVol+=rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[j];
+		}
+	      // double RHSi =  N[i] * rElementalVariables.VolumetricDefRate;
+	      // std::cout<<"DefVol "<<DefVol<<std::endl;
+	      double RHSi =  N[i] * DefVol/count;
 	      rRightHandSideVector[i] += GaussWeight * RHSi;
+	      // std::cout<<"rRightHandSideVector[i] "<<rRightHandSideVector[i]<<std::endl;
+
 	    }
 
 	}
@@ -669,7 +701,7 @@ namespace Kratos {
   }
   
 
-  template class TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<2>;
-  template class TwoStepUpdatedLagrangianVPImplicitNodalIntegratedSolidElement<3>;
+  template class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>;
+  template class TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3>;
 
 }
