@@ -117,7 +117,8 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             neg_fluid_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(neg_face_submodelpart_name)
             structure_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(structure_submodelpart_name)
 
-            # TODO: SET THE DOUBLE SIDE SURFACE MAPPING
+            # TODO: SET THE DOUBLE SIDE SURFACE 
+            raise Exception ("_SetUpMapper not implemented yet for double side surfaces")
 
             # search_radius_factor = 2.0
             # mapper_max_iterations = 200
