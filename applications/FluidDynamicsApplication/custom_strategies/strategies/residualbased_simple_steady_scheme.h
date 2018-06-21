@@ -135,7 +135,10 @@ public:
     rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
     Matrix Mass;
+    int oss_switch = CurrentProcessInfo.Has(OSS_SWITCH) ? CurrentProcessInfo[OSS_SWITCH] : 0;
+    CurrentProcessInfo.SetValue(OSS_SWITCH,1);
     rCurrentElement->CalculateMassMatrix(Mass, CurrentProcessInfo);
+    CurrentProcessInfo.SetValue(OSS_SWITCH,oss_switch);
     Matrix SteadyLHS;
     rCurrentElement->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
     rCurrentElement->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -164,7 +167,10 @@ public:
     rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
     Matrix Mass;
+    int oss_switch = CurrentProcessInfo.Has(OSS_SWITCH) ? CurrentProcessInfo[OSS_SWITCH] : 0;
+    CurrentProcessInfo.SetValue(OSS_SWITCH,1);
     rCurrentCondition->CalculateMassMatrix(Mass, CurrentProcessInfo);
+    CurrentProcessInfo.SetValue(OSS_SWITCH,oss_switch);
     Matrix SteadyLHS;
     rCurrentCondition->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
     rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);
