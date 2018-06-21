@@ -212,11 +212,14 @@ bool InterfacePreprocessCondition::CheckOnTheFace(
                 }
                 std::sort(index_vector_face.begin(), index_vector_face.end());
 
-                bool is_here = false;
+                bool is_here = true;
                 for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
-                    if (index_vector_face[i_node] == rIndexVector[i_node]) is_here = true;
+                    if (index_vector_face[i_node] != rIndexVector[i_node]) {
+                        is_here = false;
+                        break;
+                    }
                 }
-                if (is_here == true) return true;
+                if (is_here) return true;
             }
         }
     } else {
@@ -231,11 +234,14 @@ bool InterfacePreprocessCondition::CheckOnTheFace(
 
                     std::sort(index_vector_face.begin(), index_vector_face.end());
 
-                    bool is_here = false;
+                    bool is_here = true;
                     for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
-                        if (index_vector_face[i_node] == rIndexVector[i_node]) is_here = true;
+                        if (index_vector_face[i_node] != rIndexVector[i_node]) {
+                            is_here = false;
+                            break;
+                        }
                     }
-                    if (is_here == true) return true;
+                    if (is_here) return true;
                 }
             }
         } else {
