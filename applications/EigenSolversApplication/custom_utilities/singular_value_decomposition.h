@@ -143,7 +143,10 @@ namespace Kratos
             rV.resize(V.rows(),V.cols());
             Eigen::Map<matrix_t> tmpV(rV.data().begin(), rV.size1(), rV.size2());
             tmpV = V;
-            //std::cout << "rV: " << std::endl;
+            std::cout << "rV rows: " << std::endl;
+            std::cout << V.rows() << std::endl;
+            std::cout << "rV columns: " << std::endl;
+            std::cout << V.cols() << std::endl;
             //std::cout << rV << std::endl;
 
             
