@@ -19,7 +19,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.loads_sub_model_part_list = Parameters["loads_sub_model_part_list"]
         self.loads_sub_sub_model_part_list = Parameters["loads_sub_sub_model_part_list"]
         
-    def Execute(self):        
+    def Execute(self):
         # Construct the computing model part: a model part which contains the mesh to compute
         self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
         computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
