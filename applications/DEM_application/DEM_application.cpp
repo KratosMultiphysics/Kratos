@@ -231,10 +231,8 @@ KRATOS_CREATE_VARIABLE(bool, DOMAIN_IS_PERIODIC)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MIN_CORNER)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MAX_CORNER)
 KRATOS_CREATE_VARIABLE(Quaternion<double>, ORIENTATION)
-KRATOS_CREATE_VARIABLE(
-    double, ORIENTATION_REAL)  // JIG: SHOULD BE REMOVED IN THE FUTURE
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(
-    ORIENTATION_IMAG)  // JIG: SHOULD BE REMOVED IN THE FUTURE
+KRATOS_CREATE_VARIABLE(double, ORIENTATION_REAL)  // JIG: SHOULD BE REMOVED IN THE FUTURE
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG)  // JIG: SHOULD BE REMOVED IN THE FUTURE
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
 KRATOS_CREATE_VARIABLE(double, VELOCITY_START_TIME)
@@ -421,10 +419,10 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mSolidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-      mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidFace3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mAnalyticRigidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRigidEdge3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mRigidBodyElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -635,10 +633,8 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MIN_CORNER)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DOMAIN_MAX_CORNER)
     KRATOS_REGISTER_VARIABLE(ORIENTATION)
-    KRATOS_REGISTER_VARIABLE(
-        ORIENTATION_REAL)  // JIG: SHOULD BE REMOVED IN THE FUTURE
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(
-        ORIENTATION_IMAG)  // JIG: SHOULD BE REMOVED IN THE FUTURE
+    KRATOS_REGISTER_VARIABLE(ORIENTATION_REAL)  // JIG: SHOULD BE REMOVED IN THE FUTURE
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ORIENTATION_IMAG)  // JIG: SHOULD BE REMOVED IN THE FUTURE
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_DISPLACEMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_ROTA_DISPLACEMENT)
     KRATOS_REGISTER_VARIABLE(VELOCITY_START_TIME)
@@ -813,10 +809,10 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_CONDITION("SolidFace3D4N", mSolidFace3D4N)
     KRATOS_REGISTER_CONDITION("RigidFace3D", mRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D2N", mRigidFace3D2N)
-    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D3N", mRigidFace3D3N)
-    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidFace3D4N", mRigidFace3D4N)
+    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D", mAnalyticRigidFace3D3N)
+    KRATOS_REGISTER_CONDITION("AnalyticRigidFace3D3N", mAnalyticRigidFace3D3N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D", mRigidEdge3D2N)
     KRATOS_REGISTER_CONDITION("RigidEdge3D2N", mRigidEdge3D2N)
 

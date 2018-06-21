@@ -52,6 +52,7 @@
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 namespace Kratos
 {
@@ -429,6 +430,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3>::TestGiDDebug)
     ;
 
     class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
@@ -436,6 +438,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4>::TestGiDDebug)
     ;
 
     // Sparse matrix multiplication utility
@@ -451,6 +454,16 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
     .def(init<>())
     .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
+    .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>)
+    .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>)
+    ;
+
+    // SubModelParts List Utility
+    class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
+    .def(init<ModelPart&>())
+    .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
+    .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
+    .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 }
 
