@@ -6,8 +6,6 @@ import run_cpp_unit_tests
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import subprocess
-
 try:
     import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
     missing_external_dependencies = False
