@@ -24,7 +24,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
     def __init__(self, model, custom_settings):
         super(MPIUPwSolver,self).__init__(model, custom_settings)
 
-        self._is_printing_rank = False
+        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
 
         self.print_on_rank_zero("MPIUPwSolver: ", "Construction of MPI UPwSolver finished.")
 

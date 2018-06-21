@@ -23,9 +23,6 @@ class PoromechanicsAnalysis(AnalysisStage):
         parallel=Kratos.OpenMPUtils()
         parallel.SetNumThreads(parameters["problem_data"]["number_of_threads"].GetInt())
 
-        # Creating solver and model part and adding variables
-        super(PoromechanicsAnalysis,self).__init__(model,parameters)
-
         ## Import parallel modules if needed
         if (self.parallel_type == "MPI"):
             import KratosMultiphysics.MetisApplication as MetisApplication
@@ -33,6 +30,9 @@ class PoromechanicsAnalysis(AnalysisStage):
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         else:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+
+        # Creating solver and model part and adding variables
+        super(PoromechanicsAnalysis,self).__init__(model,parameters)
 
     def _CreateSolver(self):
         solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())

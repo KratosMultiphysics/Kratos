@@ -16,21 +16,14 @@ def CreateSolver(main_model_part, custom_settings):
 
 class FractureUPwSolver(object):
 
-    ##constructor. the constructor shall only take care of storing the settings
-    ##and the pointer to the main_model part. This is needed since at the point of constructing the
-    ##model part is still not filled and the variables are not yet allocated
-    ##
-    ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the model is already filled
     def __init__(self, main_model_part, custom_settings):
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "poromechanics_U_Pw_solver",
+            "solver_type": "poromechanics_fracture_U_Pw_solver",
             "model_part_name": "PorousDomain",
             "domain_size": 2,
             "start_time": 0.0,
