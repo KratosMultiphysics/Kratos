@@ -242,7 +242,7 @@ public:
         const double TensiYield = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = ComprYield / TensiYield;
 
-        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE];
+        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;;
         const double AnglePhi = (Globals::Pi * 0.25) + Dilatancy * 0.5;
         const double alpha = n / (std::tan(AnglePhi) * std::tan(AnglePhi));
 
