@@ -1493,7 +1493,8 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         }
 
         ///rishtih
-        /*      low[0] -=  0.3*(high[0]-low[0] );
+        /*
+        low[0] -=  0.3*(high[0]-low[0] );
         low[1] -=  0.3*(high[1]-low[1] );
 
         high[0] +=  0.3*(high[0]-low[0] );
@@ -1502,9 +1503,9 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
 
         std::cout << "Skin added" << std::endl;
         mpQuadtree->SetBoundingBox(low, high);
-        std::cout << "Lowest Dimension" << low[0] << "," << low[1] << std::endl;
+        std::cout << "Bounding Box Lowest Dimension" << low[0] << "," << low[1] << std::endl;
 
-        std::cout << "Highest Dimension" << high[0] << "," << high[1] << std::endl;
+        std::cout << "Bounding Box Highest Dimension" << high[0] << "," << high[1] << std::endl;
 
         //mpQuadtree->RefineWithUniformSize(0.0625);
 

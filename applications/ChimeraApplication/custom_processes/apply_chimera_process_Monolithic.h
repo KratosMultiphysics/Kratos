@@ -142,7 +142,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		Parameters default_parameters(R"(
             {
-                "process_name":"apply_chimera_process_monolithic",
+                "process_name":"chimera",
                                 "Chimera_levels" : [ [{ "model_part_name":"GENERIC_background",
 														"model_part_boundary_name":"GENERIC_domainboundary",
 														"model_part_inside_boundary_name" :"GENERIC_domainboundary"
@@ -178,9 +178,10 @@ class ApplyChimeraProcessMonolithic : public Process
 
 
 		this->pMpc = MpcDataPointerType(new MpcData(m_type));
+		// this->pMpc = Kratos::make_shared<MpcDataType>(m_type);
 		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
 		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
-
+		//KRATOS_INFO("my_info") << "some more info" << std::endl;
 		this->pMpc->SetName("MPC");
 		this->pMpc->SetActive(true);
 
@@ -511,8 +512,6 @@ class ApplyChimeraProcessMonolithic : public Process
 			}
 		}
 
-
-		//yeh yeh yeh finished coding
 	}
 
 	//Apply Chimera with or without overlap
@@ -525,15 +524,15 @@ class ApplyChimeraProcessMonolithic : public Process
 		ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
 		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
 		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
-
-/* 		std::cout<<"printing my background"<<rBackgroundModelPart<<std::endl;
+/* rishith debug
+		std::cout<<"printing my background"<<rBackgroundModelPart<<std::endl;
 		std::cout<<"printing my domain boundary "<<rDomainBoundaryModelPart<<std::endl;
 
 		std::cout<<"printing my patch"<<rPatchModelPart<<std::endl;
 		std::cout<<"printing my patch boundary"<<rPatchBoundaryModelPart<<std::endl;
 		std::cout<<"printing my patch inside boundary"<<rPatchInsideBoundaryModelPart<<std::endl;
- */
 
+ */
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
@@ -560,6 +559,7 @@ class ApplyChimeraProcessMonolithic : public Process
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
 			//this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pOutOfDomainPatchModelPart, *pOutOfDomainPatchBoundaryModelPart);
 			this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+
 
 			//CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
 

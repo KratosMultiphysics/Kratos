@@ -44,10 +44,6 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
             echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
             parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
             # Import KratosMPI if needed
-            #if (parallel_type == "MPI"):
-                #from KratosMultiphysics.mpi import *
-                #from KratosMultiphysics.MetisApplication import *
-                #from KratosMultiphysics.TrilinosApplication import *
 
             solver_settings = ProjectParameters["solver_settings"]
             if not solver_settings.Has("domain_size"):
@@ -62,10 +58,6 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
 
             fluid_model = KratosMultiphysics.Model()
 
-            ## Fluid model part definition
-            #main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-            #self.main_model_part = main_model_part
-            #main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
             ## Solver construction
             import python_solvers_wrapper_fluid_chimera
@@ -87,26 +79,6 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
             patch= main_model_part.GetSubModelPart("GENERIC_patch")
             patchBoundary = main_model_part.GetSubModelPart("GENERIC_patchBoundary")
             structure = main_model_part.GetSubModelPart("NoSlip2D_structure")
-
-            ## Get the list of the skin submodel parts in the object Model
-            #for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
-            #    skin_part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-            #    fluid_model.AddModelPart(main_model_part.GetSubModelPart(skin_part_name))
-
-            ## Get the list of the no-skin submodel parts in the object Model (results processes and no-skin conditions)
-            #for i in range(ProjectParameters["solver_settings"]["no_skin_parts"].size()):
-             #   no_skin_part_name = ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
-              #  fluid_model.AddModelPart(main_model_part.GetSubModelPart(no_skin_part_name))
-
-            ## Get the list of the initial conditions submodel parts in the object Model
-            #for i in range(ProjectParameters["initial_conditions_process_list"].size()):
-            #    initial_cond_part_name = ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-            #    fluid_model.AddModelPart(main_model_part.GetSubModelPart(initial_cond_part_name))
-
-            ## Get the gravity submodel part in the object Model
-            #for i in range(ProjectParameters["gravity"].size()):
-            #    gravity_part_name = ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-            #    fluid_model.AddModelPart(main_model_part.GetSubModelPart(gravity_part_name))
 
             ## Processes construction
             import process_factory
@@ -141,7 +113,7 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
                 process.ExecuteBeforeSolutionLoop()
 
             ChimeraParamaters = KratosMultiphysics.Parameters(R"""{
-                                "process_name":"apply_chimera_process_monolithic",
+                                "process_name":"chimera",
                                 "Chimera_levels" : [ [{ "model_part_name":"GENERIC_background",
                                                         "model_part_boundary_name":"GENERIC_DomainBoundary",
                                                         "model_part_inside_boundary_name" :"GENERIC_DomainBoundary"
@@ -158,7 +130,7 @@ class TestChimeraMonolithicSimple(KratosUnittest.TestCase):
                                 "overlap_distance":0.01
                                 }""")
 
-            ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,ChimeraParamaters)
+            ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,ProjectParameters["chimera"][0])
 
             while(time <= end_time):
 

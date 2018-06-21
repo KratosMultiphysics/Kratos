@@ -32,7 +32,7 @@ endif(${MPI_NEEDED} MATCHES ON )
 
 
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosChimeraApplication MODULE ${KRATOS_CHIMERA_APPLICATION_SOURCES})
+pybind11_add_module(KratosChimeraApplication MODULE THIN_LTO ${KRATOS_CHIMERA_APPLICATION_SOURCES})
 target_link_libraries(KratosChimeraApplication PRIVATE KratosCore ${KRATOS_CHIMERA_APPLICATION_EXTRA_LIBS})
 set_target_properties(KratosChimeraApplication PROPERTIES PREFIX "")
 install(TARGETS KratosChimeraApplication DESTINATION libs )
