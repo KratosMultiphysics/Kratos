@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.ShallowWaterApplication as KratosShallow
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -28,6 +27,7 @@ class ShallowWaterBaseSolver(object):
             "solver_echo_level"            : 0,
             "buffer_size"                  : 2,
             "dynamic_tau"                  : 0.005,
+            "dry_height"                   : 0.01,
             "relative_tolerance"           : 1e-6,
             "absolute_tolerance"           : 1e-9,
             "maximum_iterations"           : 20,
@@ -62,7 +62,7 @@ class ShallowWaterBaseSolver(object):
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         # Initialize shallow water variables utility
-        self.ShallowVariableUtils = KratosShallow.ShallowWaterVariablesUtility(self.model_part)
+        self.ShallowVariableUtils = KratosShallow.ShallowWaterVariablesUtility(self.model_part, self.settings["dry_height"].GetDouble())
 
     def AddVariables(self):
         # Basic variables
@@ -72,11 +72,13 @@ class ShallowWaterBaseSolver(object):
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.FREE_SURFACE_ELEVATION)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GRAVITY)
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.BATHYMETRY)
+        self.model_part.AddNodalSolutionStepVariable(KratosShallow.MANNING)
         self.model_part.AddNodalSolutionStepVariable(KratosShallow.RAIN)
         # Auxiliary variables
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -100,8 +102,7 @@ class ShallowWaterBaseSolver(object):
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = KratosFluid.EstimateDtUtility2D(self.model_part,
-                                                                            self.settings["time_stepping"])
+            raise Exception("Estimation Dt utility not yet implemented")
 
         # Creating the solution strategy for the mesh stage
         self.conv_criteria = KratosMultiphysics.DisplacementCriteria(self.settings["relative_tolerance"].GetDouble(),

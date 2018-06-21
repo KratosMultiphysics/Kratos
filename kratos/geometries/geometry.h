@@ -887,7 +887,7 @@ public:
             const CoordinatesArrayType& rPoint
             )
     {
-        KRATOS_DEBUG_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
+        KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
         
         Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
 
