@@ -145,12 +145,20 @@ public:
         int iteration = 0, max_iter = 9000; 
         //BoundedVector<double, TVoigtSize> DSigma, DS; 
         BoundedVector<double, 6> DSigma, DS;
-        double PlasticConsistencyFactorIncrement = 0.0;  // Lambda
+        double PlasticConsistencyFactorIncrement, F;  
 
         // Backward Euler  
         while (is_converged == false && iteration <= max_iter) {
             
-            PlasticConsistencyFactorIncrement = UniaxialStress * PlasticDenominator; 
+			// if (iteration == 0) {
+			// 	std::cout << "iteration: " << iteration << std::endl;
+			// 	KRATOS_WATCH(PredictiveStressVector)
+			// 	KRATOS_WATCH(UniaxialStress)
+			// 	std::cout << "********" << std::endl;
+			// }
+
+            F = UniaxialStress - Threshold;
+            PlasticConsistencyFactorIncrement = F * PlasticDenominator; 
             if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
 
             noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; 
@@ -160,30 +168,47 @@ public:
             //noalias(PredictiveStressVector) -= DSigma; 
 			noalias(PredictiveStressVector) -= DS;
 
-			std::cout << "iteration: " << iteration <<std::endl;
-			KRATOS_WATCH(PredictiveStressVector)
-			KRATOS_WATCH(DSigma)
-			KRATOS_WATCH(UniaxialStress)
-			KRATOS_WATCH(Gflux)
-			KRATOS_WATCH(PlasticStrainIncrement)
-			KRATOS_WATCH(PlasticStrain)
-			KRATOS_WATCH(PlasticConsistencyFactorIncrement)
-			KRATOS_WATCH(PlasticDenominator)
-			std::cout << "**********************" << std::endl;
 
             CalculatePlasticParameters(PredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, rMaterialProperties, CharacteristicLength); 
 
-            const double F = UniaxialStress - Threshold; 
+			F = UniaxialStress - Threshold;
+
+			// std::cout << "while loop iteration: " << iteration << std::endl;
+			// KRATOS_WATCH(PredictiveStressVector)
+			// KRATOS_WATCH(DS)
+			// KRATOS_WATCH(UniaxialStress)
+			// KRATOS_WATCH(Gflux)
+			// KRATOS_WATCH(PlasticStrainIncrement)
+			// KRATOS_WATCH(PlasticStrain)
+			// KRATOS_WATCH(PlasticConsistencyFactorIncrement)
+			// KRATOS_WATCH(PlasticDenominator)
+			// KRATOS_WATCH(Threshold)
+			// KRATOS_WATCH(PlasticDissipation)
+			// KRATOS_WATCH(F)
+			// std::cout << "**********************" << std::endl;
+
+            
 
             if (F < std::abs(1.0e-8 * Threshold)) { // Has converged
                 is_converged = true; 
             } else {
                 iteration++;
             }
-        } 
-        // if (iteration == max_iter) KRATOS_ERROR << "Reached max iterations inside the Plasticity loop" << std::endl; 
+        }
+        //std::cout << "**********************" << std::endl;
+		//std::cout << "end while loop iteration: " << iteration << std::endl;
+		// KRATOS_WATCH(PredictiveStressVector)
+		// 	KRATOS_WATCH(DSigma)
+		//KRATOS_WATCH(UniaxialStress)
+		// 	KRATOS_WATCH(Gflux)
+		// 	KRATOS_WATCH(PlasticStrainIncrement)
+		// 	KRATOS_WATCH(PlasticStrain)
+		// 	KRATOS_WATCH(PlasticConsistencyFactorIncrement)
+		//KRATOS_WATCH(PlasticDissipation)
+		//std::cout << "**********************" << std::endl;
+        if (iteration == max_iter) KRATOS_ERROR << "Reached max iterations inside the Plasticity loop" << std::endl; 
     }
 
     /**
@@ -419,11 +444,14 @@ public:
                     CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1,
                         EqThrsholds[i], Slopes[i], rMaterialProperties);  
                     break;
-                                      
+
                 // Add more cases...
+                
+                default:
+                    KRATOS_ERROR << " The Evolution Law of plasticity is not available or wrong..."<< CurveType << std::endl;     
+                    break;
             }
         }
-
         rEquivalentStressThreshold = r0*EqThrsholds[0] + r1*EqThrsholds[1];
         rSlope = rEquivalentStressThreshold*((r0*Slopes[0] / EqThrsholds[0]) + (r1*Slopes[1] / EqThrsholds[1]));
     }
@@ -522,7 +550,10 @@ public:
     {
         rHardParameter = -SlopeThreshold;
         double aux = 0.0;
-        for (int i = 0; i < 6; i++) aux += HCapa[i] * GFlux[i];
+
+		for (int i = 0; i < 6; i++) {
+			aux += HCapa[i] * GFlux[i];
+		}
         if (aux != 0.0) rHardParameter *= aux;
     }
 
@@ -543,13 +574,17 @@ public:
         double& PlasticDenominator
     )
     {
-        const Vector DVect = prod(C, GFlux);
+        //const Vector DVect = prod(C, GFlux);
+		const Vector DVect = prod(GFlux, C);
         double A1 = 0.0;
-        for (int i = 0; i < 6; i++) A1 += FFlux[i] * DVect[i];
+
+		for (int i = 0; i < 6; i++) {
+			A1 += FFlux[i] * DVect[i];
+		}
 
         const double A2 = 0.0; // Only for isotropic hard
         const double A3 = rHardParameter;
-        PlasticDenominator = 1 / (A1 + A2 + A3);
+        PlasticDenominator = 1.0 / (A1 + A2 + A3);
     }
 
     ///@}

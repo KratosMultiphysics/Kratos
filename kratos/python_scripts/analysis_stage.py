@@ -2,6 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+
+def Wait():
+	input("Press Something")
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -59,6 +63,17 @@ class AnalysisStage(object):
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
+
+            
+            # auxiliar fle to print nazi things
+            element = self.model["Structure"].GetElement(1)
+            DEF = element.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.model["Structure"].ProcessInfo)[0][8]
+            VM = element.GetValuesOnIntegrationPoints(StructuralMechanicsApplication.UNIAXIAL_STRESS, self.model["Structure"].ProcessInfo)[7][0]
+            #VM = element.GetValuesOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS, self.model["Structure"].ProcessInfo)
+            PlotFile = open("ProvisionalTensionDEF.txt","a")
+            PlotFile.write("{0:.4e}".format(DEF).rjust(11) +"    " + "{0:.4e}".format(VM).rjust(11) + "\n")
+            
+
 
 
     def Initialize(self):
