@@ -135,7 +135,6 @@ public:
         const SizeType size_Dx = Dx.size();
         if (size_Dx != 0) { //if we are solving for something
             SizeType size_solution;
-//             TDataType final_correction_norm = TSparseSpace::TwoNorm(Dx); // NOTE: This doesn't take into account the fix dofs
             TDataType final_correction_norm = CalculateFinalCorrectionNorm(size_solution, rDofSet, Dx);
 
             TDataType ratio = 0.0;
@@ -153,7 +152,6 @@ public:
             }
 
             const TDataType float_size_solution = static_cast<TDataType>(size_solution);
-//             const TDataType float_size_solution = static_cast<TDataType>(size_Dx);
 
             const TDataType absolute_norm = (final_correction_norm/std::sqrt(float_size_solution));
 
