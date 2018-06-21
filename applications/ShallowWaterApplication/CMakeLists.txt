@@ -31,11 +31,11 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## ShallowWaterApplication core library (C++ parts)
 add_library( KratosShallowWaterCore SHARED ${KRATOS_SHALLOW_WATER_APPLICATION_SOURCES} ${KRATOS_SHALLOW_WATER_TESTING})
 target_link_libraries( KratosShallowWaterCore PUBLIC KratosCore )
-set_target_properties( KratosShallowWaterCore PROPERTIES COMPILE_DEFINITIONS "KratosShallowWaterCore=EXPORT,API" )
+set_target_properties( KratosShallowWaterCore PROPERTIES COMPILE_DEFINITIONS "SHALLOW_WATER_APPLICATION=EXPORT,API" )
 
 ## define library Kratos which defines the basic python interface
 pybind11_add_module( KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE} )
-target_link_libraries( KratosShallowWaterApplication PRIVATE KratosCore )
+target_link_libraries( KratosShallowWaterApplication PRIVATE KratosShallowWaterCore )
 set_target_properties( KratosShallowWaterApplication PROPERTIES PREFIX "" )
 
 # changing the .dll suffix to .pyd 
