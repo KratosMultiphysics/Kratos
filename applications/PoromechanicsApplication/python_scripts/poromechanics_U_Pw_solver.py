@@ -139,16 +139,8 @@ class UPwSolver(PythonSolver):
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
 
-        ### TODO
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "TIME: ", self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])
-
         # Fill the previous steps of the buffer with the initial conditions
         self._FillBuffer()
-
-        ### TODO
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "TIME: ", self.main_model_part.ProcessInfo[KratosMultiphysics.TIME])
 
         # Construct the linear solver
         self.linear_solver = self._ConstructLinearSolver()
