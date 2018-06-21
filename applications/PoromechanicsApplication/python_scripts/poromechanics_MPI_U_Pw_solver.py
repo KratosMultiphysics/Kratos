@@ -63,7 +63,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         self.EpetraCommunicator = TrilinosApplication.CreateCommunicator()
 
         # Construct the linear solver
-        self.linear_solver = _ConstructLinearSolver()
+        self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())

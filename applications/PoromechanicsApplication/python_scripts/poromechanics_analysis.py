@@ -98,7 +98,7 @@ class PoromechanicsAnalysis(AnalysisStage):
             self._GetSolver().Clear()
 
         # Time control
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
 
 

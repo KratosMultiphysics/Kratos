@@ -12,18 +12,11 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     ## problem_data
     puts $FileVar "    \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
-    puts $FileVar "        \"model_part_name\":      \"PorousDomain\","
-    puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
     puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
-    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
-    if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
-        puts $FileVar "        \"fracture_propagation\": false"
-    } else {
-        puts $FileVar "        \"fracture_propagation\": [GiD_AccessValue get gendata Fracture_Propagation]"
-    }
+    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads]"
     puts $FileVar "    \},"
 
     ## solver_settings
@@ -31,7 +24,11 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         puts $FileVar "        \"solver_type\":                        \"poromechanics_MPI_U_Pw_solver\","
     } else {
-        puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+        if { [GiD_AccessValue get gendata Fracture_Propagation] eq false } {
+            puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+        } else {
+            puts $FileVar "        \"solver_type\":                        \"poromechanics_fracture_U_Pw_solver\","
+        }
     }
     puts $FileVar "        \"model_part_name\":                    \"PorousDomain\","
     puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
