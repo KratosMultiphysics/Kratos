@@ -91,7 +91,4 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
         pass
 
 if __name__ == '__main__':
-    test = AdjointMPIVMSSensitivity()
-    test.setUp()
-    test.testCylinder()
-    test.tearDown()
+    KratosUnittest.main()

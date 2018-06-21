@@ -263,10 +263,4 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         self._assert_matrix_almost_equal(FDShapeDerivativeMatrix, ShapeDerivativeMatrix)
 
 if __name__ == '__main__':
-    test = AdjointVMSElement2D()
-    test.setUp()
-    test.testCalculateSecondDerivativesLHS()
-    test.testCalculateFirstDerivativesLHS1()
-    test.testCalculateFirstDerivativesLHS2()
-    test.testCalculateSensitivityMatrix()
-    test.tearDown()
+    KratosUnittest.main()

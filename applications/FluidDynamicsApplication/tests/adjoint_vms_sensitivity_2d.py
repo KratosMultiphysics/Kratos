@@ -192,8 +192,4 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         pass
 
 if __name__ == '__main__':
-    test_case = AdjointVMSSensitivity2D()
-    test_case.setUp()
-    test_case.testOneElement()
-    test_case.testCylinder()
-    test_case.tearDown()
+    KratosUnittest.main()
