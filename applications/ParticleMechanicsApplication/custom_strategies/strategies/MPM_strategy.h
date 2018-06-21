@@ -814,6 +814,9 @@ public:
                             pelem->GetGeometry()[3].Set(ACTIVE);
                         }
                     }
+                    else{
+                        KRATOS_ERROR << "Cannot find connectivity nodes for element ID:" << elemItr->Id() << std::endl; 
+                    }
                 }
 		    }
         }
@@ -852,6 +855,27 @@ public:
                         elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
                         elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
                         elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
+
+                        pelem->GetGeometry()[0].Set(ACTIVE);
+                        pelem->GetGeometry()[1].Set(ACTIVE);
+                        pelem->GetGeometry()[2].Set(ACTIVE);
+                        pelem->GetGeometry()[3].Set(ACTIVE);
+                        
+                        if (TDim ==3)
+                        {
+                            elemItr->GetGeometry()(4) = pelem->GetGeometry()(4);
+                            elemItr->GetGeometry()(5) = pelem->GetGeometry()(5);
+                            elemItr->GetGeometry()(6) = pelem->GetGeometry()(6);
+                            elemItr->GetGeometry()(7) = pelem->GetGeometry()(7);
+
+                            pelem->GetGeometry()[4].Set(ACTIVE);
+                            pelem->GetGeometry()[5].Set(ACTIVE);
+                            pelem->GetGeometry()[6].Set(ACTIVE);
+                            pelem->GetGeometry()[7].Set(ACTIVE);
+                        }
+                    }
+                    else{
+                        KRATOS_ERROR << "Cannot find connectivity nodes for element ID:" << elemItr->Id() << std::endl; 
                     }
                 }
             }
