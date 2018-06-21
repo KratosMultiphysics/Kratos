@@ -60,7 +60,5 @@ class HDF5IOTest(KratosUnittest.TestCase):
             kratos_utilities.DeleteFileIfExisting("./reference_results.json")
 
 if __name__ == '__main__':
-    test = HDF5IOTest()
-    test.setUp()
-    test.testInputOutput()
-    test.tearDown()
+    KratosUnittest.main()
+
