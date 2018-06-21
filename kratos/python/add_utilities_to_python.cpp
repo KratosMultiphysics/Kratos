@@ -430,6 +430,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3>::TestGiDDebug)
     ;
 
     class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
@@ -437,6 +438,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4>::TestGiDDebug)
     ;
 
     // Sparse matrix multiplication utility
@@ -452,6 +454,8 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
     .def(init<>())
     .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
+    .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>)
+    .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>)
     ;
 
     // SubModelParts List Utility

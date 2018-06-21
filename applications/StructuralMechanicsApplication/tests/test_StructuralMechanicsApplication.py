@@ -231,9 +231,9 @@ def AssembleTestSuites():
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Basic restart test (leave these in the smallSuite to have the Exection script tested)
-    #smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
-    #smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
-    #smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
+    smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
+    smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
+    smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
 
     ### Adding Nightly Tests
     # Patch test Small Displacements

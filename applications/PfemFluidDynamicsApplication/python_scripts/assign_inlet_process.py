@@ -13,7 +13,7 @@ def Factory(custom_settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignInletProcess(Model, custom_settings["Parameters"])
 
-## All the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 
 class AssignInletProcess(assign_vector_components_to_nodes_process.AssignVectorComponentsToNodesProcess):
     def __init__(self, Model, custom_settings ):

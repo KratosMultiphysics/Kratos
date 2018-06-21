@@ -9,7 +9,7 @@ def Factory(settings, Model):
 # Import KratosUnittest 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)

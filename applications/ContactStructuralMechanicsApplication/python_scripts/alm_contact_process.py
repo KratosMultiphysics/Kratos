@@ -16,7 +16,7 @@ def Factory(settings, Model):
 
 import sys
 
-# All the processes python processes should be derived from "python_process"
+# All the processes python processes should be derived from "Process"
 
 class ALMContactProcess(KM.Process):
     """This class is used in order to compute the contact using a mortar ALM formulation
@@ -51,14 +51,15 @@ class ALMContactProcess(KM.Process):
         settings -- Kratos parameters containing solver settings.
         """
 
+        # NOTE: Due to recursive check "contact_model_part" and "assume_master_slave" requires to pre-define configurations, if more that 10 pairs of contact are required, just add. I assume nobody needs that much
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
-            "contact_model_part"          : [],
-            "assume_master_slave"         : "",
+            "contact_model_part"          : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
             "contact_type"                : "Frictionless",
             "interval"                    : [0.0,"End"],
             "normal_variation"            : "no_derivatives_computation",
@@ -97,30 +98,13 @@ class ALMContactProcess(KM.Process):
         self.settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         # The main model part
-        self.main_model_part = Model[self.settings["model_part_name"].GetString()]
+        self.model = Model
+        self.main_model_part = self.model[self.settings["model_part_name"].GetString()]
         # The computing model part
         computing_model_part_name = self.settings["computing_model_part_name"].GetString()
         self.computing_model_part = self.main_model_part.GetSubModelPart(computing_model_part_name)
 
         self.dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
-
-        # When all conditions are simultaneously master and slave
-        if (self.settings["assume_master_slave"].GetString() == ""):
-            self.predefined_master_slave = False
-        else:
-            self.predefined_master_slave = True
-
-        # In case no model part is assigned we detect the skin
-        if self.settings["contact_model_part"].size() == 0:
-            detect_skin_parameters = KM.Parameters("""{"name_auxiliar_model_part": "Contact"}""")
-            detect_skin = KM.SkinDetectionProcess3D(self.main_model_part, detect_skin_parameters)
-            detect_skin.Execute()
-            self.contact_model_part = Model["Contact"]
-            # Assigning master and slave sides
-            self._assign_master_flags(self.contact_model_part)
-            self._assign_slave_flags()
-        else:
-            self.__generate_contact_model_part_from_input_list(self.settings["contact_model_part"])
 
         # A check necessary for axisymmetric cases (the domain can not be 3D)
         if (self.settings["alternative_formulations"]["axisymmetric"].GetBool() is True) and (self.dimension == 3):
@@ -156,7 +140,7 @@ class ALMContactProcess(KM.Process):
             self.gid_mode = KM.GiDPostMode.GiD_PostBinary
             self.singlefile = KM.MultiFileFlag.SingleFile
             self.deformed_mesh_flag = KM.WriteDeformedMeshFlag.WriteUndeformed
-            self.write_conditions = KM.WriteConditionsFlag.WriteElementsOnly
+            self.write_conditions = KM.WriteConditionsFlag.WriteConditions
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -164,6 +148,30 @@ class ALMContactProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+
+        # First we generate or identify the different model parts
+        if (self.computing_model_part.HasSubModelPart("Contact")):
+            self.preprocess = False
+            # We get the submodelpart
+            self.contact_model_part = self.computing_model_part.GetSubModelPart("Contact")
+        else:
+            self.preprocess = True
+            # We create the submodelpart
+            self.contact_model_part = self.computing_model_part.CreateSubModelPart("Contact")
+
+        # In case of no "Contact" model part we create it
+        if (self.preprocess is True):
+            # In case no model part is assigned we detect the skin
+            self.count_contact_model_part = 0
+            for key in self.settings["contact_model_part"].keys():
+                if (self.settings["contact_model_part"][key].size() > 0):
+                    self.count_contact_model_part += 1
+            if (self.count_contact_model_part == 0):
+                self.__detect_skin(self.main_model_part)
+            else:
+                for key in self.settings["contact_model_part"].keys():
+                    if (self.settings["contact_model_part"][key].size() > 0):
+                        self.__generate_contact_model_part_from_input_list(self.settings["contact_model_part"][key], key)
 
         # We compute NODAL_H that can be used in the search and some values computation
         self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
@@ -198,15 +206,21 @@ class ALMContactProcess(KM.Process):
         self._initialize_alm_parameters()
 
         # Creating the search
-        self._create_main_search()
+        self.contact_search = {}
+        for key in self.settings["contact_model_part"].keys():
+            if (self.settings["contact_model_part"][key].size() > 0):
+                self._create_main_search(key)
 
         # We initialize the conditions
         alm_init_var = CSMA.ALMFastInit(self.contact_model_part)
         alm_init_var.Execute()
 
-        # We initialize the search utility
-        self.contact_search.CreatePointListMortar()
-        self.contact_search.InitializeMortarConditions()
+        for key in self.settings["contact_model_part"].keys():
+            if (self.settings["contact_model_part"][key].size() > 0):
+                # We initialize the search utility
+                self.contact_search[key].CheckContactModelParts()
+                self.contact_search[key].CreatePointListMortar()
+                self.contact_search[key].InitializeMortarConditions()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -228,17 +242,47 @@ class ALMContactProcess(KM.Process):
             self.database_step += 1
             global_step = self.main_model_part.ProcessInfo[KM.STEP]
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (self.database_step >= database_step_update or global_step == 1):
+            if (self.database_step >= database_step_update or self.global_step == 1):
+                # We unset the flag MARKER (used in the nodes to not deactivate it)
+                KM.VariableUtils().SetFlag(KM.MARKER, False, self.contact_model_part.Nodes)
                 # We solve one linear step with a linear strategy if needed
-                # Clear current pairs
-                self.contact_search.ClearMortarConditions()
-                # Update database
-                self.contact_search.UpdateMortarConditions()
-                #self.contact_search.CheckMortarConditions()
+                for key in self.settings["contact_model_part"].keys():
+                    if (self.settings["contact_model_part"][key].size() > 0):
+                        # Clear current pairs
+                        self.contact_search[key].ClearMortarConditions()
+                        # Update database
+                        self.contact_search[key].UpdateMortarConditions()
+                        #self.contact_search[key].CheckMortarConditions()
+
+                # We unset the flag MARKER (used in the nodes to not deactivate it)
+                KM.VariableUtils().SetFlag(KM.MARKER, False, self.contact_model_part.Nodes)
 
                 # Debug
                 if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
-                    self._debug_output(global_step, "")
+                    self._debug_output(self.global_step, "")
+                    # We compute the total integrated area, for debugging
+                    total_area = 0.0
+                    if (self.dimension == 2):
+                        exact_integration = KM.ExactMortarIntegrationUtility2D2N(3)
+                    else:
+                        #num_nodes = len(self.contact_model_part.Conditions[1].GetNodes())
+                        for cond in self.contact_model_part.Conditions:
+                            num_nodes = len(cond.GetNodes())
+                            break
+                        if (num_nodes == 3):
+                            exact_integration = KM.ExactMortarIntegrationUtility3D3N(3)
+                        else:
+                            exact_integration = KM.ExactMortarIntegrationUtility3D4N(3)
+
+                    # We iterate over the conditions
+                    for cond in self.contact_model_part.Conditions:
+                        if cond.Is(KM.SLAVE):
+                            area = exact_integration.TestGetExactAreaIntegration(self.contact_model_part, cond)
+                            total_area += area
+
+                    KM.Logger.PrintWarning("TOTAL INTEGRATED AREA: ", "{:.2e}".format(total_area))
+
+                    #exact_integration.TestGiDDebug(self.contact_model_part)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -267,8 +311,10 @@ class ALMContactProcess(KM.Process):
         if(self.interval.IsInInterval(current_time)):
             modified = self.main_model_part.Is(KM.MODIFIED)
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (modified is False and (self.database_step >= database_step_update or global_step == 1)):
-                self.contact_search.ClearMortarConditions()
+            if (modified is False and (self.database_step >= database_step_update or self.global_step == 1)):
+                for key in self.settings["contact_model_part"].keys():
+                    if (self.settings["contact_model_part"][key].size() > 0):
+                        self.contact_search[key].ClearMortarConditions()
                 self.database_step = 0
 
 
@@ -295,7 +341,7 @@ class ALMContactProcess(KM.Process):
                 KM.VariableUtils().SetFlag(KM.SLAVE, False, partial_model_part.Conditions)
                 KM.VariableUtils().SetFlag(KM.MASTER, True, partial_model_part.Conditions)
 
-    def _assign_slave_flags(self):
+    def _assign_slave_flags(self, key = "0"):
         """ This method initializes assigment of the slave nodes and conditions
 
         Keyword arguments:
@@ -303,14 +349,17 @@ class ALMContactProcess(KM.Process):
         """
 
         if (self.predefined_master_slave is True):
-            model_part_slave_name = self.settings["assume_master_slave"].GetString()
-            model_part_slave = self.main_model_part.GetSubModelPart(model_part_slave_name)
-            KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Nodes)
-            KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Nodes)
+            if not self.settings["assume_master_slave"][key].IsArray():
+                raise Exception("{0} Error: Model part list is unreadable".format(self.__class__.__name__))
+            for i in range(0, self.settings["assume_master_slave"][key].size()):
+                model_part_slave_name = self.settings["assume_master_slave"][key][i].GetString()
+                model_part_slave = self.main_model_part.GetSubModelPart(model_part_slave_name)
+                KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Nodes)
+                KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Nodes)
 
-            if (len(self.contact_model_part.Conditions) > 0):
-                KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Conditions)
-                KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Conditions)
+                if (len(model_part_slave.Conditions) > 0):
+                    KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Conditions)
+                    KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Conditions)
 
     def _interface_preprocess(self, partial_model_part):
         """ This method creates the process used to compute the contact interface
@@ -399,11 +448,12 @@ class ALMContactProcess(KM.Process):
         KM.Logger.PrintInfo("SCALE_FACTOR: ", "{:.2e}".format(process_info[KM.SCALE_FACTOR]))
         KM.Logger.PrintInfo("INITIAL_PENALTY: ", "{:.2e}".format(process_info[KM.INITIAL_PENALTY]))
 
-    def _create_main_search(self):
+    def _create_main_search(self, key = "0"):
         """ This method creates the search process that will be use during contact search
 
         Keyword arguments:
         self -- It signifies an instance of a class.
+        key -- The key to identify the current pair
         """
 
         # We define the condition name to be used
@@ -435,7 +485,7 @@ class ALMContactProcess(KM.Process):
                 else:
                     condition_name = "ALMFrictionalMortarContact"
 
-        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true}""")
+        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": "", "predefined_master_slave" : true, "id_name" : ""}""")
         search_parameters.AddValue("type_search", self.settings["search_parameters"]["type_search"])
         search_parameters.AddValue("check_gap", self.settings["search_parameters"]["check_gap"])
         search_parameters.AddValue("allocation_size", self.settings["search_parameters"]["max_number_results"])
@@ -443,19 +493,21 @@ class ALMContactProcess(KM.Process):
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
         search_parameters["condition_name"].SetString(condition_name)
+        self.__assume_master_slave(key)
         search_parameters["predefined_master_slave"].SetBool(self.predefined_master_slave)
+        search_parameters["id_name"].SetString(key)
 
         # We compute the number of nodes of the geometry
         number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
 
         # We create the search process
         if (self.dimension == 2):
-            self.contact_search = CSMA.TreeContactSearch2D2N(self.computing_model_part, search_parameters)
+            self.contact_search[key] = CSMA.TreeContactSearch2D2N(self.computing_model_part, search_parameters)
         else:
             if (number_nodes == 3):
-                self.contact_search = CSMA.TreeContactSearch3D3N(self.computing_model_part, search_parameters)
+                self.contact_search[key] = CSMA.TreeContactSearch3D3N(self.computing_model_part, search_parameters)
             else:
-                self.contact_search = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
+                self.contact_search[key] = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
 
     def __get_enum_flag(self, param, label, dictionary):
         """ Parse enums settings using an auxiliary dictionary of acceptable values.
@@ -516,26 +568,24 @@ class ALMContactProcess(KM.Process):
 
         #raise NameError("DEBUG")
 
-    def __generate_contact_model_part_from_input_list(self, param):
+    def __generate_contact_model_part_from_input_list(self, param, key = "0"):
         """ Generates a contact model part from a list of model parts
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        value -- The Kratos vector to transform
+        param -- The configuration parameters
+        key -- The key to identify the current pair
         """
+
+        sub_contact_model_part_name = "ContactSub"+key
+        sub_contact_model_part = self.contact_model_part.CreateSubModelPart(sub_contact_model_part_name)
+
+        # If we assume master/slave pairs or not
+        self.__assume_master_slave(key)
 
         # At least verify that the input is a string
         if not param.IsArray():
-            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
-
-        if (self.computing_model_part.HasSubModelPart("Contact")):
-            self.preprocess = False
-            # We get the submodelpart
-            self.contact_model_part = self.computing_model_part.GetSubModelPart("Contact")
-        else:
-            self.preprocess = True
-            # We create the submodelpart
-            self.contact_model_part = self.computing_model_part.CreateSubModelPart("Contact")
+            raise Exception("{0} Error: Model part list is unreadable".format(self.__class__.__name__))
 
         # We transfer the list of submodelparts to the contact model part
         for i in range(0, param.size()):
@@ -544,7 +594,7 @@ class ALMContactProcess(KM.Process):
 
             # Assigning master and slave sides
             self._assign_master_flags(partial_model_part)
-            self._assign_slave_flags()
+            self._assign_slave_flags(key)
 
             # We set the interface flag
             KM.VariableUtils().SetFlag(KM.INTERFACE, True, partial_model_part.Nodes)
@@ -554,7 +604,7 @@ class ALMContactProcess(KM.Process):
                 KM.VariableUtils().SetFlag(KM.INTERFACE, True, partial_model_part.Conditions)
 
         if (self.preprocess is True):
-            self.contact_model_part.SetProperties(self.main_model_part.GetProperties())
+            sub_contact_model_part.SetProperties(self.main_model_part.GetProperties())
 
             # We transfer the list of submodelparts to the contact model part
             for i in range(0, param.size()):
@@ -564,6 +614,36 @@ class ALMContactProcess(KM.Process):
                 self._interface_preprocess(partial_model_part)
 
                 # We copy the conditions to the contact model part
-                transfer_process = KM.FastTransferBetweenModelPartsProcess(self.contact_model_part, partial_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDCONDITIONS)
+                transfer_process = KM.FastTransferBetweenModelPartsProcess(sub_contact_model_part, partial_model_part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDCONDITIONS)
                 transfer_process.Execute()
+
+    def __detect_skin(self, model_part, key = "0"):
+        """ Generates a contact model part from the skin
+        TODO Adapt for the consideration of multiple model part
+        Keyword arguments:
+        self -- It signifies an instance of a class
+        key -- The key to identify the current pair.
+        """
+        detect_skin_parameters = KM.Parameters("""{"name_auxiliar_model_part": "Contact"}""")
+        sub_contact_model_part_name = "ContactSub"+key
+        self.contact_model_part.CreateSubModelPart(sub_contact_model_part_name)
+        detect_skin_parameters["name_auxiliar_model_part"].SetString(sub_contact_model_part_name)
+        detect_skin = KM.SkinDetectionProcess3D(model_part, detect_skin_parameters)
+        detect_skin.Execute()
+        self.settings["contact_model_part"][key].Append(sub_contact_model_part_name)
+        # Assigning master and slave sides
+        self.__assume_master_slave()
+        self._assign_master_flags(self.contact_model_part)
+        self._assign_slave_flags(key)
+
+    def __assume_master_slave(self, key = "0"):
+        """ Assigns as true or false if we assume master or slave
+        self -- It signifies an instance of a class.
+        key -- The key to identify the current pair
+        """
+        # When all conditions are simultaneously master and slave
+        if (self.settings["assume_master_slave"][key].size() > 0):
+            self.predefined_master_slave = True
+        else:
+            self.predefined_master_slave = False
 
