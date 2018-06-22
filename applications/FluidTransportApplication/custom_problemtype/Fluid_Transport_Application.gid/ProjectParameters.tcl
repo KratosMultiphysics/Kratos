@@ -137,6 +137,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set iGroup 0
     AppendOutputVariables PutStrings iGroup Write_Velocity VELOCITY
     AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
+    AppendOutputVariables PutStrings iGroup Write_Normals_Value NORMAL
     if {[GiD_AccessValue get gendata Write_Reactions] eq true} {
         incr iGroup
         append PutStrings \" REACTION_FLUX \" ,

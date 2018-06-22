@@ -118,6 +118,8 @@ protected:
         double DifSC;
         double AuxDiffusion;
         double CosinusNormals;
+        double CosinusGradPhi;
+        double tolerance;
 
         array_1d<double,TDim> HVector;
         array_1d<double,TDim> HvVector;
