@@ -23,11 +23,11 @@
 namespace Kratos
 {
 
-/** 
+/**
  * @namespace TrussPlasticityConstitutiveLaw
- * 
+ *
  * @brief This constitutive law represents a linear hardening plasticity 1D law
- * 
+ *
  * @author Klaus B Sautter
  */
 
@@ -135,6 +135,28 @@ public:
     bool CheckIfIsPlasticRegime(const Properties& rMaterialProperties,
         const double& rCurrentStress);
 
+    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+					    const GeometryType& rElementGeometry,
+					    const Vector& rShapeFunctionsValues,
+					    const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeSolutionStep(const Properties& rMaterialProperties,
+                        const GeometryType& rElementGeometry,
+                        const Vector& rShapeFunctionsValues,
+                        const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    //TestWasPlasticAndIsElasticNow
+    bool CheckPlasticIterationHistory() const
+    {
+        bool check_flag = false;
+        if(this->mInElasticFlagVector[1] && !this->mInElasticFlagVector[0])
+        {
+            check_flag = true;
+        }
+        return check_flag;
+    }
+
     /**
      * Voigt tensor size:
      */
@@ -142,7 +164,7 @@ public:
     {
         return 1;
     }
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -162,15 +184,15 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -180,14 +202,16 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    bool mInelasticFlag = false; /// This flags tells if we are in a elastic or ineslastic regime
-    double mAccumulatedPlasticStrain = 0.0; /// The current accumulated plastic strain
-    double mPlasticAlpha = 0.0; /// The current plastic increment
     double mStressState = 0.0; // The current stress state
+    BoundedVector<bool, 2> mInElasticFlagVector = ZeroVector(2); /// This flags tells if we are in a elastic or ineslastic regime
+    BoundedVector<double, 2> mPlasticAlphaVector = ZeroVector(2); /// The current plastic increment
+    BoundedVector<double, 2> mAccumulatedPlasticStrainVector = ZeroVector(2); /// The current accumulated plastic strain
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -212,21 +236,21 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw);
         rSerializer.save("StressState", this->mStressState);
-        rSerializer.save("PlasticAlpha", this->mPlasticAlpha);
-        rSerializer.save("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrain);
-        rSerializer.save("InelasticFlag", this->mInelasticFlag);
+        rSerializer.save("PlasticAlpha", this->mPlasticAlphaVector);
+        rSerializer.save("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
+        rSerializer.save("InelasticFlag", this->mInElasticFlagVector);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw);
         rSerializer.load("StressState", this->mStressState);
-        rSerializer.load("PlasticAlpha", this->mPlasticAlpha);
-        rSerializer.load("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrain);
-        rSerializer.load("InelasticFlag", this->mInelasticFlag);
+        rSerializer.load("PlasticAlpha", this->mPlasticAlphaVector);
+        rSerializer.load("AccumulatedPlasticStrain", this->mAccumulatedPlasticStrainVector);
+        rSerializer.load("InelasticFlag", this->mInElasticFlagVector);
     }
 
 
 }; // Class TrussPlasticityConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined 
+#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined
