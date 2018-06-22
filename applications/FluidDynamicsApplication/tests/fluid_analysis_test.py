@@ -63,12 +63,11 @@ class FluidAnalysisTest(UnitTest.TestCase):
         settings_file_name = "steady_cylinder_fluid_parameters.json"
 
         with WorkFolderScope(work_folder):
-            self._run_test(settings_file_name)
+            self._runTest(settings_file_name)
 
             kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
 
-
-    def _run_test(self,settings_file_name):
+    def _runTest(self,settings_file_name):
         model = km.Model()
         with open(settings_file_name,'r') as settings_file:
             settings = km.Parameters(settings_file.read())
