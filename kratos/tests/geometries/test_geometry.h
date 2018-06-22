@@ -60,33 +60,6 @@ namespace Testing {
     /// Auxiliar check functions (from geometry_tester.h)
     /// - All this functions should probably me moved somewhere else.
 
-    void GenerateNodes(ModelPart& rModelPart)
-    {
-        //create a cloud of 27 nodes, to be used in testing the geometries, so that 1 10 19 are on the same vertical
-        //side has a lenght 0f 2.0/3.0
-        //  25  26  27
-        // 22  23  24
-        //19--20--21
-        //|  16--17--18
-        //| 13  14  15
-        //10--11--12
-        //| 7---8---9
-        //|4   5   6
-        //1---2---3
-
-        const double dx = 1.0/3.0;
-        const double dy = 1.0/3.0;
-        const double dz = 1.0/3.0;
-        std::size_t counter = 1;
-        for(IndexType k=0; k<3; k++) {
-            for(IndexType j=0; j<3; j++) {
-                for(IndexType i=0; i<3; i++) {
-                    rModelPart.CreateNewNode(counter++, i*dx, j*dy,k*dz);
-                }
-            }
-        }
-    }
-
     /** Gets the corresponding string of the integration method provided.
      * Gets the corresponding string of the integration method provided.
      * @param  ThisGeometry       Geometry that is used for nothing
