@@ -174,10 +174,11 @@ public:
      * @param Tolerance The tolerance considered on the search
      * @return If "false" is devolved the element is not found
      * @note this function is threadsafe and can be used within OpenMP loops
+     * @warning This is legacy version (using array instead of vector for shape function)
      */
-    bool FindPointOnMesh(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (using array instead of vector for shape function)") bool FindPointOnMesh(
         const array_1d<double, 3 >& rCoordinates,
-        array_1d<double, TDim + 1 > & rNShapeFunction,
+        array_1d<double, TDim + 1 >& rNShapeFunction,
         Element::Pointer& pElement,
         ResultIteratorType ItResultBegin,
         const SizeType MaxNumberOfResults = 1000,
@@ -193,7 +194,11 @@ public:
                 GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
-                bool is_found = CalculatePosition(geom, rCoordinates[0], rCoordinates[1], rCoordinates[2], rNShapeFunction, Tolerance);
+                array_1d<double, 3> point_local_coordinates;
+                Vector shape_function;
+                const bool is_found = geom.IsInside(rCoordinates, point_local_coordinates, Tolerance);
+                geom.ShapeFunctionsValues(shape_function, point_local_coordinates);
+                noalias(rNShapeFunction) = shape_function;
 
                 if (is_found) {
                     pElement = (*(ItResultBegin + i));
@@ -203,6 +208,54 @@ public:
         }
 
         // Not found case
+        pElement = nullptr;
+        return false;
+    }
+
+    /**
+     * @brief This function should find the element into which a given node is located
+     * and return a pointer to the element and the vector containing the
+     * shape functions that define the postion within the element
+     * @param rCoordinates The vector containign the coordinates of the point to be searched
+     * @param rNShapeFunction The vector containing the shape function of the located point
+     * @param pElement The pointer to the element containing the located point
+     * @param ItResultBegin The iterator of the search
+     * @param MaxNumberOfResults The max number of results to be considered
+     * @param Tolerance The tolerance considered on the search
+     * @return If "false" is devolved the element is not found
+     * @note this function is threadsafe and can be used within OpenMP loops
+     */
+    bool FindPointOnMesh(
+        const array_1d<double, 3 >& rCoordinates,
+        Vector& rNShapeFunction,
+        Element::Pointer& pElement,
+        ResultIteratorType ItResultBegin,
+        const SizeType MaxNumberOfResults = 1000,
+        const double Tolerance = 1.0e-5
+        )
+    {
+        // Ask to the container for the list of candidate elements
+        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
+
+        if (results_found > 0) {
+            // Loop over the candidate elements and check if the particle falls within
+            for (IndexType i = 0; i < results_found; i++) {
+                GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
+
+                // Find local position
+                array_1d<double, 3> point_local_coordinates;
+                const bool is_found = geom.IsInside(rCoordinates, point_local_coordinates, Tolerance);
+                geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
+
+                if (is_found) {
+                    pElement = (*(ItResultBegin + i));
+                    return true;
+                }
+            }
+        }
+
+        // Not found case
+        pElement = nullptr;
         return false;
     }
 
@@ -226,109 +279,9 @@ public:
     {
         ResultContainerType results(MaxNumberOfResults);
 
-        if(rNShapeFunction.size() != TDim+1) {
-            rNShapeFunction.resize(TDim+1,false);
-        }
-
-        array_1d<double,TDim+1> aux;
-
-        const bool is_found = FindPointOnMesh(rCoordinates, aux, pElement, results.begin(), MaxNumberOfResults, Tolerance);
-
-        if(is_found) {
-            noalias(rNShapeFunction) = aux;
-        }
+        const bool is_found = FindPointOnMesh(rCoordinates, rNShapeFunction, pElement, results.begin(), MaxNumberOfResults, Tolerance);
 
         return is_found;
-    }
-    
-    //***************************************
-    //***************************************
-
-    inline bool CalculatePosition(
-        GeometryType& geom,
-        const double xc, 
-        const double yc, 
-        const double zc,
-        array_1d<double, 3 > & N,
-        const double Tolerance = 1.0e-5
-        )
-    {
-        const double x0 = geom[0].X();
-        const double y0 = geom[0].Y();
-        const double x1 = geom[1].X();
-        const double y1 = geom[1].Y();
-        const double x2 = geom[2].X();
-        const double y2 = geom[2].Y();
-
-        const double area = CalculateVol(x0, y0, x1, y1, x2, y2);
-
-        double inv_area = 0.0;
-        if (area == 0.0) {
-            KRATOS_ERROR << "Element with zero area found with the current geometry " << geom << std::endl;
-        } else {
-            inv_area = 1.0 / area;
-        }
-
-        N[0] = CalculateVol(x1, y1, x2, y2, xc, yc) * inv_area;
-        N[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
-        N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
-
-        if ((N[0] >= -Tolerance) && (N[1] >= -Tolerance) && (N[2] >= -Tolerance) &&
-            (N[0] <= (1.0 + Tolerance)) && (N[1] <= (1.0 + Tolerance)) && (N[2] <= (1.0 + Tolerance))) //if the xc yc is inside the triangle return true
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    //***************************************
-    //***************************************
-
-    inline bool CalculatePosition(
-        GeometryType& geom,
-        const double xc, 
-        const double yc, 
-        const double zc,
-        array_1d<double, 4 > & N,
-        const double Tolerance = 1.0e-5
-        )
-    {
-        const double x0 = geom[0].X();
-        const double y0 = geom[0].Y();
-        const double z0 = geom[0].Z();
-        const double x1 = geom[1].X();
-        const double y1 = geom[1].Y();
-        const double z1 = geom[1].Z();
-        const double x2 = geom[2].X();
-        const double y2 = geom[2].Y();
-        const double z2 = geom[2].Z();
-        const double x3 = geom[3].X();
-        const double y3 = geom[3].Y();
-        const double z3 = geom[3].Z();
-
-        const double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
-
-        double inv_vol = 0.0;
-        if (vol == 0.0) {
-            KRATOS_ERROR << "Element with zero area found with the current geometry " << geom << std::endl;
-        } else {
-            inv_vol = 1.0 / vol;
-        }
-
-        N[0] = CalculateVol(x1,y1,z1,x3,y3,z3,x2,y2,z2,xc,yc,zc) * inv_vol;
-        N[1] = CalculateVol(x3,y3,z3,x0,y0,z0,x2,y2,z2,xc,yc,zc) * inv_vol;
-        N[2] = CalculateVol(x3,y3,z3,x1,y1,z1,x0,y0,z0,xc,yc,zc) * inv_vol;
-        N[3] = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) * inv_vol;
-
-        if ((N[0] >= -Tolerance) && (N[1] >= -Tolerance) && (N[2] >= -Tolerance) && (N[3] >= -Tolerance) &&
-            (N[0] <= (1.0 + Tolerance)) && (N[1] <= (1.0 + Tolerance)) && (N[2] <= (1.0 + Tolerance)) && (N[3] <= (1.0 + Tolerance)))
-            //if the xc yc zc is inside the tetrahedron return true
-        {
-            return true;
-        }
-
-        return false;
     }
 
     ///@}
@@ -392,39 +345,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    inline double CalculateVol(const double x0, const double y0,
-                               const double x1, const double y1,
-                               const double x2, const double y2
-                              )
-    {
-        return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
-    }
-
-    //***************************************
-    //***************************************
-
-    inline double CalculateVol(const double x0, const double y0, const double z0,
-                               const double x1, const double y1, const double z1,
-                               const double x2, const double y2, const double z2,
-                               const double x3, const double y3, const double z3
-                              )
-    {
-        const double x10 = x1 - x0;
-        const double y10 = y1 - y0;
-        const double z10 = z1 - z0;
-
-        const double x20 = x2 - x0;
-        const double y20 = y2 - y0;
-        const double z20 = z2 - z0;
-
-        const double x30 = x3 - x0;
-        const double y30 = y3 - y0;
-        const double z30 = z3 - z0;
-
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-        return detJ * 0.1666666666666666666667;
-    }
 
     ///@}
     ///@name Private  Access
