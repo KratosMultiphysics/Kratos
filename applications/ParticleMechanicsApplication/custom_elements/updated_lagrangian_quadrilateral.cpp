@@ -1,12 +1,14 @@
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:                 ilaria $
-//   Date:                $Date:                July 2015 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
-
 
 // System includes
 
@@ -255,7 +257,7 @@ void UpdatedLagrangianQuadrilateral::SetGeneralVariables(GeneralVariables& rVari
     {
         std::cout<<" Element: "<<this->Id()<<std::endl;
         std::cout<<" Element position "<<this->GetValue(GAUSS_COORD)<<std::endl;
-        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -548,8 +550,8 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddExternalForces(VectorType& r
 {
     KRATOS_TRY
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -648,7 +650,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddKuug(MatrixType& rLeftHandSi
 {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
@@ -854,7 +856,7 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
     GeneralVariables Variables;
@@ -1011,16 +1013,16 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     array_1d<double,3> xg = this->GetValue(GAUSS_COORD);
-    array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
-    array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
+    const array_1d<double,3> MP_PreviousAcceleration = this->GetValue(MP_ACCELERATION);
+    const array_1d<double,3> MP_PreviousVelocity = this->GetValue(MP_VELOCITY);
 
     array_1d<double,3> delta_xg = ZeroVector(3);
     array_1d<double,3> MP_Acceleration = ZeroVector(3);
     array_1d<double,3> MP_Velocity = ZeroVector(3);
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+    const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
     rVariables.N = this->MPMShapeFunctionPointValues(rVariables.N, xg);
 
@@ -1125,7 +1127,7 @@ Matrix& UpdatedLagrangianQuadrilateral::CalculateCurrentDisp(Matrix & rCurrentDi
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     rCurrentDisp = zero_matrix<double>( number_of_nodes, dimension);
 
@@ -1297,8 +1299,8 @@ void UpdatedLagrangianQuadrilateral::CalculateDampingMatrix( MatrixType& rDampin
     KRATOS_TRY
 
     //0.-Initialize the DampingMatrix:
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * dimension;
@@ -1356,7 +1358,7 @@ void UpdatedLagrangianQuadrilateral::CalculateMassMatrix( MatrixType& rMassMatri
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
     //lumped
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int MatSize = dimension * number_of_nodes;
 
@@ -1399,8 +1401,8 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, array_1d<d
                                    shape_functions_gradients, rPoint);
     
     const GeometryType& rGeom = GetGeometry();
-    unsigned int number_nodes = rGeom.PointsNumber();
-    unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const unsigned int number_nodes = rGeom.PointsNumber();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
 
     if (dimension ==2)
     {
@@ -1460,7 +1462,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, array
                                     shape_functions_gradients, rPoint );
 
     const GeometryType& rGeom = GetGeometry();
-    unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
 
     if (dimension ==2)
     {
@@ -1515,7 +1517,7 @@ Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rRe
 {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     array_1d<double,3> rPointLocal = ZeroVector(3);
     rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
 
@@ -1574,7 +1576,7 @@ Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rRe
 // Function which return dN/de
 Matrix& UpdatedLagrangianQuadrilateral::MPMShapeFunctionsLocalGradients( Matrix& rResult, array_1d<double,3>& rPoint)
 {
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     array_1d<double,3> rPointLocal = ZeroVector(3);
 
     // Evaluate local coordinates of the MP position inside the background grid
@@ -1776,7 +1778,7 @@ int  UpdatedLagrangianQuadrilateral::Check( const ProcessInfo& rCurrentProcessIn
 {
     KRATOS_TRY
 
-    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
     
     // Verify compatibility with the constitutive law
     ConstitutiveLaw::Features LawFeatures;

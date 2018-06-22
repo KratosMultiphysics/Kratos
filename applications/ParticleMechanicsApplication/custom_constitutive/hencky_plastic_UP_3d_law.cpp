@@ -192,7 +192,11 @@ void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPM
     const double Nu    = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
     // Bulk modulus
-    const double K = Young / (3.0 * (1.0 - 2.0*Nu));
+    double BulkModulus = Young / (3.0 * (1.0 - 2.0*Nu));
+
+    // Check if Bulk Modulus is not NaN
+    if (BulkModulus != BulkModulus)
+        BulkModulus = 1.e16;
 
     // Subtract the Dep with Bulk Modulus to obtain Dep_deviatoric
     for (unsigned int i = 0; i < 3; ++i)
@@ -200,7 +204,7 @@ void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPM
         for (unsigned int j = 0; j < 3 ; ++j)
         {
             // TODO: Check whether this is correct or not
-            rElastoPlasticTangentMatrix(i,j)  -= K;
+            rElastoPlasticTangentMatrix(i,j)  -= BulkModulus;
         }
     }
 
