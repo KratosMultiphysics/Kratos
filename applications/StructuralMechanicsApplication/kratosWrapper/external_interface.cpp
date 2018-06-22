@@ -14,7 +14,7 @@ KratosInternals Interface::mKratosInternals;
 std::vector<Kratos::NodeType::Pointer> Interface::mFixedNodes;
 IdTranslator Interface::idTranslator;
 
-
+//Fetch faces from mesh converter and create skin model part
 void Interface::saveTriangles(MeshConverter& meshConverter) {
 
 	Kratos::ModelPart::Pointer pSkinModelPart = mKratosInternals.pGetSkinModelPart();
@@ -38,6 +38,7 @@ void Interface::saveTriangles(MeshConverter& meshConverter) {
 	}
 }
 
+//Fetch surface nodes from mesh converter and initialize ID translator
 void Interface::saveNodes(MeshConverter& meshConverter) {
 	std::vector<int> nodes = meshConverter.GetNodes();
 	mNodesCount = nodes.size();
@@ -47,9 +48,10 @@ void Interface::saveNodes(MeshConverter& meshConverter) {
 	pmXCoordinates = new float[mNodesCount];
 	pmYCoordinates = new float[mNodesCount];
 	pmZCoordinates = new float[mNodesCount];
+	retrieveNodesPos();
 }
 
-
+//Save recalculated surface nodes positions
 void Interface::retrieveNodesPos() {
 	Kratos::ModelPart::Pointer skin_part = mKratosInternals.pGetSkinModelPart();
 
@@ -64,6 +66,15 @@ void Interface::retrieveNodesPos() {
 	}
 }
 
+void Interface::freeNodes() {
+	for (auto& node : mFixedNodes) {
+		node->Free(Kratos::DISPLACEMENT_X);
+		node->Free(Kratos::DISPLACEMENT_Y);
+		node->Free(Kratos::DISPLACEMENT_Z);
+	}
+	mFixedNodes.clear();
+}
+
 void Interface::init(char* mdpaPath) {
 	mKratosInternals.initInternals();
 	mKratosInternals.loadMDPA(std::string(mdpaPath));
@@ -74,9 +85,9 @@ void Interface::init(char* mdpaPath) {
 
 	saveNodes(meshConverter);
 	saveTriangles(meshConverter);
-	retrieveNodesPos();
 }
 
+//Update DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
 void Interface::updateNodePos(int nodeId, float x, float y, float z) {
 	Kratos::NodeType::Pointer node =  mKratosInternals.pGetMainModelPart()->pGetNode(idTranslator.getKratosId(nodeId));
 	node->Fix(Kratos::DISPLACEMENT_X);
@@ -90,19 +101,12 @@ void Interface::updateNodePos(int nodeId, float x, float y, float z) {
 	mFixedNodes.push_back(node);
 }
 
-void Interface::freeNodes() {
-	for (auto& node : mFixedNodes) {
-		node->Free(Kratos::DISPLACEMENT_X);
-		node->Free(Kratos::DISPLACEMENT_Y);
-		node->Free(Kratos::DISPLACEMENT_Z);
-	} 
-	mFixedNodes.clear();
-}
-
 void Interface::calculate() {
 	mKratosInternals.solve();
 	retrieveNodesPos();
+
 	freeNodes();
+	
 }
 
 float* Interface::getXCoordinates() {

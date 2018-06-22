@@ -32,8 +32,6 @@ namespace KratosWrapper {
 
 		static std::vector<Kratos::NodeType::Pointer> mFixedNodes;
 
-		static void initInternals();
-		static void loadMDPAFile(char* mdpaPath);
 		static void saveTriangles(MeshConverter& meshConverter);
 		static void saveNodes(MeshConverter& meshConverter);
 		static void retrieveNodesPos();

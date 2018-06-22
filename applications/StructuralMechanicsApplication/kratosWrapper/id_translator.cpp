@@ -2,6 +2,7 @@
 
 using namespace KratosWrapper;
 
+//nodes - sorted vector with kratos IDs of surface nodes.
 void IdTranslator::init(std::vector<int>& nodes) {
 	int nodesSize = nodes.size();
 	pmKratosIds = new int[nodesSize];

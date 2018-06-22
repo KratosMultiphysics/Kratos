@@ -56,6 +56,7 @@ bool checkContains(element& e, int(&face)[4]) {
 	return false;
 }
 
+//Ensure, that node order is clockwise
 void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
 	Kratos::array_1d<double, 3> points[4];
 
@@ -89,7 +90,7 @@ void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
 	delete AD;
 	delete normal;
 
-	if (dot < 0) {
+	if (dot > 0) {
 		double tmp = face.nodes[0];
 		face.nodes[0] = face.nodes[1];
 		face.nodes[1] = tmp;
@@ -99,14 +100,18 @@ void fixFace(face& face, Kratos::shared_ptr < Kratos::Element > kratosElement) {
 void process(std::vector<element>& elements, std::vector<node>& nodes, std::vector<face>& result) {
 	for (auto& e : elements) {
 		
+		//Four faces of given tetrahedra
 		int faces[4][4] = {
 			{ e.nodes[0], e.nodes[1], e.nodes[2], e.nodes[3] },
 		{ e.nodes[0], e.nodes[1], e.nodes[3], e.nodes[2] },
 		{ e.nodes[0], e.nodes[2], e.nodes[3], e.nodes[1] },
 		{ e.nodes[1], e.nodes[2], e.nodes[3], e.nodes[0] },
 		};
+
+
 		for (int f = 0; f < 4; f++) {
 
+			//For each element containing first node of a face, check if that element contains given face
 			bool contains = false;
 			for (auto& toCheck : nodes[faces[f][0]].elements) {
 				if (toCheck.pKratosElement != e.pKratosElement)
@@ -128,6 +133,7 @@ int findMaxNode(std::vector<element>& elements) {
 	return max;
 }
 
+//Create sorted vector of surface node IDs
 void extractNodes(std::vector<face>& faces, std::vector<int>& nodes, int maxNode) {
 	bool* nodeFlags = new bool[maxNode + 1];
 	for (int i = 0; i < maxNode + 1; i++)nodeFlags[i] = false;
@@ -161,8 +167,10 @@ int findNode(int toFind, std::vector<int>& nodes) {
 		else if (nodes[mid] < toFind)
 			start = mid + 1;
 	}
+	return -1;
 }
 
+//Translate node IDs into Unity format
 void translateFaces(std::vector<face>& faces, std::vector<int>& nodes) {
 	for (auto& f : faces) {
 		for (int i = 0; i < 3; i++)f.nodes[i] = findNode(f.nodes[i], nodes);

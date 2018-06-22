@@ -21,7 +21,6 @@ void KratosInternals::loadMDPA(std::string mdpaPath) {
 	Kratos::ModelPartIO(pFile).ReadModelPart(*pmMainModelPart);
 	pFile->close();
 
-	//LOAD THE CONSTITUTIVE LAW
 	Kratos::ConstitutiveLaw::Pointer pCl = Kratos::make_shared<Kratos::HyperElasticIsotropicNeoHookean3D>();
 	pmMainModelPart->GetProperties(0).SetValue(Kratos::CONSTITUTIVE_LAW, pCl);
 	pmMainModelPart->SetBufferSize(2);
@@ -40,10 +39,6 @@ void KratosInternals::initSolver() {
 	ResidualCriteriaType::Pointer pConvergenceCriterion = Kratos::make_shared<ResidualCriteriaType>(1e-14, 1e-20);
 	pConvergenceCriterion->SetEchoLevel(0);
 
-
-	//mMainModelPart.Nodes()[pmKratosNodeIds[1]].Fix(Kratos::DISPLACEMENT_X);
-	//mMainModelPart.Nodes()[pmKratosNodeIds[1]].FastGetSolutionStepValue(Kratos::DISPLACEMENT_X, 0) = 0.1;
-
 	int maxIters = 20;
 	bool computerReactions = true;
 	bool reformStepDofs = true;
@@ -61,10 +56,10 @@ void KratosInternals::initSolver() {
 		moveMeshFlag);
 
 	pmStrategy->SetEchoLevel(0);
+	pmStrategy->Check();
 }
 
 void KratosInternals::solve() {
-	pmStrategy->Check();
 	pmStrategy->Solve();
 }
 

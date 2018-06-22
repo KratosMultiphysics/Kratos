@@ -1,4 +1,4 @@
-#include "mesh_structures.h"
+
 #include <vector>
 
 namespace KratosWrapper {

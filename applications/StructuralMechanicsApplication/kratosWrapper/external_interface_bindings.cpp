@@ -12,10 +12,6 @@ extern "C" {
 		Interface::init(path);
 	}
 
-	//EXPORT void __stdcall InitFromExisting(float* xCords, float* yCords, float* zCords, int modelSize) {
-	//	Interface::initFromExisting(xCords, yCords, zCords, modelSize);
-	//}
-
 	EXPORT float* __stdcall GetXCoordinates() {
 		return Interface::getXCoordinates();
 	}
@@ -47,5 +43,4 @@ extern "C" {
 	EXPORT void __stdcall Calculate() {
 		Interface::calculate();
 	}
-
 }
