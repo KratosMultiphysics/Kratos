@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//                   Vicente Mataix Ferrandiz
 //
 //
 
@@ -29,101 +30,106 @@ namespace Testing {
 
     /** Gets the corresponding string of the integration method provided.
      * Gets the corresponding string of the integration method provided.
-     * @param  geom       Geometry that is used for nothing
+     * @param  ThisGeometry       Geometry that is used for nothing
      * @param  ThisMethod Input Integration method
      * @return            String with the name of the input integration method
      */
-    std::string GetIntegrationName(Geometry<Node<3>>& geom, Geometry<Node<3>>::IntegrationMethod ThisMethod) {
+    std::string GetIntegrationName(
+        GeometryType& ThisGeometry,
+        GeometryType::IntegrationMethod ThisMethod
+        )
+    {
       switch(ThisMethod) {
         case GeometryData::GI_GAUSS_1 :
-          return std::string("GI_GAUSS_1");
+          return "GI_GAUSS_1";
         case GeometryData::GI_GAUSS_2 :
-          return std::string("GI_GAUSS_2");
+          return "GI_GAUSS_2";
         case GeometryData::GI_GAUSS_3 :
-          return std::string("GI_GAUSS_3");
+          return "GI_GAUSS_3";
         case GeometryData::GI_GAUSS_4 :
-          return std::string("GI_GAUSS_4");
+          return "GI_GAUSS_4";
         case GeometryData::GI_GAUSS_5 :
-          return std::string("GI_GAUSS_5");
+          return "GI_GAUSS_5";
         case GeometryData::GI_EXTENDED_GAUSS_1 :
-          return std::string("GI_EXTENDED_GAUSS_1");
+          return "GI_EXTENDED_GAUSS_1";
         case GeometryData::GI_EXTENDED_GAUSS_2 :
-          return std::string("GI_EXTENDED_GAUSS_2");
+          return "GI_EXTENDED_GAUSS_2";
         case GeometryData::GI_EXTENDED_GAUSS_3 :
-          return std::string("GI_EXTENDED_GAUSS_3");
+          return "GI_EXTENDED_GAUSS_3";
         case GeometryData::GI_EXTENDED_GAUSS_4 :
-          return std::string("GI_EXTENDED_GAUSS_4");
+          return "GI_EXTENDED_GAUSS_4";
         case GeometryData::GI_EXTENDED_GAUSS_5 :
-          return std::string("GI_EXTENDED_GAUSS_5");
+          return "GI_EXTENDED_GAUSS_5";
         case GeometryData::NumberOfIntegrationMethods :
-          return std::string("NumberOfIntegrationMethods");
+          return "NumberOfIntegrationMethods";
       };
 
-      return std::string("UnknownIntegrationMethod");
+      return "UnknownIntegrationMethod";
     }
 
     /** Gets the corresponding string of the geometry name.
      * Gets the corresponding string of the geometry name.
-     * @param  geom Input Geometry
+     * @param  ThisGeometry Input Geometry
      * @return      String corresponding to the name of the input geometry
      */
-    std::string GetGeometryName(Geometry<Node<3>>& geom) {
-      GeometryData::KratosGeometryType geom_type = geom.GetGeometryType();
+    std::string GetGeometryName(GeometryType& ThisGeometry)
+    {
+      GeometryData::KratosGeometryType geom_type = ThisGeometry.GetGeometryType();
 
       switch(geom_type) {
         case GeometryData::Kratos_generic_type :
-          return std::string("Kratos_generic_type");
+          return "Kratos_generic_type";
         case GeometryData::Kratos_Hexahedra3D20 :
-          return std::string("Kratos_Hexahedra3D20");
+          return "Kratos_Hexahedra3D20";
         case GeometryData::Kratos_Hexahedra3D27 :
-          return std::string("Kratos_Hexahedra3D27");
+          return "Kratos_Hexahedra3D27";
         case GeometryData::Kratos_Hexahedra3D8 :
-          return std::string("Kratos_Hexahedra3D8");
+          return "Kratos_Hexahedra3D8";
         case GeometryData::Kratos_Prism3D15 :
-          return std::string("Kratos_Prism3D15");
+          return "Kratos_Prism3D15";
         case GeometryData::Kratos_Prism3D6 :
-          return std::string("Kratos_Prism3D6");
+          return "Kratos_Prism3D6";
         case GeometryData::Kratos_Quadrilateral2D4 :
-          return std::string("Kratos_Quadrilateral2D4");
+          return "Kratos_Quadrilateral2D4";
         case GeometryData::Kratos_Quadrilateral2D8 :
-          return std::string("Kratos_Quadrilateral2D8");
+          return "Kratos_Quadrilateral2D8";
         case GeometryData::Kratos_Quadrilateral2D9 :
-          return std::string("Kratos_Quadrilateral2D9");
+          return "Kratos_Quadrilateral2D9";
         case GeometryData::Kratos_Quadrilateral3D4 :
-          return std::string("Kratos_Quadrilateral3D4");
+          return "Kratos_Quadrilateral3D4";
         case GeometryData::Kratos_Quadrilateral3D8 :
-          return std::string("Kratos_Quadrilateral3D8");
+          return "Kratos_Quadrilateral3D8";
         case GeometryData::Kratos_Quadrilateral3D9 :
-          return std::string("Kratos_Quadrilateral3D9");
+          return "Kratos_Quadrilateral3D9";
         case GeometryData::Kratos_Tetrahedra3D10 :
-          return std::string("Kratos_Tetrahedra3D10");
+          return "Kratos_Tetrahedra3D10";
         case GeometryData::Kratos_Tetrahedra3D4 :
-          return std::string("Kratos_Tetrahedra3D4");
+          return "Kratos_Tetrahedra3D4";
         case GeometryData::Kratos_Triangle2D3 :
-          return std::string("Kratos_Triangle3D3");
+          return "Kratos_Triangle3D3";
         case GeometryData::Kratos_Triangle2D6 :
-          return std::string("Kratos_Triangle2D6");
+          return "Kratos_Triangle2D6";
         case GeometryData::Kratos_Triangle3D3 :
-          return std::string("Kratos_Triangle3D3");
+          return "Kratos_Triangle3D3";
         case GeometryData::Kratos_Triangle3D6 :
-          return std::string("Kratos_Triangle3D6");
+          return "Kratos_Triangle3D6";
         case GeometryData::Kratos_Line2D2 :
-          return std::string("Kratos_Line2D2");
+          return "Kratos_Line2D2";
         case GeometryData::Kratos_Line2D3 :
-          return std::string("Kratos_Line2D3");
+          return "Kratos_Line2D3";
         case GeometryData::Kratos_Line3D2 :
-          return std::string("Kratos_Line3D2");
+          return "Kratos_Line3D2";
         case GeometryData::Kratos_Line3D3 :
-          return std::string("Kratos_Line3D3");
+          return "Kratos_Line3D3";
         case GeometryData::Kratos_Point2D :
-          return std::string("Kratos_Point2D");
+          return "Kratos_Point2D";
         case GeometryData::Kratos_Point3D :
-          return std::string("Kratos_Point3D");
+          return "Kratos_Point3D";
         case GeometryData::Kratos_Sphere3D1 :
-          return std::string("Kratos_Sphere3D1");
+          return "Kratos_Sphere3D1";
       };
 
-      return std::string("UnknownGeometry");
+      return "UnknownGeometry";
     }
 
     /** Computes the linear strain matrix.
@@ -131,20 +137,26 @@ namespace Testing {
      * a constant strain can be correctly reproduced
      * @param B               [description]
      * @param DN_DX           [description]
-     * @param number_of_nodes Nuber of nodes of the geometry
-     * @param dimension       Dimension (i.e. 1, 2 or 3)
+     * @param NumberOfNodes   Number of nodes of the geometry
+     * @param Dimension       Dimension (i.e. 1, 2 or 3)
      */
-    void CalculateB(Matrix& B, Matrix& DN_DX, const unsigned int number_of_nodes, const unsigned int dimension) {
-      if(dimension == 2) {
-        B.resize(3, 2*number_of_nodes, false);
+    void CalculateB(
+        Matrix& B,
+        Matrix& DN_DX,
+        const SizeType NumberOfNodes,
+        const SizeType Dimension
+        )
+    {
+      if(Dimension == 2) {
+        B.resize(3, 2*NumberOfNodes, false);
       } else {
-        B.resize(6, 3*number_of_nodes, false);
+        B.resize(6, 3*NumberOfNodes, false);
       }
 
-      for(unsigned int i = 0; i < number_of_nodes; i++) {
-        unsigned int index = dimension * i;
+      for(SizeType i = 0; i < NumberOfNodes; i++) {
+        SizeType index = Dimension * i;
 
-        if(dimension == 2) {
+        if(Dimension == 2) {
           B(0, index + 0) = DN_DX(i, 0);
           B(0, index + 1) = 0.0;
 
@@ -189,7 +201,11 @@ namespace Testing {
      * @param  error_msg      Buffer to write the error message
      * @return                Area claculated using the selected integration method.
      */
-    double CalculateAreaByIntegration(Geometry<Node<3>>& geom, Geometry<Node<3> >::IntegrationMethod ThisMethod) {
+    double CalculateAreaByIntegration(
+        GeometryType& geom,
+        GeometryType::IntegrationMethod ThisMethod
+        )
+    {
       double area = 0.0;
 
       if(geom.WorkingSpaceDimension() != geom.LocalSpaceDimension()) {
@@ -211,7 +227,7 @@ namespace Testing {
       Vector determinants;
       geom.DeterminantOfJacobian(determinants, ThisMethod);
 
-      for(unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+      for(SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
         const double IntegrationWeight = integration_points[PointNumber].Weight();
 
         // Calculating and storing inverse of the jacobian and the parameters needed
@@ -235,11 +251,11 @@ namespace Testing {
      * @param ThisMethod Integration method used
      * @param error_msg  Buffer to write the error message
      */
-    void VerifyStrainExactness(Geometry<Node<3>>& geom,  Geometry<Node<3> >::IntegrationMethod ThisMethod) {
+    void VerifyStrainExactness(GeometryType& geom,  GeometryType::IntegrationMethod ThisMethod) {
 
       const Element::GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints( ThisMethod );
-      const unsigned int number_of_nodes = geom.PointsNumber();
-      const unsigned int dim = geom.WorkingSpaceDimension();
+      const SizeType NumberOfNodes = geom.PointsNumber();
+      const SizeType dim = geom.WorkingSpaceDimension();
 
       if(dim != geom.LocalSpaceDimension()) {
         KRATOS_THROW_ERROR(std::logic_error,"VerifyStrainExactness can not be used if LocalSpaceDimension and WorkingSpaceDimension do not coincide ",GetGeometryName(geom) );
@@ -249,7 +265,7 @@ namespace Testing {
         KRATOS_ERROR << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " -- the integration method is not supported " << std::endl;
       } else {
         // Charlie: Shouldn't this be initialized for dim = 1?
-        unsigned int strain_size = 1;
+        SizeType strain_size = 1;
 
         if(dim == 2) {
           strain_size = 3;
@@ -261,9 +277,9 @@ namespace Testing {
         Matrix MatrixA(dim,dim);
         Vector VectorB(dim);
 
-        for(unsigned int i=0; i<dim; i++) {
+        for(SizeType i=0; i<dim; i++) {
           VectorB[i]=i*i+0.567; //arbitrary values
-          for(unsigned int j=0; j<dim; j++) {
+          for(SizeType j=0; j<dim; j++) {
             MatrixA(i,j)=i*j + 0.12345; //initialization fo the values of this matrix is arbitrary
           }
         }
@@ -288,7 +304,7 @@ namespace Testing {
         double DetJ0;
         Matrix B;
         Matrix DN_DX;
-        Vector displacements(dim*number_of_nodes);
+        Vector displacements(dim*NumberOfNodes);
 
         const Element::GeometryType::ShapeFunctionsGradientsType& DN_De = geom.ShapeFunctionsLocalGradients( ThisMethod );
         const Matrix& Ncontainer = geom.ShapeFunctionsValues( ThisMethod );
@@ -304,10 +320,10 @@ namespace Testing {
         geom.InverseOfJacobian(Jinv, ThisMethod);
 
         bool succesful = true;
-        for(unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+        for(SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
           // Check that shape functions sum to 1
           double sum = 0.0;
-          for(unsigned int k = 0; k<number_of_nodes; k++) {
+          for(SizeType k = 0; k<NumberOfNodes; k++) {
             sum += Ncontainer(PointNumber,k);
           }
 
@@ -332,22 +348,22 @@ namespace Testing {
             KRATOS_ERROR << " norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) = " << norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) <<std::endl;
           }
 
-          CalculateB(B, DN_DX, number_of_nodes, dim);
+          CalculateB(B, DN_DX, NumberOfNodes, dim);
 
           // Calculate a displacement_field which varies linearly in the space
-          for(unsigned int i=0; i<number_of_nodes; i++) {
+          for(SizeType i=0; i<NumberOfNodes; i++) {
             const array_1d<double,3>& coords = geom[i].Coordinates();
             Vector disp(dim);
 
-            for(unsigned int k=0; k<dim; k++) {
+            for(SizeType k=0; k<dim; k++) {
               disp[k] = VectorB[k];
-              for(unsigned int l=0; l<dim; l++) {
+              for(SizeType l=0; l<dim; l++) {
                 disp[k] += MatrixA(k,l)*coords[l] ;
               }
             }
 
             // Vector disp = prod(MatrixA,) + VectorB;
-            for(unsigned int k=0; k<dim; k++) {
+            for(SizeType k=0; k<dim; k++) {
               displacements[i*dim+k] = disp[k];
             }
           }

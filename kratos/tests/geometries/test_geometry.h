@@ -8,6 +8,8 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//                   Vicente Mataix Ferrandiz
+//                   Riccardo Rossi
 //
 //
 
@@ -27,6 +29,12 @@
 
 namespace Kratos {
 namespace Testing {
+
+    // Adding some typedef
+    typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
 
     constexpr double EPSILON = std::numeric_limits<double>::epsilon();
     constexpr double TOLERANCE = 1e-6;
@@ -52,48 +60,90 @@ namespace Testing {
     /// Auxiliar check functions (from geometry_tester.h)
     /// - All this functions should probably me moved somewhere else.
 
+    void GenerateNodes(ModelPart& rModelPart)
+    {
+        //create a cloud of 27 nodes, to be used in testing the geometries, so that 1 10 19 are on the same vertical
+        //side has a lenght 0f 2.0/3.0
+        //  25  26  27
+        // 22  23  24
+        //19--20--21
+        //|  16--17--18
+        //| 13  14  15
+        //10--11--12
+        //| 7---8---9
+        //|4   5   6
+        //1---2---3
+
+        const double dx = 1.0/3.0;
+        const double dy = 1.0/3.0;
+        const double dz = 1.0/3.0;
+        std::size_t counter = 1;
+        for(IndexType k=0; k<3; k++) {
+            for(IndexType j=0; j<3; j++) {
+                for(IndexType i=0; i<3; i++) {
+                    rModelPart.CreateNewNode(counter++, i*dx, j*dy,k*dz);
+                }
+            }
+        }
+    }
+
     /** Gets the corresponding string of the integration method provided.
      * Gets the corresponding string of the integration method provided.
-     * @param  geom       Geometry that is used for nothing
+     * @param  ThisGeometry       Geometry that is used for nothing
      * @param  ThisMethod Input Integration method
      * @return            String with the name of the input integration method
      */
-    std::string GetIntegrationName(Geometry<Node<3>>& geom, Geometry<Node<3>>::IntegrationMethod ThisMethod);
+    std::string GetIntegrationName(
+        GeometryType& ThisGeometry,
+        GeometryType::IntegrationMethod ThisMethod
+        );
 
     /** Gets the corresponding string of the geometry name.
      * Gets the corresponding string of the geometry name.
-     * @param  geom Input Geometry
+     * @param  ThisGeometry Input Geometry
      * @return      String corresponding to the name of the input geometry
      */
-    std::string GetGeometryName(Geometry< Node<3> >& geom);
+    std::string GetGeometryName(GeometryType& geom);
 
     /** Computes the linear strain matrix.
      * Computes the linear strain matrix which is useful to verify that
      * a constant strain can be correctly reproduced
      * @param B               [description]
      * @param DN_DX           [description]
-     * @param number_of_nodes Nuber of nodes of the geometry
-     * @param dimension       Dimension (i.e. 1, 2 or 3)
+     * @param NumberOfNodes   Number of nodes of the geometry
+     * @param Dimension       Dimension (i.e. 1, 2 or 3)
      */
-    void CalculateB(Matrix& B, Matrix& DN_DX, const unsigned int number_of_nodes, const unsigned int dimension);
+    void CalculateB(
+        Matrix& B,
+        Matrix& DN_DX,
+        const SizeType NumberOfNodes,
+        const SizeType Dimension
+        );
 
     /** Verifies the area of the geometry using the integration method.
      * Verifies the area of the geometry using the integration method.
-     * @param  geom           Geometry to be tested
+     * @param  ThisGeometry           Geometry to be tested
      * @param  ThisMethod     Integration method used
      * @param  reference_area Expected area
      * @param  error_msg      Buffer to write the error message
      * @return                Area claculated using the selected integration method.
      */
-    double CalculateAreaByIntegration(Geometry<Node<3>>& geom, Geometry<Node<3> >::IntegrationMethod ThisMethod);
+    double CalculateAreaByIntegration(
+        GeometryType& ThisGeometry,
+        GeometryType::IntegrationMethod ThisMethod
+        );
+
     /** Verifies that a displacement field produces the expected strain distribution.
      * Verifies that a displacement field which varies linearly in space, produces the expected strain distribution.
      * This shall be considered a test for shape function derivatives
-     * @param geom       Geometry to be tested
+     * @param ThisGeometry       Geometry to be tested
      * @param ThisMethod Integration method used
      * @param error_msg  Buffer to write the error message
      */
-    void VerifyStrainExactness(Geometry<Node<3>>& geom,  Geometry<Node<3> >::IntegrationMethod ThisMethod);
+    void VerifyStrainExactness(
+        GeometryType& ThisGeometry,
+        GeometryType::IntegrationMethod ThisMethod
+        );
 }
 }
 
