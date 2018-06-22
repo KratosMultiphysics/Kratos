@@ -12,7 +12,7 @@ from SmallTests import NearestNeighborTest_1 as TNearestNeighborTest_1
 from SmallTests import NearestElementTest2D_1 as TNearestElementTest2D_1
 from SmallTests import MapperTests as TMapperTests
 
-
+KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 

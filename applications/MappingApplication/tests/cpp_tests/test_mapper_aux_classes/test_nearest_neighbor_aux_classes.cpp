@@ -183,6 +183,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
     NearestNeigborInterfaceInfo nearest_neighbor_info_new;
     serializer.load("nearest_neighbor_interface_info", nearest_neighbor_info_new);
 
+    KRATOS_CHECK_EQUAL(nearest_neighbor_info_new.GetLocalSystemIndex(), source_local_sys_idx);
+
     int found_id;
     nearest_neighbor_info_new.GetValue(found_id);
     KRATOS_CHECK_EQUAL(found_id, expected_id_found);

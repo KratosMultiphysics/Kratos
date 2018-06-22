@@ -29,53 +29,6 @@ using SizeType = std::size_t;
 using IndexType = std::size_t;
 
 /***********************************************************************************/
-/* Functions for internal use in this file */
-/***********************************************************************************/
-
-class MapperInterfaceInfoSerializer
-{
-
-    using InterfaceInfosContainerType = InterfaceSearchStructureMPI::MapperInterfaceInfoPointerVectorType;
-
-public:
-
-    // TODO serializer needs default constructor?
-
-    MapperInterfaceInfoSerializer(InterfaceInfosContainerType& rMapperInterfaceInfosContainer)
-        : mrInterfaceInfos(rMapperInterfaceInfosContainer) { }
-
-private:
-
-    InterfaceInfosContainerType& mrInterfaceInfos;
-
-    friend class Serializer;
-
-    virtual void save(Serializer& rSerializer) const
-    {
-        const SizeType num_ranks = mrInterfaceInfos.size();
-
-        // rSerializer.save("size", local_size);
-
-        // for(size_type i = 0 ; i < local_size ; i++)
-        //     rSerializer.save("E", mData[i]);
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        // size_type local_size;
-
-        // rSerializer.load("size", local_size);
-
-        // mData.resize(local_size);
-
-        // for(size_type i = 0 ; i < local_size ; i++)
-        //     rSerializer.load("E", mData[i]);
-    }
-
-};
-
-
-/***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
 

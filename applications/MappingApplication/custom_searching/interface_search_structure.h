@@ -82,7 +82,7 @@ public:
                                  pMapperLocalSystems,
                                  SearchSettings)
     {
-        KRATOS_WATCH("Ctor of InterfaceSearchStructure")
+        KRATOS_INFO("InterfaceSearchStructure") << "In Ctor" << std::endl;
     }
 
 
