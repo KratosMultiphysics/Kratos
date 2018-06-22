@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -814,9 +814,6 @@ public:
                             pelem->GetGeometry()[3].Set(ACTIVE);
                         }
                     }
-                    else{
-                        KRATOS_ERROR << "Cannot find connectivity nodes for element ID:" << elemItr->Id() << std::endl; 
-                    }
                 }
 		    }
         }
@@ -873,9 +870,6 @@ public:
                             pelem->GetGeometry()[6].Set(ACTIVE);
                             pelem->GetGeometry()[7].Set(ACTIVE);
                         }
-                    }
-                    else{
-                        KRATOS_ERROR << "Cannot find connectivity nodes for element ID:" << elemItr->Id() << std::endl; 
                     }
                 }
             }
