@@ -197,5 +197,53 @@ bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
     return false;
 }
 
+void MapperInterfaceInfoSerializer::save(Kratos::Serializer& rSerializer) const
+{
+    const SizeType num_ranks = mrInterfaceInfos.size();
+    rSerializer.save("size1", num_ranks);
+
+    for(IndexType i=0; i<num_ranks; ++i)
+    {
+        const SizeType size_rank = mrInterfaceInfos[i].size();
+        rSerializer.save("size2", size_rank);
+
+        for (IndexType j=0; j<size_rank; ++j)
+            rSerializer.save("E", *(mrInterfaceInfos[i][j])); // NOT serializing the shared_ptr!
+    }
+}
+
+void MapperInterfaceInfoSerializer::load(Kratos::Serializer& rSerializer)
+{
+    mrInterfaceInfos.clear(); // make sure it has no leftovers
+
+    SizeType num_ranks;
+    rSerializer.load("size1", num_ranks);
+    if (mrInterfaceInfos.size() != num_ranks)
+        mrInterfaceInfos.resize(num_ranks);
+
+    for(IndexType i=0; i<num_ranks; ++i)
+    {
+        SizeType size_rank;
+        rSerializer.load("size2", size_rank);
+
+        if (mrInterfaceInfos[i].size() != size_rank)
+            mrInterfaceInfos[i].resize(size_rank);
+
+        for (IndexType j=0; j<size_rank; ++j)
+        {
+            // first we create a new object, then we load its data
+            // this is needed bcs of the polymorphic behavior of the InterfaceInfos
+            // i.e. in order to create the correct type
+            // => the vector contains baseclass-pointers!
+            // Jordi I am quite sure that I could get around it by registering it, what do you think... TODO
+            // I think doing it manually is more efficient, which I want so I would probably leave it ...
+            // The serializer does some nasty casting when pointers are serialized...
+            // I could do a benchmark at some point but I highly doubt that the serializer is faster ...
+            mrInterfaceInfos[i][j] = mrpRefInterfaceInfo->Create();
+            rSerializer.load("E", *(mrInterfaceInfos[i][j])); // NOT serializing the shared_ptr!
+        }
+    }
+}
+
 } // namespace MapperUtilities
 } // namespace Kratos.
