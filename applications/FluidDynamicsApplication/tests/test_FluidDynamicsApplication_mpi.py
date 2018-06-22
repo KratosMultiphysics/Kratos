@@ -6,6 +6,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 try:
     import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.MetisApplication as MetisApplication
+    import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 except ImportError:
     raise Exception("KratosMPI could not be imported!")
 
