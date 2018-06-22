@@ -264,7 +264,6 @@ public:
             if (LodeAngle > 0.0) Aux = -1.0;
             c2 = 0.5*CFL*(K1*Root3 + Aux*K2*SinPhi/Root3);
         }
-
         noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }
 

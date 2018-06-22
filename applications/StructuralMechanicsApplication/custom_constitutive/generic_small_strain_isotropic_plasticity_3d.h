@@ -223,9 +223,11 @@ public:
             // Aux value Remove TODO
             this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
 
-            // this->CalculateTangentTensor(rValues); // this modifies the C
-            // TangentTensor = rValues.GetConstitutiveMatrix();
-			TangentTensor = C;
+            this->CalculateTangentTensor(rValues); // this modifies the C
+            TangentTensor = rValues.GetConstitutiveMatrix();
+			//TangentTensor = C;
+            KRATOS_WATCH(C)
+            KRATOS_WATCH(TangentTensor)
         }
     } // End CalculateMaterialResponseCauchy
 

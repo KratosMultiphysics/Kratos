@@ -72,8 +72,14 @@ public:
         ConstitutiveLaw* pConstitutiveLaw
     )
     {
+        // Converged values to be storaged
         const Vector StrainVectorGP = rValues.GetStrainVector();
         const Vector StressVectorGP = rValues.GetStressVector();
+
+        //const double PlasticDissipation = pConstitutiveLaw->GetPlasticDissipation();
+        //const double Threshold = pConstitutiveLaw->GetThreshold();
+        //const Vector PlasticStrain = pConstitutiveLaw->GetPlasticStrain();
+
 
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
         TangentTensor.clear();
@@ -98,6 +104,11 @@ public:
             noalias(PerturbedStrain) = StrainVectorGP;
             noalias(PerturbedIntegratedStress) = StressVectorGP;
         }
+
+        // reset the internal variables to the initial ones
+        //pConstitutiveLaw->SetThreshold(Threshold);
+        //pConstitutiveLaw->SetPlasticDissipation(PlasticDissipation);
+        //pConstitutiveLaw->SetPlasticStrain(PlasticStrain);
     }
 
     static void CalculatePerturbation(

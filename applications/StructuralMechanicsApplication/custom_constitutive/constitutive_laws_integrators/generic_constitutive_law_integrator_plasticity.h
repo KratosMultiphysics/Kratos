@@ -164,10 +164,8 @@ public:
             noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; 
             noalias(PlasticStrain) += PlasticStrainIncrement; 
             noalias(DS) = prod(C, PlasticStrainIncrement); 
-            noalias(DSigma) -= DS; 
-            //noalias(PredictiveStressVector) -= DSigma; 
+            //noalias(DSigma) -= DS; 
 			noalias(PredictiveStressVector) -= DS;
-
 
             CalculatePlasticParameters(PredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
@@ -180,7 +178,7 @@ public:
 			 //KRATOS_WATCH(DS)
 			 //KRATOS_WATCH(UniaxialStress)
 			 //KRATOS_WATCH(Gflux)
-    //         KRATOS_WATCH(Fflux)
+             //KRATOS_WATCH(Fflux)
 			 //KRATOS_WATCH(PlasticStrainIncrement)
 			 //KRATOS_WATCH(PlasticStrain)
 			 //KRATOS_WATCH(PlasticConsistencyFactorIncrement)
@@ -467,7 +465,10 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        //const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        double InitialThreshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
+
         rEquivalentStressThreshold = InitialThreshold * std::sqrt(1.0 - PlasticDissipation);
         rSlope = -0.5*(std::pow(InitialThreshold, 2) / (rEquivalentStressThreshold));
     }
@@ -490,7 +491,10 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        //const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        double InitialThreshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
+
         rEquivalentStressThreshold = InitialThreshold * (1.0 - PlasticDissipation);
         rSlope = -0.5*InitialThreshold;
     }
@@ -513,9 +517,12 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];  // sikma
+        //const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];  // sikma
+        double InitialThreshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
         const double UltimateStress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
         const double MaxStressPosition = rMaterialProperties[MAXIMUM_STRESS_POSITION];  // cappi
+        
         if (PlasticDissipation < 1.0) {
             const double Ro = std::sqrt(1.0 - InitialThreshold / UltimateStress);
             double Alpha = std::log((1.0 - (1.0 - Ro)*(1.0 - Ro)) / ((3.0 - Ro)*(1.0 + Ro)*MaxStressPosition));
