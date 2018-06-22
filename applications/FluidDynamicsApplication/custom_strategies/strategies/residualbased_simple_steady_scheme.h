@@ -123,6 +123,17 @@ public:
     KRATOS_CATCH("");
   }
 
+  int Check(ModelPart& rModelPart) override
+  {
+    // Ensure that OSS_SWITCH is initialized. This will prevent race conditions when we read it in a parallel region later.
+    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    if (!r_process_info.Has(OSS_SWITCH)) {
+      r_process_info.SetValue(OSS_SWITCH,0);
+    }
+
+    return BaseType::Check(rModelPart);
+  }
+
   void CalculateSystemContributions(
       Element::Pointer rCurrentElement,
       LocalSystemMatrixType& LHS_Contribution,
@@ -135,7 +146,10 @@ public:
     rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
     Matrix Mass;
+    const int oss_switch = CurrentProcessInfo[OSS_SWITCH];
+    CurrentProcessInfo.SetValue(OSS_SWITCH,1);
     rCurrentElement->CalculateMassMatrix(Mass, CurrentProcessInfo);
+    CurrentProcessInfo.SetValue(OSS_SWITCH,oss_switch);
     Matrix SteadyLHS;
     rCurrentElement->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
     rCurrentElement->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -164,7 +178,10 @@ public:
     rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
     Matrix Mass;
+    const int oss_switch = CurrentProcessInfo[OSS_SWITCH];
+    CurrentProcessInfo.SetValue(OSS_SWITCH,1);
     rCurrentCondition->CalculateMassMatrix(Mass, CurrentProcessInfo);
+    CurrentProcessInfo.SetValue(OSS_SWITCH,oss_switch);
     Matrix SteadyLHS;
     rCurrentCondition->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
     rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);

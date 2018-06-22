@@ -94,6 +94,8 @@ def AssambleTestSuites():
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(VolumeSourceTest('validationEulerian'))
     validationSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
+    validationSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
+
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
