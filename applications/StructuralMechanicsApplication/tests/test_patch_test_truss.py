@@ -786,7 +786,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._apply_material_properties_plasticity(mp,dim,750,0.1)
         self._add_constitutive_law(mp,False)
 
-        #create nodes   
+        #create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
         mp.CreateNewNode(2,0.0,1.2,0.0)
         #add dofs
