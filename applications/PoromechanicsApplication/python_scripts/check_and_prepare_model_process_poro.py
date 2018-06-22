@@ -1,4 +1,4 @@
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.PoromechanicsApplication
 
 def Factory(settings, Model):
@@ -18,7 +18,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.body_domain_sub_sub_model_part_list = Parameters["body_domain_sub_sub_model_part_list"]
         self.loads_sub_model_part_list = Parameters["loads_sub_model_part_list"]
         self.loads_sub_sub_model_part_list = Parameters["loads_sub_sub_model_part_list"]
-        
+
     def Execute(self):
         # Construct the computing model part: a model part which contains the mesh to compute
         self.main_model_part.CreateSubModelPart(self.computing_model_part_name)
@@ -51,7 +51,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for cond in part.Conditions:
                 list_of_ids.add(cond.Id)
         computing_model_part.AddConditions(list(list_of_ids))
-        
+
         # Adding Computing Sub Sub Model Parts
         # Body - Joints
         for i in range(self.body_domain_sub_model_part_list.size()):
@@ -66,7 +66,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for elem in body_sub_model_part.Elements:
                 list_of_ids.add(elem.Id)
             body_sub_sub_model_part.AddElements(list(list_of_ids))
-        # Arc-length
+        # Arc-Length
         for i in range(self.loads_sub_model_part_list.size()):
             load_sub_model_part = self.main_model_part.GetSubModelPart(self.loads_sub_model_part_list[i].GetString())
             computing_model_part.CreateSubModelPart(self.loads_sub_sub_model_part_list[i].GetString())

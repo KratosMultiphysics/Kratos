@@ -5,17 +5,17 @@ import KratosMultiphysics
 from python_solver import PythonSolver
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("PoromechanicsApplication")
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","PoromechanicsApplication")
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 def CreateSolver(model, custom_settings):
     return UPwSolver(model, custom_settings)
 
 class UPwSolver(PythonSolver):
+    '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
     def __init__(self, model, custom_settings):
         settings = self._ValidateSettings(custom_settings)
@@ -211,6 +211,16 @@ class UPwSolver(PythonSolver):
         self.solver.FinalizeSolutionStep()
 
     def Solve(self):
+        message = "".join([
+            "Calling UPwSolver.Solve() method, which is deprecated\n",
+            "Please call the individual methods instead:\n",
+            "solver.InitializeSolutionStep()\n",
+            "solver.Predict()\n",
+            "solver.SolveSolutionStep()\n",
+            "solver.FinalizeSolutionStep()\n"]
+        )
+        KratosMultiphysics.Logger.PrintWarning("UPwSolver",message)
+
         if self.settings["clear_storage"].GetBool():
             self.Clear()
 
@@ -243,14 +253,14 @@ class UPwSolver(PythonSolver):
             "move_mesh_flag": false,
             "nodal_smoothing": false,
             "periodic_interface_conditions": false,
-            "solution_type": "Quasi-Static",
+            "solution_type": "quasi_static",
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,
             "newmark_gamma": 0.5,
             "newmark_theta": 0.5,
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
-            "strategy_type": "Newton-Raphson",
+            "strategy_type": "newton_raphson",
             "convergence_criterion": "Displacement_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -370,7 +380,7 @@ class UPwSolver(PythonSolver):
             theta = self.settings["newmark_theta"].GetDouble()
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
-            if(solution_type == "Quasi-Static"):
+            if(solution_type == "quasi_static"):
                 if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
                     scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
@@ -419,7 +429,7 @@ class UPwSolver(PythonSolver):
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
 
-        if strategy_type == "Newton-Raphson":
+        if strategy_type == "newton_raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
@@ -427,7 +437,7 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("body_domain_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
                 self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
-                solver = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.computing_model_part,
+                solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
                                                                                self.linear_solver,
                                                                                self.convergence_criterion,
@@ -438,7 +448,7 @@ class UPwSolver(PythonSolver):
                                                                                reform_step_dofs,
                                                                                move_mesh_flag)
             else:
-                solver = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.computing_model_part,
+                solving_strategy = KratosPoro.PoromechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                        self.scheme,
                                                                        self.linear_solver,
                                                                        self.convergence_criterion,
@@ -460,7 +470,7 @@ class UPwSolver(PythonSolver):
                 self.strategy_params.AddValue("body_domain_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
                 self.strategy_params.AddValue("characteristic_length",self.settings["characteristic_length"])
                 self.strategy_params.AddValue("search_neighbours_step",self.settings["search_neighbours_step"])
-                solver = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.computing_model_part,
+                solving_strategy = KratosPoro.PoromechanicsRammArcLengthNonlocalStrategy(self.computing_model_part,
                                                                                self.scheme,
                                                                                self.linear_solver,
                                                                                self.convergence_criterion,
@@ -471,7 +481,7 @@ class UPwSolver(PythonSolver):
                                                                                reform_step_dofs,
                                                                                move_mesh_flag)
             else:
-                solver = KratosPoro.PoromechanicsRammArcLengthStrategy(self.computing_model_part,
+                solving_strategy = KratosPoro.PoromechanicsRammArcLengthStrategy(self.computing_model_part,
                                                                        self.scheme,
                                                                        self.linear_solver,
                                                                        self.convergence_criterion,
@@ -482,7 +492,7 @@ class UPwSolver(PythonSolver):
                                                                        reform_step_dofs,
                                                                        move_mesh_flag)
 
-        return solver
+        return solving_strategy
 
     def _CheckConvergence(self):
 

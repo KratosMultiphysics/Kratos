@@ -265,7 +265,7 @@ class FracturePropagationUtility:
         self.PropagationUtility.MappingModelParts(self.FracturesData,main_model_part_old,main_model_part,self.move_mesh_flag)
 
         # set ARC_LENGTH_LAMBDA and ARC_LENGTH_RADIUS_FACTOR and update loads
-        if ProjectParameters["solver_settings"]["strategy_type"].GetString() == "Arc-Length":
+        if ProjectParameters["solver_settings"]["strategy_type"].GetString() == "arc_length":
             main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_LAMBDA, main_model_part_old.ProcessInfo[KratosPoro.ARC_LENGTH_LAMBDA])
             main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_RADIUS_FACTOR, main_model_part_old.ProcessInfo[KratosPoro.ARC_LENGTH_RADIUS_FACTOR])
             solver._UpdateLoads()

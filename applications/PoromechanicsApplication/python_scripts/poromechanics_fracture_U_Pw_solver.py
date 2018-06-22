@@ -40,14 +40,14 @@ class FractureUPwSolver(object):
             "move_mesh_flag": false,
             "nodal_smoothing": false,
             "periodic_interface_conditions": false,
-            "solution_type": "Quasi-Static",
+            "solution_type": "quasi_static",
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,
             "newmark_gamma": 0.5,
             "newmark_theta": 0.5,
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
-            "strategy_type": "Newton-Raphson",
+            "strategy_type": "newton_raphson",
             "convergence_criterion": "Displacement_criterion",
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
@@ -317,7 +317,7 @@ class FractureUPwSolver(object):
             theta = self.settings["newmark_theta"].GetDouble()
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
-            if(solution_type == "Quasi-Static"):
+            if(solution_type == "quasi_static"):
                 if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
                     scheme = KratosPoro.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
@@ -366,7 +366,7 @@ class FractureUPwSolver(object):
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
 
-        if strategy_type == "Newton-Raphson":
+        if strategy_type == "newton_raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])

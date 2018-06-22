@@ -5,12 +5,11 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+KratosMultiphysics.CheckRegisteredApplications("PoromechanicsApplication","MetisApplication","TrilinosApplication")
 
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
 # Import base class file
@@ -37,10 +36,10 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
     def ImportModelPart(self):
         # Construct the Trilinos import model part utility
         import trilinos_import_model_part_utility
-        self.TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
 
-        # Execute the Metis partitioning and reading
-        self.TrilinosModelPartImporter.ExecutePartitioningAndReading()
+        ## Execute the Metis partitioning and reading
+        self.trilinos_model_part_importer.ImportModelPart()
 
     def PrepareModelPart(self):
         super(MPIUPwSolver, self).PrepareModelPart()
@@ -49,7 +48,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosPoro.NODAL_SMOOTHING, False)
 
         # Construct the communicators
-        self.TrilinosModelPartImporter.CreateCommunicators()
+        self.trilinos_model_part_importer.CreateCommunicators()
 
         self.print_on_rank_zero("MPIUPwSolver: ", "Model reading finished.")
 
@@ -133,7 +132,7 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
             theta = self.settings["newmark_theta"].GetDouble()
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
-            if(solution_type == "Quasi-Static"):
+            if(solution_type == "quasi_static"):
                 if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
                     scheme = KratosPoro.TrilinosNewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
@@ -181,9 +180,9 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
 
-        if strategy_type == "Newton-Raphson":
+        if strategy_type == "newton_raphson":
             self.main_model_part.ProcessInfo.SetValue(KratosPoro.IS_CONVERGED, True)
-            solver = TrilinosApplication.TrilinosNewtonRaphsonStrategy(self.main_model_part,
+            solving_strategy = TrilinosApplication.TrilinosNewtonRaphsonStrategy(self.main_model_part,
                                                                        self.scheme,
                                                                        self.linear_solver,
                                                                        self.convergence_criterion,
@@ -194,6 +193,6 @@ class MPIUPwSolver(poromechanics_U_Pw_solver.UPwSolver):
                                                                        move_mesh_flag
                                                                        )
         else:
-            raise Exception("Apart from Newton-Raphson, other strategy_type are not available.")
+            raise Exception("Apart from newton_raphson, other strategy_type are not available.")
 
-        return solver
+        return solving_strategy

@@ -173,7 +173,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Body_Part
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+    if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
         puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings,"
         ## loads_sub_model_part_list
         set PutStrings \[
