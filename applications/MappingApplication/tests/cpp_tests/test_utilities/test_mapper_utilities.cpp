@@ -73,6 +73,11 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingAppli
     KRATOS_CHECK_DOUBLE_EQUAL(bbox[5], -8.3);
 }
 
+double GetBBoxValue(const int Index, const double Factor, const double Offset)
+{
+    return static_cast<double>(Index)*Factor - Offset;
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappingApplicationSerialTestSuite)
 {
     std::vector<double> bboxes_wrong_size(5);
@@ -82,14 +87,14 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappi
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
-    const std::size_t num_entries = 24;
+    const int num_entries = 24;
     std::vector<double> bboxes(num_entries);
 
     const double factor = 1.2589;
     const double offset = 8.4;
 
-    for (std::size_t i=0; i<num_entries; ++i)
-        bboxes[i] = i*factor - offset;
+    for (int i=0; i<num_entries; ++i)
+        bboxes[i] = GetBBoxValue(i, factor, offset);
 
     const double tolerance = 5.478;
 
@@ -97,11 +102,11 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappi
                                                        tolerance,
                                                        bboxes_with_tol);
 
-    for (std::size_t i=0; i<num_entries; i+=2)
-        KRATOS_CHECK_DOUBLE_EQUAL(bboxes_with_tol[i], (i*factor-offset + tolerance));
+    for (int i=0; i<num_entries; i+=2)
+        KRATOS_CHECK_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) + tolerance), 1e-12);
 
-    for (std::size_t i=1; i<num_entries; i+=2)
-        KRATOS_CHECK_DOUBLE_EQUAL(bboxes_with_tol[i], (i*factor-offset - tolerance));
+    for (int i=1; i<num_entries; i+=2)
+        KRATOS_CHECK_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) - tolerance), 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosMappingApplicationSerialTestSuite)
@@ -253,9 +258,6 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     r_info_3->GetValue(neighbor_dist);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
 }
-
-
-
 
 }  // namespace Testing
 }  // namespace Kratos
