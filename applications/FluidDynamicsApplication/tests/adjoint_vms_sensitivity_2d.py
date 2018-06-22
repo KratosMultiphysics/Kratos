@@ -40,16 +40,16 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def _remove_file(self, file_path):
+    def _removeFile(self, file_path):
         if os.path.isfile(file_path):
             os.remove(file_path)
 
-    def _remove_h5_files(self, model_part_name):
+    def _removeH5Files(self, model_part_name):
         for name in os.listdir():
             if name.find(model_part_name) == 0:
-                self._remove_file(name)
+                self._removeFile(name)
 
-    def _read_nodal_coordinates(self,node_id,model_part_file_name):
+    def _readNodalCoordinates(self,node_id,model_part_file_name):
         with open(model_part_file_name + '.mdpa', 'r') as model_part_file:
             lines = model_part_file.readlines()
         lines = lines[lines.index('Begin Nodes\n'):lines.index('End Nodes\n')]
@@ -59,7 +59,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             raise RuntimeError('Error parsing file ' + model_part_file_name)
         return [float(components[i]) for i in range(1,4)]
 
-    def _write_nodal_coordinates(self,node_id,coords,model_part_file_name):
+    def _writeNodalCoordinates(self,node_id,coords,model_part_file_name):
         with open(model_part_file_name + '.mdpa', 'r') as model_part_file:
             lines = model_part_file.readlines()
         node_lines = lines[lines.index('Begin Nodes\n'):lines.index('End Nodes\n')]
@@ -97,47 +97,47 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         drag = direction[0] * dx + direction[1] * dy + direction[2] * dz
         return drag
 
-    def _compute_finite_difference_drag_sensitivity(self,node_ids,step_size,model_part_file_name,drag_direction,drag_file_name):
+    def _computeFiniteDifferenceDragSensitivity(self,node_ids,step_size,model_part_file_name,drag_direction,drag_file_name):
         sensitivity = []
         # unperturbed drag
         self.solve(model_part_file_name)
         drag0 = self._get_time_averaged_drag(drag_direction,drag_file_name)
         for node_id in node_ids:
             node_sensitivity = []
-            coord = self._read_nodal_coordinates(node_id,model_part_file_name)
+            coord = self._readNodalCoordinates(node_id,model_part_file_name)
             # X + h
             perturbed_coord = [coord[0] + step_size, coord[1], coord[2]]
-            self._write_nodal_coordinates(node_id,perturbed_coord,model_part_file_name)
+            self._writeNodalCoordinates(node_id,perturbed_coord,model_part_file_name)
             self.solve(model_part_file_name)
             drag = self._get_time_averaged_drag(drag_direction,drag_file_name)
             node_sensitivity.append((drag - drag0) / step_size)
             # Y + h
             perturbed_coord = [coord[0], coord[1] + step_size, coord[2]]
-            self._write_nodal_coordinates(node_id,perturbed_coord,model_part_file_name)
+            self._writeNodalCoordinates(node_id,perturbed_coord,model_part_file_name)
             self.solve(model_part_file_name)
             drag = self._get_time_averaged_drag(drag_direction,drag_file_name)
             node_sensitivity.append((drag - drag0) / step_size)
             sensitivity.append(node_sensitivity)
             # return mdpa file to unperturbed state
-            self._write_nodal_coordinates(node_id,coord,model_part_file_name)
+            self._writeNodalCoordinates(node_id,coord,model_part_file_name)
         return sensitivity
 
-    def _read_parameters(self, parameter_file_name):
+    def _readParameters(self, parameter_file_name):
         with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
             project_parameters = Parameters(parameter_file.read())
             parameter_file.close()
         return project_parameters
 
-    def _create_fluid_test(self, parameter_file_name):
-        test = FluidDynamicsAnalysis(Model(), self._read_parameters(parameter_file_name))
+    def _createFluidTest(self, parameter_file_name):
+        test = FluidDynamicsAnalysis(Model(), self._readParameters(parameter_file_name))
         return test
 
-    def _create_adjoint_test(self, parameter_file_name):
-        test = AdjointFluidAnalysis(Model(), self._read_parameters(parameter_file_name))
+    def _createAdjointTest(self, parameter_file_name):
+        test = AdjointFluidAnalysis(Model(), self._readParameters(parameter_file_name))
         return test
 
     def solve(self, parameter_file_name):
-        test = self._create_fluid_test(parameter_file_name)
+        test = self._createFluidTest(parameter_file_name)
         test.Run()
 
     def testOneElement(self):
@@ -145,7 +145,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             # solve fluid
             self.solve('AdjointVMSSensitivity2DTest/one_element_test')
             # solve adjoint
-            test = AdjointFluidAnalysis(Model(), self._read_parameters('AdjointVMSSensitivity2DTest/one_element_test_adjoint'))
+            test = AdjointFluidAnalysis(Model(), self._readParameters('AdjointVMSSensitivity2DTest/one_element_test_adjoint'))
             test.Run()
             Sensitivity = [[]]
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
@@ -153,21 +153,21 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._compute_finite_difference_drag_sensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./AdjointVMSSensitivity2DTest/one_element_test.dat')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'./AdjointVMSSensitivity2DTest/one_element_test.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
-            self._remove_h5_files("MainModelPart")
-            self._remove_file("./AdjointVMSSensitivity2DTest/one_element_test.dat")
-            self._remove_file("./AdjointVMSSensitivity2DTest/one_element_test.time")
-            self._remove_file("./one_element.post.bin")
-            self._remove_file("./tests.post.lst")
+            self._removeH5Files("MainModelPart")
+            self._removeFile("./AdjointVMSSensitivity2DTest/one_element_test.dat")
+            self._removeFile("./AdjointVMSSensitivity2DTest/one_element_test.time")
+            self._removeFile("./one_element.post.bin")
+            self._removeFile("./tests.post.lst")
 
     def testCylinder(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # solve fluid
             self.solve('AdjointVMSSensitivity2DTest/cylinder_test')
             # solve adjoint
-            test = self._create_adjoint_test('AdjointVMSSensitivity2DTest/cylinder_test_adjoint')
+            test = self._createAdjointTest('AdjointVMSSensitivity2DTest/cylinder_test_adjoint')
             test.Run()
             Sensitivity = [[]]
             Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
@@ -175,18 +175,18 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._compute_finite_difference_drag_sensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/cylinder_test',[1.0,0.0,0.0],'./AdjointVMSSensitivity2DTest/cylinder_test.dat')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/cylinder_test',[1.0,0.0,0.0],'./AdjointVMSSensitivity2DTest/cylinder_test.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
-            self._remove_h5_files("MainModelPart")
-            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test.dat")
-            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test.time")
-            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_probe1.dat")
-            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_probe2.dat")
-            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe1.dat")
-            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2.dat")
-            self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3.dat")
-            self._remove_file("./cylinder_test.post.bin")
+            self._removeH5Files("MainModelPart")
+            self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test.dat")
+            self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test.time")
+            self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test_probe1.dat")
+            self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test_probe2.dat")
+            self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe1.dat")
+            self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2.dat")
+            self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3.dat")
+            self._removeFile("./cylinder_test.post.bin")
 
     def tearDown(self):
         pass
