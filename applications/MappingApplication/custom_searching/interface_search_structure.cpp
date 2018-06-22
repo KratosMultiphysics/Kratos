@@ -57,7 +57,7 @@ namespace Kratos
         }
     }
 
-    void InterfaceSearchStructure::FinalizeSearchIteration()
+    void InterfaceSearchStructure::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
     {
         const auto& r_mapper_interface_infos = (*mpMapperInterfaceInfosContainer)[0];
         const int num_interface_infos = r_mapper_interface_infos.size();

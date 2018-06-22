@@ -23,12 +23,15 @@
 // Project includes
 #include "includes/model_part.h"
 #include "custom_utilities/mapper_flags.h"
+#include "custom_utilities/mapper_interface_info.h"
 
 namespace Kratos
 {
 namespace MapperUtilities
 {
 
+using SizeType = std::size_t;
+using IndexType = std::size_t;
 using NodeIterator = ModelPart::NodeIterator;
 
 template< class TVarType >
@@ -116,11 +119,11 @@ GetUpdateFunction(const Kratos::Flags& rMappingOptions)
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
 inline int ComputeNumberOfNodes(ModelPart& rModelPart)
-    {
-        int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-        rModelPart.GetCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
-        return num_nodes;
-    }
+{
+    int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
+    rModelPart.GetCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
+    return num_nodes;
+}
 
 inline int ComputeNumberOfConditions(ModelPart& rModelPart)
 {
@@ -202,10 +205,92 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                               const Point& rPoint);
 
+/**
+ * @class MapperInterfaceInfoSerializer
+ * @ingroup MappingApplication
+ * @brief Helper class to serialize/deserialize a vector containing MapperInterfaceInfos
+ * @details This class serializes the vector containing the MapperInterfaceInfos (Shared Ptrs)
+ * The goal of this class is to have a more efficient/faster implementation than the
+ * one of the Serializer by avoiding the casting that is done in the serializer when pointers
+ * are serialized
+ * @TODO test the performance against the Serializer
+ * @author Philipp Bucher
+ */
+class MapperInterfaceInfoSerializer
+{
+public:
+
+    using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
+
+    using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
+    using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
+
+
+    MapperInterfaceInfoSerializer(MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
+                                  MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+        : mrInterfaceInfos(rMapperInterfaceInfosContainer)
+        , mrpRefInterfaceInfo(rpRefInterfaceInfo)
+        { }
+
+private:
+
+    MapperInterfaceInfoPointerVectorType& mrInterfaceInfos;
+    MapperInterfaceInfoUniquePointerType& mrpRefInterfaceInfo;
+
+    friend class Kratos::Serializer; // Adding "Kratos::" is nedded bcs of the "MapperUtilities"-namespace
+
+    virtual void save(Kratos::Serializer& rSerializer) const
+    {
+        const SizeType num_ranks = mrInterfaceInfos.size();
+        rSerializer.save("size1", num_ranks);
+
+        for(IndexType i=0; i<num_ranks; ++i)
+        {
+            const SizeType size_rank = mrInterfaceInfos[i].size();
+            rSerializer.save("size2", size_rank);
+
+            for (IndexType j=0; j<size_rank; ++j)
+                rSerializer.save("E", *(mrInterfaceInfos[i][j])); // NOT serializing the shared_ptr!
+        }
+    }
+
+    virtual void load(Kratos::Serializer& rSerializer)
+    {
+        mrInterfaceInfos.clear(); // make sure it has no leftovers
+
+        SizeType num_ranks;
+        rSerializer.load("size1", num_ranks);
+        if (mrInterfaceInfos.size() != num_ranks)
+            mrInterfaceInfos.resize(num_ranks);
+
+        for(IndexType i=0; i<num_ranks; ++i)
+        {
+            SizeType size_rank;
+            rSerializer.load("size2", size_rank);
+
+            if (mrInterfaceInfos[i].size() != size_rank)
+                mrInterfaceInfos[i].resize(size_rank);
+
+            for (IndexType j=0; j<size_rank; ++j)
+            {
+                // first we create a new object, then we load its data
+                // this is needed bcs of the polymorphic behavior of the InterfaceInfos
+                // i.e. in order to create the correct type
+                // => the vector contains baseclass-pointers!
+                // Jordi I am quite sure that I could get around it by registering it, what do you think... TODO
+                // I think doing it manually is more efficient, which I want so I would probably leave it ...
+                // The serializer does some nasty casting when pointers are serialized...
+                // I could do a benchmark at some point but I highly doubt that the serializer is faster ...
+                mrInterfaceInfos[i][j] = mrpRefInterfaceInfo->Create();
+                rSerializer.load("E", *(mrInterfaceInfos[i][j])); // NOT serializing the shared_ptr!
+            }
+        }
+    }
+
+};
+
 }  // namespace MapperUtilities.
 
 }  // namespace Kratos.
 
 #endif // KRATOS_MAPPER_UTILITIES_H_INCLUDED  defined
-
-

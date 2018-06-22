@@ -221,7 +221,7 @@ namespace Kratos
 
         ConductLocalSearch();
 
-        FinalizeSearchIteration();
+        FinalizeSearchIteration(rpInterfaceInfo);
     }
 
     bool InterfaceSearchStructureBase::AllNeighborsFound(const Communicator& rComm) const

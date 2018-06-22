@@ -162,7 +162,7 @@ protected:
                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                           InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
 
-    void FinalizeSearchIteration() override;
+    void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo) override;
 
 
 

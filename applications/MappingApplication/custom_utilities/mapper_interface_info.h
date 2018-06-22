@@ -142,6 +142,9 @@ public:
                                                 const IndexType SourceLocalSystemIndex,
                                                 const IndexType SourceRank=0) const = 0;
 
+    // needed for serialization
+    virtual MapperInterfaceInfo::Pointer Create() const = 0;
+
     IndexType GetLocalSystemIndex() const { return mSourceLocalSystemIndex; }
 
     IndexType GetSourceRank() const { return mSourceRank; }

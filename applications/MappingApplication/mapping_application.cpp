@@ -114,5 +114,7 @@ void KratosMappingApplication::Register()
 
     // TODO do I have to register the MapperInterfaceInfos in the serializer?
     // seems to also work without ...
+    // => not needed bcs I do not use the serializer for serializing pointers
+    // which is the only thing one needs the registration for
 }
 }  // namespace Kratos.

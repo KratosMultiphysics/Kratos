@@ -174,7 +174,7 @@ void InterfaceSearchStructureMPI::PrepareSearchIteration(const Kratos::Flags& rO
     KRATOS_INFO("InterfaceSearchStructureMPI") << "Leaving PrepareSearchIteration" << std::endl;
 }
 
-void InterfaceSearchStructureMPI::FinalizeSearchIteration()
+void InterfaceSearchStructureMPI::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
 {
     /*
     1. Check with which Partitions I have to communicate

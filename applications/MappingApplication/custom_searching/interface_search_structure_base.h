@@ -208,7 +208,7 @@ protected:
                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                         InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) = 0;
 
-    virtual void FinalizeSearchIteration() = 0;
+    virtual void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo) = 0;
 
     ///@}
     ///@name Protected  Access
