@@ -24,31 +24,31 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3>                            PointType;
-    typedef Node<3>::Pointer                PointPtrType;
-    typedef Prism3D6<PointType>          TetGeometryType;
-    typedef TetGeometryType::Pointer  TetGeometryPtrType;
+    typedef Node<3>                                PointType;
+    typedef Node<3>::Pointer                    PointPtrType;
+    typedef Prism3D6<PointType>            PrismGeometryType;
+    typedef PrismGeometryType::Pointer  PrismGeometryPtrType;
 
     /** Generates a sample Prism3D6.
      * Generates a prism defined by three random points in the space.
      * @return  Pointer to a Prism3D6
      */
-    TetGeometryPtrType GeneratePrism3D6(
+    PrismGeometryPtrType GeneratePrism3D6(
         PointPtrType PointA = GeneratePoint<PointType>(),
         PointPtrType PointB = GeneratePoint<PointType>(),
         PointPtrType PointC = GeneratePoint<PointType>(),
         PointPtrType PointD = GeneratePoint<PointType>(),
         PointPtrType PointE = GeneratePoint<PointType>(),
         PointPtrType PointF = GeneratePoint<PointType>()) {
-      return TetGeometryPtrType(new TetGeometryType(PointA, PointB, PointC, PointD, PointE, PointF));
+      return PrismGeometryPtrType(new PrismGeometryType(PointA, PointB, PointC, PointD, PointE, PointF));
     }
 
     /** Generates a sample Prism3D6.
      * Generates a trirectangular prism on the origin with positive volume and side 1.
      * @return  Pointer to a Prism3D6
      */
-    TetGeometryPtrType GenerateRegularPrism3D6() {
-      return TetGeometryPtrType(new TetGeometryType(
+    PrismGeometryPtrType GenerateRegularPrism3D6() {
+      return PrismGeometryPtrType(new PrismGeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
         GeneratePoint<PointType>(1.0, 0.0, 0.0),
         GeneratePoint<PointType>(0.0, 1.0, 0.0),
