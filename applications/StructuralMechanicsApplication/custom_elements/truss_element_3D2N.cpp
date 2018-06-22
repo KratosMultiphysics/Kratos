@@ -82,7 +82,7 @@ void TrussElement3D2N::GetDofList(DofsVectorType &rElementalDofList,
 void TrussElement3D2N::Initialize() {
   KRATOS_TRY
   if ( GetProperties()[CONSTITUTIVE_LAW] != nullptr ) {
-        this->mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW];
+        this->mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
     }
   else
     KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
@@ -721,7 +721,7 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
   double E = 0.00;
   ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
   this->mConstitutiveLaw->CalculateValue(Values,TANGENT_MODULUS,E);
-  
+
   const double A = this->GetProperties()[CROSS_AREA];
 
   double prestress = 0.00;

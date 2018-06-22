@@ -409,6 +409,7 @@ void TotalLagrangian::CalculateStrain(Matrix const& rF,
 }
 
 void TotalLagrangian::CalculateShapeSensitivity(ShapeParameter Deriv,
+                                                Matrix& rDN_DX0,
                                                 Matrix& rDN_DX0_Deriv,
                                                 Matrix& rF_Deriv,
                                                 double& rDetJ0_Deriv,
@@ -433,6 +434,8 @@ void TotalLagrangian::CalculateShapeSensitivity(ShapeParameter Deriv,
                 rF_Deriv(i, j) +=
                     GetGeometry()[k].Coordinates()[i] * rDN_DX0_Deriv(k, j);
         }
+    for (unsigned j = 0; j < ws_dim; ++j)
+      rF_Deriv(Deriv.Direction, j) += rDN_DX0(Deriv.NodeIndex, j);
     KRATOS_CATCH("");
 }
 
@@ -517,7 +520,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
             for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
-                CalculateShapeSensitivity(deriv, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
+                CalculateShapeSensitivity(deriv, DN_DX0, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
                 CalculateGreenLagrangeStrainSensitivity(F, F_deriv, strain_tensor_deriv);
                 noalias(strain_vector_deriv) =
                     MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
@@ -531,7 +534,8 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
                 CalculateAndAddExtForceContribution(
                     rN, rCurrentProcessInfo, body_force, residual_deriv, weight_deriv);
                 for (std::size_t k = 0; k < residual_deriv.size(); ++k)
-                    rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) += residual_deriv(k);
+                    rOutput(deriv.NodeIndex * ws_dim + deriv.Direction, k) +=
+                        residual_deriv(k);
             }
         }
 
@@ -542,7 +546,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
             GetSecondDerivativesVector(acceleration);
             noalias(residual_deriv) = -prod(M_deriv, acceleration);
             for (std::size_t k = 0; k < residual_deriv.size(); ++k)
-                rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) +=
+                rOutput(deriv.NodeIndex * ws_dim + deriv.Direction, k) +=
                     residual_deriv(k);
         }
     }
