@@ -60,7 +60,8 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
     const Variable<TValueType>& rPointVariable)
 {
     // Check if there is any condition in the current partition
-    const unsigned int n_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    int n_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    rModelPart.GetCommunicator().SumAll(n_conds);
 
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_conds != 0){
@@ -98,7 +99,8 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     unsigned int MaximumIterations)
 {
     // Check if there is any condition in the current partition
-    const unsigned int n_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    int n_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    rModelPart.GetCommunicator().SumAll(n_conds);
 
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_conds != 0){
@@ -217,6 +219,7 @@ void VariableRedistributionUtility::SpecializedDistributePointValues(
         UpdateDistributionRHS<TPointNumber,TValueType>(rModelPart,rPointVariable, rDistributedVariable, mass_matrix);
 
         error_l2_norm = SolveDistributionIteration(rModelPart,rDistributedVariable);
+        rModelPart.GetCommunicator().MaxAll(error_l2_norm);
 
         // Check convergence
         iteration++;
