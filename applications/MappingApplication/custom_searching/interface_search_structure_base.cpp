@@ -217,7 +217,7 @@ namespace Kratos
                                const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
     {
-        PrepareSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
+        InitializeSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
         ConductLocalSearch();
 

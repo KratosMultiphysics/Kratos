@@ -205,6 +205,14 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                               const Point& rPoint);
 
+void FillBufferBeforeLocalSearch(BufferType& rSendBuffer,
+                                 std::vector<int>& rSendSizes,
+                                 const std::vector<double>& rBoundingBoxes);
+
+void FillBufferAfterLocalSearch();
+
+void CreateMapperInterfaceInfosFromBuffer();
+
 /**
  * @class MapperInterfaceInfoSerializer
  * @ingroup MappingApplication

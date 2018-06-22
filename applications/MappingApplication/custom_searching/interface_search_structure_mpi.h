@@ -189,7 +189,7 @@ protected:
     // This function constructs the InterfaceObjects on the Destination
     // In serial it only does it once, whereas in MPI this involves Data-Exchange!
     // Imagine a sliding interface, there the partitions might change!
-    void PrepareSearchIteration(const Kratos::Flags& rOptions,
+    void InitializeSearchIteration(const Kratos::Flags& rOptions,
                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                           InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
 
@@ -251,7 +251,7 @@ private:
     //     // SelectNeighbors(candidate_manager);
     // }
 
-    // void PrepareSearchIteration(CandidateManager& rCandidateManager, int& rMaxSendBufferSize,
+    // void InitializeSearchIteration(CandidateManager& rCandidateManager, int& rMaxSendBufferSize,
     //                       int& rMaxReceiveBufferSize, bool& rLocalSearchRequired,
     //                       GraphType& rDomainsColoredGraph, int& rMaxColors,
     //                       const bool LastIteration)
@@ -306,7 +306,7 @@ private:
     //     // GraphType domains_colored_graph;
     //     // int max_colors;
 
-    //     // PrepareSearchIteration(rCandidateManager, max_send_buffer_size,
+    //     // InitializeSearchIteration(rCandidateManager, max_send_buffer_size,
     //     //                  max_receive_buffer_size, local_search_required,
     //     //                  domains_colored_graph, max_colors, LastIteration);
 

@@ -204,7 +204,7 @@ protected:
 
     virtual void FinalizeSearch();
 
-    virtual void PrepareSearchIteration(const Kratos::Flags& rOptions,
+    virtual void InitializeSearchIteration(const Kratos::Flags& rOptions,
                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                         InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) = 0;
 
