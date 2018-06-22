@@ -108,7 +108,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         ## Construct the Trilinos import model part utility
         self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        self.trilinos_model_part_importer.ExecutePartitioningAndReading()
+        self.trilinos_model_part_importer.ImportModelPart()
         ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
 
         if self._IsPrintingRank():

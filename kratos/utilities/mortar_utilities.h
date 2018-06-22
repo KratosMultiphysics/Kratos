@@ -23,7 +23,6 @@
 #include "utilities/variable_utils.h"
 #include "includes/enums.h"
 #include "includes/model_part.h"
-#include "geometries/point.h"
 #include "utilities/openmp_utils.h"
 
 namespace Kratos
@@ -438,17 +437,17 @@ public:
             // Aux coordinates
             CoordinatesArrayType aux_coords;
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
-            
+
             it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
             
-            const unsigned int number_nodes = this_geometry.PointsNumber();
+            const SizeType number_nodes = this_geometry.PointsNumber();
             
-            for (unsigned int i = 0; i < number_nodes; ++i) {
+            for (IndexType i = 0; i < number_nodes; ++i) {
                 auto& this_node = this_geometry[i];
                 aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
                 const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
                 auto& aux_normal = this_node.FastGetSolutionStepValue(NORMAL);
-                for (unsigned int index = 0; index < 3; ++index) {
+                for (IndexType index = 0; index < 3; ++index) {
                     #pragma omp atomic
                     aux_normal[index] += normal[index];
                 }
@@ -461,11 +460,29 @@ public:
 
             array_1d<double, 3>& normal = it_node->FastGetSolutionStepValue(NORMAL);
             const double norm_normal = norm_2(normal);
+
             if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
             else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
         }
     }
     
+    /**
+     * @brief It inverts the order of the nodes in the conditions of a model part in order to invert the normal
+     * @param rContainer reference to the objective container
+     */
+
+    template<class TContainerType>
+    static inline void InvertNormal(TContainerType& rContainer) {
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(rContainer.size()); ++i) {
+            auto it_cont = rContainer.begin() + i;
+            GeometryType& this_geometry = it_cont->GetGeometry();
+
+            auto& data_geom = this_geometry.GetContainer();
+            std::reverse(data_geom.begin(), data_geom.end());
+        }
+    }
+
     /**
      * @brief It calculates the matrix of coordinates of a geometry
      * @param ThisNodes The geometry to calculate

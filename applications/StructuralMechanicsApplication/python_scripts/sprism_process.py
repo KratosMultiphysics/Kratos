@@ -13,11 +13,9 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return SPRISMProcess(Model, settings["Parameters"])
 
-import python_process
+# All the processes python processes should be derived from "Process"
 
-# All the processes python processes should be derived from "python_process"
-
-class SPRISMProcess(python_process.PythonProcess):
+class SPRISMProcess(KM.Process):
     """This class is used in order to compute some pre and post process on the SPRISM solid shell elements
 
     Only the member variables listed below should be accessed directly.
@@ -41,13 +39,17 @@ class SPRISMProcess(python_process.PythonProcess):
         {
             "mesh_id"                        : 0,
             "model_part_name"                : "Structure",
-            "preprocess_shell_to_solidshell" : {
-                "element_name"              : "SolidShellElementSprism3D6N",
-                "new_constitutive_law_name" : "LinearElastic3DLaw",
-                "number_of_layers"          : 1,
-                "export_to_mdpa"            : false,
-                "output_name"               : "output",
-                "initialize_elements"       : false
+            "preprocess_shell_to_solidshell" : false,
+            "parameters_shell_to_solidshell" : {
+                "element_name"                         : "SolidShellElementSprism3D6N",
+                "new_constitutive_law_name"            : "LinearElastic3DLaw",
+                "number_of_layers"                     : 1,
+                "export_to_mdpa"                       : false,
+                "output_name"                          : "output",
+                "computing_model_part_name"            : "computing_domain",
+                "create_submodelparts_external_layers" : false,
+                "append_submodelparts_external_layers" : false,
+                "initialize_elements"                  : false
             }
         }
         """)
@@ -74,17 +76,21 @@ class SPRISMProcess(python_process.PythonProcess):
         """
 
         # We preprocess from triangle shells to SPRISM solid-shells
-        shell_to_solid_shell_parameters = KM.Parameters("""{}""")
-        shell_to_solid_shell_parameters.AddValue("element_name", self.settings["preprocess_shell_to_solidshell"]["element_name"])
-        shell_to_solid_shell_parameters.AddValue("new_constitutive_law_name", self.settings["preprocess_shell_to_solidshell"]["new_constitutive_law_name"])
-        shell_to_solid_shell_parameters.AddValue("model_part_name", self.settings["model_part_name"])
-        shell_to_solid_shell_parameters.AddValue("number_of_layers", self.settings["preprocess_shell_to_solidshell"]["number_of_layers"])
-        shell_to_solid_shell_parameters.AddValue("export_to_mdpa", self.settings["preprocess_shell_to_solidshell"]["export_to_mdpa"])
-        shell_to_solid_shell_parameters.AddValue("output_name", self.settings["preprocess_shell_to_solidshell"]["output_name"])
-        shell_to_solid_shell_parameters.AddValue("initialize_elements", self.settings["preprocess_shell_to_solidshell"]["initialize_elements"])
+        if (self.settings["preprocess_shell_to_solidshell"].GetBool() is True):
+            parameters_shell_to_solidshell = KM.Parameters("""{}""")
+            parameters_shell_to_solidshell.AddValue("element_name", self.settings["parameters_shell_to_solidshell"]["element_name"])
+            parameters_shell_to_solidshell.AddValue("new_constitutive_law_name", self.settings["parameters_shell_to_solidshell"]["new_constitutive_law_name"])
+            parameters_shell_to_solidshell.AddValue("model_part_name", self.settings["model_part_name"])
+            parameters_shell_to_solidshell.AddValue("number_of_layers", self.settings["parameters_shell_to_solidshell"]["number_of_layers"])
+            parameters_shell_to_solidshell.AddValue("export_to_mdpa", self.settings["parameters_shell_to_solidshell"]["export_to_mdpa"])
+            parameters_shell_to_solidshell.AddValue("output_name", self.settings["parameters_shell_to_solidshell"]["output_name"])
+            parameters_shell_to_solidshell.AddValue("computing_model_part_name", self.settings["parameters_shell_to_solidshell"]["computing_model_part_name"])
+            parameters_shell_to_solidshell.AddValue("create_submodelparts_external_layers", self.settings["parameters_shell_to_solidshell"]["create_submodelparts_external_layers"])
+            parameters_shell_to_solidshell.AddValue("append_submodelparts_external_layers", self.settings["parameters_shell_to_solidshell"]["append_submodelparts_external_layers"])
+            parameters_shell_to_solidshell.AddValue("initialize_elements", self.settings["parameters_shell_to_solidshell"]["initialize_elements"])
 
-        preprocess_shell_to_solidshell = SMA.TriangleShellToSolidShellProcess(self.main_model_part, shell_to_solid_shell_parameters)
-        preprocess_shell_to_solidshell.Execute()
+            preprocess_shell_to_solidshell = SMA.TriangleShellToSolidShellProcess(self.main_model_part, parameters_shell_to_solidshell)
+            preprocess_shell_to_solidshell.Execute()
 
         # We compute the neighbours
         self.sprism_neighbour_search.Execute()
