@@ -259,7 +259,7 @@ public:
             dry_prop->SetId(++last_id);
 
             // Add the new property and add them to the maps
-            mrModelPart.AddProperties(dry_prop, dry_prop->Id());
+            mrModelPart.AddProperties(dry_prop);
             mWetToDryPropertiesMap[wet_prop->Id()] = dry_prop;
             mDryToWetPropertiesMap[dry_prop->Id()] = wet_prop;
         }

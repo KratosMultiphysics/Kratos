@@ -48,7 +48,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.trilinos_model_part_importer.ImportModelPart()
         self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
-    def PrepareModel(self):
+    def PrepareModelPart(self):
         super(TrilinosMechanicalSolver, self).PrepareModelPart()
         # Construct the mpi-communicator
         self.trilinos_model_part_importer.CreateCommunicators()
