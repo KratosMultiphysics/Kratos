@@ -40,6 +40,9 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
         super(ConvectionDiffusionTransientSolver, self).__init__(main_model_part, custom_settings)
         self.print_on_rank_zero("::[ConvectionDiffusionTransientSolver]:: ", "Construction finished")
 
+    def GetMinimumBufferSize(self):
+        return 2
+
     #### Private functions ####
 
     def _create_solution_scheme(self):

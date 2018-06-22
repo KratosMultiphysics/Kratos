@@ -36,6 +36,12 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_base_solver.Conve
         super(ConvectionDiffusionStationarySolver, self).__init__(main_model_part, custom_settings)
         self.print_on_rank_zero("::[ConvectionDiffusionStationarySolver]:: ", "Construction finished")
 
+    def GetMinimumBufferSize(self):
+        if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
+            return 2
+        else:
+            return 1
+
     #### Private functions ####
 
     def _create_solution_scheme(self):
