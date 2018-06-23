@@ -17,6 +17,7 @@
 // Project includes
 
 // Include the point locator
+#include "utilities/math_utils.h"
 #include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
 
 namespace Kratos
@@ -72,12 +73,116 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
     // We initialize the values
     InitializeVariables();
 
+    // The process info
+    const ProcessInfo& process_info = mrThisModelPart.GetProcessInfo();
+
     // The list of elements
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
+        auto it_elem = elements_array.begin() + i;
 
+        auto& r_geo = it_elem->GetGeometry();
+
+        // Auxiliar values
+        const GeometryData::IntegrationMethod this_integration_method = it_elem->GetIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geo.IntegrationPoints(this_integration_method);
+        const SizeType integration_points_number = integration_points.size();
+        const SizeType number_of_nodes = r_geo.size();
+
+        // Definition of node coefficient
+        Vector node_coefficient(number_of_nodes);
+        if (integration_points_number == 1) {
+            for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                node_coefficient[i_node] = 1.0/static_cast<double>(number_of_nodes);
+            }
+        } else if (integration_points_number == number_of_nodes) {
+        } else {
+        }
+
+        // We initialize the doubles values
+        for ( const auto& i_var : mDoubleVariable) {
+            std::vector<double> aux_result;
+            it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+            for (IndexType i_gp = 0; i_gp < integration_points_number; ++i_gp) {
+                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                    if (mExtrapolateNonHistorical) r_geo[i_node].GetValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                    else r_geo[i_node].FastGetSolutionStepValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                }
+            }
+        }
+
+        // We initialize the arrays values
+        for ( const auto& i_var : mArrayVariable) {
+            std::vector<array_1d<double, 3>> aux_result;
+            it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+            for (IndexType i_gp = 0; i_gp < integration_points_number; ++i_gp) {
+                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                    if (mExtrapolateNonHistorical) r_geo[i_node].GetValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                    else r_geo[i_node].FastGetSolutionStepValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                }
+            }
+        }
+
+        // We initialize the vectors values
+        for ( const auto& i_var : mVectorVariable) {
+            std::vector<Vector> aux_result;
+            it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+            for (IndexType i_gp = 0; i_gp < integration_points_number; ++i_gp) {
+                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                    if (mExtrapolateNonHistorical) r_geo[i_node].GetValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                    else r_geo[i_node].FastGetSolutionStepValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                }
+            }
+        }
+
+        // We initialize the matrix values
+        for ( const auto& i_var : mMatrixVariable) {
+            std::vector<Matrix> aux_result;
+            it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+            for (IndexType i_gp = 0; i_gp < integration_points_number; ++i_gp) {
+                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                    if (mExtrapolateNonHistorical) r_geo[i_node].GetValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                    else r_geo[i_node].FastGetSolutionStepValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                }
+            }
+        }
+    }
+
+    // The list of nodes
+    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+
+    // We ponderate the values
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+        auto it_node = nodes_array.begin() + i;
+
+        const double coeff_coincident_node = 1.0/static_cast<double>(mCoincidentMap[it_node->Id()]);
+
+        // We initialize the doubles values
+        for ( const auto& i_var : mDoubleVariable) {
+            if (mExtrapolateNonHistorical) it_node->GetValue(i_var) /= coeff_coincident_node;
+            else it_node->FastGetSolutionStepValue(i_var) /= coeff_coincident_node;
+        }
+
+        // We initialize the arrays values
+        for ( const auto& i_var : mArrayVariable) {
+            if (mExtrapolateNonHistorical) it_node->GetValue(i_var) /= coeff_coincident_node;
+            else it_node->FastGetSolutionStepValue(i_var) /= coeff_coincident_node;
+        }
+
+        // We initialize the vectors values
+        for ( const auto& i_var : mVectorVariable) {
+            if (mExtrapolateNonHistorical) it_node->GetValue(i_var) /= coeff_coincident_node;
+            else it_node->FastGetSolutionStepValue(i_var) /= coeff_coincident_node;
+        }
+
+        // We initialize the matrix values
+        for ( const auto& i_var : mMatrixVariable) {
+            if (mExtrapolateNonHistorical) it_node->GetValue(i_var) /= coeff_coincident_node;
+            else it_node->FastGetSolutionStepValue(i_var) /= coeff_coincident_node;
+        }
     }
 }
 
