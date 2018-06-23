@@ -132,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
 
 
-    // A "NearestNeigborInterfaceInfo" is being used since "MapperInterfaceInfo" is a pure virtual class
+    // A "NearestNeighborInterfaceInfo" is being used since "MapperInterfaceInfo" is a pure virtual class
     Point coords_1(1.0, 2.45, 33.8);
     Point coords_2(10.0, 20.45, 100.0);
     Point coords_3(2.0, 2.45, -2.38);
@@ -142,13 +142,13 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     std::size_t source_local_sys_idx_3 = 8;
 
     MapperInterfaceInfoPointerType p_nearest_neighbor_info_1(
-        Kratos::make_shared<NearestNeigborInterfaceInfo>(coords_1, source_local_sys_idx_1, 0));
+        Kratos::make_shared<NearestNeighborInterfaceInfo>(coords_1, source_local_sys_idx_1, 0));
     MapperInterfaceInfoPointerType p_nearest_neighbor_info_2(
-        Kratos::make_shared<NearestNeigborInterfaceInfo>(coords_2, source_local_sys_idx_2, 0));
+        Kratos::make_shared<NearestNeighborInterfaceInfo>(coords_2, source_local_sys_idx_2, 0));
     MapperInterfaceInfoPointerType p_nearest_neighbor_info_3(
-        Kratos::make_shared<NearestNeigborInterfaceInfo>(coords_3, source_local_sys_idx_3, 0));
+        Kratos::make_shared<NearestNeighborInterfaceInfo>(coords_3, source_local_sys_idx_3, 0));
 
-    // Auxiliary objects to fill the NearestNeigborInterfaceInfos with values that can be checked afterwards
+    // Auxiliary objects to fill the NearestNeighborInterfaceInfos with values that can be checked afterwards
     auto node_1(Kratos::make_shared<Node<3>>(1, 1.0, 2.5, 30.0));
     auto node_2(Kratos::make_shared<Node<3>>(3, 10.5, 20.0, 96.8));
     auto node_3(Kratos::make_shared<Node<3>>(15, 2.3, 1.9, -2.5));

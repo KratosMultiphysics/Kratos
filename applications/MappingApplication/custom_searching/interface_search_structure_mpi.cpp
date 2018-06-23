@@ -180,7 +180,7 @@ void InterfaceSearchStructureMPI::FinalizeSearchIteration(const MapperInterfaceI
         GetBufferSizeEstimate(),
         p_interface_infos_succ_search);
 
-    auto p_ref_interface_info = rpRefInterfaceInfo->Create(); // needed to "remove" the const
+    auto p_ref_interface_info(rpRefInterfaceInfo->Create()); // needed to "remove" the const
 
     MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer_save(
         p_interface_infos_succ_search, p_ref_interface_info );

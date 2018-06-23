@@ -26,7 +26,7 @@ namespace Kratos
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void NearestNeigborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
                                                       const double NeighborDistance)
 {
     SetLocalSearchWasSuccessful();

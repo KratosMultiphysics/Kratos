@@ -46,14 +46,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class NearestNeigborInterfaceInfo : public MapperInterfaceInfo
+class NearestNeighborInterfaceInfo : public MapperInterfaceInfo
 {
 public:
 
     /// Default constructor.
-    NearestNeigborInterfaceInfo() {} // TODO needed? I think so, for serializetion...
+    NearestNeighborInterfaceInfo() {} // TODO needed? I think so, for serializetion...
 
-    NearestNeigborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
+    NearestNeighborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                 const IndexType SourceLocalSystemIndex,
                                 const IndexType SourceRank)
         : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
@@ -63,14 +63,14 @@ public:
 
     MapperInterfaceInfo::Pointer Create() const override
     {
-        return Kratos::make_shared<NearestNeigborInterfaceInfo>();
+        return Kratos::make_shared<NearestNeighborInterfaceInfo>();
     }
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                         const IndexType SourceLocalSystemIndex,
                                         const IndexType SourceRank=0) const override
     {
-        return Kratos::make_shared<NearestNeigborInterfaceInfo>(rCoordinates,
+        return Kratos::make_shared<NearestNeighborInterfaceInfo>(rCoordinates,
                                                                 SourceLocalSystemIndex,
                                                                 SourceRank);
     }
@@ -286,7 +286,7 @@ protected:
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        return Kratos::make_unique<NearestNeigborInterfaceInfo>();
+        return Kratos::make_unique<NearestNeighborInterfaceInfo>();
     }
 
     MapperLocalSystemPointer GetMapperLocalSystem() const override
