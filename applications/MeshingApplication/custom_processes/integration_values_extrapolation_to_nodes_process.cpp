@@ -111,7 +111,7 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
                 double det;
                 MathUtils<double>::InvertMatrix(shape_function_matrix, node_coefficient, det);
             } else { // TODO: Try to use the QR utility
-                KRATOS_WARNING("IntegrationValuesExtrapolationToNodesProcess") << "Number of integration points higher than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
+                KRATOS_WARNING_IF("IntegrationValuesExtrapolationToNodesProcess", mEchoLevel > 0) << "Number of integration points higher than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
                 double det;
                 MathUtils<double>::GeneralizedInvertMatrix(shape_function_matrix, node_coefficient, det);
             }
