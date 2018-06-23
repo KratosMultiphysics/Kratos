@@ -30,7 +30,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup MappingApplication
 ///@{
 
 ///@name Kratos Globals
@@ -89,7 +89,7 @@ class InterfacePreprocessor
     ///@name Operations
     ///@{
 
-    void GenerateInterfaceModelPart(const MapperLocalSystemPointer& rpLocalSystem);
+    void CreateMapperLocalSystems(const MapperLocalSystemPointer& rpLocalSystem);
 
 
     ///@}

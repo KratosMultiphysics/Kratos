@@ -33,7 +33,7 @@ namespace Kratos
     {
     }
 
-    void InterfacePreprocessor::GenerateInterfaceModelPart(const MapperLocalSystemPointer& rpLocalSystem)
+    void InterfacePreprocessor::CreateMapperLocalSystems(const MapperLocalSystemPointer& rpLocalSystem)
     {
         mpMapperLocalSystems->clear();
 
@@ -65,7 +65,8 @@ namespace Kratos
         const std::size_t num_nodes = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
         const auto nodes_ptr_begin = mrModelPartDestination.GetCommunicator().LocalMesh().Nodes().ptr_begin();
 
-        mpMapperLocalSystems->resize(num_nodes);
+        if (mpMapperLocalSystems->size() != num_nodes)
+            mpMapperLocalSystems->resize(num_nodes);
 
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(num_nodes); ++i)

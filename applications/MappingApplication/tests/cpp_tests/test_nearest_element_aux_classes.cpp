@@ -52,6 +52,11 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Approximation, KratosMappi
     KRATOS_CHECK(false); // TODO implement test!
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_NothingFound, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_CHECK(false); // TODO implement test!
+}
+
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappingApplicationSerialTestSuite)
 {
     KRATOS_CHECK(false); // TODO implement test!

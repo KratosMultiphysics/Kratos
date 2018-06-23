@@ -79,7 +79,7 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags Mappin
     const MapperLocalSystemPointer p_ref_local_system = GetMapperLocalSystem();
 
     KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
-    mpInterfacePreprocessor->GenerateInterfaceModelPart(p_ref_local_system);
+    mpInterfacePreprocessor->CreateMapperLocalSystems(p_ref_local_system);
 
     BuildMappingMatrix(MappingOptions);
 }
