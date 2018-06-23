@@ -49,7 +49,7 @@ namespace Kratos
         // radius was either computed or specified properly)
         // only if some points did not find a neighbor or dont have a valid
         // projection, more search iterations are necessary
-        ConductSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
+        ConductSearchIteration(rOptions, rpInterfaceInfo);
 
         while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm))
         {
@@ -62,7 +62,7 @@ namespace Kratos
                 << "search iteration " << num_iteration << " / "<< max_search_iterations << " | "
                 << "search radius " << mSearchRadius << std::endl;
 
-            ConductSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
+            ConductSearchIteration(rOptions, rpInterfaceInfo);
         }
 
         FinalizeSearch();
@@ -214,10 +214,9 @@ namespace Kratos
     /* PRIVATE Methods */
     /***********************************************************************************/
     void InterfaceSearchStructureBase::ConductSearchIteration(const Kratos::Flags& rOptions,
-                               const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
-                               InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+                               const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
     {
-        InitializeSearchIteration(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
+        InitializeSearchIteration(rOptions, rpInterfaceInfo);
 
         ConductLocalSearch();
 

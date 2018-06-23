@@ -35,8 +35,7 @@ using IndexType = std::size_t;
 /* PROTECTED Methods */
 /***********************************************************************************/
 void InterfaceSearchStructure::InitializeSearchIteration(const Kratos::Flags& rOptions,
-                                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+                                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     // Creating the MapperInterfaceInfos
     mpMapperInterfaceInfosContainer->clear();

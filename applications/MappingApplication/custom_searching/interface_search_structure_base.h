@@ -205,8 +205,7 @@ protected:
     virtual void FinalizeSearch();
 
     virtual void InitializeSearchIteration(const Kratos::Flags& rOptions,
-                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) = 0;
+                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo) = 0;
 
     virtual void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo) = 0;
 
@@ -249,8 +248,7 @@ private:
 
     // this function performs the search and the exchange of the data on the interface
     void ConductSearchIteration(const Kratos::Flags& rOptions,
-                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
+                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     bool AllNeighborsFound(const Communicator& rComm) const;
 

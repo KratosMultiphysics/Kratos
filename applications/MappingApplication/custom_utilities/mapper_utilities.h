@@ -23,7 +23,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "custom_utilities/mapper_flags.h"
-#include "custom_utilities/mapper_interface_info.h"
+#include "custom_utilities/mapper_local_system.h"
 
 namespace Kratos
 {
@@ -33,6 +33,17 @@ namespace MapperUtilities
 using SizeType = std::size_t;
 using IndexType = std::size_t;
 using NodeIterator = ModelPart::NodeIterator;
+
+using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
+
+using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
+using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
+using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
+
+using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
+using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
+using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
+
 
 template< class TVarType >
 static void FillFunction(const NodeIterator& rNodeIt,
@@ -205,13 +216,23 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                               const Point& rPoint);
 
-void FillBufferBeforeLocalSearch(BufferType& rSendBuffer,
-                                 std::vector<int>& rSendSizes,
-                                 const std::vector<double>& rBoundingBoxes);
+void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems,
+                                 const std::vector<double>& rBoundingBoxes,
+                                 const int BufferSizeEstimate,
+                                 std::vector<std::vector<double>>& rSendBuffer,
+                                 std::vector<int>& rSendSizes);
 
-void FillBufferAfterLocalSearch();
+void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
+                                          const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                          const int CommRank,
+                                          MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer);
 
-void CreateMapperInterfaceInfosFromBuffer();
+void SelectInterfaceInfosSuccessfulSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
+                                          const SizeType SizeEstimate,
+                                          MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosSuccSearch);
+
+void AssignInterfaceInfosAfterRemoteSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
+                                           MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems);
 
 /**
  * @class MapperInterfaceInfoSerializer
@@ -228,21 +249,16 @@ class MapperInterfaceInfoSerializer
 {
 public:
 
-    using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
-
-    using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
-    using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
-
-    MapperInterfaceInfoSerializer(MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
-                                  MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
-        : mrInterfaceInfos(rMapperInterfaceInfosContainer)
+    MapperInterfaceInfoSerializer(MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
+                                  MapperInterfaceInfoPointerType& rpRefInterfaceInfo)
+        : mrpInterfaceInfos(rpMapperInterfaceInfosContainer)
         , mrpRefInterfaceInfo(rpRefInterfaceInfo)
         { }
 
 private:
 
-    MapperInterfaceInfoPointerVectorType& mrInterfaceInfos;
-    MapperInterfaceInfoUniquePointerType& mrpRefInterfaceInfo;
+    MapperInterfaceInfoPointerVectorPointerType& mrpInterfaceInfos;
+    MapperInterfaceInfoPointerType& mrpRefInterfaceInfo;
 
     friend class Kratos::Serializer; // Adding "Kratos::" is nedded bcs of the "MapperUtilities"-namespace
 

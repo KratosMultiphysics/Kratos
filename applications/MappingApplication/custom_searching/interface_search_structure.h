@@ -159,8 +159,7 @@ protected:
     ///@{
 
     void InitializeSearchIteration(const Kratos::Flags& rOptions,
-                          const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                          InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
+                                   const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo) override;
 
     void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo) override;
 

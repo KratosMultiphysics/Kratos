@@ -122,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
     using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
     using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
-    using MapperInterfaceInfoPointerVectorPointerType = Kratos::shared_ptr<MapperInterfaceInfoPointerVectorType>;
+    using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
 
 
     // A "NearestNeigborInterfaceInfo" is being used since "MapperInterfaceInfo" is a pure virtual class
@@ -215,11 +215,10 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     (*p_interface_info_container)[1].push_back(p_nearest_neighbor_info_2);
 
     // Construct a reference obj, needed to create the correct objects while loading/deserializing
-    MapperInterfaceInfoUniquePointerType p_ref_nearest_neighbor_info(
-        Kratos::make_unique<NearestNeigborInterfaceInfo>());
+    auto p_ref_nearest_neighbor_info = p_nearest_neighbor_info_1->Create();
 
     MapperUtilities::MapperInterfaceInfoSerializer serializer_helper(
-        *p_interface_info_container, p_ref_nearest_neighbor_info );
+        p_interface_info_container, p_ref_nearest_neighbor_info );
 
     // serializing the object (=> happens on the partition that sends the objects)
     Serializer serializer;
@@ -229,7 +228,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
         = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
 
     MapperUtilities::MapperInterfaceInfoSerializer serializer_helper_new(
-        *p_interface_info_container_new, p_ref_nearest_neighbor_info );
+        p_interface_info_container_new, p_ref_nearest_neighbor_info );
 
     // deserializing the object (=> happens on the partition that receives the objects)
     serializer.load("obj", serializer_helper_new);
