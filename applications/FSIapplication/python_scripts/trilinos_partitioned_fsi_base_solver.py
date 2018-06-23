@@ -81,6 +81,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     ### TODO: SUBSTITUTE IN THIS METHOD THE OLD MAPPER BY THE ONE IN THE FSI APPLICATION
     def _SetUpMapper(self):
         mapper_settings = self.settings["coupling_solver_settings"]["mapper_settings"]
+
         if (mapper_settings.size() == 1):
             fluid_submodelpart_name = mapper_settings[0]["fluid_interface_submodelpart_name"].GetString()
             structure_submodelpart_name = mapper_settings[0]["structure_interface_submodelpart_name"].GetString()
@@ -109,29 +110,37 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                     neg_face_submodelpart_name = mapper_settings[mapper_id]["fluid_interface_submodelpart_name"].GetString()
                 else:
                     raise Exception("Unique mapper flag has been set but more than one mapper exist in mapper_settings.")
+
             # Get the structure submodelpart name
             structure_submodelpart_name = mapper_settings[0]["structure_interface_submodelpart_name"].GetString()
 
-            # Grab the interface submodelparts
-            pos_fluid_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(pos_face_submodelpart_name)
-            neg_fluid_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(neg_face_submodelpart_name)
-            structure_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(structure_submodelpart_name)
+            # Set the positive side fluid interface mapper
+            pos_mapper_project_parameters = KratosMultiphysics.Parameters("""{
+                "mapper_type" : "",
+                "interface_submodel_part_origin" : "",
+                "interface_submodel_part_destitnation" : ""
+            }""")
+            pos_mapper_project_parameters["mapper_type"].SetString("nearest_element")
+            pos_mapper_project_parameters["interface_submodel_part_origin"].SetString(pos_face_submodelpart_name)
+            pos_mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            # TODO: SET THE DOUBLE SIDE SURFACE 
-            raise Exception ("_SetUpMapper not implemented yet for double side surfaces")
+            self.pos_interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+                                                                                 self.structure_solver.main_model_part,
+                                                                                 pos_mapper_project_parameters)
 
-            # search_radius_factor = 2.0
-            # mapper_max_iterations = 200
-            # mapper_tolerance = 1e-12
+            # Set the positive side fluid interface mapper
+            neg_mapper_project_parameters = KratosMultiphysics.Parameters("""{
+                "mapper_type" : "",
+                "interface_submodel_part_origin" : "",
+                "interface_submodel_part_destitnation" : ""
+            }""")
+            neg_mapper_project_parameters["mapper_type"].SetString("nearest_element")
+            neg_mapper_project_parameters["interface_submodel_part_origin"].SetString(neg_face_submodelpart_name)
+            neg_mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            # self.interface_mapper = NonConformant_OneSideMap.NonConformantTwoFaces_OneSideMap(pos_fluid_submodelpart,
-            #                                                                                   neg_fluid_submodelpart,
-            #                                                                                   structure_submodelpart,
-            #                                                                                   search_radius_factor,
-            #                                                                                   mapper_max_iterations,
-            #                                                                                   mapper_tolerance)
-
-            # TODO: SET THE DOUBLE SIDE SURFACE MAPPING
+            self.neg_interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+                                                                                 self.structure_solver.main_model_part,
+                                                                                 neg_mapper_project_parameters)
 
             self.double_faced_structure = True
 
@@ -141,7 +150,6 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                              In case you are considering double faced immersed bodies (shells or membranes), set all the positive faces \
                              in a unique submodelpart and all the negative ones in another submodelpart.")
 
-    # TODO: GET IT FROM THE SERIAL BASE SOLVER ONCE THE MAPPER IN MAPPING APPLICATION IS USED IN SERIAL PROBLEMS AS WELL
     def _ComputeMeshPredictionSingleFaced(self):
         step = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         self._PrintInfoOnRankZero("Computing time step ",str(step)," prediction...")
@@ -183,4 +191,55 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         self._PrintInfoOnRankZero("Mesh prediction computed.")
 
     def _ComputeMeshPredictionDoubleFaced(self):
-        raise Exception("Trilinos _ComputeMeshPredictionDoubleFaced() is to be implemented!")
+        step = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        self._PrintInfoOnRankZero("Computing time step ",str(step)," prediction...")
+        
+        # Set the redistribution settings
+        redistribution_tolerance = 1e-8
+        redistribution_max_iters = 50
+
+        # Convert the nodal reaction to traction loads before transfering
+        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+            self._GetFluidPositiveInterfaceSubmodelPart(),
+            KratosMultiphysics.REACTION,
+            KratosMultiphysics.VAUX_EQ_TRACTION,
+            redistribution_tolerance,
+            redistribution_max_iters)
+
+        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+            self._GetFluidNegativeInterfaceSubmodelPart(),
+            KratosMultiphysics.REACTION,
+            KratosMultiphysics.VAUX_EQ_TRACTION,
+            redistribution_tolerance,
+            redistribution_max_iters)
+
+        # Transfer fluid tractions to the structure interface
+        self.pos_interface_mapper.Map(KratosMultiphysics.VAUX_EQ_TRACTION,
+                                      KratosMultiphysics.VAUX_EQ_TRACTION,
+                                      KratosMapping.Mapper.SWAP_SIGN,
+                                      KratosMapping.Mapper.ADD_VALUES)
+
+        self.neg_interface_mapper.Map(KratosMultiphysics.VAUX_EQ_TRACTION,
+                                      KratosMultiphysics.VAUX_EQ_TRACTION,
+                                      KratosMapping.Mapper.SWAP_SIGN,
+                                      KratosMapping.Mapper.ADD_VALUES)
+
+        # Convert the transferred traction loads to point loads
+        KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+            self._GetStructureInterfaceSubmodelPart(),
+            KratosMultiphysics.VAUX_EQ_TRACTION,
+            KratosStructural.POINT_LOAD)
+
+        # Solve the current step structure problem with the previous step fluid interface nodal fluxes
+        is_converged = self.structure_solver.SolveSolutionStep()
+        if not is_converged:
+            self._PrintWarningOnRankZero("Mesh prediction structure solver did not converge.")
+        
+        # Map the obtained structure displacement to the fluid interface
+        self.pos_interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
+        self.neg_interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
+
+        # Solve the mesh problem
+        self.mesh_solver.Solve()
+
+        self._PrintInfoOnRankZero("Mesh prediction computed.")

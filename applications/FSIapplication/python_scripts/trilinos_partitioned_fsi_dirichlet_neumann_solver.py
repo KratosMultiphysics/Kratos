@@ -175,32 +175,52 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
             KratosStructural.POINT_LOAD)
 
         # Solve the structure problem
-        self.structure_solver.SolveSolutionStep()
+        is_converged = self.structure_solver.SolveSolutionStep()
+        if not is_converged:
+            self._PrintWarningOnRankZero("Structure solver did not converge.")
 
-    # TODO: UPDATE THIS ONCE THE DOUBLE SIDED SURFACES MAPPING IS AVAILABLE IN MAPPING APPLICATION
     def _SolveStructureDoubleFaced(self):
-        raise Exception("MPI _SolveStructureDoubleFaced not implemented yet!")
-        # # Transfer fluid reaction from both sides to the structure interface
-        # keep_sign = False
-        # distribute_load = True
-        # self.interface_mapper.PositiveFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-        #                                                          KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE,
-        #                                                          keep_sign,
-        #                                                          distribute_load)
-        # self.interface_mapper.NegativeFluidToStructure_VectorMap(KratosMultiphysics.REACTION,
-        #                                                          KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE,
-        #                                                          keep_sign,
-        #                                                          distribute_load)
+        # Set the redistribution settings
+        redistribution_tolerance = 1e-8
+        redistribution_max_iters = 50
 
-        # # Add the two faces contributions to the POINT_LOAD variable
-        # # TODO: Add this to the variables utils
-        # for node in self._GetStructureInterfaceSubmodelPart().Nodes:
-        #     pos_face_force = node.GetSolutionStepValue(KratosFSI.POSITIVE_MAPPED_VECTOR_VARIABLE)
-        #     neg_face_force = node.GetSolutionStepValue(KratosFSI.NEGATIVE_MAPPED_VECTOR_VARIABLE)
-        #     node.SetSolutionStepValue(KratosStructural.POINT_LOAD, 0, pos_face_force+neg_face_force)
+        # Convert the nodal reaction to traction loads before transfering
+        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+            self._GetFluidPositiveInterfaceSubmodelPart(),
+            KratosMultiphysics.REACTION,
+            KratosMultiphysics.VAUX_EQ_TRACTION,
+            redistribution_tolerance,
+            redistribution_max_iters)
 
-        # # Solve the structure problem
-        # self.structure_solver.SolveSolutionStep()
+        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+            self._GetFluidNegativeInterfaceSubmodelPart(),
+            KratosMultiphysics.REACTION,
+            KratosMultiphysics.VAUX_EQ_TRACTION,
+            redistribution_tolerance,
+            redistribution_max_iters)
+
+        # Transfer fluid tractions to the structure interface
+        self.pos_interface_mapper.Map(KratosMultiphysics.VAUX_EQ_TRACTION,
+                                      KratosMultiphysics.VAUX_EQ_TRACTION,
+                                      KratosMapping.Mapper.SWAP_SIGN,
+                                      KratosMapping.Mapper.ADD_VALUES)
+
+        # Transfer fluid tractions to the structure interface
+        self.neg_interface_mapper.Map(KratosMultiphysics.VAUX_EQ_TRACTION,
+                                      KratosMultiphysics.VAUX_EQ_TRACTION,
+                                      KratosMapping.Mapper.SWAP_SIGN,
+                                      KratosMapping.Mapper.ADD_VALUES)
+
+        # Convert the transferred traction loads to point loads
+        KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+            self._GetStructureInterfaceSubmodelPart(),
+            KratosMultiphysics.VAUX_EQ_TRACTION,
+            KratosStructural.POINT_LOAD)
+
+        # Solve the structure problem
+        is_converged = self.structure_solver.SolveSolutionStep()
+        if not is_converged:
+            self._PrintWarningOnRankZero("Structure solver did not converge.")
 
     def _ComputeDisplacementResidualSingleFaced(self):
         # Project the structure displacement onto the fluid interface
@@ -217,30 +237,21 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
         return disp_residual
 
-    # TODO: UPDATE THIS ONCE THE DOUBLE SIDED SURFACES MAPPING IS AVAILABLE IN MAPPING APPLICATION
     def _ComputeDisplacementResidualDoubleFaced(self):
-        raise Exception("MPI _ComputeDisplacementResidualDoubleFaced not implemented yet!")
-        # # Project the structure velocity onto the fluid interface
-        # keep_sign = True
-        # distribute_load = False
-        # #TODO: One of these mappings is not needed. At the moment both are performed to ensure that
-        # # the _GetFluidInterfaceSubmodelPart(), which is the one used to compute the interface residual,
-        # # gets the structure DISPLACEMENT. Think a way to properly identify the reference fluid interface.
-        # self.interface_mapper.StructureToPositiveFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-        #                                                          KratosMultiphysics.VECTOR_PROJECTED,
-        #                                                          keep_sign,
-        #                                                          distribute_load)
-        # self.interface_mapper.StructureToNegativeFluid_VectorMap(KratosMultiphysics.DISPLACEMENT,
-        #                                                          KratosMultiphysics.VECTOR_PROJECTED,
-        #                                                          keep_sign,
-        #                                                          distribute_load)
+        # Project the structure displacement onto the fluid positive interface
+        self.pos_interface_mapper.InverseMap(KratosMultiphysics.VECTOR_PROJECTED,
+                                             KratosMultiphysics.DISPLACEMENT)
 
-        # # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
-        # # Besides, its norm is stored within the ProcessInfo.
-        # disp_residual = self.partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart())
-        # self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
-        #                                                               KratosMultiphysics.MESH_DISPLACEMENT,
-        #                                                               KratosMultiphysics.VECTOR_PROJECTED,
-        #                                                               disp_residual)
+        self.neg_interface_mapper.InverseMap(KratosMultiphysics.VECTOR_PROJECTED,
+                                             KratosMultiphysics.DISPLACEMENT)
+        
+        #TODO: One of these mappings is not needed. At the moment both are performed to ensure that
+        # the _GetFluidInterfaceSubmodelPart(), which is the one used to compute the interface residual,
+        # gets the structure DISPLACEMENT. Think a way to properly identify the reference fluid interface.
+        disp_residual = self.partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart())
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
+                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
+                                                                      KratosMultiphysics.VECTOR_PROJECTED,
+                                                                      disp_residual)
 
-        # return disp_residual
+        return disp_residual

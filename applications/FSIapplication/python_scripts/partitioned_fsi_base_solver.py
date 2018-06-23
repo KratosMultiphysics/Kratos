@@ -189,7 +189,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
         structure_new_time = self.structure_solver.AdvanceInTime(current_time)
 
-        if fluid_new_time != structure_new_time:
+        if abs(fluid_new_time - structure_new_time) > 1e-12:
             err_msg =  'Fluid new time is: ' + str(fluid_new_time) + '\n'
             err_msg += 'Structure new time is: ' + str(structure_new_time) + '\n'
             err_msg += 'No substepping has been implemented yet. Fluid and structure time must coincide.'
@@ -345,6 +345,28 @@ class PartitionedFSIBaseSolver(PythonSolver):
     def _GetFluidInterfaceSubmodelPart(self):
         # Returns the fluid interface submodelpart that will be used in the residual minimization
         return self.fluid_solver.main_model_part.GetSubModelPart(self.fluid_interface_submodelpart_name)
+
+    def _GetFluidPositiveInterfaceSubmodelPart(self):
+        mapper_settings = self.settings["coupling_solver_settings"]["mapper_settings"]
+
+        # Get the fluid interface faces submodelpart names
+        for mapper_id in range(2):
+            if (mapper_settings[mapper_id]["mapper_face"].GetString() == "Positive"):
+                pos_face_submodelpart_name = mapper_settings[mapper_id]["fluid_interface_submodelpart_name"].GetString()
+
+        # Returns the fluid positive interface submodelpart
+        return self.fluid_solver.main_model_part.GetSubModelPart(pos_face_submodelpart_name)
+
+    def _GetFluidNegativeInterfaceSubmodelPart(self):
+        mapper_settings = self.settings["coupling_solver_settings"]["mapper_settings"]
+
+        # Get the fluid interface faces submodelpart names
+        for mapper_id in range(2):
+            if (mapper_settings[mapper_id]["mapper_face"].GetString() == "Negative"):
+                neg_face_submodelpart_name = mapper_settings[mapper_id]["fluid_interface_submodelpart_name"].GetString()
+
+        # Returns the fluid negative interface submodelpart
+        return self.fluid_solver.main_model_part.GetSubModelPart(neg_face_submodelpart_name)
 
     def _GetStructureInterfaceSubmodelPart(self):
         # Returns the structure interface submodelpart that will be used in the residual minimization
