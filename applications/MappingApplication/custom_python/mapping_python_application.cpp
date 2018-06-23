@@ -36,17 +36,11 @@ using namespace pybind11;
 
 PYBIND11_MODULE(KratosMappingApplication, m)
 {
-    const auto mapping_app = class_<KratosMappingApplication,
+    class_<KratosMappingApplication,
             KratosMappingApplication::Pointer,
             KratosApplication >(m,"KratosMappingApplication")
             .def(init<>())
             ;
-
-    // Adding the flags that can be used for mapping // TODO check why this is not working!
-    mapping_app.attr("SWAP_SIGN")        = MapperFlags::SWAP_SIGN;
-    mapping_app.attr("ADD_VALUES")       = MapperFlags::ADD_VALUES;
-    mapping_app.attr("CONSERVATIVE")     = MapperFlags::CONSERVATIVE;
-    mapping_app.attr("REMESHED")         = MapperFlags::REMESHED;
 
     AddCustomMappersToPython(m);
 }
