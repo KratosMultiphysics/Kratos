@@ -117,9 +117,9 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
             }
         }
 
-        // We initialize the doubles values
+        // We add the doubles values
         for ( const auto& i_var : mDoubleVariable) {
-            std::vector<double> aux_result;
+            std::vector<double> aux_result(integration_points_number);
             it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -129,9 +129,9 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
             }
         }
 
-        // We initialize the arrays values
+        // We add the arrays values
         for ( const auto& i_var : mArrayVariable) {
-            std::vector<array_1d<double, 3>> aux_result;
+            std::vector<array_1d<double, 3>> aux_result(integration_points_number);
             it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -141,9 +141,9 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
             }
         }
 
-        // We initialize the vectors values
+        // We add the vectors values
         for ( const auto& i_var : mVectorVariable) {
-            std::vector<Vector> aux_result;
+            std::vector<Vector> aux_result(integration_points_number);
             it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -153,9 +153,9 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
             }
         }
 
-        // We initialize the matrix values
+        // We add the matrix values
         for ( const auto& i_var : mMatrixVariable) {
-            std::vector<Matrix> aux_result;
+            std::vector<Matrix> aux_result(integration_points_number);
             it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
             for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
@@ -241,14 +241,14 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 
     // We init the vector sizes
     for ( const auto& i_var : mVectorVariable) {
-        std::vector<Vector> aux_result;
+        std::vector<Vector> aux_result(integration_points_number);
         it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
         mSizeVectors.insert({i_var, aux_result[0].size()});
     }
 
     // We init the matrix sizes
     for ( const auto& i_var : mMatrixVariable) {
-        std::vector<Matrix> aux_result;
+        std::vector<Matrix> aux_result(integration_points_number);
         it_elem_begin->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
         std::pair<SizeType, SizeType> aux_pair(aux_result[0].size1(), aux_result[0].size2());
         mSizeMatrixes.insert({i_var, aux_pair});
