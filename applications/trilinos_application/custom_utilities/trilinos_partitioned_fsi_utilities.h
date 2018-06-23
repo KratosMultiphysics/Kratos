@@ -160,7 +160,7 @@ namespace Kratos
           rVector.ReplaceMyValue(LocalRow,0,Value);
       }
 
-      virtual double GetLocalValue(VectorType& rVector, int LocalRow) const override
+      virtual double GetLocalValue(const VectorType& rVector, int LocalRow) const override
       {
           return rVector[0][LocalRow];
       }

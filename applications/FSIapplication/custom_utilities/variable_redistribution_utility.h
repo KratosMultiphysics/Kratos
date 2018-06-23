@@ -230,6 +230,23 @@ namespace Kratos
           const Variable< TValueType >& rPointVariable);
 
     /**
+     * @brief DummyConvertDistributedValuesToPoint
+     * This class does nothing, it is only used in case there is no conditions in the current 
+     * partition to perform the communication operations that are done in the "standard" case.
+     * Otherwise, the MPI synchronism is broken
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the point values accumulation is done
+     * @param rDistributedVariable origin distributed variable
+     * @param rPointVariable destination point variable
+     */
+      template< class TValueType >
+      static void DummySpecializedConvertDistributedValuesToPoint(
+          ModelPart& rModelPart,
+          const Variable< TValueType >& rDistributedVariable,
+          const Variable< TValueType >& rPointVariable);
+
+    /**
      * @brief DistributePointValues specialization according to geometry family, points number and value type
      * 
      * @tparam TFamily geometry family in the model part in where the distribution is done

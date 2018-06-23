@@ -60,32 +60,35 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
     const Variable<TValueType>& rPointVariable)
 {
     // Check if there is any condition in the current partition
-    int n_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    rModelPart.GetCommunicator().SumAll(n_conds);
+    const unsigned int n_loc_conds = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
+    int n_tot_conds = n_loc_conds;
+    rModelPart.GetCommunicator().SumAll(n_tot_conds);
 
     // If there is conditions, this function dispatches the call to the correct specialization
-    if (n_conds != 0){
-        Geometry< Node<3> >& rReferenceGeometry = rModelPart.ConditionsBegin()->GetGeometry();
-        const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
-        const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
+    if (n_tot_conds != 0){
+        if (n_loc_conds != 0){
+            Geometry< Node<3> >& rReferenceGeometry = rModelPart.ConditionsBegin()->GetGeometry();
+            const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
+            const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 
-        if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2)
-        {
-            VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<GeometryData::Kratos_Linear,2,TValueType>(
+            if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2){
+                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<GeometryData::Kratos_Linear,2,TValueType>(
+                    rModelPart,
+                    rDistributedVariable,
+                    rPointVariable);
+            } else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3) {
+                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<GeometryData::Kratos_Triangle,3,TValueType>(
+                    rModelPart,
+                    rDistributedVariable,
+                    rPointVariable);
+            } else {
+                KRATOS_ERROR << "Unsupported geometry type with " << PointsNumber << " points." << std::endl;
+            }
+        } else {
+            VariableRedistributionUtility::DummySpecializedConvertDistributedValuesToPoint<TValueType>(
                 rModelPart,
                 rDistributedVariable,
                 rPointVariable);
-        }
-        else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3)
-        {
-            VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<GeometryData::Kratos_Triangle,3,TValueType>(
-                rModelPart,
-                rDistributedVariable,
-                rPointVariable);
-        }
-        else
-        {
-            KRATOS_ERROR << "Unsupported geometry type with " << PointsNumber << " points." << std::endl;
         }
     }
 }
@@ -106,7 +109,6 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_conds != 0){
         if (n_loc_conds != 0){
-
             Geometry< Node<3> >& rReferenceGeometry = rModelPart.ConditionsBegin()->GetGeometry();
             const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
@@ -186,6 +188,19 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
             ThreadsafeAdd(r_geometry[j].FastGetSolutionStepValue(rPointVariable), value_j);
         }
     }
+
+    // Add the contributions between processors
+    rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);
+}
+
+template< class TValueType >
+void VariableRedistributionUtility::DummySpecializedConvertDistributedValuesToPoint(
+    ModelPart& rModelPart,
+    const Variable< TValueType >& rDistributedVariable,
+    const Variable< TValueType >& rPointVariable)
+{
+    // Make sure that the distributed values are equal between processors
+    rModelPart.GetCommunicator().SynchronizeVariable(rDistributedVariable);
 
     // Add the contributions between processors
     rModelPart.GetCommunicator().AssembleCurrentData(rPointVariable);

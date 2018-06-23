@@ -580,7 +580,7 @@ protected:
         TSpace::SetValue(rVector,LocalRow,Value);
     }
 
-    virtual double GetLocalValue(VectorType& rVector, int LocalRow) const
+    virtual double GetLocalValue(const VectorType& rVector, int LocalRow) const
     {
         return TSpace::GetValue(rVector,LocalRow);
     }
