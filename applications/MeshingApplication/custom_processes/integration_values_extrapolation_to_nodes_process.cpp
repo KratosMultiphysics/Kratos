@@ -29,7 +29,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "echo_level"                 : 1,
+        "echo_level"                 : 0,
         "list_of_variables"          : [],
         "extrapolate_non_historical" : true
     })");
