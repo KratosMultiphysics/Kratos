@@ -110,7 +110,6 @@ class ChimeraAnalysisTest(UnitTest.TestCase):
 if __name__ == '__main__':
     test_case = ChimeraAnalysisTest()
     test_case.setUp()
-    #test_case.testFluidDynamicsAnalysis()
     test_case.testMonolithic()
 
 

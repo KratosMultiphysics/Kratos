@@ -78,39 +78,6 @@ class ApplyChimeraProcessMonolithic : public Process
 {
   public:
 
-	struct KeyComparor
-	{
-		bool operator()(const vector<std::size_t> &lhs, const vector<std::size_t> &rhs) const
-		{
-			if (lhs.size() != rhs.size())
-				return false;
-
-			for (std::size_t i = 0; i < lhs.size(); i++)
-			{
-				if (lhs[i] != rhs[i])
-					return false;
-			}
-
-			return true;
-		}
-	};
-
-	struct KeyHasher
-	{
-		std::size_t operator()(const vector<int> &k) const
-		{
-			std::size_t seed = 0.0;
-			std::hash<int> hasher;
-
-			for (std::size_t i = 0; i < k.size(); i++)
-			{
-				seed ^= hasher(k[i]) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-			}
-
-			return seed;
-		}
-
-	};
 	///@name Type Definitions
 	///@{
 
@@ -143,20 +110,20 @@ class ApplyChimeraProcessMonolithic : public Process
 		Parameters default_parameters(R"(
             {
                 "process_name":"chimera",
-                                "Chimera_levels" : [ [{ "model_part_name":"GENERIC_background",
-														"model_part_boundary_name":"GENERIC_domainboundary",
+                                "Chimera_levels" : [
+													[{
+														"model_part_name":"GENERIC_background",
 														"model_part_inside_boundary_name" :"GENERIC_domainboundary"
-		            									            }],
-
-				    									 [{ "model_part_name":"GENERIC_patch_1_1",
-														"model_part_boundary_name":"GENERIC_patchboundary_1_1",
+		            					            }],
+				    								 [{
+														"model_part_name":"GENERIC_patch_1_1",
 														"model_part_inside_boundary_name":"GENERIC_structure_1_1"
-		            									     	}],
-
-				    									 [{ "model_part_name":"GENERIC_patch_2_1",
-														"model_part_boundary_name":"GENERIC_patchboundary_2_1",
+		            						     	}],
+				    								[{
+														"model_part_name":"GENERIC_patch_2_1",
 														"model_part_inside_boundary_name":"GENERIC_strcuture2_1"
-		            									    	}] ],
+		            						    	}]
+													 ],
                     			"type" : "nearest_element",
                                 "IsWeak" : true,
                                 "pressure_coupling" : "all",
@@ -175,7 +142,6 @@ class ApplyChimeraProcessMonolithic : public Process
 		ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
 		if (info->GetValue(MPC_DATA_CONTAINER) == NULL)
 			info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
-
 
 		this->pMpc = MpcDataPointerType(new MpcData(m_type));
 		// this->pMpc = Kratos::make_shared<MpcDataType>(m_type);
@@ -234,13 +200,12 @@ class ApplyChimeraProcessMonolithic : public Process
 
 	void ExecuteFinalizeSolutionStep() override
 	{
-
 		Clear();
 		//for multipatch
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
 			{
-			it->Set(VISITED, false);
-			it->SetValue(SPLIT_ELEMENT,false);
+				it->Set(VISITED, false);
+				it->SetValue(SPLIT_ELEMENT,false);
 			}
 	}
 
@@ -312,7 +277,6 @@ class ApplyChimeraProcessMonolithic : public Process
 						RemoveMasterSlaveRelationWithNodesAndVariable(pMpc, *p_boundary_node, PRESSURE);
 					}
 				}
-
 
 				// Initialise the boundary nodes dofs to 0 at ever time steps
 
@@ -482,7 +446,6 @@ class ApplyChimeraProcessMonolithic : public Process
 			it->Set(VISITED, false);
 		}
 
-
 		int MainDomainOrNot = 1 ;
 
 		for(int BG_i= 0; BG_i < NumberOfLevels ;BG_i++) // TODO change the names
@@ -495,15 +458,13 @@ class ApplyChimeraProcessMonolithic : public Process
 					{
 						m_background_model_part_name  =  m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_name"].GetString();
 						m_domain_boundary_model_part_name = m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
-
 						m_patch_model_part_name       =  m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_name"].GetString();
-						m_patch_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_boundary_name"].GetString();
 						m_patch_inside_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
 
-						std::cout<<"Formulating Chimera for the combination background::"<<m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
+						std::cout<<"Formulating Chimera for the combination \n background::"<<m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
 
 						MainDomainOrNot = 1 ;
-						if(BG_i == 0)
+						if(BG_i == 0) // a check to identify computational Domain boundary
 							MainDomainOrNot = -1 ;
 
 						FormulateChimera(MainDomainOrNot);
@@ -521,24 +482,23 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
 		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
-		ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
 		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
 		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
-/* rishith debug
+ 		//ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
+ //rishith debug
+/*
 		std::cout<<"printing my background"<<rBackgroundModelPart<<std::endl;
 		std::cout<<"printing my domain boundary "<<rDomainBoundaryModelPart<<std::endl;
 
 		std::cout<<"printing my patch"<<rPatchModelPart<<std::endl;
 		std::cout<<"printing my patch boundary"<<rPatchBoundaryModelPart<<std::endl;
 		std::cout<<"printing my patch inside boundary"<<rPatchInsideBoundaryModelPart<<std::endl;
-
  */
 		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
 		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
 		this->pBinLocatorForBackground->UpdateSearchDatabase();
 		this->pBinLocatorForPatch->UpdateSearchDatabase();
-
 
 		const double epsilon = 1e-12;
 		if (m_overlap_distance < epsilon)
@@ -551,8 +511,8 @@ class ApplyChimeraProcessMonolithic : public Process
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
 
-			ModelPart::Pointer pOutOfDomainPatchModelPart = ModelPart::Pointer(new ModelPart("OutOfDomainPatch"));
-			ModelPart::Pointer pOutOfDomainPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("OutOfDomainPatchBoundary"));
+			//ModelPart::Pointer pOutOfDomainPatchModelPart = ModelPart::Pointer(new ModelPart("OutOfDomainPatch"));
+			//ModelPart::Pointer pOutOfDomainPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("OutOfDomainPatchBoundary"));
 			ModelPart::Pointer pModifiedPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("ModifiedPatchBoundary"));
 			ModelPart::Pointer pModifiedPatchModelPart = ModelPart::Pointer(new ModelPart("ModifiedPatch"));
 
@@ -560,7 +520,7 @@ class ApplyChimeraProcessMonolithic : public Process
 			//this->pHoleCuttingProcess->RemoveOutOfDomainPatch(rPatchModelPart, *pOutOfDomainPatchModelPart, *pOutOfDomainPatchBoundaryModelPart);
 			this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
 
-
+			//rishith
 			//CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
 
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
@@ -604,6 +564,7 @@ class ApplyChimeraProcessMonolithic : public Process
 	}
 
 	// This function removes all the boundaries common to first and second but retain rest of the boundaries
+	//Below function is required if the inside boundary not given : not used in the implementation
 	void CalculateModifiedPatchBoundary(ModelPart &FirstBoundary, ModelPart &SecondBoundary, ModelPart &FirstMinusSecondBoundary)
 	{
 		std::vector<std::size_t> vector_of_node_ids;

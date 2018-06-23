@@ -6,7 +6,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 0.025
+        "end_time"        : 0.25
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -163,15 +163,13 @@
     }],
     "chimera":[{
         "Chimera_levels" : [
-            [{ "model_part_name":"GENERIC_background",
-                "model_part_boundary_name":"GENERIC_DomainBoundary",
-                "model_part_inside_boundary_name" :"GENERIC_DomainBoundary"
-            }],
-            [{ "model_part_name":"GENERIC_patch",
-                "model_part_boundary_name":"GENERIC_patchBoundary",
-                "model_part_inside_boundary_name":"GENERIC_StrctureOne"
-            }]
-            ],
+                            [{ "model_part_name":"GENERIC_background",
+                                "model_part_inside_boundary_name" :"GENERIC_DomainBoundary"
+                            }],
+                            [{ "model_part_name":"GENERIC_patch",
+                                "model_part_inside_boundary_name":"GENERIC_StrctureOne"
+                            }]
+                            ],
         "type" : "nearest_element",
         "IsWeak" : true,
         "pressure_coupling" : "all",

@@ -476,7 +476,8 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         // --> now synchronize these values by finding the minimal distance and assign to each node a minimal nodal distance
         AssignMinimalNodalDistance(); // revisit -nav
 
-        ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin();
+        //rishith debug
+      /*   ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin();
         ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_end();
 
         for (ModelPart::ElementIterator it = it_begin; it != it_end; ++it)
@@ -487,7 +488,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
                 KRATOS_WATCH(it->GetValue(ELEMENTAL_DISTANCES));
             }
         }
-
+ */
         /* ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();*/
 
         // reset the node distance to 1.0 which is the maximum distance in our normalized space.
@@ -1972,7 +1973,8 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         //#endif
         double distance = (fabs(distances[0]) > fabs(distances[1])) ? distances[1] : distances[0];
 
-        if (distances[0] * distances[1] < 0)
+        //rishith
+         if (distances[0] * distances[1] < 0)
             distance = fabs(distance);
         //distance = (fabs(distance) > fabs(distances[2])) ? distances[2] : distance;
 
@@ -2248,16 +2250,19 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         MathUtils<double>::CrossProduct(vec_k, vec_cd, vec_ab);
         double mag_cd, gk, hk, kk;
         mag_cd = norm_2(vec_cd);
+        //rishith
+        double mag_ab = norm_2(vec_ab);
 
         gk = inner_prod(vec_g, vec_k);
         hk = inner_prod(vec_h, vec_k);
         kk = inner_prod(vec_k, vec_k);
 
-        if (kk < epsilon)
+        //if (kk < epsilon)
+        if (kk/(mag_ab*mag_cd) < epsilon)
         {                    // ray is parallel to the struc line segment
-            if (mag_cd == 0) // ray is coincident with struc edge
+            /* if (mag_cd == 0) // ray is coincident with struc edge
                 return 2;
-            else
+            else */
                 return 0; // ray disjoint from struc edge
         }
         // get intersect point of ray with the struc edge

@@ -108,43 +108,43 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 		Parameters default_parameters(R"(
             {
-                "process_name":"apply_chimera_process_fractionalstep",
-                    "background": {
-									"model_part_name":"GENERIC_background",
-									"pressure_coupling":"all"
-                                  },
-                	"patch" :     {
-									"model_part_name":"GENERIC_patch",
-									"pressure_coupling" : "all"
-                                  },
-					"type" : "nearest_element",
-					"IsWeak" : true,
-					"pressure_coupling_node" : 0.0,
-                    "patch_boundary_model_part_name":"GENERIC_patchBoundary",
-					"overlap_distance":0.045
+                "process_name":"chimera",
+                                "Chimera_levels" : [
+													[{
+														"model_part_name":"GENERIC_background",
+														"model_part_inside_boundary_name" :"GENERIC_domainboundary"
+		            								}],
+				    								[{
+														"model_part_name":"GENERIC_patch_1_1",
+														"model_part_inside_boundary_name":"GENERIC_structure_1_1"
+		            								}],
+				    								[{
+														"model_part_name":"GENERIC_patch_2_1",
+														"model_part_inside_boundary_name":"GENERIC_strcuture2_1"
+		            								}]
+													],
+                    			"type" : "nearest_element",
+                                "IsWeak" : true,
+                                "pressure_coupling" : "all",
+                                "pressure_coupling_node" : 0.0,
+                                "overlap_distance":0.045
             })");
 
-		m_background_model_part_name = m_parameters["background"]["model_part_name"].GetString();
-		m_patch_model_part_name = m_parameters["patch"]["model_part_name"].GetString();
-		m_patch_boundary_model_part_name = m_parameters["patch_boundary_model_part_name"].GetString();
 		m_type = m_parameters["type"].GetString();
 		m_overlap_distance = m_parameters["overlap_distance"].GetDouble();
+		NumberOfLevels = m_parameters["Chimera_levels"].size();
 
-		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
-		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
+		for (int i =0; i<NumberOfLevels ;i++)
+			LevelTable.push_back ( m_parameters["Chimera_levels"][i].size());
 
 		ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
 		if (info->GetValue(MPC_DATA_CONTAINER) == nullptr)
 			info->SetValue(MPC_DATA_CONTAINER, new std::vector<MpcDataPointerType>());
 
-		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
-		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
 
 		this->pMpcVelocity = MpcDataPointerType(new MpcData(m_type));
 		this->pMpcPressure = MpcDataPointerType(new MpcData(m_type));
 
-		this->pHoleCuttingProcess = CustomHoleCuttingProcess::Pointer(new CustomHoleCuttingProcess());
-		this->pCalculateDistanceProcess = typename CustomCalculateSignedDistanceProcess<TDim>::Pointer(new CustomCalculateSignedDistanceProcess<TDim>());
 
 		this->pMpcVelocity->SetName("MPC_Velocity");
 		this->pMpcPressure->SetName("MPC_Pressure");
@@ -199,7 +199,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 	{
 		KRATOS_TRY;
 		// Actual execution of the functionality of this class
-		FormulateChimera();
+		DoChimeraLoop();
 
 		KRATOS_CATCH("");
 	}
@@ -210,7 +210,10 @@ class ApplyChimeraProcessFractionalStep : public Process
 		Clear();
 		//for multipatch
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
-			it->Set(VISITED, false);
+			{
+				it->Set(VISITED, false);
+				it->SetValue(SPLIT_ELEMENT,false);
+			}
 	}
 
 	void ExecuteBeforeOutputStep() override
@@ -751,20 +754,71 @@ class ApplyChimeraProcessFractionalStep : public Process
 		ApplyConservativeCorrections(mrMainModelPart, pMpc);
 	}
 
-	//Apply Chimera with or without overlap
-	void FormulateChimera()
+	void DoChimeraLoop()
 	{
-		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
-		ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
-
-		this->pBinLocatorForBackground->UpdateSearchDatabase();
-		this->pBinLocatorForPatch->UpdateSearchDatabase();
-
 		for (ModelPart::ElementsContainerType::iterator it = mrMainModelPart.ElementsBegin(); it != mrMainModelPart.ElementsEnd(); ++it)
 		{
 			if (!it->Is(VISITED)) //for multipatch
 				it->Set(ACTIVE, true);
 		}
+
+		for (ModelPart::NodesContainerType::iterator it = mrMainModelPart.NodesBegin(); it != mrMainModelPart.NodesEnd(); ++it)
+		{
+			it->Set(VISITED, false);
+		}
+
+		int MainDomainOrNot = 1 ;
+
+		for(int BG_i= 0; BG_i < NumberOfLevels ;BG_i++) // TODO change the names
+		{
+			for(int BG_j= 0; BG_j < LevelTable[BG_i];BG_j++)
+			{
+				for(int patch_i= BG_i+1; patch_i < NumberOfLevels ;patch_i++)
+				{
+					for(int patch_j= 0; patch_j < LevelTable[patch_i];patch_j++)
+					{
+						m_background_model_part_name  =  m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_name"].GetString();
+						m_domain_boundary_model_part_name = m_parameters["Chimera_levels" ][BG_i][BG_j]["model_part_inside_boundary_name"].GetString();
+
+						m_patch_model_part_name       =  m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_name"].GetString();
+						//m_patch_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_boundary_name"].GetString();
+						m_patch_inside_boundary_model_part_name = m_parameters["Chimera_levels" ][patch_i][patch_j]["model_part_inside_boundary_name"].GetString();
+
+						std::cout<<"Formulating Chimera for the combination background::"<<m_background_model_part_name<<"  \t Patch::"<<m_patch_model_part_name<<std::endl;
+
+						MainDomainOrNot = 1 ;
+						if(BG_i == 0)
+							MainDomainOrNot = -1 ;
+
+						FormulateChimera(MainDomainOrNot);
+					}
+				}
+			}
+		}
+	}
+
+	//Apply Chimera with or without overlap
+	void FormulateChimera(int MainDomainOrNot)
+	{
+		ModelPart &rBackgroundModelPart = mrMainModelPart.GetSubModelPart(m_background_model_part_name);
+		ModelPart &rPatchModelPart = mrMainModelPart.GetSubModelPart(m_patch_model_part_name);
+		ModelPart &rDomainBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_domain_boundary_model_part_name);
+		ModelPart &rPatchInsideBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_inside_boundary_model_part_name);
+		//ModelPart &rPatchBoundaryModelPart = mrMainModelPart.GetSubModelPart(m_patch_boundary_model_part_name);
+ //rishith debug
+/*
+		std::cout<<"printing my background"<<rBackgroundModelPart<<std::endl;
+		std::cout<<"printing my domain boundary "<<rDomainBoundaryModelPart<<std::endl;
+
+		std::cout<<"printing my patch"<<rPatchModelPart<<std::endl;
+		std::cout<<"printing my patch boundary"<<rPatchBoundaryModelPart<<std::endl;
+		std::cout<<"printing my patch inside boundary"<<rPatchInsideBoundaryModelPart<<std::endl;
+ */
+		this->pBinLocatorForBackground = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rBackgroundModelPart));
+		this->pBinLocatorForPatch = BinBasedPointLocatorPointerType(new BinBasedFastPointLocator<TDim>(rPatchModelPart));
+
+		this->pBinLocatorForBackground->UpdateSearchDatabase();
+		this->pBinLocatorForPatch->UpdateSearchDatabase();
 
 		const double epsilon = 1e-12;
 		if (m_overlap_distance < epsilon)
@@ -776,17 +830,21 @@ class ApplyChimeraProcessFractionalStep : public Process
 		{
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
+			ModelPart::Pointer pModifiedPatchBoundaryModelPart = ModelPart::Pointer(new ModelPart("ModifiedPatchBoundary"));
+			ModelPart::Pointer pModifiedPatchModelPart = ModelPart::Pointer(new ModelPart("ModifiedPatch"));
 
-			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchBoundaryModelPart);
+			this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
+			this->pHoleCuttingProcess->RemoveOutOfDomainPatchAndReturnModifiedPatch(rPatchModelPart,rPatchInsideBoundaryModelPart, *pModifiedPatchModelPart, *pModifiedPatchBoundaryModelPart,MainDomainOrNot);
+
+			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
 			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
 
 			//for multipatch
 			for (ModelPart::ElementsContainerType::iterator it = pHoleModelPart->ElementsBegin(); it != pHoleModelPart->ElementsEnd(); ++it)
 				it->Set(VISITED, true);
 
-			CalculateNodalAreaAndNodalMass(rPatchBoundaryModelPart, 1);
+			CalculateNodalAreaAndNodalMass(*pModifiedPatchBoundaryModelPart, 1);
 			CalculateNodalAreaAndNodalMass(*pHoleBoundaryModelPart, -1);
-
 
 			std::cout<<"Formulate chimera for fractional step"<<std::endl;
 			pMpcVelocity->SetIsWeak(m_parameters["IsWeak"].GetBool());
@@ -797,7 +855,7 @@ class ApplyChimeraProcessFractionalStep : public Process
 
 			if (m_type == "nearest_element")
 			{
-				ApplyMpcConstraintForFractionalStep(rPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
+				ApplyMpcConstraintForFractionalStep(*pModifiedPatchBoundaryModelPart, pBinLocatorForBackground, pMpcVelocity,pMpcPressure, pr_coupling_patch);
 				ApplyMpcConstraintForFractionalStep(*pHoleBoundaryModelPart, pBinLocatorForPatch, pMpcVelocity,pMpcPressure, pr_coupling_background);
 				std::cout << "Fractional : Patch boundary coupled with background" << std::endl;
 			}
@@ -1251,10 +1309,14 @@ class ApplyChimeraProcessFractionalStep : public Process
 	typename CustomCalculateSignedDistanceProcess<TDim>::Pointer pCalculateDistanceProcess;
 	ModelPart &mrMainModelPart;
 	double m_overlap_distance;
+	int NumberOfLevels;
+	std::vector<int> LevelTable;
 
 	Parameters m_parameters;
 	std::string m_background_model_part_name;
 	std::string m_patch_boundary_model_part_name;
+	std::string m_domain_boundary_model_part_name;
+	std::string m_patch_inside_boundary_model_part_name;
 	std::string m_patch_model_part_name;
 	std::string m_type;
 
