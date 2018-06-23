@@ -91,9 +91,8 @@ public:
     ///@name Life Cycle
     ///@{
 
-    InterfaceObject(const CoordinatesArrayType& rCoordinates) : Point(rCoordinates)   // constuct from coordinates
-    {
-    }
+    InterfaceObject(const CoordinatesArrayType& rCoordinates) : Point(rCoordinates)
+    { }
 
     /// Destructor.
     virtual ~InterfaceObject(){}
@@ -307,8 +306,6 @@ public:
         UpdateCoordinates();
     }
 
-
-
     NodePointerType pGetBaseNode() const override
     {
         return mpNode;
@@ -347,8 +344,6 @@ public:
     {
         UpdateCoordinates();
     }
-
-
 
     GeometryPointerType pGetBaseGeometry() const override
     {
