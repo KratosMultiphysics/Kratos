@@ -50,9 +50,6 @@ endif(${MPI_NEEDED} MATCHES ON )
 ## define test sources (cpp tests)
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_MAPPING_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-    if(${MPI_NEEDED} MATCHES ON )
-        file(GLOB_RECURSE KRATOS_MAPPING_TESTING_SOURCES ${KRATOS_MAPPING_TESTING_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests_mpi/*.cpp)
-    endif(${MPI_NEEDED} MATCHES ON )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # define library Kratos which defines the basic python interface
