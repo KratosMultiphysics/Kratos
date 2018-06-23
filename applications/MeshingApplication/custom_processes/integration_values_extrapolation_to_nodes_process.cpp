@@ -83,32 +83,48 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
         auto it_elem = elements_array.begin() + i;
 
-        auto& r_geo = it_elem->GetGeometry();
+        auto& r_this_geometry = it_elem->GetGeometry();
 
         // Auxiliar values
         const GeometryData::IntegrationMethod this_integration_method = it_elem->GetIntegrationMethod();
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geo.IntegrationPoints(this_integration_method);
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
         const SizeType integration_points_number = integration_points.size();
-        const SizeType number_of_nodes = r_geo.size();
+        const SizeType number_of_nodes = r_this_geometry.size();
 
         // Definition of node coefficient
-        Vector node_coefficient(number_of_nodes);
-        if (integration_points_number == 1) {
+        Matrix node_coefficient(number_of_nodes, integration_points_number);
+        if (integration_points_number == 1) { // In case of just one GP the extrapolation it is just one
             for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                node_coefficient[i_node] = 1.0/static_cast<double>(number_of_nodes);
+                node_coefficient(i_node, 0) = 1.0;
             }
-        } else if (integration_points_number == number_of_nodes) {
-        } else {
+        } else { // Otherwise we need to build a matrix to invert or approximate the inverse
+            Matrix shape_function_matrix(integration_points_number, number_of_nodes);
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
+                Vector N( number_of_nodes );
+                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                    shape_function_matrix(i_gauss_point, i_node) = N[i_node];
+                }
+            }
+            if (integration_points_number == number_of_nodes) {
+                double det;
+                MathUtils<double>::InvertMatrix(shape_function_matrix, node_coefficient, det);
+            } else { // TODO: Try to use the QR utility
+                KRATOS_WARNING("IntegrationValuesExtrapolationToNodesProcess") << "Number of integration points higher than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
+                double det;
+                MathUtils<double>::GeneralizedInvertMatrix(shape_function_matrix, node_coefficient, det);
+            }
         }
 
         // We initialize the doubles values
         for ( const auto& i_var : mDoubleVariable) {
             std::vector<double> aux_result;
             it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-            for (IndexType i_gp = 0; i_gp < integration_points_number; ++i_gp) {
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    if (mExtrapolateNonHistorical) r_geo[i_node].GetValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
-                    else r_geo[i_node].FastGetSolutionStepValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                    if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                    else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                 }
             }
         }
@@ -117,10 +133,10 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
         for ( const auto& i_var : mArrayVariable) {
             std::vector<array_1d<double, 3>> aux_result;
             it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-            for (IndexType i_gp = 0; i_gp < integration_points_number; ++i_gp) {
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    if (mExtrapolateNonHistorical) r_geo[i_node].GetValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
-                    else r_geo[i_node].FastGetSolutionStepValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                    if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                    else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                 }
             }
         }
@@ -129,10 +145,10 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
         for ( const auto& i_var : mVectorVariable) {
             std::vector<Vector> aux_result;
             it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-            for (IndexType i_gp = 0; i_gp < integration_points_number; ++i_gp) {
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    if (mExtrapolateNonHistorical) r_geo[i_node].GetValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
-                    else r_geo[i_node].FastGetSolutionStepValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                    if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                    else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                 }
             }
         }
@@ -141,10 +157,10 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
         for ( const auto& i_var : mMatrixVariable) {
             std::vector<Matrix> aux_result;
             it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-            for (IndexType i_gp = 0; i_gp < integration_points_number; ++i_gp) {
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    if (mExtrapolateNonHistorical) r_geo[i_node].GetValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
-                    else r_geo[i_node].FastGetSolutionStepValue(i_var) += node_coefficient[i_node] * aux_result[i_gp];
+                    if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                    else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
                 }
             }
         }
@@ -216,11 +232,11 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 
     // The first iterator of elements
     auto it_elem_begin = elements_array.begin();
-    auto& r_geo_begin = it_elem_begin->GetGeometry();
+    auto& r_this_geometry_begin = it_elem_begin->GetGeometry();
 
     // Auxiliar values
     const GeometryData::IntegrationMethod this_integration_method = it_elem_begin->GetIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geo_begin.IntegrationPoints(this_integration_method);
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry_begin.IntegrationPoints(this_integration_method);
     const SizeType integration_points_number = integration_points.size();
 
     // We init the vector sizes

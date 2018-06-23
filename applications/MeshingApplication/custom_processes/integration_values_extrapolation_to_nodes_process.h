@@ -49,8 +49,9 @@ namespace Kratos
  * @class IntegrationValuesExtrapolationToNodesProcess
  * @ingroup MeshingApplication
  * @brief This process extrapolates vales from the integration points to the nodes
- * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and QR for cases where the number of GP in higher than the number of nodes
+ * @details This process solves local problems in order to extrapolate the values from the gauss point to the nodes. Uses inverse for same number of nodes and GP and generalized inverse for cases where the number of GP in higher than the number of nodes
  * Using as main reference: https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch28.d/IFEM.Ch28.pdf (Felippa Stress Recovery course)
+ * @todo Replace generalized inverse for QR decomposition
  * @author Vicente Mataix Ferrandiz
  */
 class IntegrationValuesExtrapolationToNodesProcess
