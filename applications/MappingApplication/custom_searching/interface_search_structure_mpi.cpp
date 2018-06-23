@@ -134,24 +134,16 @@ void InterfaceSearchStructureMPI::InitializeSearchIteration(const Kratos::Flags&
         if(i != mCommRank && mRecvSizes[i]) // TODO check what "mRecvSizes[i]" returns
         {
             mRecvBufferDouble[i].resize(mRecvSizes[i]);
-            MPI_Irecv(mRecvBufferDouble[i].data(),
-                      mRecvSizes[i],
-                      MPI_DOUBLE,
-                      i,
-                      0,
-                      MPI_COMM_WORLD,
-                      &reqs[num_comm_events_idx++]);
+            MPI_Irecv(mRecvBufferDouble[i].data(), mRecvSizes[i],
+                      MPI_DOUBLE, i, 0,
+                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
         }
 
         if(i != mCommRank && mSendSizes[i])
         {
-            MPI_Isend(mSendBufferDouble[i].data(),
-                      mSendSizes[i],
-                      MPI_DOUBLE,
-                      i,
-                      0,
-                      MPI_COMM_WORLD,
-                      &reqs[num_comm_events_idx++]);
+            MPI_Isend(mSendBufferDouble[i].data(), mSendSizes[i],
+                      MPI_DOUBLE, i, 0,
+                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
         }
     }
 
@@ -199,17 +191,18 @@ void InterfaceSearchStructureMPI::FinalizeSearchIteration(const MapperInterfaceI
 
     // Exchange Data in over MPI
 
-    // Get the stream into the serializer somehow ...
-
+    /* // TODO reenable this once the MPI-Data-Exchange is it will not work without!
     MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer_load(
         mpMapperInterfaceInfosContainer, p_ref_interface_info );
 
     Kratos::Serializer load_serializer;
+    // Get the stream into the serializer somehow ...
     load_serializer.load("interface_infos", interface_infos_serializer_load);
 
     MapperUtilities::AssignInterfaceInfosAfterRemoteSearch(
         mpMapperInterfaceInfosContainer,
         mpMapperLocalSystems);
+    */
 }
 
 /***********************************************************************************/
