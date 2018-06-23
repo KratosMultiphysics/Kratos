@@ -224,6 +224,8 @@ private:
         return mpMapperLocalSystems->size() / mCommSize;
     }
 
+    void ComputeGlobalBoundingBoxes();
+
     ///@}
     ///@name Private  Access
     ///@{

@@ -21,7 +21,6 @@
 // Project includes
 #include "interface_search_structure_mpi.h"
 #include "custom_utilities/mapper_utilities.h"
-#include "custom_utilities/mapper_utilities_mpi.h"
 
 namespace Kratos
 {
@@ -67,7 +66,7 @@ void InterfaceSearchStructureMPI::PrepareSearch(const Kratos::Flags& rOptions,
     InterfaceSearchStructureBase::PrepareSearch(rOptions, rpRefInterfaceInfo, InterfaceObjectTypeOrigin);
 
     // Exchange Bounding Boxes => has to be done every time
-    MapperUtilitiesMPI::ComputeGlobalBoundingBoxes(mrModelPartOrigin, mGlobalBoundingBoxes);
+    ComputeGlobalBoundingBoxes();
 }
 
 
@@ -208,6 +207,16 @@ void InterfaceSearchStructureMPI::FinalizeSearchIteration(const MapperInterfaceI
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
+void InterfaceSearchStructureMPI::ComputeGlobalBoundingBoxes()
+{
+    const auto local_bounding_box = MapperUtilities::ComputeLocalBoundingBox(mrModelPartOrigin); // TODO is const ok here?
 
+    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*mCommSize)
+        mGlobalBoundingBoxes.resize(6*mCommSize);
+
+    MPI_Allgather(local_bounding_box.data(),   6, MPI_DOUBLE,
+                  mGlobalBoundingBoxes.data(), 6, MPI_DOUBLE,
+                  MPI_COMM_WORLD); // TODO working?
+}
 
 }  // namespace Kratos.

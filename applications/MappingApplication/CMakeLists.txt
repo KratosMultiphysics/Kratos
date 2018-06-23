@@ -30,7 +30,6 @@ set(KRATOS_MAPPING_APPLICATION_SOURCES_MPI "")
 set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS "")
 ## If we have mpi support, use it
 if(${MPI_NEEDED} MATCHES ON )
-
     include_directories( ${CMAKE_SOURCE_DIR}/applications/trilinos_application )# do I need this??? TODO I could also use the relative path to get the trilinos space EDIT I think I need it also for the ParallelFillCommunicator so it should stay
     find_package(TRILINOS REQUIRED)
     include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR}) # Included as "SYSTEM" to suppress warnings from it
@@ -40,7 +39,6 @@ if(${MPI_NEEDED} MATCHES ON )
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_mpi.cpp
         # Utilities
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities_mpi.cpp
     )
 
     set(KRATOS_MAPPING_APPLICATION_EXTRA_LIBS ${KRATOS_MAPPING_APPLICATION_EXTRA_LIBS} ${MPI_LIBRARIES})
