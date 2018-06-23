@@ -109,6 +109,13 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappi
         KRATOS_CHECK_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) - tolerance), 1e-12);
 }
 
+
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointIsInsideBoundingBox, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_CHECK(false); // TODO implement test!
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosMappingApplicationSerialTestSuite)
 {
     // this test checks if the serialization/deserialization of the Helper-Class that
@@ -256,6 +263,26 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
     r_info_3->GetValue(neighbor_dist);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_CHECK(false); // TODO implement test!
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_CHECK(false); // TODO implement test!
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SelectInterfaceInfosSuccessfulSearch, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_CHECK(false); // TODO implement test!
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceInfosAfterRemoteSearch, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_CHECK(false); // TODO implement test!
 }
 
 }  // namespace Testing

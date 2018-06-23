@@ -19,20 +19,17 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSerialTestSuite)
 {
-
-
+    KRATOS_CHECK(false); // TODO implement test!
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite)
 {
-
-
+    KRATOS_CHECK(false); // TODO implement test!
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSuite)
 {
-
-
+    KRATOS_CHECK(false); // TODO implement test!
 }
 
 }  // namespace Testing

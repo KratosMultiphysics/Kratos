@@ -19,8 +19,7 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceSearchStructure, KratosMappingApplicationSerialTestSuite)
 {
-
-
+    KRATOS_CHECK(false); // TODO implement test!
 }
 
 }  // namespace Testing

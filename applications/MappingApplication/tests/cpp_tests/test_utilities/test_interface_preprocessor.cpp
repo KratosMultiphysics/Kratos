@@ -58,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessorNodeBasedLocalSystems, KratosMapp
 
 
 
-
+   KRATOS_CHECK(false); // TODO fix test!
 
 
 
@@ -117,6 +117,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessorUpdateInterface, KratosMappingApp
 
     InterfacePreprocessor::MapperLocalSystemPointerVectorPointer p_mapper_local_systems
         = Kratos::make_shared<InterfacePreprocessor::MapperLocalSystemPointerVector>();
+
+    KRATOS_CHECK(false); // TODO fix test!
 
     /*
     const Kratos::unique_ptr<MapperLocalSystem> p_ref_local_system = Kratos::make_unique<NearestElementLocalSystem>();
