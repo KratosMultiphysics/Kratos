@@ -63,7 +63,6 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 #include "utilities/binbased_fast_point_locator.h"
-#include "custom_utilities/quad_binbased_fast_point_locator.h"
 
 
 namespace Kratos
@@ -764,6 +763,9 @@ public:
 		}
 
         //******************SEARCH FOR TRIANGLES************************
+        
+        // Initialize shape function vector to be passed to PointLocator function
+        Vector N;
 
         if (m_GeometryElement == "Triangle")
         {
@@ -774,7 +776,6 @@ public:
 
 			#pragma omp parallel
 			{
-                array_1d<double, TDim + 1 > N;
                 typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
                 #pragma omp for
@@ -787,8 +788,8 @@ public:
 
                     Element::Pointer pelem;
 
-                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
+                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
 
                     if (is_found == true)
                     {
@@ -817,12 +818,12 @@ public:
         {
             const int max_results = 1000;
 
-            QuadBinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
 	        #pragma omp parallel
 			{
-                typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
                 //loop over the material points
                 #pragma omp for
@@ -831,12 +832,12 @@ public:
                     auto elemItr = mpm_model_part.Elements().begin() + i;
                             
                     array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-                    typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                     Element::Pointer pelem;
 
-                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);
+                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
                 
                     if (is_found == true)
                     {
