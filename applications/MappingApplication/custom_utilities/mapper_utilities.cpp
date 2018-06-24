@@ -156,7 +156,7 @@ void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes
 {
     const SizeType size_vec = rBoundingBoxes.size();
 
-    KRATOS_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0)
+    KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0)
         << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
     if (rBoundingBoxesWithTolerance.size() != size_vec)
@@ -195,24 +195,30 @@ bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
 
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
-                                 const int BufferSizeEstimate,
+                                 const SizeType BufferSizeEstimate,
                                  std::vector<std::vector<double>>& rSendBuffer,
                                  std::vector<int>& rSendSizes)
 {
     const SizeType comm_size = rSendBuffer.size();
 
     std::vector<double> bounding_box(6);
+    KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(rBoundingBoxes.size(), 6) == 0)
+        << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
     // #pragma omp parallel for => "bounding_box" has to be threadprivate!
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
     {
-        auto& rank_buffer = rSendBuffer[i_rank];
-        rank_buffer.reserve(BufferSizeEstimate);
+        auto& r_rank_buffer = rSendBuffer[i_rank];
+        r_rank_buffer.clear();
+        r_rank_buffer.reserve(BufferSizeEstimate);
+        rSendSizes[i_rank] = 0;
 
-        for (const auto& rp_local_sys : (*rpMapperLocalSystems))
+        for (IndexType i_local_sys=0; i_local_sys<rpMapperLocalSystems->size(); ++i_local_sys)
         {
             for (IndexType j=0; j<6; ++j)
                 bounding_box[j] = rBoundingBoxes[(i_rank*6) + j]; // retrieve bounding box of partition
+
+            const auto& rp_local_sys = (*rpMapperLocalSystems)[i_local_sys];
 
             if (!rp_local_sys->HasInterfaceInfo())
             {
@@ -220,10 +226,10 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVectorPointer& rp
                 if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords))
                 {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!
-                    rank_buffer.push_back(static_cast<double>(i_rank)); // this it the "mSourceLocalSystemIndex" of the MapperInterfaceInfo
-                    rank_buffer.push_back(r_coords[0]);
-                    rank_buffer.push_back(r_coords[1]);
-                    rank_buffer.push_back(r_coords[2]);
+                    r_rank_buffer.push_back(static_cast<double>(i_local_sys)); // this it the "mSourceLocalSystemIndex" of the MapperInterfaceInfo
+                    r_rank_buffer.push_back(r_coords[0]);
+                    r_rank_buffer.push_back(r_coords[1]);
+                    r_rank_buffer.push_back(r_coords[2]);
 
                     rSendSizes[i_rank] += 4;
                 }
@@ -237,11 +243,10 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
                                           const int CommRank,
                                           MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer)
 {
-    const SizeType comm_size = rRecvBuffer.size();
+    const SizeType comm_size = rpMapperInterfaceInfosContainer->size();
 
-    rpMapperInterfaceInfosContainer->clear();
-    if (rpMapperInterfaceInfosContainer->size() != comm_size)
-        rpMapperInterfaceInfosContainer->resize(comm_size);
+    KRATOS_DEBUG_ERROR_IF_NOT(rRecvBuffer.size() == rpMapperInterfaceInfosContainer->size())
+        << "Buffer-size mismatch!" << std::endl;
 
     array_1d<double, 3> coords;
     // Loop the ranks and construct the MapperInterfaceInfos
@@ -249,27 +254,40 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
     {
         const SizeType recv_buffer_size_rank = rRecvBuffer[i_rank].size();
         KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(recv_buffer_size_rank, 4) == 0) << "Rank " << CommRank
-                << " received wrong size from rank " << i_rank << std::endl;
-        SizeType num_objs = recv_buffer_size_rank / 4; // 1 index and 3 coordinates
+            << " received a wrong buffer-size from rank " << i_rank+1 << "!" << std::endl;
+        const SizeType num_objs = recv_buffer_size_rank / 4; // 1 index and 3 coordinates
 
-        const auto& rank_buffer = rRecvBuffer[i_rank];
-        auto& rank_container = (*rpMapperInterfaceInfosContainer)[i_rank];
+        const auto& r_rank_buffer = rRecvBuffer[i_rank];
+        auto& r_interface_infos_rank = (*rpMapperInterfaceInfosContainer)[i_rank];
+        r_interface_infos_rank.clear();
 
-        if (rank_container.size() != num_objs)
-            rank_container.resize(num_objs);
+        if (r_interface_infos_rank.size() != num_objs)
+            r_interface_infos_rank.resize(num_objs);
 
         for (IndexType j=0; j<num_objs; ++j)
         {
+#ifdef KRATOS_DEBUG
+            // with this check we make sure that this field
+            // only contains doubles converted from ints
+            // e.g. 4.5 is not allowed!
+            double int_part;
+            double fract_part = std::modf((r_rank_buffer[j*4]+0.1), &int_part);
+
+            KRATOS_ERROR_IF(std::abs(fract_part-0.1) > 1e-12)
+                << "Buffer contains a double (" << r_rank_buffer[j*4]
+                << ") that was not casted from an int, i.e. it contains a "
+                << "fractional part of " << std::abs(fract_part-0.1) << " !" << std::endl;
+#endif
             // retrive data from buffer
-            const int local_sys_idx = static_cast<int>(rank_buffer[j*4]);
-            coords[0] = rank_buffer[j*4 + 1];
-            coords[1] = rank_buffer[j*4 + 2];
-            coords[2] = rank_buffer[j*4 + 3];
-            rank_container[j] = rpRefInterfaceInfo->Create(coords, local_sys_idx, i_rank);
+            const int local_sys_idx = static_cast<IndexType>(r_rank_buffer[j*4]+0.1);
+            // 0.1 is added to prevent truncation errors like (int)1.9999 = 1
+            coords[0] = r_rank_buffer[j*4 + 1];
+            coords[1] = r_rank_buffer[j*4 + 2];
+            coords[2] = r_rank_buffer[j*4 + 3];
+            r_interface_infos_rank[j] = rpRefInterfaceInfo->Create(coords, local_sys_idx, i_rank);
         }
     }
 }
-
 
 void SelectInterfaceInfosSuccessfulSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
                                           const SizeType SizeEstimate,
@@ -283,13 +301,13 @@ void SelectInterfaceInfosSuccessfulSearch(const MapperInterfaceInfoPointerVector
 
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
     {
-        auto& rank_container = (*rpMapperInterfaceInfosSuccSearch)[i_rank];
-        rank_container.reserve(SizeEstimate);
+        auto& r_interface_infos_rank = (*rpMapperInterfaceInfosSuccSearch)[i_rank];
+        r_interface_infos_rank.reserve(SizeEstimate);
 
         for (const auto& rp_interface_info : (*rpMapperInterfaceInfosContainer)[i_rank])
         {
             if (rp_interface_info->GetLocalSearchWasSuccessful())
-                rank_container.push_back(rp_interface_info);
+                r_interface_infos_rank.push_back(rp_interface_info);
         }
     }
 }
@@ -318,12 +336,12 @@ void MapperInterfaceInfoSerializer::save(Kratos::Serializer& rSerializer) const
 
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
     {
-        const auto& rank_container = (*mrpInterfaceInfos)[i_rank];
-        const SizeType size_rank = rank_container.size();
+        const auto& r_interface_infos_rank = (*mrpInterfaceInfos)[i_rank];
+        const SizeType size_rank = r_interface_infos_rank.size();
         rSerializer.save("size2", size_rank);
 
         for (IndexType j=0; j<size_rank; ++j)
-            rSerializer.save("E", *(rank_container[j])); // NOT serializing the shared_ptr!
+            rSerializer.save("E", *(r_interface_infos_rank[j])); // NOT serializing the shared_ptr!
     }
 }
 
@@ -341,10 +359,10 @@ void MapperInterfaceInfoSerializer::load(Kratos::Serializer& rSerializer)
         SizeType size_rank;
         rSerializer.load("size2", size_rank);
 
-        auto& rank_container = (*mrpInterfaceInfos)[i_rank];
+        auto& r_interface_infos_rank = (*mrpInterfaceInfos)[i_rank];
 
-        if (rank_container.size() != size_rank)
-            rank_container.resize(size_rank);
+        if (r_interface_infos_rank.size() != size_rank)
+            r_interface_infos_rank.resize(size_rank);
 
         for (IndexType j=0; j<size_rank; ++j)
         {
@@ -356,8 +374,8 @@ void MapperInterfaceInfoSerializer::load(Kratos::Serializer& rSerializer)
             // I think doing it manually is more efficient, which I want so I would probably leave it ...
             // The serializer does some nasty casting when pointers are serialized...
             // I could do a benchmark at some point but I highly doubt that the serializer is faster ...
-            rank_container[j] = mrpRefInterfaceInfo->Create();
-            rSerializer.load("E", *(rank_container[j])); // NOT serializing the shared_ptr!
+            r_interface_infos_rank[j] = mrpRefInterfaceInfo->Create();
+            rSerializer.load("E", *(r_interface_infos_rank[j])); // NOT serializing the shared_ptr!
         }
     }
 }

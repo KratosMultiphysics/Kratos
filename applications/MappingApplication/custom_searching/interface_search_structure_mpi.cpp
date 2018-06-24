@@ -43,6 +43,8 @@ InterfaceSearchStructureMPI::InterfaceSearchStructureMPI(ModelPart& rModelPartOr
         MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
         MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
 
+        mpMapperInterfaceInfosContainer->resize(mCommSize);
+
         mSendSizes.resize(mCommSize);
         mRecvSizes.resize(mCommSize);
 
@@ -77,7 +79,7 @@ void InterfaceSearchStructureMPI::InitializeSearchIteration(const Kratos::Flags&
     // Apply tolerance to bounding boxes
     std::vector<double> bounding_boxes_with_tol;
     MapperUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
-                                                       mSearchRadius*1.2, // apply +20%
+                                                       mSearchRadius,
                                                        bounding_boxes_with_tol);
 
     // Compute Candidate Partitions and fill the send buffer

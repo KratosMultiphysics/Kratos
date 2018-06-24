@@ -83,6 +83,7 @@ public:
                                  SearchSettings)
     {
         KRATOS_INFO("InterfaceSearchStructure") << "In Ctor" << std::endl;
+        mpMapperInterfaceInfosContainer->resize(1);
     }
 
 

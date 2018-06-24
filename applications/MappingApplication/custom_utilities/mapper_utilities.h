@@ -218,7 +218,7 @@ bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
 
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
-                                 const int BufferSizeEstimate,
+                                 const SizeType BufferSizeEstimate,
                                  std::vector<std::vector<double>>& rSendBuffer,
                                  std::vector<int>& rSendSizes);
 

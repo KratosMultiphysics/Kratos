@@ -86,7 +86,8 @@ namespace Kratos
 
     void InterfaceSearchStructureBase::FinalizeSearch()
     {
-        mpMapperInterfaceInfosContainer->clear();
+        for (auto& r_interface_infos_rank : (*mpMapperInterfaceInfosContainer))
+            r_interface_infos_rank.clear();
     }
 
     void InterfaceSearchStructureBase::CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)

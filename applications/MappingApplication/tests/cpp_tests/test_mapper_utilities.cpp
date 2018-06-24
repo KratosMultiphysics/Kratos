@@ -20,6 +20,9 @@
 namespace Kratos {
 namespace Testing {
 
+using SizeType = std::size_t;
+using IndexType = std::size_t;
+
 void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
 {
     const int rank = rModelPart.GetCommunicator().MyPID();
@@ -83,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBoxWithTol, KratosMappi
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
@@ -273,16 +276,277 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
     r_info_3->GetValue(neighbor_dist);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
+
+    // Test if the correct object type was created
+    KRATOS_CHECK_EQUAL(typeid(*r_info_1), typeid(*p_ref_nearest_neighbor_info));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
+    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
+    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
+
+    MapperLocalSystemPointerVectorPointer p_local_systems(Kratos::make_shared<MapperLocalSystemPointerVector>());
+
+    const SizeType buffer_size_estimate = 3;
+
+    const int comm_size = 3;
+
+    std::vector<std::vector<double>> send_buffer(comm_size);
+    std::vector<int> send_sizes(comm_size);
+
+    // each row is one bbox
+    const std::vector<double> bounding_boxes {10.5, -2.8, 3.89, -77.6, 4.64, 2.3,
+                                              -1.5, -10.3, 20.6, 3.4, 3.77, -20.8,
+                                              25.998, 6.4, 50.6, 15.2, 10.88, 4.12};
+
+    KRATOS_CHECK_EQUAL(bounding_boxes.size(), (6*comm_size)); // ensure the test is set up correctly
+
+    // xmax, xmin,  ymax, ymin,  zmax, zmin
+    const std::vector<double> missized_bounding_boxes {10.5, -2.8, 3.89};
+
+    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::FillBufferBeforeLocalSearch(
+        p_local_systems,
+        missized_bounding_boxes,
+        buffer_size_estimate,
+        send_buffer,
+        send_sizes),
+        "Error: Bounding Boxes size has to be a multiple of 6!");
+
+    NearestNeighborLocalSystem local_sys_dummy; // Using the one from NearestNeighbor bcs the baseclass is abstract
+
+    // Node-ids do not matter here
+    auto node_local_sys_1(Kratos::make_shared<Node<3>>(87, -2.0, 3.5, 3.0)); // in bbox 1&2
+    auto node_local_sys_2(Kratos::make_shared<Node<3>>(26, 10.0, -25.0, 3.0)); // in bbox 1
+    auto node_local_sys_3(Kratos::make_shared<Node<3>>(36, -10.0, 15.5, -5.0)); // in bbox 2
+    auto node_local_sys_4(Kratos::make_shared<Node<3>>(46, 12.6, 50.1, 5.0)); // in bbox 3
+
+    p_local_systems->reserve(7);
+
+    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_1));
+    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_2));
+    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_3));
+    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_4));
+
+    MapperUtilities::FillBufferBeforeLocalSearch(
+        p_local_systems,
+        bounding_boxes,
+        buffer_size_estimate,
+        send_buffer,
+        send_sizes);
+
+    // preforming checks on the buffer
+    KRATOS_CHECK_EQUAL(send_buffer.size(), comm_size); // equal to comm_size, should not have changed
+    KRATOS_CHECK_EQUAL(send_sizes.size(), comm_size); // equal to comm_size, should not have changed
+
+    KRATOS_CHECK_EQUAL(send_sizes[0], 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_CHECK_EQUAL(send_sizes[1], 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_CHECK_EQUAL(send_sizes[2], 4); // one obj with 4 doubles are sent to this bbox
+
+    KRATOS_CHECK_EQUAL(send_buffer[0].size(), 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_CHECK_EQUAL(send_buffer[1].size(), 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_CHECK_EQUAL(send_buffer[2].size(), 4); // one obj with 4 doubles are sent to this bbox
+
+    // set up expected send buffer
+    std::vector<double> exp_send_buffer_rank_1 {0.0, -2.0, 3.5, 3.0,
+                                                1.0, 10.0, -25.0, 3.0};
+    std::vector<double> exp_send_buffer_rank_2 {0.0, -2.0, 3.5, 3.0,
+                                                2.0, -10.0, 15.5, -5.0};
+    std::vector<double> exp_send_buffer_rank_3 {3.0, 12.6, 50.1, 5.0};
+
+    std::vector<std::vector<double>> exp_send_buffer {exp_send_buffer_rank_1,
+                                                      exp_send_buffer_rank_2,
+                                                      exp_send_buffer_rank_3};
+
+    // compare the send buffers
+    for (IndexType i=0; i<exp_send_buffer.size(); ++i)
+        for (IndexType j=0; j<exp_send_buffer[i].size(); ++j)
+            KRATOS_CHECK_DOUBLE_EQUAL(send_buffer[i][j], exp_send_buffer[i][j]);
+
+    /////
+    // now we "update" the Interface and then check the buffers again
+    /////
+
+    Point new_coords_node_1(1008.3, -89.123, 125.7);
+    noalias(node_local_sys_1->Coordinates()) = new_coords_node_1;
+    // => now "node_local_sys_1" will not fall into any bbox any more
+
+    auto node_local_sys_5(Kratos::make_shared<Node<3>>(50, -8.301, 17.75, -15.18)); // in bbox 2
+    auto node_local_sys_6(Kratos::make_shared<Node<3>>(416, 13.5, 44.58, 7.5)); // in bbox 3
+    auto node_local_sys_7(Kratos::make_shared<Node<3>>(417, 13.5125, 44.68, 8.5)); // in bbox 3
+
+    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_5));
+    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_6));
+    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_7));
+
+    MapperUtilities::FillBufferBeforeLocalSearch(
+        p_local_systems,
+        bounding_boxes,
+        buffer_size_estimate,
+        send_buffer,
+        send_sizes);
+
+    // preforming checks on the buffer
+    KRATOS_CHECK_EQUAL(send_buffer.size(), comm_size); // equal to comm_size, should not have changed
+    KRATOS_CHECK_EQUAL(send_sizes.size(), comm_size); // equal to comm_size, should not have changed
+
+    KRATOS_CHECK_EQUAL(send_sizes[0], 4); // one obj with 4 doubles are sent to this bbox
+    KRATOS_CHECK_EQUAL(send_sizes[1], 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_CHECK_EQUAL(send_sizes[2], 12); // three objs with each 4 doubles are sent to this bbox
+
+    KRATOS_CHECK_EQUAL(send_buffer[0].size(), 4); // one obj with 4 doubles are sent to this bbox
+    KRATOS_CHECK_EQUAL(send_buffer[1].size(), 8); // two objs with each 4 doubles are sent to this bbox
+    KRATOS_CHECK_EQUAL(send_buffer[2].size(), 12); // three objs with each 4 doubles are sent to this bbox
+
+    // set up expected send buffer
+    std::vector<double> exp_send_buffer_rank_1_2 {1.0, 10.0, -25.0, 3.0};
+    std::vector<double> exp_send_buffer_rank_2_2 {2.0, -10.0, 15.5, -5.0,
+                                                  4.0, -8.301, 17.75, -15.18};
+    std::vector<double> exp_send_buffer_rank_3_2 {3.0, 12.6, 50.1, 5.0,
+                                                  5.0, 13.5, 44.58, 7.5,
+                                                  6.0, 13.5125, 44.68, 8.5};
+
+    std::vector<std::vector<double>> exp_send_buffer_2 {exp_send_buffer_rank_1_2,
+                                                        exp_send_buffer_rank_2_2,
+                                                        exp_send_buffer_rank_3_2};
+
+    // compare the send buffers
+    for (IndexType i=0; i<exp_send_buffer_2.size(); ++i)
+        for (IndexType j=0; j<exp_send_buffer_2[i].size(); ++j)
+            KRATOS_CHECK_DOUBLE_EQUAL(send_buffer[i][j], exp_send_buffer_2[i][j]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
+
+    using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
+    using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
+    using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
+
+    // set up receive buffer
+    std::vector<double> recv_buffer_rank_1 {0.0, -2.0, 3.5, 3.0,
+                                            15.0, 10.0, -25.0, 3.0};
+    std::vector<double> recv_buffer_rank_2 {0.0, -21.0, 73.5, 35.89,
+                                            2.0, -10.0, 15.5, -5.0,
+                                            44.0, -89.2, 25.4, 78.7};
+    std::vector<double> recv_buffer_rank_3 {}; // nothing received from this rank
+    std::vector<double> recv_buffer_rank_4 {2.9999999999999, 12.6, 50.1, 5.0}; // => check in case of truncation
+
+    std::vector<std::vector<double>> recv_buffer {recv_buffer_rank_1,
+                                                  recv_buffer_rank_2,
+                                                  recv_buffer_rank_3,
+                                                  recv_buffer_rank_4};
+
+    std::vector<double> recv_buffer_rank_3_wrong {3.0, 50.1, 5.0}; // has wrong size
+    std::vector<double> recv_buffer_rank_3_wrong_2 {3.11, 12.6, 50.1, 5.0}; // 3.11 cannot be from casting an int to double
+
+    std::vector<std::vector<double>> recv_buffer_wrong {recv_buffer_rank_1,
+                                                        recv_buffer_rank_2,
+                                                        recv_buffer_rank_3_wrong,
+                                                        recv_buffer_rank_4};
+
+    std::vector<std::vector<double>> recv_buffer_wrong_2 {recv_buffer_rank_1,
+                                                          recv_buffer_rank_2,
+                                                          recv_buffer_rank_3_wrong_2,
+                                                          recv_buffer_rank_4};
+
+    const SizeType comm_size = recv_buffer.size();
+    const int comm_rank = 16; // only needed for error printing
+
+    MapperInterfaceInfoPointerVectorPointerType p_interface_info_container
+        = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
+
+    MapperInterfaceInfoUniquePointerType p_ref_interface_info(Kratos::make_unique<NearestNeighborInterfaceInfo>());
+
+    // throws bcs "p_interface_info_container" has the wrong size
+    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+        recv_buffer,
+        p_ref_interface_info,
+        comm_rank,
+        p_interface_info_container),
+        "Error: Buffer-size mismatch!");
+
+    p_interface_info_container->resize(comm_size);
+
+    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+        recv_buffer_wrong,
+        p_ref_interface_info,
+        comm_rank,
+        p_interface_info_container),
+        "Error: Rank 16 received a wrong buffer-size from rank 3!");
+
+    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+        recv_buffer_wrong_2,
+        p_ref_interface_info,
+        comm_rank,
+        p_interface_info_container),
+        "Error: Buffer contains a double (3.11) that was not casted from an int, i.e. it contains a fractional part of 0.11 !");
+
+    MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+        recv_buffer,
+        p_ref_interface_info,
+        comm_rank,
+        p_interface_info_container);
+
+    // Check the created InterfaceInfos
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0].size(), 2);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1].size(), 3);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[2].size(), 0);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[3].size(), 1);
+
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][0]->GetLocalSystemIndex(), 0);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][1]->GetLocalSystemIndex(), 15);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][0]->GetLocalSystemIndex(), 0);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][1]->GetLocalSystemIndex(), 2);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][2]->GetLocalSystemIndex(), 44);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[3][0]->GetLocalSystemIndex(), 3);
+
+    const auto coords_to_check = (*p_interface_info_container)[1][0]->Coordinates();
+    Point coords_exp(-21.0, 73.5, 35.89);
+
+    for (IndexType i=0; i<3; ++i)
+        KRATOS_CHECK_DOUBLE_EQUAL(coords_to_check[i], coords_exp[i]);
+
+    // Test if the "Create" function returns the correct object
+    KRATOS_CHECK_EQUAL(typeid(*p_ref_interface_info), typeid(*(*p_interface_info_container)[0][0]));
+
+    /////
+    // now we "update" the Interface and then check again
+    /////
+
+    std::vector<double> recv_buffer_rank_1_2 {0.0, -2.0, 3.5, 3.0,
+                                              15.0, 10.0, -25.0, 3.0,
+                                              18, 12.6, 50.1, 5.0};
+    std::vector<double> recv_buffer_rank_2_2 {2.0, -10.0, 15.5, -5.0,
+                                              44.0, -89.2, 25.4, 78.7};
+    std::vector<double> recv_buffer_rank_3_2 {0.0, -21.0, 73.5, 35.89};
+    std::vector<double> recv_buffer_rank_4_2 {};
+
+    std::vector<std::vector<double>> recv_buffer_2 {recv_buffer_rank_1_2,
+                                                  recv_buffer_rank_2_2,
+                                                  recv_buffer_rank_3_2,
+                                                  recv_buffer_rank_4_2};
+
+    MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+        recv_buffer_2,
+        p_ref_interface_info,
+        comm_rank,
+        p_interface_info_container);
+
+    // Check the created InterfaceInfos
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0].size(), 3);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1].size(), 2);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[2].size(), 1);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[3].size(), 0);
+
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][0]->GetLocalSystemIndex(), 0);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][1]->GetLocalSystemIndex(), 15);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][2]->GetLocalSystemIndex(), 18);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][0]->GetLocalSystemIndex(), 2);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][1]->GetLocalSystemIndex(), 44);
+    KRATOS_CHECK_EQUAL((*p_interface_info_container)[2][0]->GetLocalSystemIndex(), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SelectInterfaceInfosSuccessfulSearch, KratosMappingApplicationSerialTestSuite)

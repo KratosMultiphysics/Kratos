@@ -38,8 +38,7 @@ void InterfaceSearchStructure::InitializeSearchIteration(const Kratos::Flags& rO
                                                 const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     // Creating the MapperInterfaceInfos
-    mpMapperInterfaceInfosContainer->clear();
-    mpMapperInterfaceInfosContainer->resize(1);
+    (*mpMapperInterfaceInfosContainer)[0].clear();
 
     auto& r_mapper_interface_infos = (*mpMapperInterfaceInfosContainer)[0];
     r_mapper_interface_infos.reserve(mpMapperLocalSystems->size());
