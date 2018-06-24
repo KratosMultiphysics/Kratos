@@ -1,18 +1,19 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import python_process
 
-def Factory(settings, Model):
+
+def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
-    return ComputeDragProcess(Model, settings["Parameters"])
+    return ComputeDragProcess(model, settings["Parameters"])
 
 
-class ComputeDragProcess(python_process.PythonProcess):
-    def __init__(self, Model, settings ):
+class ComputeDragProcess(KratosMultiphysics.Process):
+    def __init__(self, model, settings ):
         """ Auxiliary class to output total flow forces over obstacles in fluid dynamics problems.
         """
+        super(ComputeDragProcess,self).__init__()
 
         default_settings = KratosMultiphysics.Parameters("""
             {
@@ -37,7 +38,7 @@ class ComputeDragProcess(python_process.PythonProcess):
 
         self.format = settings["print_format"].GetString()
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = model[settings["model_part_name"].GetString()]
         self.interval = KratosMultiphysics.Vector(2)
         self.interval[0] = settings["interval"][0].GetDouble()
         self.interval[1] = settings["interval"][1].GetDouble()

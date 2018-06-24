@@ -16,13 +16,10 @@
 #if !defined(KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED )
 #define  KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED
 
-
 // System includes
-
 
 // External includes
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -30,9 +27,8 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
-
 #include "includes/cfd_variables.h"
-
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
