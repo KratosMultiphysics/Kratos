@@ -133,7 +133,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
             file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
 
             file_header = GetFileHeader(entity_type, found_id, point, self.output_variables[0])
-            self.output_file.append(TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_params, file_header))
+            self.output_file.append(TimeBasedAsciiFileWriterUtility(
+                self.model_part, file_handler_params, file_header).file)
 
     def ExecuteBeforeSolutionLoop(self):
         pass

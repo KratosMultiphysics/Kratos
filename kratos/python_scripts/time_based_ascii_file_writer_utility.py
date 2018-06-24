@@ -18,6 +18,7 @@ class TimeBasedAsciiFileWriterUtility(object):
             "output_file_name"  : "",
             "write_buffer_size" : -1
         }''')
+        # write_buffer_size: -1 means we use the system default
 
         self.model_part = model_part
 
@@ -32,9 +33,9 @@ class TimeBasedAsciiFileWriterUtility(object):
             self.file = self.__InitializeOutputFile(file_header)
         else:
             restart_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            existing_file_is_valid, out_file = self.__AddToExistingOutputFile(file_header, restart_time)
+            out_file = self.__AddToExistingOutputFile(file_header, restart_time)
 
-            if existing_file_is_valid:
+            if out_file is not None:
                 self.file = out_file
             else:
                 warn_msg  = "No valid data file was found after restarting,\n"
@@ -42,21 +43,8 @@ class TimeBasedAsciiFileWriterUtility(object):
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
                 self.file = self.__InitializeOutputFile(file_header)
 
-    def write(self, string_to_write):
-        self.file.write(string_to_write)
-
-    def flush(self):
-        self.file.flush()
-
-    def close(self):
-        if not self.file.closed:
-            self.file.close()
-
     def __OpenOutputFile(self):
-        if self.write_buffer_size == -1: # user didn't specify a buffer size, -1 means we use the system default
-            return open(self.output_file_name,"w")
-        else:
-            return open(self.output_file_name,"w", buffering=self.write_buffer_size)
+        return open(self.output_file_name,"w", buffering=self.write_buffer_size)
 
     def __InitializeOutputFile(self, file_header):
         output_file = self.__OpenOutputFile()
@@ -65,7 +53,7 @@ class TimeBasedAsciiFileWriterUtility(object):
 
     def __AddToExistingOutputFile(self, file_header, restart_time):
         if not os.path.isfile(self.output_file_name):
-            return False, None
+            return None
 
         try: # We try to open the file and transfer the info
             with open(self.output_file_name,'r') as out_file:
@@ -84,7 +72,7 @@ class TimeBasedAsciiFileWriterUtility(object):
                 warn_msg  = "Headers in " + self.output_file_name + " after restarting do not match, \n"
                 warn_msg += "appending results after restart from time " + str(restart_time) + " not possible"
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
-                return is_found, None
+                return None
 
             # comparing the data
             new_lines =""
@@ -99,13 +87,13 @@ class TimeBasedAsciiFileWriterUtility(object):
                 warn_msg  = "No line was found in " + self.output_file_name + " after restarting containing indicated restart time, \n"
                 warn_msg += "appending results after restart from time " + str(restart_time) + " not possible"
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriterUtility", warn_msg)
-                return is_found, None
+                return None
 
             output_file = self.__OpenOutputFile() # this overwrites the old file
             output_file.write(file_header)
             output_file.write(new_lines)
 
-            return is_found, output_file
+            return output_file
         except:
-            return False, None
+            return None
 
