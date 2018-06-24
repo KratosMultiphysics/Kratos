@@ -69,7 +69,6 @@ class AnalysisStage(object):
             element = self.model["Structure"].GetElement(1)
             DEF = element.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.model["Structure"].ProcessInfo)[0][8]
             VM = element.GetValuesOnIntegrationPoints(StructuralMechanicsApplication.UNIAXIAL_STRESS, self.model["Structure"].ProcessInfo)[7][0]
-            #VM = element.GetValuesOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS, self.model["Structure"].ProcessInfo)
             PlotFile = open("ProvisionalTensionDEF.txt","a")
             PlotFile.write("{0:.4e}".format(DEF).rjust(11) +"    " + "{0:.4e}".format(VM).rjust(11) + "\n")
             
@@ -134,6 +133,7 @@ class AnalysisStage(object):
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
+            Wait()
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed

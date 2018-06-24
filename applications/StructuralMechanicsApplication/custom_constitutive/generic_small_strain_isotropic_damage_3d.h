@@ -185,7 +185,10 @@ public:
             rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
 
         const double F = UniaxialStress - Threshold; 
-		KRATOS_WATCH(F)
+		//KRATOS_WATCH(F)
+		//KRATOS_WATCH(PredictiveStressVector)
+		//KRATOS_WATCH(Threshold)
+		//KRATOS_WATCH(UniaxialStress)
 
         if (F <= 0.0) {   // Elastic case
             noalias(IntegratedStressVector) = PredictiveStressVector;
@@ -195,8 +198,8 @@ public:
             noalias(TangentTensor) = (1.0 - Damage)*C;
 
             // Aux value Remove TODO
-            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-            KRATOS_WATCH(UniaxialStress)
+            //this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+            //KRATOS_WATCH(UniaxialStress)
 
         } else { // Damage case
             const double CharacteristicLength = rValues.GetElementGeometry().Length();
@@ -205,23 +208,26 @@ public:
             // This routine updates the PredictiveStress to verify the yield surf
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
                 Damage, Threshold, rMaterialProperties, CharacteristicLength);
-
+			//KRATOS_WATCH(PredictiveStressVector)
             // Updated Values
-            noalias(IntegratedStressVector) = PredictiveStressVector; 
+            IntegratedStressVector = PredictiveStressVector; 
             this->SetNonConvDamage(Damage);
-            this->SetNonConvThreshold(Threshold);
+            this->SetNonConvThreshold(UniaxialStress);
 
-            //noalias(TangentTensor) = (1 - Damage)*C; // Secant Tensor
-            this->CalculateTangentTensor(rValues); 
-            TangentTensor = rValues.GetConstitutiveMatrix();
+            noalias(TangentTensor) = (1 - Damage)*C; // Secant Tensor
+            //this->CalculateTangentTensor(rValues); 
+            //TangentTensor = rValues.GetConstitutiveMatrix();
 
             // Aux value Remove TODO
-			KRATOS_WATCH(UniaxialStress)
-			// KRATOS_WATCH(Damage)
-            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-			std::cout << ""<<std::endl;
+			//KRATOS_WATCH(UniaxialStress)
+			//KRATOS_WATCH(Damage)
+            //this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+			//std::cout << ""<<std::endl;
         }
-        
+		this->SetValue(UNIAXIAL_STRESS, PredictiveStressVector[2], rValues.GetProcessInfo());
+		//KRATOS_WATCH(PredictiveStressVector)
+		//KRATOS_WATCH(Damage)
+		//std::cout << "***********" << std::endl;
     } // End CalculateMaterialResponseCauchy
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
@@ -234,7 +240,7 @@ public:
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo
-        ) override
+    ) override
     {
         this->SetDamage(this->GetNonConvDamage());
         this->SetThreshold(this->GetNonConvThreshold());
@@ -281,13 +287,6 @@ public:
         this->CalculateElasticMatrix(C, rMaterialProperties);
 
         double Threshold, Damage;
-        // In the 1st step must be set
-        if (std::abs(this->GetThreshold()) < tolerance)
-        {
-            ConstLawIntegratorType::YieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, Threshold);
-            this->SetThreshold(Threshold);
-        }
-
         // Converged values
         Threshold = this->GetThreshold();
         Damage    = this->GetDamage();

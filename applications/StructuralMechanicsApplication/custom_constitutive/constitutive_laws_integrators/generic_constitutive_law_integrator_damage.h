@@ -109,10 +109,10 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void IntegrateStressVector(
-        Vector& PredictiveStressVector,
-        double& UniaxialStress,
-        double& Damage,
-        double& Threshold,
+        Vector& rPredictiveStressVector,
+        const double& UniaxialStress,
+        double& rDamage,
+        double& rThreshold,
         const Properties& rMaterialProperties,
         const double CharacteristicLength
     )
@@ -123,23 +123,22 @@ public:
 
         switch(softening_type) {
             case static_cast<int>(SofteningType::Linear):
-                CalculateLinearDamage(UniaxialStress, Threshold, DamageParameter,
-                    CharacteristicLength, rMaterialProperties, Damage);
+                CalculateLinearDamage(UniaxialStress, rThreshold, DamageParameter,
+                    CharacteristicLength, rMaterialProperties, rDamage);
                 break;
-
             case static_cast<int>(SofteningType::Exponential):
-                CalculateExponentialDamage(UniaxialStress, Threshold, DamageParameter,
-                    CharacteristicLength, rMaterialProperties, Damage);
+                CalculateExponentialDamage(UniaxialStress, rThreshold, DamageParameter,
+                    CharacteristicLength, rMaterialProperties, rDamage);
                 break;
-            
-            // Add more...
+            default:
+                KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
         }
 
-        PredictiveStressVector *= (1.0 - Damage);
-        Threshold = UniaxialStress;
+        // KRATOS_WATCH(rPredictiveStressVector)
+        // rPredictiveStressVector *= (1.0 - rDamage);
+        // KRATOS_WATCH(rPredictiveStressVector)
+        // rThreshold = UniaxialStress;
 
-        // provisional
-        UniaxialStress *= (1.0 - Damage);
     }
 
     /**
