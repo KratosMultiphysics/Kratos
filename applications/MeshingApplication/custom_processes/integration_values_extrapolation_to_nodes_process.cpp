@@ -62,7 +62,24 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
             KRATOS_ERROR << "Only double, array, vector and matrix variables are allowed in the variables list." ;
         }
     }
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void IntegrationValuesExtrapolationToNodesProcess::Execute()
+{
+    // We execute all the necesary steps
+    ExecuteBeforeSolutionLoop();
+    ExecuteFinalizeSolutionStep();
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void IntegrationValuesExtrapolationToNodesProcess::ExecuteBeforeSolutionLoop()
+{
     // We initialize the map of coincident and maps of sizes
     InitializeMaps();
 }
@@ -70,7 +87,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void IntegrationValuesExtrapolationToNodesProcess::Execute()
+void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
 {
     // We initialize the values
     InitializeVariables();

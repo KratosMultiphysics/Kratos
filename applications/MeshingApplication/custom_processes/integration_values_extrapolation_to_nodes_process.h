@@ -113,8 +113,17 @@ public:
     /**
      * @brief We execute the search relative to the old and new model part
      */
-    
     void Execute() override;
+
+    /**
+     * @brief This function is designed for being execute once before the solution loop but after all of the solvers where built
+     */
+    void ExecuteBeforeSolutionLoop() override;
+
+    /**
+     * @brief This function will be executed at every time step AFTER performing the solve phase
+     */
+    void ExecuteFinalizeSolutionStep() override;
     
     ///@}
     ///@name Access
@@ -191,13 +200,14 @@ private:
     
     ModelPart& mrThisModelPart;                                /// The main model part
     bool mExtrapolateNonHistorical;                            /// If the non-historical values are interpolated
+    bool mAreaAverage;                                         /// If the values are averaged over area
     std::vector<Variable< double>> mDoubleVariable;            /// The double variables
     std::vector<Variable<array_1d<double, 3>>> mArrayVariable; /// The array variables to compute
     std::vector<Variable<Vector>> mVectorVariable;             /// The vector variables to compute
     std::unordered_map<Variable<Vector>, SizeType, VariableHasher<Variable<Vector>>, VariableComparator<Variable<Vector>>> mSizeVectors; /// The size of the vector variables
     std::vector<Variable<Matrix>> mMatrixVariable;             /// The matrix variables to compute
     std::unordered_map<Variable<Matrix>, std::pair<SizeType, SizeType>, VariableHasher<Variable<Matrix>>, VariableComparator<Variable<Matrix>>> mSizeMatrixes; /// The size of the matrixes variables
-    std::unordered_map<IndexType, SizeType> mCoincidentMap;    /// Times a node belongs to an element
+    std::unordered_map<IndexType, double> mCoincidentMap;      /// Times a node belongs to an element
     SizeType mEchoLevel;                                       /// The level of verbosity
     
     ///@}

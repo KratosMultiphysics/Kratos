@@ -45,16 +45,16 @@ class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteBeforeSolutionLoop(self):
-        pass
+        self.integration_values_extrapolation_to_nodes_process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
-        pass
+        self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
-        self.integration_values_extrapolation_to_nodes_process.Execute()
+        pass
 
     def ExecuteAfterOutputStep(self):
         pass
