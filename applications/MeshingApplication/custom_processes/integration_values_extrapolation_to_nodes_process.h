@@ -125,6 +125,11 @@ public:
      */
     void ExecuteFinalizeSolutionStep() override;
     
+    /**
+     * @brief This function is designed for being called at the end of the computations right after reading the model and the groups
+     */
+    void ExecuteFinalize() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -207,7 +212,7 @@ private:
     std::unordered_map<Variable<Vector>, SizeType, VariableHasher<Variable<Vector>>, VariableComparator<Variable<Vector>>> mSizeVectors; /// The size of the vector variables
     std::vector<Variable<Matrix>> mMatrixVariable;             /// The matrix variables to compute
     std::unordered_map<Variable<Matrix>, std::pair<SizeType, SizeType>, VariableHasher<Variable<Matrix>>, VariableComparator<Variable<Matrix>>> mSizeMatrixes; /// The size of the matrixes variables
-    std::unordered_map<IndexType, double> mCoincidentMap;      /// Times a node belongs to an element
+    Variable<double> mAverageVariable = NODAL_AREA;            /// The variable used to compute the average weight
     SizeType mEchoLevel;                                       /// The level of verbosity
     
     ///@}

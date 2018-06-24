@@ -23,6 +23,7 @@ class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
         {
             "model_part_name"            : "",
             "echo_level"                 : 0,
+            "average_variable"           : "NODAL_AREA",
             "area_average"               : false,
             "list_of_variables"          : [],
             "extrapolate_non_historical" : true
@@ -36,6 +37,7 @@ class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
 
         extrapolation_parameters = KratosMultiphysics.Parameters("""{}""")
         extrapolation_parameters.AddValue("echo_level", settings["echo_level"])
+        extrapolation_parameters.AddValue("average_variable", settings["average_variable"])
         extrapolation_parameters.AddValue("area_average", settings["area_average"])
         extrapolation_parameters.AddValue("list_of_variables", settings["list_of_variables"])
         extrapolation_parameters.AddValue("extrapolate_non_historical", settings["extrapolate_non_historical"])
@@ -60,7 +62,7 @@ class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalize(self):
-        pass
+        self.integration_values_extrapolation_to_nodes_process.ExecuteFinalize()
 
     def Clear(self):
         pass
