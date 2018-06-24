@@ -1,0 +1,72 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Properties 1
+    DENSITY   1.00000E+00 
+    VISCOSITY   1.00000E-05 
+    DYNAMIC_VISCOSITY 1.00000E-05
+End Properties
+
+Begin Nodes
+    1        0.0000000000        0.0000000000        0.0000000000
+    2        1.00000        0.00000        0.00000
+    3        0.00000        1.00000        0.00000
+End Nodes
+
+Begin Elements Element2D3N// GUI group identifier: Fluid
+         1          1         1         2         3 
+End Elements
+
+Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Structure
+    Begin SubModelPartNodes
+        1
+        3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Boundary
+    Begin SubModelPartNodes
+         1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Outlet
+    Begin SubModelPartNodes
+         2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Inlet
+    Begin SubModelPartNodes
+         3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

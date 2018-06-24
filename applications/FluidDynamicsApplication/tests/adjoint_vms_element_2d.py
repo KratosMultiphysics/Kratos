@@ -1,10 +1,20 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.AdjointFluidApplication import *
+
+missing_applications_message = ["Missing required application(s):",]
+have_required_applications = True
+
+try:
+    from KratosMultiphysics.AdjointFluidApplication import *
+except ImportError:
+    have_required_applications = False
+    missing_applications_message.append("AdjointFluidApplication")
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
 
-class TestCase(KratosUnittest.TestCase):
+@KratosUnittest.skipUnless(have_required_applications," ".join(missing_applications_message))
+class AdjointVMSElement2D(KratosUnittest.TestCase):
 
     def setUp(self):
         self.delta_time = 1.0
@@ -31,10 +41,10 @@ class TestCase(KratosUnittest.TestCase):
         self.vms_element = self.model_part.GetElement(1)
         self.adjoint_element = self.model_part.GetElement(2)
 
-        self._assign_solution_step_data1(0)
-        self._assign_solution_step_data2(1)
+        self._AssignSolutionStepData1(0)
+        self._AssignSolutionStepData2(1)
 
-    def _assign_solution_step_data1(self, step=0):
+    def _AssignSolutionStepData1(self, step=0):
         # generate nodal solution step test data
         random.seed(1.0)
         for node in self.model_part.Nodes:
@@ -46,7 +56,7 @@ class TestCase(KratosUnittest.TestCase):
             node.SetSolutionStepValue(ACCELERATION_Y,step,random.random())
             node.SetSolutionStepValue(PRESSURE,step,random.random())
 
-    def _assign_solution_step_data2(self, step=0):
+    def _AssignSolutionStepData2(self, step=0):
         # generate nodal solution step test data
         random.seed(2.0)
         for node in self.model_part.Nodes:
@@ -58,7 +68,7 @@ class TestCase(KratosUnittest.TestCase):
             node.SetSolutionStepValue(ACCELERATION_Y,step,random.random())
             node.SetSolutionStepValue(PRESSURE,step,random.random())
 
-    def _zero_vector(self,size):
+    def _zeroVector(self,size):
         v = Vector(size)
         for i in range(size):
             v[i] = 0.0
@@ -71,23 +81,23 @@ class TestCase(KratosUnittest.TestCase):
                 tmp[i,j] = m[j,i]
         return tmp
 
-    def _assert_matrix_almost_equal(self, matrix1, matrix2, prec=7):
+    def _assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
         self.assertEqual(matrix1.Size1(), matrix2.Size1())
         self.assertEqual(matrix1.Size2(), matrix2.Size2())
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
 
-    def test_CalculateSecondDerivativesLHS(self):
+    def testCalculateSecondDerivativesLHS(self):
         Mass1 = Matrix(9,9)
         self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
         self.vms_element.CalculateMassMatrix(Mass1,self.model_part.ProcessInfo)
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
         mass2_trans = Matrix(9,9)
         self.adjoint_element.CalculateSecondDerivativesLHS(mass2_trans,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(Mass1, self._transpose(mass2_trans))
+        self._assertMatrixAlmostEqual(Mass1, self._transpose(mass2_trans))
 
-    def test_CalculateFirstDerivativesLHS1(self):
+    def testCalculateFirstDerivativesLHS1(self):
         # test for steady state.
         for node in self.model_part.Nodes:
             for step in range(2):
@@ -95,7 +105,7 @@ class TestCase(KratosUnittest.TestCase):
                 node.SetSolutionStepValue(ACCELERATION_Y, step, 0.0)
         # unperturbed residual
         LHS = Matrix(9,9)
-        RHS = self._zero_vector(9)
+        RHS = self._zeroVector(9)
         FirstDerivatives = Vector(9)
         self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
         self.vms_element.CalculateLocalVelocityContribution(LHS,RHS,self.model_part.ProcessInfo)
@@ -141,16 +151,16 @@ class TestCase(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
         AdjointMatrix = Matrix(9,9)
         self.adjoint_element.CalculateFirstDerivativesLHS(AdjointMatrix,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDAdjointMatrix, AdjointMatrix)
+        self._assertMatrixAlmostEqual(FDAdjointMatrix, AdjointMatrix)
         # reset test data
-        self._assign_solution_step_data1(0)
-        self._assign_solution_step_data2(1)
+        self._AssignSolutionStepData1(0)
+        self._AssignSolutionStepData2(1)
 
-    def test_CalculateFirstDerivativesLHS2(self):
+    def testCalculateFirstDerivativesLHS2(self):
         # unperturbed residual
         Mass = Matrix(9,9)
         LHS = Matrix(9,9)
-        RHS = self._zero_vector(9)
+        RHS = self._zeroVector(9)
         FirstDerivatives = Vector(9)
         SecondDerivatives = Vector(9)
         self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
@@ -205,13 +215,13 @@ class TestCase(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
         AdjointMatrix = Matrix(9,9)
         self.adjoint_element.CalculateFirstDerivativesLHS(AdjointMatrix,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDAdjointMatrix, AdjointMatrix)
+        self._assertMatrixAlmostEqual(FDAdjointMatrix, AdjointMatrix)
 
-    def test_CalculateSensitivityMatrix(self):
+    def testCalculateSensitivityMatrix(self):
         # unperturbed residual
         Mass = Matrix(9,9)
         LHS = Matrix(9,9)
-        RHS = self._zero_vector(9)
+        RHS = self._zeroVector(9)
         FirstDerivatives = Vector(9)
         SecondDerivatives = Vector(9)
         self.model_part.ProcessInfo[DELTA_TIME] = self.delta_time
@@ -250,7 +260,7 @@ class TestCase(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
         ShapeDerivativeMatrix = Matrix(6,9)
         self.adjoint_element.CalculateSensitivityMatrix(SHAPE_SENSITIVITY,ShapeDerivativeMatrix,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDShapeDerivativeMatrix, ShapeDerivativeMatrix)
+        self._assertMatrixAlmostEqual(FDShapeDerivativeMatrix, ShapeDerivativeMatrix)
 
 if __name__ == '__main__':
     KratosUnittest.main()
