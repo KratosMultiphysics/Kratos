@@ -1,17 +1,15 @@
 {
-    "test_settings" : {
-        "execute_solve" : false
-    },
     "problem_data" : {
-        "problem_name"    : "input_test",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
-        "start_step"      : 0.0,
-        "nsteps"          : 1,
-        "time_step"       : 0.4
+        "problem_name"    : "square5",
+        "echo_level"      : 0,
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 0.2
     },
     "solver_settings" : {
-        "solver_type"                   : "navier_stokes_solver_vmsmonolithic",
+        "solver_type"                   : "Monolithic",
+        "model_part_name"               : "MainModelPart",
+        "domain_size"                   : 2,
         "maximum_iterations"            : 10,
         "dynamic_tau"                   : 0.001,
         "oss_switch"                    : 0,
@@ -23,9 +21,13 @@
         "absolute_velocity_tolerance"   : 1e-5,
         "relative_pressure_tolerance"   : 0.001,
         "absolute_pressure_tolerance"   : 1e-5,
-        "volume_model_part_name"        : "Parts_Fluid",
-        "skin_parts"                    : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall"],
-        "no_skin_parts"                 : [],
+        "volume_model_part_name"      : "Parts_Fluid",
+        "skin_parts"                  : ["NoSlip2D_left_wall","NoSlip2D_right_wall","NoSlip2D_bottom_wall","NoSlip2D_top_wall"],
+        "no_skin_parts"               : ["Pressure_lower_left_corner"],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        },
         "linear_solver_settings" : {
             "solver_type"         : "AMGCL",
             "max_iteration"       : 500,
@@ -39,43 +41,15 @@
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "test_input_output/io_test"
-        }
+            "input_filename" : "square5"
+        },
+        "time_scheme":"bossak",
+        "alpha":-0.3
     },
     "initial_conditions_process_list"  : [],
-    "boundary_conditions_process_list" : [{
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorByDirectionProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Inlet2D_Inlet",
-            "variable_name"   : "VELOCITY",
-            "modulus"         : 1.0,
-            "constrained"     : true,
-            "direction"       : [1.0,0.0,0.0]
-        }
-    },{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignScalarVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Outlet2D_Outlet",
-            "variable_name"   : "PRESSURE",
-            "value"           : 0
-        }
-    },{
-        "python_module" : "apply_noslip_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyNoSlipProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_Wall"
-        }
-    }],
-    "gravity" : [],
-    "list_other_processes" :[{
+    "boundary_conditions_process_list" : [],
+    "gravity"                          : [],
+    "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
         "python_module" : "single_mesh_primal_input_process",
         "help"          : "",
@@ -95,10 +69,10 @@
         "process_name"  : "FromJsonCheckResultProcess",
         "Parameters" : {
             "check_variables"     : ["VELOCITY", "ACCELERATION", "PRESSURE"],
-            "input_file_name"     : "test_input_output/reference_results.json",
+            "input_file_name"     : "reference_results.json",
             "model_part_name"     : "MainModelPart",
             "sub_model_part_name" : "",
-            "time_frequency"      : 0.4
+            "time_frequency"      : 0.0
         }
     }]
 }

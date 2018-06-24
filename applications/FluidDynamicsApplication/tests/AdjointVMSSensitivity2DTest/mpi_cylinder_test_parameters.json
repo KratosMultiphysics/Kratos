@@ -7,11 +7,9 @@
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "start_time"      : 0.0,
-        "nsteps"          : 10,
-        "time_step"       : 0.01,
         "parallel_type"   : "MPI",
         "echo_level"      : 0,
-        "end_time"        : 0.091
+        "end_time"        : 0.095
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -43,7 +41,7 @@
         "solver_type"                  : "Monolithic",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "test_vms_sensitivity_2d/cylinder_test"
+            "input_filename" : "AdjointVMSSensitivity2DTest/cylinder_test"
         },
         "maximum_iterations"           : 10,
         "dynamic_tau"                  : 1.0,
@@ -118,7 +116,7 @@
     }],
     "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "partitioned_single_mesh_temporal_output_process",
+        "python_module" : "partitioned_single_mesh_primal_output_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -147,7 +145,7 @@
         "Parameters" : {
             "position"         : [0.015717, 0.0043484, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "test_vms_sensitivity_2d/mpi_cylinder_test_probe1.dat",
+            "output_file_name" : "AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe1.dat",
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -161,7 +159,7 @@
         "Parameters" : {
             "position"         : [0.02601,-0.0018744, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "test_vms_sensitivity_2d/mpi_cylinder_test_probe2.dat",
+            "output_file_name" : "AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe2.dat",
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -173,8 +171,8 @@
         "help"            : "",
         "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "output_file_name"    : "test_vms_sensitivity_2d/mpi_cylinder_test_probe1.dat",
-            "reference_file_name" : "test_vms_sensitivity_2d/cylinder_test_probe1_ref.dat",
+            "output_file_name"    : "AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe1.dat",
+            "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
             "decimal_places"      : 6
         }
@@ -184,8 +182,8 @@
         "help"            : "",
         "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "output_file_name"    : "test_vms_sensitivity_2d/mpi_cylinder_test_probe2.dat",
-            "reference_file_name" : "test_vms_sensitivity_2d/cylinder_test_probe2_ref.dat",
+            "output_file_name"    : "AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe2.dat",
+            "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe2_ref.dat",
             "comparison_type"     : "dat_file",
 	        "decimal_places"      : 6
         }
