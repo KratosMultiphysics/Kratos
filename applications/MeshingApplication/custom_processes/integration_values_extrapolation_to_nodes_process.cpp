@@ -77,7 +77,7 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
     // We execute all the necesary steps
     ExecuteBeforeSolutionLoop();
     ExecuteFinalizeSolutionStep();
-
+    ExecuteFinalize();
 }
 
 /***********************************************************************************/
@@ -125,8 +125,11 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
             // Definition of node coefficient
             Matrix node_coefficient(number_of_nodes, integration_points_number);
             if (integration_points_number == 1) { // In case of just one GP the extrapolation it is just one
+                const array_1d<double, 3>& local_coordinates = integration_points[0].Coordinates();
+                Vector N( number_of_nodes );
+                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    node_coefficient(i_node, 0) = 1.0;
+                    node_coefficient(i_node, 0) = N[i_node];
                 }
             } else { // Otherwise we need to build a matrix to invert or approximate the inverse
                 Matrix shape_function_matrix(integration_points_number, number_of_nodes);
