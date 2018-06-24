@@ -77,7 +77,7 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
     // We execute all the necesary steps
     ExecuteBeforeSolutionLoop();
     ExecuteFinalizeSolutionStep();
-    ExecuteFinalize();
+//     ExecuteFinalize();
 }
 
 /***********************************************************************************/
@@ -262,7 +262,28 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
-        it_node->Data().Erase(mAverageVariable);
+        auto& data = it_node->Data();
+        data.Erase(mAverageVariable);
+
+        // We erase the doubles values
+        for ( const auto& i_var : mDoubleVariable) {
+            if (mExtrapolateNonHistorical) data.Erase(i_var);
+        }
+
+        // We erase the arrays values
+        for ( const auto& i_var : mArrayVariable) {
+            if (mExtrapolateNonHistorical) data.Erase(i_var);
+        }
+
+        // We erase the vectors values
+        for ( const auto& i_var : mVectorVariable) {
+            if (mExtrapolateNonHistorical) data.Erase(i_var);
+        }
+
+        // We erase the matrix values
+        for ( const auto& i_var : mMatrixVariable) {
+            if (mExtrapolateNonHistorical) data.Erase(i_var);
+        }
     }
 }
 
