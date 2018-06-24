@@ -30,6 +30,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
     Parameters default_parameters = Parameters(R"(
     {
         "echo_level"                 : 0,
+        "area_average"               : false,
         "list_of_variables"          : [],
         "extrapolate_non_historical" : true
     })");
@@ -37,6 +38,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
     
     mEchoLevel = ThisParameters["echo_level"].GetInt();
     mExtrapolateNonHistorical = ThisParameters["extrapolate_non_historical"].GetBool();
+    mAreaAverage = ThisParameters["area_average"].GetBool();
 
     // We get the list of variables
     const SizeType n_variables = ThisParameters["list_of_variables"].size();
@@ -83,84 +85,90 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
         auto it_elem = elements_array.begin() + i;
 
-        auto& r_this_geometry = it_elem->GetGeometry();
+        // Only active nodes
+        if (it_elem->Is(ACTIVE)) {
+            auto& r_this_geometry = it_elem->GetGeometry();
 
-        // Auxiliar values
-        const GeometryData::IntegrationMethod this_integration_method = it_elem->GetIntegrationMethod();
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
-        const SizeType integration_points_number = integration_points.size();
-        const SizeType number_of_nodes = r_this_geometry.size();
+            // Auxiliar values
+            const GeometryData::IntegrationMethod this_integration_method = it_elem->GetIntegrationMethod();
+            const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+            const SizeType integration_points_number = integration_points.size();
+            const SizeType number_of_nodes = r_this_geometry.size();
 
-        // Definition of node coefficient
-        Matrix node_coefficient(number_of_nodes, integration_points_number);
-        if (integration_points_number == 1) { // In case of just one GP the extrapolation it is just one
-            for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                node_coefficient(i_node, 0) = 1.0;
-            }
-        } else { // Otherwise we need to build a matrix to invert or approximate the inverse
-            Matrix shape_function_matrix(integration_points_number, number_of_nodes);
-            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
-                Vector N( number_of_nodes );
-                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+            // Definition of node coefficient
+            Matrix node_coefficient(number_of_nodes, integration_points_number);
+            if (integration_points_number == 1) { // In case of just one GP the extrapolation it is just one
                 for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    shape_function_matrix(i_gauss_point, i_node) = N[i_node];
+                    node_coefficient(i_node, 0) = 1.0;
+                }
+            } else { // Otherwise we need to build a matrix to invert or approximate the inverse
+                Matrix shape_function_matrix(integration_points_number, number_of_nodes);
+                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                    const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
+                    Vector N( number_of_nodes );
+                    r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                        shape_function_matrix(i_gauss_point, i_node) = N[i_node];
+                    }
+                }
+                if (integration_points_number == number_of_nodes) {
+                    double det;
+                    MathUtils<double>::InvertMatrix(shape_function_matrix, node_coefficient, det);
+                } else { // TODO: Try to use the QR utility
+                    KRATOS_WARNING_IF("IntegrationValuesExtrapolationToNodesProcess", mEchoLevel > 0) << "Number of integration points higher than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
+                    double det;
+                    MathUtils<double>::GeneralizedInvertMatrix(shape_function_matrix, node_coefficient, det);
                 }
             }
-            if (integration_points_number == number_of_nodes) {
-                double det;
-                MathUtils<double>::InvertMatrix(shape_function_matrix, node_coefficient, det);
-            } else { // TODO: Try to use the QR utility
-                KRATOS_WARNING_IF("IntegrationValuesExtrapolationToNodesProcess", mEchoLevel > 0) << "Number of integration points higher than the number of nodes in element: " << it_elem->Id() << ". This is costly and could lose accuracy" << std::endl;
-                double det;
-                MathUtils<double>::GeneralizedInvertMatrix(shape_function_matrix, node_coefficient, det);
-            }
-        }
 
-        // We add the doubles values
-        for ( const auto& i_var : mDoubleVariable) {
-            std::vector<double> aux_result(integration_points_number);
-            it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                    else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+            // If we compute over area
+            if (mAreaAverage) node_coefficient *= r_this_geometry.Area();
+
+            // We add the doubles values
+            for ( const auto& i_var : mDoubleVariable) {
+                std::vector<double> aux_result(integration_points_number);
+                it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                        if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                    }
                 }
             }
-        }
 
-        // We add the arrays values
-        for ( const auto& i_var : mArrayVariable) {
-            std::vector<array_1d<double, 3>> aux_result(integration_points_number);
-            it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                    else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+            // We add the arrays values
+            for ( const auto& i_var : mArrayVariable) {
+                std::vector<array_1d<double, 3>> aux_result(integration_points_number);
+                it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                        if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                    }
                 }
             }
-        }
 
-        // We add the vectors values
-        for ( const auto& i_var : mVectorVariable) {
-            std::vector<Vector> aux_result(integration_points_number);
-            it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                    else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+            // We add the vectors values
+            for ( const auto& i_var : mVectorVariable) {
+                std::vector<Vector> aux_result(integration_points_number);
+                it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                        if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                    }
                 }
             }
-        }
 
-        // We add the matrix values
-        for ( const auto& i_var : mMatrixVariable) {
-            std::vector<Matrix> aux_result(integration_points_number);
-            it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
-            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
-                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
-                    if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
-                    else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+            // We add the matrix values
+            for ( const auto& i_var : mMatrixVariable) {
+                std::vector<Matrix> aux_result(integration_points_number);
+                it_elem->GetValueOnIntegrationPoints(i_var, aux_result, process_info);
+                for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                        if (mExtrapolateNonHistorical) r_this_geometry[i_node].GetValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                        else r_this_geometry[i_node].FastGetSolutionStepValue(i_var) += node_coefficient(i_node, i_gauss_point) * aux_result[i_gauss_point];
+                    }
                 }
             }
         }
@@ -174,7 +182,7 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
 
-        const double coeff_coincident_node = 1.0/static_cast<double>(mCoincidentMap[it_node->Id()]);
+        const double coeff_coincident_node = 1.0/mCoincidentMap[it_node->Id()];
 
         // We initialize the doubles values
         for ( const auto& i_var : mDoubleVariable) {
@@ -213,7 +221,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // Initialize map
     for(IndexType i = 0; i < nodes_array.size(); ++i) {
         auto it_node = nodes_array.begin() + i;
-        mCoincidentMap.insert({it_node->Id(), 0});
+        mCoincidentMap.insert({it_node->Id(), 0.0});
     }
 
     // The list of elements
@@ -222,8 +230,11 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // Fill the map
     for(IndexType i = 0; i < elements_array.size(); ++i) {
         auto it_elem = elements_array.begin() + i;
-        for (auto& node : it_elem->GetGeometry()) {
-            mCoincidentMap[node.Id()] += 1;
+        if (it_elem->Is(ACTIVE)) {
+            const double area = mAreaAverage ? it_elem->GetGeometry().Area() : 1.0;
+            for (auto& node : it_elem->GetGeometry()) {
+                mCoincidentMap[node.Id()] += area;
+            }
         }
     }
 
