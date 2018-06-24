@@ -19,6 +19,7 @@
 // Project includes
 #include "processes/process.h"
 #include "includes/constitutive_law.h"
+#include <vector>
 
 namespace Kratos
 {
@@ -50,8 +51,6 @@ namespace Kratos
  compuestos mediante la teoría de mezclas serie/paralelo" X. Martinez, S. Oller y E. Barbero.
  * @authors Alejandro Cornejo & Lucia Barbu
  */
-
-
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtility
 {
 public:
@@ -76,16 +75,10 @@ public:
         const Vector StrainVectorGP = rValues.GetStrainVector();
         const Vector StressVectorGP = rValues.GetStressVector();
 
-        //const double PlasticDissipation = pConstitutiveLaw->GetPlasticDissipation();
-        //const double Threshold = pConstitutiveLaw->GetThreshold();
-        //const Vector PlasticStrain = pConstitutiveLaw->GetPlasticStrain();
-
-
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
         TangentTensor.clear();
 
         const int NumComp = StrainVectorGP.size();
-		
         // Loop over components of the strain
         for (int Component = 0; Component < NumComp; Component++)
         {
@@ -93,6 +86,7 @@ public:
 			
             double Perturbation;
             CalculatePerturbation(PerturbedStrain, Component, Perturbation);
+			//KRATOS_WATCH(Perturbation)
             PerturbateStrainVector(PerturbedStrain, StrainVectorGP, Perturbation, Component);
             IntegratePerturbedStrain(rValues, pConstitutiveLaw);
 
@@ -104,26 +98,18 @@ public:
             noalias(PerturbedStrain) = StrainVectorGP;
             noalias(PerturbedIntegratedStress) = StressVectorGP;
         }
-
-        // reset the internal variables to the initial ones
-        //pConstitutiveLaw->SetThreshold(Threshold);
-        //pConstitutiveLaw->SetPlasticDissipation(PlasticDissipation);
-        //pConstitutiveLaw->SetPlasticStrain(PlasticStrain);
     }
 
     static void CalculatePerturbation(
         const Vector& StrainVector, 
         const int Component,
-        double& Perturbation
+        double& rPerturbation
     )
     {
         double Pert1, Pert2;
-        if (StrainVector[Component] != 0.0)
-        {
+        if (StrainVector[Component] != 0.0) {
             Pert1 = 1.0e-5 * StrainVector[Component];
-        }
-        else
-        {
+        } else {
             double MinStrainComp;
             GetMinAbsValue(StrainVector, MinStrainComp);
             Pert1 = 1.0e-5 * MinStrainComp;
@@ -131,8 +117,7 @@ public:
         double MaxStrainComp;
         GetMaxAbsValue(StrainVector, MaxStrainComp);
         Pert2 = 1e-10*MaxStrainComp;
-
-        Perturbation = std::max(Pert1, Pert2);
+        rPerturbation = std::max(Pert1, Pert2);
     }
 
     static void PerturbateStrainVector(
@@ -151,7 +136,7 @@ public:
         ConstitutiveLaw* pConstitutiveLaw
     )
     {
-        pConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
+        pConstitutiveLaw->CalculateMaterialResponsePK1(rValues);
     }
 
     static void GetMaxAbsValue(
@@ -159,27 +144,41 @@ public:
         double& MaxValue
     )
     {
-        const int Dim = ArrayValues.size();
-        double aux = std::abs(ArrayValues[0]);
+		const int Dim = ArrayValues.size();
+		std::vector<double> non_zero_values;
 
-        for (int i = 1; i < Dim; i++)
-        {
-            if (std::abs(ArrayValues[i]) > aux) aux = std::abs(ArrayValues[i]);
-        }
+		for (int i = 1; i < Dim; i++) {
+			if (ArrayValues[i] != 0.0) non_zero_values.push_back(std::abs(ArrayValues[i]));
+		}
+		KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
+
+		double aux = std::abs(non_zero_values[0]);
+		for (int i = 1; i < non_zero_values.size(); i++) {
+			if (non_zero_values[i] > aux) aux = non_zero_values[i];
+		}
+
+		MaxValue = aux;
     }
 
     static void GetMinAbsValue(
         const Vector& ArrayValues, 
-        double& MaxValue
+        double& MinValue
     )
     {
         const int Dim = ArrayValues.size();
-        double aux = std::abs(ArrayValues[0]);
+		std::vector<double> non_zero_values;
 
-        for (int i = 1; i < Dim; i++)
-        {
-            if (std::abs(ArrayValues[i]) < aux) aux = std::abs(ArrayValues[i]);
+        for (int i = 0; i < Dim; i++) {
+			if (ArrayValues[i] != 0.0) non_zero_values.push_back(std::abs(ArrayValues[i]));
         }
+        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
+
+		double aux = std::abs(non_zero_values[0]);
+		for (int i = 1; i < non_zero_values.size(); i++) {
+			if (non_zero_values[i] < aux) aux = non_zero_values[i];
+		}
+
+		MinValue = aux;
     }
 
     static void AssignComponentsToTangentTensor(

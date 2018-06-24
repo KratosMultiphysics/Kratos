@@ -110,7 +110,7 @@ public:
      */
     static void IntegrateStressVector(
         Vector& PredictiveStressVector,
-        const double UniaxialStress,
+        double& UniaxialStress,
         double& Damage,
         double& Threshold,
         const Properties& rMaterialProperties,
@@ -137,6 +137,9 @@ public:
 
         PredictiveStressVector *= (1.0 - Damage);
         Threshold = UniaxialStress;
+
+        // provisional
+        UniaxialStress *= (1.0 - Damage);
     }
 
     /**

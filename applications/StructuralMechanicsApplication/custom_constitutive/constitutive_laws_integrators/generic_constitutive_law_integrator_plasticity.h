@@ -142,21 +142,13 @@ public:
     )
     {
         bool is_converged = false; 
-        int iteration = 0, max_iter = 9000; 
-        //BoundedVector<double, TVoigtSize> DSigma, DS; 
+        int iteration = 0, max_iter = 9000;  
         BoundedVector<double, 6> DSigma, DS;
         double PlasticConsistencyFactorIncrement, F;  
 
         // Backward Euler  
         while (is_converged == false && iteration <= max_iter) {
             
-			// if (iteration == 0) {
-			// 	std::cout << "iteration: " << iteration << std::endl;
-			// 	KRATOS_WATCH(PredictiveStressVector)
-			// 	KRATOS_WATCH(UniaxialStress)
-			// 	std::cout << "********" << std::endl;
-			// }
-
             F = UniaxialStress - Threshold;
             PlasticConsistencyFactorIncrement = F * PlasticDenominator; 
             if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
@@ -164,7 +156,6 @@ public:
             noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; 
             noalias(PlasticStrain) += PlasticStrainIncrement; 
             noalias(DS) = prod(C, PlasticStrainIncrement); 
-            //noalias(DSigma) -= DS; 
 			noalias(PredictiveStressVector) -= DS;
 
             CalculatePlasticParameters(PredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
@@ -173,40 +164,12 @@ public:
 
 			F = UniaxialStress - Threshold;
 
-			 //std::cout << "while loop iteration: " << iteration << std::endl;
-			 //KRATOS_WATCH(PredictiveStressVector)
-			 //KRATOS_WATCH(DS)
-			 //KRATOS_WATCH(UniaxialStress)
-			 //KRATOS_WATCH(Gflux)
-             //KRATOS_WATCH(Fflux)
-			 //KRATOS_WATCH(PlasticStrainIncrement)
-			 //KRATOS_WATCH(PlasticStrain)
-			 //KRATOS_WATCH(PlasticConsistencyFactorIncrement)
-			 //KRATOS_WATCH(PlasticDenominator)
-			 //KRATOS_WATCH(Threshold)
-			 //KRATOS_WATCH(PlasticDissipation)
-			 //KRATOS_WATCH(F)
-			 //std::cout << "**********************" << std::endl;
-
-            
-
             if (F < std::abs(1.0e-8 * Threshold)) { // Has converged
                 is_converged = true; 
             } else {
                 iteration++;
             }
         }
-        //std::cout << "**********************" << std::endl;
-		//std::cout << "end while loop iteration: " << iteration << std::endl;
-		// KRATOS_WATCH(PredictiveStressVector)
-		// 	KRATOS_WATCH(DSigma)
-		//KRATOS_WATCH(UniaxialStress)
-		// 	KRATOS_WATCH(Gflux)
-		// 	KRATOS_WATCH(PlasticStrainIncrement)
-		// 	KRATOS_WATCH(PlasticStrain)
-		// 	KRATOS_WATCH(PlasticConsistencyFactorIncrement)
-		//KRATOS_WATCH(PlasticDissipation)
-		//std::cout << "**********************" << std::endl;
         if (iteration == max_iter) KRATOS_ERROR << "Reached max iterations inside the Plasticity loop" << std::endl; 
     }
 
@@ -439,7 +402,7 @@ public:
                 // Add more cases...
 
                 default:
-                    KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not available or wrong..."<< CurveType << std::endl;     
+                    KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not set or wrong..."<< CurveType << std::endl;     
                     break;
             }
         }

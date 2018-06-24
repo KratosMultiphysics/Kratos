@@ -332,6 +332,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(MAXIMUM_STRESS_POSITION)
     KRATOS_REGISTER_VARIABLE(UNIAXIAL_STRESS)
     KRATOS_REGISTER_VARIABLE(FRICTION_ANGLE)
+    KRATOS_REGISTER_VARIABLE(DAMAGE)
+    KRATOS_REGISTER_VARIABLE(THRESHOLD)
 
     // Response function variables
     KRATOS_REGISTER_VARIABLE(RESPONSE_VALUE)
@@ -489,7 +491,7 @@ void KratosStructuralMechanicsApplication::Register() {
 	
 	// damage and plasticity
 	KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticityFactory3D", mSmallStrainIsotropicPlasticityFactory3D);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamageFactory3D", mSmallStrainIsotropicPlasticityFactory3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamageFactory3D", mSmallStrainIsotropicDamageFactory3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedKelvin3D", mViscousGeneralizedKelvin3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedMaxwell3D", mViscousGeneralizedMaxwell3D);
 
