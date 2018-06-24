@@ -31,7 +31,7 @@ IntegrationValuesExtrapolationToNodesProcess::IntegrationValuesExtrapolationToNo
     Parameters default_parameters = Parameters(R"(
     {
         "echo_level"                 : 0,
-        "area_average"               : false,
+        "area_average"               : true,
         "average_variable"           : "NODAL_AREA",
         "list_of_variables"          : [],
         "extrapolate_non_historical" : true
@@ -279,10 +279,27 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
         // NOTE: Is active by default
         const bool element_is_active = ((it_elem)->IsDefined(ACTIVE)) ? (it_elem)->Is(ACTIVE) : true;
         if (element_is_active) {
-            const double area = mAreaAverage ? it_elem->GetGeometry().Area() : 1.0;
-            for (auto& node : it_elem->GetGeometry()) {
-                #pragma omp atomic
-                node.GetValue(mAverageVariable) += area;
+            // The geometry of the element
+            auto& r_this_geometry = it_elem->GetGeometry();
+
+            // Auxiliar values
+            const GeometryData::IntegrationMethod this_integration_method = it_elem->GetIntegrationMethod();
+            const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+            const SizeType integration_points_number = integration_points.size();
+            const SizeType number_of_nodes = r_this_geometry.size();
+
+            // The jacobian of the geometry
+            Vector vector_J;
+            vector_J = r_this_geometry.DeterminantOfJacobian(vector_J , this_integration_method );
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point) {
+                const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
+                Vector N( number_of_nodes );
+                r_this_geometry.ShapeFunctionsValues( N, local_coordinates );
+                const double area_coeff = mAreaAverage ? integration_points[i_gauss_point].Weight() * vector_J[i_gauss_point] : 1.0;
+                for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                    #pragma omp atomic
+                    r_this_geometry[i_node].GetValue(mAverageVariable) += N[i_node] * area_coeff;
+                }
             }
         }
     }

@@ -24,7 +24,7 @@ class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
             "model_part_name"            : "",
             "echo_level"                 : 0,
             "average_variable"           : "NODAL_AREA",
-            "area_average"               : false,
+            "area_average"               : true,
             "list_of_variables"          : [],
             "extrapolate_non_historical" : true
         }
