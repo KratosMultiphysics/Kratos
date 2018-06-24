@@ -102,8 +102,10 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
         auto it_elem = elements_array.begin() + i;
 
-        // Only active nodes
-        if (it_elem->Is(ACTIVE)) {
+        // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
+        // NOTE: Is active by default
+        const bool element_is_active = ((it_elem)->IsDefined(ACTIVE)) ? (it_elem)->Is(ACTIVE) : true;
+        if (element_is_active) {
             auto& r_this_geometry = it_elem->GetGeometry();
 
             // Auxiliar values
@@ -247,7 +249,10 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
     // Fill the map
     for(IndexType i = 0; i < elements_array.size(); ++i) {
         auto it_elem = elements_array.begin() + i;
-        if (it_elem->Is(ACTIVE)) {
+        // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
+        // NOTE: Is active by default
+        const bool element_is_active = ((it_elem)->IsDefined(ACTIVE)) ? (it_elem)->Is(ACTIVE) : true;
+        if (element_is_active) {
             const double area = mAreaAverage ? it_elem->GetGeometry().Area() : 1.0;
             for (auto& node : it_elem->GetGeometry()) {
                 mCoincidentMap[node.Id()] += area;
