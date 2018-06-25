@@ -4,12 +4,12 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("AdjointFluidApplication","MetisApplication","TrilinosApplication")
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
 
 # Import applications
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
+import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 
 ## Checks that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -123,9 +123,9 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction2D(self.settings["response_function_settings"])
             elif (domain_size == 3):
-                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction3D(self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
