@@ -159,6 +159,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
             const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
             array_1d<double, 3> temp(3, 0.0);
             const Vector& value_variable = value.GetVector();
+            KRATOS_ERROR_IF(value_variable.size() != 3) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 3" << std::endl;
             for (IndexType index = 0; index < 3; index++)
                 temp[index] = value_variable[index];
             p_prop->SetValue(variable, temp);
@@ -166,6 +167,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
             const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
             array_1d<double, 6> temp(6, 0.0);
             const Vector& value_variable = value.GetVector();
+            KRATOS_ERROR_IF(value_variable.size() != 6) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 6" << std::endl;
             for (IndexType index = 0; index < 6; index++)
                 temp[index] = value_variable[index];
             p_prop->SetValue(variable, temp);
