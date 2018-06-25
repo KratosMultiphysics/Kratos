@@ -10,6 +10,7 @@ def DeleteFileIfExisting(file_name):
     It uses try/except to also work in MPI
     """
     from os import remove
+    try:
         os.remove(file_name)
     except:
         pass
