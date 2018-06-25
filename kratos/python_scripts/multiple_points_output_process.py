@@ -45,7 +45,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
         params.RemoveValue("positions")
         params.AddEmptyValue("position")
         position_vec = KratosMultiphysics.Vector(3)
-        
+
         if params["output_file_name"].GetString().endswith(".dat"):
             params["output_file_name"].SetString(params["output_file_name"].GetString()[:-4])
 
