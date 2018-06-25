@@ -12,18 +12,11 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     ## problem_data
     puts $FileVar "    \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
-    puts $FileVar "        \"model_part_name\":      \"PorousDomain\","
-    puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
-    puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
+    puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
-    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
-    if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
-        puts $FileVar "        \"fracture_propagation\": false"
-    } else {
-        puts $FileVar "        \"fracture_propagation\": [GiD_AccessValue get gendata Fracture_Propagation]"
-    }
+    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads]"
     puts $FileVar "    \},"
 
     ## solver_settings
@@ -31,12 +24,19 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         puts $FileVar "        \"solver_type\":                        \"poromechanics_MPI_U_Pw_solver\","
     } else {
-        puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+        if { [GiD_AccessValue get gendata Fracture_Propagation] eq false } {
+            puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+        } else {
+            puts $FileVar "        \"solver_type\":                        \"poromechanics_fracture_U_Pw_solver\","
+        }
     }
+    puts $FileVar "        \"model_part_name\":                    \"PorousDomain\","
+    puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
+    puts $FileVar "        \"start_time\":                         [GiD_AccessValue get gendata Start_Time],"
+    puts $FileVar "        \"time_step\":                          [GiD_AccessValue get gendata Delta_Time],"
     puts $FileVar "        \"model_import_settings\":              \{"
     puts $FileVar "            \"input_type\":       \"mdpa\","
-    puts $FileVar "            \"input_filename\":   \"$basename\","
-    puts $FileVar "            \"input_file_label\": 0"
+    puts $FileVar "            \"input_filename\":   \"$basename\""
     puts $FileVar "        \},"
     puts $FileVar "        \"buffer_size\":                        2,"
     puts $FileVar "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
@@ -173,7 +173,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Body_Part
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+    if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
         puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings,"
         ## loads_sub_model_part_list
         set PutStrings \[
