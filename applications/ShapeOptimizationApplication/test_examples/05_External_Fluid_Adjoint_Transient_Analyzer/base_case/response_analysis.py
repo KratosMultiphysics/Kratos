@@ -46,7 +46,7 @@ def Run(optimization_model_part, response_data, custom_settings):
 
 def __get_response_gradients(adjoint_simulation):
     gradient = {}
-    for node in adjoint_simulation.main_model_part.Nodes:
+    for node in adjoint_simulation._GetSolver().main_model_part.Nodes:
         gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
     return gradient
 
