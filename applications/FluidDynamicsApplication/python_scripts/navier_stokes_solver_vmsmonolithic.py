@@ -50,9 +50,7 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
-        if use_oss:
-            self.process_data[KratosMultiphysics.OSS_SWITCH] = 1
-
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
     def _SetUpQSVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -66,9 +64,7 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
-        if use_oss:
-            self.process_data[KratosMultiphysics.OSS_SWITCH] = 1.0
-
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -80,8 +76,7 @@ class StabilizedFormulation(object):
         self.element_name = "DVMS"
 
         use_oss = settings["use_orthogonal_subscales"].GetBool()
-        if use_oss:
-            self.process_data[KratosMultiphysics.OSS_SWITCH] = 1.0
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
 
     def _SetUpFIC(self,settings):
@@ -99,6 +94,7 @@ class StabilizedFormulation(object):
             self.element_name = "FIC"
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = 0
 
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverMonolithic(model, custom_settings)
@@ -238,7 +234,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
 
     def PrepareModelPart(self):
-        self._set_physical_properties()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._set_physical_properties()
         super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
     def Initialize(self):

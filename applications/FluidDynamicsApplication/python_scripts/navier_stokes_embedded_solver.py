@@ -116,13 +116,13 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
     def PrepareModelPart(self):
         super(NavierStokesEmbeddedMonolithicSolver, self).PrepareModelPart()
-
-        ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
-        self._set_physical_properties()
-        ## Sets the constitutive law
-        self._set_constitutive_law()
-        ## Setting the nodal distance
-        self._set_distance_function()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
+            self._set_physical_properties()
+            ## Sets the constitutive law
+            self._set_constitutive_law()
+            ## Setting the nodal distance
+            self._set_distance_function()
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()

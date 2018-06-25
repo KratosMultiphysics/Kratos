@@ -236,6 +236,16 @@ private:
      */
     inline void ComputeNodesMeanNormalModelPartNonHistorical();
 
+    /**
+     * @brief It copies the variable list to the node
+     * @param pNodeNew The new node pointer
+     * @param pNodeNew The old node pointer
+     */
+    inline void CopyVariablesList(
+        NodeType::Pointer pNodeNew,
+        NodeType::Pointer pNodeOld
+        );
+
     ///@}
     ///@name Private  Access
     ///@{

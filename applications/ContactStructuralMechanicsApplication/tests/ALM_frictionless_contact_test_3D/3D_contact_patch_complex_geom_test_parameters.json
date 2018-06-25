@@ -88,10 +88,10 @@
         "process_name"  : "ALMContactProcess",
         "Parameters"    : {
             "mesh_id"                   : 0,
-            "contact_model_part"        : "CONTACT_Contact_Auto1",
+            "contact_model_part"        : { "0" : ["CONTACT_Contact_Auto1"]},
             "computing_model_part_name" : "computing_domain",
             "model_part_name"           : "Structure",
-            "assume_master_slave"       : "Parts_Parts_Auto1",
+            "assume_master_slave"       : { "0" : ["Parts_Parts_Auto1"]},
             "contact_type"              : "Frictionless",
             "search_parameters" : {
                 "check_gap"             : "direct_check"
