@@ -5,7 +5,6 @@ import KratosMultiphysics
 
 # other imports
 from multiple_points_output_process import MultiplePointsOutputProcess
-import os
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -17,7 +16,7 @@ class LineOutputProcess(KratosMultiphysics.Process):
     Internally it holds an object of type "MultiplePointsOutputProcess"
     Usage:
         - specifying start and end point defining the line
-        - specifying the number of sampling points alond the line (start and end points will be included)
+        - specifying the number of sampling points along the line (start and end points will be included)
     """
     def __init__(self, model, params):
 

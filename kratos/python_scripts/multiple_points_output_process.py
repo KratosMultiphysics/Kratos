@@ -5,7 +5,6 @@ import KratosMultiphysics
 
 # other imports
 from point_output_process import PointOutputProcess
-import os
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
