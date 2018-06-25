@@ -1,6 +1,6 @@
 {
     "properties": [{
-            "model_part_name": "structure",
+            "model_part_name": "solid_cantilever.structure",
             "properties_id": 1,
             "Material": {
                     "name": "Material",
