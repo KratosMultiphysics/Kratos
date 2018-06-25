@@ -1,7 +1,7 @@
 
 #include <vector>
 
-namespace KratosWrapper {
+namespace CSharpKratosWrapper {
 
 	class IdTranslator {
 	public:

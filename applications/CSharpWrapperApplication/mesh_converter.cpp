@@ -8,7 +8,7 @@
 #include "containers/array_1d.h"
 #include "vector3.h"
 
-using namespace KratosWrapper;
+using namespace CSharpKratosWrapper;
 using namespace std;
 
 struct element {
@@ -149,16 +149,15 @@ void extractNodes(std::vector<face>& faces, std::vector<int>& nodes, int maxNode
 		if (nodeFlags[i])
 			nodes.push_back(i);
 
-	delete nodeFlags;
+	delete[] nodeFlags;
 }
 
 int findNode(int toFind, std::vector<int>& nodes) {
-	int mid;
 	int start = 0;
 	int end = nodes.size() - 1;
 	while (start <= end)
 	{
-		mid = start + ((end - start) >> 1);
+		int mid = start + ((end - start) >> 1);
 
 		if (nodes[mid] == toFind)
 			return mid;

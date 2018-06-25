@@ -1,5 +1,5 @@
 
-namespace KratosWrapper {
+namespace CSharpKratosWrapper {
 
 	class Vector3 {
 	public:

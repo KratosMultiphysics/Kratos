@@ -2,7 +2,7 @@
 
 #include "includes/constitutive_law.h"
 
-using namespace KratosWrapper;
+using namespace CSharpKratosWrapper;
 
 int* Interface::pmTriangles;
 int Interface::mTrianglesCount;

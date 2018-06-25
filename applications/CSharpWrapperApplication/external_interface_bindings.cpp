@@ -4,7 +4,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace KratosWrapper;
+using namespace CSharpKratosWrapper;
 
 extern "C" {
 

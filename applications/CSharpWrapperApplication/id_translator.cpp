@@ -1,6 +1,6 @@
 #include "id_translator.h"
 
-using namespace KratosWrapper;
+using namespace CSharpKratosWrapper;
 
 //nodes - sorted vector with kratos IDs of surface nodes.
 void IdTranslator::init(std::vector<int>& nodes) {

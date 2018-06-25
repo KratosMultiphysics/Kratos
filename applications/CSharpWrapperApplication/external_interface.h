@@ -4,7 +4,7 @@
 #include "id_translator.h"
 
 
-namespace KratosWrapper {
+namespace CSharpKratosWrapper {
 
 	class Interface {
 	public:

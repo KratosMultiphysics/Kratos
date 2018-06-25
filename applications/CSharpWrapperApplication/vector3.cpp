@@ -1,6 +1,6 @@
 #include "vector3.h"
 
-namespace KratosWrapper {
+namespace CSharpKratosWrapper {
 	Vector3::Vector3(double xVal, double yVal, double zVal)
 		: x(xVal), y(yVal), z(zVal) {}
 

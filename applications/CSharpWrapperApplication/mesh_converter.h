@@ -1,7 +1,7 @@
 #include <vector>
 #include "includes/model_part.h"
 
-namespace KratosWrapper {
+namespace CSharpKratosWrapper {
 
 	struct face {
 		int nodes[4];

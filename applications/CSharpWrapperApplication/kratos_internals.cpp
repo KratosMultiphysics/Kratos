@@ -3,7 +3,7 @@
 
 #define SKIN_SUBMODEL_PART_NAME "skin_model_part"
 
-using namespace KratosWrapper;
+using namespace CSharpKratosWrapper;
 
 void KratosInternals::initInternals() {
 	mApplication.Register();
