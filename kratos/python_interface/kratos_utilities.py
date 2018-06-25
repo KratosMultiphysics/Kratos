@@ -5,25 +5,13 @@ def import_solver(SolverSettings):
     obj = __import__(SolverSettings.solver_type)
     return obj
 
-def IsRankZero():
-    try:
-        import KratosMultiphysics.mpi as KratosMPI
-        KratosMPI.mpi.world.barrier()
-        my_rank = KratosMPI.mpi.rank
-    except ImportError:
-        my_rank = 0
-
-    return my_rank == 0
-
 def DeleteFileIfExisting(file_name):
-    if IsRankZero():
-        import os
-        if os.path.isfile(file_name):
-            os.remove(file_name)
+    import os
+    if os.path.isfile(file_name):
+        os.remove(file_name)
 
 def DeleteDirectoryIfExisting(directory_name):
-    if IsRankZero():
-        import os
-        import shutil
-        if os.path.isdir(directory_name):
-            shutil.rmtree(directory_name)
+    import os
+    import shutil
+    if os.path.isdir(directory_name):
+        shutil.rmtree(directory_name)
