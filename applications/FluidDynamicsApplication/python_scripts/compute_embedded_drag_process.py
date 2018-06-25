@@ -31,7 +31,6 @@ class ComputeEmbeddedDragProcess(KratosMultiphysics.Process):
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,
                 "print_drag_to_screen"      : false,
-                "flush_frequency"           : "",
                 "write_buffer_size"         : -1,
                 "print_format"              : ""
             }
