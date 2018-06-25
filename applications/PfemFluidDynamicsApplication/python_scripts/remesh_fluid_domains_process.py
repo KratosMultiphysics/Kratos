@@ -28,7 +28,8 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
             "meshing_before_output" : true,
-            "meshing_domains"       : []
+            "meshing_domains"       : [],
+            "write_totalVolumeBeforeMeshing" : true
         }
         """)
  
@@ -39,7 +40,8 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         self.echo_level        = self.settings["echo_level"].GetInt()
         self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
-        
+        self.write_total_volume = self.settings["write_totalVolumeBeforeMeshing"].GetBool()
+
         self.meshing_control_is_time = False
         meshing_control_type   = self.settings["meshing_control_type"].GetString()
         if(meshing_control_type == "time"):
@@ -168,7 +170,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
         currentTime=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
         currentStep=self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]                
 
-        if currentStep >= 2 and self.fileTotalVolume is None:
+        if currentStep >= 2 and self.fileTotalVolume is None and self.write_total_volume:
             self.fileTotalVolume = open("totalVolumeBeforeMeshing.txt",'w')
             #self.probe1 = open("probe1.txt",'w')
             #self.probe2 = open("probe2.txt",'w')

@@ -42,8 +42,6 @@
 #include "utilities/timer.h"
 #include "containers/flags.h"
 
-#include "dem_variables.h" //TODO: must be removed eventually
-
 namespace Kratos
 {
 /**
@@ -1227,12 +1225,16 @@ public:
 
         GiD_fBeginElements( mMeshFile );
 
+        // DEM variables
+        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+
         /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_fWriteSphereMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+            GiD_fWriteSphereMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), node_iterator->FastGetSolutionStepValue(particle_material));
 //             mNodeList.push_back(*node_iterator);
         }*/
 
@@ -1241,7 +1243,7 @@ public:
                 ++element_iterator)
         {
             unsigned int node_id = element_iterator->GetGeometry()[0].Id();
-            GiD_fWriteSphereMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS), element_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL)/*element_iterator->GetProperties().Id()*/);
+            GiD_fWriteSphereMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(radius), element_iterator->GetGeometry()[0].FastGetSolutionStepValue(particle_material)/*element_iterator->GetProperties().Id()*/);
         }
         GiD_fEndElements( mMeshFile );
         GiD_fEndMesh( mMeshFile);
@@ -1279,12 +1281,17 @@ void WriteCircleMesh( MeshType& rThisMesh )
         double nx = 0.0;
         double ny = 0.0;
         double nz = 1.0;
+
+        // DEM variables
+        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_fWriteCircleMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), nx, ny, nz, node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+            GiD_fWriteCircleMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), nx, ny, nz, node_iterator->FastGetSolutionStepValue(particle_material));
         }
         GiD_fEndElements( mMeshFile );
         GiD_fEndMesh( mMeshFile);
@@ -1318,12 +1325,16 @@ void WriteClusterMesh( MeshType& rThisMesh )
 
         GiD_fBeginElements( mMeshFile );
 
+        // DEM variables
+        Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
+        Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
+
         /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_fWriteClusterMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+            GiD_fWriteClusterMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), node_iterator->FastGetSolutionStepValue(particle_material));
 //             mNodeList.push_back(*node_iterator);
         }*/
 
@@ -1332,7 +1343,7 @@ void WriteClusterMesh( MeshType& rThisMesh )
                 ++element_iterator)
         {
             unsigned int node_id = element_iterator->GetGeometry()[0].Id();
-            GiD_fWriteClusterMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL)/*element_iterator->GetProperties().Id()*/);
+            GiD_fWriteClusterMat(mMeshFile, node_id, node_id, element_iterator->GetGeometry()[0].FastGetSolutionStepValue(particle_material)/*element_iterator->GetProperties().Id()*/);
         }
         GiD_fEndElements( mMeshFile );
         GiD_fEndMesh( mMeshFile);

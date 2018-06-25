@@ -151,6 +151,11 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
         const std::string& SubModelPartName
         );
 
+    /**
+     * @brief This method can be used to debug complex model parts directly on python
+     */
+    void DebugComputeSubModelPartsList();
+
     ///@}
     ///@name Access
     ///@{
