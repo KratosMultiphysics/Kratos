@@ -644,7 +644,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     )
 {
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    const SizeType number_of_integration_points = number_of_integration_points;
+    const SizeType number_of_integration_points = integration_points.size();
     if ( rOutput.size() != number_of_integration_points )
         rOutput.resize( number_of_integration_points );
 
