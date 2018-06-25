@@ -224,7 +224,7 @@ void SmallDisplacementBbar::CalculateKinematicVariablesBbar(
             rThisKinematicVariables.InvJ0,
             rThisKinematicVariables.DN_DX,
             PointNumber,
-            GetGeometry().GetDefaultIntegrationMethod());
+            mThisIntegrationMethod);
 
     KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0)
                 << "WARNING:: ELEMENT ID: " << this->Id()
