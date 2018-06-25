@@ -1,28 +1,29 @@
 {
     "problem_data"                     : {
-        "problem_name": "cylinder",
-        "start_time": 0.0,
-        "end_time": 0.1,
-        "time_step":0.01,
-        "echo_level": 0,
-        "parallel_type": "MPI"
+        "problem_name"    : "mpi_cylinder_test",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "start_time"      : 0.0,
+        "parallel_type"   : "MPI",
+        "echo_level"      : 0,
+        "end_time"        : 0.095
     },
     "output_configuration"             : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
+                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                "WriteConditionsFlag"   : "WriteElementsOnly",
                 "MultiFileFlag"         : "SingleFile"
             },
             "file_label"          : "time",
-            "output_control_type" : "time",
+            "output_control_type" : "step",
             "output_frequency"    : 1.0,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY", "ACCELERATION","PRESSURE","REACTION"],
+            "nodal_results"       : ["VELOCITY","PRESSURE","REACTION"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
@@ -35,58 +36,45 @@
     },
     "solver_settings"                  : {
         "solver_type"                  : "Monolithic",
-        "domain_size": 2,
-        "model_part_name": "MainModelPart",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "cylinder"
         },
-            "dynamic_tau":      0.01,
-            "oss_switch": 0,
-            "maximum_iterations": 50000,
-            "echo_level": 0,
-            "consider_periodic_conditions": false,
-            "compute_reactions": true,
-            "reform_dofs_at_each_step": true,
-            "relative_velocity_tolerance": 1e-6,
-            "absolute_velocity_tolerance": 1e-8,
-            "relative_pressure_tolerance": 1e-6,
-            "absolute_pressure_tolerance": 1e-8,
-            "time_stepping": {
-                "automatic_time_step" : false,
-                "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01,
-                "time_step"       : 0.01
-            },
-        "linear_solver_settings"       : {
-            "solver_type"         : "MultiLevelSolver",
-            "max_iteration"       : 500,
-            "tolerance"           : 1e-9,
-            "max_levels"	  : 3,
-            "symmetric"		  : false,
-            "reform_preconditioner_at_each_step":true,
-            "scaling"             : true
-        },
+        "maximum_iterations"           : 10,
+        "dynamic_tau"                  : 1.0,
+        "oss_switch"                   : 0,
+        "echo_level"                   : 0,
+        "consider_periodic_conditions" : false,
+        "compute_reactions"            : true,
+        "reform_dofs_at_each_step"     : false,
+        "alpha"                        : -0.3,
+        "relative_velocity_tolerance"  : 1e-3,
+        "absolute_velocity_tolerance"  : 1e-5,
+        "relative_pressure_tolerance"  : 1e-3,
+        "absolute_pressure_tolerance"  : 1e-5,
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
-        "no_skin_parts"                : []
+        "no_skin_parts"                : [],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.01
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "impose_parabolic_inlet_process",
+        "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
-        "help"          : "",
-        "check"         : "",
-        "process_name"  : "ImposeParabolicInletProcess",
+        "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Inlet2D_Inlet"
+            "model_part_name" : "Inlet2D_Inlet",
+            "variable_name"   : "VELOCITY",
+            "value"           : [0.0001, 0.0, 0.0]
         }
     },{
         "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name"  : "ApplyOutletProcess",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet2D_Outlet",
@@ -110,52 +98,52 @@
             "model_part_name" : "NoSlip2D_Cylinder"
         }
     }],
-    "auxiliar_process_list": [
-        {
-            "python_module" : "compute_drag_process",
-                "kratos_module" : "KratosMultiphysics",
-                "process_name"  : "ComputeDragProcess",
-                "Parameters" : {
-                    "mesh_id"                   : 0,
-                    "model_part_name"           : "NoSlip2D_Cylinder",
-                    "interval"                  : [0.0, 1e30],
-                    "write_drag_output_file"    : true,
-                    "print_drag_to_screen"      : false
-                }
-        },{
-            "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "partitioned_single_mesh_temporal_output_process",
-            "help"          : "",
-            "process_name"  : "",
-            "Parameters" : {
-                "model_part_name" : "MainModelPart",
-                "file_settings" : {
-                    "file_access_mode" : "truncate"
-                },
-                "model_part_output_settings" : {},
-                "nodal_results_settings" : {
-                    "list_of_variables": ["VELOCITY", "PRESSURE", "REACTION", "ACCELERATION"]
-                },
-                "element_results_settings" : {
-                    "list_of_variables": []
-                },            
-                "output_time_settings" : {
-                    "output_step_frequency": 1,
-                    "file_name"            : "primal"
-                }
-            }
-        }
-    ],
     "gravity"                          : [{
-        "python_module" : "process_factory",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ApplyConstantVectorValueProcess",
+        "process_name"  : "AssignVectorByDirectionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 0.0,
+            "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
         }
+    }],
+    "auxiliar_process_list" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "partitioned_single_mesh_primal_output_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+            "model_part_name" : "MainModelPart",
+            "file_settings" : {
+                "file_access_mode" : "truncate",
+                "file_driver" : "mpio"
+            },
+            "model_part_output_settings" : {},
+            "nodal_results_settings" : {
+                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+            },
+            "element_results_settings" : {
+                "list_of_variables": []
+            },
+            "output_time_settings" : {
+                "output_step_frequency": 1,
+                "file_name":     "primal"
+            }
+        }
+    },{
+        "python_module" : "compute_drag_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "ComputeDragProcess",
+            "Parameters" : {
+                "mesh_id"                   : 0,
+                "model_part_name"           : "NoSlip2D_Cylinder",
+                "interval"                  : [0.0, 1e30],
+                "write_drag_output_file"    : true,
+                "print_drag_to_screen"      : false
+            }
     }]
 }

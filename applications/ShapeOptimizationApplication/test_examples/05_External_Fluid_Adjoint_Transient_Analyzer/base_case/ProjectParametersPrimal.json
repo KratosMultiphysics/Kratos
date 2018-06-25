@@ -144,7 +144,7 @@
                 }
         },{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "single_mesh_temporal_output_process",
+            "python_module" : "single_mesh_primal_output_process",
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {
