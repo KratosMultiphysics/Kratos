@@ -6,12 +6,20 @@ def import_solver(SolverSettings):
     return obj
 
 def DeleteFileIfExisting(file_name):
-    import os
-    if os.path.isfile(file_name):
+    """This function tries to delete a file
+    It uses try/except to also work in MPI
+    """
+    from os import remove
         os.remove(file_name)
+    except:
+        pass
 
 def DeleteDirectoryIfExisting(directory_name):
-    import os
-    import shutil
-    if os.path.isdir(directory_name):
-        shutil.rmtree(directory_name)
+    """This function tries to delete a folder
+    It uses try/except to also work in MPI
+    """
+    from shutil import rmtree
+    try:
+        rmtree(directory_name)
+    except:
+        pass
