@@ -195,6 +195,9 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Truss generalized variables
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
+    KRATOS_REGISTER_VARIABLE(HARDENING_MODULUS_1D)
+    KRATOS_REGISTER_VARIABLE(TANGENT_MODULUS)
+    KRATOS_REGISTER_VARIABLE(PLASTIC_ALPHA)
 
     // Beam generalized variables
     KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Y)
@@ -453,6 +456,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
     // Register linear elastics laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussConstitutiveLaw", mTrussConstitutiveLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussPlasticityConstitutiveLaw", mTrussPlasticityConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BeamConstitutiveLaw", mBeamConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mElasticIsotropic3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain);

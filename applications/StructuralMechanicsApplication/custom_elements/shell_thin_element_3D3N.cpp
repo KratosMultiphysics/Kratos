@@ -12,7 +12,6 @@
 #include "shell_thin_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shell_utilities.h"
-#include "geometries/triangle_3d_3.h"
 
 #include <string>
 #include <iomanip>
@@ -43,71 +42,6 @@
 
 namespace Kratos
 {
-
-// namespace Utilities
-// {
-// inline void InterpToStandardGaussPoints(double& v1, double& v2, double& v3)
-// {
-//     double vg1 = v1;
-//     double vg2 = v2;
-//     double vg3 = v3;
-// #ifdef OPT_AVARAGE_RESULTS
-//     v1 = (vg1+vg2+vg3)/3.0;
-//     v2 = (vg1+vg2+vg3)/3.0;
-//     v3 = (vg1+vg2+vg3)/3.0;
-// #else
-//     v1 = (2.0*vg1)/3.0 - vg2/3.0       + (2.0*vg3)/3.0;
-//     v2 = (2.0*vg1)/3.0 + (2.0*vg2)/3.0 - vg3/3.0;
-//     v3 = (2.0*vg2)/3.0 - vg1/3.0       + (2.0*vg3)/3.0;
-// #endif // OPT_AVARAGE_RESULTS
-// }
-//
-// inline void InterpToStandardGaussPoints(std::vector< double >& v)
-// {
-//     if(v.size() != 3) return;
-//     InterpToStandardGaussPoints(v[0], v[1], v[2]);
-// }
-//
-// inline void InterpToStandardGaussPoints(std::vector< array_1d<double,3> >& v)
-// {
-//     if(v.size() != 3) return;
-//     for(size_t i = 0; i < 3; i++)
-//         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-// }
-//
-// inline void InterpToStandardGaussPoints(std::vector< array_1d<double,6> >& v)
-// {
-//     if(v.size() != 3) return;
-//     for(size_t i = 0; i < 6; i++)
-//         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-// }
-//
-// inline void InterpToStandardGaussPoints(std::vector< Vector >& v)
-// {
-//     if(v.size() != 3) return;
-//     size_t ncomp = v[0].size();
-//     for(int i = 1; i < 3; i++)
-//         if(v[i].size() != ncomp)
-//             return;
-//     for(size_t i = 0; i < ncomp; i++)
-//         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
-// }
-//
-// inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
-// {
-//     if(v.size() != 3) return;
-//     size_t nrows = v[0].size1();
-//     size_t ncols = v[0].size2();
-//     for(int i = 1; i < 3; i++)
-//         if(v[i].size1() != nrows || v[i].size2() != ncols)
-//             return;
-//     for(size_t i = 0; i < nrows; i++)
-//         for(size_t j = 0; j < ncols; j++)
-//             InterpToStandardGaussPoints(v[0](i,j), v[1](i,j), v[2](i,j));
-// }
-//
-// }
-
 // =====================================================================================
 //
 // CalculationData
@@ -277,14 +211,14 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
     const SizeType num_gps = GetNumberOfGPs();
 
     double av_mass_per_unit_area = 0.0;
-    for(std::size_t i = 0; i < num_gps; i++)
+    for(SizeType i = 0; i < num_gps; i++)
         av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
     av_mass_per_unit_area /= double(num_gps);
 
     // loop on nodes
-    for(std::size_t i = 0; i < 3; i++)
+    for(SizeType i = 0; i < 3; i++)
     {
-        std::size_t index = i * 6;
+        SizeType index = i * 6;
 
         double nodal_mass = av_mass_per_unit_area * lump_area;
 
@@ -345,7 +279,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 		InitializeCalculationData(data);
 
 		// Gauss Loop.
-		for (std::size_t i = 0; i < num_gps; i++)
+		for (SizeType i = 0; i < num_gps; i++)
 		{
 			// set the current integration point index
 			data.gpIndex = i;
@@ -405,7 +339,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 		double total_rotation = 0.0;
 
 		// Gauss Loop.
-		for (std::size_t i = 0; i < num_gps; i++)
+		for (SizeType i = 0; i < num_gps; i++)
 		{
 			// set the current integration point index
 			data.gpIndex = i;
@@ -483,7 +417,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 		// Initialize common calculation variables
 		ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
-		for (std::size_t GP = 0; GP < 1; GP++)
+		for (SizeType GP = 0; GP < 1; GP++)
 		{
 			rValues[GP] = localCoordinateSystem.Vx();
 		}
@@ -524,7 +458,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 		fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
 
 		//write results
-		for (std::size_t dir = 0; dir < 1; dir++)
+		for (SizeType dir = 0; dir < 1; dir++)
 		{
 			rValues[dir] = fiberAxis1;
 		}
@@ -851,10 +785,10 @@ double ShellThinElement3D3N::CalculateTsaiWuPlaneStress(const CalculationData & 
 	// Evaluate Tsai-Wu @ top surface of current layer
 	double var_a = 0.0;
 	double var_b = 0.0;
-	for (std::size_t i = 0; i < 3; i++)
+	for (SizeType i = 0; i < 3; i++)
 	{
 		var_b += F_i[i] * data.rlaminateStresses[2 * rPly][i];
-		for (std::size_t j = 0; j < 3; j++)
+		for (SizeType j = 0; j < 3; j++)
 		{
 			var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly][i] * data.rlaminateStresses[2 * rPly][j];
 		}
@@ -864,10 +798,10 @@ double ShellThinElement3D3N::CalculateTsaiWuPlaneStress(const CalculationData & 
 	// Evaluate Tsai-Wu @ bottom surface of current layer
 	var_a = 0.0;
 	var_b = 0.0;
-	for (std::size_t i = 0; i < 3; i++)
+	for (SizeType i = 0; i < 3; i++)
 	{
 		var_b += F_i[i] * data.rlaminateStresses[2 * rPly + 1][i];
-		for (std::size_t j = 0; j < 3; j++)
+		for (SizeType j = 0; j < 3; j++)
 		{
 			var_a += F_ij(i, j)*data.rlaminateStresses[2 * rPly + 1][i] * data.rlaminateStresses[2 * rPly + 1][j];
 		}
@@ -1619,7 +1553,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     InitializeCalculationData(data);
 
     // Gauss Loop.
-    for(std::size_t i = 0; i < GetNumberOfGPs(); ++i)
+    for(SizeType i = 0; i < GetNumberOfGPs(); ++i)
     {
         data.gpIndex = i;
         CalculateGaussPointContribution(data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -1739,7 +1673,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 
     // Gauss Loop.
 
-    for(std::size_t i = 0; i < num_gps; i++)
+    for(SizeType i = 0; i < num_gps; i++)
     {
         // set the current integration point index
         data.gpIndex = i;
