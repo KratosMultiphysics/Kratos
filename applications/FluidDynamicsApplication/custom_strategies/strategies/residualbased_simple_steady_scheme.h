@@ -112,8 +112,6 @@ public:
   {
     KRATOS_TRY;
 
-    std::cout << "VelocityRelaxationFactor = " << mVelocityRelaxationFactor << std::endl;
-    std::cout << "PressureRelaxationFactor = " << mPressureRelaxationFactor << std::endl;
     mRotationTool.RotateVelocities(rModelPart);
 
     mpDofUpdater->UpdateDofs(rDofSet,rDx);
