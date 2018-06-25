@@ -1355,6 +1355,8 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 void BaseSolidElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
+    int IntMethod = int(mThisIntegrationMethod);
+    rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("mConstitutiveLawVector", mConstitutiveLawVector);
 }
 
@@ -1364,6 +1366,9 @@ void BaseSolidElement::save( Serializer& rSerializer ) const
 void BaseSolidElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
+    int IntMethod;
+    rSerializer.load("IntegrationMethod",IntMethod);
+    mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);
 }
 } // Namespace Kratos
