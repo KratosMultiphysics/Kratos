@@ -12,12 +12,16 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
-from DEM_procedures import KratosPrint as Say
 import CFD_DEM_coupling
 import swimming_DEM_procedures as SDP
 import swimming_DEM_gid_output
 import embedded
 import variables_management as vars_man
+
+def Say(*args):
+    Logger.PrintInfo("DEM-FLUID", *args)
+    #Logger.Flush()
+
 
 try:
     import define_output  # MA: some GUI write this file, some others not!
@@ -44,7 +48,7 @@ else:
 
 sys.path.insert(0,'')
 
-class Logger(object):
+class SDEMLogger(object):
     def __init__(self):
         self.terminal = sys.stdout
         self.console_output_file_name = 'console_output.txt'
@@ -64,14 +68,14 @@ class Logger(object):
 
 class Algorithm(object):
     def __enter__ (self):
-        # sys.stdout = Logger()
+        # sys.stdout = SDEMLogger()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
     def __init__(self, varying_parameters = Parameters("{}")):
-        sys.stdout = Logger()
+        sys.stdout = SDEMLogger()
         self.StartTimer()
         self.main_path = os.getcwd()
 
@@ -295,7 +299,7 @@ class Algorithm(object):
         self.disperse_phase_solution.BaseReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
 
     def Initialize(self):
-        Say('\nInitializing Problem...\n')
+        Say('Initializing Problem...\n')
 
         self.run_code = self.GetRunCode()
 
@@ -378,10 +382,10 @@ class Algorithm(object):
                         RADIUS
                         )
                     )
-                self.pp.CFD_DEM.meso_scale_length = 20 * biggest_size
+                self.pp.CFD_DEM["meso_scale_length"].SetDouble(20 * biggest_size)
 
             elif self.spheres_model_part.NumberOfElements(0) == 0:
-                self.pp.CFD_DEM.meso_scale_length = 1.0
+                self.pp.CFD_DEM["meso_scale_length"].SetDouble(1.0)
 
             self.projection_module = CFD_DEM_coupling.ProjectionModule(
                 self.fluid_model_part,
@@ -832,7 +836,7 @@ class Algorithm(object):
         self.watcher_analyser.SetInlet(self.DEM_inlet)
 
     def TellTime(self, time):
-        Say('\nTIME = ', time)
+        Say('TIME = ', time)
         Say('ELAPSED TIME = ', self.timer.time() - self.simulation_start_time, '\n')
 
     def TellFinalSummary(self, time, step, DEM_step):
