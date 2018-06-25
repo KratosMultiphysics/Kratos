@@ -21,9 +21,9 @@ void EmbeddedAusasNavierStokes<3>::EquationIdVector(
 {
     KRATOS_TRY
 
-    unsigned int dim = 3;
-    unsigned int num_nodes = 4;
-    unsigned int dof_size  = num_nodes*(dim+1);
+    constexpr unsigned int dim = 3;
+    constexpr unsigned int num_nodes = 4;
+    constexpr unsigned int dof_size  = num_nodes*(dim+1);
 
     if (rResult.size() != dof_size){
         rResult.resize(dof_size, false);
@@ -47,9 +47,9 @@ void EmbeddedAusasNavierStokes<2>::EquationIdVector(
 {
     KRATOS_TRY
 
-    unsigned int dim = 2;
-    unsigned int num_nodes = 3;
-    unsigned int dof_size  = num_nodes*(dim+1);
+    constexpr unsigned int dim = 2;
+    constexpr unsigned int num_nodes = 3;
+    constexpr unsigned int dof_size  = num_nodes*(dim+1);
 
     if (rResult.size() != dof_size){
         rResult.resize(dof_size, false);
@@ -72,9 +72,9 @@ void EmbeddedAusasNavierStokes<3>::GetDofList(
 {
     KRATOS_TRY
 
-    unsigned int dim = 3;
-    unsigned int num_nodes = 4;
-    unsigned int dof_size  = num_nodes*(dim+1);
+    constexpr unsigned int dim = 3;
+    constexpr unsigned int num_nodes = 4;
+    constexpr unsigned int dof_size  = num_nodes*(dim+1);
 
     if (ElementalDofList.size() != dof_size){
         ElementalDofList.resize(dof_size);
@@ -98,9 +98,9 @@ void EmbeddedAusasNavierStokes<2>::GetDofList(
 {
     KRATOS_TRY
 
-    unsigned int dim = 2;
-    unsigned int num_nodes = 3;
-    unsigned int dof_size  = num_nodes*(dim+1);
+    constexpr unsigned int dim = 2;
+    constexpr unsigned int num_nodes = 3;
+    constexpr unsigned int dof_size  = num_nodes*(dim+1);
 
     if (ElementalDofList.size() != dof_size){
         ElementalDofList.resize(dof_size);
@@ -121,9 +121,8 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(
     BoundedMatrix<double,16,16>& lhs,
     const EmbeddedAusasElementDataStruct& data)
 {
-    const int nnodes = 4;
-    const int dim = 3;
-    //~ const int strain_size = 6;
+    constexpr unsigned int dim = 3;
+    constexpr unsigned int nnodes = 4;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -132,20 +131,11 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
-    // const double& bdf1 = data.bdf1;
-    // const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
     const BoundedMatrix<double,nnodes,dim>& v = data.v;
-    // const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
-    // const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
     const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
-    // const BoundedMatrix<double,nnodes,dim>& f = data.f;
-    // const array_1d<double,nnodes>& p = data.p;
-    // const array_1d<double,nnodes>& pn = data.pn;
-    // const array_1d<double,nnodes>& pnn = data.pnn;
-    //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
     const Matrix& C = data.C;
@@ -154,15 +144,9 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
-
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     const double clhs0 =             C(0,0)*DN(0,0) + C(0,3)*DN(0,1) + C(0,5)*DN(0,2);
 const double clhs1 =             C(0,3)*DN(0,0);
@@ -769,9 +753,8 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(
     BoundedMatrix<double,9,9>& lhs,
     const EmbeddedAusasElementDataStruct& data)
 {
-    const int nnodes = 3;
-    const int dim = 2;
-    //~ const int strain_size = 3;
+    constexpr unsigned int dim = 2;
+    constexpr unsigned int nnodes = 3;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -780,20 +763,11 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
-    // const double& bdf1 = data.bdf1;
-    // const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
     const BoundedMatrix<double,nnodes,dim>& v = data.v;
-    // const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
-    // const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
     const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
-    // const BoundedMatrix<double,nnodes,dim>& f = data.f;
-    // const array_1d<double,nnodes>& p = data.p;
-    // const array_1d<double,nnodes>& pn = data.pn;
-    // const array_1d<double,nnodes>& pnn = data.pnn;
-    //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
     const Matrix& C = data.C;
@@ -802,15 +776,9 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
-
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     const double clhs0 =             C(0,0)*DN(0,0) + C(0,2)*DN(0,1);
 const double clhs1 =             C(0,2)*DN(0,0);
@@ -1036,9 +1004,9 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(
     array_1d<double,16>& rhs,
     const EmbeddedAusasElementDataStruct& data)
 {
-    const int nnodes = 4;
-    const int dim = 3;
-    const int strain_size = 6;
+    constexpr int dim = 3;
+    constexpr int nnodes = 4;
+    constexpr int strain_size = 6;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -1062,9 +1030,6 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(
     const array_1d<double,nnodes>& pnn = data.pnn;
     const array_1d<double,strain_size>& stress = data.stress;
 
-    // Get constitutive matrix
-    // const Matrix& C = data.C;
-
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
@@ -1072,20 +1037,10 @@ void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-    //~ const double p_gauss = inner_prod(N,p);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
-
-    //~ array_1d<double,dim> accel_gauss = bdf0*v_gauss;
-    //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
-    //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0) + N[3]*f(3,0));
@@ -1145,6 +1100,7 @@ const double crhs40 =             rho*(DN(3,0)*crhs7 + DN(3,1)*crhs8 + DN(3,2)*c
             rhs[14]=-DN(3,0)*stress[5] - DN(3,1)*stress[4] + DN(3,2)*crhs0 - DN(3,2)*crhs18 - DN(3,2)*stress[2] + N[3]*crhs28 - N[3]*crhs29 - N[3]*crhs30 - crhs31*crhs39 - crhs31*crhs40;
             rhs[15]=-DN(3,0)*crhs22 + DN(3,0)*crhs32 - DN(3,1)*crhs27 + DN(3,1)*crhs33 - DN(3,2)*crhs31 + DN(3,2)*crhs34 - N[3]*crhs17;
 
+
 }
 
 
@@ -1153,9 +1109,9 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(
     array_1d<double,9>& rhs,
     const EmbeddedAusasElementDataStruct& data)
 {
-    const int nnodes = 3;
-    const int dim = 2;
-    const int strain_size = 3;
+    constexpr int dim = 2;
+    constexpr int nnodes = 3;
+    constexpr int strain_size = 3;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -1179,9 +1135,6 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(
     const array_1d<double,nnodes>& pnn = data.pnn;
     const array_1d<double,strain_size>& stress = data.stress;
 
-    // Get constitutive matrix
-    // const Matrix& C = data.C;
-
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
@@ -1189,20 +1142,10 @@ void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-    //~ const double p_gauss = inner_prod(N,p);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
-
-    //~ array_1d<double,dim> accel_gauss = bdf0*v_gauss;
-    //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
-    //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0));
@@ -1241,6 +1184,7 @@ const double crhs27 =             rho*(DN(2,0)*crhs6 + DN(2,1)*crhs7);
             rhs[6]=DN(2,0)*crhs0 - DN(2,0)*crhs12 - DN(2,0)*stress[0] - DN(2,1)*stress[2] + N[2]*crhs1 - N[2]*crhs2 - N[2]*crhs8 - crhs16*crhs26 - crhs16*crhs27;
             rhs[7]=-DN(2,0)*stress[2] + DN(2,1)*crhs0 - DN(2,1)*crhs12 - DN(2,1)*stress[1] + N[2]*crhs18 - N[2]*crhs19 - N[2]*crhs20 - crhs21*crhs26 - crhs21*crhs27;
             rhs[8]=-DN(2,0)*crhs16 + DN(2,0)*crhs22 - DN(2,1)*crhs21 + DN(2,1)*crhs23 - N[2]*crhs11;
+
 
 }
 
