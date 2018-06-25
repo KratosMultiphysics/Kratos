@@ -19,8 +19,8 @@ def Factory(settings, model):
 
 class ComputeEmbeddedDragProcess(KratosMultiphysics.Process):
     def __init__(self, model, params ):
-        """ 
-        Auxiliary class to output total flow forces over obstacles 
+        """
+        Auxiliary class to output total flow forces over obstacles
         in fluid dynamics problems for an embedded model part.
         """
         super(ComputeEmbeddedDragProcess,self).__init__()
@@ -57,7 +57,7 @@ class ComputeEmbeddedDragProcess(KratosMultiphysics.Process):
             self.model_part = model[self.params["model_part_name"].GetString()]
 
     def ExecuteInitialize(self):
-    
+
         self.interval = KratosMultiphysics.Vector(2)
         self.interval[0] = self.params["interval"][0].GetDouble()
         self.interval[1] = self.params["interval"][1].GetDouble()
@@ -66,20 +66,20 @@ class ComputeEmbeddedDragProcess(KratosMultiphysics.Process):
 
         if (self.model_part.GetCommunicator().MyPID() == 0):
             if (self.write_drag_output_file):
-                
+
                 output_file_name = self.params["model_part_name"].GetString() + "_drag.dat"
 
                 file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
-                
+
                 file_handler_params["output_file_name"].SetString(output_file_name)
                 file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
 
                 file_header = GetFileHeader(self.params["model_part_name"].GetString())
-                self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, 
+                self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
                     file_handler_params, file_header).file
 
     def ExecuteFinalizeSolutionStep(self):
-    
+
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
