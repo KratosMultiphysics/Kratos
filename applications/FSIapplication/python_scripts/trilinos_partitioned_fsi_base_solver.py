@@ -214,15 +214,15 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             redistribution_max_iters)
 
         # Transfer fluid tractions to the structure interface
+        # Note that the ADD_VALUES flag is only specified for the second mapper
+        # since we want the first mapper to overwrite the existent values
         self.pos_interface_mapper.Map(KratosMultiphysics.VAUX_EQ_TRACTION,
                                       KratosMultiphysics.VAUX_EQ_TRACTION,
-                                      KratosMapping.Mapper.SWAP_SIGN,
-                                      KratosMapping.Mapper.ADD_VALUES)
+                                      KratosMapping.Mapper.SWAP_SIGN)
 
         self.neg_interface_mapper.Map(KratosMultiphysics.VAUX_EQ_TRACTION,
                                       KratosMultiphysics.VAUX_EQ_TRACTION,
-                                      KratosMapping.Mapper.SWAP_SIGN,
-                                      KratosMapping.Mapper.ADD_VALUES)
+                                      KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.ADD_VALUES)
 
         # Convert the transferred traction loads to point loads
         KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
