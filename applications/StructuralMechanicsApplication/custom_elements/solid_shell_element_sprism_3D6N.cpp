@@ -88,7 +88,6 @@ SolidShellElementSprism3D6N::SolidShellElementSprism3D6N(IndexType NewId, Geomet
 
 SolidShellElementSprism3D6N::SolidShellElementSprism3D6N( SolidShellElementSprism3D6N const& rOther)
     :BaseType(rOther)
-    ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     ,mFinalizedStep(rOther.mFinalizedStep)
     ,mHistoricalF0(rOther.mHistoricalF0)
 {
