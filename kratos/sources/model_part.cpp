@@ -865,7 +865,27 @@ void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::P
 {
     if (IsSubModelPart())
     {
+        // First add it to the parent modelpart
         mpParentModelPart->AddMasterSlaveConstraint(pNewMasterSlaveConstraint);
+
+        // Now add it here, to this submodelpart. 
+        auto existing_constraint_it = MasterSlaveConstraints().find(pNewMasterSlaveConstraint->Id());
+        if( existing_constraint_it == MasterSlaveConstraintsEnd()) //master-slave constraint did not exist
+        {
+            mMasterSlaveConstraints.insert(mMasterSlaveConstraints.begin(), pNewMasterSlaveConstraint);
+        }
+        else //master-slave constraint did exist already
+        {
+            // In this case, we should update the equation with possible additional masters in the new incoming constraint.
+            if(&(*existing_constraint_it) != (pNewMasterSlaveConstraint.get()))//check if the pointee coincides
+            {
+                KRATOS_ERROR << "attempting to add Master-Slave constraint with Id :" << pNewMasterSlaveConstraint->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
+            }
+            else // This means a possible updated constraint is passed in.
+            {
+                KRATOS_WARNING("AddMasterSlaveConstraint") <<"This Master-Slave constraint already existis in the database. The changes made will be taken care automatically."<<std::endl;
+            }
+        }
     }
     else
     {
