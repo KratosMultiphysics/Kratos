@@ -82,9 +82,6 @@ class LineOutputProcess(KratosMultiphysics.Process):
         params.AddEmptyValue("positions")
         params["positions"].SetMatrix(positions)
 
-        if params["output_file_name"].GetString().endswith(".dat"):
-            params["output_file_name"].SetString(params["output_file_name"].GetString()[:-4])
-
         self.multiple_points_output_process = MultiplePointsOutputProcess(model, params)
 
     def ExecuteInitialize(self):
