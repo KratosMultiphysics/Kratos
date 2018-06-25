@@ -113,6 +113,10 @@ void printWarning(pybind11::args args, pybind11::kwargs kwargs) {
     printImpl(args, kwargs, Logger::Severity::WARNING, false);
 }
 
+void flush() {
+    Logger::Flush();
+}
+
 void  AddLoggerToPython(pybind11::module& m) {
 
     class_<LoggerOutput, Kratos::shared_ptr<LoggerOutput>>(m,"LoggerOutput")
@@ -129,6 +133,7 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("Print", printDefault); // raw_function(printDefault,1))
     logger_scope.def_static("PrintInfo",printInfo); // raw_function(printInfo,1))
     logger_scope.def_static("PrintWarning", printWarning); //raw_function(printWarning,1))
+    logger_scope.def_static("Flush", flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, return_value_policy::reference); //_internal )
     ;
 
