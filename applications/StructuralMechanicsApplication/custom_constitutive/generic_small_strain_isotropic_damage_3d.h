@@ -209,7 +209,7 @@ public:
 
             //noalias(TangentTensor) = (1.0 - Damage)*C; // Secant Tensor
             this->CalculateTangentTensor(rValues); 
-            TangentTensor = rValues.GetConstitutiveMatrix();
+            noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
         }
 		//this->SetValue(UNIAXIAL_STRESS, IntegratedStressVector[2], rValues.GetProcessInfo());
         this->SetValue(UNIAXIAL_STRESS, UniaxialStress*(1.0-Damage), rValues.GetProcessInfo());
@@ -261,18 +261,18 @@ public:
     }
 
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
-    {
+    { 
+        // This method is used to calculate the Tangent Constitutive tensor by numerical derivation
         // Integrate Stress Damage
         const Properties& rMaterialProperties = rValues.GetMaterialProperties();
         const int VoigtSize = this->GetVoigtSize();
         Vector& IntegratedStressVector = rValues.GetStressVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-
         // Elastic Matrix
         Matrix C;
         this->CalculateElasticMatrix(C, rMaterialProperties);
-
         double Threshold, Damage;
+
         // Converged values
         Threshold = this->GetThreshold();
         Damage    = this->GetDamage();
@@ -286,22 +286,16 @@ public:
             rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
 
         const double F = UniaxialStress - Threshold; 
-
         if (F <= 0.0) {   // Elastic case
             noalias(IntegratedStressVector) = PredictiveStressVector;
-            noalias(TangentTensor) = (1.0 - Damage)*C;
-
         } else { // Damage case
             const double CharacteristicLength = rValues.GetElementGeometry().Length();
-
             // This routine updates the PredictiveStress to verify the yield surf
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
                 Damage, Threshold, rMaterialProperties, CharacteristicLength);
-
             // Updated Values
             noalias(IntegratedStressVector) = PredictiveStressVector; 
         }
-        
     }
 
     void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)

@@ -196,14 +196,11 @@ public:
 
         if (F <= std::abs(1.0e-8 * Threshold)) {   // Elastic case
 
-            IntegratedStressVector = PredictiveStressVector;
-            TangentTensor = C;
+            noalias(IntegratedStressVector) = PredictiveStressVector;
+            noalias(TangentTensor) = C;
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
-
-			// TO REMOVE
-			this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
 
         } else { // Plastic case
 
@@ -214,19 +211,17 @@ public:
                 UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, PlasticStrain, rMaterialProperties, CharacteristicLength);
 
-			IntegratedStressVector = PredictiveStressVector;
+			noalias(IntegratedStressVector) = PredictiveStressVector;
 
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
 
-            // Aux value Remove TODO
-            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-
             this->CalculateTangentTensor(rValues); // this modifies the C
-            TangentTensor = rValues.GetConstitutiveMatrix();
+            noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
         }
         this->SetValue(CAUCHY_STRESS_VECTOR, IntegratedStressVector, rValues.GetProcessInfo());
+        this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
     } // End CalculateMaterialResponseCauchy
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
@@ -311,8 +306,8 @@ public:
         const double F = UniaxialStress - Threshold; 
 
         if (F <= std::abs(1.0e-8 * Threshold)) {   // Elastic case
-            IntegratedStressVector = PredictiveStressVector;
-            TangentTensor = C;
+            noalias(IntegratedStressVector) = PredictiveStressVector;
+            noalias(TangentTensor) = C;
         } else { // Plastic case
             // while loop backward euler 
             /* Inside "IntegrateStressVector" the PredictiveStressVector
@@ -320,7 +315,7 @@ public:
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, rValues.GetStrainVector(), 
                 UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, PlasticStrain, rMaterialProperties, CharacteristicLength);
-			IntegratedStressVector = PredictiveStressVector;
+			noalias(IntegratedStressVector) = PredictiveStressVector;
         }
     }
     
@@ -456,7 +451,7 @@ private:
     double mNonConvThreshold = 0.0;
     Vector mNonConvPlasticStrain = ZeroVector(this->GetVoigtSize());
 
-    // auxiliar
+    // auxiliar to print
     double mUniaxialStress = 0.0;
     Vector mStrainVector = ZeroVector(6); // to remove
     Vector mStressVector = ZeroVector(6); // to remove
