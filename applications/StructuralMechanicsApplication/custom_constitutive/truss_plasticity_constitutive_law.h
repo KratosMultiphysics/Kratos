@@ -127,7 +127,7 @@ public:
     double TrialYieldFunction(const Properties& rMaterialProperties,
      const double& rCurrentStress);
 
-        /**
+    /**
      * @brief This function checks if the current stress is in the plastic regime
      * @param rMaterialProperties Material Properties of the problem
      * @param rCurrentStress Current stress value
@@ -146,7 +146,10 @@ public:
                         const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    //TestWasPlasticAndIsElasticNow
+    /**
+     * @brief This function checks if the predicted stress state is in the elastic regime
+     * but was in the plastic regime in the previous non_linear iteration step
+     */
     bool CheckPlasticIterationHistory() const
     {
         bool check_flag = false;
@@ -207,6 +210,10 @@ private:
     ///@name Member Variables
     ///@{
     double mStressState = 0.0; // The current stress state
+
+    //the following members are vectors where
+    //[0] is the current non_linear iteration step
+    //[1] is the previous non_linear iteration step
     BoundedVector<bool, 2> mInElasticFlagVector = ZeroVector(2); /// This flags tells if we are in a elastic or ineslastic regime
     BoundedVector<double, 2> mPlasticAlphaVector = ZeroVector(2); /// The current plastic increment
     BoundedVector<double, 2> mAccumulatedPlasticStrainVector = ZeroVector(2); /// The current accumulated plastic strain
