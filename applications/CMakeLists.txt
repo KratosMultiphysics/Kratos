@@ -309,5 +309,9 @@ if(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
   add_subdirectory(FluidTransportApplication)
 endif(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
 
+if(${CSHARP_WRAPPER_APPLICATION} MATCHES ON)
+  add_subdirectory(CSharpWrapperApplication)
+endif(${CSHARP_WRAPPER_APPLICATION} MATCHES ON)
+
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
