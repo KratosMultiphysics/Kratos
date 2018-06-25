@@ -181,6 +181,7 @@ public:
 
         // S0 = C:(E-Ep)
         Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
+        this->SetValue(GREEN_LAGRANGE_STRAIN_VECTOR, rValues.GetStrainVector(), rValues.GetProcessInfo());
 
         // Initialize Plastic Parameters
         double UniaxialStress = 0.0, PlasticDenominator = 0.0;
@@ -225,6 +226,7 @@ public:
             this->CalculateTangentTensor(rValues); // this modifies the C
             TangentTensor = rValues.GetConstitutiveMatrix();
         }
+        this->SetValue(CAUCHY_STRESS_VECTOR, IntegratedStressVector, rValues.GetProcessInfo());
     } // End CalculateMaterialResponseCauchy
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
@@ -352,7 +354,7 @@ public:
     double& GetValue(
         const Variable<double>& rThisVariable,
         double& rValue
-        )
+    )
     {
         if(rThisVariable == UNIAXIAL_STRESS){
             rValue = mUniaxialStress;
@@ -360,8 +362,33 @@ public:
         } else if (rThisVariable == PLASTIC_DISSIPATION) {
             rValue = mPlasticDissipation;
         }
-
         return rValue;
+    }
+
+    Vector& GetValue(
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+    )
+    {
+        if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
+            rValue = mStrainVector;
+        } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+            rValue = mStressVector;
+        }
+        return rValue;
+    }
+
+    void SetValue(
+        const Variable<Vector>& rThisVariable,
+        const Vector& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+            mStrainVector = rValue;
+        } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+            mStressVector = rValue;
+        }
     }
 
     ///@}
@@ -431,6 +458,8 @@ private:
 
     // auxiliar
     double mUniaxialStress = 0.0;
+    Vector mStrainVector = ZeroVector(6); // to remove
+    Vector mStressVector = ZeroVector(6); // to remove
     ///@}
     ///@name Private Operators
     ///@{

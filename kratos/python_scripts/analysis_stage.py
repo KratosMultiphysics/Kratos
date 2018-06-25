@@ -133,7 +133,6 @@ class AnalysisStage(object):
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
-            Wait()
 
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed

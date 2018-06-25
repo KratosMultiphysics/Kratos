@@ -179,55 +179,41 @@ public:
         // S0 = C:(E-Ep)
         Vector PredictiveStressVector = prod(C, rValues.GetStrainVector());
 
+        //provisional TODO
+        this->SetValue(GREEN_LAGRANGE_STRAIN_VECTOR, rValues.GetStrainVector(), rValues.GetProcessInfo());
+
         // Initialize Plastic Parameters
         double UniaxialStress;
         ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, 
             rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
 
         const double F = UniaxialStress - Threshold; 
-		//KRATOS_WATCH(F)
-		//KRATOS_WATCH(PredictiveStressVector)
-		//KRATOS_WATCH(Threshold)
-		//KRATOS_WATCH(UniaxialStress)
 
         if (F <= 0.0) {   // Elastic case
             noalias(IntegratedStressVector) = PredictiveStressVector;
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
-            
             noalias(TangentTensor) = (1.0 - Damage)*C;
-
-            // Aux value Remove TODO
-            //this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-            //KRATOS_WATCH(UniaxialStress)
 
         } else { // Damage case
             const double CharacteristicLength = rValues.GetElementGeometry().Length();
 
-			//KRATOS_WATCH(UniaxialStress)
             // This routine updates the PredictiveStress to verify the yield surf
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
                 Damage, Threshold, rMaterialProperties, CharacteristicLength);
-			//KRATOS_WATCH(PredictiveStressVector)
+
             // Updated Values
-            IntegratedStressVector = PredictiveStressVector; 
+            noalias(IntegratedStressVector) = PredictiveStressVector; 
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(UniaxialStress);
 
-            noalias(TangentTensor) = (1 - Damage)*C; // Secant Tensor
-            //this->CalculateTangentTensor(rValues); 
-            //TangentTensor = rValues.GetConstitutiveMatrix();
-
-            // Aux value Remove TODO
-			//KRATOS_WATCH(UniaxialStress)
-			//KRATOS_WATCH(Damage)
-            //this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-			//std::cout << ""<<std::endl;
+            //noalias(TangentTensor) = (1.0 - Damage)*C; // Secant Tensor
+            this->CalculateTangentTensor(rValues); 
+            TangentTensor = rValues.GetConstitutiveMatrix();
         }
-		this->SetValue(UNIAXIAL_STRESS, PredictiveStressVector[2], rValues.GetProcessInfo());
-		//KRATOS_WATCH(PredictiveStressVector)
-		//KRATOS_WATCH(Damage)
-		//std::cout << "***********" << std::endl;
+		//this->SetValue(UNIAXIAL_STRESS, IntegratedStressVector[2], rValues.GetProcessInfo());
+        this->SetValue(UNIAXIAL_STRESS, UniaxialStress*(1.0-Damage), rValues.GetProcessInfo());
+        this->SetValue(CAUCHY_STRESS_VECTOR, IntegratedStressVector, rValues.GetProcessInfo());
     } // End CalculateMaterialResponseCauchy
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
@@ -316,7 +302,7 @@ public:
             noalias(IntegratedStressVector) = PredictiveStressVector; 
         }
         
-    } 
+    }
 
     void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
     {
@@ -349,7 +335,7 @@ public:
     double& GetValue(
         const Variable<double>& rThisVariable,
         double& rValue
-        )
+    )
     {
         if(rThisVariable == DAMAGE){
             rValue = mDamage;
@@ -360,6 +346,32 @@ public:
         }
 
         return rValue;
+    }
+
+    Vector& GetValue(
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+    )
+    {
+        if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
+            rValue = mStrainVector;
+        } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+            rValue = mStressVector;
+        }
+        return rValue;
+    }
+
+    void SetValue(
+        const Variable<Vector>& rThisVariable,
+        const Vector& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+            mStrainVector = rValue;
+        } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+            mStressVector = rValue;
+        }
     }
     ///@}
     ///@name Access
@@ -420,6 +432,9 @@ private:
     double mDamage = 0.0;
     double mThreshold = 0.0;
     double mUniaxialStress = 0.0;
+
+    Vector mStrainVector = ZeroVector(6); // to remove
+    Vector mStressVector = ZeroVector(6); // to remove
 
     // Non Converged values
     double mNonConvDamage = 0.0;

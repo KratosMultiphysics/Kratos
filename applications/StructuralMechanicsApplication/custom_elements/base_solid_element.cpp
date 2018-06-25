@@ -522,7 +522,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+            //CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
             double StrainEnergy = 0.0;
 
@@ -554,7 +554,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+            //CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
             const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
 
@@ -641,76 +641,82 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         }
     } else if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR ) {
         // Create and initialize element variables:
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        // const unsigned int number_of_nodes = GetGeometry().size();
+        // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        // const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
+        // KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        // ConstitutiveVariables this_constitutive_variables(strain_size);
 
-        // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        // // Create constitutive law parameters:
+        // ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-        // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        // // Set constitutive law flags:
+        // Flags& ConstitutiveLawOptions=Values.GetOptions();
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        // Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
-        // Reading integration points
-        for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
+        // // Reading integration points
+        // for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ) {
+        //     // Compute element kinematics B, F, DN_DX ...
+        //     CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
-            //call the constitutive law to update material variables
-            if( rVariable == CAUCHY_STRESS_VECTOR) {
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
-            } else {
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
-            }
+        //     //call the constitutive law to update material variables
+        //     if( rVariable == CAUCHY_STRESS_VECTOR) {
+        //         // Compute material reponse
+        //         //CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
+        //     } else {
+        //         // Compute material reponse
+        //         //CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points,ConstitutiveLaw::StressMeasure_PK2);
+        //     }
 
-            if ( rOutput[point_number].size() != strain_size )
-                rOutput[point_number].resize( strain_size, false );
+        //     if ( rOutput[point_number].size() != strain_size )
+        //         rOutput[point_number].resize( strain_size, false );
 
-            rOutput[point_number] = this_constitutive_variables.StressVector;
-        }
+        //     rOutput[point_number] = this_constitutive_variables.StressVector;
+        // }
+        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
+            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+
     } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR ) {
         // Create and initialize element variables:
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        // const unsigned int number_of_nodes = GetGeometry().size();
+        // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        // const unsigned int strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
+        // KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+        // ConstitutiveVariables this_constitutive_variables(strain_size);
 
-        // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        // // Create constitutive law parameters:
+        // ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-        // Set constitutive law flags:
-        Flags &ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        // // Set constitutive law flags:
+        // Flags &ConstitutiveLawOptions=Values.GetOptions();
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        // ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+        // Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
-        //reading integration points
-        for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
+        // //reading integration points
+        // for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ) {
+        //     // Compute element kinematics B, F, DN_DX ...
+        //     CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
-            // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+        //     // Compute material reponse
+        //     //CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
-            if ( rOutput[point_number].size() != strain_size)
-                rOutput[point_number].resize( strain_size, false );
+        //     if ( rOutput[point_number].size() != strain_size)
+        //         rOutput[point_number].resize( strain_size, false );
 
-            rOutput[point_number] = this_constitutive_variables.StrainVector;
-        }
+        //     rOutput[point_number] = this_constitutive_variables.StrainVector;
+        // }
+        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
+            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+
     } else {
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
@@ -735,34 +741,41 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         rOutput.resize( integration_points.size() );
 
     if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
-        std::vector<Vector> stress_vector;
+        //std::vector<Vector> stress_vector;
+		Vector stress_vector;
 
-        if( rVariable == CAUCHY_STRESS_TENSOR )
-            this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
-        else
-            this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
+        // if( rVariable == CAUCHY_STRESS_TENSOR )
+        //     this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
+        // else
+        //     this->CalculateOnIntegrationPoints( PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
 
         // Loop integration points
         for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             if ( rOutput[point_number].size2() != dimension )
                 rOutput[point_number].resize( dimension, dimension, false );
 
-            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+            //rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+			stress_vector = mConstitutiveLawVector[point_number]->GetValue(CAUCHY_STRESS_VECTOR, stress_vector);
+            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector);
         }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
-        std::vector<Vector> strain_vector;
-        if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-            CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
-        else
-            CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
+        // std::vector<Vector> strain_vector;
+		Vector strain_vector;
+        // if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
+        //     CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
+        // else
+        //     CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
 
         // Loop integration points
         for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
             if ( rOutput[point_number].size2() != dimension )
                 rOutput[point_number].resize( dimension, dimension, false );
 
-            rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
+            //rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
+			strain_vector = mConstitutiveLawVector[point_number]->GetValue(GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector);
+			rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector);
+
         }
     } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
         // Create and initialize element variables:
@@ -789,10 +802,11 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
 
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+            //CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
             // Call the constitutive law to update material variables
-            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
+			// todo
+            //mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
 
             if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                 rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );

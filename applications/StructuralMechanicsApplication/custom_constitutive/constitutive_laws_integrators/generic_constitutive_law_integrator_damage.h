@@ -132,13 +132,9 @@ public:
                 break;
             default:
                 KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
+                break;
         }
-
-        // KRATOS_WATCH(rPredictiveStressVector)
-        // rPredictiveStressVector *= (1.0 - rDamage);
-        // KRATOS_WATCH(rPredictiveStressVector)
-        // rThreshold = UniaxialStress;
-
+        rPredictiveStressVector *= (1.0 - rDamage);
     }
 
     /**
