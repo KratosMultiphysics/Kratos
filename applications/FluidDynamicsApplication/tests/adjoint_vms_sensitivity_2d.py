@@ -116,6 +116,9 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             self._writeNodalCoordinates(node_id,perturbed_coord,model_part_file_name)
             self.solve(model_part_file_name)
             drag = self._get_time_averaged_drag(drag_direction,drag_file_name)
+            node_sensitivity.append((drag - drag0) / step_size)
+            sensitivity.append(node_sensitivity)
+            # return mdpa file to unperturbed state
             self._writeNodalCoordinates(node_id,coord,model_part_file_name)
         return sensitivity
 

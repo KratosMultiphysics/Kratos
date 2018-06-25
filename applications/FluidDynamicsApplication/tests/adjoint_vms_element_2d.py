@@ -95,7 +95,7 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[DELTA_TIME] =-self.delta_time
         mass2_trans = Matrix(9,9)
         self.adjoint_element.CalculateSecondDerivativesLHS(mass2_trans,self.model_part.ProcessInfo)
-        self._assertMatrixAlmostEqual(Mass1, self._transpose(mass2_trans))
+        self._assertMatrixAlmostEqual(Mass1, self._transpose(mass2_trans)*(-1.0))
 
     def testCalculateFirstDerivativesLHS1(self):
         # test for steady state.
