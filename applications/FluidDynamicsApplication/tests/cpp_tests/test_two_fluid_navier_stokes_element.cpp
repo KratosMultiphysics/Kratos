@@ -113,17 +113,18 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
+
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-			KRATOS_CHECK_NEAR(RHS(0), 0.0475309, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(1), 0.0975309, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(2), -0.0545696, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(3), 0.0469136, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(4), 0.0969136, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(5), 0.0176796, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(6), 16436.9, 1e-1 );
-			KRATOS_CHECK_NEAR(RHS(7), 33830.3, 1e-1);
-			KRATOS_CHECK_NEAR(RHS(8), 0.0202233, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(0), -42.71302228, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(1), 29.74815627, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(2), -0.20107385, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(3), 90.07549156, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(4), 94.94699954, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(5), 0.06718134, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(6), 75.76253072, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(7), 146.55484418, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(8), -0.01610749, 1e-7);
 
 	    }
 
@@ -210,24 +211,25 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
+
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-			KRATOS_CHECK_NEAR(RHS(0), 0.023845, 1e-6);
-			KRATOS_CHECK_NEAR(RHS(1), 0.048607, 1e-6);
-			KRATOS_CHECK_NEAR(RHS(2), 0.0733691, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(3), -0.00618707, 1e-8);
-			KRATOS_CHECK_NEAR(RHS(4), 455.758, 1e-3);
-			KRATOS_CHECK_NEAR(RHS(5), 929.073, 1e-2);
-			KRATOS_CHECK_NEAR(RHS(6), 1402.39, 1e-2);
-			KRATOS_CHECK_NEAR(RHS(7), -0.00350587, 1e-8);
-			KRATOS_CHECK_NEAR(RHS(8), 0.0229279, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(9), 0.0476899, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(10), 0.072452, 1e-6);
-			KRATOS_CHECK_NEAR(RHS(11), 0.00207051, 1e-8);
-			KRATOS_CHECK_NEAR(RHS(12), 439.28, 1e-3);
-			KRATOS_CHECK_NEAR(RHS(13), 912.975, 1e-2);
-			KRATOS_CHECK_NEAR(RHS(14), 1386.67, 1e-2);
-			KRATOS_CHECK_NEAR(RHS(15), 0.000903677, 1e-9);
+			KRATOS_CHECK_NEAR(RHS(0), -118.03889688, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(1), 14.78243843, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(2), -213.62425998, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(3), -0.05448084, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(4), 22.78371861, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(5), 27.42496766, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(6), -403.33194690, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(7), 0.15778148, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(8), 60.36872332, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(9), 15.21517182, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(10), -419.85282231, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(11), 0.00659561, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(12), 80.61562161, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(13), 37.68158875, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(14), -453.71180415, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(15), -0.20989625, 1e-7);
 
 		}
 	} // namespace Testing
