@@ -15,23 +15,25 @@
 namespace Kratos {
 
 template<>
-void EmbeddedAusasNavierStokes<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void EmbeddedAusasNavierStokes<3>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 3;
-    unsigned int NumNodes = 4;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    unsigned int dim = 3;
+    unsigned int num_nodes = 4;
+    unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (rResult.size() != DofSize)
-        rResult.resize(DofSize, false);
+    if (rResult.size() != dof_size){
+        rResult.resize(dof_size, false);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        rResult[i*(Dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-        rResult[i*(Dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-        rResult[i*(Dim+1)+2]  =  this->GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
-        rResult[i*(Dim+1)+3]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
+    for(unsigned int i=0; i<num_nodes; i++){
+        rResult[i*(dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+        rResult[i*(dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+        rResult[i*(dim+1)+2]  =  this->GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
+        rResult[i*(dim+1)+3]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -39,22 +41,24 @@ void EmbeddedAusasNavierStokes<3>::EquationIdVector(EquationIdVectorType& rResul
 
 
 template<>
-void EmbeddedAusasNavierStokes<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void EmbeddedAusasNavierStokes<2>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 2;
-    unsigned int NumNodes = 3;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    unsigned int dim = 2;
+    unsigned int num_nodes = 3;
+    unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (rResult.size() != DofSize)
-        rResult.resize(DofSize, false);
+    if (rResult.size() != dof_size){
+        rResult.resize(dof_size, false);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        rResult[i*(Dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-        rResult[i*(Dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-        rResult[i*(Dim+1)+2]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
+    for(unsigned int i=0; i<num_nodes; i++){
+        rResult[i*(dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+        rResult[i*(dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+        rResult[i*(dim+1)+2]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -62,23 +66,25 @@ void EmbeddedAusasNavierStokes<2>::EquationIdVector(EquationIdVectorType& rResul
 
 
 template<>
-void EmbeddedAusasNavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void EmbeddedAusasNavierStokes<3>::GetDofList(
+    DofsVectorType& ElementalDofList,
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 3;
-    unsigned int NumNodes = 4;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    unsigned int dim = 3;
+    unsigned int num_nodes = 4;
+    unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (ElementalDofList.size() != DofSize)
-        ElementalDofList.resize(DofSize);
+    if (ElementalDofList.size() != dof_size){
+        ElementalDofList.resize(dof_size);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        ElementalDofList[i*(Dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
-        ElementalDofList[i*(Dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
-        ElementalDofList[i*(Dim+1)+2]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Z);
-        ElementalDofList[i*(Dim+1)+3]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
+    for(unsigned int i=0; i<num_nodes; i++){
+        ElementalDofList[i*(dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
+        ElementalDofList[i*(dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
+        ElementalDofList[i*(dim+1)+2]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Z);
+        ElementalDofList[i*(dim+1)+3]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
     }
 
     KRATOS_CATCH("");
@@ -86,22 +92,24 @@ void EmbeddedAusasNavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, 
 
 
 template<>
-void EmbeddedAusasNavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void EmbeddedAusasNavierStokes<2>::GetDofList(
+    DofsVectorType& ElementalDofList,
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 2;
-    unsigned int NumNodes = 3;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    unsigned int dim = 2;
+    unsigned int num_nodes = 3;
+    unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (ElementalDofList.size() != DofSize)
-        ElementalDofList.resize(DofSize);
+    if (ElementalDofList.size() != dof_size){
+        ElementalDofList.resize(dof_size);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        ElementalDofList[i*(Dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
-        ElementalDofList[i*(Dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
-        ElementalDofList[i*(Dim+1)+2]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
+    for(unsigned int i=0; i<num_nodes; i++){
+        ElementalDofList[i*(dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
+        ElementalDofList[i*(dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
+        ElementalDofList[i*(dim+1)+2]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
     }
 
     KRATOS_CATCH("");
@@ -109,7 +117,9 @@ void EmbeddedAusasNavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, 
 
 
 template<>
-void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const EmbeddedAusasElementDataStruct& data)
+void EmbeddedAusasNavierStokes<3>::ComputeGaussPointLHSContribution(
+    BoundedMatrix<double,16,16>& lhs,
+    const EmbeddedAusasElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -163,7 +173,7 @@ const double clhs5 =             pow(DN(0,0), 2);
 const double clhs6 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
 const double clhs7 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double clhs8 =             N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
-const double clhs9 =             stab_c2*sqrt(pow(clhs6, 2) + pow(clhs7, 2) + pow(clhs8, 2));
+const double clhs9 =             rho*stab_c2*sqrt(pow(clhs6, 2) + pow(clhs7, 2) + pow(clhs8, 2));
 const double clhs10 =             clhs9*h/stab_c1 + mu;
 const double clhs11 =             pow(N[0], 2);
 const double clhs12 =             bdf0*rho;
@@ -172,7 +182,7 @@ const double clhs14 =             DN(0,0)*clhs6 + DN(0,1)*clhs7 + DN(0,2)*clhs8;
 const double clhs15 =             N[0]*bdf0 + clhs14;
 const double clhs16 =             pow(rho, 2);
 const double clhs17 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2);
-const double clhs18 =             1.0/(clhs9*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs18 =             1.0/(clhs9/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double clhs19 =             1.0*N[0]*clhs16*clhs17*clhs18;
 const double clhs20 =             1.0*clhs14*clhs16*clhs18;
 const double clhs21 =             clhs11*clhs12 + clhs13*clhs14 + clhs15*clhs19 + clhs15*clhs20;
@@ -755,7 +765,9 @@ const double clhs338 =             pow(DN(3,2), 2);
 
 
 template<>
-void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,9,9>& lhs, const EmbeddedAusasElementDataStruct& data)
+void EmbeddedAusasNavierStokes<2>::ComputeGaussPointLHSContribution(
+    BoundedMatrix<double,9,9>& lhs,
+    const EmbeddedAusasElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
@@ -806,7 +818,7 @@ const double clhs2 =             C(2,2)*DN(0,1) + clhs1;
 const double clhs3 =             pow(DN(0,0), 2);
 const double clhs4 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double clhs5 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
-const double clhs6 =             stab_c2*sqrt(pow(clhs4, 2) + pow(clhs5, 2));
+const double clhs6 =             rho*stab_c2*sqrt(pow(clhs4, 2) + pow(clhs5, 2));
 const double clhs7 =             clhs6*h/stab_c1 + mu;
 const double clhs8 =             pow(N[0], 2);
 const double clhs9 =             bdf0*rho;
@@ -815,7 +827,7 @@ const double clhs11 =             DN(0,0)*clhs4 + DN(0,1)*clhs5;
 const double clhs12 =             N[0]*bdf0 + clhs11;
 const double clhs13 =             pow(rho, 2);
 const double clhs14 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1);
-const double clhs15 =             1.0/(clhs6*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs15 =             1.0/(clhs6/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double clhs16 =             1.0*N[0]*clhs13*clhs14*clhs15;
 const double clhs17 =             1.0*clhs11*clhs13*clhs15;
 const double clhs18 =             clhs10*clhs11 + clhs12*clhs16 + clhs12*clhs17 + clhs8*clhs9;
@@ -1020,7 +1032,9 @@ const double clhs132 =             pow(DN(2,1), 2);
 
 
 template<>
-void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const EmbeddedAusasElementDataStruct& data)
+void EmbeddedAusasNavierStokes<3>::ComputeGaussPointRHSContribution(
+    array_1d<double,16>& rhs,
+    const EmbeddedAusasElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -1084,7 +1098,7 @@ const double crhs7 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(
 const double crhs8 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double crhs9 =             N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
 const double crhs10 =             rho*(crhs7*(crhs3 + crhs4 + crhs5 + crhs6) + crhs8*(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(3,1)*v(3,0)) + crhs9*(DN(0,2)*v(0,0) + DN(1,2)*v(1,0) + DN(2,2)*v(2,0) + DN(3,2)*v(3,0)));
-const double crhs11 =             stab_c2*sqrt(pow(crhs7, 2) + pow(crhs8, 2) + pow(crhs9, 2));
+const double crhs11 =             rho*stab_c2*sqrt(pow(crhs7, 2) + pow(crhs8, 2) + pow(crhs9, 2));
 const double crhs12 =             DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
 const double crhs13 =             DN(0,1)*v(0,1);
 const double crhs14 =             DN(1,1)*v(1,1);
@@ -1094,7 +1108,7 @@ const double crhs17 =             (N[0]*(bdf0*p[0] + bdf1*pn[0] + bdf2*pnn[0]) +
 const double crhs18 =             (crhs11*h/stab_c1 + mu)*(crhs12 + crhs13 + crhs14 + crhs15 + crhs16 + crhs17 + crhs3 + crhs4 + crhs5 + crhs6);
 const double crhs19 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2);
 const double crhs20 =             N[0]*crhs19*rho;
-const double crhs21 =             1.0/(crhs11*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs21 =             1.0/(crhs11/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double crhs22 =             1.0*crhs21*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] - crhs1 + crhs10 + crhs2);
 const double crhs23 =             rho*(DN(0,0)*crhs7 + DN(0,1)*crhs8 + DN(0,2)*crhs9);
 const double crhs24 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1) + N[3]*f(3,1));
@@ -1135,7 +1149,9 @@ const double crhs40 =             rho*(DN(3,0)*crhs7 + DN(3,1)*crhs8 + DN(3,2)*c
 
 
 template<>
-void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, const EmbeddedAusasElementDataStruct& data)
+void EmbeddedAusasNavierStokes<2>::ComputeGaussPointRHSContribution(
+    array_1d<double,9>& rhs,
+    const EmbeddedAusasElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
@@ -1197,13 +1213,13 @@ const double crhs5 =             DN(2,0)*v(2,0);
 const double crhs6 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double crhs7 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
 const double crhs8 =             rho*(crhs6*(crhs3 + crhs4 + crhs5) + crhs7*(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0)));
-const double crhs9 =             stab_c2*sqrt(pow(crhs6, 2) + pow(crhs7, 2));
+const double crhs9 =             rho*stab_c2*sqrt(pow(crhs6, 2) + pow(crhs7, 2));
 const double crhs10 =             DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
 const double crhs11 =             (N[0]*(bdf0*p[0] + bdf1*pn[0] + bdf2*pnn[0]) + N[1]*(bdf0*p[1] + bdf1*pn[1] + bdf2*pnn[1]) + N[2]*(bdf0*p[2] + bdf1*pn[2] + bdf2*pnn[2]))/(pow(c, 2)*rho);
 const double crhs12 =             (crhs9*h/stab_c1 + mu)*(crhs10 + crhs11 + crhs3 + crhs4 + crhs5);
 const double crhs13 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1);
 const double crhs14 =             N[0]*crhs13*rho;
-const double crhs15 =             1.0/(crhs9*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs15 =             1.0/(crhs9/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double crhs16 =             1.0*crhs15*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] - crhs1 + crhs2 + crhs8);
 const double crhs17 =             rho*(DN(0,0)*crhs6 + DN(0,1)*crhs7);
 const double crhs18 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1));

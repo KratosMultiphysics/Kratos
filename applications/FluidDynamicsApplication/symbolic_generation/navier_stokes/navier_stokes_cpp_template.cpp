@@ -15,23 +15,25 @@
 namespace Kratos {
 
 template<>
-void NavierStokes<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void NavierStokes<3>::EquationIdVector(
+    EquationIdVectorType& rResult, 
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 3;
-    unsigned int NumNodes = 4;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    const unsigned int dim = 3;
+    const unsigned int num_nodes = 4;
+    const unsigned int dof_size = num_nodes*(dim+1);
 
-    if (rResult.size() != DofSize)
-        rResult.resize(DofSize, false);
+    if (rResult.size() != dof_size){
+        rResult.resize(dof_size, false);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        rResult[i*(Dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-        rResult[i*(Dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-        rResult[i*(Dim+1)+2]  =  this->GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
-        rResult[i*(Dim+1)+3]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
+    for(unsigned int i=0; i<num_nodes; i++){
+        rResult[i*(dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+        rResult[i*(dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+        rResult[i*(dim+1)+2]  =  this->GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
+        rResult[i*(dim+1)+3]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -39,22 +41,24 @@ void NavierStokes<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInf
 
 
 template<>
-void NavierStokes<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void NavierStokes<2>::EquationIdVector(
+    EquationIdVectorType& rResult, 
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 2;
-    unsigned int NumNodes = 3;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    const unsigned int dim = 2;
+    const unsigned int num_nodes = 3;
+    const unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (rResult.size() != DofSize)
-        rResult.resize(DofSize, false);
+    if (rResult.size() != dof_size){
+        rResult.resize(dof_size, false);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        rResult[i*(Dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-        rResult[i*(Dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-        rResult[i*(Dim+1)+2]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
+    for(unsigned int i=0; i<num_nodes; i++){
+        rResult[i*(dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+        rResult[i*(dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+        rResult[i*(dim+1)+2]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -62,23 +66,25 @@ void NavierStokes<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInf
 
 
 template<>
-void NavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void NavierStokes<3>::GetDofList(
+    DofsVectorType& ElementalDofList, 
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 3;
-    unsigned int NumNodes = 4;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    unsigned int dim = 3;
+    unsigned int num_nodes = 4;
+    unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (ElementalDofList.size() != DofSize)
-        ElementalDofList.resize(DofSize);
+    if (ElementalDofList.size() != dof_size){
+        ElementalDofList.resize(dof_size);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        ElementalDofList[i*(Dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
-        ElementalDofList[i*(Dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
-        ElementalDofList[i*(Dim+1)+2]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Z);
-        ElementalDofList[i*(Dim+1)+3]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
+    for(unsigned int i=0; i<num_nodes; i++){
+        ElementalDofList[i*(dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
+        ElementalDofList[i*(dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
+        ElementalDofList[i*(dim+1)+2]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Z);
+        ElementalDofList[i*(dim+1)+3]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
     }
 
     KRATOS_CATCH("");
@@ -86,22 +92,24 @@ void NavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 
 
 template<>
-void NavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void NavierStokes<2>::GetDofList(
+    DofsVectorType& ElementalDofList, 
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 2;
-    unsigned int NumNodes = 3;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    unsigned int dim = 2;
+    unsigned int num_nodes = 3;
+    unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (ElementalDofList.size() != DofSize)
-        ElementalDofList.resize(DofSize);
+    if (ElementalDofList.size() != dof_size){
+        ElementalDofList.resize(dof_size);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        ElementalDofList[i*(Dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
-        ElementalDofList[i*(Dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
-        ElementalDofList[i*(Dim+1)+2]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
+    for(unsigned int i=0; i<num_nodes; i++){
+        ElementalDofList[i*(dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
+        ElementalDofList[i*(dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
+        ElementalDofList[i*(dim+1)+2]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
     }
 
     KRATOS_CATCH("");
@@ -109,7 +117,9 @@ void NavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 
 
 template<>
-void NavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const ElementDataStruct& data)
+void NavierStokes<3>::ComputeGaussPointLHSContribution(
+    BoundedMatrix<double,16,16>& lhs, 
+    const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -160,7 +170,9 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,1
 
 
 template<>
-void NavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,9,9>& lhs, const ElementDataStruct& data)
+void NavierStokes<2>::ComputeGaussPointLHSContribution(
+    BoundedMatrix<double,9,9>& lhs, 
+    const ElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
@@ -211,7 +223,9 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,9,9>
 
 
 template<>
-void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const ElementDataStruct& data)
+void NavierStokes<3>::ComputeGaussPointRHSContribution(
+    array_1d<double,16>& rhs, 
+    const ElementDataStruct& data)
 {
     const int nnodes = 4;
     const int dim = 3;
@@ -269,7 +283,9 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
 
 
 template<>
-void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, const ElementDataStruct& data)
+void NavierStokes<2>::ComputeGaussPointRHSContribution(
+    array_1d<double,9>& rhs, 
+    const ElementDataStruct& data)
 {
     const int nnodes = 3;
     const int dim = 2;
