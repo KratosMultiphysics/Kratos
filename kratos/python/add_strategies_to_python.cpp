@@ -49,7 +49,6 @@
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -385,10 +384,6 @@ namespace Kratos
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             class_< ResidualBasedBlockBuilderAndSolverType, typename ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
             .def(init< LinearSolverType::Pointer > ());
-
-            typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
-            class_< ResidualBasedBlockBuilderAndSolverWithConstraintsType, typename ResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer,ResidualBasedBlockBuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraints")
-            .def(init< LinearSolverType::Pointer > ());            
 
             //********************************************************************
             //********************************************************************
