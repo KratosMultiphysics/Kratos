@@ -6,7 +6,7 @@
         "start_step"      : 0.11,
         "nsteps"          : 7,
         "echo_level"      : 0,
-        "parallel_type"   : "OpenMP"
+        "parallel_type"   : "MPI"
     },
     "output_configuration" : {
         "result_file_configuration" : {
@@ -49,17 +49,18 @@
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
         "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL",
-            "verbosity"           : 0,
-            "smoother_type"       : "damped_jacobi",
-            "coarse_enough"       : 500,
-            "tolerance"           : 1e-8,
-            "max_iteration"       : 1000000
+            "solver_type"         : "MultiLevelSolver",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-9,
+            "max_levels"	  : 3,
+            "symmetric"		  : false,
+            "reform_preconditioner_at_each_step":true,
+            "scaling"             : true
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "cylinder",
-            "ignore_variables_not_in_solution_step_data": true
+            "perform_partitioning" : false
         },
         "time_stepping"               : {
             "automatic_time_step" : false,
@@ -123,7 +124,7 @@
     }],
     "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_input_process",
+        "python_module" : "partitioned_single_mesh_primal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -138,7 +139,7 @@
         }
     },{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_temporal_output_process",
+        "python_module" : "partitioned_single_mesh_temporal_output_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -152,7 +153,7 @@
             },
             "element_results_settings" : {
                 "list_of_variables": []
-            },
+            },            
             "output_time_settings" : {
                 "output_step_frequency": 1,
                 "file_name"            : "adjoint"

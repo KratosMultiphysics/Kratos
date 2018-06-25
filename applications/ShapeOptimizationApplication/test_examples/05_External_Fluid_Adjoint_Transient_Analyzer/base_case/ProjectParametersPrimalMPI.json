@@ -5,7 +5,7 @@
         "end_time": 0.1,
         "time_step":0.01,
         "echo_level": 0,
-        "parallel_type": "OpenMP"
+        "parallel_type": "MPI"
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -39,9 +39,10 @@
         "model_part_name": "MainModelPart",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder",
-            "ignore_variables_not_in_solution_step_data": true
+            "input_filename" : "cylinder"
         },
+            "dynamic_tau":      0.01,
+            "oss_switch": 0,
             "maximum_iterations": 50000,
             "echo_level": 0,
             "consider_periodic_conditions": false,
@@ -58,36 +59,15 @@
                 "maximum_delta_time"  : 0.01,
                 "time_step"       : 0.01
             },
-            "stabilization": {
-                "formulation":      "vms",
-                "dynamic_tau":      0.01,
-                "use_orthogonal_subscales": false
-            },
-            "linear_solver_settings"        : {
-                "solver_type" : "AMGCL_NS_Solver",
-                "krylov_type" : "fgmres",
-                "velocity_block_preconditioner" :
-                {
-                    "krylov_type" : "lgmres",
-                    "tolerance" : 1e-3,
-                    "preconditioner_type" : "ilu0",
-                    "max_iteration": 5
-                },
-                "pressure_block_preconditioner" :
-                {
-                    "krylov_type" : "lgmres",
-                    "tolerance" : 1e-2,
-                    "preconditioner_type" : "spai0",
-                    "max_iteration": 20
-                },
-                "tolerance" : 1e-10,
-                "gmres_krylov_space_dimension": 50,
-                "coarsening_type": "aggregation",
-                "max_iteration": 500000,
-                "verbosity" : 0,
-                "scaling": false,
-                "coarse_enough" : 5000
-            },
+        "linear_solver_settings"       : {
+            "solver_type"         : "MultiLevelSolver",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-9,
+            "max_levels"	  : 3,
+            "symmetric"		  : false,
+            "reform_preconditioner_at_each_step":true,
+            "scaling"             : true
+        },
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
         "no_skin_parts"                : []
@@ -144,7 +124,7 @@
                 }
         },{
             "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "single_mesh_temporal_output_process",
+            "python_module" : "partitioned_single_mesh_temporal_output_process",
             "help"          : "",
             "process_name"  : "",
             "Parameters" : {
@@ -158,7 +138,7 @@
                 },
                 "element_results_settings" : {
                     "list_of_variables": []
-                },
+                },            
                 "output_time_settings" : {
                     "output_step_frequency": 1,
                     "file_name"            : "primal"
