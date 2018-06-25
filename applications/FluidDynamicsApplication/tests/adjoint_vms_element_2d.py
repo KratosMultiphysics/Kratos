@@ -1,19 +1,9 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
-missing_applications_message = ["Missing required application(s):",]
-have_required_applications = True
-
-try:
-    from KratosMultiphysics.AdjointFluidApplication import *
-except ImportError:
-    have_required_applications = False
-    missing_applications_message.append("AdjointFluidApplication")
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
 
-@KratosUnittest.skipUnless(have_required_applications," ".join(missing_applications_message))
 class AdjointVMSElement2D(KratosUnittest.TestCase):
 
     def setUp(self):
