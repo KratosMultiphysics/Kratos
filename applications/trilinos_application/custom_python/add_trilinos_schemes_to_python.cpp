@@ -59,6 +59,7 @@
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
+#include "../../FluidDynamicsApplication/custom_strategies/strategies/adjoint_bossak_scheme.h"
 
 // Incompressible fluid
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
@@ -69,7 +70,6 @@
 #include "solving_strategies/response_functions/response_function.h"
 #include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
-#include "../../AdjointFluidApplication/custom_schemes/adjoint_bossak_scheme.h"
 
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"

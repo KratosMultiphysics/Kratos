@@ -1,7 +1,7 @@
 //  KratosAdjointFluidApplication
 //
 //  License:		 BSD License
-//					 license: AdjointFluidApplication/license.txt
+//					 license: FluidDynamicsApplication/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
@@ -26,7 +26,7 @@
 #include "utilities/geometry_utilities.h"
 
 // Application includes
-#include "adjoint_fluid_application_variables.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos {
 
@@ -396,46 +396,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                     std::vector<double>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        if (rVariable == NUMERICAL_DIFFUSION) {
-            const GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
-            const GeometryType& r_geometry = this->GetGeometry();
-            const unsigned int number_of_gauss_points = r_geometry.IntegrationPointsNumber(integration_method);
-
-            rValues.resize(number_of_gauss_points);
-
-            for (unsigned int g = 0; g < number_of_gauss_points; g++)
-            {
-                rValues[g] = this->GetValue(NUMERICAL_DIFFUSION);
-            }
-        } else
-        {
-            KRATOS_ERROR << "Variable "<<rVariable<<" doesn't have a predefined Gauss point calculation method.[ VMS Adjoint Element -> GetValueOnIntegrationPoints ]. " << std::endl;
-        }
-
-        KRATOS_CATCH("")
-    }
-
     void GetDofList(DofsVectorType& rElementalDofList,
             ProcessInfo& /*rCurrentProcessInfo*/) override;
 
     void EquationIdVector(EquationIdVectorType& rResult,
             ProcessInfo& /*rCurrentProcessInfo*/) override;
-
-    void Calculate(const Variable<Matrix >& rVariable,
-                           Matrix& Output,
-                           const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rVariable == VMS_STEADY_TERM_PRIMAL_GRADIENT_MATRIX)
-        {
-            this->CalculatePrimalGradientOfVMSSteadyTerm(Output, rCurrentProcessInfo);
-        }
-    }
 
     ///@}
     ///@name Input and output

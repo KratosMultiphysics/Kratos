@@ -34,6 +34,7 @@
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
 #include "custom_strategies/strategies/gear_scheme.h"
+#include "custom_strategies/strategies/adjoint_bossak_scheme.h"
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
@@ -122,7 +123,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 		.def(init<unsigned int >())// constructor without a turbulence model
 		.def(init<unsigned int, Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
 		;
-            
+
     class_< GearScheme< SparseSpaceType, LocalSpaceType >,
             typename GearScheme< SparseSpaceType, LocalSpaceType >::Pointer,
             BaseSchemeType >
@@ -139,6 +140,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             .def(init< double, double, double, double>())
             .def("SetEchoLevel",&VelPrCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
             ;
+
+        // Adojoint fluid scheme
+    class_<
+        AdjointBossakScheme<SparseSpaceType, LocalSpaceType>,
+        typename AdjointBossakScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        BaseSchemeType>(m,"AdjointBossakScheme")
+        .def(init<Parameters&, ResponseFunction::Pointer>())
+        ;
 }
 
 }  // namespace Python.

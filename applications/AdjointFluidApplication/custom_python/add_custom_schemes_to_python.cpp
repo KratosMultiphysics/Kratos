@@ -8,7 +8,6 @@
 
 // Application includes
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_schemes/adjoint_bossak_scheme.h"
 
 namespace Kratos
 {
@@ -22,12 +21,6 @@ void AddCustomSchemesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
-    class_<
-        AdjointBossakScheme<SparseSpaceType, LocalSpaceType>,
-        typename AdjointBossakScheme<SparseSpaceType, LocalSpaceType>::Pointer,
-        SchemeType>(m,"AdjointBossakScheme")
-        .def(init<Parameters&, ResponseFunction::Pointer>())
-        ;
 }
 
 } // namespace Python

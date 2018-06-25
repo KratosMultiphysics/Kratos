@@ -1,7 +1,7 @@
 //  KratosAdjointFluidApplication
 //
 //  License:         BSD License
-//                   license: AdjointFluidApplication/license.txt
+//                   license: FluidDynamicsApplication/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
@@ -27,11 +27,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "containers/variable.h"
 #include "solving_strategies/response_functions/response_function.h"
-#include "adjoint_fluid_application_variables.h"
-
-#ifdef EIGEN_ROOT
-    #include "custom_utilities/numerical_diffusion.h"
-#endif
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -76,15 +72,10 @@ public:
         Parameters default_params(R"(
         {
             "scheme_type": "bossak",
-            "alpha_bossak": -0.3,
-            "numerical_diffusion":{}
+            "alpha_bossak": -0.3
         })");
 
         rParameters.ValidateAndAssignDefaults(default_params);
-
-        #ifdef EIGEN_ROOT
-            mNumericalDiffusion.SetNumericalDiffusionParameters(rParameters["numerical_diffusion"]);
-        #endif
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
         mGammaNewmark = 0.5 - mAlphaBossak;
@@ -528,16 +519,6 @@ public:
             mBetaNewmark * mDt * mInvGamma * mLeftHandSide[thread_id] +
             mFirstDerivsLHS[thread_id] + mInvGamma * mInvDt * mSecondDerivsLHS[thread_id];
 
-        // Calculate added numerical diffusion stabilization term
-        #ifdef EIGEN_ROOT
-            mNumericalDiffusion.CalculateNumericalDiffusion(
-                *pCurrentElement,
-                mLeftHandSide[thread_id],
-                rCurrentProcessInfo
-            );
-            noalias(rLHS_Contribution) -= mLeftHandSide[thread_id];
-        #endif
-
         // Calculate system contributions in residual form.
         pCurrentElement->GetValuesVector(mAdjointValuesVector[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValuesVector[thread_id]);
@@ -667,9 +648,6 @@ private:
     std::vector<LocalSystemMatrixType> mFirstDerivsLHS;
     std::vector<LocalSystemMatrixType> mSecondDerivsLHS;
 
-    #ifdef EIGEN_ROOT
-        NumericalDiffusion mNumericalDiffusion;
-    #endif
     ///@}
     ///@name Private Operators
     ///@{

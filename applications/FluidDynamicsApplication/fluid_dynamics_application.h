@@ -69,6 +69,7 @@
 #include "custom_elements/embedded_navier_stokes.h"
 #include "custom_elements/embedded_ausas_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes.h"
+#include "custom_elements/vms_adjoint_element.h"
 
 
 #include "custom_utilities/qsvms_data.h"
@@ -366,6 +367,10 @@ private:
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
     const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
+
+    /// Adjoint VMS element
+    const VMSAdjointElement<2> mVMSAdjointElement2D;
+    const VMSAdjointElement<3> mVMSAdjointElement3D;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;

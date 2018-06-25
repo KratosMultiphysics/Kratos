@@ -22,7 +22,6 @@
 
 // Application includes
 #include "adjoint_fluid_application_variables.h"
-#include "custom_elements/vms_adjoint_element.h"
 
 namespace Kratos
 {
@@ -39,7 +38,7 @@ public:
 
   ///@name Type Definitions
   ///@{
-    
+
   /// Pointer definition of KratosAdjointFluidApplication
   KRATOS_CLASS_POINTER_DEFINITION(KratosAdjointFluidApplication);
 
@@ -87,26 +86,22 @@ private:
 
   ///@name Member Variables
   ///@{
-
-  const VMSAdjointElement<2> mVMSAdjointElement2D;
-  const VMSAdjointElement<3> mVMSAdjointElement3D;
-
   ///@}
   ///@name Unaccessible methods
   ///@{
-    
+
   KratosAdjointFluidApplication& operator=(KratosAdjointFluidApplication const& rOther);
 
   KratosAdjointFluidApplication(KratosAdjointFluidApplication const& rOther);
 
   ///@}
-    
+
 }; // class KratosAdjointFluidApplication
 
 ///@} Kratos classes
 
 ///@} AdjointFluidApplication group
-  
+
 } // namespace Kratos
 
 #endif // KRATOS_ADJOINT_FLUID_APPLICATION_H_INCLUDED defined

@@ -10,12 +10,6 @@ missing_applications_message = ["Missing required application(s):",]
 have_required_applications = True
 
 try:
-    import KratosMultiphysics.AdjointFluidApplication
-except ImportError:
-    have_required_applications = False
-    missing_applications_message.append("AdjointFluidApplication")
-
-try:
     import KratosMultiphysics.HDF5Application as kh5
 except ImportError:
     have_required_applications = False
