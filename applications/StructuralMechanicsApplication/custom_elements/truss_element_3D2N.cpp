@@ -307,8 +307,7 @@ void TrussElement3D2N::CalculateRightHandSide(
       ZeroMatrix(msLocalSize, msLocalSize);
   this->CreateTransformationMatrix(transformation_matrix);
 
-  internal_forces = prod(transformation_matrix, internal_forces);
-  noalias(rRightHandSideVector) -= internal_forces;
+  noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
 
   // add bodyforces
   noalias(rRightHandSideVector) += this->CalculateBodyForces();
