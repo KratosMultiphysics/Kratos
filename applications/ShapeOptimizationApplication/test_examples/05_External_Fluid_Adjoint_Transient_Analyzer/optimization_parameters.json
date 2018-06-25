@@ -8,7 +8,10 @@
                 "response_type"               : "analysis_driver_based",
                 "analysis_driver"             : "response_analysis",
                 "optimization_model_part_name": "cylinder",
-                "response_sub_model_part"     : "NoSlip2D_Cylinder"
+                "custom_settings": {
+                        "parallel_type"               : "OpenMP",
+                        "response_sub_model_part"     : "NoSlip2D_Cylinder"
+                }
             }
         }],
         "constraints" : [],

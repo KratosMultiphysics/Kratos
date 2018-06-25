@@ -7,9 +7,13 @@ from fluid_dynamics_analysis import FluidDynamicsAnalysis
 from adjoint_fluid_analysis import AdjointFluidAnalysis
 
 
-def Run(optimization_model_part, response_data):
+def Run(optimization_model_part, response_data, custom_settings):
     primal_parameter_file_name = "ProjectParametersPrimal.json"
     adjoint_parameter_file_name = "ProjectParametersAdjoint.json"
+
+    if custom_settings["parallel_type"].GetString() == "MPI":
+        primal_parameter_file_name = "ProjectParametersPrimalMPI.json"
+        adjoint_parameter_file_name = "ProjectParametersAdjointMPI.json"
 
     parameters = Kratos.Parameters(r'''{}''')
 
@@ -18,7 +22,7 @@ def Run(optimization_model_part, response_data):
 
     with open(adjoint_parameter_file_name,'r') as adjoint_parameter_file:
         parameters.AddValue("adjoint_settings", Kratos.Parameters(adjoint_parameter_file.read()))
-    
+
     model = Kratos.Model()
 
     print("> Running primal simulation")
@@ -50,12 +54,12 @@ def __calculate_drag(filename, start_time, end_time):
     with open(filename, "r") as file_input:
         lines = file_input.readlines()
     file_input.close()
-    
+
     found_headers = False
     total_drag = 0.0
     current_time = 0.0
     previous_time = 0.0
-    
+
     for line in lines:
         _data = line.strip().split()
         if not found_headers:
@@ -63,10 +67,10 @@ def __calculate_drag(filename, start_time, end_time):
                 if line[:4]=="Time":
                     found_headers = True
                     continue
-        
+
         if line.strip()=="":
             continue
-        
+
         if found_headers:
             _time = float(_data[0])
             _fx = float(_data[1])
@@ -74,7 +78,7 @@ def __calculate_drag(filename, start_time, end_time):
             _fz = float(_data[3])
             if (_time > end_time):
                 break
-            
+
             if (_time >= start_time):
                 previous_time = current_time
                 current_time = _time
@@ -82,16 +86,19 @@ def __calculate_drag(filename, start_time, end_time):
 
     total_time = (current_time-start_time)
     delta_t = current_time - previous_time
-    
+
     total_drag /= (total_time/delta_t)
-    
-    return total_drag  
-    
-    
+
+    return total_drag
+
+
 if __name__ == "__main__":
     response_values = {}
-    Run(None, response_values) 
+    parameters = Kratos.Parameters(r'''{
+        "parallel_type" : "OpenMP"
+    }''')
 
-    print(response_values)           
+    Run(None, response_values, parameters)
+    print(response_values)
 
-    
+

@@ -58,6 +58,17 @@ class ResponseFunctionBase(object):
 class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
 
     def __init__(self, response_id, response_settings, model_part):
+ ##settings string in json format
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "response_type"               : "analysis_driver_based",
+                "analysis_driver"             : "PLEASE_SPECIFY_RESPONSE_PYTHON_FILE",
+                "optimization_model_part_name": "PLEASE_SPECIFY_OPTIMIZATION_MODEL_PART",
+                "custom_settings": {}
+        }""")
+
+        response_settings.ValidateAndAssignDefaults(default_settings)
+
         self.model_part = model_part
         self.response_settings = response_settings
         self.response_id = response_id
@@ -72,7 +83,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
 
     def InitializeSolutionStep(self):
         self.is_analysis_step_completed = self.__IsAnalysisCompleted()
-        
+
         if not self.is_analysis_step_completed:
             model_part_io = ModelPartIO(self.model_part_filename, ModelPartIO.WRITE)
             model_part_io.WriteModelPart(self.model_part)
@@ -85,13 +96,13 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
         if not self.is_analysis_step_completed:
             self.response_data = {}
             #  TODO: Transfer iteration specific log entries to a file in the iteration folder to seperate them from optimization logging entries
-            self.analysis_driver.Run(self.model_part, self.response_data)
+            self.analysis_driver.Run(self.model_part, self.response_data, self.response_settings["custom_settings"])
 
     def GetValue(self):
         return self.response_data["response_value"]
 
     def GetShapeGradient(self):
-        return self.response_data["response_gradients"]           
+        return self.response_data["response_gradients"]
 
     def FinalizeSolutionStep(self):
         if not self.is_analysis_step_completed:
@@ -117,7 +128,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
                 index += 2
                 self.response_data["response_gradients"] = {}
                 continue
-            
+
             if line=="KRATOS RESPONSE VALUE SUCCESSFULLY CALCULATED.":
                 found_gradients==False
                 index += 1
@@ -131,7 +142,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
                 _gradient[1] = float(line[2])
                 _gradient[2] = float(line[3])
                 self.response_data["response_gradients"][_node] = _gradient
-            
+
             index += 1
 
     def __WriteResults(self):
