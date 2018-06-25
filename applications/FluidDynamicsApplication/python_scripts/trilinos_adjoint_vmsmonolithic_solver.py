@@ -50,12 +50,16 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
                 "time_step"           : -0.1
             },
             "domain_size": 2,
-            "model_part_name": "MainModelPart"
+            "model_part_name": "MainModelPart",
+            "time_stepping": {
+                "automatic_time_step" : false,
+                "time_step"           : -0.1
+            }
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
         return settings
-    
+
     def __init__(self, model, custom_settings):
         super(AdjointVMSMonolithicSolver, self).__init__(model, custom_settings)
 

@@ -54,7 +54,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
     def __init__(self, model, custom_settings):
         super(AdjointVMSMonolithicSolver,self).__init__(model,custom_settings)
-        
+
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
 
@@ -150,4 +150,4 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
             break
 
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)        
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

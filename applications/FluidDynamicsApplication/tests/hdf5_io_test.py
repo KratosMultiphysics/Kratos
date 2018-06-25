@@ -30,7 +30,7 @@ class HDF5IOTest(KratosUnittest.TestCase):
     def setUp(self):
         self.work_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)),"Cavity")
 
-    def _remove_h5_files(self, model_part_name):
+    def _removeH5Files(self, model_part_name):
         for name in os.listdir():
             if name.find(model_part_name) == 0:
                 kratos_utilities.DeleteFileIfExisting(name)
@@ -54,13 +54,11 @@ class HDF5IOTest(KratosUnittest.TestCase):
     def tearDown(self):
         with ControlledExecutionScope(self.work_folder):
             # remove hdf5 file
-            self._remove_h5_files("MainModelPart")
+            self._removeH5Files("MainModelPart")
             # remove other generated files
             kratos_utilities.DeleteFileIfExisting("./square5.time")
             kratos_utilities.DeleteFileIfExisting("./reference_results.json")
 
 if __name__ == '__main__':
-    test = HDF5IOTest()
-    test.setUp()
-    test.testInputOutput()
-    test.tearDown()
+    KratosUnittest.main()
+

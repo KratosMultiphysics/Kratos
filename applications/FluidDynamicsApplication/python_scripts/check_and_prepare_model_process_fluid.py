@@ -6,7 +6,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     def __init__(self, main_model_part, Parameters ):
         self.main_model_part = main_model_part

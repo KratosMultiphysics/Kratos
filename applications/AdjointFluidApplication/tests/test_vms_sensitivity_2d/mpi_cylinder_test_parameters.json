@@ -6,9 +6,12 @@
         "problem_name"    : "mpi_cylinder_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
-        "start_step"      : 0.0,
+        "start_time"      : 0.0,
         "nsteps"          : 10,
-        "time_step"       : 0.01
+        "time_step"       : 0.01,
+        "parallel_type"   : "MPI",
+        "echo_level"      : 0,
+        "end_time"        : 0.091
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -37,7 +40,7 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                  : "trilinos_navier_stokes_solver_vmsmonolithic",
+        "solver_type"                  : "Monolithic",
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "test_vms_sensitivity_2d/cylinder_test"
@@ -113,9 +116,9 @@
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
-    "list_other_processes" :[{
+    "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "partitioned_single_mesh_primal_output_process",
+        "python_module" : "partitioned_single_mesh_temporal_output_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -124,14 +127,16 @@
                 "file_access_mode" : "truncate",
                 "file_driver" : "mpio"
             },
-            "model_part_output_settings" : {
-                "prefix" : "/ModelData"
-            },
+            "model_part_output_settings" : {},
             "nodal_results_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
             },
+            "element_results_settings" : {
+                "list_of_variables": []
+            },
             "output_time_settings" : {
-                "output_step_frequency": 1
+                "output_step_frequency": 1,
+                "file_name":     "primal"
             }
         }
     },{

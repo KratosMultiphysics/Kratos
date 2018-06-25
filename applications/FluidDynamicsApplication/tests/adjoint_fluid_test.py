@@ -132,8 +132,5 @@ class AdjointFluidTest(UnitTest.TestCase):
                 kratos_utilities.DeleteFileIfExisting(name)
 
 if __name__ == '__main__':
-    test_case = AdjointFluidTest()
-    test_case.setUp()
-    test_case.testCylinder()
-    test_case.tearDown()
+    UnitTest.main()
 

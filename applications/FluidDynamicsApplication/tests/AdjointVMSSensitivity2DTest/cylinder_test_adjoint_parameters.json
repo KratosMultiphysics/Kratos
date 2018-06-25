@@ -8,7 +8,6 @@
         "domain_size"     : 2,
         "start_step"      : 0.11,
         "nsteps"          : 10,
-        "time_step"       :-0.01,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
@@ -42,8 +41,8 @@
             "response_type"            : "drag",
             "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
-                "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
                 "structure_model_part_name" : "NoSlip2D_Cylinder",
+                "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
         },

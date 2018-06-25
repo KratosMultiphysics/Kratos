@@ -7,11 +7,9 @@
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "start_time"      : 0.0,
-        "nsteps"          : 10,
-        "time_step"       : 0.01,
         "parallel_type"   : "MPI",
         "echo_level"      : 0,
-        "end_time"        : 0.091
+        "end_time"        : 0.095
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -118,7 +116,7 @@
     }],
     "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "partitioned_single_mesh_temporal_output_process",
+        "python_module" : "partitioned_single_mesh_primal_output_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {

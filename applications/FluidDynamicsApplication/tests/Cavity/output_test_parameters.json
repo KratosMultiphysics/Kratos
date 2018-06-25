@@ -1,7 +1,4 @@
 {
-    "test_settings" : {
-        "execute_solve" : true
-    },
     "problem_data" : {
         "problem_name"    : "square5",
         "echo_level"      : 0,

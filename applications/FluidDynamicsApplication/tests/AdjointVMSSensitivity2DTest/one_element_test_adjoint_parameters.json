@@ -8,9 +8,8 @@
         "domain_size"     : 2,
         "start_step"      : 4.0,
         "nsteps"          : 3,
-        "time_step"       :-1.0,
-        "parallel_type"   : "OpenMP",
-        "echo_level"      : 0
+        "echo_level"      : 0,
+        "parallel_type"   : "OpenMP"
     },
     "output_configuration" : {
         "result_file_configuration" : {
@@ -42,8 +41,8 @@
             "response_type"            : "drag",
             "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
-                "sensitivity_model_part_name" : "Boundary",
                 "structure_model_part_name" : "Structure",
+                "sensitivity_model_part_name"  : "Boundary",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
         },
@@ -54,8 +53,7 @@
         "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
         "linear_solver_settings" : {
             "solver_type"         : "AMGCL",
-            "verbosity"           : 0,
-            "tolerance"           :1e-12
+            "verbosity"           : 0
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",
@@ -64,7 +62,7 @@
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : -1.0
-        }        
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
