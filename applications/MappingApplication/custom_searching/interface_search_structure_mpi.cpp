@@ -33,30 +33,25 @@ using IndexType = std::size_t;
 InterfaceSearchStructureMPI::InterfaceSearchStructureMPI(ModelPart& rModelPartOrigin,
                                 MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
                                 Parameters SearchSettings) :
-        InterfaceSearchStructureBase(rModelPartOrigin,
+    InterfaceSearchStructureBase(rModelPartOrigin,
                                  pMapperLocalSystems,
                                  SearchSettings)
-    {
-        KRATOS_WATCH("MPI-Ctor of InterfaceSearchStructureMPI")
+{
+    // set up the buffers
+    MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
 
-        // set up the buffers
-        MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
+    mpMapperInterfaceInfosContainer->resize(mCommSize);
 
-        mpMapperInterfaceInfosContainer->resize(mCommSize);
+    mSendSizes.resize(mCommSize);
+    mRecvSizes.resize(mCommSize);
 
-        mSendSizes.resize(mCommSize);
-        mRecvSizes.resize(mCommSize);
+    mSendBufferDouble.resize(mCommSize);
+    mRecvBufferDouble.resize(mCommSize);
 
-        std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
-        std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
-
-        mSendBufferDouble.resize(mCommSize);
-        mRecvBufferDouble.resize(mCommSize);
-
-        mSendBufferChar.resize(mCommSize); // TODO reserve space!
-        mRecvBufferChar.resize(mCommSize);
-    }
+    mSendBufferChar.resize(mCommSize);
+    mRecvBufferChar.resize(mCommSize);
+}
 
 /***********************************************************************************/
 /* PROTECTED Methods */
@@ -71,11 +66,12 @@ void InterfaceSearchStructureMPI::PrepareSearch(const Kratos::Flags& rOptions,
     ComputeGlobalBoundingBoxes();
 }
 
-
 void InterfaceSearchStructureMPI::InitializeSearchIteration(const Kratos::Flags& rOptions,
                                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
-    KRATOS_INFO("InterfaceSearchStructureMPI") << "BEFORE exchanging informations in MPI" << std::endl;
+    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
+
     // Apply tolerance to bounding boxes
     std::vector<double> bounding_boxes_with_tol;
     MapperUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
@@ -89,75 +85,13 @@ void InterfaceSearchStructureMPI::InitializeSearchIteration(const Kratos::Flags&
                                                  mSendBufferDouble,
                                                  mSendSizes);
 
-    // Exchange the buffer sizes
-    MPI_Alltoall(mSendSizes.data(), 1, MPI_INT, mRecvSizes.data(), 1, MPI_INT, MPI_COMM_WORLD);
+    // copy the local information directly
+    mRecvBufferDouble[mCommRank] = mSendBufferDouble[mCommRank];
 
-
-    // MPI_Barrier(MPI_COMM_WORLD); // TODO remove me!
-    // std::stringstream ss_send;
-    // ss_send << "Rank: " << mCommRank << "; ";
-
-    // for (const auto& i : mSendSizes)
-    //     ss_send << " , " << i;
-
-    // KRATOS_INFO("mSendSizes") << ss_send.str() << std::endl;
-
-    // std::stringstream ss_recv;
-    // ss_recv << "Rank: " << mCommRank << "; ";
-
-    // for (const auto& i : mRecvSizes)
-    //     ss_recv << " , " << i;
-
-    // KRATOS_INFO("mRecvSizes") << ss_recv.str() << std::endl;
-    // std::cout << std::endl;
-    // MPI_Barrier(MPI_COMM_WORLD); // TODO remove me!
-
-
-    // Send Information to Candidate Partitions
-
-    int num_comm_events     = 0;
-    int num_comm_events_idx = 0;
-
-    for(int i=0; i<mCommSize; ++i)
-    {
-        if(i != mCommRank && mRecvSizes[i]) num_comm_events++;
-        if(i != mCommRank && mSendSizes[i]) num_comm_events++;
-    }
-
-    std::vector<MPI_Request> reqs(num_comm_events);
-    std::vector<MPI_Status> stats(num_comm_events);
-
-    // KRATOS_INFO("num_comm_events") << "Rank: " << mCommRank << "; " << num_comm_events << std::endl;
-
-    //Set up all receive and send events
-    for (int i=0; i<mCommSize; ++i)
-    {
-        if(i != mCommRank && mRecvSizes[i]) // TODO check what "mRecvSizes[i]" returns
-        {
-            mRecvBufferDouble[i].resize(mRecvSizes[i]);
-            MPI_Irecv(mRecvBufferDouble[i].data(), mRecvSizes[i],
-                      MPI_DOUBLE, i, 0,
-                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
-        }
-
-        if(i != mCommRank && mSendSizes[i])
-        {
-            MPI_Isend(mSendBufferDouble[i].data(), mSendSizes[i],
-                      MPI_DOUBLE, i, 0,
-                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
-        }
-    }
-
-    // KRATOS_INFO("DONE With Communication") << "Rank: " << mCommRank << std::endl;
-
-    //wait untill all communications finish
-    int err = MPI_Waitall(num_comm_events, reqs.data(), stats.data());
+    const int err = ExchangeDataAsync(mSendBufferDouble, mRecvBufferDouble);
 
     KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the information for "
         << "the construction of the MapperInterfaceInfos in MPI" << std::endl;
-
-
-    KRATOS_INFO("InterfaceSearchStructureMPI") << "AFTER exchanging informations in MPI" << std::endl;
 
     // Construct MapperInterfaceInfos
     MapperUtilities::CreateMapperInterfaceInfosFromBuffer(mRecvBufferDouble,
@@ -169,41 +103,34 @@ void InterfaceSearchStructureMPI::InitializeSearchIteration(const Kratos::Flags&
     // => since the origin changes also the destination might be sent to other partitions!
 
     MPI_Barrier(MPI_COMM_WORLD);
-    KRATOS_INFO("InterfaceSearchStructureMPI") << "Leaving InitializeSearchIteration" << std::endl;
 }
 
 void InterfaceSearchStructureMPI::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
-    MapperInterfaceInfoPointerVectorPointerType p_interface_infos_succ_search
-        = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
+    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
-    MapperUtilities::SelectInterfaceInfosSuccessfulSearch(
-        mpMapperInterfaceInfosContainer,
-        GetBufferSizeEstimate(),
-        p_interface_infos_succ_search);
+    InterfaceSearchStructureBase::FilterInterfaceInfosSuccessfulSearch();
 
-    auto p_ref_interface_info(rpRefInterfaceInfo->Create()); // needed to "remove" the const
+    MapperUtilities::FillBufferAfterLocalSearch(mpMapperInterfaceInfosContainer,
+                                                rpRefInterfaceInfo,
+                                                mCommRank,
+                                                mSendBufferChar,
+                                                mSendSizes);
 
-    MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer_save(
-        p_interface_infos_succ_search, p_ref_interface_info );
+    const int err = ExchangeDataAsync(mSendBufferChar, mRecvBufferChar);
 
-    Kratos::Serializer send_serializer;
-    send_serializer.save("interface_infos", interface_infos_serializer_save);
+    KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the "
+        << "serialized MapperInterfaceInfos in MPI" << std::endl;
 
-    // Exchange Data in over MPI
+    MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(mRecvBufferChar,
+                                                               rpRefInterfaceInfo,
+                                                               mCommRank,
+                                                               mpMapperInterfaceInfosContainer);
 
-    /* // TODO reenable this once the MPI-Data-Exchange is it will not work without!
-    MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer_load(
-        mpMapperInterfaceInfosContainer, p_ref_interface_info );
+   InterfaceSearchStructureBase::AssignInterfaceInfos();
 
-    Kratos::Serializer load_serializer;
-    // Get the stream into the serializer somehow ...
-    load_serializer.load("interface_infos", interface_infos_serializer_load);
-
-    MapperUtilities::AssignInterfaceInfosAfterRemoteSearch(
-        mpMapperInterfaceInfosContainer,
-        mpMapperLocalSystems);
-    */
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 /***********************************************************************************/
@@ -220,5 +147,68 @@ void InterfaceSearchStructureMPI::ComputeGlobalBoundingBoxes()
                   mGlobalBoundingBoxes.data(), 6, MPI_DOUBLE,
                   MPI_COMM_WORLD); // TODO working?
 }
+
+inline MPI_Datatype GetMPIDatatype(const double& rValue) { return MPI_DOUBLE; }
+inline MPI_Datatype GetMPIDatatype(const char& rValue)   { return MPI_CHAR; }
+
+template< typename TDataType >
+int InterfaceSearchStructureMPI::ExchangeDataAsync(
+    const std::vector<std::vector<TDataType>>& rSendBuffer,
+    std::vector<std::vector<TDataType>>& rRecvBuffer)
+{
+    // Exchange the buffer sizes
+    MPI_Alltoall(mSendSizes.data(), 1, MPI_INT, mRecvSizes.data(), 1, MPI_INT, MPI_COMM_WORLD);
+
+    // Send Information to Candidate Partitions
+    int num_comm_events     = 0;
+    int num_comm_events_idx = 0;
+
+    for(int i=0; i<mCommSize; ++i)
+    {
+        if(i != mCommRank && mRecvSizes[i]) num_comm_events++;
+        if(i != mCommRank && mSendSizes[i]) num_comm_events++;
+    }
+
+    // TODO make members?
+    std::vector<MPI_Request> reqs(num_comm_events);
+    std::vector<MPI_Status> stats(num_comm_events);
+
+    const MPI_Datatype mpi_datatype(GetMPIDatatype(TDataType()));
+
+    // Exchange the data
+    for (int i=0; i<mCommSize; ++i)
+    {
+        if (i != mCommRank && mRecvSizes[i]) // TODO check what "mRecvSizes[i]" returns
+        {
+            if (rRecvBuffer[i].size() != static_cast<SizeType>(mRecvSizes[i]))
+                rRecvBuffer[i].resize(mRecvSizes[i]);
+
+            MPI_Irecv(rRecvBuffer[i].data(), mRecvSizes[i],
+                      mpi_datatype, i, 0,
+                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
+        }
+
+        if (i != mCommRank && mSendSizes[i])
+        {
+            MPI_Isend(rSendBuffer[i].data(), mSendSizes[i],
+                      mpi_datatype, i, 0,
+                      MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
+        }
+    }
+
+    //wait until all communications finish
+    const int err = MPI_Waitall(num_comm_events, reqs.data(), stats.data());
+
+    return err;
+}
+
+// Explicit instantiation for function
+template int InterfaceSearchStructureMPI::ExchangeDataAsync<double>(
+    const std::vector<std::vector<double>>& rSendBuffer,
+    std::vector<std::vector<double>>& rRecvBuffer);
+
+template int InterfaceSearchStructureMPI::ExchangeDataAsync<char>(
+    const std::vector<std::vector<char>>& rSendBuffer,
+    std::vector<std::vector<char>>& rRecvBuffer);
 
 }  // namespace Kratos.

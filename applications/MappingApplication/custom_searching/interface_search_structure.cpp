@@ -57,23 +57,8 @@ void InterfaceSearchStructure::InitializeSearchIteration(const Kratos::Flags& rO
 
 void InterfaceSearchStructure::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
 {
-    const auto& r_mapper_interface_infos = (*mpMapperInterfaceInfosContainer)[0];
-    const int num_interface_infos = r_mapper_interface_infos.size();
-
-    // This is threadsafe bcs there will never be more than one InterfaceInfo per LocalSystem (only true in serial!)
-    #pragma omp parallel for
-    for (int i = 0; i<num_interface_infos; ++i)
-    {
-        const auto& rp_interface_info = r_mapper_interface_infos[i];
-
-        if (rp_interface_info->GetLocalSearchWasSuccessful())
-        {
-            const IndexType local_sys_idx = rp_interface_info->GetLocalSystemIndex();
-            KRATOS_DEBUG_ERROR_IF_NOT(local_sys_idx == static_cast<IndexType>(i))
-                << "Index mismatch!" << std::endl; // This has to be ensured in serial!
-            (*mpMapperLocalSystems)[local_sys_idx]->AddInterfaceInfo(rp_interface_info);
-        }
-    }
+    InterfaceSearchStructureBase::FilterInterfaceInfosSuccessfulSearch();
+    InterfaceSearchStructureBase::AssignInterfaceInfos();
 }
 
 /***********************************************************************************/

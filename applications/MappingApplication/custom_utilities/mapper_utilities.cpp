@@ -245,7 +245,7 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
 {
     const SizeType comm_size = rpMapperInterfaceInfosContainer->size();
 
-    KRATOS_DEBUG_ERROR_IF_NOT(rRecvBuffer.size() == rpMapperInterfaceInfosContainer->size())
+    KRATOS_DEBUG_ERROR_IF_NOT(rRecvBuffer.size() == comm_size)
         << "Buffer-size mismatch!" << std::endl;
 
     array_1d<double, 3> coords;
@@ -289,94 +289,104 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
     }
 }
 
-void SelectInterfaceInfosSuccessfulSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
-                                          const SizeType SizeEstimate,
-                                          MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosSuccSearch)
+void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
+                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                const int CommRank,
+                                std::vector<std::vector<char>>& rSendBuffer,
+                                std::vector<int>& rSendSizes)
 {
     const SizeType comm_size = rpMapperInterfaceInfosContainer->size();
 
-    rpMapperInterfaceInfosSuccSearch->clear();
-    if (rpMapperInterfaceInfosSuccSearch->size() != comm_size)
-        rpMapperInterfaceInfosSuccSearch->resize(comm_size);
+    KRATOS_DEBUG_ERROR_IF_NOT(rSendSizes.size() == comm_size)
+        << "Buffer-size mismatch!" << std::endl;
 
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
     {
-        auto& r_interface_infos_rank = (*rpMapperInterfaceInfosSuccSearch)[i_rank];
-        r_interface_infos_rank.reserve(SizeEstimate);
-
-        for (const auto& rp_interface_info : (*rpMapperInterfaceInfosContainer)[i_rank])
+        if (i_rank != static_cast<IndexType>(CommRank))
         {
-            if (rp_interface_info->GetLocalSearchWasSuccessful())
-                r_interface_infos_rank.push_back(rp_interface_info);
+            MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer(
+                (*rpMapperInterfaceInfosContainer)[i_rank], rpRefInterfaceInfo );
+
+            Kratos::Serializer serializer;
+            serializer.save("interface_infos", interface_infos_serializer);
+
+            const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
+            const std::string& stream_str = p_serializer_buffer->str();
+
+            const SizeType send_size = sizeof(char) * (stream_str.size()+1);
+
+            rSendSizes[i_rank] = send_size;
+
+            auto& r_rank_buffer = rSendBuffer[i_rank];
+            r_rank_buffer.clear();
+
+            if (r_rank_buffer.size() != send_size)
+                r_rank_buffer.resize(send_size);
+
+            std::memcpy(r_rank_buffer.data(), stream_str.c_str(), send_size);
         }
     }
 }
 
-void AssignInterfaceInfosAfterRemoteSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
-                                           MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems)
+void DeserializeMapperInterfaceInfosFromBuffer(
+    const std::vector<std::vector<char>>& rRecvBuffer,
+    const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+    const int CommRank,
+    MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer)
 {
     const SizeType comm_size = rpMapperInterfaceInfosContainer->size();
 
+    KRATOS_DEBUG_ERROR_IF_NOT(rRecvBuffer.size() == comm_size)
+        << "Buffer-size mismatch!" << std::endl;
+
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
     {
-        for (const auto& rp_interface_info : (*rpMapperInterfaceInfosContainer)[i_rank])
+        if (i_rank != static_cast<IndexType>(CommRank))
         {
-            // We know that the local search was successful, otherwise the InterfaceInfo
-            // would not have been sent back
-            const IndexType local_sys_idx = rp_interface_info->GetLocalSystemIndex();
-            (*rpMapperLocalSystems)[local_sys_idx]->AddInterfaceInfo(rp_interface_info);
+            Kratos::Serializer serializer;
+
+            const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
+            p_serializer_buffer->write(rRecvBuffer[i_rank].data(), rRecvBuffer[i_rank].size());
+
+            MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer(
+                (*rpMapperInterfaceInfosContainer)[i_rank], rpRefInterfaceInfo );
+
+            serializer.load("interface_infos", interface_infos_serializer);
         }
     }
 }
 
 void MapperInterfaceInfoSerializer::save(Kratos::Serializer& rSerializer) const
 {
-    const SizeType comm_size = mrpInterfaceInfos->size();
-    rSerializer.save("size1", comm_size);
+    const SizeType num_infos = mrInterfaceInfos.size();
+    rSerializer.save("size", num_infos);
 
-    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
-    {
-        const auto& r_interface_infos_rank = (*mrpInterfaceInfos)[i_rank];
-        const SizeType size_rank = r_interface_infos_rank.size();
-        rSerializer.save("size2", size_rank);
-
-        for (IndexType j=0; j<size_rank; ++j)
-            rSerializer.save("E", *(r_interface_infos_rank[j])); // NOT serializing the shared_ptr!
-    }
+    for (IndexType i=0; i<num_infos; ++i)
+        rSerializer.save("E", *(mrInterfaceInfos[i])); // NOT serializing the shared_ptr!
 }
 
 void MapperInterfaceInfoSerializer::load(Kratos::Serializer& rSerializer)
 {
-    mrpInterfaceInfos->clear(); // make sure it has no leftovers
+    mrInterfaceInfos.clear(); // make sure it has no leftovers
 
-    SizeType comm_size;
-    rSerializer.load("size1", comm_size);
-    if (mrpInterfaceInfos->size() != comm_size)
-        mrpInterfaceInfos->resize(comm_size);
+    SizeType num_infos;
+    rSerializer.load("size", num_infos);
 
-    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
+    if (mrInterfaceInfos.size() != num_infos)
+        mrInterfaceInfos.resize(num_infos);
+
+    for (IndexType i=0; i<num_infos; ++i)
     {
-        SizeType size_rank;
-        rSerializer.load("size2", size_rank);
-
-        auto& r_interface_infos_rank = (*mrpInterfaceInfos)[i_rank];
-
-        if (r_interface_infos_rank.size() != size_rank)
-            r_interface_infos_rank.resize(size_rank);
-
-        for (IndexType j=0; j<size_rank; ++j)
-        {
-            // first we create a new object, then we load its data
-            // this is needed bcs of the polymorphic behavior of the InterfaceInfos
-            // i.e. in order to create the correct type
-            // => the vector contains baseclass-pointers!
-            // Jordi I am quite sure that I could get around it by registering it, what do you think... TODO
-            // I think doing it manually is more efficient, which I want so I would probably leave it ...
-            // The serializer does some nasty casting when pointers are serialized...
-            // I could do a benchmark at some point but I highly doubt that the serializer is faster ...
-            r_interface_infos_rank[j] = mrpRefInterfaceInfo->Create();
-            rSerializer.load("E", *(r_interface_infos_rank[j])); // NOT serializing the shared_ptr!
-        }
+        // first we create a new object, then we load its data
+        // this is needed bcs of the polymorphic behavior of the InterfaceInfos
+        // i.e. in order to create the correct type
+        // => the vector contains baseclass-pointers!
+        // Jordi I am quite sure that I could get around it by registering it, what do you think... TODO
+        // I think doing it manually is more efficient, which I want so I would probably leave it ...
+        // The serializer does some nasty casting when pointers are serialized...
+        // I could do a benchmark at some point but I highly doubt that the serializer is faster ...
+        mrInterfaceInfos[i] = mrpRefInterfaceInfo->Create();
+        rSerializer.load("E", *(mrInterfaceInfos[i])); // NOT serializing the shared_ptr!
     }
 }
 

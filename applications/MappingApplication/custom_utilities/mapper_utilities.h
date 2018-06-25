@@ -227,12 +227,20 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
                                           const int CommRank,
                                           MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer);
 
-void SelectInterfaceInfosSuccessfulSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
-                                          const SizeType SizeEstimate,
-                                          MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosSuccSearch);
+void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
+                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                const int CommRank,
+                                std::vector<std::vector<char>>& rSendBuffer,
+                                std::vector<int>& rSendSizes);
 
 void AssignInterfaceInfosAfterRemoteSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
                                            MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems);
+
+void DeserializeMapperInterfaceInfosFromBuffer(
+    const std::vector<std::vector<char>>& rSendBuffer,
+    const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+    const int CommRank,
+    MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer);
 
 /**
  * @class MapperInterfaceInfoSerializer
@@ -249,16 +257,16 @@ class MapperInterfaceInfoSerializer
 {
 public:
 
-    MapperInterfaceInfoSerializer(MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
-                                  MapperInterfaceInfoPointerType& rpRefInterfaceInfo)
-        : mrpInterfaceInfos(rpMapperInterfaceInfosContainer)
-        , mrpRefInterfaceInfo(rpRefInterfaceInfo)
+    MapperInterfaceInfoSerializer(std::vector<MapperInterfaceInfoPointerType>& rMapperInterfaceInfosContainer,
+                                  const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+        : mrInterfaceInfos(rMapperInterfaceInfosContainer)
+        , mrpRefInterfaceInfo(rpRefInterfaceInfo->Create())
         { }
 
 private:
 
-    MapperInterfaceInfoPointerVectorPointerType& mrpInterfaceInfos;
-    MapperInterfaceInfoPointerType& mrpRefInterfaceInfo;
+    std::vector<MapperInterfaceInfoPointerType>& mrInterfaceInfos;
+    MapperInterfaceInfoPointerType mrpRefInterfaceInfo;
 
     friend class Kratos::Serializer; // Adding "Kratos::" is nedded bcs of the "MapperUtilities"-namespace
 

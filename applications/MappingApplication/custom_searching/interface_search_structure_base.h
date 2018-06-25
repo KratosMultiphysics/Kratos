@@ -209,6 +209,10 @@ protected:
 
     virtual void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo) = 0;
 
+    void FilterInterfaceInfosSuccessfulSearch();
+
+    void AssignInterfaceInfos();
+
     ///@}
     ///@name Protected  Access
     ///@{
