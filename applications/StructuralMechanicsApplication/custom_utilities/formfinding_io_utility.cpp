@@ -32,37 +32,33 @@ namespace Kratos
 		{}
     void FormfindingIOUtility::PrintModelPart()
     {
-
-		KRATOS_INFO("FormfindingIOUtility") << "Attention: Removing internal modelpart data. The modelpart will not work in the same way as before." << std::endl;
+		KRATOS_INFO("FormfindingIOUtility") << "Attention: Removing internal modelpart data. "
+			<< "The modelpart will not work in the same way as before." << std::endl;
 		// erase nodal data
     	mModelPart.GetNodalSolutionStepVariablesList().clear();
 
     	// erase elemental data
     	for( auto& ele: mModelPart.Elements()){
-    	    const Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get("MEMBRANE_PRESTRESS");
-    	    if(ele.Has(variable)){
+    	    if(ele.Has(MEMBRANE_PRESTRESS)){
     	        const Matrix membrane_prestress(ele.GetValue(MEMBRANE_PRESTRESS));
     	        ele.Data().Clear();
     	        ele.SetValue(MEMBRANE_PRESTRESS, membrane_prestress);
     	    }
     	    else
     	        ele.Data().Clear();
-
     	}
 
     	// erase conditional data
-    	for( auto& cond: mModelPart.Conditions())
-    	        cond.Data().Clear();
+    	for (auto& cond: mModelPart.Conditions())
+			cond.Data().Clear();
 
 		// erase properties
-		for( auto& prop: mModelPart.rProperties())
+		for (auto& prop: mModelPart.rProperties())
 			prop.Data().Clear();
-
 
 		// Write ModelPart
     	ModelPartIO model_part_io("formfinding_out", IO::WRITE);
     	model_part_io.WriteModelPart(mModelPart);
-
 	}
 
 	void FormfindingIOUtility::PrintPrestressData()
@@ -70,8 +66,7 @@ namespace Kratos
         KRATOS_ERROR << "This function is currently not working, use \"PrintModelPart\" instead"  << std::endl;
 		// erase elemental data
     	for( auto& ele: mModelPart.Elements()){
-    	    const Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get("MEMBRANE_PRESTRESS");
-    	    if(ele.Has(variable)){
+    	    if(ele.Has(MEMBRANE_PRESTRESS)){
     	        const Matrix membrane_prestress(ele.GetValue(MEMBRANE_PRESTRESS));
     	        ele.Data().Clear();
     	        ele.SetValue(MEMBRANE_PRESTRESS, membrane_prestress);

@@ -40,6 +40,14 @@ CrBeamElementLinear2D2N::Create(IndexType NewId,
       NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
+Element::Pointer
+CrBeamElementLinear2D2N::Create(IndexType NewId,
+                                GeometryType::Pointer pGeom,
+                                PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CrBeamElementLinear2D2N>(
+      NewId, pGeom, pProperties);
+}
+
 CrBeamElementLinear2D2N::~CrBeamElementLinear2D2N() {}
 
 void CrBeamElementLinear2D2N::CalculateLocalSystem(

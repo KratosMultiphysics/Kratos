@@ -1,16 +1,19 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import python_process
 
-def Factory(settings, Model):
+
+def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
-    return ComputeDragProcess(Model, settings["Parameters"])
+    return ComputeDragProcess(model, settings["Parameters"])
 
 
-class ComputeDragProcess(python_process.PythonProcess):
-    def __init__(self, Model, settings ):
+class ComputeDragProcess(KratosMultiphysics.Process):
+    def __init__(self, model, settings ):
+        """ Auxiliary class to output total flow forces over obstacles in fluid dynamics problems.
+        """
+        super(ComputeDragProcess,self).__init__()
 
         default_settings = KratosMultiphysics.Parameters("""
             {
@@ -18,7 +21,8 @@ class ComputeDragProcess(python_process.PythonProcess):
                 "model_part_name"           : "please_specify_model_part_name",
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,
-                "print_drag_to_screen"      : false
+                "print_drag_to_screen"      : false,
+                "print_format"              : ""
             }
             """)
 
@@ -32,7 +36,9 @@ class ComputeDragProcess(python_process.PythonProcess):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.format = settings["print_format"].GetString()
+
+        self.model_part = model[settings["model_part_name"].GetString()]
         self.interval = KratosMultiphysics.Vector(2)
         self.interval[0] = settings["interval"][0].GetDouble()
         self.interval[1] = settings["interval"][1].GetDouble()
@@ -49,7 +55,6 @@ class ComputeDragProcess(python_process.PythonProcess):
                     file.write(settings["model_part_name"].GetString() + " drag \n")
                     file.write("\n")
                     file.write("Time   Fx   Fy   Fz \n")
-                    file.close()
 
 
     def ExecuteFinalizeSolutionStep(self):
@@ -63,10 +68,9 @@ class ComputeDragProcess(python_process.PythonProcess):
             # Write the drag force values
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 if (self.print_drag_to_screen):
-                    print("DRAG RESULTS:")
-                    print("Current time: " + str(current_time) + " x-drag: " + str(drag_force[0]) + " y-drag: " + str(drag_force[1]) + " z-drag: " + str(drag_force[2]))
+                    KratosMultiphysics.Logger.PrintInfo("ComputeDragProcess", "DRAG RESULTS:")
+                    KratosMultiphysics.Logger.PrintInfo("ComputeDragProcess","Current time: " + str(current_time) + " x-drag: " + format(drag_force[0],self.format) + " y-drag: " + format(drag_force[1],self.format) + " z-drag: " + format(drag_force[2],self.format))
 
                 if (self.write_drag_output_file):
                     with open(self.drag_filename, 'a') as file:
-                        file.write(str(current_time)+"   "+str(drag_force[0])+"   "+str(drag_force[1])+"   "+str(drag_force[2])+"\n")
-                        file.close()
+                        file.write(str(current_time)+"   "+format(drag_force[0],self.format)+"   "+format(drag_force[1],self.format)+"   "+format(drag_force[2],self.format)+"\n")
