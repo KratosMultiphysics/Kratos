@@ -2128,7 +2128,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Triangle2D3<TPointType>::msGeometryData(
     2, 2, 2,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::GI_GAUSS_2,
     Triangle2D3<TPointType>::AllIntegrationPoints(),
     Triangle2D3<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
