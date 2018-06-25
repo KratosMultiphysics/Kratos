@@ -134,18 +134,8 @@ public:
 
     rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-    Matrix Mass = ZeroMatrix(LHS_Contribution.size1(),LHS_Contribution.size2());
-    const Geometry< Node<3> >& r_geometry = rCurrentElement->GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    const double size_fraction = r_geometry.DomainSize() / number_of_nodes;
-    for (unsigned int i = 0; i < number_of_nodes; i++){
-      unsigned int dof_block = i*number_of_nodes;
-      const double lumped_mass = size_fraction * r_geometry[i].FastGetSolutionStepValue(DENSITY);
-      for (unsigned int d = 0; d < dimension; d++) {
-        Mass(dof_block+d,dof_block+d) = lumped_mass;
-      }
-    }
+    Matrix Mass;
+    this->CalculateLumpedMassMatrix(rCurrentElement->GetGeometry(),Mass);
 
     Matrix SteadyLHS;
     rCurrentElement->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
@@ -445,6 +435,33 @@ protected:
 //Vector OldDofValues;
     //rCurrentCondition->GetFirstDerivativesVector(OldDofValues, 0);
     //noalias(RHS_Contribution) -= prod(Mass, OldDofValues);
+  }
+
+  void CalculateLumpedMassMatrix(
+    const GeometryType& rGeometry,
+    LocalSystemMatrixType& rLumpedMass) const
+  {
+    const unsigned int dimension = rGeometry.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeometry.PointsNumber();
+
+    const unsigned int nodal_block_size = dimension + 1;
+    const unsigned int local_size = nodal_block_size * number_of_nodes;
+
+    if (rLumpedMass.size1() != local_size) {
+      rLumpedMass.resize(local_size,local_size);
+    }
+
+    noalias(rLumpedMass) = ZeroMatrix(local_size,local_size);
+
+    const double size_fraction = rGeometry.DomainSize() / number_of_nodes;
+
+    for (unsigned int i = 0; i < number_of_nodes; i++){
+      const unsigned int dof_block = i*nodal_block_size;
+      const double lumped_mass = size_fraction * rGeometry[i].FastGetSolutionStepValue(DENSITY);
+      for (unsigned int d = 0; d < dimension; d++) {
+        rLumpedMass(dof_block+d,dof_block+d) = lumped_mass;
+      }
+    }
   }
 
   ///@}
