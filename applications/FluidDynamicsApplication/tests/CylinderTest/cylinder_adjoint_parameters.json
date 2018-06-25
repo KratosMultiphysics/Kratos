@@ -9,7 +9,7 @@
         "parallel_type"   : "OpenMP"
     },
     "solver_settings"                  : {
-        "solver_type"                  : "adjoint_vmsmonolithic_solver",
+        "solver_type"                  : "Monolithic",
         "scheme_settings" : {
             "scheme_type"              : "bossak",
             "alpha_bossak"             :-0.3
@@ -90,7 +90,7 @@
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
-    "list_other_processes" :[{
+    "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
         "python_module" : "single_mesh_primal_input_process",
         "help"          : "",

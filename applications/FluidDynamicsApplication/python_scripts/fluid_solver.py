@@ -32,6 +32,10 @@ class FluidSolver(PythonSolver):
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
+
+        if model_part_name == "":
+            raise Exception('Please specify a model_part name!')
+
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
@@ -57,12 +61,13 @@ class FluidSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        ## Replace default elements and conditions
-        self._ReplaceElementsAndConditions()
-        ## Executes the check and prepare model process
-        self._ExecuteCheckAndPrepare()
-        ## Set buffer size
-        self.main_model_part.SetBufferSize(self.min_buffer_size)
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            ## Replace default elements and conditions
+            self._ReplaceElementsAndConditions()
+            ## Executes the check and prepare model process
+            self._ExecuteCheckAndPrepare()
+            ## Set buffer size
+            self.main_model_part.SetBufferSize(self.min_buffer_size)
 
         if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
             self.model.AddModelPart(self.main_model_part)
@@ -120,13 +125,13 @@ class FluidSolver(PythonSolver):
         (self.solver).Clear()
 
     def Solve(self):
-        message = "".join(
+        message = "".join([
             "Calling FluidSolver.Solve() method, which is deprecated\n",
             "Please call the individual methods instead:\n",
             "solver.InitializeSolutionStep()\n",
             "solver.Predict()\n",
             "solver.SolveSolutionStep()\n",
-            "solver.FinalizeSolutionStep()\n"
+            "solver.FinalizeSolutionStep()\n"]
         )
         KratosMultiphysics.Logger.PrintWarning("FluidSolver",message)
         self.InitializeSolutionStep()
@@ -135,6 +140,8 @@ class FluidSolver(PythonSolver):
         self.FinalizeSolutionStep()
 
     def GetComputingModelPart(self):
+        if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
+            raise Exception("The ComputingModelPart was not created yet!")
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     ## FluidSolver specific methods.

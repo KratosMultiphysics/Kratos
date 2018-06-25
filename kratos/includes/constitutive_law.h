@@ -32,6 +32,7 @@
 #include "utilities/math_utils.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
+#include "includes/kratos_parameters.h"
 #include "containers/data_value_container.h"
 #include "containers/flags.h"
 
@@ -508,6 +509,13 @@ public:
      *      return p_clone;
      */
     virtual ConstitutiveLaw::Pointer Clone() const;
+
+    /**
+     * creates a new constitutive law pointer
+     * @param NewParameters The configuration parameters of the new constitutive law
+     * @return a Pointer to the new constitutive law
+     */
+    virtual Pointer Create(Kratos::Parameters NewParameters) const;
 
     /**
      * @return The working space dimension of the current constitutive law

@@ -16,6 +16,9 @@
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "truss_test/nonlinear_3D2NTruss_test"
+        },        
+        "material_import_settings" :{
+            "materials_filename": "truss_test/nonlinear_3D2NTruss_test_materials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
