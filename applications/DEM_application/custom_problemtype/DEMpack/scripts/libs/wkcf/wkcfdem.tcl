@@ -2505,11 +2505,11 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 
 	if {!$pick_individual_forces_option} { # Maxey-Riley
 	    if {!$include_faxen_terms_option} {
-		set drag_force_type 10
-		set virtual_mass_force_type 10
+		set drag_force_type 2
+		set virtual_mass_force_type 0
 	    } else {
-		set drag_force_type 11
-		set virtual_mass_force_type 11
+		set drag_force_type 2
+		set virtual_mass_force_type 0
 	    }
 	    set lift_force_type 0
 	    set magnus_force_type 0
