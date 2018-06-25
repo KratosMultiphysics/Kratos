@@ -139,7 +139,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
     // Add / override the values of material parameters in the p_properties
     Parameters variables = Data["Material"]["Variables"];
-    for(auto iter = variables.begin(); iter != variables.end(); iter++) {
+    for(auto iter = variables.begin(); iter != variables.end(); ++iter) {
         const Parameters value = variables.GetValue(iter.name());
 
         std::string variable_name = iter.name();
@@ -187,7 +187,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
     // Add / override tables in the p_properties
     Parameters tables = Data["Material"]["Tables"];
-    for(auto iter = tables.begin(); iter != tables.end(); iter++) {
+    for(auto iter = tables.begin(); iter != tables.end(); ++iter) {
         auto table_param = tables.GetValue(iter.name());
         // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
         Table<double> table;
