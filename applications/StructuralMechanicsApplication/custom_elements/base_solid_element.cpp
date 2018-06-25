@@ -321,6 +321,15 @@ void BaseSolidElement::CalculateLocalSystem(
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
 }
 
+void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                             ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    VectorType RHS;
+    CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+    KRATOS_CATCH("");
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

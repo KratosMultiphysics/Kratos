@@ -1,63 +1,20 @@
-/*
-==============================================================================
-KratosConvectionDiffusionApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-12-15 15:42:14 $
-//   Revision:            $Revision: 1.1 $
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:  Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_TRIANGULAR_CONVDIFF_2_ELEM_H_INCLUDED )
 #define  KRATOS_TRIANGULAR_CONVDIFF_2_ELEM_H_INCLUDED
 
-
-
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -122,7 +79,9 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    
+    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
@@ -221,8 +180,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-    static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+    static BoundedMatrix<double,3,3> msMassFactors;
+    static BoundedMatrix<double,3,2> msDN_DX;
     static array_1d<double,3> msN; //dimension = number of nodes
     //static Matrix msDN_DX;
     //static Matrix msMassFactors;

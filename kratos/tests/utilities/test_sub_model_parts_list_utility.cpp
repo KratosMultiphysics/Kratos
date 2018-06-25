@@ -36,7 +36,7 @@ namespace Kratos
         * Checks the correct work of the sub modelparts list utility
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosSubModelPartsListUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosCoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
             ModelPart first_model_part("Main");
@@ -170,7 +170,7 @@ namespace Kratos
         * Checks the correct work of the modelparts colors utility (with different sublevels of modelparts)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosSubModelPartsListUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosCoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts
             ModelPart first_model_part("Main");
@@ -306,112 +306,6 @@ namespace Kratos
                     KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
                 }
             }
-        }
-
-
-        /**
-        * Checks the correct work of the modelparts colors
-        */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityPointers, KratosSubModelPartsListUtilityFastSuite)
-        {
-            // Creating the reference model part and the relative submodelparts
-            ModelPart model_part("ModelPart");
-            ModelPart::Pointer p_sub_modelpart_1 = model_part.CreateSubModelPart("First");
-            ModelPart::Pointer p_sub_modelpart_2 = model_part.CreateSubModelPart("Second");
-            ModelPart::Pointer p_sub_modelpart_3 = p_sub_modelpart_2->CreateSubModelPart("Third");
-
-            // Creating the nodes
-            NodeType::Pointer p_node_1 = model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = model_part.CreateNewNode(3, 2.0 , 0.0 , 0.0);
-
-            // Add the nodes to sub model parts
-            p_sub_modelpart_1->AddNode(p_node_1);
-            p_sub_modelpart_2->AddNode(p_node_2);
-            p_sub_modelpart_3->AddNode(p_node_3);
-
-            // Initialize the utility
-            SubModelPartsListUtility colors_utility(model_part);
-
-            // Get the colors
-            IndexIntMapType nodes_colors, cond_colors, elem_colors;
-            IntStringMapType colors;
-            colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
-
-            // Get the pointers
-            IntModelPartPtrMapType colors_pointers = SubModelPartsListUtility::GetModelPartColorsPointers(model_part, colors);
-
-            // Check both colormaps have the same size
-            KRATOS_CHECK_EQUAL(colors.size(), colors_pointers.size());
-
-            for (auto color : colors)
-            {
-                // Check both colors have the same size
-                std::vector<ModelPart*> p_color = colors_pointers[color.first];
-                KRATOS_CHECK_EQUAL(color.second.size(), p_color.size());
-                for (IndexSize i = 0; i < color.second.size(); i++)
-                {
-                    // Check the names
-                    KRATOS_CHECK_EQUAL(color.second[i], p_color[i]->Name());
-                }
-            }
-        }
-
-
-        /**
-        * Checks the correct work of the modelparts colors utility (computing the colors intersection)
-        */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityIntersections, KratosSubModelPartsListUtilityFastSuite)
-        {
-            // Creating the reference model part and the relative submodelparts
-            ModelPart model_part("Main");
-            ModelPart::Pointer p_sub_modelpart_1 = model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart::Pointer p_sub_modelpart_2 = model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart::Pointer p_sub_modelpart_3 = model_part.CreateSubModelPart("ZSubModelPart3");
-
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = model_part.CreateNewNode(3, 2.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_4 = model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_5 = model_part.CreateNewNode(5, 1.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_6 = model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-
-            // Add the nodes to sub model parts
-            p_sub_modelpart_1->AddNode(p_node_1);
-            p_sub_modelpart_1->AddNode(p_node_4);
-            p_sub_modelpart_2->AddNode(p_node_4);
-            p_sub_modelpart_2->AddNode(p_node_5);
-            p_sub_modelpart_2->AddNode(p_node_6);
-            p_sub_modelpart_3->AddNode(p_node_3);
-            p_sub_modelpart_3->AddNode(p_node_6);
-
-            // Initialize the utility
-            SubModelPartsListUtility colors_utility(model_part);
-
-            // Get the colors
-            IndexIntMapType nodes_colors, cond_colors, elem_colors;
-            IntStringMapType colors;
-            colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
-
-            // Compute the intersections
-            PairIntMapType intersections;
-            SubModelPartsListUtility::IntersectColors(colors, intersections);
-            IndexSize key;
-            // The intersection gives the main model part
-            key = intersections[std::minmax(nodes_colors[p_node_1->Id()], nodes_colors[p_node_3->Id()])];
-            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_2->Id()]);
-            KRATOS_CHECK_EQUAL(key, 0);
-
-            // The intersection is a sub model part
-            key = intersections[std::minmax(nodes_colors[p_node_4->Id()], nodes_colors[p_node_6->Id()])];
-            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_5->Id()]);
-
-            // The input is included in the intersection
-            key = intersections[std::minmax(nodes_colors[p_node_1->Id()], nodes_colors[p_node_4->Id()])];
-            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_1->Id()]);
         }
 
     } // namespace Testing

@@ -10,29 +10,20 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-import navier_stokes_base_solver
+from fluid_solver import FluidSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesEmbeddedMonolithicSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return NavierStokesEmbeddedMonolithicSolver(model, custom_settings)
 
-class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStokesBaseSolver):
+class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        self.element_name = "EmbeddedNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
-        self.min_buffer_size = 3
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    def _ValidateSettings(self, settings):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "embedded_solver_from_defaults",
+            "model_part_name": "FluidModelPart",
+            "domain_size": 2,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -52,7 +43,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL_NS_Solver"
+                "solver_type"         : "AMGCL"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -68,9 +59,18 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             "reorder": false
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+    def __init__(self, model, custom_settings):
+        super(NavierStokesEmbeddedMonolithicSolver,self).__init__(model,custom_settings)
+
+        self.element_name = "EmbeddedNavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        self.min_buffer_size = 3
+
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
 
         # TODO: Remove this once we finish the new implementations
         if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
@@ -114,13 +114,15 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
     def ImportModelPart(self):
         super(NavierStokesEmbeddedMonolithicSolver, self).ImportModelPart()
 
-        ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
-        self._set_physical_properties()
-        ## Sets the constitutive law
-        self._set_constitutive_law()
-        ## Setting the nodal distance
-        self._set_distance_function()
-
+    def PrepareModelPart(self):
+        super(NavierStokesEmbeddedMonolithicSolver, self).PrepareModelPart()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
+            self._set_physical_properties()
+            ## Sets the constitutive law
+            self._set_constitutive_law()
+            ## Setting the nodal distance
+            self._set_distance_function()
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()

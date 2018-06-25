@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -47,13 +47,25 @@ namespace Kratos
     //********************************* CREATE *******************************************
     //************************************************************************************
     
-    Element::Pointer AxisymTotalLagrangian::Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+    Element::Pointer AxisymTotalLagrangian::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const
     {
         return Kratos::make_shared<AxisymTotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    Element::Pointer AxisymTotalLagrangian::Create(
+        IndexType NewId, 
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties 
+        ) const
+    {
+        return Kratos::make_shared<AxisymTotalLagrangian>( NewId, pGeom, pProperties );
     }
     
     //******************************* DESTRUCTOR *****************************************
