@@ -59,7 +59,7 @@ class AnalysisDriverBasedResponseFunction(ResponseFunctionBase):
 
     def __init__(self, response_id, response_settings, model_part):
  ##settings string in json format
-        default_settings = KratosMultiphysics.Parameters("""
+        default_settings = Parameters("""
         {
             "response_type"               : "analysis_driver_based",
                 "analysis_driver"             : "PLEASE_SPECIFY_RESPONSE_PYTHON_FILE",
