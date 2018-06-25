@@ -73,6 +73,7 @@ End Conditions
 
 Begin SubModelPart 1 // DEM-FEM-Wall. Group name: DEM-wall1
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall1
+  PROPERTIES_ID 0
   LINEAR_VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
@@ -104,6 +105,7 @@ End SubModelPart
 
 Begin SubModelPart 2 // DEM-FEM-Wall. Group name: DEM-wall2
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall2
+  PROPERTIES_ID 1
   LINEAR_VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
@@ -135,6 +137,7 @@ End SubModelPart
 
 Begin SubModelPart 3 // DEM-FEM-Wall. Group name: DEM-wall3
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall3
+  PROPERTIES_ID 2
   LINEAR_VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,0.0,0.0)

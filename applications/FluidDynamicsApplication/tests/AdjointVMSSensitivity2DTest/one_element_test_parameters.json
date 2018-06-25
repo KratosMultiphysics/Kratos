@@ -7,11 +7,10 @@
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "start_time"      : 0.0,
-        "nsteps"          : 3,
-        "time_step"       : 1.0,
-        "parallel_type"   : "OpenMP",
         "end_time"        : 3.0,
-        "echo_level"      : 0
+        "nsteps"          : 3,
+        "echo_level"      : 0,
+        "parallel_type"   : "OpenMP"
     },
     "output_configuration" : {
         "result_file_configuration" : {
@@ -51,8 +50,7 @@
         "no_skin_parts"                 : [],
         "linear_solver_settings" : {
             "solver_type"         : "AMGCL",
-            "verbosity"           : 0,
-            "tolerance"           :1e-12
+            "verbosity"           : 0
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",
@@ -108,7 +106,7 @@
     "gravity" : [],
     "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_temporal_output_process",
+        "python_module" : "single_mesh_primal_output_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -116,7 +114,9 @@
             "file_settings" : {
                 "file_access_mode" : "truncate"
             },
-            "model_part_output_settings" : {},
+            "model_part_output_settings" : {
+                "prefix" : "/ModelData"
+            },
             "nodal_results_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
             },

@@ -1,6 +1,8 @@
 # import Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication
+
+import subprocess
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -19,10 +21,10 @@ from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from volume_source_test import VolumeSourceTest
 from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
-from vms_adjoint_element_2d import VMSAdjointElement2D
+from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
-from adjoint_mpi_vms_sensitivity_2d import AdjointMPIVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
+import run_cpp_unit_tests
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -79,19 +81,22 @@ def AssambleTestSuites():
     nightSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
     nightSuite.addTest(AdjointFluidTest('testCylinder'))
-    nightSuite.addTest(VMSAdjointElement2D('testCalculateSecondDerivativesLHS'))
-    nightSuite.addTest(VMSAdjointElement2D('testCalculateFirstDerivativesLHS1'))
-    nightSuite.addTest(VMSAdjointElement2D('testCalculateFirstDerivativesLHS2'))
-    nightSuite.addTest(VMSAdjointElement2D('testCalculateSensitivityMatrix'))
-    nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
+    nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
+    nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
+    nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
-    # nightSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
+    nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(HDF5IOTest('testInputOutput'))
+
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(VolumeSourceTest('validationEulerian'))
     validationSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
+    validationSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
+
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
@@ -100,4 +105,21 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
+    try:
+        import KratosMultiphysics.mpi as KratosMPI
+        import KratosMultiphysics.MetisApplication as MetisApplication
+        import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+        p = subprocess.Popen(["mpiexec", "-np", "2", "python3", "test_FluidDynamicsApplication_mpi.py"], stdout=subprocess.PIPE)
+        p.wait()
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished mpi python tests!")
+    except ImportError:
+        KratosMultiphysics.Logger.PrintInfo("Unittests", "mpi is not available!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssambleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")

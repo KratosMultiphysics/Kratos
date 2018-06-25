@@ -2,6 +2,7 @@
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
+import KratosMultiphysics.kratos_utilities as kratos_utils
 import math
 import os
 
@@ -643,14 +644,14 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0) #displacements remain unmodified, they will be assigned by the scheme
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 0.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
-            
+
     def test_assign_vector_variable_to_conditions(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        
+
         model_part.CreateNewNode(1,0.5,0.5,0.5)
         model_part.CreateNewNode(2,1.0,1.0,1.0)
-        
+
         model_part.CreateNewCondition("LineCondition2D2N",1,[1,2], model_part.GetProperties()[1])
 
         settings = Parameters(
@@ -671,8 +672,8 @@ class TestProcesses(KratosUnittest.TestCase):
                     }
                 ]
             }
-            """)    
-            
+            """)
+
         Model = {"Main":model_part}
 
         import process_factory
@@ -683,7 +684,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
-            
+
         for cond in model_part.Conditions:
             tmp = cond.GetValue(DISPLACEMENT)
             self.assertEqual(tmp[0], 2.0*3.0-0.75)
@@ -709,8 +710,294 @@ class TestProcesses(KratosUnittest.TestCase):
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
+    def test_point_output_process_node(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_ref.dat")
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [0.5, 0.25, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "node_output",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "node"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "node_output.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[TIME] = 0.0
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
+    def test_point_output_process_element(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("point_output_process_ref_files/element_output_ref.dat")
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [0.563, 0.89, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "element_output",
+                            "output_variables" : ["DISPLACEMENT_X", "VISCOSITY", "ACCELERATION"]
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "element_output.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[TIME] = 0.0
+        model_part.ProcessInfo[DOMAIN_SIZE] = 3
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
+    def test_point_output_process_condition(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("point_output_process_ref_files/condition_output_ref.dat")
+
+        # Here we also test if setting the write_buffer_size works
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [16.0, 0.2, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "condition_output",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "condition",
+                            "write_buffer_size" : 512
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "condition_output.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[TIME] = 0.0
+        model_part.ProcessInfo[DOMAIN_SIZE] = 2
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
+    def test_point_output_process_restart(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_ref.dat")
+
+        # note that we are comparing the same file as for without restart
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [0.5, 0.25, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "point_output_rest",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "node"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "point_output_rest.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        # From this file we copy some lines into a new file , which will be used as basis for the restart
+        ref_file_name = settings["process_list"][1]["Parameters"]["reference_file_name"].GetString()
+        ref_file_name = os.path.abspath(ref_file_name) # making it work independent of OS
+
+        # here we create a dat file from a "previous run"
+        out_file_name = settings["process_list"][0]["Parameters"]["output_file_name"].GetString()
+        out_file_name += ".dat"
+
+        with open(ref_file_name, 'r') as ref_file, open(out_file_name, 'w') as out_file:
+            for line in ref_file:
+                out_file.write(line)
+                if line.startswith("3.15"): # the previous run "stopped" at T=3.1
+                    break
+
+        model_part.ProcessInfo[IS_RESTARTED] = True
+        model_part.ProcessInfo[TIME] = 2.1 # the new run "starts" at T=2.1
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
+    def test_point_output_process_failed_restart(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        # Delete the file in case it is leftover from a previous test
+        kratos_utils.DeleteFileIfExisting("node_output_failed_restart.dat")
+
+        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_failed_restart_ref.dat")
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [0.5, 0.25, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "node_output_failed_restart",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "node"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "node_output_failed_restart.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        # "fake" a restart
+        model_part.ProcessInfo[IS_RESTARTED] = True
+        model_part.ProcessInfo[TIME] = 2.1
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
 
-            
+def SetNodalValuesForPointOutputProcesses(model_part):
+    time = model_part.ProcessInfo[TIME]
+    vec = Vector(3)
+    for node in model_part.Nodes:
+        vec[0] = round(math.sqrt(node.X**2+node.Y**2)*time ,6)
+        vec[1] = round(node.X**2+node.Y**2 + time ,6)
+        vec[2] = round(node.X+node.Y + time ,6)
+        node.SetSolutionStepValue(DISPLACEMENT, vec)
+        node.SetSolutionStepValue(ACCELERATION, vec*time)
+        node.SetSolutionStepValue(VISCOSITY, time**2 + 1.038)
+
+def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
+    Model = {"Main":model_part}
+
+    import process_factory
+    list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
+        settings["process_list"] )
+
+    for process in list_of_processes:
+        process.ExecuteInitialize()
+
+    for process in list_of_processes:
+        process.ExecuteBeforeSolutionLoop()
+
+    while model_part.ProcessInfo[TIME] < end_time:
+        model_part.ProcessInfo[TIME] += delta_time
+
+        SetNodalValuesForPointOutputProcesses(model_part)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for process in list_of_processes:
+            process.ExecuteBeforeOutputStep()
+
+        for process in list_of_processes:
+            process.ExecuteAfterOutputStep()
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+    for process in list_of_processes:
+        process.ExecuteFinalize()
+
 if __name__ == '__main__':
     KratosUnittest.main()

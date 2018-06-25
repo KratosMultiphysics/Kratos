@@ -215,6 +215,6 @@ class AdjointFluidSolver(PythonSolver):
     def _ComputeDeltaTime(self):
         if self.settings["time_stepping"]["automatic_time_step"].GetBool():
             raise Exception("Automatic time stepping is not supported by adjoint fluid solver.")
-        
+
         delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
         return delta_time

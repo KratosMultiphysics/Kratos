@@ -44,12 +44,13 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
-        super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
-
-        ## Import parallel modules if needed
-        if (self.parallel_type == "MPI"):
+        # Import parallel modules if needed
+        # has to be done before the base-class constuctor is called (in which the solver is constructed)
+        if (project_parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
+        super(StructuralMechanicsAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
     def _CreateSolver(self):

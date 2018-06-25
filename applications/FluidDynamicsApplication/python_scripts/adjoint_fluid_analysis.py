@@ -19,7 +19,7 @@ class AdjointFluidAnalysis(AnalysisStage):
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
-        
+
         if not parameters["problem_data"].Has("end_time"):
             parameters["problem_data"].AddEmptyValue("end_time")
             parameters["problem_data"]["end_time"].SetDouble( \
@@ -39,21 +39,21 @@ class AdjointFluidAnalysis(AnalysisStage):
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             from KratosMultiphysics.mpi import mpi
             import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication        
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             self.is_printing_rank = (mpi.rank == 0)
 
         super(AdjointFluidAnalysis, self).__init__(model, parameters)
-    
+
     def Initialize(self):
         super(self.__class__, self).Initialize()
 
         # dummy time step to correctly calculate DELTA_TIME
-        self._solver.main_model_part.CloneTimeStep(self.time)
+        self._GetSolver().main_model_part.CloneTimeStep(self.time)
 
     def _CreateSolver(self):
         import python_solvers_wrapper_adjoint_fluid
-        return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)            
-    
+        return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)
+
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
         This method is TEMPORARY to not break existing code
@@ -86,7 +86,7 @@ class AdjointFluidAnalysis(AnalysisStage):
             raise NameError("wrong parameter name")
 
         return list_of_processes
-    
+
     def _SetUpGiDOutput(self):
         '''Initialize a GiD output instance'''
         if self.parallel_type == "OpenMP":
@@ -98,16 +98,16 @@ class AdjointFluidAnalysis(AnalysisStage):
                                 self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                 self.project_parameters["output_configuration"])
 
-        return output            
+        return output
 
     def RunSolutionLoop(self):
         """Note that the adjoint problem is solved in reverse time
         """
         for step in range(self.number_of_steps):
-            self.time = self._solver.AdvanceInTime(self.time)
+            self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            self._solver.Predict()
-            self._solver.SolveSolutionStep()
+            self._GetSolver().Predict()
+            self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -117,7 +117,7 @@ class AdjointFluidAnalysis(AnalysisStage):
                 "boundary_conditions_process_list",
                 "auxiliar_process_list"]
 
-    def _GetSimulationName(self):            
+    def _GetSimulationName(self):
         return self.__class__.__name__
 
 if __name__ == '__main__':
