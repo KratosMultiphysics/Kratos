@@ -96,7 +96,7 @@ public:
     ///@name Operations
     ///@{
 
-     void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
 
@@ -123,10 +123,10 @@ public:
     }
 
     void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        SystemMatrixType& rA,
-        SystemVectorType& rDx,
-        SystemVectorType& rb) override
+                    ModelPart& rModelPart,
+                    SystemMatrixType& rA,
+                    SystemVectorType& rDx,
+                    SystemVectorType& rb) override
     {
         KRATOS_TRY;
 
@@ -151,10 +151,10 @@ public:
     }
 
     void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        SystemMatrixType& rA,
-        SystemVectorType& rDx,
-        SystemVectorType& rb) override
+                        ModelPart& rModelPart,
+                        SystemMatrixType& rA,
+                        SystemVectorType& rDx,
+                        SystemVectorType& rb) override
     {
         KRATOS_TRY;
 
@@ -168,10 +168,10 @@ public:
     }
 
     void Update(ModelPart& rModelPart,
-                DofsArrayType& rDofSet,
-                SystemMatrixType& rA,
-                SystemVectorType& rDx,
-                SystemVectorType& rb) override
+                        DofsArrayType& rDofSet,
+                        SystemMatrixType& rA,
+                        SystemVectorType& rDx,
+                        SystemVectorType& rb) override
     {
         KRATOS_TRY;
 
@@ -225,78 +225,23 @@ public:
     {
         KRATOS_TRY;
 
-        int k = OpenMPUtils::ThisThread();
-        auto& r_residual_adjoint = mAdjointValuesVector[k];
-        pCurrentElement->GetValuesVector(r_residual_adjoint);
-
-        if (rRHS_Contribution.size() != r_residual_adjoint.size()) {
-            rRHS_Contribution.resize(r_residual_adjoint.size(),false);
-        }
-
-        if (rLHS_Contribution.size1() != r_residual_adjoint.size()) {
-            rLHS_Contribution.resize(r_residual_adjoint.size(),r_residual_adjoint.size(),false);
-        }
-
-        auto& r_response_function = *(this->mpResponseFunction);
-
-        this->CheckAndResizeThreadStorage(r_residual_adjoint.size());
+        // Check and resize rLHS and rRHS
+        this->CheckAndResizeLocalSystem(pCurrentElement, rLHS_Contribution, rRHS_Contribution);
 
         // Contribution from variable gradients
-        auto& r_lhs = mLeftHandSide[k];
-        auto& r_response_gradient = mResponseGradient[k];
-        pCurrentElement->CalculateLeftHandSide(r_lhs,rCurrentProcessInfo);
-        r_response_function.CalculateGradient(*pCurrentElement, r_lhs, r_response_gradient, rCurrentProcessInfo);
-
-        noalias(rLHS_Contribution) = r_lhs;
-        noalias(rRHS_Contribution) = -1. * r_response_gradient;
+        this->CalculateGradientContributions(pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         // Contribution from first derivative gradients
-        const double first_deriv_coeff = mGammaNewmark / (mBetaNewmark*mTimeStep);
-        auto& r_first_lhs = mFirstDerivsLHS[k];
-        auto& r_first_response_gradient = mFirstDerivsResponseGradient[k];
-        pCurrentElement->CalculateFirstDerivativesLHS(r_first_lhs,rCurrentProcessInfo);
-        r_response_function.CalculateFirstDerivativesGradient(*pCurrentElement,r_first_lhs, r_first_response_gradient, rCurrentProcessInfo);
-
-        noalias(rLHS_Contribution) += first_deriv_coeff * r_first_lhs;
-        noalias(rRHS_Contribution) -= first_deriv_coeff * r_first_response_gradient;
+        this->CalculateFirstDerivativeContributions(pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         // Contribution from second derivative gradients
-        const double second_deriv_coeff = mInverseDt * mInverseDt / mBetaNewmark;
-        auto& r_second_lhs = mSecondDerivsLHS[k];
-        auto& r_second_response_gradient = mSecondDerivsResponseGradient[k];
-        pCurrentElement->CalculateSecondDerivativesLHS(r_second_lhs,rCurrentProcessInfo);
-        r_second_lhs *= (1.0 - mAlphaBossak);
-        r_response_function.CalculateSecondDerivativesGradient(*pCurrentElement,r_second_lhs, r_second_response_gradient, rCurrentProcessInfo);
+        this->CalculateSecondDerivativeContributions(pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
-        noalias(rLHS_Contribution) += second_deriv_coeff * r_second_lhs;
-        noalias(rRHS_Contribution) -= second_deriv_coeff * r_second_response_gradient;
-
-        const double old_adjoint_velocity_coeff = mInverseDt * (mBetaNewmark - mGammaNewmark * (mGammaNewmark + 0.5)) / (mBetaNewmark*mBetaNewmark);
-        const double old_adjoint_acceleration_coeff = -1.0 * (mInverseDt*mInverseDt) * (mGammaNewmark + 0.5) / (mBetaNewmark*mBetaNewmark);
-
-        const Geometry< Node<3> >& r_geometry = pCurrentElement->GetGeometry();
-        const unsigned int domain_size = r_geometry.WorkingSpaceDimension();
-        const unsigned int num_nodes = r_geometry.PointsNumber();
-
-        unsigned int local_index = 0;
-        for (unsigned int i_node = 0; i_node < num_nodes; ++i_node) {
-            auto& r_node = r_geometry[i_node];
-            const array_1d<double, 3>& r_aux_adjoint_vector = r_node.FastGetSolutionStepValue(mAuxiliaryVariable,1);
-            const array_1d<double, 3>& r_velocity_adjoint = r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable);
-            const array_1d<double, 3>& r_acceleration_adjoint = r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable);
-            const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-
-            for (unsigned int d = 0; d < domain_size; d++) {
-                rRHS_Contribution[local_index] += weight * second_deriv_coeff * r_aux_adjoint_vector[d];
-                rRHS_Contribution[local_index] += weight * old_adjoint_velocity_coeff * r_velocity_adjoint[d];
-                rRHS_Contribution[local_index] += weight * old_adjoint_acceleration_coeff * r_acceleration_adjoint[d];
-                ++local_index;
-            }
-            ++local_index; // skip continuity equation adjoint rows.
-        }
+        // Contributions from the previos time step
+        this->CalculatePreviousTimeStepContributions(pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         // Make the local contribution residual
-        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
+        this->CalculateResidualLocalContributions(pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -304,9 +249,9 @@ public:
     }
 
     void Calculate_LHS_Contribution(Element::Pointer pCurrentElement,
-                                    LocalSystemMatrixType& rLHS_Contribution,
-                                    Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo) override
+                                            LocalSystemMatrixType& rLHS_Contribution,
+                                            Element::EquationIdVectorType& rEquationId,
+                                            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -319,10 +264,10 @@ public:
     }
 
     void Condition_CalculateSystemContributions(Condition::Pointer pCurrentCondition,
-                                                LocalSystemMatrixType& rLHS_Contribution,
-                                                LocalSystemVectorType& rRHS_Contribution,
-                                                Condition::EquationIdVectorType& rEquationId,
-                                                ProcessInfo& rCurrentProcessInfo) override
+                                                        LocalSystemMatrixType& rLHS_Contribution,
+                                                        LocalSystemVectorType& rRHS_Contribution,
+                                                        Condition::EquationIdVectorType& rEquationId,
+                                                        ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -330,9 +275,9 @@ public:
     }
 
     void Condition_Calculate_LHS_Contribution(Condition::Pointer pCurrentCondition,
-                                              LocalSystemMatrixType& rLHS_Contribution,
-                                              Condition::EquationIdVectorType& rEquationId,
-                                              ProcessInfo& rCurrentProcessInfo) override
+                                                      LocalSystemMatrixType& rLHS_Contribution,
+                                                      Condition::EquationIdVectorType& rEquationId,
+                                                      ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -368,6 +313,120 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    void CheckAndResizeLocalSystem(Element::Pointer pCurrentElement,
+                                   LocalSystemMatrixType& rLHS_Contribution,
+                                   LocalSystemVectorType& rRHS_Contribution)
+    {
+        int k = OpenMPUtils::ThisThread();
+        auto& r_residual_adjoint = mAdjointValuesVector[k];
+        pCurrentElement->GetValuesVector(r_residual_adjoint);
+
+        if (rRHS_Contribution.size() != r_residual_adjoint.size()) {
+            rRHS_Contribution.resize(r_residual_adjoint.size(),false);
+        }
+
+        if (rLHS_Contribution.size1() != r_residual_adjoint.size()) {
+            rLHS_Contribution.resize(r_residual_adjoint.size(),r_residual_adjoint.size(),false);
+        }
+
+        this->CheckAndResizeThreadStorage(r_residual_adjoint.size());
+    }
+
+    virtual void CalculateGradientContributions(Element::Pointer pCurrentElement,
+                                                LocalSystemMatrixType& rLHS_Contribution,
+                                                LocalSystemVectorType& rRHS_Contribution,
+                                                ProcessInfo& rCurrentProcessInfo)
+    {
+        int k = OpenMPUtils::ThisThread();
+        auto& r_response_function = *(this->mpResponseFunction);
+
+        auto& r_lhs = mLeftHandSide[k];
+        auto& r_response_gradient = mResponseGradient[k];
+        pCurrentElement->CalculateLeftHandSide(r_lhs,rCurrentProcessInfo);
+        r_response_function.CalculateGradient(*pCurrentElement, r_lhs, r_response_gradient, rCurrentProcessInfo);
+
+        noalias(rLHS_Contribution) = r_lhs;
+        noalias(rRHS_Contribution) = -1. * r_response_gradient;
+    }
+
+    virtual void CalculateFirstDerivativeContributions(Element::Pointer pCurrentElement,
+                                                       LocalSystemMatrixType& rLHS_Contribution,
+                                                       LocalSystemVectorType& rRHS_Contribution,
+                                                       ProcessInfo& rCurrentProcessInfo)
+    {
+        int k = OpenMPUtils::ThisThread();
+        auto& r_response_function = *(this->mpResponseFunction);
+
+        const double first_deriv_coeff = mGammaNewmark / (mBetaNewmark*mTimeStep);
+        auto& r_first_lhs = mFirstDerivsLHS[k];
+        auto& r_first_response_gradient = mFirstDerivsResponseGradient[k];
+        pCurrentElement->CalculateFirstDerivativesLHS(r_first_lhs,rCurrentProcessInfo);
+        r_response_function.CalculateFirstDerivativesGradient(*pCurrentElement,r_first_lhs, r_first_response_gradient, rCurrentProcessInfo);
+
+        noalias(rLHS_Contribution) += first_deriv_coeff * r_first_lhs;
+        noalias(rRHS_Contribution) -= first_deriv_coeff * r_first_response_gradient;
+    }
+
+    virtual void CalculateSecondDerivativeContributions(Element::Pointer pCurrentElement,
+                                                        LocalSystemMatrixType& rLHS_Contribution,
+                                                        LocalSystemVectorType& rRHS_Contribution,
+                                                        ProcessInfo& rCurrentProcessInfo)
+    {
+        int k = OpenMPUtils::ThisThread();
+        auto& r_response_function = *(this->mpResponseFunction);
+
+        const double second_deriv_coeff = mInverseDt * mInverseDt / mBetaNewmark;
+        auto& r_second_lhs = mSecondDerivsLHS[k];
+        auto& r_second_response_gradient = mSecondDerivsResponseGradient[k];
+        pCurrentElement->CalculateSecondDerivativesLHS(r_second_lhs,rCurrentProcessInfo);
+        r_second_lhs *= (1.0 - mAlphaBossak);
+        r_response_function.CalculateSecondDerivativesGradient(*pCurrentElement,r_second_lhs, r_second_response_gradient, rCurrentProcessInfo);
+
+        noalias(rLHS_Contribution) += second_deriv_coeff * r_second_lhs;
+        noalias(rRHS_Contribution) -= second_deriv_coeff * r_second_response_gradient;
+    }
+
+    virtual void CalculatePreviousTimeStepContributions(Element::Pointer pCurrentElement,
+                                                        LocalSystemMatrixType& rLHS_Contribution,
+                                                        LocalSystemVectorType& rRHS_Contribution,
+                                                        ProcessInfo& rCurrentProcessInfo)
+    {
+        const double old_adjoint_velocity_coeff = mInverseDt * (mBetaNewmark - mGammaNewmark * (mGammaNewmark + 0.5)) / (mBetaNewmark*mBetaNewmark);
+        const double old_adjoint_acceleration_coeff = -1.0 * (mInverseDt*mInverseDt) * (mGammaNewmark + 0.5) / (mBetaNewmark*mBetaNewmark);
+        const double second_deriv_coeff = mInverseDt * mInverseDt / mBetaNewmark;
+
+        const Geometry< Node<3> >& r_geometry = pCurrentElement->GetGeometry();
+        const unsigned int domain_size = r_geometry.WorkingSpaceDimension();
+        const unsigned int num_nodes = r_geometry.PointsNumber();
+
+        unsigned int local_index = 0;
+        for (unsigned int i_node = 0; i_node < num_nodes; ++i_node) {
+            auto& r_node = r_geometry[i_node];
+            const array_1d<double, 3>& r_aux_adjoint_vector = r_node.FastGetSolutionStepValue(mAuxiliaryVariable,1);
+            const array_1d<double, 3>& r_velocity_adjoint = r_node.FastGetSolutionStepValue(mVelocityUpdateAdjointVariable);
+            const array_1d<double, 3>& r_acceleration_adjoint = r_node.FastGetSolutionStepValue(mAccelerationUpdateAdjointVariable);
+            const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+
+            for (unsigned int d = 0; d < domain_size; d++) {
+                rRHS_Contribution[local_index] += weight * second_deriv_coeff * r_aux_adjoint_vector[d];
+                rRHS_Contribution[local_index] += weight * old_adjoint_velocity_coeff * r_velocity_adjoint[d];
+                rRHS_Contribution[local_index] += weight * old_adjoint_acceleration_coeff * r_acceleration_adjoint[d];
+                ++local_index;
+            }
+            ++local_index; // skip continuity equation adjoint rows.
+        }
+    }
+
+    virtual void CalculateResidualLocalContributions(Element::Pointer pCurrentElement,
+                                                     LocalSystemMatrixType& rLHS_Contribution,
+                                                     LocalSystemVectorType& rRHS_Contribution,
+                                                     ProcessInfo& rCurrentProcessInfo)
+    {
+        int k = OpenMPUtils::ThisThread();
+        auto& r_residual_adjoint = mAdjointValuesVector[k];
+        pCurrentElement->GetValuesVector(r_residual_adjoint);
+        noalias(rRHS_Contribution) -= prod(rLHS_Contribution, r_residual_adjoint);
+    }
 
     virtual void InitializeNodeNeighbourCount(ModelPart::NodesContainerType& rNodes)
     {
