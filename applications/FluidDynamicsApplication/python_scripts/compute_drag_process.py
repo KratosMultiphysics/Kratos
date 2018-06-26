@@ -18,6 +18,8 @@ class ComputeDragProcess(KratosMultiphysics.Process):
     """
     Auxiliary base class to output total flow forces
     over obstacles in fluid dynamics problems.
+    A derived class needs to be implemented to be able to use
+    this functionality, as calling the base class alone is not enough.
     """
     def __init__(self, model, params ):
         """
