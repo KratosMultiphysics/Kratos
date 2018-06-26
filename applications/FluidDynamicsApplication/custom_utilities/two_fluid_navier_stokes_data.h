@@ -19,7 +19,6 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
 #include "custom_utilities/element_size_calculator.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos {
 
@@ -231,11 +230,11 @@ void CalculateAirMaterialResponse() {
     Vector& stress = this->ShearStress;
     Vector& strain = this->StrainRate;
 
+    constexpr double two_thirds = 2./3.;
+    constexpr double four_thirds = 4./3.;
+
 	if (TDim == 2) 
 	{
-        constexpr double two_thirds = 2./3.;
-        constexpr double four_thirds = 4./3.;
-
         c_mat(0,0) = mu * four_thirds;
         c_mat(0,1) = -mu * two_thirds;
         c_mat(0,2) = 0.0;
@@ -260,8 +259,6 @@ void CalculateAirMaterialResponse() {
 
 	else if (TDim == 3)
 	{
-        constexpr double two_thirds = 2./3.;
-        constexpr double four_thirds = 4./3.;
         c_mat(0,0) = mu * four_thirds;
         c_mat(0,1) = -mu * two_thirds;
         c_mat(0,2) = -mu * two_thirds;

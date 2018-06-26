@@ -27,13 +27,10 @@
 
 #include "utilities/geometry_utilities.h"
 #include "includes/cfd_variables.h"
-#include "utilities/split_tetrahedra.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "custom_elements/fluid_element.h"
 
 
-
-#include "utilities/enrichment_utilities_duplicate_dofs.h"
 
 namespace Kratos
 {

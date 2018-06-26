@@ -131,19 +131,10 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 			}
 
 			else {
-				MatrixType Vtot;
-				MatrixType Htot;
-				MatrixType Kee_tot;
-				VectorType rhs_ee_tot;
-				Vtot.resize(NumNodes*(Dim + 1), NumNodes, false);
-				Htot.resize(NumNodes, NumNodes*(Dim + 1), false);
-				Kee_tot.resize(NumNodes, NumNodes, false);
-				rhs_ee_tot.resize(NumNodes, false);
-
-                noalias(Vtot) = ZeroMatrix(NumNodes*(Dim + 1), NumNodes);
-                noalias(Htot) = ZeroMatrix(NumNodes, NumNodes*(Dim + 1));
-                noalias(Kee_tot) = ZeroMatrix(NumNodes, NumNodes);
-                noalias(rhs_ee_tot) = ZeroVector(NumNodes);
+				MatrixType Vtot = ZeroMatrix(NumNodes*(Dim + 1), NumNodes);
+				MatrixType Htot = ZeroMatrix(NumNodes, NumNodes*(Dim + 1));
+				MatrixType Kee_tot = ZeroMatrix(NumNodes, NumNodes);
+				VectorType rhs_ee_tot = ZeroVector(NumNodes);
 
                 for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); g_pos ++) {
                     data.UpdateGeometryValues(
