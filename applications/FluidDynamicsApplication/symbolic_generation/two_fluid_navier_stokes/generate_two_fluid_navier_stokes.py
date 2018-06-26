@@ -41,7 +41,7 @@ for dim in dim_vector:
         strain_size = 3
     else:
         nnodes = 4
-        strain_size = 6   
+        strain_size = 6
 
     impose_partion_of_unity = False
     N,DN = DefineShapeFunctions(nnodes, dim, impose_partion_of_unity)
@@ -53,7 +53,7 @@ for dim in dim_vector:
 
     ## Unknown fields definition
     v = DefineMatrix('v',nnodes,dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
-    vn = DefineMatrix('vn',nnodes,dim)          # Previous step velocity 
+    vn = DefineMatrix('vn',nnodes,dim)          # Previous step velocity
     vnn = DefineMatrix('vnn',nnodes,dim)        # 2 previous step velocity
     p = DefineVector('p',nnodes)                # Pressure
     penr= DefineVector('penr',nnodes)	        # Enriched Pressure
@@ -116,7 +116,7 @@ for dim in dim_vector:
     accel_gauss = (bdf0*v +bdf1*vn + bdf2*vnn).transpose()*N
     p_gauss = p.transpose()*N
     penr_gauss = penr.transpose()*Nenr
-    w_gauss = w.transpose()*N 
+    w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
     qenr_gauss = qenr.transpose()*Nenr
 
@@ -146,7 +146,7 @@ for dim in dim_vector:
         rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
     else:
         rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss - rho*q_gauss*div_v
-    
+
     # Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
@@ -210,7 +210,7 @@ for dim in dim_vector:
     vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p - grad_penr
     vel_subscale_enr = vel_residual_enr * tau1
 
-    rv_galerkin_enriched = div_w*penr_gauss    
+    rv_galerkin_enriched = div_w*penr_gauss
 
     if (divide_by_rho):
         rv_galerkin_enriched += -qenr_gauss*div_v
@@ -232,7 +232,7 @@ for dim in dim_vector:
     dofs_enr=Matrix( zeros(nnodes,1) )
     testfunc_enr = Matrix( zeros(nnodes,1) )
 
-    for i in range(0,nnodes):	
+    for i in range(0,nnodes):
         dofs_enr[i]=penr[i,0]
         testfunc_enr[i]=qenr[i,0]
 
@@ -253,7 +253,7 @@ for dim in dim_vector:
 
 
     #####################################################################
-    #####################################################################  
+    #####################################################################
 
     if(dim == 2):
         outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
