@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -63,7 +63,6 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 #include "utilities/binbased_fast_point_locator.h"
-#include "custom_utilities/quad_binbased_fast_point_locator.h"
 
 
 namespace Kratos
@@ -183,7 +182,7 @@ public:
 
     /*@{ */
 
-    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3, bool BlockBuilder = false)
+    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3, bool BlockBuilder = false, bool isMixedFormulation = false)
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {
 
@@ -207,6 +206,12 @@ public:
 
         double MP_Mass;
         double MP_Volume;
+
+        // Prepare Dimension and Block Size
+        unsigned int TBlock = TDim;
+        if (isMixedFormulation) TBlock ++;
+
+        KRATOS_INFO("MPM_Strategy") << "Dimension Size = " << TDim << " and Block Size = " << TBlock << std::endl;
 
         unsigned int k = 0;
         const unsigned int number_elements = grid_model_part.NumberOfElements();
@@ -369,7 +374,7 @@ public:
         {
             double Alpham;
             double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.0, Dynamic=1) );
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, TBlock, Alpham = 0.0, Dynamic=1) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
@@ -398,7 +403,7 @@ public:
         {
             double Alpham;
             double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.00, Dynamic=0) );
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, TBlock, Alpham = 0.00, Dynamic=0) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
@@ -468,7 +473,7 @@ public:
         mp_solving_strategy->Predict();
         //do solution iterations
         mp_solving_strategy->SolveSolutionStep();
-
+    
         //the nodal solution are mapped on MP
         mp_solving_strategy->FinalizeSolutionStep();
         mp_solving_strategy->Clear();
@@ -764,6 +769,9 @@ public:
 		}
 
         //******************SEARCH FOR TRIANGLES************************
+        
+        // Initialize shape function vector to be passed to PointLocator function
+        Vector N;
 
         if (m_GeometryElement == "Triangle")
         {
@@ -774,7 +782,6 @@ public:
 
 			#pragma omp parallel
 			{
-                array_1d<double, TDim + 1 > N;
                 typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
                 #pragma omp for
@@ -787,8 +794,8 @@ public:
 
                     Element::Pointer pelem;
 
-                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
+                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
 
                     if (is_found == true)
                     {
@@ -817,12 +824,12 @@ public:
         {
             const int max_results = 1000;
 
-            QuadBinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
 	        #pragma omp parallel
 			{
-                typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
                 //loop over the material points
                 #pragma omp for
@@ -831,12 +838,12 @@ public:
                     auto elemItr = mpm_model_part.Elements().begin() + i;
                             
                     array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-                    typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                     Element::Pointer pelem;
 
-                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);
+                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
                 
                     if (is_found == true)
                     {
@@ -846,6 +853,24 @@ public:
                         elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
                         elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
                         elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
+
+                        pelem->GetGeometry()[0].Set(ACTIVE);
+                        pelem->GetGeometry()[1].Set(ACTIVE);
+                        pelem->GetGeometry()[2].Set(ACTIVE);
+                        pelem->GetGeometry()[3].Set(ACTIVE);
+                        
+                        if (TDim ==3)
+                        {
+                            elemItr->GetGeometry()(4) = pelem->GetGeometry()(4);
+                            elemItr->GetGeometry()(5) = pelem->GetGeometry()(5);
+                            elemItr->GetGeometry()(6) = pelem->GetGeometry()(6);
+                            elemItr->GetGeometry()(7) = pelem->GetGeometry()(7);
+
+                            pelem->GetGeometry()[4].Set(ACTIVE);
+                            pelem->GetGeometry()[5].Set(ACTIVE);
+                            pelem->GetGeometry()[6].Set(ACTIVE);
+                            pelem->GetGeometry()[7].Set(ACTIVE);
+                        }
                     }
                 }
             }
