@@ -35,6 +35,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 
 
 #include "particle_mechanics_application.h"
@@ -77,6 +78,13 @@ Element::Pointer CreateUpdatedLagragian2D4N()
     return NewElement;
 
 }
+Element::Pointer CreateUpdatedLagragian3D8N()
+{
+    UpdatedLagrangianQuadrilateral::Pointer NewElement(
+        new UpdatedLagrangianQuadrilateral( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ));
+    return NewElement;
+
+}
 
 
 //Element::Pointer CreateUpdatedLagragianUP2D4N()
@@ -105,6 +113,7 @@ PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
     m.def("CreateUpdatedLagragianUP2D3N", &CreateUpdatedLagragianUP2D3N);
     m.def("CreateUpdatedLagragian3D4N", &CreateUpdatedLagragian3D4N);
     m.def("CreateUpdatedLagragian2D4N", &CreateUpdatedLagragian2D4N);
+    m.def("CreateUpdatedLagragian3D8N", &CreateUpdatedLagragian3D8N);
 //	def("CreateUpdatedLagragianUP2D4N", &CreateUpdatedLagragianUP2D4N);
 
     //def("CreateTotalLagragian2D3N", &CreateTotalLagragian2D3N);

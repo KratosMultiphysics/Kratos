@@ -202,7 +202,7 @@ class ParticleMPMSolver(object):
                 if (self.pressure_dofs):
                     raise Exception("Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented.")
                 else:
-                    raise Exception("Element in 3D for Hexahedral Element is not yet implemented. Please use Tetrahedral instead.")
+                    self.new_element = KratosParticle.CreateUpdatedLagragian3D8N()
 
         # Initialize solver
         if(self.domain_size==2):
