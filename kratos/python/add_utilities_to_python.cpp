@@ -27,7 +27,7 @@
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/pointlocation.h"
+#include "utilities/brute_force_point_locator.h"
 #include "utilities/deflation_utils.h"
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
@@ -52,6 +52,7 @@
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 namespace Kratos
 {
@@ -259,16 +260,11 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
     ;
 
-    class_<PointLocation >(m,"PointLocation")
+    class_<BruteForcePointLocator> (m, "BruteForcePointLocator")
     .def(init<ModelPart& >())
-    .def("Find", &PointLocation::Find)
-    .def("Find2D", &PointLocation::Find2D)
-    .def("Find3D", &PointLocation::Find3D)
-    .def("found", &PointLocation::found)
-    .def("ReturnDefaultPointData_scalar", &PointLocation::ReturnDefaultPointData_scalar)
-    .def("ReturnDefaultPointData_vector", &PointLocation::ReturnDefaultPointData_vector)
-    .def("ReturnCustomPointData_scalar", &PointLocation::ReturnCustomPointData_scalar)
-    .def("ReturnCustomPointData_vector", &PointLocation::ReturnCustomPointData_vector)
+    .def("FindNode", &BruteForcePointLocator::FindNode)
+    .def("FindElement", &BruteForcePointLocator::FindElement)
+    .def("FindCondition", &BruteForcePointLocator::FindCondition)
     ;
 
     class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")
@@ -429,6 +425,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,3>::TestGiDDebug)
     ;
 
     class_<ExactMortarIntegrationUtility<3,4>>(m,"ExactMortarIntegrationUtility3D4N")
@@ -436,6 +433,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+    .def("TestGiDDebug",&ExactMortarIntegrationUtility<3,4>::TestGiDDebug)
     ;
 
     // Sparse matrix multiplication utility
@@ -451,6 +449,16 @@ void AddUtilitiesToPython(pybind11::module& m)
     class_<MortarUtilities, typename MortarUtilities::Pointer>(m, "MortarUtilities")
     .def(init<>())
     .def("ComputeNodesMeanNormalModelPart",&MortarUtilities::ComputeNodesMeanNormalModelPart)
+    .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Element, IndexedObject>>)
+    .def("InvertNormal",&MortarUtilities::InvertNormal<PointerVectorSet<Condition, IndexedObject>>)
+    ;
+
+    // SubModelParts List Utility
+    class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
+    .def(init<ModelPart&>())
+    .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
+    .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
+    .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 }
 

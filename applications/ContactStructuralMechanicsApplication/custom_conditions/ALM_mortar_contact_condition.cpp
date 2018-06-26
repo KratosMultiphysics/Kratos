@@ -521,7 +521,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_RHS_VECTOR ))
             ZeroRHS(rRightHandSideVector);
     }
-    
+
     KRATOS_CATCH( "" );
 }
 

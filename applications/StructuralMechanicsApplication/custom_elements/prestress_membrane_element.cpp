@@ -52,6 +52,18 @@ Element::Pointer PrestressMembraneElement::Create(
 
 //***********************************************************************************
 //***********************************************************************************
+
+Element::Pointer PrestressMembraneElement::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+
+{
+    return Kratos::make_shared< PrestressMembraneElement >(NewId, pGeom, pProperties);
+}
+
+//***********************************************************************************
+//***********************************************************************************
 // Destructor
 PrestressMembraneElement::~PrestressMembraneElement()
 {

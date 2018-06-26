@@ -7,7 +7,7 @@ def Factory(settings, Model):
 
     return ConstantRotationProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 
 class ConstantRotationProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):

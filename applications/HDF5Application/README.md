@@ -39,3 +39,5 @@ This package is needed to use some of the python-files, e.g. `create_xdmf_file.p
     sudo apt-get install python-h5py / python3-h5py
 ```
 
+## Note
+The minimum version for the GCC compiler is **4.9**. This is because earlier version don't fully support *regular expressions*.

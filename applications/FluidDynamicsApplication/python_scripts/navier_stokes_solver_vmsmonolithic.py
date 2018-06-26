@@ -50,9 +50,7 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
-        if use_oss:
-            self.process_data[KratosMultiphysics.OSS_SWITCH] = 1
-
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
     def _SetUpQSVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -66,9 +64,7 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
-        if use_oss:
-            self.process_data[KratosMultiphysics.OSS_SWITCH] = 1.0
-
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
     def _SetUpDVMS(self,settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -80,8 +76,7 @@ class StabilizedFormulation(object):
         self.element_name = "DVMS"
 
         use_oss = settings["use_orthogonal_subscales"].GetBool()
-        if use_oss:
-            self.process_data[KratosMultiphysics.OSS_SWITCH] = 1.0
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
 
 
     def _SetUpFIC(self,settings):
@@ -99,6 +94,7 @@ class StabilizedFormulation(object):
             self.element_name = "FIC"
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
+        self.process_data[KratosMultiphysics.OSS_SWITCH] = 0
 
 def CreateSolver(model, custom_settings):
     return NavierStokesSolverMonolithic(model, custom_settings)
@@ -139,10 +135,13 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
+                "maximum_delta_time"  : 0.01,
+                "time_step"           : 0.0
             },
             "time_scheme":"bossak",
             "alpha":-0.3,
+            "velocity_relaxation":0.9,
+            "pressure_relaxation":0.9,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
@@ -191,10 +190,13 @@ class NavierStokesSolverMonolithic(FluidSolver):
             self.min_buffer_size = 2
         elif scheme_type == "bdf2":
             self.min_buffer_size = 3
+        elif scheme_type == "steady":
+            self.min_buffer_size = 1
+            self._SetUpSteadySimulation()
         else:
             msg  = "Unknown time_scheme option found in project parameters:\n"
             msg += "\"" + scheme_type + "\"\n"
-            msg += "Accepted values are \"bossak\" or \"bdf2\"\n"
+            msg += "Accepted values are \"bossak\", \"bdf2\" or \"steady\".\n"
             raise Exception(msg)
 
         ## Construct the linear solver
@@ -232,7 +234,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
 
     def PrepareModelPart(self):
-        self._set_physical_properties()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._set_physical_properties()
         super(NavierStokesSolverMonolithic, self).PrepareModelPart()
 
     def Initialize(self):
@@ -266,6 +269,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
             elif self.settings["time_scheme"].GetString() == "bdf2":
                 self.time_scheme = KratosCFD.GearScheme()
+            elif self.settings["time_scheme"].GetString() == "steady":
+                self.time_scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(
+                                        self.settings["velocity_relaxation"].GetDouble(),
+                                        self.settings["pressure_relaxation"].GetDouble(),
+                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
         else:
             raise Exception("Turbulence models are not added yet.")
 
@@ -311,3 +319,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+
+    def _SetUpSteadySimulation(self):
+        '''Overwrite time stepping parameters so that they do not interfere with steady state simulations.'''
+        self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
+        if self.settings["stabilization"].Has("dynamic_tau"):
+            self.settings["stabilization"]["dynamic_tau"].SetDouble(0.0)

@@ -50,6 +50,14 @@ Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType cons
 /***********************************************************************************/
 /***********************************************************************************/
 
+Element::Pointer SmallDisplacement::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+{
+    return Kratos::make_shared<SmallDisplacement>( NewId, pGeom, pProperties );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 SmallDisplacement::~SmallDisplacement()
 {
 }
