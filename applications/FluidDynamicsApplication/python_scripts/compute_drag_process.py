@@ -18,6 +18,10 @@ def Factory(settings, model):
 
 
 class ComputeDragProcess(KratosMultiphysics.Process):
+    """
+    This is the generic implementation for the output of
+    aerodynamic drag.
+    """
     def __init__(self, model, params ):
         """
         Auxiliary class to output total flow forces over obstacles
@@ -74,7 +78,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 file_handler_params["output_file_name"].SetString(output_file_name)
                 file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
 
-                file_header = GetFileHeader(self.params["model_part_name"].GetString())
+                file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
                     file_handler_params, file_header).file
 
@@ -84,13 +88,13 @@ class ComputeDragProcess(KratosMultiphysics.Process):
 
         if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
             # Compute the drag force
-            drag_force = KratosCFD.DragUtilities().CalculateBodyFittedDrag(self.model_part)
+            drag_force = self._GetCorrespondingDragForce()
 
             # Write the drag force values
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 if (self.print_drag_to_screen):
-                    KratosMultiphysics.Logger.PrintInfo("ComputeDragProcess", "DRAG RESULTS:")
-                    KratosMultiphysics.Logger.PrintInfo("ComputeDragProcess","Current time: " + str(current_time) + " x-drag: " + format(drag_force[0],self.format) + " y-drag: " + format(drag_force[1],self.format) + " z-drag: " + format(drag_force[2],self.format))
+                    result_msg = str(current_time) + " x-drag: " + format(drag_force[0],self.format) + " y-drag: " + format(drag_force[1],self.format) + " z-drag: " + format(drag_force[2],self.format)
+                    self._PrintToScreen(result_msg)
 
                 if (self.write_drag_output_file):
                     self.output_file.write(str(current_time)+" "+format(drag_force[0],self.format)+" "+format(drag_force[1],self.format)+" "+format(drag_force[2],self.format)+"\n")
@@ -99,9 +103,17 @@ class ComputeDragProcess(KratosMultiphysics.Process):
         if (self.model_part.GetCommunicator().MyPID() == 0):
             self.output_file.close()
 
-def GetFileHeader(model_part_name):
+    def _GetFileHeader(self):
+        err_msg  = 'ComputeDragProcess: _GetFileHeader called in base class\n'
+        err_msg += 'this needs to be implemented and called from derived class'
+        raise Exception(err_msg)
 
-    header  = '# Drag for model part ' + model_part_name + '\n'
-    header += '# Time Fx Fy Fz \n'
+    def _PrintToScreen(self,result_msg):
+        err_msg  = 'ComputeDragProcess: _PrinToScreen called in base class\n'
+        err_msg += 'this needs to be implemented and called from derived class'
+        raise Exception(err_msg)
 
-    return header
+    def _GetCorrespondingDragForce(self):
+        err_msg  = 'ComputeDragProcess: _GetCorrespondingDragForce called in base class\n'
+        err_msg += 'this needs to be implemented and called from derived class'
+        raise Exception(err_msg)
