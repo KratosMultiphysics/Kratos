@@ -24,6 +24,7 @@
 #include "includes/mortar_classes.h"
 
 /* Utilities */
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
 
@@ -56,7 +57,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  * @author Gabriel Valdes Alonzo 
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
 class DerivativesUtilities
 {
 public:
@@ -167,8 +168,8 @@ public:
             const array_1d<double, 3>& x2cell = DecompGeom[1].Coordinates();
             const array_1d<double, 3>& x3cell = DecompGeom[2].Coordinates();
 
-            const array_1d<double, 3>& x21cell = x2cell - x1cell;
-            const array_1d<double, 3>& x31cell = x3cell - x1cell;
+            const array_1d<double, 3> x21cell = x2cell - x1cell;
+            const array_1d<double, 3> x31cell = x3cell - x1cell;
 
             array_1d<double, 3> aux_cross_product;
             MathUtils<double>::CrossProduct(aux_cross_product, x21cell, x31cell);
@@ -266,11 +267,11 @@ public:
         rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
 
         // We compute the previous normal (TODO: Think about to save it instead)
-        const array_1d<double, 3>& previous_normal = PreviousNormalGeometry(rThisGeometry, point_local);
+        const array_1d<double, 3> previous_normal = PreviousNormalGeometry(rThisGeometry, point_local);
 
         // Now we compute the normal + DeltaNormal
         array_1d<double, 3> aux_delta_normal0 = ZeroVector(3);
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes>& aux_delta_normal_0 = GPDeltaNormal(jacobian, gradient);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> aux_delta_normal_0 = GPDeltaNormal(jacobian, gradient);
 
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -287,7 +288,7 @@ public:
         const array_1d<double, 3> diff_vector = calculated_normal_geometry - previous_normal;
 
         // Computing auxiliar matrix
-        const bounded_matrix<double, 3, 3>& renormalizer_matrix = ComputeRenormalizerMatrix(diff_vector, aux_delta_normal0);
+        const BoundedMatrix<double, 3, 3> renormalizer_matrix = ComputeRenormalizerMatrix(diff_vector, aux_delta_normal0);
         array_1d<array_1d<double, 3>, TDim * TNumNodes> normalized_delta_normal_0;
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
@@ -306,12 +307,12 @@ public:
      */
 
     static inline void CalculateDeltaNormal(
-        array_1d<bounded_matrix<double, TNumNodes, TDim>, TNumNodes * TDim>& rDeltaNormal,
+        array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes * TDim>& rDeltaNormal,
         GeometryType& rThisGeometry
         )
     {
-        bounded_matrix<double, TNumNodes, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(rThisGeometry,  NORMAL, 1);
-        bounded_matrix<double, TNumNodes, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodes, TDim);
+        BoundedMatrix<double, TNumNodes, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodes>(rThisGeometry,  NORMAL, 1);
+        BoundedMatrix<double, TNumNodes, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodes, TDim);
 
         for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
             // We compute the gradient and jacobian
@@ -323,7 +324,7 @@ public:
             rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
 
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodes>& delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormal(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
@@ -333,17 +334,17 @@ public:
             }
         }
 
-        bounded_matrix<double, TNumNodes, TDim> calculated_normal_geometry = aux_delta_normal_geometry + aux_normal_geometry;
+        BoundedMatrix<double, TNumNodes, TDim> calculated_normal_geometry = aux_delta_normal_geometry + aux_normal_geometry;
         for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry )
             row(calculated_normal_geometry, i_geometry) /= norm_2(row(calculated_normal_geometry, i_geometry));
 
         // We compute the diff matrix to compute the auxiliar matrix later
-        const bounded_matrix<double, TNumNodes, TDim> diff_matrix = calculated_normal_geometry - aux_normal_geometry;
+        const BoundedMatrix<double, TNumNodes, TDim> diff_matrix = calculated_normal_geometry - aux_normal_geometry;
 
         // We iterate over the nodes of the geometry
         for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
             // Computing auxiliar matrix
-            const bounded_matrix<double, TDim, TDim>& renormalizer_matrix = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+            const BoundedMatrix<double, TDim, TDim> renormalizer_matrix = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
 
             // We compute the gradient and jacobian
             GeometryType::CoordinatesArrayType point_local;
@@ -357,7 +358,7 @@ public:
             array_1d<double, TDim> aux_delta_normal;
             
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodes>& delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormal(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     array_1d<double, TDim> aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
@@ -402,31 +403,31 @@ public:
         )
     {
         // The Normal and delta Normal in the center of the element
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes>& all_delta_normal = DeltaNormalCenter(SlaveGeometry);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(SlaveGeometry);
 	array_1d<double, 3> zero_array(3, 0.0);
         array_1d<double, 3> delta_normal;
 
         const double aux_nodes_coeff = static_cast<double>(TNumNodes);
 
-        const Point& slave_center = SlaveGeometry.Center().Coordinates();
+        const PointType slave_center = SlaveGeometry.Center();
 
 //     #ifdef KRATOS_DEBUG
 //         for (unsigned i_triangle = 0; i_triangle < 3; ++i_triangle)
-//             KRATOS_WATCH(static_cast<unsigned int>(TheseBelongs[i_triangle]));
+//             KRATOS_WATCH(static_cast<IndexType>(TheseBelongs[i_triangle]));
 //     #endif
 
         for (IndexType i_triangle = 0; i_triangle < 3; ++i_triangle) {
             if (TheseBelongs[i_triangle] >= 2 * TNumNodes) { // It belongs to an intersection
                 // We compute the indexes
-                unsigned int belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end;
-                ConvertAuxHashIndex(static_cast<unsigned int>(TheseBelongs[i_triangle]), belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
+                IndexType belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end;
+                ConvertAuxHashIndex(static_cast<IndexType>(TheseBelongs[i_triangle]), belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
 
                 // The coordinates should be in the projected plane
                 double distance;
-                const array_1d<double, 3>& xs1 = MortarUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_start], Normal, distance).Coordinates(); // Start coordinates of the first segment
-                const array_1d<double, 3>& xe1 = MortarUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_end], Normal, distance).Coordinates(); // End coordinates of the first segment
-                const array_1d<double, 3>& xs2 = MortarUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_start], Normal, distance).Coordinates(); // Start coordinates of the second segment
-                const array_1d<double, 3>& xe2 = MortarUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_end], Normal, distance).Coordinates(); // End coordinates of the second segment
+                const array_1d<double, 3> xs1 = GeometricalProjectionUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_start], Normal, distance).Coordinates(); // Start coordinates of the first segment
+                const array_1d<double, 3> xe1 = GeometricalProjectionUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_end], Normal, distance).Coordinates(); // End coordinates of the first segment
+                const array_1d<double, 3> xs2 = GeometricalProjectionUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_start], Normal, distance).Coordinates(); // Start coordinates of the second segment
+                const array_1d<double, 3> xe2 = GeometricalProjectionUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_end], Normal, distance).Coordinates(); // End coordinates of the second segment
 
                 // We define the array containing the indexes of the vertexes
                 array_1d<IndexType, 4> belong_indexes;
@@ -541,6 +542,9 @@ public:
         const NormalDerivativesComputation ConsiderNormalVariation = NO_DERIVATIVES_COMPUTATION
         )
     {
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
         /* Shape functions */
         const VectorType& N1 = rVariables.NSlave;
 
@@ -548,7 +552,7 @@ public:
         const MatrixType& DNDe1 = rVariables.DNDeSlave;
 
         // The Normal and delta Normal in the center of the element
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes>& all_delta_normal = DeltaNormalCenter(SlaveGeometry);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(SlaveGeometry);
 
         /* Shape function decomposition */
         VectorType N_decomp;
@@ -558,7 +562,7 @@ public:
             for ( IndexType i_node = 0; i_node < 2 * TNumNodes; ++i_node) {
                 for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     // We get the delta normal
-                    const array_1d<double, 3>& delta_normal = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : ZeroVector(3);
+                    const array_1d<double, 3> delta_normal = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : zero_array;
 
                     // We compute the residuals
                     array_1d<double, 3> aux_RHS1(3, 0.0);
@@ -570,7 +574,7 @@ public:
                     }
 
                     // Local contribution
-                    const array_1d<double, 3>& aux_delta_node = LocalDeltaVertex( SlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, SlaveGeometry, MasterGeometry );
+                    const array_1d<double, 3> aux_delta_node = LocalDeltaVertex( SlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, SlaveGeometry, MasterGeometry );
                     if (i_node < TNumNodes) 
                         noalias(aux_RHS1) -= N1[i_node] * aux_delta_node;
 
@@ -615,6 +619,9 @@ public:
         const bool DualLM = false
         )
     {
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array(3, 0.0);
+
         /* Shape functions */
         const VectorType& N1 = rVariables.NSlave;
         const VectorType& N2 = rVariables.NMaster;
@@ -624,7 +631,7 @@ public:
         const MatrixType& DNDe2 = rVariables.DNDeMaster;
 
         // The Normal and delta Normal in the center of the element
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes>& all_delta_normal = DeltaNormalCenter(SlaveGeometry);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(SlaveGeometry);
 
         /* Shape function decomposition */
         VectorType N_decomp;
@@ -638,8 +645,8 @@ public:
 
             for (IndexType i_mortar_node = 0; i_mortar_node < TNumNodes; ++i_mortar_node) {
                 // Projecting points in opposite geometry, defining mortar nodes
-                MortarUtilities::FastProjectDirection( SlaveGeometry,  MasterGeometry[i_mortar_node], projected_in_slave[i_mortar_node],  SlaveNormal, MasterNormal );
-                MortarUtilities::FastProjectDirection( MasterGeometry, SlaveGeometry[i_mortar_node],  projected_in_master[i_mortar_node], MasterNormal, SlaveNormal );
+                GeometricalProjectionUtilities::FastProjectDirection( SlaveGeometry,  MasterGeometry[i_mortar_node], projected_in_slave[i_mortar_node],  SlaveNormal, MasterNormal );
+                GeometricalProjectionUtilities::FastProjectDirection( MasterGeometry, SlaveGeometry[i_mortar_node],  projected_in_master[i_mortar_node], MasterNormal, SlaveNormal );
             }
 
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -691,10 +698,10 @@ public:
             for ( IndexType i_node = 0; i_node < 2 * TNumNodes; ++i_node) {
                 for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     // We get the delta normal
-                    const array_1d<double, 3>& delta_normal = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : ZeroVector(3);
+                    const array_1d<double, 3> delta_normal = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : zero_array;
 
                     // We compute the residuals
-                    array_1d<double, 3> aux_RHS1 = ZeroVector(3);
+                    array_1d<double, 3> aux_RHS1(3, 0.0);
 
                     // The vertex cell contribution
                     const auto& local_delta_cell = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
@@ -704,7 +711,7 @@ public:
                     array_1d<double, 3> aux_RHS2 = aux_RHS1;
 
                     // Local contribution
-                    const array_1d<double, 3>& aux_delta_node = LocalDeltaVertex( SlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, SlaveGeometry, MasterGeometry );
+                    const array_1d<double, 3> aux_delta_node = LocalDeltaVertex( SlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, SlaveGeometry, MasterGeometry );
                     if (i_node < TNumNodes) 
                         noalias(aux_RHS1) -= N1[i_node] * aux_delta_node;
                     else 
@@ -807,7 +814,7 @@ public:
         VectorType& DeltaPosition,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
-        const unsigned int IndexNode
+        const IndexType IndexNode
         )
     {
         KRATOS_TRY;
@@ -835,8 +842,8 @@ public:
         VectorType& DeltaPosition,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
-        const unsigned int IndexNode,
-        const unsigned int iDoF
+        const IndexType IndexNode,
+        const IndexType iDoF
         )
     {
         KRATOS_TRY;
@@ -866,8 +873,8 @@ public:
         double& DeltaPosition,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
-        const unsigned int IndexNode,
-        const unsigned int iDoF
+        const IndexType IndexNode,
+        const IndexType iDoF
         )
     {
         KRATOS_TRY;
@@ -927,10 +934,10 @@ public:
 
             DecompositionType decomp_geom( points_array );
 
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
 
             if (bad_shape == false) {
-                const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
+                const GeometryType::IntegrationPointsArrayType integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
                 // Integrating the mortar operators
                 for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
@@ -961,7 +968,7 @@ public:
 
                     GeometryType::CoordinatesArrayType slave_gp_global;
                     SlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                    MortarUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, SlaveNormal, -gp_normal ); // The opposite direction
+                    GeometricalProjectionUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, SlaveNormal, -gp_normal ); // The opposite direction
 
                     GeometryType::CoordinatesArrayType projected_gp_local;
                     MasterGeometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
@@ -1020,8 +1027,8 @@ private:
     static inline array_1d<double, 3> LocalDeltaVertex(
         const array_1d<double, 3>& Normal,
         const array_1d<double, 3>& DeltaNormal,
-        const unsigned int iDoF,
-        const unsigned int iBelong,
+        const IndexType iDoF,
+        const IndexType iBelong,
         const NormalDerivativesComputation ConsiderNormalVariation,
         const GeometryType& SlaveGeometry,
         const GeometryType& MasterGeometry,
@@ -1035,7 +1042,7 @@ private:
         const double auxiliar_coeff = 1.0/static_cast<double>(TNumNodes);
 
         //  We initialize some values
-        const array_1d<double, 3>& coords_center = SlaveGeometry.Center().Coordinates();
+        const array_1d<double, 3> coords_center = SlaveGeometry.Center().Coordinates();
         const array_1d<double, 3>& coords_node = (iBelong < TNumNodes) ? SlaveGeometry[iBelong].Coordinates() : MasterGeometry[iBelong - TNumNodes].Coordinates();
 
         // The corresponding part to the nodal coordinates
@@ -1064,14 +1071,14 @@ private:
      * @param DeltaNormal The vector containing the delta normal
      * @return The auxiliar matrix computed
      */
-    static inline bounded_matrix<double, 3, 3> ComputeRenormalizerMatrix(
+    static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
         const array_1d<double, 3>& DiffVector,
         const array_1d<double, 3>& DeltaNormal
         )
     {
         for (IndexType itry = 0; itry < 3; ++itry) {
             if (DeltaNormal[itry] > std::numeric_limits<double>::epsilon()) {
-                bounded_matrix<double, 3, 3> aux_matrix;
+                BoundedMatrix<double, 3, 3> aux_matrix;
 
                 const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
                 const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
@@ -1104,15 +1111,15 @@ private:
      * @param iGeometry The index of the node of the geometry computed
      * @return The auxiliar matrix computed
      */
-    static inline bounded_matrix<double, 3, 3> ComputeRenormalizerMatrix(
-        const bounded_matrix<double, TNumNodes, TDim>& DiffMatrix,
-        const bounded_matrix<double, TNumNodes, TDim>& DeltaNormal,
-        const unsigned int iGeometry
+    static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
+        const BoundedMatrix<double, TNumNodes, TDim>& DiffMatrix,
+        const BoundedMatrix<double, TNumNodes, TDim>& DeltaNormal,
+        const IndexType iGeometry
         )
     {
         for (IndexType itry = 0; itry < 3; ++itry) {
             if (DeltaNormal(iGeometry, itry) > std::numeric_limits<double>::epsilon()) {
-                bounded_matrix<double, 3, 3> aux_matrix;
+                BoundedMatrix<double, 3, 3> aux_matrix;
 
                 const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
                 const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
@@ -1187,14 +1194,14 @@ private:
      * @param iBelongMasterEnd The index of the second/master segment and end node
      */
     static inline void ConvertAuxHashIndex(
-        const unsigned int AuxIndex,
-        unsigned int& iBelongSlaveStart,
-        unsigned int& iBelongSlaveEnd,
-        unsigned int& iBelongMasterStart,
-        unsigned int& iBelongMasterEnd
+        const IndexType AuxIndex,
+        IndexType& iBelongSlaveStart,
+        IndexType& iBelongSlaveEnd,
+        IndexType& iBelongMasterStart,
+        IndexType& iBelongMasterEnd
         )
     {
-        unsigned int index_to_decompose = AuxIndex - 2 * TNumNodes;
+        IndexType index_to_decompose = AuxIndex - 2 * TNumNodes;
 
         iBelongMasterEnd = index_to_decompose/10000;
         index_to_decompose = std::fmod(index_to_decompose, 10000);
@@ -1223,18 +1230,18 @@ private:
         // Tolerance
         const double tolerance = std::numeric_limits<double>::epsilon();
 
-        bounded_matrix<double, 3, TNumNodes> X;
-        for(unsigned int i = 0; i < TNumNodes; ++i) {
+        BoundedMatrix<double, 3, TNumNodes> X;
+        for(IndexType i = 0; i < TNumNodes; ++i) {
             X(0, i) = ThisGeometry[i].X();
             X(1, i) = ThisGeometry[i].Y();
             X(2, i) = ThisGeometry[i].Z();
         }
 
-        const bounded_matrix<double, 3, 2> DN = prod(X, rDNDe);
+        const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
 
-        const bounded_matrix<double, 2, 2> J = prod(trans(DN),DN);
-        double det_j = MathUtils<double>::DetMat<bounded_matrix<double, 2, 2>>(J);
-        const bounded_matrix<double, 2, 2> invJ = (std::abs(det_j) < tolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+        const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
+        double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
+        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < tolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
 
     #ifdef KRATOS_DEBUG
         if (std::abs(det_j) < tolerance) 
@@ -1244,15 +1251,15 @@ private:
         const array_1d<double, 2> res = prod(trans(DN), DeltaPoint);
         noalias(rResult) = prod(invJ, res);
 
-//         bounded_matrix<double, 3, 3> L;
-//         for(unsigned int i = 0; i < 3; ++i)
+//         BoundedMatrix<double, 3, 3> L;
+//         for(IndexType i = 0; i < 3; ++i)
 //         {
-//             for(unsigned int j = 0; j < 2; ++j) L(i, j) = DN(i, j);
+//             for(IndexType j = 0; j < 2; ++j) L(i, j) = DN(i, j);
 //             L(i, 2) = ThisNormal[i];
 //         }
 //
-//         double det_L = MathUtils<double>::DetMat<bounded_matrix<double, 3, 3>>(L);
-//         const bounded_matrix<double, 3, 3> invL = (std::abs(det_L) < tolerance) ? ZeroMatrix(3,3) : MathUtils<double>::InvertMatrix<3>(L, det_L);
+//         double det_L = MathUtils<double>::DetMat<BoundedMatrix<double, 3, 3>>(L);
+//         const BoundedMatrix<double, 3, 3> invL = (std::abs(det_L) < tolerance) ? ZeroMatrix(3,3) : MathUtils<double>::InvertMatrix<3>(L, det_L);
 //         array_1d<double, 3> aux = prod(invL, DeltaPoint);
 //         rResult[0] = aux[0];
 //         rResult[1] = aux[1];
@@ -1283,15 +1290,15 @@ private:
         const GeometryType& MasterGeometry,
         const VectorType& N1,
         const MatrixType& DNDe1,
-        const unsigned int MortarNode,
-        const unsigned int iNode,
-        const unsigned int iDoF,
+        const IndexType MortarNode,
+        const IndexType iNode,
+        const IndexType iDoF,
         const NormalDerivativesComputation ConsiderNormalVariation
         )
     {
         array_1d<double, TDim> Xa, DXa;
-        bounded_matrix<double, TDim, TNumNodes> X1, DX1;
-        bounded_matrix<double, 3, TNumNodes> n1, Dn1;
+        BoundedMatrix<double, TDim, TNumNodes> X1, DX1;
+        BoundedMatrix<double, 3, TNumNodes> n1, Dn1;
 
         // Projected node coordinates
         Xa[0] = MasterGeometry[MortarNode].X();
@@ -1345,15 +1352,15 @@ private:
          const GeometryType& MasterGeometry,
          const VectorType& N2,
          const MatrixType& DNDe2,
-         const unsigned int MortarNode,
-         const unsigned int iNode,
-         const unsigned int iDoF,
+         const IndexType MortarNode,
+         const IndexType iNode,
+         const IndexType iDoF,
          const NormalDerivativesComputation ConsiderNormalVariation
          )
      {
          array_1d<double, TDim> Xa, DXa;
          array_1d<double, 3>    na, Dna;
-         bounded_matrix<double, TDim, TNumNodes> X2, DX2;
+         BoundedMatrix<double, TDim, TNumNodes> X2, DX2;
 
          // Projected node coordinates
          Xa[0] = SlaveGeometry[MortarNode].X();

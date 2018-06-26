@@ -417,11 +417,11 @@ class idrs {
         mutable boost::multi_array<coef_type,2> M;
         mutable std::vector<coef_type> f, c;
 
-        boost::shared_ptr<vector> r, v, t;
-        boost::shared_ptr<vector> x_s;
-        boost::shared_ptr<vector> r_s;
+        std::shared_ptr<vector> r, v, t;
+        std::shared_ptr<vector> x_s;
+        std::shared_ptr<vector> r_s;
 
-        std::vector< boost::shared_ptr<vector> > P, G, U;
+        std::vector< std::shared_ptr<vector> > P, G, U;
 
 
         template <class Vec>

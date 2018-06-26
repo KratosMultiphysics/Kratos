@@ -987,7 +987,7 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
     // share common data between section and materials
 
     rMaterialValues.SetOptions(rValues.GetOptions());
-    rMaterialValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    rMaterialValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 
     rMaterialValues.SetShapeFunctionsValues( rValues.GetShapeFunctionsValues() );
     rMaterialValues.SetShapeFunctionsDerivatives( rValues.GetShapeFunctionsDerivatives() );
@@ -1173,7 +1173,6 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
     rVariables.DeterminantF0 = 1.0;
 
     // calculate the material response
-    rMaterialValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     rPoint.GetConstitutiveLaw()->CalculateMaterialResponse(rMaterialValues, rStressMeasure);
 
     // compute stress resultants and stress couples

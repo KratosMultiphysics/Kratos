@@ -5,8 +5,8 @@
 #include <iostream>
 
 #include "mpi.h"
-#include "boost/python/list.hpp"
-#include "boost/python/extract.hpp"
+#include <pybind11/pybind11.h>
+
 
 namespace Kratos {
 
@@ -202,7 +202,7 @@ public:
 	 * @return A Python list containing the local values in all processes, sorted by rank, for the Root thread, an empty Python list for other processes
 	 */
 	template<class TValueType>
-	boost::python::list gather(PythonMPIComm& rComm, TValueType LocalValue,
+	pybind11::list gather(PythonMPIComm& rComm, TValueType LocalValue,
 	        int Root)
 	{
 		// Determime data type
@@ -224,13 +224,13 @@ public:
 		        rComm.GetMPIComm());
 
 		// Copy output to a Python list
-		boost::python::list Out;
+		pybind11::list Out;
 
 		if (rank == Root)
 		{
 			for (int i = 0; i < size; i++)
 			{
-				boost::python::object val(GlobalValues[i]);
+				auto val(GlobalValues[i]);
 				Out.append(val);
 			}
 			delete[] GlobalValues;
@@ -247,8 +247,8 @@ public:
 	 * @param Root The MPI rank of the process where the valued will be gathered.
 	 * @return A Python list containing the local value lists in all processes, sorted by rank, for the Root thread, an empty Python list for other processes
 	 */
-	boost::python::list gather(PythonMPIComm& rComm,
-	        boost::python::list LocalValues, int Root)
+	pybind11::list gather(PythonMPIComm& rComm,
+	        pybind11::list LocalValues, int Root)
 	{
 		int RecvBlockSize = 1;
 	        int Size, Rank, SendSize;
@@ -275,14 +275,14 @@ public:
 
 		SendBuf = new double[SendSize];
 		for (int i = 0; i < SendSize; i++)
-		  SendBuf[i] = boost::python::extract<double>(LocalValues[i]);
+		  SendBuf[i] = pybind11::cast<double>(LocalValues[i]);
 
 		RecvBuf = new double[RecvBlockSize * Size];
 
 		// gather local arrays at root
 		MPI_Gatherv(SendBuf, SendSize, MPI_DOUBLE, RecvBuf, RecvSize, Displs, MPI_DOUBLE, Root, rComm.GetMPIComm());
 
-		boost::python::list Out;
+		pybind11::list Out;
 
 		// make python list of gathered arrays
 		if (Rank == Root)
@@ -290,7 +290,7 @@ public:
 			for (int i = 0; i < Size; i++)
 			{
 				int iblock = i * RecvBlockSize;
-				boost::python::list Outi;
+				pybind11::list Outi;
 				for (int j = 0; j < RecvSize[i]; j++)
 					Outi.append(RecvBuf[iblock + j]);
 				Out.append(Outi);
@@ -313,7 +313,7 @@ public:
 	 * @return A Python list containing the local values in all processes, sorted by rank.
 	 */
 	template<class TValueType>
-	boost::python::list allgather(PythonMPIComm& rComm, TValueType LocalValue)
+	pybind11::list allgather(PythonMPIComm& rComm, TValueType LocalValue)
 	{
 		// Determime data type
 		MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
@@ -329,11 +329,11 @@ public:
 		        rComm.GetMPIComm());
 
 		// Copy output to a Python list
-		boost::python::list Out;
+		pybind11::list Out;
 
 		for (int i = 0; i < size; i++)
 		{
-			boost::python::object val(GlobalValues[i]);
+			auto val(GlobalValues[i]);
 			Out.append(val);
 		}
 

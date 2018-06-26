@@ -16,16 +16,16 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -52,7 +52,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
     def _apply_elemental_data(self,element):
         # Adding LOCAL_AXIS_2
-        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,(0,1,0))
+        element.SetValue(KratosMultiphysics.LOCAL_AXIS_2,[0,1,0])
 
     def _apply_3D_moment_hinge_z(self,element):
         # Adding LOCAL_AXIS_2
@@ -94,7 +94,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
-        compute_reactions = True  #Now the rotation reactions (TORQUE) is added, so it works
+        compute_reactions = True  #Now the rotation reactions (REACTION_MOMENT) is added, so it works
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
@@ -619,16 +619,16 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -689,7 +689,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
-        compute_reactions = True  #Now the rotation reactions (TORQUE) is added, so it works
+        compute_reactions = True  #Now the rotation reactions (REACTION_MOMENT) is added, so it works
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True

@@ -267,8 +267,8 @@ class gmres {
 
         mutable boost::multi_array<coef_type, 2> H;
         mutable std::vector<coef_type> s, cs, sn;
-        boost::shared_ptr<vector> r;
-        std::vector< boost::shared_ptr<vector> > v;
+        std::shared_ptr<vector> r;
+        std::vector< std::shared_ptr<vector> > v;
 
         InnerProduct inner_product;
 

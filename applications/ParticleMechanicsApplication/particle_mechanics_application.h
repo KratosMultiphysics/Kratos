@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:  $
-//   Date:                $Date:  $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -16,27 +21,26 @@
 #include <string>
 #include <iostream>
 
-
 // External includes
 #include "solid_mechanics_application.h"
-//#include "structural_application.h"
-//#include "pfem_solid_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
+
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 
-#include "includes/condition.h"   //#include "costum_conditions/nuova_condizione.h nel caso non sia gia stata definita
+#include "includes/condition.h"  
 #include "includes/ublas_interface.h"
 
 #include "containers/flags.h"
 
-//condition
-//#include "custom_conditions/mpm_line_load_2D_condition.hpp"
-//#include "custom_conditions/mpm_line_load_3D_condition.hpp"
-
+/* CONDITIONS */
+#include "custom_conditions/mpm_base_load_condition.h"
+#include "custom_conditions/mpm_point_load_condition.h"
+#include "custom_conditions/mpm_line_load_condition_2d.h"
+#include "custom_conditions/mpm_surface_load_condition_3d.h"
 
 //element
 #include "custom_elements/updated_lagrangian.hpp"
@@ -50,116 +54,33 @@
 #include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
-
-
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
+
 //flow rules
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 //#include "custom_constitutive/flow_rules/drucker_prager_flow_rule.hpp"
+
 //yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 //#include "custom_constitutive/yield_criteria/drucker_prager_yield_criterion.hpp"
+
 namespace Kratos
 {
-///@name Type Definitions
-///@{
-typedef array_1d<double,3> Vector3;
-typedef array_1d<double,6> Vector6;
-///@}
-
-///@name Kratos Globals
-///@{
-
-// Variables definition
-
-//element
-KRATOS_DEFINE_VARIABLE(int, COUNTER )
-KRATOS_DEFINE_VARIABLE(int, MP_NUMBER )
-KRATOS_DEFINE_VARIABLE(int, MP_BOOL )
-KRATOS_DEFINE_VARIABLE(double, WEIGHT )
-KRATOS_DEFINE_VARIABLE(double, MP_MASS )
-KRATOS_DEFINE_VARIABLE(double, MP_DENSITY )
-KRATOS_DEFINE_VARIABLE(double, MP_VOLUME )
-KRATOS_DEFINE_VARIABLE(double, MP_KINETIC_ENERGY )
-KRATOS_DEFINE_VARIABLE(double, MP_STRAIN_ENERGY )
-KRATOS_DEFINE_VARIABLE(double, MP_TOTAL_ENERGY )
-KRATOS_DEFINE_VARIABLE(double, MP_PRESSURE )
-KRATOS_DEFINE_VARIABLE(double, MP_JACOBIAN )
-KRATOS_DEFINE_VARIABLE(double, MP_EQUIVALENT_PLASTIC_STRAIN )
-KRATOS_DEFINE_VARIABLE(double, MP_CONSTITUTIVE_PRESSURE )
-KRATOS_DEFINE_VARIABLE(double, NODAL_MPRESSURE )
-KRATOS_DEFINE_VARIABLE(double, AUX_PRESSURE)
-KRATOS_DEFINE_VARIABLE(double, AUX_MP_PRESSURE)
-
-
-//constitutive law
-
-KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
-
-KRATOS_DEFINE_VARIABLE( double, DILATANCY_COEFFICIENT )
-
-
-KRATOS_DEFINE_VARIABLE(double, COHESION )
-KRATOS_DEFINE_VARIABLE(double, INTERNAL_DILATANCY_ANGLE )
-
-////nodal dofs
-//KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
-KRATOS_DEFINE_VARIABLE(double, AUX_R)
-KRATOS_DEFINE_VARIABLE(double, AUX_T)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_VEL )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_VEL )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_R_ACC )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_T_ACC )
-KRATOS_DEFINE_VARIABLE(double, NODAL_LUMPED_MASS)
-
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
-//MP element variable
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( GAUSS_COORD )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_DISPLACEMENT )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_VELOCITY )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_ACCELERATION )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_VELOCITY )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_MP_ACCELERATION )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MP_VOLUME_ACCELERATION )
-KRATOS_DEFINE_VARIABLE(Vector, MP_CAUCHY_STRESS_VECTOR )
-KRATOS_DEFINE_VARIABLE(Vector, MP_ALMANSI_STRAIN_VECTOR )
-KRATOS_DEFINE_VARIABLE(Vector, PREVIOUS_MP_CAUCHY_STRESS_VECTOR )
-KRATOS_DEFINE_VARIABLE(Vector, PREVIOUS_MP_ALMANSI_STRAIN_VECTOR )
-KRATOS_DEFINE_VARIABLE(Matrix, MP_CONSTITUTIVE_MATRIX )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_AUX )
-//grid node variable
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
 
 /// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * This application features Elements, Conditions, Constitutive laws and Utilities
+ * for particle mechanics problems. 
+ * Currently developed methods are: (1) Material Point Method
+ */
 class KratosParticleMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
     ///@{
-
 
     /// Pointer definition of KratosParticleMechanicsApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosParticleMechanicsApplication);
@@ -185,8 +106,6 @@ public:
     ///@{
 
     void Register() override;
-
-
 
     ///@}
     ///@name Access
@@ -292,41 +211,38 @@ private:
     //const UpdatedLagrangianUP mUpdatedLagrangianUP3D4N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
     //const UpdatedLagrangianUPQuadrilateral mUpdatedLagrangianUP2D4N;
-
     //const TotalLagrangian mTotalLagrangian2D3N;
     //const TotalLagrangian mTotalLagrangian3D4N;
     
     //conditions
-    //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D2N;
-    //const MPMLineLoad2DCondition                mMPMLineLoadCondition2D3N;
-
-    //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D2N;
-    //const MPMLineLoad3DCondition                mMPMLineLoadCondition3D3N;
-    
+    const MPMPointLoadCondition mMPMPointLoadCondition2D1N;
+    const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
+    const MPMLineLoadCondition2D mMPMLineLoadCondition2D2N;
+    const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
 
     //constitutive laws
-
     const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
     const HyperElasticViscoplasticPlaneStrain2DLaw     mHyperElasticViscoplasticPlaneStrain2DLaw;
-
-    const HenckyMCPlastic3DLaw                mHenckyMCPlastic3DLaw;
-    const HenckyMCPlasticPlaneStrain2DLaw     mHenckyMCPlasticPlaneStrain2DLaw;
-    const HenckyMCPlasticUP3DLaw              mHenckyMCPlasticUP3DLaw;
-    const HenckyMCPlasticPlaneStrainUP2DLaw   mHenckyMCPlasticPlaneStrainUP2DLaw;
+    const HenckyMCPlastic3DLaw                         mHenckyMCPlastic3DLaw;
+    const HenckyMCPlasticPlaneStrain2DLaw              mHenckyMCPlasticPlaneStrain2DLaw;
+    const HenckyMCPlasticUP3DLaw                       mHenckyMCPlasticUP3DLaw;
+    const HenckyMCPlasticPlaneStrainUP2DLaw            mHenckyMCPlasticPlaneStrainUP2DLaw;
 
     //Flow Rules
+    const ViscoplasticFlowRule                      mViscoplasticFlowRule;
+    const BinghamViscoplasticFlowRule               mBinghamViscoplasticFlowRule;
+    const MCPlasticFlowRule                         mMCPlasticFlowRule;
     //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
     //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
     //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
-    const ViscoplasticFlowRule                    mViscoplasticFlowRule;
-    const BinghamViscoplasticFlowRule             mBinghamViscoplasticFlowRule;
-    const MCPlasticFlowRule                         mMCPlasticFlowRule;
     //const DruckerPragerFlowRule                   mDruckerPragerFlowRule;
+
     //Yield Criteria
+    const MCYieldCriterion                          mMCYieldCriterion;
     //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
     //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
     //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;
-    const MCYieldCriterion                   mMCYieldCriterion;
+
     //Hardening Laws
     //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
     //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;

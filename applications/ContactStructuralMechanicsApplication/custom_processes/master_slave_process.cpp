@@ -59,7 +59,7 @@ void MasterSlaveProcess::Execute()
             // We set the condition as master or slave (master by default)
             bool is_interface = true;
             bool is_slave = true;
-            for (unsigned int i_node = 0; i_node < this_geometry.size(); ++i_node) {
+            for (IndexType i_node = 0; i_node < this_geometry.size(); ++i_node) {
                 auto& this_node = this_geometry[i_node];
                 if (this_node.IsDefined(INTERFACE)) {
                     if (!this_node.Is(INTERFACE)) is_interface = false;

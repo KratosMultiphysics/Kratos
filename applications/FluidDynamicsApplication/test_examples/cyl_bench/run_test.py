@@ -344,8 +344,9 @@ if(ProjectParameters.VolumeOutput):
         f.write('Multiple\n')
 else:
     # generate the cuts
-    Cut_App = Cutting_Application();
+    Cut_App = Cutting_Application()
     Cut_App.FindSmallestEdge(fluid_model_part)
+    Cut_App.AddVariablesToCutModelPart(fluid_model_part,cut_model_part)
 
     cut_number = 1
 

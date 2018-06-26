@@ -1,28 +1,28 @@
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-12-15 15:41:36 $
-//   Revision:            $Revision: 1.5 $
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_KRATOS_CONVECTION_DIFFUSION_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_CONVECTION_DIFFUSION_APPLICATION_H_INCLUDED
-
 
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
+#include "convection_diffusion_application_variables.h"
 
 #include "custom_elements/eulerian_conv_diff.h"
 
@@ -46,21 +46,6 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-// Variables definition
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  MELT_TEMPERATURE_1)
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  MELT_TEMPERATURE_2)
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  BFECC_ERROR)
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double,  BFECC_ERROR_1)
-
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double, MEAN_SIZE)
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double, PROJECTED_SCALAR1)
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double, DELTA_SCALAR1)//
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double, MEAN_VEL_OVER_ELEM_SIZE)
-
-KRATOS_DEFINE_APPLICATION_VARIABLE( CONVECTION_DIFFUSION_APPLICATION, double, THETA)
-
-KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONVECTION_DIFFUSION_APPLICATION, CONVECTION_VELOCITY)
-
 ///@}
 ///@name Type Definitions
 ///@{
@@ -77,10 +62,37 @@ KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( CONVECTION_DIFFUSION_APPL
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/** 
+ * @class KratosConvectionDiffusionApplication
+ * @ingroup KratosConvectionDiffusionApplication
+ * @brief The Convection Diffusion Application contains a series of elements and conditions and the corresponding strategies and solvers within Kratos Multiphysics necesaries in order to simulate a convection-diffusion problem
+ * @details The application includes tests to check the proper functioning of the application. Features:  
+- A set of *Neumann* conditions:
+     * Flux conditions
+     * Thermal conditions
+- Elements:
+    * Laplacian element (both 2D/3D)
+    * Eulerian convection-diffusion (both 2D/3D)
+    * Convection-diffusion (both 2D/3D)
+    * Convection-diffusion with change of phase (2D)
+- Strategies:
+    * Non-linear/linear convection-diffusion strategy
+    * Eulerian convection-diffusion strategy
+    * Semi-Eulerian convection-diffusion strategy
+- Utilities and others:
+    * BFECC convection utility
+    * BFECC elemental limiter convection utility
+    * Convection particle
+    * Face-heat utilities
+    * Move particle utility
+    * Pure convection tools
+    * Pure convection (Crank-Nicolson) tools
+ * @author Riccardo Rossi
+ * @author Pablo Becker
+ * @author Jordi Cotela
+ * @see KratosApplication
 */
-class KratosConvectionDiffusionApplication : public KratosApplication
+class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) KratosConvectionDiffusionApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -110,7 +122,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -129,20 +141,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosConvectionDiffusionApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosConvectionDiffusionApplication");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -227,7 +239,7 @@ private:
     const FluxCondition<2>  mFluxCondition2D2N;
     const FluxCondition<3>  mFluxCondition3D3N;
     const FluxCondition<4>  mFluxCondition3D4N;
-   
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -279,6 +291,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KRATOS_CONVECTION_DIFFUSION_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_KRATOS_CONVECTION_DIFFUSION_APPLICATION_H_INCLUDED  defined
 
 

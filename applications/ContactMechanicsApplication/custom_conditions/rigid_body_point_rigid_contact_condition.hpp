@@ -48,7 +48,7 @@ public:
     ///@name Type Definitions
 
     ///Tensor order 1 definition
-    //typedef bounded_vector<double, 3>     PointType;
+    //typedef BoundedVector<double, 3>     PointType;
     typedef array_1d<double, 3>             PointType;
 
     ///@{
@@ -90,7 +90,7 @@ public:
      */
     Condition::Pointer Create(IndexType NewId,
 			      NodesArrayType const& ThisNodes,
-			      PropertiesType::Pointer pProperties ) const;
+			      PropertiesType::Pointer pProperties ) const override;
 
 
     /**
@@ -101,7 +101,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId,
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
 
     //************* GETTING METHODS
@@ -110,31 +110,31 @@ public:
      * Sets on rConditionDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rConditionDofList,
-		    ProcessInfo& rCurrentProcessInfo );
+		    ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-			  ProcessInfo& rCurrentProcessInfo );
+			  ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
     void GetValuesVector(Vector& rValues,
-			 int Step = 0 );
+			 int Step = 0 ) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
     void GetFirstDerivativesVector(Vector& rValues,
-				   int Step = 0 );
+				   int Step = 0 ) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues,
-				    int Step = 0 );
+				    int Step = 0 ) override;
 
 
     /**
@@ -146,10 +146,10 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void AddExplicitContribution(const VectorType& rRHSVector,
+    void AddExplicitContribution(const VectorType& rRHSVector,
 					 const Variable<VectorType>& rRHSVariable,
 					 Variable<array_1d<double,3> >& rDestinationVariable,
-					 const ProcessInfo& rCurrentProcessInfo);
+					 const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
     //************************************************************************************
@@ -160,7 +160,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -203,24 +203,24 @@ protected:
      * Initialize System Matrices
      */
 
-    virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					  VectorType& rRightHandSideVector,
-					  Flags& rCalculationFlags);
+					  Flags& rCalculationFlags) override;
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables,
+    void CalculateKinematics(ConditionVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo,
-				     const double& rPointNumber);
+				     const double& rPointNumber) override;
 
 
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
-				     double& rIntegrationWeight);
+				     double& rIntegrationWeight) override;
 
     virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
@@ -229,9 +229,9 @@ protected:
     /**
      * Calculation of the External Forces Vector for a force or pressure vector
      */
-    virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
+    void CalculateAndAddContactForces(Vector& rRightHandSideVector,
 					      ConditionVariables& rVariables,
-					      double& rIntegrationWeight );
+					      double& rIntegrationWeight ) override;
 
 
 
@@ -314,12 +314,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }

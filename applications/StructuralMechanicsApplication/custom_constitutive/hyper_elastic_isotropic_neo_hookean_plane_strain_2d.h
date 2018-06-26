@@ -174,7 +174,7 @@ private:
      * @param rStrainVector: The strain vector in Voigt notation
      */
     void CalculateCauchyGreenStrain(
-        Parameters& rValues,
+        ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         ) override;
     
@@ -184,7 +184,7 @@ private:
      * @param rStrainVector: The strain vector in Voigt notation
      */
     void CalculateAlmansiStrain( 
-        Parameters& rValues,
+        ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector 
         ) override;
 

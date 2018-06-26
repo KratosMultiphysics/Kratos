@@ -76,11 +76,11 @@ public:
     //------------------------------------------------------------------------------------
 
     ///Destructor
-    virtual ~PoromechanicsRammArcLengthStrategy() {}
+    ~PoromechanicsRammArcLengthStrategy() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Initialize()
+    void Initialize() override
     {
         KRATOS_TRY
 
@@ -99,8 +99,7 @@ public:
             }
             
             // Compute initial radius (mRadius_0)
-            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(),
-                                                            BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, BaseType::GetModelPart());
             TSystemMatrixType& mA = *mpA;
             TSystemVectorType& mDx = *mpDx;
             TSystemVectorType& mb = *mpb;
@@ -135,7 +134,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeSolutionStep()
+    void InitializeSolutionStep() override
     {
         KRATOS_TRY
 
@@ -155,7 +154,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	bool SolveSolutionStep()
+	bool SolveSolutionStep() override
 	{
         // ********** Prediction phase **********
                 
@@ -293,7 +292,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	void FinalizeSolutionStep()
+	void FinalizeSolutionStep() override
 	{
 		KRATOS_TRY
         
@@ -355,7 +354,7 @@ public:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Clear()
+    void Clear() override
     {
         KRATOS_TRY
         
@@ -384,7 +383,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    bool IsConverged()
+    bool IsConverged() override
     {
         KRATOS_TRY
         
@@ -442,7 +441,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check()
+    int Check() override
     {
         KRATOS_TRY
         

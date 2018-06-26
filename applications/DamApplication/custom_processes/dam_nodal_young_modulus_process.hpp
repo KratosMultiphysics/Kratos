@@ -79,7 +79,7 @@ class DamNodalYoungModulusProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void ExecuteInitialize() override
     {
 
         KRATOS_TRY;
@@ -117,7 +117,7 @@ class DamNodalYoungModulusProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -154,19 +154,19 @@ class DamNodalYoungModulusProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamNodalYoungModulusProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamNodalYoungModulusProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

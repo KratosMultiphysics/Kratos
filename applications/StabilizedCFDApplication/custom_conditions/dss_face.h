@@ -134,7 +134,7 @@ namespace Kratos
         DSSFace(DSSFace const& rOther);
 
         /// Destructor.
-        virtual ~DSSFace();
+        ~DSSFace() override;
 
 
         ///@}
@@ -154,11 +154,11 @@ namespace Kratos
           @param ThisNodes An array containing the nodes of the new condition
           @param pProperties Pointer to the element's properties
           */
-        virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+        Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
-        virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                           ProcessInfo& rCurrentProcessInfo);
+        void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                   ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -168,18 +168,18 @@ namespace Kratos
           @param rRightHandSideVector Right-hand side vector
           @param rCurrentProcessInfo ProcessInfo instance (unused)
           */
-        virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                          VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo);
+        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                  VectorType& rRightHandSideVector,
+                                  ProcessInfo& rCurrentProcessInfo) override;
 
 
-        virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
-                                                        VectorType& rRightHandSideVector,
-                                                        ProcessInfo& rCurrentProcessInfo);
+        void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+                                                VectorType& rRightHandSideVector,
+                                                ProcessInfo& rCurrentProcessInfo) override;
 
 
         /// Check that all data required by this condition is available and reasonable
-        virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+        int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 
         /// Provides the global indices for each one of this element's local rows.
@@ -187,8 +187,8 @@ namespace Kratos
          * @param rResult A vector containing the global Id of each row
          * @param rCurrentProcessInfo the current process info object (unused)
          */
-        virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
+        void EquationIdVector(EquationIdVectorType& rResult,
+                              ProcessInfo& rCurrentProcessInfo) override;
 
 
         /// Returns a list of the element's Dofs
@@ -196,8 +196,8 @@ namespace Kratos
          * @param ElementalDofList the list of DOFs
          * @param rCurrentProcessInfo the current process info instance
          */
-        virtual void GetDofList(DofsVectorType& ConditionDofList,
-                                ProcessInfo& CurrentProcessInfo);
+        void GetDofList(DofsVectorType& ConditionDofList,
+                        ProcessInfo& CurrentProcessInfo) override;
 
 
         /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
@@ -205,33 +205,33 @@ namespace Kratos
          * @param Values Vector of nodal unknowns
          * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
          */
-        virtual void GetValuesVector(Vector& Values,
-                                     int Step = 0);
+        void GetValuesVector(Vector& Values,
+                                     int Step = 0) override;
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                                 std::vector<array_1d<double, 3 > >& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                                         std::vector<array_1d<double, 3 > >& rValues,
+                                         const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                                 std::vector<double>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                         std::vector<double>& rValues,
+                                         const ProcessInfo& rCurrentProcessInfo) override;
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                                 std::vector<array_1d<double, 6 > >& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                                         std::vector<array_1d<double, 6 > >& rValues,
+                                         const ProcessInfo& rCurrentProcessInfo) override;
 
-        virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                 std::vector<Vector>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+        void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                         std::vector<Vector>& rValues,
+                                         const ProcessInfo& rCurrentProcessInfo) override;
 
 
-        virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                 std::vector<Matrix>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo);
+        void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                         std::vector<Matrix>& rValues,
+                                         const ProcessInfo& rCurrentProcessInfo) override;
 
 
         ///@}
@@ -249,13 +249,13 @@ namespace Kratos
         ///@{
 
         /// Turn back information as a string.
-        virtual std::string Info() const;
+        std::string Info() const override;
 
         /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const;
+        void PrintInfo(std::ostream& rOStream) const override;
 
         /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const;
+        void PrintData(std::ostream& rOStream) const override;
 
 
         ///@}
@@ -363,9 +363,9 @@ namespace Kratos
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const;
+        void save(Serializer& rSerializer) const override;
 
-        virtual void load(Serializer& rSerializer);
+        void load(Serializer& rSerializer) override;
 
         ///@}
         ///@name Private Operators

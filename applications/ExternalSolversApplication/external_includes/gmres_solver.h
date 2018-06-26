@@ -44,7 +44,7 @@
 
 #if !defined(KRATOS_GMRES_SOLVER_H_INCLUDED )
 #define  KRATOS_GMRES_SOLVER_H_INCLUDED
-#include "boost/smart_ptr.hpp"
+
 // #include "utilities/superlu_interface.h"
 #include "includes/ublas_interface.h"
 // #include "boost/numeric/bindings/superlu/superlu.hpp"

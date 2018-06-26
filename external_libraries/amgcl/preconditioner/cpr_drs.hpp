@@ -125,11 +125,11 @@ class cpr_drs {
                 const backend_params &bprm = backend_params()
                ) : prm(prm), n(backend::rows(K))
         {
-            init(boost::make_shared<build_matrix>(K), bprm);
+            init(std::make_shared<build_matrix>(K), bprm);
         }
 
         cpr_drs(
-                boost::shared_ptr<build_matrix> K,
+                std::shared_ptr<build_matrix> K,
                 const params &prm = params(),
                 const backend_params bprm = backend_params()
                ) : prm(prm), n(backend::rows(*K))
@@ -163,13 +163,13 @@ class cpr_drs {
     private:
         size_t n, np;
 
-        boost::shared_ptr<PPrecond> P;
-        boost::shared_ptr<SPrecond> S;
+        std::shared_ptr<PPrecond> P;
+        std::shared_ptr<SPrecond> S;
 
-        boost::shared_ptr<matrix> Fpp, Scatter;
-        boost::shared_ptr<vector> rp, xp, rs;
+        std::shared_ptr<matrix> Fpp, Scatter;
+        std::shared_ptr<vector> rp, xp, rs;
 
-        void init(boost::shared_ptr<build_matrix> K, const backend_params bprm)
+        void init(std::shared_ptr<build_matrix> K, const backend_params bprm)
         {
             typedef typename backend::row_iterator<build_matrix>::type row_iterator;
             const int       B = prm.block_size;
@@ -181,12 +181,12 @@ class cpr_drs {
 
             np = N / B;
 
-            boost::shared_ptr<build_matrix> fpp = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> fpp = std::make_shared<build_matrix>();
             fpp->set_size(np, n);
             fpp->set_nonzeros(n);
             fpp->ptr[0] = 0;
 
-            boost::shared_ptr<build_matrix> App = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> App = std::make_shared<build_matrix>();
             App->set_size(np, np, true);
 
 #pragma omp parallel
@@ -283,7 +283,7 @@ class cpr_drs {
             std::partial_sum(App->ptr, App->ptr + np + 1, App->ptr);
             App->set_nonzeros(App->ptr[np]);
 
-            boost::shared_ptr<build_matrix> scatter = boost::make_shared<build_matrix>();
+            std::shared_ptr<build_matrix> scatter = std::make_shared<build_matrix>();
             scatter->set_size(n, np);
             scatter->set_nonzeros(np);
             scatter->ptr[0] = 0;
@@ -361,8 +361,8 @@ class cpr_drs {
             for(size_t i = N; i < n; ++i)
                 scatter->ptr[i+1] = scatter->ptr[i];
 
-            P = boost::make_shared<PPrecond>(App, prm.pprecond, bprm);
-            S = boost::make_shared<SPrecond>(K,   prm.sprecond, bprm);
+            P = std::make_shared<PPrecond>(App, prm.pprecond, bprm);
+            S = std::make_shared<SPrecond>(K,   prm.sprecond, bprm);
 
             Fpp     = backend_type::copy_matrix(fpp, bprm);
             Scatter = backend_type::copy_matrix(scatter, bprm);

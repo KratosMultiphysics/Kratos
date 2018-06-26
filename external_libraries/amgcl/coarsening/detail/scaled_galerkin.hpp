@@ -39,14 +39,14 @@ namespace coarsening {
 namespace detail {
 
 template <class Matrix>
-boost::shared_ptr<Matrix> scaled_galerkin(
+std::shared_ptr<Matrix> scaled_galerkin(
         const Matrix &A,
         const Matrix &P,
         const Matrix &R,
         float scale
         )
 {
-        boost::shared_ptr<Matrix> a = galerkin(A, P, R);
+        std::shared_ptr<Matrix> a = galerkin(A, P, R);
 
         for(size_t i = 0; i < a->nnz; ++i)
             a->val[i] *= scale;

@@ -15,7 +15,7 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         #mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         #mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         #mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        #mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+        #mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
         
         ##create nodes
         #mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -28,9 +28,9 @@ class TestLoadingConditionsLine(KratosUnittest.TestCase):
         # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,mp)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
-        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
+        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,mp)
+        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
+        # KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
         #cond = mp.CreateNewCondition("LineLoadCondition3D2N", 1, [1,2], mp.GetProperties()[1])
         

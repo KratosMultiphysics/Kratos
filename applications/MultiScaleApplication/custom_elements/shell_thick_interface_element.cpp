@@ -22,15 +22,15 @@ namespace Kratos
     //
     // =====================================================================================
 
-    ShellThickInterfaceElement::ShellThickInterfaceElement(IndexType NewId, 
+    ShellThickInterfaceElement::ShellThickInterfaceElement(IndexType NewId,
                                                GeometryType::Pointer pGeometry)
         : Element(NewId, pGeometry)
 		, mInitialized(false)
     {
     }
-    
-    ShellThickInterfaceElement::ShellThickInterfaceElement(IndexType NewId, 
-                                               GeometryType::Pointer pGeometry, 
+
+    ShellThickInterfaceElement::ShellThickInterfaceElement(IndexType NewId,
+                                               GeometryType::Pointer pGeometry,
                                                PropertiesType::Pointer pProperties)
         : Element(NewId, pGeometry, pProperties)
 		, mInitialized(false)
@@ -46,7 +46,7 @@ namespace Kratos
         GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
         return Element::Pointer( new ShellThickInterfaceElement(NewId, newGeom, pProperties ));
     }
-    
+
     void ShellThickInterfaceElement::Initialize()
     {
 		/*
@@ -128,7 +128,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        GeometryType& geom = GetGeometry(); 
+        GeometryType& geom = GetGeometry();
 
 		SizeType ndim = geom.WorkingSpaceDimension();
 
@@ -192,7 +192,7 @@ namespace Kratos
 
 		SizeType ndim = 6;
 		SizeType ndofs = ndim * geom.size();
-        if(values.size() != ndofs)   
+        if(values.size() != ndofs)
             values.resize(ndofs,false);
 
         for (SizeType i = 0; i < geom.size(); i++)
@@ -217,7 +217,7 @@ namespace Kratos
 
 		SizeType ndim = 6;
 		SizeType ndofs = ndim * geom.size();
-        if(values.size() != ndofs)   
+        if(values.size() != ndofs)
             values.resize(ndofs,false);
 
         for (SizeType i = 0; i < geom.size(); i++)
@@ -241,7 +241,7 @@ namespace Kratos
 
 		SizeType ndim = 6;
 		SizeType ndofs = ndim * geom.size();
-        if(values.size() != ndofs)   
+        if(values.size() != ndofs)
             values.resize(ndofs,false);
 
         for (SizeType i = 0; i < geom.size(); i++)
@@ -307,7 +307,7 @@ namespace Kratos
                                                     VectorType& rRightHandSideVector,
                                                     ProcessInfo& rCurrentProcessInfo)
     {
-        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true); 
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
     }
 
     void ShellThickInterfaceElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
@@ -360,7 +360,7 @@ namespace Kratos
 		SizeType half_num_gp = num_gp / 2;
 
 		double res(0.0);
-		
+
 		// TODO: this is a workaround for the 4-node geometry (only one supported for shell interface)
 		// generalize it asap
 		res = 0.0;
@@ -378,7 +378,7 @@ namespace Kratos
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
-		
+
 		if(rVariable == INTERFACE_DISPLACEMENT_JUMP || rVariable == INTERFACE_TRACTION)
 		{
 			std::vector<Vector> res;
@@ -386,7 +386,7 @@ namespace Kratos
 				CalculateStrain(res,rCurrentProcessInfo,1);
 			else
 				CalculateStress(res,rCurrentProcessInfo,1);
-			
+
 			// TODO: this is a workaround for the 4-node geometry (only one supported for shell interface)
 			// generalize it asap
 			rValues[0] = rValues[3] = res[0];
@@ -399,7 +399,7 @@ namespace Kratos
 				CalculateStrain(res,rCurrentProcessInfo,2);
 			else
 				CalculateStress(res,rCurrentProcessInfo,2);
-			
+
 			// TODO: this is a workaround for the 4-node geometry (only one supported for shell interface)
 			// generalize it asap
 			rValues[0] = rValues[3] = res[0];
@@ -426,7 +426,7 @@ namespace Kratos
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
-		
+
 		// TODO: this is a workaround for the 4-node geometry (only one supported for shell interface)
 		// generalize it asap
 		Matrix res;
@@ -438,14 +438,14 @@ namespace Kratos
 		rValues[1] = rValues[2] = res;
     }
 
-    void ShellThickInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, 
-                                                           std::vector<array_1d<double,3> >& rValues, 
+    void ShellThickInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+                                                           std::vector<array_1d<double,3> >& rValues,
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
-		
+
 		// TODO: this is a workaround for the 4-node geometry (only one supported for shell interface)
 		// generalize it asap
 		array_1d<double,3> res;
@@ -457,14 +457,14 @@ namespace Kratos
 		rValues[1] = rValues[2] = res;
     }
 
-    void ShellThickInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, 
-                                                           std::vector<array_1d<double,6> >& rValues, 
+    void ShellThickInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable,
+                                                           std::vector<array_1d<double,6> >& rValues,
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
-		
+
 		// TODO: this is a workaround for the 4-node geometry (only one supported for shell interface)
 		// generalize it asap
 		array_1d<double,6> res;
@@ -542,8 +542,8 @@ namespace Kratos
 
 	void ShellThickInterfaceElement::CalculateJacobianAndTransformationMatrix(const SizeType pointID,
 												                                     Matrix& delta_position,
-		                                                                             Matrix& jacobian, 
-												                                     double& J, 
+		                                                                             Matrix& jacobian,
+												                                     double& J,
 												                                     Matrix& iR)
 	{
 		GeometryType& geom = GetGeometry();
@@ -558,7 +558,7 @@ namespace Kratos
 		vx[2] = jacobian(2, 0);
 		J = std::sqrt(vx[0]*vx[0] + vx[1]*vx[1] + vx[2]*vx[2]);
 		vx /= J;
-		
+
 		// check if the element/or nodes have assigned a custom normal vector.
 		// otherwise use a default one (vz)
 		array_1d<double, 3> vz;
@@ -567,13 +567,13 @@ namespace Kratos
 			vz[1] = 1.0; // align local z with global Y
 		else
 			vz[2] = 1.0; // align local z with global Z
-		
+
 		array_1d<double, 3> vy;
 		MathUtils<double>::CrossProduct(vy,  vz, vx);
 		MathUtils<double>::CrossProduct(vz,  vx, vy);
 		vy /= MathUtils<double>::Norm3(vy);
 		vz /= MathUtils<double>::Norm3(vz);
-		for(SizeType i = 0; i < 3; i++) 
+		for(SizeType i = 0; i < 3; i++)
 		{
 			iR(0, i) = vx[i];
 			iR(1, i) = vy[i];
@@ -581,7 +581,7 @@ namespace Kratos
 		}
 	}
 
-	double ShellThickInterfaceElement::CalculateIntegrationWeight(double J, 
+	double ShellThickInterfaceElement::CalculateIntegrationWeight(double J,
 		                                                                 double iw)
 	{
 		// Note: here we multiply the integration weight by 2,
@@ -591,9 +591,9 @@ namespace Kratos
 		return dV;
 	}
 
-	void ShellThickInterfaceElement::CalculateLocalDisplacementVector(const InterfaceIndexPermutation& P, 
+	void ShellThickInterfaceElement::CalculateLocalDisplacementVector(const InterfaceIndexPermutation& P,
 		                                                                     const Matrix& R,
-		                                                                     const Vector& UG, 
+		                                                                     const Vector& UG,
 												                             Vector& UL)
 	{
 		GeometryType& geom = GetGeometry();
@@ -649,11 +649,11 @@ namespace Kratos
 	{
 		GeometryType& geom = GetGeometry();
 		SizeType nnodes = geom.size();
-		
+
 		Matrix RTK;
 		if(LHSrequired)
 			RTK.resize(6,6,false);
-		
+
 		if(P.HasPermutation)
 		{
 			for(SizeType node_i = 0; node_i < nnodes; node_i++)
@@ -806,7 +806,7 @@ namespace Kratos
 		}
 	}
 
-	void ShellThickInterfaceElement::CalculateBMatrix(const SizeType pointID, 
+	void ShellThickInterfaceElement::CalculateBMatrix(const SizeType pointID,
 		                                                     Matrix& B)
 	{
 		GeometryType& geom = GetGeometry();
@@ -847,7 +847,7 @@ namespace Kratos
 	}
 
 	void ShellThickInterfaceElement::CalculateGeneralizedStrains(const SizeType pointID,
-		                                                                const Matrix& B, 
+		                                                                const Matrix& B,
 		                                                                const Vector& U,
 											                            Vector& generalizedStrains)
 	{
@@ -870,7 +870,7 @@ namespace Kratos
 		bool use_reduced_integration = false;
 		if(props.Has(INTERFACE_REDUCED_INTEGRATION))
 			use_reduced_integration = (props[INTERFACE_REDUCED_INTEGRATION] != 0);
-		
+
 		// resize the LHS matrix
 		if(LHSrequired) {
 			if(rLeftHandSideMatrix.size1() != ndofs || rLeftHandSideMatrix.size2() != ndofs)
@@ -884,7 +884,7 @@ namespace Kratos
 				rRightHandSideVector.resize(ndofs, false);
 			noalias( rRightHandSideVector ) = ZeroVector(ndofs);
 		}
-		
+
 		// global and local displacement vectors
 		Vector globalDisplacements(ndofs);
 		Vector localDisplacements(ndofs);
@@ -1017,12 +1017,12 @@ namespace Kratos
 			if(RHSrequired) {
 				noalias( Rloc ) = -prod( trans( B ), dV*generalizedStresses );
 			}
-			TransformToGlobalAndAdd(permutation, iR, Kloc, Rloc, 
+			TransformToGlobalAndAdd(permutation, iR, Kloc, Rloc,
 									rLeftHandSideMatrix, rRightHandSideVector,
 									LHSrequired, RHSrequired);
 		}
 	}
-	
+
 	void ShellThickInterfaceElement::CalculateStrain(std::vector<Vector>& strain, const ProcessInfo& rCurrentProcessInfo, int mode)
 	{
 		// init the output container. it will contain ngauss/2 output variables
@@ -1054,7 +1054,7 @@ namespace Kratos
 
 		// strain-displacement matrix
 		Matrix B(nstrain, ndofs, 0.0);
-		
+
 		// material point calculation data
 		Vector generalizedStrains(nstrain);
 
@@ -1111,7 +1111,7 @@ namespace Kratos
 				//noalias(B) = B0;
 				for(unsigned int ii=0; ii < B.size2(); ii++)
 					B(1,ii)=B0(1,ii);
-			} 
+			}
 
 			// calculate generalized strains
 			CalculateGeneralizedStrains(intp_id, B, localDisplacements, generalizedStrains);
@@ -1136,7 +1136,7 @@ namespace Kratos
 			}
 		}
 	}
-	
+
 	void ShellThickInterfaceElement::CalculateStress(std::vector<Vector>& stress, const ProcessInfo& rCurrentProcessInfo, int mode)
 	{
 		// init the output container. it will contain ngauss/2 output variables
@@ -1258,7 +1258,7 @@ namespace Kratos
 				//noalias(B) = B0;
 				for(unsigned int ii=0; ii < B.size2(); ii++)
 					B(1,ii)=B0(1,ii);
-			} 
+			}
 
 			// calculate generalized strains
 			CalculateGeneralizedStrains(intp_id, B, localDisplacements, generalizedStrains);

@@ -106,8 +106,8 @@ struct iluk {
 
         std::vector<int> Ulev; Ulev.reserve(Anz / 3);
 
-        boost::shared_ptr<backend::numa_vector<value_type> > D =
-            boost::make_shared<backend::numa_vector<value_type> >(n, false);
+        std::shared_ptr<backend::numa_vector<value_type> > D =
+            std::make_shared<backend::numa_vector<value_type> >(n, false);
 
         sparse_vector w(n, prm.k);
 
@@ -147,9 +147,9 @@ struct iluk {
             Uptr.push_back(Ucol.size());
         }
 
-        ilu = boost::make_shared<ilu_solve>(
-                boost::make_shared<build_matrix>(n, n, Lptr, Lcol, Lval),
-                boost::make_shared<build_matrix>(n, n, Uptr, Ucol, Uval),
+        ilu = std::make_shared<ilu_solve>(
+                std::make_shared<build_matrix>(n, n, Lptr, Lcol, Lval),
+                std::make_shared<build_matrix>(n, n, Uptr, Ucol, Uval),
                 D, prm.solve, bprm);
     }
 
@@ -185,7 +185,7 @@ struct iluk {
     }
 
     private:
-        boost::shared_ptr<ilu_solve> ilu;
+        std::shared_ptr<ilu_solve> ilu;
 
         struct nonzero {
             ptrdiff_t  col;

@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 
@@ -106,11 +106,30 @@ public:
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
-     * @brief Returns the currently selected integration method
-     * @todo ADD THE OTHER CREATE FUNCTION
-     * @return current integration method selected
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     /**
      * @brief Calculate a double Variable on the Element Constitutive Law
@@ -279,7 +298,7 @@ protected:
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
     
     /**
@@ -337,7 +356,6 @@ private:
         Matrix& rB,
         const Matrix& rDN_DX,
         const unsigned int StrainSize,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber
         );
     

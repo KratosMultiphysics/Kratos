@@ -94,13 +94,12 @@ CMAKE_LIBS=(
   -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
 
   # Python
-  #    Indicate your python lib and include dir in case you don't want to use the system default
-  #    - Example (for ubuntu 16.04):
-  #        -DPYTHON_LIBRARY="/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu/libpython3.5m.so"
-  #        -DPYTHON_INCLUDE_DIR="/usr/include/python3.5"
+  #    Indicate your python binary dir in case you don't want to use the system default or you
+  #    have multiple versions and you want to select one in particular
+  #    - Example (for ubuntu 14.04):
+  #        -DPYTHON_EXECUTABLE="/usr/bin/python
   # --------------------------------------------------------------------------------------------------------------
-  -DPYTHON_LIBRARY="/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu/libpython3.5m.so"
-  -DPYTHON_INCLUDE_DIR="/usr/include/python3.5"
+  -DPYTHON_EXECUTABLE="/usr/bin/python3.5"
 )
 
 ########################################################################################################################
@@ -121,7 +120,7 @@ CMAKE_APPLICATION=(
   -DCONVECTION_DIFFUSION_APPLICATION=OFF
   -DSOLID_MECHANICS_APPLICATION=OFF
   -DFLUID_DYNAMICS_APPLICATION=OFF
-  -DALE_APPLICATION=OFF
+  -DMESH_MOVING_APPLICATION=OFF
   -DFSI_APPLICATION=OFF
   -DEMPIRE_APPLICATION=OFF
   -DMIXED_ELEMENT_APPLICATION=OFF

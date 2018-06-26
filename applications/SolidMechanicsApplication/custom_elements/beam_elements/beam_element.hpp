@@ -7,7 +7,7 @@
 //
 // 
 
-#if !defined(KRATOS_BEAM_ELEMENT_H_INCLUDED )
+#if !defined(KRATOS_BEAM_ELEMENT_H_INCLUDED)
 #define  KRATOS_BEAM_ELEMENT_H_INCLUDED
 
 // System includes
@@ -38,7 +38,7 @@ namespace Kratos
 
 /// Beam Element for 2D and 3D space dimensions
 
-class BeamElement
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) BeamElement
     :public Element
 {
 public:
@@ -70,8 +70,6 @@ protected:
      */
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     /**
      * Parameters to be used to store section properties
@@ -133,7 +131,10 @@ protected:
 
         //integration point
         unsigned int PointNumber;
- 
+
+        //delta time
+        double DeltaTime;
+      
         //element length
         double  Length;
         double  detJ;           
@@ -225,6 +226,7 @@ protected:
 	  Length = 0;  
 	  detJ  = 1;
 	  Alpha = 1;
+          DeltaTime = 0;
 
 	  //vectors
 	  StrainVector.resize(voigt_size,false);

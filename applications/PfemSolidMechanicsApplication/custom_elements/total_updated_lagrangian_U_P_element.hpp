@@ -97,7 +97,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 
     /**
@@ -107,7 +107,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     //************* STARTING - ENDING  METHODS
 
@@ -161,7 +161,7 @@ protected:
      */
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                             ElementVariables& rVariables,
-                            double& rIntegrationWeight);
+                            double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
@@ -169,26 +169,26 @@ protected:
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                             ElementVariables& rVariables,
                             Vector& rVolumeForce,
-                            double& rIntegrationWeight);
+                            double& rIntegrationWeight) override;
 
     /**
      * Initialize Element General Variables
      */
     void InitializeElementVariables(ElementVariables & rVariables, 
-				    const ProcessInfo& rCurrentProcessInfo);
+				    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Transform Element General Variables
      */
     void TransformElementVariables(ElementVariables & rVariables,
-				   const double& rPointNumber);
+				   const double& rPointNumber) override;
 
     /**
      * Calculate Element Kinematics
      */
     void CalculateKinematics(ElementVariables& rVariables,
-                             const double& rPointNumber);
+                             const double& rPointNumber) override;
 
 
     /**
@@ -203,13 +203,13 @@ protected:
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
     void GetHistoricalVariables( ElementVariables& rVariables, 
-				 const double& rPointNumber );
+				 const double& rPointNumber ) override;
 
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
+    double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables) override;
 
     /**
      * Calculation of the DN_DX in the updated configuration
@@ -258,9 +258,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

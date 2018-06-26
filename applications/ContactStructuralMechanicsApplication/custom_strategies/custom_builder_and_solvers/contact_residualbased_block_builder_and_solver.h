@@ -242,8 +242,8 @@ private:
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(ISOLATED) == true) {
-                if (it_node->SolutionStepsDataHas(NORMAL_CONTACT_STRESS))
-                    it_node->Fix(NORMAL_CONTACT_STRESS);
+                if (it_node->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+                    it_node->Fix(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
                 else if (it_node->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
                     it_node->Fix(VECTOR_LAGRANGE_MULTIPLIER_X);
                     it_node->Fix(VECTOR_LAGRANGE_MULTIPLIER_Y);
@@ -268,8 +268,8 @@ private:
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(ISOLATED) == true) {
-                if (it_node->SolutionStepsDataHas(NORMAL_CONTACT_STRESS))
-                    it_node->Free(NORMAL_CONTACT_STRESS);
+                if (it_node->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+                    it_node->Free(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE);
                 else if (it_node->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER_X)) {
                     it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_X);
                     it_node->Free(VECTOR_LAGRANGE_MULTIPLIER_Y);

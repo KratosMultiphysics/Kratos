@@ -24,18 +24,14 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
-        pA = space.CreateEmptyMatrixPointer(comm)
-        space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),pA)
+        pA = space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),comm)
         n = space.Size1(pA.GetReference())
 
-        pAoriginal = space.CreateEmptyMatrixPointer(comm) #create a copy of A
-        space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),pAoriginal)
-
+        pAoriginal = space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),comm)
         pb  = space.CreateEmptyVectorPointer(comm)
         space.ResizeVector(pb,n)
         space.SetToZeroVector(pb.GetReference())
         space.SetValue(pb.GetReference(), 0, 1.0)  #pb[1] = 1.0
-        #print("--- ",space.TwoNorm(pb.GetReference()))
 
         px = space.CreateEmptyVectorPointer(comm)
         space.ResizeVector(px,n)
@@ -48,10 +44,11 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         #space.SetToZeroVector(boriginal)
         #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs
 
+
         #construct the solver
         import trilinos_linear_solver_factory
         linear_solver = trilinos_linear_solver_factory.ConstructSolver(settings)
-        
+
         #solve
         linear_solver.Solve(pA.GetReference(),px.GetReference(),pb.GetReference())
 
@@ -87,29 +84,47 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         #destroy the preconditioner - this is needed since  the solver should be destroyed before the destructor of the system matrix is called
         del linear_solver
 
-
-
-
-    @KratosUnittest.expectedFailure
     def test_amesos_superludist(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
+            self.skipTest("Amesos_Superludist is not among the available Amesos Solvers")
+
         self._RunParametrized("""
             {
                 "test_list" : [
                     {
-                        "solver_type" : "SuperLUSolver",
-                        "scaling" : false
+                        "solver_type" : "AmesosSolver",
+                        "amesos_solver_type" : "Amesos_Superludist"
                     }
                 ]
             }
             """)
 
-    def test_amesos_klu(self):
+    def test_amesos_mumps(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Mumps") ):
+            self.skipTest("Amesos_Mumps is not among the available Amesos Solvers")
+
         self._RunParametrized("""
             {
                 "test_list" : [
                     {
-                        "solver_type" : "Klu",
-                        "scaling" : false
+                        "solver_type" : "AmesosSolver",
+                        "amesos_solver_type" : "Amesos_Mumps"
+                    }
+                ]
+            }
+            """)
+
+
+    def test_amesos_klu(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
+            self.skipTest("Amesos_Klu is not among the available Amesos Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "AmesosSolver",
+                        "amesos_solver_type" : "Amesos_Klu"
                     }
                 ]
             }

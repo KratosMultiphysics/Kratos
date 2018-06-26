@@ -51,6 +51,14 @@ Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType cons
 /***********************************************************************************/
 /***********************************************************************************/
 
+Element::Pointer UpdatedLagrangian::Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+{
+    return Kratos::make_shared<UpdatedLagrangian>( NewId, pGeom, pProperties );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 UpdatedLagrangian::~UpdatedLagrangian()
 {
 }
@@ -116,8 +124,9 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     Values.SetStrainVector(this_constitutive_variables.StrainVector);
     
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-    
+    const GeometryType::IntegrationMethod integration_method =
+        GetGeometry().GetDefaultIntegrationMethod();
+
     // Displacements vector
     Vector displacements;
     GetValuesVector(displacements);
@@ -125,7 +134,7 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     // Reading integration points
     for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
         // Compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
         
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
@@ -203,8 +212,11 @@ void UpdatedLagrangian::CalculateAll(
     }
 
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
-    
+    const GeometryType::IntegrationMethod integration_method =
+        GetGeometry().GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        GetGeometry().IntegrationPoints(integration_method);
+
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     
     // Set constitutive law flags:
@@ -221,7 +233,7 @@ void UpdatedLagrangian::CalculateAll(
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
         
         // Compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
         
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
@@ -255,19 +267,17 @@ void UpdatedLagrangian::CalculateAll(
 void UpdatedLagrangian::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
     const unsigned int PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
-    const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
-    
     // Shape functions
-    rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
+    rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(rIntegrationMethod), PointNumber);
     
-    rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+    rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnReferenceConfiguration(rThisKinematicVariables.J0, rThisKinematicVariables.InvJ0, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod);
     
     // Calculating jacobian
     Matrix J, inv_J;
-    rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnCurrentConfiguration(J, inv_J, rThisKinematicVariables.DN_DX, PointNumber, this_integration_method);
+    rThisKinematicVariables.detJ0 = this->CalculateDerivativesOnCurrentConfiguration(J, inv_J, rThisKinematicVariables.DN_DX, PointNumber, rIntegrationMethod);
     
     KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
     
@@ -277,13 +287,14 @@ void UpdatedLagrangian::CalculateKinematicVariables(
     
     // Axisymmetric case
     if (strain_size == 4) {
-        DF.resize(3, 3); // We keep the old values
-        for (unsigned int index = 0; index < 1; index++) {
-            DF(index, 2) = 0.0;
-            DF(2, index) = 0.0;
+        BoundedMatrix<double, 2, 2> DF2x2 = DF;
+        DF.resize(3, 3, false);
+        for (unsigned i = 0; i < 2; ++i)
+        {
+            for (unsigned j = 0; j < 2; ++j)
+                DF(i, j) = DF2x2(i, j);
+            DF(i, 2) = DF(2, i) = 0.0;
         }
-
-        rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
         const double current_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Current);
         const double initial_radius = StructuralMechanicsMathUtilities::CalculateRadius(rThisKinematicVariables.N, GetGeometry(), Initial);
         DF(2, 2) = current_radius/initial_radius;
@@ -294,7 +305,7 @@ void UpdatedLagrangian::CalculateKinematicVariables(
     noalias(rThisKinematicVariables.F) = prod(DF, this->ReferenceConfigurationDeformationGradient(PointNumber));
     
     // Calculating operator B
-    this->CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
+    this->CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, PointNumber );
 }
 
 /***********************************************************************************/
@@ -333,7 +344,6 @@ void UpdatedLagrangian::CalculateB(
     Matrix& rB,
     const Matrix& rDN_DX,
     const unsigned int StrainSize,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const unsigned int PointNumber
     )
 {

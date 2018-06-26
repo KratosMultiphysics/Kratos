@@ -41,25 +41,25 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
     
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
     
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
     
-    void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues );
+    void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMaterialResponseCauchy (Parameters & rValues);
+    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
     
-    void FinalizeMaterialResponseCauchy (Parameters & rValues);
+    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
     
-    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
+    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -104,12 +104,12 @@ private:
     
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }

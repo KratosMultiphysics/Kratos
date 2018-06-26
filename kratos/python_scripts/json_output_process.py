@@ -10,7 +10,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return JsonOutputProcess(Model, settings["Parameters"])
 
-# All the processes python processes should be derived from "python_process"
+# All the processes python processes should be derived from "Process"
 
 class JsonOutputProcess(KratosMultiphysics.Process):
     """This class is used in order to create a json file containing
@@ -104,14 +104,14 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         data["TIME"] = []
         count = 0
         for node in self.sub_model_part.Nodes:
-
             compute = self.__check_flag(node)
 
             if (compute == True):
                 if (self.resultant_solution == False):
                     data["NODE_" + str(node.Id)] = {}
                 else:
-                    data["RESULTANT"] = {}
+                    if (count == 0):
+                        data["RESULTANT"] = {}
 
                 for i in range(self.params["output_variables"].size()):
                     out = self.params["output_variables"][i]
@@ -152,9 +152,10 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                         else:
                             if (count == 0):
                                 data["RESULTANT"][variable_name] = []
-
                     # TODO: Add pending classes
+                count += 1
 
+        count = 0
         # Gauss points values
         for elem in self.sub_model_part.Elements:
             compute = self.__check_flag(elem)
@@ -190,7 +191,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             if (self.resultant_solution == False):
                                 data["ELEMENT_" + str(elem.Id)][variable_name + "_X"] = {}
                                 data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"] = {}
-                                data["ELEMENT_" + str(node.Id)][variable_name + "_Z"] = {}
+                                data["ELEMENT_" + str(elem.Id)][variable_name + "_Z"] = {}
                                 for gp in range(gauss_point_number):
                                     data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)] = []
                                     data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"][str(gp)] = []
@@ -220,10 +221,8 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 data["RESULTANT"][variable_name] = {}
                                 for gp in range(gauss_point_number):
                                     data["RESULTANT"][variable_name][str(gp)] = []
-
                     # TODO: Add pending classes
-
-            count += 1
+                count += 1
 
         write_external_json(self.output_file_name, data)
 
@@ -310,10 +309,14 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 data["NODE_" + str(node.Id)][variable_name].append(value)
                             else:
                                 if (count == 0):
+                                    data["RESULTANT"][variable_name].append(value)
+                                else:
                                     data["RESULTANT"][variable_name][-1] += value
 
                         # TODO: Add pending classes
+                    count += 1
 
+            count = 0
             # Gauss points values
             for elem in self.sub_model_part.Elements:
                 compute = self.__check_flag(elem)

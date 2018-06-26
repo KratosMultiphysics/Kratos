@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosParticleMechanicsApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemSolidMechanicsApplication )
@@ -9,6 +12,7 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../PfemSolidMechanicsApplicatio
 ## generate variables with the sources
 set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application_variables.cpp 	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/particle_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
@@ -41,17 +45,18 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_plastic_flow_rule.cpp
 
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_2D_condition.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_3D_condition.cpp
+	###conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_base_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_line_load_condition_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_surface_load_condition_3d.cpp
 )
 
 ###############################################################
-## define library Kratos which defines the basic python interface
-add_library(KratosParticleMechanicsApplication SHARED ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosParticleMechanicsApplication KratosCore KratosSolidMechanicsApplication )
-set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
+pybind11_add_module(KratosParticleMechanicsApplication MODULE THIN_LTO ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
+target_link_libraries(KratosParticleMechanicsApplication PUBLIC KratosCore KratosSolidMechanicsCore)
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
-install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
+set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
 
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -61,6 +66,12 @@ install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosParticleMechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosParticleMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)

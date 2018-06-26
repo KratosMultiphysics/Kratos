@@ -22,7 +22,6 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "geometries/point.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
@@ -196,7 +195,7 @@ private:
  * If the pairs sets are not provided a serach will be performed using a KDTree
  * @author Vicente Mataix Ferrandiz
  */
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination = THistOrigin> 
+template< std::size_t TDim, std::size_t TNumNodes, class TVarType>
 class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess
         : public Process
 {
@@ -235,11 +234,17 @@ public:
     /// Component type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;  
     
-    /// An integer map
-    typedef std::unordered_map<int, int>                             IntMap;
+    /// Index type definition
+    typedef std::size_t                                           IndexType;
+
+    /// Size type definition
+    typedef std::size_t                                            SizeType;
+
+    /// A map for integers
+    typedef std::unordered_map<IndexType, IndexType>                 IntMap;
     
     /// BoundedMatrix
-    typedef bounded_matrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
+    typedef BoundedMatrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
 
     // Type definitions for the tree
     typedef PointMapper                                     PointMapperType;
@@ -403,6 +408,9 @@ private:
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
     
+    bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
+    bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical
+
     unsigned int mEchoLevel;                      /// The verbosity level    
     Parameters mThisParameters;                   /// The configuration parameters
     
@@ -551,7 +559,7 @@ private:
     void AssembleRHSAndLHS(
         MatrixType& A,
         std::vector<VectorType>& b,
-        const unsigned int& VariableSize,
+        const SizeType& VariableSize,
         const Matrix& ResidualMatrix,
         GeometryType& SlaveGeometry,
         IntMap& InverseConectivityDatabase,
@@ -568,7 +576,7 @@ private:
      */
     void AssembleRHS(
         std::vector<VectorType>& b,
-        const unsigned int& VariableSize,
+        const SizeType& VariableSize,
         const Matrix& ResidualMatrix,
         GeometryType& SlaveGeometry,
         IntMap& InverseConectivityDatabase
@@ -578,12 +586,118 @@ private:
      * @brief This method executes the explicit mapping (when no linear solver is avalaible)
      */
     void ExecuteExplicitMapping();
-    
+
     /**
      * @brief This method executes the mapping when a linear solver is avalaible and a system of equations can be solved
      */
     void ExecuteImplicitMapping();
     
+    /**
+     * @brief This method computes common methods between the implicit and explicit formulation
+     */
+    template<class TClassType, bool TImplicit = false>
+    void PerformMortarOperations(
+        MatrixType& A,
+        std::vector<VectorType>& b,
+        IntMap& InverseConectivityDatabase,
+        typename TClassType::Pointer pIndexesPairs,
+        ConditionsArrayType::iterator itCond,
+        ExactMortarIntegrationUtility<TDim, TNumNodes>& IntegrationUtility,
+        MortarKinematicVariables<TNumNodes>& rThisKineticVariables,
+        MortarOperator<TNumNodes>& rThisMortarOperators,
+        const IndexType Iteration
+        )
+    {
+        // The root model part
+        ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
+
+        // Getting the auxiliar variable
+        TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
+
+        // Indexes of the pair to be removed
+        std::vector<IndexType> indexes_to_remove, conditions_to_erase;
+
+        // Geometrical values
+        const array_1d<double, 3>& slave_normal = itCond->GetValue(NORMAL);
+        GeometryType& slave_geometry = itCond->GetGeometry();
+
+        for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
+            const IndexType master_id = pIndexesPairs->GetId(it_pair);
+            Condition::Pointer p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
+            const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
+            GeometryType& master_geometry = p_cond_master->GetGeometry();
+
+            const IntegrationMethod& this_integration_method = GetIntegrationMethod();
+
+            // Reading integration points
+            std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
+            const bool is_inside = IntegrationUtility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
+
+            if (is_inside == true) {
+                // Initialize general variables for the current master element
+                rThisKineticVariables.Initialize();
+
+                // Initialize the mortar operators
+                rThisMortarOperators.Initialize();
+
+                const BoundedMatrixType Ae = CalculateAe(slave_geometry, rThisKineticVariables, conditions_points_slave, this_integration_method);
+
+                AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal, rThisKineticVariables, rThisMortarOperators, this_integration_method, Ae);
+
+                /* We compute the residual */
+                const IndexType size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                Matrix residual_matrix(TNumNodes, size_to_compute);
+                ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, rThisMortarOperators);
+
+                MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+
+                // We check if DOperator is diagonal
+                if (mEchoLevel > 1) {
+                    BoundedMatrixType aux_copy_D = rThisMortarOperators.DOperator;
+                    LumpMatrix(aux_copy_D);
+                    const BoundedMatrixType aux_diff = aux_copy_D - rThisMortarOperators.DOperator;
+                    const double norm_diff = norm_frobenius(aux_diff);
+                    if (norm_diff > 1.0e-4)
+                        KRATOS_WARNING("D OPERATOR") << " THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
+                    if (mEchoLevel == 3) {
+                        KRATOS_WATCH(norm_diff);
+                        KRATOS_WATCH(rThisMortarOperators.DOperator);
+                    }
+                }
+
+                if (Iteration == 0) { // Just assembled the first iteration
+                    if (TImplicit) {
+                        /* We compute the residual and assemble */
+                        const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                        AssembleRHSAndLHS(A, b, variable_size, residual_matrix, slave_geometry, InverseConectivityDatabase, rThisMortarOperators);
+                    } else {
+                        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+                            slave_geometry[i_node].GetValue(NODAL_AREA) += rThisMortarOperators.DOperator(i_node, i_node);
+                        }
+                    }
+                } else if (TImplicit) {
+                    const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                    AssembleRHS(b, variable_size, residual_matrix, slave_geometry, InverseConectivityDatabase);
+                }
+            } else { // NOTE: The condition considered maybe is to tight
+                indexes_to_remove.push_back(master_id);
+                const IndexType other_id = pIndexesPairs->GetOtherId(it_pair);
+                if (std::is_same<TClassType, IndexMap>::value && other_id != 0) {
+                    conditions_to_erase.push_back(other_id);
+                }
+            }
+        }
+
+        // Clear indexes
+        for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
+            for (auto& id : conditions_to_erase ) {
+                Condition::Pointer p_cond = root_model_part.pGetCondition(id);
+                p_cond->Set(TO_ERASE, true);
+            }
+            pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
+        }
+    }
+
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */

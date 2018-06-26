@@ -13,9 +13,14 @@ set( KRATOS_@{APP_NAME_CAPS}_APPLICATION_SOURCES
 )
 
 # define library Kratos which defines the basic python interface
-add_library(Kratos@{APP_NAME_CAMEL}Application SHARED ${KRATOS_@{APP_NAME_CAPS}_APPLICATION_SOURCES})
+pybind11_add_module(Kratos@{APP_NAME_CAMEL}Application MODULE THIN_LTO ${KRATOS_@{APP_NAME_CAPS}_APPLICATION_SOURCES})
 target_link_libraries(Kratos@{APP_NAME_CAMEL}Application KratosCore @{APP_DEPEND_LIST})
 set_target_properties(Kratos@{APP_NAME_CAMEL}Application PROPERTIES PREFIX "")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(Kratos@{APP_NAME_CAMEL}Application)
+endif(USE_COTIRE MATCHES ON)
+
 install(TARGETS Kratos@{APP_NAME_CAMEL}Application DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)

@@ -98,7 +98,7 @@ namespace Kratos
     std::string VariableData::Info() const
     {
         std::stringstream buffer;
-        buffer << mName << " variable data";
+        buffer << mName << " variable data" <<" #" << static_cast<unsigned int>(mKey);
         return buffer.str();
     }
 

@@ -129,9 +129,6 @@ public:
     /// The definition of the size type
     typedef std::size_t SizeType;
 
-    /// The definition of zero tolerance
-    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
-
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(ExactMortarIntegrationUtility);
 
@@ -242,6 +239,7 @@ public:
 
     /**
      * @brief This utility computes the exact integration of the mortar condition and returns the area
+     * @param rMainModelPart The main model part
      * @param SlaveCond The slave condition
      * @return The total area integrated
      */
@@ -251,7 +249,13 @@ public:
         );
 
     /**
-    * @brief This method is used for debugging purposes
+     * @brief This method is used for debugging purposes. Generates a GiD mesh to check
+     * @param rMainModelPart The main model part
+     */
+    void TestGiDDebug(ModelPart& rMainModelPart);
+
+    /**
+    * @brief This method is used for debugging purposes. Generates a mesh of Mathematica
     * @param IndexSlave The index of the slave geometry
     * @param SlaveGeometry The slave geometry
     * @param IndexMaster The index of the master geometry
@@ -389,7 +393,7 @@ protected:
                              s_dest1_dest2_x * s_orig1_orig2_y;
 
         const double tolerance = 1.0e-15;
-//         const double tolerance = ZeroTolerance;
+//         const double tolerance = std::numeric_limits<double>::epsilon();
 
         if (std::abs(denom) < tolerance) // NOTE: Collinear
             return false;
@@ -462,7 +466,7 @@ protected:
         const PointType& PointDest
         )
     {
-//         const double tolerance = ZeroTolerance; // NOTE: Giving some problems, too tight
+//         const double tolerance = std::numeric_limits<double>::epsilon(); // NOTE: Giving some problems, too tight
         const double tolerance = 1.0e-15;
         return (norm_2(PointDest.Coordinates() - PointOrig.Coordinates()) < tolerance) ? true : false;
     }

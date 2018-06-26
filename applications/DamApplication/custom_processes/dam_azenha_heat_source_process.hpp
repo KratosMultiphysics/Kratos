@@ -92,7 +92,7 @@ class DamAzenhaHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
         KRATOS_TRY;
 
@@ -131,7 +131,7 @@ class DamAzenhaHeatFluxProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
 
@@ -254,19 +254,19 @@ class DamAzenhaHeatFluxProcess : public Process
     ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "DamAzenhaHeatFluxProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "DamAzenhaHeatFluxProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

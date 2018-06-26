@@ -48,11 +48,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 // #include "includes/datafile_io.h"
 // #include "includes/gid_io.h"
 #include "custom_io/pfem_gid_io.h"
@@ -63,6 +62,8 @@ namespace Kratos
 {
 namespace Python
 {
+using namespace pybind11;
+    
 typedef GidIO<PfemGidGaussPointsContainer,PfemGidMeshContainer> GidIOType;
 typedef GidIO<> GidIOBaseType;
 
@@ -121,13 +122,10 @@ void (GidIOType::*pointer_to_array1d_write_nodal_results)(
 //               ModelPart& r_model_part, double SolutionTag)
 //                 = &GidIOType::PrintOnGaussPoints;
 
-void  AddCustomIOToPython()
+void  AddCustomIOToPython(pybind11::module& m)
 {
 
-
-    using namespace boost::python;
-
-    class_<GidIOType, GidIOType::Pointer, bases<DatafileIO>, boost::noncopyable>(
+    class_<GidIOType, GidIOType::Pointer,DatafileIO>(m, 
         "PFEMGidIO",init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,

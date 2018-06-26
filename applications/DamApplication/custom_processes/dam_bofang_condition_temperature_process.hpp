@@ -104,7 +104,7 @@ class DamBofangConditionTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void Execute()
+    void Execute() override
     {
 
         KRATOS_TRY;
@@ -134,7 +134,7 @@ class DamBofangConditionTemperatureProcess : public Process
                 {
                     if (mIsFixed)
                     {
-                        it->Fix(var);        
+                        it->Fix(var);
                     }
                     double aux1 = ((mBottomTemp - (mSurfaceTemp * exp(-0.04 * mHeight))) / (1 - (exp(-0.04 * mHeight))));
                     double Temperature = (aux1 + ((mSurfaceTemp - aux1) * (exp(-0.04 * aux))) + (mAmplitude * (exp(-0.018 * aux)) * (cos(mFreq * (mMonth - (mDay / 30.0) - 2.15 + (1.30 * exp(-0.085 * aux)))))));
@@ -149,7 +149,7 @@ class DamBofangConditionTemperatureProcess : public Process
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep()
+    void ExecuteInitializeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -195,7 +195,7 @@ class DamBofangConditionTemperatureProcess : public Process
                 {
                     if (mIsFixed)
                     {
-                        it->Fix(var);        
+                        it->Fix(var);
                     }
                     double aux1 = ((mBottomTemp - (mSurfaceTemp * exp(-0.04 * mHeight))) / (1 - (exp(-0.04 * mHeight))));
                     double Temperature = (aux1 + ((mSurfaceTemp - aux1) * (exp(-0.04 * aux))) + (mAmplitude * (exp(-0.018 * aux)) * (cos(mFreq * (mMonth - (mDay / 30.0) - 2.15 + (1.30 * exp(-0.085 * aux)))))));
@@ -207,10 +207,10 @@ class DamBofangConditionTemperatureProcess : public Process
 
         KRATOS_CATCH("");
     }
-    
+
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteFinalizeSolutionStep()
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -221,7 +221,7 @@ class DamBofangConditionTemperatureProcess : public Process
 
         if (nnodes != 0)
         {
-            
+
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             #pragma omp parallel for
@@ -236,19 +236,19 @@ class DamBofangConditionTemperatureProcess : public Process
     }
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         return "BofangConditionTemperatureProcess";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "BofangConditionTemperatureProcess";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const
+    void PrintData(std::ostream &rOStream) const override
     {
     }
 

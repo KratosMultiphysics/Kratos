@@ -26,23 +26,26 @@ namespace Kratos
     namespace Testing
     {
         typedef Node<3> NodeType;
-        typedef std::unordered_map<int,int> IntIntMapType;
-        typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
+        typedef std::size_t IndexSize;
+        typedef std::unordered_map<IndexSize,IndexSize> IndexIntMapType;
+        typedef std::unordered_map<IndexSize,std::vector<std::string>> IntStringMapType;
+        typedef std::map<std::pair<IndexSize,IndexSize>,IndexSize> PairIntMapType;
+        typedef std::unordered_map<IndexSize,std::vector<ModelPart*>> IntModelPartPtrMapType;
 
         /**
         * Checks the correct work of the sub modelparts list utility
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosSubModelPartsListUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosCoreFastSuite)
         {
-            // Creating the refrence model part and the relative submodelparts
+            // Creating the reference model part and the relative submodelparts non alphabetically ordered
             ModelPart first_model_part("Main");
-            ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("SubModelPart1");
-            ModelPart::Pointer p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("SubModelPart2");
-            ModelPart::Pointer p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("SubModelPart3");
-            ModelPart::Pointer p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("SubModelPart4");
+            ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
+            ModelPart::Pointer p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart::Pointer p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
+            ModelPart::Pointer p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
 
-            // Creaing the Properties
+            // Creating the Properties
             Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
 
             // First we create the nodes
@@ -98,25 +101,25 @@ namespace Kratos
 
             SubModelPartsListUtility colors_utility(first_model_part);
 
-            IntIntMapType nodes_colors, cond_colors, elem_colors;
+            IndexIntMapType nodes_colors, cond_colors, elem_colors;
             IntStringMapType colors;
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
             ModelPart second_model_part("Main");
-            ModelPart::Pointer p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("SubModelPart1");
-            ModelPart::Pointer p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("SubModelPart2");
-            ModelPart::Pointer p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("SubModelPart3");
-            ModelPart::Pointer p_second_sub_modelpart_4 = second_model_part.CreateSubModelPart("SubModelPart4");
+            ModelPart::Pointer p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
+            ModelPart::Pointer p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart::Pointer p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("ZSubModelPart3");
+            ModelPart::Pointer p_second_sub_modelpart_4 = second_model_part.CreateSubModelPart("YSubModelPart4");
 
             // We add the nodes and elements from the first model part
             second_model_part.AddNodes(first_model_part.Nodes().begin(), first_model_part.Nodes().end());
             second_model_part.AddElements(first_model_part.Elements().begin(), first_model_part.Elements().end());
 
             for (auto & nodes_color : nodes_colors) {
-                const int id = nodes_color.first;
+                const IndexSize id = nodes_color.first;
                 NodeType::Pointer p_node = second_model_part.pGetNode(id);
-                const int key = nodes_color.second;
+                const IndexSize key = nodes_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -127,9 +130,9 @@ namespace Kratos
                 }
             }
             for (auto & elems_color : elem_colors) {
-                const int id = elems_color.first;
+                const IndexSize id = elems_color.first;
                 ElementType::Pointer p_elem = second_model_part.pGetElement(id);
-                const int key = elems_color.second;
+                const IndexSize key = elems_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -152,13 +155,13 @@ namespace Kratos
 
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfNodes(); i++) {
                     auto it_first_node = r_first_sub_model_part.Nodes().begin() + i;
-                    auto it_second_node = r_second_sub_model_part.Nodes().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_node->Id(), it_second_node->Id());
+                    auto it_found_second_node = r_second_sub_model_part.Nodes().find(it_first_node->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_node, r_second_sub_model_part.NodesEnd());
                 }
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfElements(); i++) {
                     auto it_first_elem = r_first_sub_model_part.Elements().begin() + i;
-                    auto it_second_elem = r_second_sub_model_part.Elements().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_elem->Id(), it_second_elem->Id());
+                    auto it_found_second_elem = r_second_sub_model_part.Elements().find(it_first_elem->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
                 }
             }
         }
@@ -167,18 +170,18 @@ namespace Kratos
         * Checks the correct work of the modelparts colors utility (with different sublevels of modelparts)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosSubModelPartsListUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosCoreFastSuite)
         {
-            // Creating the refrence model part and the relative submodelparts
+            // Creating the reference model part and the relative submodelparts
             ModelPart first_model_part("Main");
-            ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("SubModelPart1");
+            ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart::Pointer p_first_sub_modelpart_1a = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             ModelPart::Pointer p_first_sub_modelpart_1b = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
-            ModelPart::Pointer p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("SubModelPart2");
-            ModelPart::Pointer p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("SubModelPart3");
-            ModelPart::Pointer p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("SubModelPart4");
+            ModelPart::Pointer p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart::Pointer p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
+            ModelPart::Pointer p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
 
-            // Creaing the Properties
+            // Creating the Properties
             Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
 
             // First we create the nodes
@@ -238,27 +241,27 @@ namespace Kratos
 
             SubModelPartsListUtility colors_utility(first_model_part);
 
-            IntIntMapType nodes_colors, cond_colors, elem_colors;
+            IndexIntMapType nodes_colors, cond_colors, elem_colors;
             IntStringMapType colors;
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
             ModelPart second_model_part("Main");
-            ModelPart::Pointer p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("SubModelPart1");
+            ModelPart::Pointer p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart::Pointer p_second_sub_modelpart_1a = p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             ModelPart::Pointer p_second_sub_modelpart_1b = p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
-            ModelPart::Pointer p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("SubModelPart2");
-            ModelPart::Pointer p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("SubModelPart3");
-            ModelPart::Pointer p_second_sub_modelpart_4 = second_model_part.CreateSubModelPart("SubModelPart4");
+            ModelPart::Pointer p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart::Pointer p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("ZSubModelPart3");
+            ModelPart::Pointer p_second_sub_modelpart_4 = second_model_part.CreateSubModelPart("YSubModelPart4");
 
             // We add the nodes and elements from the first model part
             second_model_part.AddNodes(first_model_part.Nodes().begin(), first_model_part.Nodes().end());
             second_model_part.AddElements(first_model_part.Elements().begin(), first_model_part.Elements().end());
 
             for (auto & nodes_color : nodes_colors) {
-                const int id = nodes_color.first;
+                const IndexSize id = nodes_color.first;
                 NodeType::Pointer p_node = second_model_part.pGetNode(id);
-                const int key = nodes_color.second;
+                const IndexSize key = nodes_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -269,9 +272,9 @@ namespace Kratos
                 }
             }
             for (auto & elems_color : elem_colors) {
-                const int id = elems_color.first;
+                const IndexSize id = elems_color.first;
                 ElementType::Pointer p_elem = second_model_part.pGetElement(id);
-                const int key = elems_color.second;
+                const IndexSize key = elems_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -294,16 +297,16 @@ namespace Kratos
 
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfNodes(); i++) {
                     auto it_first_node = r_first_sub_model_part.Nodes().begin() + i;
-                    auto it_second_node = r_second_sub_model_part.Nodes().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_node->Id(), it_second_node->Id());
+                    auto it_found_second_node = r_second_sub_model_part.Nodes().find(it_first_node->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_node, r_second_sub_model_part.NodesEnd());
                 }
                 for (std::size_t i = 0; i < r_first_sub_model_part.NumberOfElements(); i++) {
                     auto it_first_elem = r_first_sub_model_part.Elements().begin() + i;
-                    auto it_second_elem = r_second_sub_model_part.Elements().begin() + i;
-                    KRATOS_CHECK_EQUAL(it_first_elem->Id(), it_second_elem->Id());
+                    auto it_found_second_elem = r_second_sub_model_part.Elements().find(it_first_elem->Id());
+                    KRATOS_CHECK_NOT_EQUAL(it_found_second_elem, r_second_sub_model_part.ElementsEnd());
                 }
             }
         }
+
     } // namespace Testing
 }  // namespace Kratos.
-

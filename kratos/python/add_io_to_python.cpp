@@ -16,11 +16,9 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/io.h"
 
 #include "includes/model_part_io.h"
@@ -159,16 +157,17 @@ void ReadInitialValues2(IO& IO, ModelPart& rThisModelPart){ IO.ReadInitialValues
 
         
         
-void  AddIOToPython()
+void  AddIOToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<IO, IO::Pointer, boost::noncopyable> io_python_interface = class_<IO, IO::Pointer, boost::noncopyable>("IO")
+    class_<IO, IO::Pointer> io_python_interface = class_<IO, IO::Pointer>(m,"IO")
     .def("ReadNode",&IO::ReadNode)
     .def("ReadNodes",&IO::ReadNodes)
     .def("WriteNodes",&IO::WriteNodes)
-    .def("ReadProperties",pointer_to_io_read_single_properties)
-    .def("ReadProperties",pointer_to_io_read_properties)
+    .def("ReadProperties",[](IO& self, Properties& rThisProperties){self.ReadProperties(rThisProperties);})
+    .def("ReadProperties",[](IO& self,IO::PropertiesContainerType& rThisProperties){self.ReadProperties(rThisProperties);})
+//     .def("ReadProperties",pointer_to_io_read_properties)
     .def("ReadElements",&IO::ReadElements)
     .def("WriteElements",&IO::WriteElements)
     .def("ReadConditions",&IO::ReadConditions)
@@ -186,18 +185,19 @@ void  AddIOToPython()
  
 
     
-    class_<ModelPartIO, ModelPartIO::Pointer, bases<IO>,  boost::noncopyable>(
-        "ModelPartIO",init<std::string const&>())
+    class_<ModelPartIO, ModelPartIO::Pointer, IO>(
+       m, "ModelPartIO")
+        .def(init<std::string const&>())
         .def(init<std::string const&, const Flags>())
     ;
 
     
-    class_<ReorderConsecutiveModelPartIO, ReorderConsecutiveModelPartIO::Pointer, bases<ModelPartIO>,  boost::noncopyable>(
-        "ReorderConsecutiveModelPartIO",init<std::string const&>())
+    class_<ReorderConsecutiveModelPartIO, ReorderConsecutiveModelPartIO::Pointer, ModelPartIO>(m,"ReorderConsecutiveModelPartIO")
+        .def(init<std::string const&>())
         .def(init<std::string const&, const Flags>())
     ;
 #ifdef JSON_INCLUDED
-    class_<KratosJsonIO, KratosJsonIO::Pointer, bases<IO>,  boost::noncopyable>(
+    class_<KratosJsonIO, KratosJsonIO::Pointer, IO>(m,
          "JsonIO",init<std::string const&>())
         .def(init<std::string const&, const Flags>())
     ;
@@ -208,8 +208,9 @@ void  AddIOToPython()
         "ModelPartIOWithSkipReadFlag",init<std::string const&, bool const>())
     ;*/
 
-    class_<GidIO<>, GidIO<>::Pointer, bases<IO>, boost::noncopyable>(
-        "GidIO",init<std::string const&, GiD_PostMode,
+    class_<GidIO<>, GidIO<>::Pointer, IO>(m,
+        "GidIO")
+    .def(init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())
@@ -262,25 +263,25 @@ void  AddIOToPython()
     //.def(self_ns::str(self))
     ;
 
-    enum_<GiD_PostMode>("GiDPostMode")
+    enum_<GiD_PostMode>(m,"GiDPostMode")
     .value("GiD_PostAscii", GiD_PostAscii)
     .value("GiD_PostAsciiZipped", GiD_PostAsciiZipped)
     .value("GiD_PostBinary", GiD_PostBinary)
 	.value("GiD_PostHDF5", GiD_PostHDF5)
     ;
 
-    enum_<WriteDeformedMeshFlag>("WriteDeformedMeshFlag")
+    enum_<WriteDeformedMeshFlag>(m,"WriteDeformedMeshFlag")
     .value("WriteDeformed", WriteDeformed)
     .value("WriteUndeformed", WriteUndeformed)
     ;
 
-    enum_<WriteConditionsFlag>("WriteConditionsFlag")
+    enum_<WriteConditionsFlag>(m,"WriteConditionsFlag")
     .value("WriteConditions",WriteConditions)
     .value("WriteElementsOnly",WriteElementsOnly)
     .value("WriteConditionsOnly",WriteConditionsOnly)
     ;
 
-    enum_<MultiFileFlag>("MultiFileFlag")
+    enum_<MultiFileFlag>(m,"MultiFileFlag")
     .value("SingleFile",SingleFile)
     .value("MultipleFiles",MultipleFiles)
     ;
@@ -289,3 +290,4 @@ void  AddIOToPython()
 
 } // Namespace Kratos
 
+    

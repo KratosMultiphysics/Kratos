@@ -98,7 +98,7 @@ struct ruge_stuben {
 
     /// \copydoc amgcl::coarsening::aggregation::transfer_operators
     template <class Matrix>
-    static boost::tuple< boost::shared_ptr<Matrix>, boost::shared_ptr<Matrix> >
+    static boost::tuple< std::shared_ptr<Matrix>, std::shared_ptr<Matrix> >
     transfer_operators(const Matrix &A, const params &prm)
     {
         typedef typename backend::value_type<Matrix>::type Val;
@@ -124,7 +124,7 @@ struct ruge_stuben {
         for(size_t i = 0; i < n; ++i)
             if (cf[i] == 'C') cidx[i] = static_cast<ptrdiff_t>(nc++);
 
-        boost::shared_ptr<Matrix> P = boost::make_shared<Matrix>();
+        std::shared_ptr<Matrix> P = std::make_shared<Matrix>();
         P->set_size(n, nc, true);
 
         std::vector<Val> Amin, Amax;
@@ -244,7 +244,7 @@ struct ruge_stuben {
 
     /// \copydoc amgcl::coarsening::aggregation::coarse_operator
     template <class Matrix>
-    static boost::shared_ptr<Matrix>
+    static std::shared_ptr<Matrix>
     coarse_operator(
             const Matrix &A,
             const Matrix &P,

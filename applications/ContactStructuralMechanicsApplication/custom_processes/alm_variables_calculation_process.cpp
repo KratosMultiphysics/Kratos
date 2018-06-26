@@ -27,6 +27,7 @@ void ALMVariablesCalculationProcess::Execute()
     /* We compute the penalty factor */
     
     // Auxiliar values
+    const double epsilon = std::numeric_limits<double>::epsilon();
     const double tolerance = 1.0e-12;
 
     // We initialize the mean values
@@ -45,8 +46,7 @@ void ALMVariablesCalculationProcess::Execute()
     ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
     
     #pragma omp parallel for reduction(+:total_volume_slave, total_area_slave, mean_young_modulus_slave, mean_nodal_h_slave, total_volume_master, total_area_master, mean_young_modulus_master, mean_nodal_h_master)
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) 
-    {
+    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
         auto it_cond = conditions_array.begin() + i;
         
         // We get the condition geometry
@@ -55,9 +55,12 @@ void ALMVariablesCalculationProcess::Execute()
         
         // We get the values from the condition
         Properties& this_properties = it_cond->GetProperties();
-        const double young_modulus = this_properties[YOUNG_MODULUS];
+
+        const double young_modulus = this_properties.Has(YOUNG_MODULUS) ? this_properties[YOUNG_MODULUS] : 0.0;
+        KRATOS_WARNING_IF("ALMVariablesCalculationProcess", young_modulus < epsilon) << "Not assigned Young modulus. Using zero" << std::endl;
         const double element_volume = it_cond->GetGeometry().Area();
-        
+        KRATOS_WARNING_IF("ALMVariablesCalculationProcess", element_volume < epsilon) << "Null element volume. Please check!!!" << std::endl;
+
         // We get the values from the condition
         const double condition_area = r_this_geometry.Area();
         const double nodal_condition_area = condition_area/num_nodes_geometry;
@@ -67,7 +70,7 @@ void ALMVariablesCalculationProcess::Execute()
             total_area_slave += condition_area;
             mean_young_modulus_slave += young_modulus * element_volume;
             
-            for (unsigned int i_node = 0; i_node < num_nodes_geometry; i_node++)
+            for (IndexType i_node = 0; i_node < num_nodes_geometry; i_node++)
                 mean_nodal_h_slave += r_this_geometry[i_node].FastGetSolutionStepValue(mrNodalLengthVariable) * nodal_condition_area;
         }
         
@@ -76,7 +79,7 @@ void ALMVariablesCalculationProcess::Execute()
             total_area_master += condition_area;
             mean_young_modulus_master += young_modulus * element_volume;
             
-            for (unsigned int i_node = 0; i_node < num_nodes_geometry; i_node++)
+            for (IndexType i_node = 0; i_node < num_nodes_geometry; i_node++)
                 mean_nodal_h_master += r_this_geometry[i_node].FastGetSolutionStepValue(mrNodalLengthVariable) * nodal_condition_area;
         }
     }

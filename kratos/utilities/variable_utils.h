@@ -102,6 +102,69 @@ public:
     ///@{
 
     /**
+     * @brief Copies the nodal value of a variable from an origin model 
+     * part nodes to the nodes in a destination model part. It is assumed that 
+     * both origin and destination model parts have the same number of nodes.
+     * @param rVariable reference to the variable to be set
+     * @param rOriginModelPart origin model part from where the values are retrieved
+     * @param rDestinationModelPart destination model part to where the values are copied to
+     * @param BuffStep buffer step
+     */
+    template< class TVarType >
+    void CopyModelPartNodalVar(
+        TVarType& rVariable,
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        const unsigned int BuffStep = 0){
+
+        auto n_orig_nodes = rOriginModelPart.NumberOfNodes();
+        auto n_dest_nodes = rDestinationModelPart.NumberOfNodes();
+
+        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes) << "Origin and destination model parts have different number of nodes."
+                                                        << "\n\t- Number of origin nodes: " << n_orig_nodes 
+                                                        << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
+
+        #pragma omp parallel for
+        for(int i_node = 0; i_node < static_cast<int>(n_orig_nodes); ++i_node){
+            auto it_dest_node = rDestinationModelPart.NodesBegin() + i_node;
+            const auto &it_orig_node = rOriginModelPart.NodesBegin() + i_node;
+            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep); 
+            it_dest_node->GetSolutionStepValue(rVariable, BuffStep) = r_value;
+        }
+    }
+
+    /**
+     * @brief Copies the elemental value of a variable from an origin model 
+     * part elements to the elements in a destination model part. It is assumed that 
+     * both origin and destination model parts have the same number of elements.
+     * @param rVariable reference to the variable to be set
+     * @param rOriginModelPart origin model part from where the values are retrieved
+     * @param rDestinationModelPart destination model part to where the values are copied to
+     * @param BuffStep buffer step
+     */
+    template< class TVarType >
+    void CopyModelPartElementalVar(
+        TVarType& rVariable,
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart){
+
+        auto n_orig_elems = rOriginModelPart.NumberOfElements();
+        auto n_dest_elems = rDestinationModelPart.NumberOfElements();
+
+        KRATOS_ERROR_IF_NOT(n_orig_elems == n_dest_elems) << "Origin and destination model parts have different number of elements."
+                                                          << "\n\t- Number of origin elements: " << n_orig_elems 
+                                                          << "\n\t- Number of destination elements: " << n_dest_elems << std::endl;
+
+        #pragma omp parallel for
+        for(int i_elems = 0; i_elems < static_cast<int>(n_orig_elems); ++i_elems){
+            auto it_dest_elems = rDestinationModelPart.ElementsBegin() + i_elems;
+            const auto &it_orig_elems = rOriginModelPart.ElementsBegin() + i_elems;
+            const auto &r_value = it_orig_elems->GetValue(rVariable); 
+            it_dest_elems->SetValue(rVariable,r_value);
+        }
+    }
+
+    /**
      * @brief Sets the nodal value of a scalar variable
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
@@ -268,6 +331,30 @@ public:
      * @param rNodes reference to the objective node set
      */
     void SaveScalarVar(
+        const DoubleVarType& OriginVariable,
+        DoubleVarType& SavedVariable,
+        NodesContainerType& rNodes
+        );
+
+    /**
+     * @brief Takes the value of a non-historical vector variable and sets it in other non-historical variable
+     * @param OriginVariable reference to the origin vector variable
+     * @param SavedVariable reference to the destination vector variable
+     * @param rNodes reference to the objective node set
+     */
+    void SaveVectorNonHistoricalVar(
+        const ArrayVarType& OriginVariable,
+        const ArrayVarType& SavedVariable,
+        NodesContainerType& rNodes
+        );
+
+    /**
+     * @brief Takes the value of a non-historical scalar variable and sets it in other non-historical variable
+     * @param OriginVariable reference to the origin scalar variable
+     * @param SavedVariable reference to the destination scalar variable
+     * @param rNodes reference to the objective node set
+     */
+    void SaveScalarNonHistoricalVar(
         const DoubleVarType& OriginVariable,
         DoubleVarType& SavedVariable,
         NodesContainerType& rNodes

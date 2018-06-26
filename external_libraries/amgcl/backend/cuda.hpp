@@ -182,8 +182,8 @@ class cuda_hyb_matrix {
 
         cusparseHandle_t handle;
 
-        boost::shared_ptr<boost::remove_pointer<cusparseMatDescr_t>::type> desc;
-        boost::shared_ptr<boost::remove_pointer<cusparseHybMat_t>::type>   mat;
+        std::shared_ptr<boost::remove_pointer<cusparseMatDescr_t>::type> desc;
+        std::shared_ptr<boost::remove_pointer<cusparseHybMat_t>::type>   mat;
 
         static cusparseMatDescr_t create_description() {
             cusparseMatDescr_t desc;
@@ -282,40 +282,40 @@ struct cuda {
     static std::string name() { return "cuda"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
-        return boost::make_shared<matrix>(rows(*A), cols(*A),
+        return std::make_shared<matrix>(rows(*A), cols(*A),
                 A->ptr, A->col, A->val, prm.cusparse_handle
                 );
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(typename builtin<real>::vector const &x, const params&)
     {
-        return boost::make_shared<vector>(x.data(), x.data() + x.size());
+        return std::make_shared<vector>(x.data(), x.data() + x.size());
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
-    copy_vector(boost::shared_ptr< typename builtin<real>::vector > x, const params &prm)
+    static std::shared_ptr<vector>
+    copy_vector(std::shared_ptr< typename builtin<real>::vector > x, const params &prm)
     {
         return copy_vector(*x, prm);
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
     /// Create direct solver for coarse level
-    static boost::shared_ptr<direct_solver>
-    create_solver(boost::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    static std::shared_ptr<direct_solver>
+    create_solver(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
     {
-        return boost::make_shared<direct_solver>(A, prm);
+        return std::make_shared<direct_solver>(A, prm);
     }
 
     struct gather {
@@ -602,7 +602,7 @@ class cuda_event {
             return delta / 1000.0f;
         }
     private:
-        boost::shared_ptr<boost::remove_pointer<cudaEvent_t>::type> e;
+        std::shared_ptr<boost::remove_pointer<cudaEvent_t>::type> e;
 
         static cudaEvent_t create_event() {
             cudaEvent_t e;

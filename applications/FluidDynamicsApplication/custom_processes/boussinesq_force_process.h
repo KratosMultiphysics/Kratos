@@ -69,7 +69,7 @@ namespace Kratos
       If the thermal expansion coefficient is not provided, it is assumed to be (1/ambient_temperature).
       This is the usual value for perfect gases (if the temperature is given in Kelvin).
    */
-  class BoussinesqForceProcess: public Process
+  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) BoussinesqForceProcess: public Process
   {
   public:
       ///@name Type Definitions

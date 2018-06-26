@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_ELASTIC_CONDITION_H_INCLUDED )
+#if !defined(KRATOS_ELASTIC_CONDITION_H_INCLUDED)
 #define  KRATOS_ELASTIC_CONDITION_H_INCLUDED
 
 // System includes
@@ -140,9 +140,15 @@ protected:
 
 
     /**
-     * Check condition rotation dofs
+     * Check dof for a vector variable
      */    
-    virtual bool HasRotationDofs() override {return false;};
+    bool HasVariableDof(VariableVectorType& rVariable) override
+    {
+      if(rVariable == ROTATION)
+        return false;
+      else
+        return BoundaryCondition::HasVariableDof(rVariable);
+    };
 
     
     /**

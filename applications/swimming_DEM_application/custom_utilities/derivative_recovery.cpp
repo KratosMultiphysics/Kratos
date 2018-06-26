@@ -71,7 +71,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
     array_1d <double, 3> grad = ZeroVector(3);
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
 
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
 
@@ -314,7 +314,7 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, TScala
     array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
 
@@ -359,7 +359,7 @@ void DerivativeRecovery<TDim>::SmoothVectorField(ModelPart& r_model_part, Variab
     }
 
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
@@ -680,8 +680,8 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
     array_1d <double, 3> grad = ZeroVector(3);
     array_1d <double, TDim + 1 > elemental_values;
     array_1d <double, TDim + 1 > N; // shape functions vector
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding component v_j
+    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
+    BoundedMatrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding component v_j
     const double nodal_area_share = 1.0 / static_cast<double>(TDim + 1);
 
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
@@ -733,7 +733,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
                 }
             }
 
-            boost::numeric::ublas::bounded_matrix<double, TDim, TDim> grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
+            BoundedMatrix<double, TDim, TDim> grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
             double divergence_of_vi = 0.0;
 
             for (unsigned int k = 0; k < TDim; ++k){ // the divergence is the trace of the gradient
@@ -771,7 +771,7 @@ template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVelocityLaplacianRate(ModelPart& r_model_part)
 {
     double delta_t_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
-    vector<unsigned int> nodes_partition;
+    DenseVector<unsigned int> nodes_partition;
     OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
 
     #pragma omp parallel for
@@ -990,7 +990,7 @@ double DerivativeRecovery<TDim>::SecondDegreeTestPolynomial(const array_1d <doub
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-double DerivativeRecovery<TDim>::SecondDegreeGenericPolynomial(boost::numeric::ublas::matrix<double> C, const array_1d <double, 3>& coordinates)
+double DerivativeRecovery<TDim>::SecondDegreeGenericPolynomial(DenseMatrix<double> C, const array_1d <double, 3>& coordinates)
 {
     const double x = coordinates[0];
     const double y = coordinates[1];
@@ -1019,8 +1019,6 @@ inline int DerivativeRecovery<TDim>:: Factorial(const unsigned int n){
 template <std::size_t TDim>
 bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer& p_node)
 {
-    using namespace boost::numeric::ublas;
-
     unsigned int n_poly_terms = Factorial(TDim + 2) / (2 * Factorial(TDim)); // 2 is the polynomial order
 
     if (TDim == 2){
@@ -1031,8 +1029,8 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     unsigned int n_nodal_neighs = (unsigned int)neigh_nodes.size();
     const double h_inv = 1.0 / CalculateTheMaximumDistanceToNeighbours(p_node); // we use it as a scaling parameter to improve stability
     const array_1d <double, 3> origin = p_node->Coordinates();
-    matrix<double> TestNodalValues(n_nodal_neighs, 1);
-    matrix<double> A(n_nodal_neighs, n_poly_terms);
+    DenseMatrix<double> TestNodalValues(n_nodal_neighs, 1);
+    DenseMatrix<double> A(n_nodal_neighs, n_poly_terms);
 
     for (unsigned int i = 0; i < n_nodal_neighs; ++i){
         A(i, 0) = 1.0;
@@ -1066,10 +1064,10 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
         }
     }
 
-    matrix<double>AtransA(n_poly_terms, n_poly_terms);
+    DenseMatrix<double>AtransA(n_poly_terms, n_poly_terms);
     noalias(AtransA) = prod(trans(A), A);
 
-    if (std::abs(mMyCustomFunctions.template determinant< matrix<double> >(AtransA)) < 0.01){
+    if (std::abs(mMyCustomFunctions.template determinant< DenseMatrix<double> >(AtransA)) < 0.01){
         return false;
     }
 
@@ -1117,7 +1115,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
 
         Vector& nodal_weights = p_node->FastGetSolutionStepValue(NODAL_WEIGHTS);
         nodal_weights.resize(n_relevant_terms * n_nodal_neighs);
-        const matrix<double> AtransAinv = mMyCustomFunctions.Inverse(AtransA);
+        const DenseMatrix<double> AtransAinv = mMyCustomFunctions.Inverse(AtransA);
 //        for (unsigned i = 0; i < n_poly_terms; i++){
 //            for (unsigned j = 0; j < n_poly_terms; j++){
 //                if (abs(AtransAinv(i,j))>1e6){
@@ -1125,7 +1123,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
 //                }
 //            }
 //        }
-        matrix<double>AtransAinvAtrans(n_poly_terms, n_nodal_neighs);
+        DenseMatrix<double>AtransAinvAtrans(n_poly_terms, n_nodal_neighs);
         noalias(AtransAinvAtrans) = prod(AtransAinv, trans(A));
 
         for (unsigned int i = 0; i < n_nodal_neighs; ++i){
@@ -1142,7 +1140,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
             }
         }
 
-        matrix<double> C(n_nodal_neighs, 1);
+        DenseMatrix<double> C(n_nodal_neighs, 1);
         C = prod(AtransAinvAtrans, TestNodalValues);
 
         double abs_difference = 0.0;
@@ -1259,15 +1257,15 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
 template class DerivativeRecovery<2>;
 template class DerivativeRecovery<3>;
 
-template void DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void DerivativeRecovery<2>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
-template void DerivativeRecovery<3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::RecoverSuperconvergentGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
 
 
-template void DerivativeRecovery<2>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void DerivativeRecovery<3>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
-template void DerivativeRecovery<2>::CalculateGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
-template void DerivativeRecovery<3>::CalculateGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< Variable<double> >(ModelPart&,  Variable<double>&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<2>::CalculateGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
+template void KRATOS_API(SWIMMING_DEM_APPLICATION) DerivativeRecovery<3>::CalculateGradient< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& >(ModelPart&,  VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&, Variable<array_1d<double, 3> >&);
 
 }  // namespace Kratos.

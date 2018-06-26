@@ -42,7 +42,7 @@ namespace Kratos
 * References...
 *
 */
-class ShellCrossSection : public Flags
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellCrossSection : public Flags
 {
 
 public:
@@ -85,12 +85,12 @@ public:
 
 	/** \brief SectionParameters
 	*
-	* SectionParameters is an accessibility class for shells using the 
+	* SectionParameters is an accessibility class for shells using the
 	* ShellCrossSection class. It allows one to set and get vectors and matrices
 	* associated with the shell cross section, such as strains, stresses and the
 	* constitutive matrix.
 	*
-	* An example application is taken from shell_thick_3D4N.cpp, before it's 
+	* An example application is taken from shell_thick_3D4N.cpp, before it's
 	* stiffness matrix gauss loop is entered:
 	*
 	* ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
@@ -267,7 +267,7 @@ public:
 		void SetStenbergShearStabilization(const double& StenbergShearStabilization)
 		{
 			mStenbergShearStabilization = StenbergShearStabilization;
-		};		
+		};
 
         /**
         * returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
@@ -1100,7 +1100,7 @@ public:
     * Returns the total thickness of this cross section
     * @return the thickness
     */
-    inline const double GetThickness()const
+    inline double GetThickness()const
     {
         return mThickness;
     }
@@ -1112,7 +1112,7 @@ public:
     * The default value is Zero (i.e. the center of the cross section coincides with the shell mid-surface).
     * @return the offset
     */
-    inline const double GetOffset()const
+    inline double GetOffset()const
     {
         return mOffset;
     }
@@ -1133,7 +1133,7 @@ public:
     		mOffset = offset;
     	}
     }
-    
+
     /**
     * Stores the thicknesses of plies of this cross section.
     */
@@ -1147,7 +1147,7 @@ public:
     		++counter;
     	}
     }
-    
+
     /**
     * Setup to get the integrated constitutive matrices for each ply
     */
@@ -1157,7 +1157,7 @@ public:
 		// constitutive matrices for each ply!
     	mStorePlyConstitutiveMatrices = true;
     	mPlyConstitutiveMatrices = std::vector<Matrix>(this->NumberOfPlies());
-    
+
     	for (unsigned int ply = 0; ply < this->NumberOfPlies(); ++ply)
     	{
     		if (mBehavior == Thick)
@@ -1168,11 +1168,11 @@ public:
     		{
     			mPlyConstitutiveMatrices[ply].resize(6, 6, false);
     		}
-    
+
     		mPlyConstitutiveMatrices[ply].clear();
     	}
     }
-    
+
     /**
     * Get the integrated constitutive matrices for each ply
     */
@@ -1300,23 +1300,23 @@ public:
     {
         return mDrillingPenalty;
     }
-    
+
     /**
     * Checks if the shell is an orthotropic material
     * @return the true/false
     */
     static bool CheckIsOrthotropic(const Properties& rProps);
-    
+
     /**
     * Parses the shell orthotropic material data from properties
     */
     void ParseOrthotropicPropertyMatrix(const Properties::Pointer & pProps);
-    
+
     /**
     * Get orientation of laminae
     */
     void GetLaminaeOrientation(Vector& rOrientation_Vector);
-    
+
     /**
     * Get strengths of laminae
     */
@@ -1338,7 +1338,7 @@ private:
     	GeneralVariables& rVariables,
     	const ConstitutiveLaw::StressMeasure& rStressMeasure,
     	const unsigned int& plyNumber);
-    
+
     /**
     * Creates a deep copy of this cross section.
     * Note: all constitutive laws are properly cloned.
@@ -1374,7 +1374,7 @@ private:
     Vector mOOP_CondensedStrains_converged;
     bool mStorePlyConstitutiveMatrices = false;
     std::vector<Matrix> mPlyConstitutiveMatrices;
-    
+
     ///@}
 
     ///@name Serialization

@@ -89,6 +89,8 @@ public:
     typedef TableStreamUtility::Pointer               TablePrinterPointerType;
     
     typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
+    
+    typedef std::size_t                                             IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -100,12 +102,10 @@ public:
     MortarAndConvergenceCriteria(
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion,
-        TablePrinterPointerType pTable = nullptr,
         const bool PrintingOutput = false,
         ConditionNumberUtilityPointerType pConditionNumberUtility = nullptr
         )
         :And_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
-        mpTable(pTable),
         mPrintingOutput(PrintingOutput),
         mpConditionNumberUtility(pConditionNumberUtility),
         mTableIsInitialized(false)
@@ -117,7 +117,6 @@ public:
      */
     MortarAndConvergenceCriteria(MortarAndConvergenceCriteria const& rOther)
       :BaseType(rOther)
-      ,mpTable(rOther.mpTable)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
       ,mpConditionNumberUtility(rOther.mpConditionNumberUtility)
@@ -152,9 +151,15 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            if (mpTable != nullptr)
-                mpTable->AddToRow<unsigned int>(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]);
+        // The process info
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                p_table->AddToRow<IndexType>(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]);
+            }
+        }
         
         bool criterion_result = BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
@@ -162,21 +167,24 @@ public:
             TSystemMatrixType copy_A; // NOTE: Can not be const, TODO: Change the solvers to const
             const double condition_number = mpConditionNumberUtility->GetConditionNumber(copy_A);
             
-            if (mpTable != nullptr) {
+            if (r_process_info.Has(TABLE_UTILITY)) {
                 std::cout.precision(4);
-                auto& Table = mpTable->GetTable();
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                auto& Table = p_table->GetTable();
                 Table  << condition_number;
             } else {
                 if (mPrintingOutput == false)
-                    std::cout << "\n" << BOLDFONT("CONDITION NUMBER:") << "\t " << std::scientific << condition_number << std::endl;
+                    KRATOS_INFO("MortarAndConvergenceCriteria") << "\n" << BOLDFONT("CONDITION NUMBER:") << "\t " << std::scientific << condition_number << std::endl;
                 else
-                    std::cout << "\n" << "CONDITION NUMBER:" << "\t" << std::scientific << condition_number << std::endl;
+                    KRATOS_INFO("MortarAndConvergenceCriteria") << "\n" << "CONDITION NUMBER:" << "\t" << std::scientific << condition_number << std::endl;
             }
         }
         
         if (criterion_result == true && rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            if (mpTable != nullptr)
-                mpTable->PrintFooter();
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                p_table->PrintFooter();
+            }
         
         return criterion_result;
     }
@@ -188,16 +196,22 @@ public:
     
     void Initialize(ModelPart& rModelPart) override
     {
-        if (mpTable != nullptr && mTableIsInitialized == false) {
-            (mpTable->GetTable()).SetBold(!mPrintingOutput);
-            (mpTable->GetTable()).AddColumn("ITER", 4);
+        // The process info
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+        if (r_process_info.Has(TABLE_UTILITY) && mTableIsInitialized == false) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+            (p_table->GetTable()).SetBold(!mPrintingOutput);
+            (p_table->GetTable()).AddColumn("ITER", 4);
         }
         
         mTableIsInitialized = true;
         BaseType::Initialize(rModelPart);
          
-        if (mpTable != nullptr && mpConditionNumberUtility != nullptr)
-            (mpTable->GetTable()).AddColumn("COND.NUM.", 10);
+        if (r_process_info.Has(TABLE_UTILITY) && mpConditionNumberUtility != nullptr) {
+            TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+            (p_table->GetTable()).AddColumn("COND.NUM.", 10);
+        }
     }
 
     /**
@@ -217,15 +231,20 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // The process info
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
             std::cout.precision(4);
             if (mPrintingOutput == false)
-                std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+                KRATOS_INFO("MortarAndConvergenceCriteria") << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
             else
-                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
+                KRATOS_INFO("MortarAndConvergenceCriteria") << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
                 
-            if (mpTable != nullptr)
-                mpTable->PrintHeader();
+            if (r_process_info.Has(TABLE_UTILITY)) {
+                TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
+                p_table->PrintHeader();
+            }
         }
         
         BaseType::InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
@@ -308,7 +327,6 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable;                            /// Pointer to the fancy table 
     bool mPrintingOutput;                                       /// If the colors and bold are printed
     ConditionNumberUtilityPointerType mpConditionNumberUtility; /// The utility to compute the condition number
     bool mTableIsInitialized;                                   /// If the table is already initialized
@@ -335,7 +353,7 @@ private:
 
     ///@}
 
-}; /* Class ClassName */
+}; /* Class MortarAndConvergenceCriteria */
 
 ///@}
 

@@ -10,7 +10,11 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+
+// Project includes
+#include "includes/define_python.h"
+
 
 //Trilinos includes
 #include "mpi.h"
@@ -25,13 +29,12 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-void AddZoltanProcessesToPython()
+void AddZoltanProcessesToPython(pybind11::module& m)
 {
-    class_<ZoltanPartitionUtility, boost::noncopyable >
-    ("ZoltanPartitionUtility",
-     init< >() )
+    class_<ZoltanPartitionUtility >(m,"ZoltanPartitionUtility")
+    .def(init< >() )
     .def("CalculatePartition", &ZoltanPartitionUtility::CalculatePartition )
     ;
 }

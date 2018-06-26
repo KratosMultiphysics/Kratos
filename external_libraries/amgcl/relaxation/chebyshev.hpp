@@ -168,7 +168,7 @@ class chebyshev {
 
     private:
         std::vector<scalar_type> C;
-        mutable boost::shared_ptr<vector> p, q;
+        mutable std::shared_ptr<vector> p, q;
 
         template <class Matrix, class VectorRHS, class VectorX>
         void solve(const Matrix &A, const VectorRHS &rhs, VectorX &x) const

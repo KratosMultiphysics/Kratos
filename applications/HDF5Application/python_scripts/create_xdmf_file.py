@@ -1,5 +1,5 @@
-"""Create a file containing xdmf metadata for results stored in HDF5.
-"""
+"""Create a file containing xdmf metadata for results stored in HDF5."""
+
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import os, sys, h5py, xdmf
@@ -41,6 +41,18 @@ def GetNodalResults(h5py_file):
             results.append(xdmf.NodalSolutionStepData(variable_name, data))
     return results
 
+def GetElementResults(h5py_file):
+    element_results_path = "/ResultsData/ElementResults"
+    results = []
+    if not element_results_path in h5py_file:
+        return results
+    results_group = h5py_file.get(element_results_path)
+    for variable_name in results_group.keys():
+        if isinstance(results_group[variable_name], h5py.Dataset):
+            data = xdmf.HDF5UniformDataItem(results_group.get(variable_name))
+            results.append(xdmf.ElementSolutionStepData(variable_name, data))
+    return results
+
 
 def GetListOfTimeLabels(file_name):
     list_of_file_names = []
@@ -67,6 +79,9 @@ def main():
         # Check if the current file has mesh information.
         with h5py.File(current_file_name, "r") as h5py_file:
             has_mesh = ("ModelData" in h5py_file.keys())
+            has_data = ("/ResultsData" in h5py_file.keys())
+        if not has_data:
+            continue
         if has_mesh:
             GenerateXdmfConnectivities(current_file_name)
         with h5py.File(current_file_name, "r") as h5py_file:
@@ -80,6 +95,8 @@ def main():
             # Add the (time-dependent) results.
             for nodal_result in GetNodalResults(h5py_file):
                 current_grid.add_attribute(nodal_result)
+            for element_result in GetElementResults(h5py_file):
+                current_grid.add_attribute(element_result)
         # Add the current grid to the temporal grid.
         temporal_grid.add_grid(xdmf.Time(current_time), current_grid)
     # Create the domain.

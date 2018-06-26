@@ -49,13 +49,13 @@ void GeometricalSensitivityUtility::Initialize()
     KRATOS_CATCH("");
 }
 
-void GeometricalSensitivityUtility::CalculateSensitivity(IndexType iNode, IndexType iCoord, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const
+void GeometricalSensitivityUtility::CalculateSensitivity(ShapeParameter Deriv, double& rDetJ_Deriv, ShapeFunctionsGradientType& rDN_DX_Deriv) const
 {
     KRATOS_TRY;
 
-    rDetJ_Deriv = CalculateDeterminantOfJacobianSensitivity(iNode, iCoord);
+    rDetJ_Deriv = CalculateDeterminantOfJacobianSensitivity(Deriv);
 
-    MatrixType cofactorJ_deriv = CalculateCofactorOfJacobianSensitivity(iNode, iCoord);
+    MatrixType cofactorJ_deriv = CalculateCofactorOfJacobianSensitivity(Deriv);
     if (rDN_DX_Deriv.size1() != mrDN_De.size1() || rDN_DX_Deriv.size2() != mCofactorJ.size1())
         rDN_DX_Deriv.resize(mrDN_De.size1(), mCofactorJ.size1());
     noalias(rDN_DX_Deriv) = (1.0 / mDetJ) * prod(mrDN_De, trans(cofactorJ_deriv));
@@ -64,15 +64,15 @@ void GeometricalSensitivityUtility::CalculateSensitivity(IndexType iNode, IndexT
     KRATOS_CATCH("");
 }
 
-double GeometricalSensitivityUtility::CalculateDeterminantOfJacobianSensitivity(
-    IndexType iNode, IndexType iCoord) const
+double GeometricalSensitivityUtility::CalculateDeterminantOfJacobianSensitivity(ShapeParameter Deriv) const
 {
-    return inner_prod(matrix_row<const MatrixType>(mCofactorJ, iCoord),
-                      matrix_row<const ShapeFunctionsLocalGradientType>(mrDN_De, iNode));
+    return inner_prod(
+        matrix_row<const MatrixType>(mCofactorJ, Deriv.Direction),
+        matrix_row<const ShapeFunctionsLocalGradientType>(mrDN_De, Deriv.NodeIndex));
 }
 
 GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::CalculateCofactorOfJacobianSensitivity(
-    IndexType iNode, IndexType iCoord) const
+    ShapeParameter Deriv) const
 {
     KRATOS_TRY;
     MatrixType result(mrJ.size1(), mrJ.size2());
@@ -83,7 +83,7 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
 
     for (unsigned i = 0; i < mrJ.size1(); ++i)
     {
-        if (i == iCoord)
+        if (i == Deriv.Direction)
         {
             // Here the derivative is automatically zero.
             for (unsigned j = 0; j < mrJ.size2(); ++j)
@@ -92,7 +92,7 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
         else
         {
             // Decrement the coordinate index if it's greater than the deleted row.
-            IndexType i_coord_sub = (iCoord > i) ? iCoord - 1 : iCoord;
+            IndexType i_coord_sub = (Deriv.Direction > i) ? Deriv.Direction - 1 : Deriv.Direction;
             for (unsigned j = 0; j < mrJ.size2(); ++j)
             {
                 IndirectArrayType ia1(mrJ.size1() - 1), ia2(mrJ.size2() - 1);
@@ -117,7 +117,7 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
 
                 const double first_minor_deriv = inner_prod(
                     matrix_row<const MatrixType>(cofactor_sub_jacobian, i_coord_sub),
-                    matrix_row<const SubMatrixType>(sub_DN_De, iNode));
+                    matrix_row<const SubMatrixType>(sub_DN_De, Deriv.NodeIndex));
 
                 result(i, j) = ((i + j) % 2) ? -first_minor_deriv : first_minor_deriv;
             }

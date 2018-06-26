@@ -17,15 +17,15 @@ nnodeselement_combinations = [3,3,4,4,4,4,8,8]
 tensor_combinations = [1,2,1,2,1,3,1,3]
 
 lhs_string = ""
-lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate< >\ntemplate< >\nboost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalLHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const unsigned int rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    boost::numeric::ublas::bounded_matrix<double, MatrixSize, MatrixSize> lhs;\n\n    // We get the mortar operators\n    const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const boost::numeric::ublas::bounded_matrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
+lhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate< >\ntemplate< >\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalLHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const IndexType rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // We get the mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
 
-lhs_template_end_string = "\n\n    return lhs;\n}\n"
+lhs_template_end_string = "\n}\n"
 
 rhs_string = ""
 
-rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\narray_1d<double, MatrixSize> MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalRHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const unsigned int rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    array_1d<double,MatrixSize> rhs;\n\n    // Initialize values\n    const bounded_matrix<double, NumNodes, TTensor> u1 = rDofData.u1;\n    const bounded_matrix<double, NumNodes, TTensor> u2 = rDofData.u2;\n\n    const bounded_matrix<double, NumNodes, TTensor> lm = rDofData.LagrangeMultipliers; \n\n    // Mortar operators\n    const bounded_matrix<double, NumNodes, NumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const bounded_matrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
+rhs_template_begin_string = "\n/***********************************************************************************/\n/***********************************************************************************/\n\ntemplate<>\ntemplate<>\nvoid MeshTyingMortarCondition<TDim,TNumNodesElem,TTensor>::CalculateLocalRHS<MatrixSize>(\n    const MortarConditionMatrices& rMortarConditionMatrices,\n    DofData& rDofData,\n    const IndexType rMasterElementIndex,\n    const ProcessInfo& rCurrentProcessInfo\n    )\n{\n    // Initialize values\n    const BoundedMatrix<double, NumNodes, TTensor> u1 = rDofData.u1;\n    const BoundedMatrix<double, NumNodes, TTensor> u2 = rDofData.u2;\n\n    const BoundedMatrix<double, NumNodes, TTensor> lm = rDofData.LagrangeMultipliers; \n\n    // Mortar operators\n    const BoundedMatrix<double, NumNodes, NumNodes>& MOperator = rMortarConditionMatrices.MOperator;\n    const BoundedMatrix<double, NumNodes, NumNodes>& DOperator = rMortarConditionMatrices.DOperator;\n\n"
 
-rhs_template_end_string = "\n\n    return rhs;\n}\n"
+rhs_template_end_string = "\n}\n"
 
 for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinations, tensor_combinations):
 
@@ -139,6 +139,8 @@ for dim, nnodeselement, tensor in zip(dim_combinations, nnodeselement_combinatio
         rhs_string = rhs_string.replace("TTensor", "Vector3DValue")
     rhs_string = rhs_string.replace("NumNodes", str(nnodes))
     rhs_string = rhs_string.replace("MatrixSize", str(rhs.shape[0]))
+    lhs_string = lhs_string.replace("lhs(", "rLocalLHS(")
+    rhs_string = rhs_string.replace("rhs[", "rLocalRHS[")
 
 #############################################################################
 ################################# FINAL SAVING ##############################

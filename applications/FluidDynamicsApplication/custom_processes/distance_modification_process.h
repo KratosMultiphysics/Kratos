@@ -54,7 +54,7 @@ namespace Kratos
 
 /// Utility to modify the distances of an embedded object in order to avoid bad intersections
 /// Besides, it also deactivate the full negative distance elements
-class DistanceModificationProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DistanceModificationProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -63,9 +63,6 @@ public:
     /// Pointer definition of DistanceModificationProcess
     KRATOS_CLASS_POINTER_DEFINITION(DistanceModificationProcess);
 
-    typedef Node<3>                     NodeType;
-    typedef Geometry<NodeType>      GeometryType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -73,7 +70,7 @@ public:
     /// Constructor.
     DistanceModificationProcess(
         ModelPart& rModelPart, 
-        const double FactorCoeff,
+        const double FactorCoeff, //TODO: Remove it (here for legacy reasons)
         const double DistanceThreshold,
         const bool CheckAtEachStep, 
         const bool NegElemDeactivation,
@@ -101,12 +98,9 @@ public:
 
     void ExecuteInitialize() override;
 
-
     void ExecuteBeforeSolutionLoop() override;
 
-
     void ExecuteInitializeSolutionStep() override;
-
 
     void ExecuteFinalizeSolutionStep() override;
 
@@ -132,6 +126,7 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
 
+
     ///@}
     ///@name Friends
     ///@{
@@ -142,20 +137,21 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-    ModelPart&                                              mrModelPart;
-    double                                                 mFactorCoeff;
-    double                                           mDistanceThreshold;
-    bool                                               mCheckAtEachStep;
-    bool                                           mNegElemDeactivation;
-    bool                                       mRecoverOriginalDistance;
-    bool                                      mAvoidAlmostEmptyElements;
-    std::vector<std::vector<unsigned int>>        mModifiedDistancesIDs;
-    std::vector<std::vector<double>>           mModifiedDistancesValues;
+    ModelPart&                                       mrModelPart;
+    double                                    mDistanceThreshold;
+    bool                                             mIsModified;
+    bool                                     mContinuousDistance;
+    bool                                        mCheckAtEachStep;
+    bool                                    mNegElemDeactivation;
+    bool                               mAvoidAlmostEmptyElements;
+    bool                                mRecoverOriginalDistance;
+    std::vector<unsigned int>              mModifiedDistancesIDs;
+    std::vector<double>                 mModifiedDistancesValues;
+    std::vector<Vector>        mModifiedElementalDistancesValues;
 
     ///@}
     ///@name Protected Operators
@@ -165,11 +161,15 @@ private:
     ///@name Private Operations
     ///@{
 
-    unsigned int ModifyDistance();
+    void ModifyDistance();
 
-    void SetElementalDistances();
+    void ModifyDiscontinuousDistance();
+
+    void RecoverDeactivationPreviousState();
 
     void RecoverOriginalDistance();
+    
+    void RecoverOriginalDiscontinuousDistance();
 
     void DeactivateFullNegativeElements();
 

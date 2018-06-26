@@ -116,25 +116,22 @@ public:
     std::cout << "PressureRelaxationFactor = " << mPressureRelaxationFactor << std::endl;
     mRotationTool.RotateVelocities(rModelPart);
 
-    int NumThreads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector DofSetPartition;
-    OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-#pragma omp parallel
-    {
-      int k = OpenMPUtils::ThisThread();
-
-      typename DofsArrayType::iterator DofSetBegin = rDofSet.begin() + DofSetPartition[k];
-      typename DofsArrayType::iterator DofSetEnd = rDofSet.begin() + DofSetPartition[k + 1];
-
-      for (typename DofsArrayType::iterator itDof = DofSetBegin; itDof != DofSetEnd; itDof++)
-        if (itDof->IsFree())
-          itDof->GetSolutionStepValue() += TSparseSpace::GetValue(rDx, itDof->EquationId());
-    }
+    mpDofUpdater->UpdateDofs(rDofSet,rDx);
 
     mRotationTool.RecoverVelocities(rModelPart);
 
     KRATOS_CATCH("");
+  }
+
+  int Check(ModelPart& rModelPart) override
+  {
+    // Ensure that OSS_SWITCH is initialized. This will prevent race conditions when we read it in a parallel region later.
+    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    if (!r_process_info.Has(OSS_SWITCH)) {
+      r_process_info.SetValue(OSS_SWITCH,0);
+    }
+
+    return BaseType::Check(rModelPart);
   }
 
   void CalculateSystemContributions(
@@ -149,7 +146,10 @@ public:
     rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
     Matrix Mass;
+    const int oss_switch = CurrentProcessInfo[OSS_SWITCH];
+    CurrentProcessInfo.SetValue(OSS_SWITCH,1);
     rCurrentElement->CalculateMassMatrix(Mass, CurrentProcessInfo);
+    CurrentProcessInfo.SetValue(OSS_SWITCH,oss_switch);
     Matrix SteadyLHS;
     rCurrentElement->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
     rCurrentElement->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -178,7 +178,10 @@ public:
     rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
     Matrix Mass;
+    const int oss_switch = CurrentProcessInfo[OSS_SWITCH];
+    CurrentProcessInfo.SetValue(OSS_SWITCH,1);
     rCurrentCondition->CalculateMassMatrix(Mass, CurrentProcessInfo);
+    CurrentProcessInfo.SetValue(OSS_SWITCH,oss_switch);
     Matrix SteadyLHS;
     rCurrentCondition->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
     rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -460,6 +463,7 @@ private:
   double mPressureRelaxationFactor;
   CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
   Process::Pointer mpTurbulenceModel;
+  typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
   ///@}
 };

@@ -94,13 +94,12 @@ CMAKE_LIBS=(
   -DBOOST_ROOT=""
 
   # Python
-  #    Indicate your python lib and include dir in case you don't want to use the system default
-  #    - Example (for ubuntu 16.04):
-  #        -DPYTHON_LIBRARY="/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu/libpython3.5m.so"
-  #        -DPYTHON_INCLUDE_DIR="/usr/include/python3.5"
+  #    Indicate your python binary dir in case you don't want to use the system default or you
+  #    have multiple versions and you want to select one in particular
+  #    - Example (for ubuntu 14.04):
+  #        -DPYTHON_EXECUTABLE="/usr/bin/python
   # --------------------------------------------------------------------------------------------------------------
-  -DPYTHON_LIBRARY=""
-  -DPYTHON_INCLUDE_DIR=""
+  -DPYTHON_EXECUTABLE="/usr/bin/python3.4"
 )
 
 ########################################################################################################################
@@ -121,7 +120,7 @@ CMAKE_APPLICATION=(
   -DCONVECTION_DIFFUSION_APPLICATION=ON
   -DSOLID_MECHANICS_APPLICATION=ON
   -DFLUID_DYNAMICS_APPLICATION=ON
-  -DALE_APPLICATION=ON
+  -DMESH_MOVING_APPLICATION=ON
   -DFSI_APPLICATION=ON
   -DEMPIRE_APPLICATION=OFF
   -DMIXED_ELEMENT_APPLICATION=OFF

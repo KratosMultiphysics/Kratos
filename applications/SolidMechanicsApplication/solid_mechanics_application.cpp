@@ -35,9 +35,7 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
 
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
-
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/line_gauss_lobatto_3d_2.h"
@@ -252,6 +250,43 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
           0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
                  Element::GeometryType::PointsArrayType(9)))),
 
+      mUpdatedLagrangianVElement2D3N(
+          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
+                 Element::GeometryType::PointsArrayType(3)))),
+      mUpdatedLagrangianVElement2D4N(
+          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
+                 Element::GeometryType::PointsArrayType(4)))),
+      mUpdatedLagrangianVElement2D6N(
+          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
+                 Element::GeometryType::PointsArrayType(6)))),
+      mUpdatedLagrangianVElement2D8N(
+          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
+                 Element::GeometryType::PointsArrayType(8)))),
+      mUpdatedLagrangianVElement2D9N(
+          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
+                 Element::GeometryType::PointsArrayType(9)))),
+      mUpdatedLagrangianVElement3D4N(
+          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
+                 Element::GeometryType::PointsArrayType(4)))),
+      mUpdatedLagrangianVElement3D6N(
+          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
+                 Element::GeometryType::PointsArrayType(6)))),
+      mUpdatedLagrangianVElement3D8N(
+          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
+                 Element::GeometryType::PointsArrayType(8)))),
+      mUpdatedLagrangianVElement3D10N(
+          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
+                 Element::GeometryType::PointsArrayType(10)))),
+      mUpdatedLagrangianVElement3D15N(
+          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
+                 Element::GeometryType::PointsArrayType(15)))),
+      mUpdatedLagrangianVElement3D20N(
+          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
+                 Element::GeometryType::PointsArrayType(20)))),
+      mUpdatedLagrangianVElement3D27N(
+          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
+                 Element::GeometryType::PointsArrayType(27)))),
+      
       mUpdatedLagrangianUPElement2D3N(
           0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
                  Element::GeometryType::PointsArrayType(3)))),
@@ -274,6 +309,9 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
       mLargeDisplacementBeamEMCElement3D2N(
           0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
                  Element::GeometryType::PointsArrayType(2)))),
+      mLargeDisplacementBeamEMCElement3D3N(
+          0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(
+                 Element::GeometryType::PointsArrayType(3)))),      
       mLargeDisplacementBeamSEMCElement3D2N(
           0, Element::GeometryType::Pointer(new LineGaussLobatto3D2<Node<3> >(
                  Element::GeometryType::PointsArrayType(2)))),
@@ -447,13 +485,18 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
     KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
 
+    //integration methods
+    KRATOS_REGISTER_VARIABLE(VECTOR_TIME_INTEGRATION_METHODS)  
+    KRATOS_REGISTER_VARIABLE(SCALAR_TIME_INTEGRATION_METHODS)  
+    KRATOS_REGISTER_VARIABLE(COMPONENT_TIME_INTEGRATION_METHODS)  
+        
     //explicit schemes
-    KRATOS_REGISTER_VARIABLE( TIME_INTEGRATION_METHOD )
-    KRATOS_REGISTER_VARIABLE( ANGULAR_TIME_INTEGRATION_METHOD )
+    KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)        
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
     //solution
     KRATOS_REGISTER_VARIABLE(WRITE_ID)
+    KRATOS_REGISTER_VARIABLE(TIME_INTEGRATION_ORDER)        
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
 
@@ -481,54 +524,43 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(SHELL_MOMENT)
     KRATOS_REGISTER_VARIABLE(SHELL_MOMENT_GLOBAL)
 
-    //nodal load variables
+    //nodal load variable (legacy)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_LOAD)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
+  
+    //force loads
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FORCE_LOAD)
+    KRATOS_REGISTER_VARIABLE(FORCE_LOAD_VECTOR)
+  
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_FORCE_LOAD)
+    KRATOS_REGISTER_VARIABLE(FOLLOWER_FORCE_LOAD_VECTOR)
+  
+    //moment loads
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENT_LOAD)
+    KRATOS_REGISTER_VARIABLE(MOMENT_LOAD_VECTOR)
+   
+    //elastic loads
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_LOAD)
+    KRATOS_REGISTER_VARIABLE(ELASTIC_LOAD_VECTOR)  
 
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_POINT_LOAD)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_LINE_LOAD)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_SURFACE_LOAD)
-
-    //nodal moment variables
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_MOMENT)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_MOMENT)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_MOMENT)
-
-    KRATOS_REGISTER_VARIABLE( PLANE_POINT_MOMENT )
-    KRATOS_REGISTER_VARIABLE( PLANE_LINE_MOMENT )
-    KRATOS_REGISTER_VARIABLE( BALLAST_COEFFICIENT )
-      
-    //nodal elastic variables
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_STIFFNESS)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LINE_STIFFNESS)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_STIFFNESS)
-
-    //condition load variables
-    KRATOS_REGISTER_VARIABLE(POINT_LOAD_VECTOR)
-    KRATOS_REGISTER_VARIABLE(LINE_LOAD_VECTOR)
-    KRATOS_REGISTER_VARIABLE(SURFACE_LOAD_VECTOR)
+    //force pressure
     KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURE_VECTOR)
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURE_VECTOR)
-
-    //condition moment variables
-    KRATOS_REGISTER_VARIABLE(POINT_MOMENT_VECTOR)
-    KRATOS_REGISTER_VARIABLE(LINE_MOMENT_VECTOR)
-    KRATOS_REGISTER_VARIABLE(SURFACE_MOMENT_VECTOR)
-
-    KRATOS_REGISTER_VARIABLE(PLANE_POINT_MOMENT_VECTOR)
-    KRATOS_REGISTER_VARIABLE(PLANE_LINE_MOMENT_VECTOR)
-
-    //condition elastic variables
-    KRATOS_REGISTER_VARIABLE( POINT_STIFFNESS_VECTOR )
-    KRATOS_REGISTER_VARIABLE( LINE_STIFFNESS_VECTOR )
-    KRATOS_REGISTER_VARIABLE( SURFACE_STIFFNESS_VECTOR )   
-    KRATOS_REGISTER_VARIABLE( BALLAST_COEFFICIENT_VECTOR )
+  
+    //moment pressures
+    KRATOS_REGISTER_VARIABLE(PLANE_MOMENT_LOAD)
+    KRATOS_REGISTER_VARIABLE(PLANE_MOMENT_LOAD_VECTOR)
+  
+    //elastic pressures
+    KRATOS_REGISTER_VARIABLE(BALLAST_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(BALLAST_COEFFICIENT_VECTOR)
       
     //element
     KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS)
 
     //nodal dofs
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_REACTION)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ROTATION_REACTION)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_REACTION)        
     KRATOS_REGISTER_VARIABLE(PRESSURE_REACTION)
 
     //explicit beam
@@ -689,7 +721,7 @@ void KratosSolidMechanicsApplication::Register() {
         "UpdatedLagrangianElement3D20N", mUpdatedLagrangianElement3D20N)
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianElement3D27N", mUpdatedLagrangianElement3D27N)
-
+        
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D3N",
         mAxisymUpdatedLagrangianElement2D3N)
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D4N",
@@ -701,6 +733,31 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D9N",
         mAxisymUpdatedLagrangianElement2D9N)
 
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D3N", mUpdatedLagrangianVElement2D3N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D4N", mUpdatedLagrangianVElement2D4N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D6N", mUpdatedLagrangianVElement2D6N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D8N", mUpdatedLagrangianVElement2D8N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement2D9N", mUpdatedLagrangianVElement2D9N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D4N", mUpdatedLagrangianVElement3D4N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D6N", mUpdatedLagrangianVElement3D6N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D8N", mUpdatedLagrangianVElement3D8N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D10N", mUpdatedLagrangianVElement3D10N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D15N", mUpdatedLagrangianVElement3D15N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D20N", mUpdatedLagrangianVElement3D20N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianVElement3D27N", mUpdatedLagrangianVElement3D27N)
+        
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianUPElement2D3N", mUpdatedLagrangianUPElement2D3N)
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianUPElement2D3N",
@@ -717,6 +774,8 @@ void KratosSolidMechanicsApplication::Register() {
         "LargeDisplacementBeamElement3D3N", mLargeDisplacementBeamElement3D3N)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamEMCElement3D2N",
         mLargeDisplacementBeamEMCElement3D2N)
+    KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamEMCElement3D3N",
+        mLargeDisplacementBeamEMCElement3D3N)
     KRATOS_REGISTER_ELEMENT("LargeDisplacementBeamSEMCElement3D2N",
         mLargeDisplacementBeamSEMCElement3D2N)
     KRATOS_REGISTER_ELEMENT(
@@ -814,59 +873,36 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION(
         "SurfaceElasticCondition3D9N", mSurfaceElasticCondition3D9N)
 
-    //Register Constitutive Laws
-
-    //Hyperelastic laws
-    Serializer::Register("HyperElastic3DLaw", mHyperElastic3DLaw);
-    Serializer::Register(
-        "HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
-    Serializer::Register("HyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw);
-
-    //Hyperelastic laws U-P
-    Serializer::Register("HyperElasticUP3DLaw", mHyperElasticUP3DLaw);
-    Serializer::Register(
-        "HyperElasticUPPlaneStrain2DLaw", mHyperElasticUPPlaneStrain2DLaw);
-    Serializer::Register(
-        "HyperElasticUPAxisym2DLaw", mHyperElasticUPAxisym2DLaw);
-
+    //Register Constitutive Laws with KRATOS_REGISTER to the Kernel
     //Linear Elastic laws
-    Serializer::Register("LinearElastic3DLaw", mLinearElastic3DLaw);
-    Serializer::Register(
-        "LinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw);
-    Serializer::Register(
-        "LinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw);
-    Serializer::Register("LinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw);
-
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mLinearElastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw);
+    //Hyperelastic laws
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElastic3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw);
+    //Hyperelastic laws U-P
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUP3DLaw", mHyperElasticUP3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUPPlaneStrain2DLaw", mHyperElasticUPPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUPAxisym2DLaw", mHyperElasticUPAxisym2DLaw);
     //Hyperelastic Plastic J2 specilization laws
-    Serializer::Register(
-        "HyperElasticPlasticJ23DLaw", mHyperElasticPlasticJ23DLaw);
-    Serializer::Register("HyperElasticPlasticJ2PlaneStrain2DLaw",
-        mHyperElasticPlasticJ2PlaneStrain2DLaw);
-    Serializer::Register(
-        "HyperElasticPlasticJ2Axisym2DLaw", mHyperElasticPlasticJ2Axisym2DLaw);
-
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticJ23DLaw", mHyperElasticPlasticJ23DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticJ2PlaneStrain2DLaw",mHyperElasticPlasticJ2PlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticJ2Axisym2DLaw", mHyperElasticPlasticJ2Axisym2DLaw);
     //Hyperelastic Plastic J2 specilization laws U-P
-    Serializer::Register(
-        "HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw);
-    Serializer::Register("HyperElasticPlasticUPJ2PlaneStrain2DLaw",
-        mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
-    Serializer::Register("HyperElasticPlasticUPJ2Axisym2DLaw",
-        mHyperElasticPlasticUPJ2Axisym2DLaw);
-
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2PlaneStrain2DLaw",mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2Axisym2DLaw",mHyperElasticPlasticUPJ2Axisym2DLaw);
     //Isotropic Damage laws
-    Serializer::Register(
-        "IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw);
-    Serializer::Register("IsotropicDamageSimoJuPlaneStrain2DLaw",
-        mIsotropicDamageSimoJuPlaneStrain2DLaw);
-    Serializer::Register("IsotropicDamageSimoJuPlaneStress2DLaw",
-        mIsotropicDamageSimoJuPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStrain2DLaw",mIsotropicDamageSimoJuPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStress2DLaw",mIsotropicDamageSimoJuPlaneStress2DLaw);
 
-    Serializer::Register("IsotropicDamageModifiedMises3DLaw",
-        mIsotropicDamageModifiedMises3DLaw);
-    Serializer::Register("IsotropicDamageModifiedMisesPlaneStrain2DLaw",
-        mIsotropicDamageModifiedMisesPlaneStrain2DLaw);
-    Serializer::Register("IsotropicDamageModifiedMisesPlaneStress2DLaw",
-        mIsotropicDamageModifiedMisesPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMises3DLaw",mIsotropicDamageModifiedMises3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStrain2DLaw",mIsotropicDamageModifiedMisesPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStress2DLaw",mIsotropicDamageModifiedMisesPlaneStress2DLaw);
 
     //Flow Rules
     Serializer::Register("NonLinearAssociativePlasticFlowRule",

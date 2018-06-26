@@ -149,7 +149,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+                            PropertiesType::Pointer pProperties) const override;
 
 
     ///@}
@@ -167,11 +167,11 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const  override;
 
 
     ///@}
@@ -201,14 +201,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void CalculateTau(double Density,
-                              double KinematicVisc,
-                              const array_1d<double,3> &Velocity,
-                              const ProcessInfo& rProcessInfo,
-                              double ElementSize,
-                              double &TauOne,
-                              double &TauTwo,
-                              double &TauP);
+    void CalculateTau(double Density,
+                      double KinematicVisc,
+                      const array_1d<double,3> &Velocity,
+                      const ProcessInfo& rProcessInfo,
+                      double ElementSize,
+                      double &TauOne,
+                      double &TauTwo,
+                      double &TauP) override;
 
     ///@}
     ///@name Protected  Access
@@ -242,9 +242,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Operators

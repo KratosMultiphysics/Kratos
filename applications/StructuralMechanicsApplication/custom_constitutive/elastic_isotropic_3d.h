@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -91,6 +91,14 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
+    * @brief Dimension of the law:
+    */
+    SizeType WorkingSpaceDimension() override
+    {
+        return 3;
+    };
+
+    /**
      * @brief Voigt tensor size:
      */
     SizeType GetStrainSize() override
@@ -104,7 +112,7 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
+    void CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -112,7 +120,7 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -120,7 +128,7 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+    void CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -128,7 +136,7 @@ public:
      * @param rValues The internal values of the law
      * @see   Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+    void CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -136,7 +144,7 @@ public:
       * @param rValues The internal values of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
+    void FinalizeMaterialResponsePK1 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -144,7 +152,7 @@ public:
       * @param rValues The internal values of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -152,7 +160,7 @@ public:
       * @param rValues The internal values of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues)  override;
+    void FinalizeMaterialResponseKirchhoff (ConstitutiveLaw::Parameters & rValues)  override;
 
     /**
       * Updates the material response:
@@ -160,7 +168,7 @@ public:
       * @param rValues The internal values of the law
       * @see   Parameters
       */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
+    void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
      * calculates the value of a specified variable
@@ -169,7 +177,7 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */ 
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
     
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -202,6 +210,46 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+    * It checks the size of the constitutive matrix C and resize it if neccessary
+    * @param C The constitutive matrix
+    */
+    void CheckClearElasticMatrix(
+        Matrix& C
+    );
+
+    /**
+    * It calculates the constitutive matrix C
+    * @param C The constitutive matrix
+    * @param rValues Parameters of the constitutive law
+    */
+    virtual void CalculateElasticMatrix(
+        Matrix& C,
+        ConstitutiveLaw::Parameters& rValues
+    );
+
+    /**
+    * It calculates the stress vector
+    * @param rStrainVector The strain vector in Voigt notation
+    * @param rStressVector The stress vector in Voigt notation
+    * @param rValues Parameters of the constitutive law
+    */
+    virtual void CalculatePK2Stress(
+        const Vector& rStrainVector,
+        Vector& rStressVector,
+        ConstitutiveLaw::Parameters& rValues
+    );
+
+    /**
+    * It calculates the strain vector
+    * @param rValues The internal values of the law
+    * @param rStrainVector The strain vector in Voigt notation
+    */
+    virtual void CalculateCauchyGreenStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+    );
+
     ///@}
 
 private:
@@ -220,42 +268,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * It calculates the constitutive matrix C
-     * @param C The constitutive matrix
-     * @param E The Young Modulus
-     * @param NU The poisson coefficient
-     */
-    virtual void CalculateElasticMatrix(
-        Matrix& C,
-        const double E,
-        const double NU
-    );
-
-    /**
-     * It calculates the stress vector
-     * @param rStrainVector The strain vector in Voigt notation
-     * @param rStressVector The stress vector in Voigt notation
-     * @param E The Young Modulus
-     * @param NU The poisson coefficient
-     */
-    virtual void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
-        const double E,
-        const double NU
-    );
-
-    /**
-     * It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateCauchyGreenStrain(
-        Parameters& rValues,
-        Vector& rStrainVector
-    );
 
     ///@}
     ///@name Private  Access

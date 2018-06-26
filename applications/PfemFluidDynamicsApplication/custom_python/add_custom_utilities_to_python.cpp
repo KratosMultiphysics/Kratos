@@ -8,15 +8,11 @@
 //
 
 // System includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // External includes 
 
 // Project includes
 #include "includes/node.h"
-#include "includes/define.h"
-#include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/openmp_utils.h"
 
@@ -31,10 +27,10 @@ namespace Kratos
   namespace Python
   {
     
-    void  AddCustomUtilitiesToPython()
+    void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
 
-      using namespace boost::python;
+      using namespace pybind11;
     }
 
   }  // namespace Python.

@@ -28,7 +28,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
@@ -134,18 +134,18 @@ class TestMortarMapping(KratosUnittest.TestCase):
             linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
 
             if (num_nodes == 3):
-                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.model_part_master, self.model_part_slave,  KratosMultiphysics.TEMPERATURE, map_parameters, linear_solver)
-                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.model_part_master, self.model_part_slave,  KratosMultiphysics.DISPLACEMENT, map_parameters, linear_solver)
+                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDouble(self.model_part_master, self.model_part_slave,  KratosMultiphysics.TEMPERATURE, map_parameters, linear_solver)
+                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVector(self.model_part_master, self.model_part_slave,  KratosMultiphysics.DISPLACEMENT, map_parameters, linear_solver)
             else:
-                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.model_part_master, self.model_part_slave,  KratosMultiphysics.TEMPERATURE, map_parameters, linear_solver)
-                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.model_part_master, self.model_part_slave,  KratosMultiphysics.DISPLACEMENT, map_parameters, linear_solver)
+                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDouble(self.model_part_master, self.model_part_slave,  KratosMultiphysics.TEMPERATURE, map_parameters, linear_solver)
+                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVector(self.model_part_master, self.model_part_slave,  KratosMultiphysics.DISPLACEMENT, map_parameters, linear_solver)
         else:
             if (num_nodes == 3):
-                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDoubleHistorical(self.model_part_master, self.model_part_slave,  KratosMultiphysics.TEMPERATURE, map_parameters)
-                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVectorHistorical(self.model_part_master, self.model_part_slave,  KratosMultiphysics.DISPLACEMENT, map_parameters)
+                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D3NDouble(self.model_part_master, self.model_part_slave,  KratosMultiphysics.TEMPERATURE, map_parameters)
+                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D3NVector(self.model_part_master, self.model_part_slave,  KratosMultiphysics.DISPLACEMENT, map_parameters)
             else:
-                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDoubleHistorical(self.model_part_master, self.model_part_slave,  KratosMultiphysics.TEMPERATURE, map_parameters)
-                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVectorHistorical(self.model_part_master, self.model_part_slave,  KratosMultiphysics.DISPLACEMENT, map_parameters)
+                self.mortar_mapping_double = KratosMultiphysics.SimpleMortarMapperProcess3D4NDouble(self.model_part_master, self.model_part_slave,  KratosMultiphysics.TEMPERATURE, map_parameters)
+                self.mortar_mapping_vector = KratosMultiphysics.SimpleMortarMapperProcess3D4NVector(self.model_part_master, self.model_part_slave,  KratosMultiphysics.DISPLACEMENT, map_parameters)
 
     def _mapper_tests(self, input_filename, num_nodes, pure_implicit = False):
 

@@ -4,13 +4,13 @@
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.27,
+        "time_step"       : 0.2,
         "start_time"      : 0.0,
         "end_time"        : 1.3,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
@@ -132,20 +132,10 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","TORQUE"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","REACTION_MOMENT"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     },
 	"json_check_process": [
     {

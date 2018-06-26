@@ -116,7 +116,8 @@ void SmallDisplacementBbar::CalculateAll(
     }
 
     // Reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        GetGeometry().IntegrationPoints();
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
@@ -174,20 +175,18 @@ void SmallDisplacementBbar::CalculateAll(
 void SmallDisplacementBbar::CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
         const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        const GeometryType::IntegrationMethod& rIntegrationMethod
 )
 {
     // Shape functions
-    rThisKinematicVariables.N = GetGeometry().ShapeFunctionsValues(
-            rThisKinematicVariables.N,
-            IntegrationPoints[PointNumber].Coordinates());
+    rThisKinematicVariables.N = row(GetGeometry().ShapeFunctionsValues(rIntegrationMethod), PointNumber);
 
     rThisKinematicVariables.detJ0 = CalculateDerivativesOnReferenceConfiguration(
             rThisKinematicVariables.J0,
             rThisKinematicVariables.InvJ0,
             rThisKinematicVariables.DN_DX,
             PointNumber,
-            GetGeometry().GetDefaultIntegrationMethod());
+            rIntegrationMethod);
 
     KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0)
             << "WARNING:: ELEMENT ID: " << this->Id()
@@ -196,9 +195,7 @@ void SmallDisplacementBbar::CalculateKinematicVariables(
 
     // Compute B
     CalculateB( rThisKinematicVariables.B,
-                rThisKinematicVariables.DN_DX,
-                IntegrationPoints,
-                PointNumber );
+                rThisKinematicVariables.DN_DX);
 
     // Compute equivalent F
     Vector displacements;
@@ -289,9 +286,7 @@ void SmallDisplacementBbar::CalculateConstitutiveVariables(
 
 void SmallDisplacementBbar::CalculateB(
         Matrix& rB,
-        const Matrix& DN_DX,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const Matrix& DN_DX
         )
 {
     KRATOS_TRY;
@@ -355,7 +350,7 @@ void SmallDisplacementBbar::CalculateBbar(
     rBn.resize(strain_size, dimension * number_of_nodes, false);
     noalias(rBn) = ZeroMatrix(strain_size, dimension * number_of_nodes);
 
-    this->CalculateB(rB, rDN_DX, IntegrationPoints, PointNumber);
+    this->CalculateB(rB, rDN_DX);
 
     if (dimension == 2) {
         rBn(0, 0) = 2. / 3. * rB(0, 0);
@@ -428,7 +423,11 @@ void SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(KinematicVaria
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    
+    const GeometryType::IntegrationMethod integration_method =
+        GetGeometry().GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+        GetGeometry().IntegrationPoints(integration_method);
     rVariables.Bh.resize(dimension * number_of_nodes, false);
     noalias(rVariables.Bh) = ZeroVector(dimension * number_of_nodes);
 
@@ -436,7 +435,7 @@ void SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(KinematicVaria
         double TotalArea = 0.0;
         for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(rVariables, PointNumber, integration_points);
+            CalculateKinematicVariables(rVariables, PointNumber, integration_method);
             double IntegrationWeight = rVariables.detJ0 * integration_points[PointNumber].Weight();
             TotalArea += IntegrationWeight;
 
@@ -453,7 +452,7 @@ void SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(KinematicVaria
         double TotalVolume = 0.0;
         for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(rVariables, PointNumber, integration_points);
+            CalculateKinematicVariables(rVariables, PointNumber, integration_method);
             double IntegrationWeight = rVariables.detJ0 * integration_points[PointNumber].Weight();
             TotalVolume += IntegrationWeight;
 

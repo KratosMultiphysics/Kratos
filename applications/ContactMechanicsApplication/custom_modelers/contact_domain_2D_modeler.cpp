@@ -229,7 +229,7 @@ namespace Kratos
     //std::cout<<" BFacet[]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
     
     //PART 3: (area) hole list    
-    std::vector<bounded_vector<double, 3> >& Holes = rMeshingVariables.GetHoles();
+    std::vector<BoundedVector<double, 3> >& Holes = rMeshingVariables.GetHoles();
 
     //holes
     in.numberofholes              = Holes.size();

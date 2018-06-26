@@ -109,7 +109,6 @@ class TestRemeshMMG(KratosUnittest.TestCase):
                             {
                                 "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_test_result.sol",
                                 "output_file_name"      : "mmg_eulerian_test/coarse_sphere_test_step=0.sol",
-                                "tolerance"             : 1.0e-6,
                                 "dimension"             : 3,
                                 "comparison_type"       : "sol_file"
                             }

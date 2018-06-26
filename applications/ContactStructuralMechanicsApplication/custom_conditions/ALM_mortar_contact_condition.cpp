@@ -22,6 +22,7 @@
 #include "custom_conditions/ALM_mortar_contact_condition.h"
 
 /* Utilities */
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos 
@@ -30,15 +31,15 @@ namespace Kratos
  * Flags related to the condition computation 
  */
 // Avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 const Kratos::Flags AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 const Kratos::Flags AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
 
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::Create( 
     IndexType NewId,
     NodesArrayType const& rThisNodes,
@@ -52,7 +53,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
@@ -66,7 +67,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
@@ -81,7 +82,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::~AugmentedLagrangianMethodMortarContactCondition( )
 = default;
 
@@ -89,7 +90,7 @@ AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNor
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::Initialize( ) 
 {
     KRATOS_TRY;
@@ -107,7 +108,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
@@ -120,7 +121,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
@@ -131,7 +132,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
@@ -144,7 +145,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
@@ -155,7 +156,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -181,7 +182,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateLeftHandSide( 
     MatrixType& rLeftHandSideMatrix,
     ProcessInfo& rCurrentProcessInfo 
@@ -204,7 +205,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateRightHandSide( 
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo 
@@ -227,7 +228,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateMassMatrix( 
     MatrixType& rMassMatrix, 
     ProcessInfo& rCurrentProcessInfo
@@ -243,7 +244,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateDampingMatrix( 
     MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo
@@ -259,7 +260,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -306,17 +307,17 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
         rVariables.Initialize();
         
         // Update slave element info
-        rDerivativeData.UpdateMasterPair(master_geometry);
+        rDerivativeData.UpdateMasterPair(master_geometry, rCurrentProcessInfo);
         
         // Initialize the mortar operators
         rThisMortarConditionMatrices.Initialize();
         
         const bool dual_LM = DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry, normal_slave, master_geometry, rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method, GetAxisymmetricCoefficient(rVariables));
         
-        for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+        for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
             std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
             array_1d<BelongType, TDim> belong_array;
-            for (unsigned int i_node = 0; i_node < TDim; ++i_node) {
+            for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                 PointType global_point;
                 slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                 points_array[i_node] = Kratos::make_shared<PointType>(PointType(global_point));
@@ -325,13 +326,13 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
             
             DecompositionType decomp_geom( points_array );
             
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
             
             if (bad_shape == false) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
                 
                 // Integrating the mortar operators
-                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
+                for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                     // We compute the local coordinates 
                     const PointType local_point_decomp = integration_points_slave[point_number].Coordinates();
                     PointType local_point_parent;
@@ -351,16 +352,16 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
         
         // Setting the weighted gap
         // Mortar condition matrices - DOperator and MOperator
-        const bounded_matrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
-        const bounded_matrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rThisMortarConditionMatrices.DOperator;
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& MOperator = rThisMortarConditionMatrices.MOperator;
         
         // Current coordinates 
-        const bounded_matrix<double, TNumNodes, TDim>& x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry);
-        const bounded_matrix<double, TNumNodes, TDim>& x2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry);
+        const BoundedMatrix<double, TNumNodes, TDim> x1 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry);
+        const BoundedMatrix<double, TNumNodes, TDim> x2 = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry);
 
-        const bounded_matrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2); 
+        const BoundedMatrix<double, TNumNodes, TDim> D_x1_M_x2 = prod(DOperator, x1) - prod(MOperator, x2); 
         
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& normal = slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
             const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
                             
@@ -369,32 +370,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
             #pragma omp atomic
             weighted_gap += inner_prod(aux_array, - subrange(normal, 0, TDim)); 
         }
-        
-        if (TFrictional == FrictionalCase::FRICTIONAL) { // TODO: Check this!!!
-            // Old coordinates 
-            const bounded_matrix<double, TNumNodes, TDim>& x1_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(slave_geometry, false, 1);
-            const bounded_matrix<double, TNumNodes, TDim>& x2_old = MortarUtilities::GetCoordinates<TDim,TNumNodes>(master_geometry, false, 1);
-    
-            const bounded_matrix<double, TNumNodes, TDim> D_x1_old_M_x2_old = prod(DOperator, x1_old) - prod(MOperator, x2_old); 
-            
-            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-                // We compute the tangent
-                const array_1d<double, 3>& normal = slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
-                const array_1d<double, 3>& lm = slave_geometry[i_node].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                const double lm_normal = inner_prod(normal, lm);
-                array_1d<double, 3> tangent_lm = lm - lm_normal * normal;
-                tangent_lm /= norm_2(tangent_lm); 
-                const array_1d<double, TDim>& tangent = subrange(tangent_lm, 0, TDim);
-                
-                const array_1d<double, TDim>& aux_array = row(D_x1_old_M_x2_old, i_node);
-                            
-                double& weighted_slip = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
 
-                #pragma omp atomic
-                weighted_slip += inner_prod(aux_array, tangent); 
-            }
-        }
-        
         // We reset the flag
         this->Set(ISOLATED, false);
     } else {
@@ -408,7 +384,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation>::CalculateConditionSystem( 
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -459,7 +435,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         rVariables.Initialize();
         
         // Update slave element info
-        rDerivativeData.UpdateMasterPair(master_geometry);
+        rDerivativeData.UpdateMasterPair(master_geometry, rCurrentProcessInfo);
         
         // Initialize the mortar operators
         rThisMortarConditionMatrices.Initialize();
@@ -473,10 +449,10 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
             KRATOS_WARNING("No dual LM") << "NOT USING DUAL LM. Integration area: " << integration_area << "\tOriginal area: " << geometry_area << "\tRatio: " << integration_area/geometry_area << std::endl;
     #endif
         
-        for (unsigned int i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+        for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
             std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
             array_1d<BelongType, TDim> belong_array;
-            for (unsigned int i_node = 0; i_node < TDim; ++i_node) {
+            for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                 PointType global_point;
                 slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                 points_array[i_node] = Kratos::make_shared<PointType>(PointType(global_point));
@@ -485,13 +461,13 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
             
             DecompositionType decomp_geom( points_array );
             
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, slave_geometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
             
             if (bad_shape == false) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
                 
                 // Integrating the mortar operators
-                for ( unsigned int point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
+                for ( IndexType point_number = 0; point_number < integration_points_slave.size(); ++point_number ) {
                     // We reset the derivatives
                     rDerivativeData.ResetDerivatives();
                     
@@ -524,15 +500,15 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         }
             
         // Calculates the active/inactive combination pair
-        const unsigned int active_inactive = GetActiveInactiveValue(slave_geometry);
+        const IndexType active_inactive = GetActiveInactiveValue(slave_geometry);
         
         // Assemble of the matrix is required
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_LHS_MATRIX ) )
-            this->CalculateLocalLHS( rLeftHandSideMatrix, rThisMortarConditionMatrices, rDerivativeData, active_inactive);
+            this->CalculateLocalLHS( rLeftHandSideMatrix, rThisMortarConditionMatrices, rDerivativeData, active_inactive, rCurrentProcessInfo);
         
         // Assemble of the vector is required
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_RHS_VECTOR ))
-            this->CalculateLocalRHS(rRightHandSideVector, rThisMortarConditionMatrices, rDerivativeData, active_inactive);
+            this->CalculateLocalRHS(rRightHandSideVector, rThisMortarConditionMatrices, rDerivativeData, active_inactive, rCurrentProcessInfo);
         
     } else { //If not inside we fill we zero the local matrices
         this->Set(ISOLATED, true); // We set the corresponding flag
@@ -545,14 +521,14 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::COMPUTE_RHS_VECTOR ))
             ZeroRHS(rRightHandSideVector);
     }
-    
+
     KRATOS_CATCH( "" );
 }
 
 /*********************************COMPUTE KINEMATICS*********************************/
 /************************************************************************************/
  
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateKinematics( 
     GeneralVariables& rVariables,
     const DerivativeDataType& rDerivativeData,
@@ -585,7 +561,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /*************** METHODS TO CALCULATE THE CONTACT CONDITION MATRICES ***************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
     const array_1d<double, 3>& NormalMaster,
@@ -599,7 +575,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     
     GeometryType::CoordinatesArrayType slave_gp_global;
     this->GetGeometry( ).GlobalCoordinates( slave_gp_global, LocalPoint );
-    MortarUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, NormalMaster, -gp_normal ); // The opposite direction
+    GeometricalProjectionUtilities::FastProjectDirection( master_geometry, slave_gp_global, projected_gp_global, NormalMaster, -gp_normal ); // The opposite direction
     
     GeometryType::CoordinatesArrayType projected_gp_local;
     
@@ -616,7 +592,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 bool AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CheckIsolatedElement(
     const double DeltaTime, 
     const bool HalfJump
@@ -719,7 +695,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -733,7 +710,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -747,7 +725,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -761,7 +740,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -775,7 +755,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -789,7 +770,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -803,7 +785,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -817,7 +800,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -831,7 +815,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -845,7 +830,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -859,7 +845,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -873,7 +860,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -887,7 +875,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -901,7 +890,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,3, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -915,7 +905,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3,4, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -929,7 +920,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2,2, FrictionalCase::FRICTI
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -943,7 +935,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -957,7 +950,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Matrix& rLocalLHS, 
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
@@ -971,7 +965,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -985,7 +980,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -999,7 +995,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1013,7 +1010,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1027,7 +1025,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1041,7 +1040,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1055,7 +1055,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1069,7 +1070,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1083,7 +1085,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1097,7 +1100,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1111,7 +1115,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1125,7 +1130,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1139,7 +1145,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1153,7 +1160,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1167,7 +1175,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1181,7 +1190,8 @@ void AugmentedLagrangianMethodMortarContactCondition<2, 2, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1195,7 +1205,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 3, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1209,7 +1220,8 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DerivativeDataType& rDerivativeData,
-    const unsigned int rActiveInactive
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
@@ -1218,7 +1230,7 @@ void AugmentedLagrangianMethodMortarContactCondition<3, 4, FrictionalCase::FRICT
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo 
@@ -1230,11 +1242,11 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo 
-)
+    ProcessInfo& rCurrentProcessInfo
+    )
 {
     KRATOS_ERROR << "You are calling to the base class method GetDofList, check your condition definition" << std::endl;
 }
@@ -1242,7 +1254,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 //******************************* GET DOUBLE VALUE *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::GetValueOnIntegrationPoints( 
     const Variable<double>& rVariable,
     std::vector<double>& rValues,
@@ -1255,7 +1267,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 //******************************* GET ARRAY_1D VALUE *******************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::GetValueOnIntegrationPoints( 
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
@@ -1268,7 +1280,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 //******************************* GET VECTOR VALUE *********************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::GetValueOnIntegrationPoints( 
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
@@ -1281,7 +1293,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateOnIntegrationPoints( 
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
@@ -1295,7 +1307,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     if ( rOutput.size() != integration_points.size() )
         rOutput.resize( integration_points.size() );
     
-    for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number)
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         rOutput[point_number] = 0.0;
     
     KRATOS_CATCH( "" );
@@ -1304,7 +1316,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateOnIntegrationPoints( 
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector< array_1d<double, 3 > >& rOutput,
@@ -1318,7 +1330,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     if ( rOutput.size() != integration_points.size() )
         rOutput.resize( integration_points.size() );
     
-    for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number)
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         rOutput[point_number] = ZeroVector(3);
     
     KRATOS_CATCH( "" );
@@ -1327,7 +1339,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::CalculateOnIntegrationPoints( 
     const Variable<Vector>& rVariable, 
     std::vector<Vector>& rOutput, 
@@ -1341,7 +1353,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     if ( rOutput.size() != integration_points.size() )
         rOutput.resize( integration_points.size() );
     
-    for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number)
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         rOutput[point_number] = ZeroVector(3);
     
     KRATOS_CATCH( "" );
@@ -1350,7 +1362,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 int AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -1367,7 +1379,7 @@ int AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, 
     KRATOS_CHECK_VARIABLE_KEY(NORMAL)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( unsigned int i = 0; i < TNumNodes; i++ ) {
+    for ( IndexType i = 0; i < TNumNodes; i++ ) {
         Node<3> &rnode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WEIGHTED_GAP,rnode)
@@ -1386,7 +1398,7 @@ int AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 double AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFrictional, TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
 {
     return 1.0;
@@ -1395,7 +1407,7 @@ double AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFricti
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFrictional, TNormalVariation>::ResizeLHS(MatrixType& rLeftHandSideMatrix)
 {
     // Resizing as needed the LHS
@@ -1406,7 +1418,7 @@ void AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFriction
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFrictional, TNormalVariation>::ResizeRHS(VectorType& rRightHandSideVector)
 {
     // Resizing as needed the RHS
@@ -1417,7 +1429,7 @@ void AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFriction
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFrictional, TNormalVariation>::ZeroLHS(MatrixType& rLeftHandSideMatrix)
 {
     rLeftHandSideMatrix = ZeroMatrix( MatrixSize, MatrixSize );
@@ -1426,7 +1438,7 @@ void AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFriction
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< unsigned int TDim, unsigned int TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
+template< std::size_t TDim, std::size_t TNumNodes, FrictionalCase TFrictional, bool TNormalVariation>
 void AugmentedLagrangianMethodMortarContactCondition< TDim, TNumNodes, TFrictional, TNormalVariation>::ZeroRHS(VectorType& rRightHandSideVector)
 {
     rRightHandSideVector = ZeroVector( MatrixSize );

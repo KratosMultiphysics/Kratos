@@ -15,13 +15,12 @@
 // System includes
 #include <iostream>
 #include <vector>
-#include "includes/serializer.h"
+#include <pybind11/pybind11.h>
 
 // External includes
-#include "boost/smart_ptr.hpp"
-#include "boost/python.hpp"
 
 // Project includes
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -44,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class ProcessFactoryUtility
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This is a experimental process factory utility
@@ -60,12 +59,12 @@ public:
     
     /// Counted pointer of ProcessFactoryUtility
     KRATOS_CLASS_POINTER_DEFINITION( ProcessFactoryUtility );
-    
+
     /// The object type in python
-    typedef boost::python::object ObjectType;
+    typedef pybind11::object ObjectType;
     
     /// The list [] of python
-    typedef boost::python::list     ListType;
+    typedef pybind11::list     ListType;
     
     ///@}
     ///@name Life Cycle
@@ -73,13 +72,13 @@ public:
 
     /// Default constructors
     ProcessFactoryUtility()= default;
-    
+
     /**
      * @brief Constructor using a list of processes
      * @param ProcessesList List of processes that will be used to build the vector of processes
      */
     ProcessFactoryUtility(ListType& ProcessesList);
-    
+
     /**
      * @brief Constructor using just one process
      * @param rProcess The process that will be added  at the begining of the vector of processes
@@ -116,7 +115,7 @@ public:
      */
 
     void AddProcesses(ListType& ProcessesList);
-    
+
     /**
      * @brief It executes the method considered in the input
      * @param rNameMethod The method to be executed
@@ -135,7 +134,7 @@ public:
      */
         
     void ExecuteBeforeSolutionLoop();
-    
+
     /**
      * @brief It executes the ExecuteInitializeSolutionStep() from the list of processes
      */
@@ -163,25 +162,25 @@ public:
     /**
      * @brief It executes the ExecuteFinalize() from the list of processes
      */
-        
+
     void ExecuteFinalize();
-    
+
     /**
      * @brief It executes the IsOutputStep() from the list of processes
      */
-    
+
     void IsOutputStep();
-    
+
     /**
      * @brief It executes the PrintOutput() from the list of processes
      */
-    
+
     void PrintOutput();
     
     /**
      * @brief It executes the Clear() from the list of processes
      */
-    
+
     void Clear();
 
     ///@}

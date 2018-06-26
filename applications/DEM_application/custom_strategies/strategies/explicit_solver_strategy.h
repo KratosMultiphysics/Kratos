@@ -76,7 +76,7 @@ namespace Kratos {
         ModelPart::Pointer cluster_model_part;
         ModelPart::Pointer inlet_model_part;
     };
-    
+
     class KRATOS_API(DEM_APPLICATION) ExplicitSolverStrategy {
     public:
 
@@ -126,7 +126,7 @@ namespace Kratos {
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
-            
+
             mpDem_model_part = &(*(settings.r_model_part));
             if (mpDem_model_part == NULL)
                 KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.r_model_part in ExplicitSolverStrategy constructor", "")
@@ -196,7 +196,7 @@ namespace Kratos {
         void RebuildListOfDiscontinuumSphericParticles() {
             RebuildListOfSphericParticles<SphericParticle>(GetModelPart().GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         }
-       
+
         void RebuildPropertiesProxyPointers(std::vector<SphericParticle*>& rCustomListOfSphericParticles);
         void SendProcessInfoToClustersModelPart();
         void UpdateMaxIdOfCreatorDestructor();
@@ -228,7 +228,7 @@ namespace Kratos {
         void ComputeNormalPressureVectorField();
         virtual void CalculateConditionsRHSAndAdd();
         void ClearFEMForces();
-        void CalculateNodalPressuresAndStressesOnWalls();        
+        void CalculateNodalPressuresAndStressesOnWalls();
         void SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void SetVariableToNodes(ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void ResetPrescribedMotionFlagsRespectingImposedDofs();
@@ -250,14 +250,14 @@ namespace Kratos {
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
-                
+
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}
         ModelPart& GetContactModelPart() { return (*mpContact_model_part);}
         ModelPart& GetClusterModelPart() { return (*mpCluster_model_part);}
         ModelPart& GetInletModelPart() { return (*mpInlet_model_part);}
         ModelPart& GetRigidBodyModelPart() { return (*mpRigidBody_model_part);}
-        
+
         VectorResultElementsContainerType& GetResults() { return (mResults);}
         VectorDistanceType& GetResultsDistances() { return (mResultsDistances);}
         RadiusArrayType& GetArrayOfAmplifiedRadii() { return (mArrayOfAmplifiedRadii);}
@@ -267,12 +267,12 @@ namespace Kratos {
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
         int& GetDeltaOption() { return (mDeltaOption);}
-        vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
+        DenseVector<unsigned int>& GetElementPartition() { return (mElementPartition);}
         ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
         SpatialSearch::Pointer& GetSpSearch() { return (mpSpSearch);}
         VectorResultConditionsContainerType& GetRigidFaceResults() { return (mRigidFaceResults);}
         VectorDistanceType& GetRigidFaceResultsDistances() { return (mRigidFaceResultsDistances);}
-        vector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
+        DenseVector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
 
@@ -287,14 +287,14 @@ namespace Kratos {
         double mMaxTimeStep;
         double mSafetyFactor;
         int mDeltaOption;
-        vector<unsigned int> mElementPartition;
+        DenseVector<unsigned int> mElementPartition;
         ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
         DEM_FEM_Search::Pointer mpDemFemSearch;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
-        vector<unsigned int> mConditionPartition;
+        DenseVector<unsigned int> mConditionPartition;
         ModelPart *mpFem_model_part;
         ModelPart *mpDem_model_part;
         ModelPart *mpInlet_model_part;

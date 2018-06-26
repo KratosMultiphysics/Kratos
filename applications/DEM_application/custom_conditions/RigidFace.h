@@ -82,6 +82,7 @@ public:
                                       array_1d<double, 3>& wall_velocity_at_contact_point,
                                       int& ContactType) override;
     
+    array_1d<double, 3> GetVelocity();
 
 protected:
   

@@ -188,8 +188,8 @@ namespace Kratos
     //MOMENT CONDITION:
     
     //defined on condition
-    if( this->Has( LINE_MOMENT ) ){
-      array_1d<double, 3 > & LineLoad = this->GetValue( LINE_MOMENT );
+    if( this->Has( MOMENT_LOAD ) ){
+      array_1d<double, 3 > & LineLoad = this->GetValue( MOMENT_LOAD );
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  for( unsigned int k = 0; k < dimension; k++ )
@@ -198,8 +198,8 @@ namespace Kratos
     }
 
     //defined on condition nodes
-    if( this->Has( LINE_MOMENT_VECTOR ) ){
-      Vector& LineLoads = this->GetValue( LINE_MOMENT_VECTOR );
+    if( this->Has( MOMENT_LOAD_VECTOR ) ){
+      Vector& LineLoads = this->GetValue( MOMENT_LOAD_VECTOR );
       unsigned int counter = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
@@ -215,8 +215,8 @@ namespace Kratos
     //defined on geometry nodes
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( LINE_MOMENT ) ){
-	  array_1d<double, 3 > & LineLoad = GetGeometry()[i].FastGetSolutionStepValue( LINE_MOMENT );
+	if( GetGeometry()[i].SolutionStepsDataHas( MOMENT_LOAD ) ){
+	  array_1d<double, 3 > & LineLoad = GetGeometry()[i].FastGetSolutionStepValue( MOMENT_LOAD );
 	  for( unsigned int k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoad[k];
 	}
@@ -260,8 +260,8 @@ namespace Kratos
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
     
     // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(LINE_MOMENT);
-    KRATOS_CHECK_VARIABLE_KEY(LINE_MOMENT_VECTOR);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
+    KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
 
     return ErrorCode;
     
