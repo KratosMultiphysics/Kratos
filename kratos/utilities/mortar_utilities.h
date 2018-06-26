@@ -852,7 +852,7 @@ inline void MortarUtilities::ResetValue<Variable<double>, NonHistorical>(
         Variable<double>& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(ThisVariable, 0.0, nodes_array);
+    VariableUtils().SetNonHistoricalVariable(ThisVariable, 0.0, nodes_array);
 }
 
 template<> 
@@ -861,7 +861,7 @@ inline void MortarUtilities::ResetValue<ComponentType, NonHistorical>(
         ComponentType& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(ThisVariable, 0.0, nodes_array);
+    VariableUtils().SetNonHistoricalVariable(ThisVariable, 0.0, nodes_array);
 }
 
 template<> 
@@ -870,25 +870,25 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistor
         Variable<array_1d<double, 3>>& ThisVariable
         ) {    
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalVectorVar(ThisVariable, ZeroVector(3), nodes_array);
+    VariableUtils().SetNonHistoricalVariable(ThisVariable, ZeroVector(3), nodes_array);
 }
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<double>>(ModelPart& rThisModelPart) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(NODAL_MAUX, 0.0, nodes_array);
+    VariableUtils().SetNonHistoricalVariable(NODAL_MAUX, 0.0, nodes_array);
 }
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<ComponentType>(ModelPart& rThisModelPart) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(NODAL_VAUX_X, 0.0, nodes_array);
+    VariableUtils().SetNonHistoricalVariable(NODAL_VAUX_X, 0.0, nodes_array);
 }
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalVectorVar(NODAL_VAUX, ZeroVector(3), nodes_array);
+    VariableUtils().SetNonHistoricalVariable(NODAL_VAUX, ZeroVector(3), nodes_array);
 }
 
 template< >
