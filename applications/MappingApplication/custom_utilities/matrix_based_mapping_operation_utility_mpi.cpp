@@ -23,6 +23,10 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
+#include <EpetraExt_MatrixMatrix.h>
+#include <EpetraExt_RowMatrixOut.h>
+#include <EpetraExt_MultiVectorOut.h>
+
 namespace Kratos
 {
 using SparseSpaceType = MapperDefinitions::MPISparseSpaceType;
@@ -53,20 +57,6 @@ void UtilityType::ResizeAndInitializeVectors(
     ModelPart& rModelPartDestination,
     MapperLocalSystemPointerVector& rMapperLocalSystems) const
 {
-
-
-    typedef MapperDefinitions::MPISparseSpaceType SparseSpaceType;
-
-    typedef typename SparseSpaceType::MatrixType SystemMatrixType; // Epetra_FECrsMatrix
-    typedef typename SparseSpaceType::MatrixPointerType SystemMatrixPointerType;
-
-    typedef typename SparseSpaceType::VectorType SystemVectorType; // Epetra_FEVector
-    typedef typename SparseSpaceType::VectorPointerType SystemVectorPointerType;
-
-    SystemMatrixPointerType mpMappingMatrix;
-    SystemVectorPointerType mpVectorOrigin;
-    SystemVectorPointerType mpVectorDestination;
-
     // big TODO what if the rank doesn't have local nodes ... ?
 
     const int num_local_nodes_orig = rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
@@ -143,18 +133,21 @@ void UtilityType::ResizeAndInitializeVectors(
 
     // // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
     // // https://trilinos.org/docs/dev/packages/epetra/doc/html/Epetra__DataAccess_8h.html#ad1a985e79f94ad63030815a0d7d90928
-    SystemMatrixPointerType p_new_mapping_matrix = Kratos::make_shared<SystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
-    mpMappingMatrix.swap(p_new_mapping_matrix);
+    TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
+    rpMdo.swap(p_Mdo);
 
-    SystemVectorPointerType p_new_vector_destination = Kratos::make_shared<SystemVectorType>(epetra_map_rows);
-    mpVectorDestination.swap(p_new_vector_destination);
+    TSystemVectorUniquePointerType p_new_vector_destination = Kratos::make_unique<TSystemVectorType>(epetra_map_rows);
+    rpQd.swap(p_new_vector_destination);
 
-    SystemVectorPointerType p_new_vector_origin = Kratos::make_shared<SystemVectorType>(epetra_map_cols);
-    mpVectorOrigin.swap(p_new_vector_origin);
+    TSystemVectorUniquePointerType p_new_vector_origin = Kratos::make_unique<TSystemVectorType>(epetra_map_cols);
+    rpQo.swap(p_new_vector_origin);
+
+    // rpQo->GlobalAssemble();
+    // rpQd->GlobalAssemble();
 
     std::cout << "AFTER Trilinos" << std::cout;
 
-    Philipp check if you assigned the rows/colums correctly!!!
+    // Philipp check if you assigned the rows/colums correctly!!!
 
 }
 
@@ -191,6 +184,10 @@ void UtilityType::BuildMappingMatrix(
 
         rp_local_sys->Clear();
     }
+
+    rMdo.GlobalAssemble();
+
+    EpetraExt::RowMatrixToMatrixMarketFile("TrilinosMappingMatrix", rMdo);
 }
 
 template< class TVarType >
@@ -206,8 +203,17 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
     {
         const int global_index = r_node.GetValue(INTERFACE_EQUATION_ID);
         const int local_index = rVector.Map().LID(global_index);
-        fill_fct(r_node, rVariable, *rVector[local_index]);
+        fill_fct(r_node, rVariable, rVector[0][local_index]);
     }
+
+    // rVector.GlobalAssemble();
+
+    for (int localIndex=0; localIndex<rVector.MyLength(); ++localIndex)
+        std::cout << "FillSystemVector | rVector[localIndex]: " << rVector[0][localIndex] << std::endl;
+
+
+    // EpetraExt::RowMatrixToMatlabFile();
+    // EpetraExt::MultiVectorToMatrixMarketFile("dummy", rVector);
 }
 
 template< class TVarType >
@@ -229,8 +235,11 @@ void Update(UtilityType::TSystemVectorType& rVector,
     {
         const int global_index = r_node.GetValue(INTERFACE_EQUATION_ID);
         const int local_index = rVector.Map().LID(global_index);
-        update_fct(r_node, rVariable, *rVector[local_index]);
+        update_fct(r_node, rVariable, rVector[0][local_index]);
     }
+
+    for (int localIndex = 0; localIndex < rVector.MyLength(); ++localIndex)
+        std::cout << "Updates | rVector[localIndex]: " << rVector[0][localIndex] << std::endl;
 }
 
 
