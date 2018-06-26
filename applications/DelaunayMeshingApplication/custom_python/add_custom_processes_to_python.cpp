@@ -96,13 +96,16 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       ;
 
 
-  //**********MESH MODELLER PROCESS*********//
+  //**********MODEL PROCESSES*********//
 
   class_<ModelStartEndMeshingProcess, ModelStartEndMeshingProcess::Pointer, Process>
       (m,"ModelMeshing")
       .def(init<ModelPart&, Flags, int>())
+      .def("ExecuteInitialize", &ModelStartEndMeshingProcess::ExecuteInitialize)
+      .def("ExecuteFinalize", &ModelStartEndMeshingProcess::ExecuteFinalize)
       ;
 
+  //**********MESH MODELLER PROCESS*********//
 
   class_<RefineMeshElementsOnThresholdProcess, RefineMeshElementsOnThresholdProcess::Pointer, Process>
       (m,"SetElementNodesToRefineOnThreshold")
@@ -129,7 +132,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
       ;
 
-
   class_<GenerateNewNodesProcess, GenerateNewNodesProcess::Pointer, Process>
       (m,"GenerateNewNodes")
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
@@ -145,12 +147,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
       ;
 
-
   class_<BuildMeshBoundaryProcess, BuildMeshBoundaryProcess::Pointer, BuildModelPartBoundaryProcess>
       (m,"BuildMeshBoundary")
       .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
       ;
-
 
   class_<PrintOutputMeshProcess, PrintOutputMeshProcess::Pointer, Process>
       (m,"PrintOutputMeshProcess")
@@ -167,7 +167,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
       ;
       
-  //********MODEL VOLUME CALCULATION*********//
+  //********CONSTANT ROTATION CALCULATION*********//
 
   class_<ConstantRotationProcess, ConstantRotationProcess::Pointer, Process>
       (m,"ConstantRotationProcess")

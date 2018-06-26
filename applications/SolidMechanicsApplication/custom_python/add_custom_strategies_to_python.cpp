@@ -774,6 +774,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //to define it as a variable
   class_<Variable<VectorTimeIntegrationContainerPointerType>, VariableData>(m,"VectorTimeIntegrationMethodsVariable")
+      .def( "__repr__", &Variable<VectorTimeIntegrationContainerPointerType>::Info )
       ;
 
   // Time vector integration methods container type
@@ -791,6 +792,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //to define it as a variable
   class_<Variable<ComponentTimeIntegrationContainerPointerType>, VariableData>(m,"ComponentTimeIntegrationMethodsVariable")
+      .def( "__repr__", &Variable<ComponentTimeIntegrationContainerPointerType>::Info )
       ;
 
   // Time vector integration methods container type
@@ -808,6 +810,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //to define it as a variable
   class_<Variable<ScalarTimeIntegrationContainerPointerType>, VariableData>(m,"ScalarTimeIntegrationMethodsVariable")
+      .def( "__repr__", &Variable<ScalarTimeIntegrationContainerPointerType>::Info )
       ;
 
 }

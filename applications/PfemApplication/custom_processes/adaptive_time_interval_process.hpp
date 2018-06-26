@@ -17,9 +17,6 @@
 
 // Project includes
 
-
-#include "spatial_containers/spatial_containers.h"
-
 #include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_utilities/modeler_utilities.hpp"
 #include "includes/model_part.h"
