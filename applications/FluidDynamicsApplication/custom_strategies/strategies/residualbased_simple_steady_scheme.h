@@ -221,9 +221,12 @@ public:
 
     double output;
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-    for (typename ModelPart::ElementsContainerType::iterator itElem = rModelPart.ElementsBegin();
-         itElem != rModelPart.ElementsEnd(); itElem++)
-      itElem->Calculate(NODAL_AREA, output, CurrentProcessInfo);
+    const int number_of_elements = rModelPart.NumberOfElements();
+    #pragma omp parallel for private(output)
+    for (int i = 0; i < number_of_elements; i++) {
+      ModelPart::ElementsContainerType::iterator it_elem = rModelPart.ElementsBegin() + i;
+      it_elem->Calculate(NODAL_AREA, output, CurrentProcessInfo);
+    }
 
     rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
@@ -246,32 +249,37 @@ public:
       if (rModelPart.GetCommunicator().MyPID() == 0)
         std::cout << "Computing OSS projections" << std::endl;
 
-      for (typename ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin();
-           itNode != rModelPart.NodesEnd(); itNode++)
-      {
-        noalias(itNode->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
-        itNode->FastGetSolutionStepValue(DIVPROJ) = 0.0;
-        itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+      const int number_of_nodes = rModelPart.NumberOfNodes();
+
+      #pragma omp parallel for
+      for (int i = 0; i < number_of_nodes; i++) {
+        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+        noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = array_1d<double,3>(3,0.0);
+        it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
+        it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
       }
 
+      const int number_of_elements = rModelPart.NumberOfElements();
       array_1d<double, 3 > output;
-      for (typename ModelPart::ElementsContainerType::iterator itElem = rModelPart.ElementsBegin();
-           itElem != rModelPart.ElementsEnd(); itElem++)
-      {
-        itElem->Calculate(ADVPROJ, output, CurrentProcessInfo);
+
+      #pragma omp parallel for private(output)
+      for (int i = 0; i < number_of_elements; i++) {
+        ModelPart::ElementIterator it_elem = rModelPart.ElementsBegin() + i;
+        it_elem->Calculate(ADVPROJ,output,CurrentProcessInfo);
       }
+
       rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
       rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
       rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
 
-      for (typename ModelPart::NodesContainerType::iterator itNode = rModelPart.NodesBegin();
-           itNode != rModelPart.NodesEnd(); itNode++)
-      {
-        if (itNode->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
-          itNode->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
-        const double Area = itNode->FastGetSolutionStepValue(NODAL_AREA);
-        itNode->FastGetSolutionStepValue(ADVPROJ) /= Area;
-        itNode->FastGetSolutionStepValue(DIVPROJ) /= Area;
+      #pragma omp parallel for
+      for (int i = 0; i < number_of_nodes; i++) {
+        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
+        if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
+          it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
+        const double Area = it_node->FastGetSolutionStepValue(NODAL_AREA);
+        it_node->FastGetSolutionStepValue(ADVPROJ) /= Area;
+        it_node->FastGetSolutionStepValue(DIVPROJ) /= Area;
       }
     }
   }
