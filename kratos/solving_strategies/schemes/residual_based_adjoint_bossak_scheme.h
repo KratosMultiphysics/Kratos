@@ -271,6 +271,9 @@ public:
     {
         KRATOS_TRY;
 
+        pCurrentCondition->CalculateLocalSystem(
+            rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
         KRATOS_CATCH("");
     }
 
