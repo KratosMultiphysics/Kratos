@@ -164,7 +164,7 @@ void TotalLagrangian::CalculateAll(
     }
 
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
     
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     
@@ -182,7 +182,7 @@ void TotalLagrangian::CalculateAll(
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
         
         // Compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
         
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
@@ -420,7 +420,7 @@ void TotalLagrangian::CalculateShapeSensitivity(ShapeParameter Deriv,
     const unsigned ls_dim = GetGeometry().LocalSpaceDimension();
     Matrix J0(ws_dim, ls_dim);
     GeometryUtils::JacobianOnInitialConfiguration(
-        GetGeometry(), GetGeometry().IntegrationPoints(mThisIntegrationMethod)[IntegrationPointIndex], J0);
+        GetGeometry(), GetGeometry().IntegrationPoints(this->GetIntegrationMethod())[IntegrationPointIndex], J0);
     const Matrix& rDN_De = GetGeometry().ShapeFunctionsLocalGradients()[IntegrationPointIndex];
     auto sensitivity_utility =
         GeometricalSensitivityUtility(J0, rDN_De);
@@ -517,7 +517,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(
         Vector residual_deriv(ws_dim * nnodes);
         Vector body_force, acceleration;
         double detJ0_deriv;
-        LargeDisplacementKinematics large_disp_kinematics(r_geom, mThisIntegrationMethod);
+        LargeDisplacementKinematics large_disp_kinematics(r_geom, this->GetIntegrationMethod());
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
         {
             large_disp_kinematics.DeformationGradient(g, F);
@@ -525,9 +525,9 @@ void TotalLagrangian::CalculateSensitivityMatrix(
             CalculateB(B, F, DN_DX0);
             CalculateStress(F, g, stress_vector, rCurrentProcessInfo);
             double weight = GetIntegrationWeight(
-                r_geom.IntegrationPoints(mThisIntegrationMethod), g, large_disp_kinematics.DetJ0(g));
+                r_geom.IntegrationPoints(this->GetIntegrationMethod()), g, large_disp_kinematics.DetJ0(g));
             const Vector& rN = row(GetGeometry().ShapeFunctionsValues(), g);
-            body_force = GetBodyForce(r_geom.IntegrationPoints(mThisIntegrationMethod), g);
+            body_force = GetBodyForce(r_geom.IntegrationPoints(this->GetIntegrationMethod()), g);
 
             for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
             {
@@ -539,7 +539,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(
                 CalculateStress(strain_vector_deriv, g, stress_vector_deriv, rCurrentProcessInfo);
                 CalculateBSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
                 const double weight_deriv =
-                    GetIntegrationWeight(r_geom.IntegrationPoints(mThisIntegrationMethod), g, detJ0_deriv);
+                    GetIntegrationWeight(r_geom.IntegrationPoints(this->GetIntegrationMethod()), g, detJ0_deriv);
                 noalias(residual_deriv) = -weight_deriv * prod(trans(B), stress_vector);
                 noalias(residual_deriv) -= weight * prod(trans(B_deriv), stress_vector);
                 noalias(residual_deriv) -= weight * prod(trans(B), stress_vector_deriv);

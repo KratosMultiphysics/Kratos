@@ -239,6 +239,15 @@ public:
         ) override;
 
     /**
+     * @brief Returns the used integration method
+     * @return default integration method of the used Geometry
+     */
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mThisIntegrationMethod;
+    }
+
+    /**
      * @brief Sets on rValues the nodal displacements
      * @param rValues The values of displacements
      * @param Step The step to be computed
