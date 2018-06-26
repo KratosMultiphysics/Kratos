@@ -4,9 +4,6 @@ import KratosMultiphysics
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 
-# Import applications
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-
 # other imports
 from time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
