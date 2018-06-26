@@ -261,11 +261,7 @@ protected:
     * again after the design variable is perturbed
     * in order have sections with the changed properties.
     */
-    void ResetSections()
-    {
-         mSections.clear();
-    }
-
+    void ResetSections();
 
     /**
     * Returns the behavior of this shell (thin/thick)
