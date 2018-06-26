@@ -67,7 +67,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
             wall = parametric_wall_module.CreateParametricWall(self.main_model_part, item)
             self.parametric_walls.append(wall)
 
-        # mesh modeler initial values
+        # mesh mesher initial values
         self.search_contact_active = False
         if( self.number_of_walls ):
             self.search_contact_active = True

@@ -32,7 +32,8 @@
 
 #include "custom_conditions/composite_condition.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
+#include "custom_processes/mesher_process.hpp"
 
 #include "delaunay_meshing_application_variables.h"
 
@@ -74,7 +75,7 @@ namespace Kratos
   /** Detail class definition.
    */
   class BuildModelPartBoundaryProcess
-    : public Process
+    : public MesherProcess
   {
   public:
     ///@name Type Definitions
@@ -279,8 +280,8 @@ namespace Kratos
 			    int node = 0;
 			    for (unsigned int iface=0; iface<rElementGeometry.size(); iface++)
 			      {
-				ModelerUtilities ModelerUtils;
-				found = ModelerUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
+				MesherUtilities MesherUtils;
+				found = MesherUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
 				
 				if( found )
 				  {
@@ -347,8 +348,8 @@ namespace Kratos
 				    int node = 0;
 				    for (unsigned int iface=0; iface<rElementGeometry.size(); iface++)
 				      {
-					ModelerUtilities ModelerUtils;
-					found = ModelerUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
+					MesherUtilities MesherUtils;
+					found = MesherUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
 					
 					if( found )
 					  {
@@ -704,8 +705,8 @@ namespace Kratos
 		      {
 			Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
 
-			ModelerUtilities ModelerUtils;
-			condition_found = ModelerUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
+			MesherUtilities MesherUtils;
+			condition_found = MesherUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
 
 			if( condition_found ){
 			  

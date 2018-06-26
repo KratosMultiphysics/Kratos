@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 ///VARIABLES used:
 //Data:     
@@ -76,7 +76,7 @@ namespace Kratos
 
     /// Default constructor.
     BuildContactModelPartProcess(ModelPart& rModelPart,
-				     ModelerUtilities::MeshingParameters& rRemeshingParameters,
+				     MesherUtilities::MeshingParameters& rRemeshingParameters,
 				     std::vector<std::string>& rContactModelParts,
 				     int EchoLevel)
       : mrModelPart(rModelPart),
@@ -220,7 +220,7 @@ namespace Kratos
     ///@{
     ModelPart& mrModelPart;
 
-    ModelerUtilities::MeshingParameters&   mrRemesh;
+    MesherUtilities::MeshingParameters&   mrRemesh;
 
     std::vector<std::string>& mrContactModelParts;
 

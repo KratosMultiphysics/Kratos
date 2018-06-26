@@ -77,7 +77,7 @@ namespace Kratos
     //condition variables
     KRATOS_REGISTER_VARIABLE( CHILDREN_CONDITIONS )
 
-    //modeler criteria
+    //mesher criteria
     KRATOS_REGISTER_VARIABLE( MEAN_ERROR )
 
     //Register Conditions

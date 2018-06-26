@@ -14,7 +14,7 @@ class DomainUtilities(object):
 
         if( model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):
 
-            # initialize the modeler
+            # initialize the mesher
             print("::[Domain_Utilities]:: Initialize", model_part.Name)
 
             # find node neighbours
@@ -24,11 +24,11 @@ class DomainUtilities(object):
             self.SearchElementNeighbours(model_part, echo_level)
 
 
-            # set modeler utilities
-            modeler_utils = KratosDelaunay.ModelerUtilities()
+            # set mesher utilities
+            mesher_utils = KratosDelaunay.MesherUtilities()
 
             # set the domain labels to conditions
-            modeler_utils.SetModelPartNameToConditions(model_part)
+            mesher_utils.SetModelPartNameToConditions(model_part)
 
             # find skin and boundary normals
             if( model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
@@ -39,7 +39,7 @@ class DomainUtilities(object):
                 self.SearchNodalH(model_part, echo_level)
 
                 # set the domain labels to nodes
-                modeler_utils.SetModelPartNameToNodes(model_part)
+                mesher_utils.SetModelPartNameToNodes(model_part)
 
 
             model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, True)

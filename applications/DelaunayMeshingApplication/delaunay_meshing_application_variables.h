@@ -66,7 +66,7 @@ namespace Kratos
   //condition variables
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, ConditionContainerType, CHILDREN_CONDITIONS)
     
-  //modeler criteria
+  //mesher criteria
   KRATOS_DEFINE_APPLICATION_VARIABLE( DELAUNAY_MESHING_APPLICATION, double, MEAN_ERROR )
 
 

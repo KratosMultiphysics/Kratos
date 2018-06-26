@@ -16,9 +16,9 @@
 // External includes
 
 // Project includes
-#include "processes/process.h"
 #include "includes/checks.h"
 #include "includes/model_part.h"
+#include "custom_processes/solver_process.hpp"
 #include "custom_solvers/time_integration_methods/time_integration_method.hpp"
 
 namespace Kratos
@@ -106,7 +106,7 @@ class SolutionScheme : public Flags
   typedef typename IntegrationScalarType::Pointer        IntegrationScalarPointerType;
   typedef std::vector<IntegrationScalarPointerType>      IntegrationMethodsScalarType;
 
-  typedef typename Process::Pointer                                ProcessPointerType;
+  typedef typename SolverProcess::Pointer                          ProcessPointerType;
   typedef std::vector<ProcessPointerType>                    ProcessPointerVectorType;
   
   /// Pointer definition of SolutionScheme

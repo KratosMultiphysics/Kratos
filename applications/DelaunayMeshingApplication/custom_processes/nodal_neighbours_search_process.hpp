@@ -23,6 +23,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:     NEIGHBOUR_ELEMENTS(set), NEIGHBOUR_NODES(set)
@@ -63,7 +64,7 @@ namespace Kratos
   /** Detail class definition.
    */
   class NodalNeighboursSearchProcess
-    : public Process
+    : public MesherProcess
   {
   public:
     ///@name Type Definitions

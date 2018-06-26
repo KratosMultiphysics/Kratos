@@ -25,7 +25,7 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "delaunay_meshing_application_variables.h"
-
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:     NEIGHBOUR_ELEMENTS(set)
@@ -65,7 +65,7 @@ namespace Kratos
   /** Detail class definition.
    */
   class ElementalNeighboursSearchProcess
-    : public Process
+    : public MesherProcess
   {
   public:
     ///@name Type Definitions

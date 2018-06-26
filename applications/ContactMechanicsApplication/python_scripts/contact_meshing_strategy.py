@@ -8,7 +8,7 @@ import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-# Import the meshing strategy (the base class for the modeler derivation)
+# Import the meshing strategy (the base class for the mesher derivation)
 import meshing_strategy
 
 def CreateMeshingStrategy(main_model_part, custom_settings):
@@ -48,7 +48,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         self.settings = custom_settings
         self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-        #print("::[Contact_Modeler_Strategy]:: Construction of Meshing Strategy finished")
+        #print("::[Contact_Mesher_Strategy]:: Construction of Meshing Strategy finished")
 
     #
     def Initialize(self,meshing_parameters,dimension):
@@ -61,9 +61,9 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
 
         meshing_options = KratosMultiphysics.Flags()
 
-        meshing_options.Set(KratosDelaunay.ModelerUtilities.REMESH, self.settings["remesh"].GetBool())
-        meshing_options.Set(KratosDelaunay.ModelerUtilities.CONSTRAINED, self.settings["constrained"].GetBool())
-        meshing_options.Set(KratosDelaunay.ModelerUtilities.CONTACT_SEARCH, True)
+        meshing_options.Set(KratosDelaunay.MesherUtilities.REMESH, self.settings["remesh"].GetBool())
+        meshing_options.Set(KratosDelaunay.MesherUtilities.CONSTRAINED, self.settings["constrained"].GetBool())
+        meshing_options.Set(KratosDelaunay.MesherUtilities.CONTACT_SEARCH, True)
 
         self.MeshingParameters.SetOptions(meshing_options)
         self.MeshingParameters.SetReferenceCondition(self.settings["contact_parameters"]["contact_condition_type"].GetString())
@@ -107,13 +107,13 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         self.TransferParameters = KratosDelaunay.TransferParameters()
         self.global_transfer    = False
 
-        #mesh modelers for the current strategy
-        self.mesh_modelers = []
+        #mesh meshers for the current strategy
+        self.meshers = []
 
         #configure meshers:
-        self.SetMeshModelers();
+        self.SetMeshers();
 
-        for mesher in self.mesh_modelers:
+        for mesher in self.meshers:
             mesher.Initialize(dimension)
 
         self.number_of_nodes      = 0
@@ -138,18 +138,18 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
 
 
     #
-    def SetMeshModelers(self):
+    def SetMeshers(self):
 
-        modelers = []
+        meshers_list = []
 
         if( self.settings["remesh"].GetBool() ):
-            modelers.append("contact_modeler")
+            meshers_list.append("contact_mesher")
 
 
-        for modeler in modelers:
-            meshing_module =__import__(modeler)
-            mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters)
-            self.mesh_modelers.append(mesher)
+        for mesher in meshers_list:
+            meshing_module =__import__(mesher)
+            new_mesher = meshing_module.CreateMesher(self.main_model_part,self.MeshingParameters)
+            self.meshers.append(new_mesher)
 
 
     #
@@ -183,7 +183,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
 
         self.InitializeMeshGeneration()
 
-        for mesher in self.mesh_modelers:
+        for mesher in self.meshers:
             mesher.ExecuteMeshing()
 
         self.FinalizeMeshGeneration()

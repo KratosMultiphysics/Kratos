@@ -72,9 +72,9 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 	##utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/contact_domain_utilities.cpp
 
-	##modelers
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_3D_modeler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/contact_domain_2D_modeler.cpp
+	##meshers
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_meshers/contact_domain_3D_mesher.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_meshers/contact_domain_2D_mesher.cpp
 
 )
 
@@ -85,7 +85,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_meshers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_friction_laws_to_python.cpp
 )
 

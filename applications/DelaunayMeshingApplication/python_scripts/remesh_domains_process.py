@@ -68,7 +68,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             domain = domain_module.CreateMeshingDomain(self.main_model_part,item)
             self.meshing_domains.append(domain)
 
-        # mesh modeler initial values
+        # mesh mesher initial values
         self.remesh_domains_active = False
         for domain in self.meshing_domains:
             if( domain.Active() ):
@@ -143,9 +143,9 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             print("::[Meshing_Process]:: MESHING DOMAIN...( call:", self.counter,")")
 
         meshing_options = KratosMultiphysics.Flags()
-        self.model_meshing = KratosDelaunay.ModelMeshing(self.main_model_part, meshing_options, self.echo_level)
+        self.model_structure = KratosDelaunay.ModelStructure(self.main_model_part, meshing_options, self.echo_level)
 
-        self.model_meshing.ExecuteInitialize()
+        self.model_structure.ExecuteInitialize()
 
         #serial
         for domain in self.meshing_domains:
@@ -163,7 +163,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         #pool.joint()
         #
 
-        self.model_meshing.ExecuteFinalize()
+        self.model_structure.ExecuteFinalize()
 
         self.counter += 1
 

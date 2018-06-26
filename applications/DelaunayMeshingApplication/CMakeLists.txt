@@ -90,16 +90,16 @@ set( KRATOS_DELAUNAY_MESHING_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/delaunay_meshing_application_variables.cpp
 
 	##utilities
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/modeler_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mesher_utilities.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mesh_data_transfer_utilities.cpp
 
 	##conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/composite_condition.cpp
 
-	##modelers
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/mesh_modeler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/triangular_mesh_2D_modeler.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/tetrahedral_mesh_3D_modeler.cpp
+	##meshers
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_meshers/mesher.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_meshers/triangular_mesh_2D_mesher.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_meshers/tetrahedral_mesh_3D_mesher.cpp
 
 )
 
@@ -109,7 +109,7 @@ set( KRATOS_DELAUNAY_MESHING_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/delaunay_meshing_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_modelers_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_meshers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 )
 

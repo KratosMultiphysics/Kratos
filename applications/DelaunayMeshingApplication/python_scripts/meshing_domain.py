@@ -15,7 +15,7 @@ class MeshingDomain(object):
     ##and the pointer to the main_model part.
     ##
     ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the modeler is already filled
+    ##will be called once the mesher is already filled
     def __init__(self, main_model_part, custom_settings):
 
         self.echo_level = 1
@@ -181,36 +181,36 @@ class MeshingDomain(object):
 
         #remove nodes
         remove_nodes = self.settings["refining_parameters"]["remove_nodes"]
-        removing_options.Set(KratosDelaunay.ModelerUtilities.REMOVE_NODES, remove_nodes["apply_removal"].GetBool())
-        removing_options.Set(KratosDelaunay.ModelerUtilities.REMOVE_NODES_ON_DISTANCE, remove_nodes["on_distance"].GetBool())
-        removing_options.Set(KratosDelaunay.ModelerUtilities.REMOVE_NODES_ON_ERROR, remove_nodes["on_error"].GetBool())
-        removing_options.Set(KratosDelaunay.ModelerUtilities.REMOVE_NODES_ON_THRESHOLD, remove_nodes["on_threshold"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES, remove_nodes["apply_removal"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_DISTANCE, remove_nodes["on_distance"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_ERROR, remove_nodes["on_error"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_NODES_ON_THRESHOLD, remove_nodes["on_threshold"].GetBool())
 
         #remove boundary
         remove_boundary = self.settings["refining_parameters"]["remove_boundary"]
-        removing_options.Set(KratosDelaunay.ModelerUtilities.REMOVE_BOUNDARY_NODES, remove_boundary["apply_removal"].GetBool())
-        removing_options.Set(KratosDelaunay.ModelerUtilities.REMOVE_BOUNDARY_NODES_ON_DISTANCE, remove_boundary["on_distance"].GetBool())
-        removing_options.Set(KratosDelaunay.ModelerUtilities.REMOVE_BOUNDARY_NODES_ON_ERROR, remove_boundary["on_error"].GetBool())
-        removing_options.Set(KratosDelaunay.ModelerUtilities.REMOVE_BOUNDARY_NODES_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES, remove_boundary["apply_removal"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_DISTANCE, remove_boundary["on_distance"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_ERROR, remove_boundary["on_error"].GetBool())
+        removing_options.Set(KratosDelaunay.MesherUtilities.REMOVE_BOUNDARY_NODES_ON_THRESHOLD, remove_boundary["on_threshold"].GetBool())
 
         refining_options = KratosMultiphysics.Flags()
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE, self.settings["meshing_strategy"]["refine"].GetBool())
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_ADD_NODES, self.settings["refining_parameters"]["add_nodes"].GetBool())
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_INSERT_NODES, self.settings["refining_parameters"]["insert_nodes"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE, self.settings["meshing_strategy"]["refine"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES, self.settings["refining_parameters"]["add_nodes"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_INSERT_NODES, self.settings["refining_parameters"]["insert_nodes"].GetBool())
 
         #refine elements
         refine_elements = self.settings["refining_parameters"]["refine_elements"]
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_ELEMENTS, refine_elements["apply_refinement"].GetBool())
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_ELEMENTS_ON_DISTANCE, refine_elements["on_distance"].GetBool())
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_ELEMENTS_ON_ERROR, refine_elements["on_error"].GetBool())
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_ELEMENTS_ON_THRESHOLD, refine_elements["on_threshold"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS, refine_elements["apply_refinement"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_DISTANCE, refine_elements["on_distance"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_ERROR, refine_elements["on_error"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_ELEMENTS_ON_THRESHOLD, refine_elements["on_threshold"].GetBool())
 
         #refine boundary
         refine_boundary = self.settings["refining_parameters"]["refine_boundary"]
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_BOUNDARY, refine_boundary["apply_refinement"].GetBool())
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_BOUNDARY_ON_DISTANCE, refine_boundary["on_distance"].GetBool())
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_BOUNDARY_ON_ERROR, refine_boundary["on_error"].GetBool())
-        refining_options.Set(KratosDelaunay.ModelerUtilities.REFINE_BOUNDARY_ON_THRESHOLD, refine_boundary["on_threshold"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY, refine_boundary["apply_refinement"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_DISTANCE, refine_boundary["on_distance"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_ERROR, refine_boundary["on_error"].GetBool())
+        refining_options.Set(KratosDelaunay.MesherUtilities.REFINE_BOUNDARY_ON_THRESHOLD, refine_boundary["on_threshold"].GetBool())
 
         self.RefiningParameters.SetRefiningOptions(refining_options)
         self.RefiningParameters.SetRemovingOptions(removing_options)
@@ -266,13 +266,13 @@ class MeshingDomain(object):
     #
     def Check(self):
 
-        # set modeler utilities
-        self.modeler_utils = KratosDelaunay.ModelerUtilities()
+        # set mesher utilities
+        self.mesher_utils = KratosDelaunay.MesherUtilities()
 
-        # set the domain labels to mesh modeler
+        # set the domain labels to mesh mesher
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
 
-        critical_radius = self.modeler_utils.CheckCriticalRadius(self.main_model_part,critical_mesh_size)
+        critical_radius = self.mesher_utils.CheckCriticalRadius(self.main_model_part,critical_mesh_size)
         print(" CriticalRadius ", critical_radius)
 
     #

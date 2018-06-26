@@ -17,8 +17,8 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
  
     def ComputeAverageMeshParameters(self):
         
-        ModelerUtils = KratosDelaunay.ModelerUtilities();
-        self.domain_volume =  ModelerUtils.ComputeModelPartVolume(self.main_model_part)
+        MesherUtils = KratosDelaunay.MesherUtilities();
+        self.domain_volume =  MesherUtils.ComputeModelPartVolume(self.main_model_part)
         self.element_mean_volume = 0
         
         number_of_elements =  self.main_model_part.NumberOfElements()

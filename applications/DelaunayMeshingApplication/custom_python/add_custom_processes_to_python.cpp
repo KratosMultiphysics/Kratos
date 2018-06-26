@@ -20,28 +20,28 @@
 #include "custom_processes/nodal_neighbours_search_process.hpp"
 #include "custom_processes/build_model_part_boundary_process.hpp"
 #include "custom_processes/model_volume_calculation_process.hpp"
+#include "custom_processes/constant_rotation_process.hpp"
 
-// MeshModeler initialization and finalization processes
-#include "custom_processes/model_start_end_meshing_process.hpp"
+// Mesher initialization and finalization processes
+#include "custom_processes/settle_model_structure_process.hpp"
+
+// Mesher processes:
 
 // PreMeshing processes
-#include "custom_processes/refine_mesh_elements_on_threshold_process.hpp"
-#include "custom_processes/refine_mesh_elements_in_edges_process.hpp"
-#include "custom_processes/refine_mesh_boundary_process.hpp"
-#include "custom_processes/remove_mesh_nodes_process.hpp"
+#include "custom_processes/refine_elements_on_threshold_mesher_process.hpp"
+#include "custom_processes/refine_elements_in_edges_mesher_process.hpp"
+#include "custom_processes/refine_conditions_mesher_process.hpp"
+#include "custom_processes/remove_nodes_mesher_process.hpp"
 
 // MiddleMeshing processes
-#include "custom_processes/refine_mesh_elements_on_size_process.hpp"
-#include "custom_processes/print_output_mesh_process.hpp"
+#include "custom_processes/refine_elements_on_size_mesher_process.hpp"
+#include "custom_processes/print_mesh_output_mesher_process.hpp"
 
 // PostMeshing processes
-#include "custom_processes/generate_new_nodes_process.hpp"
-#include "custom_processes/select_mesh_elements_process.hpp"
-#include "custom_processes/build_mesh_elements_process.hpp"
-#include "custom_processes/build_mesh_boundary_process.hpp"
-
-// Kinematics
-#include "custom_processes/constant_rotation_process.hpp"
+#include "custom_processes/generate_new_nodes_mesher_process.hpp"
+#include "custom_processes/select_elements_mesher_process.hpp"
+#include "custom_processes/generate_new_elements_mesher_process.hpp"
+#include "custom_processes/generate_new_conditions_mesher_process.hpp"
 
 
 namespace Kratos
@@ -49,13 +49,13 @@ namespace Kratos
 	
 namespace Python
 {
+ 
+typedef Process::Pointer                           ProcessPointer;
+typedef MesherProcess::Pointer               MesherProcessPointer;
+typedef std::vector<MesherProcessPointer>  MesherProcessContainer;
 
-typedef Process                        ProcessBaseType;
-typedef Process::Pointer                ProcessPointer;
-typedef std::vector<Process::Pointer> ProcessContainer;
-
-void Push_Back_Process( ProcessContainer& ThisProcessContainer,
-                        ProcessPointer ThisProcess )
+void Push_Back_Process( MesherProcessContainer& ThisProcessContainer,
+                        MesherProcessPointer ThisProcess )
 {
   ThisProcessContainer.push_back( ThisProcess );
 }
@@ -65,22 +65,27 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   using namespace pybind11;
 
-  //process container
-  class_<ProcessContainer>(m,"ProcessContainer")
+  //**********MESHER PROCESS*********//
+  
+  //mesher process container
+  class_<MesherProcessContainer>(m,"MesherProcessContainer")
       .def( init<>() )
       .def( "PushBack", Push_Back_Process )
       ;
-
-
+  
+  class_<MesherProcess, MesherProcess::Pointer, Process>(m,"MesherProcess")
+      .def(init<>())
+      ;
+  
   //***************NEIGHBOURS**************//
       
-  class_<NodalNeighboursSearchProcess, NodalNeighboursSearchProcess::Pointer, Process>
+  class_<NodalNeighboursSearchProcess, NodalNeighboursSearchProcess::Pointer, MesherProcess>
       (m,"NodalNeighboursSearch")
       .def(init<ModelPart&, int, int, int>())
       .def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
       ;
       
-  class_<ElementalNeighboursSearchProcess, ElementalNeighboursSearchProcess::Pointer, Process>
+  class_<ElementalNeighboursSearchProcess, ElementalNeighboursSearchProcess::Pointer, MesherProcess>
       (m,"ElementalNeighboursSearch")
       .def(init<ModelPart&, int, int, int>())
       .def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
@@ -89,72 +94,74 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //***************BOUNDARY**************//
 
-  class_<BuildModelPartBoundaryProcess, BuildModelPartBoundaryProcess::Pointer, Process>
+  class_<BuildModelPartBoundaryProcess, BuildModelPartBoundaryProcess::Pointer, MesherProcess>
       (m,"BuildModelPartBoundary")
       .def(init<ModelPart&, std::string, int>())
       .def("SearchConditionMasters", &BuildModelPartBoundaryProcess::SearchConditionMasters)
       ;
 
 
-  //**********MODEL PROCESSES*********//
+  //**********MODEL STRUCTURE*********//
 
-  class_<ModelStartEndMeshingProcess, ModelStartEndMeshingProcess::Pointer, Process>
-      (m,"ModelMeshing")
+  class_<SettleModelStructureProcess, SettleModelStructureProcess::Pointer, Process>
+      (m,"ModelStructure")
       .def(init<ModelPart&, Flags, int>())
-      .def("ExecuteInitialize", &ModelStartEndMeshingProcess::ExecuteInitialize)
-      .def("ExecuteFinalize", &ModelStartEndMeshingProcess::ExecuteFinalize)
+      .def("ExecuteInitialize", &SettleModelStructureProcess::ExecuteInitialize)
+      .def("ExecuteFinalize", &SettleModelStructureProcess::ExecuteFinalize)
+      ;
+  
+
+  //**********MESHER PROCESSES*********//
+
+  
+  class_<RefineElementsOnThresholdMesherProcess, RefineElementsOnThresholdMesherProcess::Pointer, MesherProcess>
+      (m,"RefineElementsOnThreshold")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
-  //**********MESH MODELLER PROCESS*********//
-
-  class_<RefineMeshElementsOnThresholdProcess, RefineMeshElementsOnThresholdProcess::Pointer, Process>
-      (m,"SetElementNodesToRefineOnThreshold")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+  class_<RefineElementsOnSizeMesherProcess, RefineElementsOnSizeMesherProcess::Pointer, MesherProcess>
+      (m,"RefineElementsOnSize")
+      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
+      ;
+  
+  class_<RefineElementsInEdgesMesherProcess, RefineElementsInEdgesMesherProcess::Pointer, MesherProcess>
+      (m,"RefineElementsInEdges")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
+      ;
+  
+  class_<RefineConditionsMesherProcess, RefineConditionsMesherProcess::Pointer, MesherProcess>
+      (m,"RefineConditions")
+      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RefineMeshElementsInEdgesProcess, RefineMeshElementsInEdgesProcess::Pointer, Process>
-      (m,"SetElementEdgesToRefine")
-      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
-      ;
-      
-  class_<RefineMeshElementsOnSizeProcess, RefineMeshElementsOnSizeProcess::Pointer, Process>
-      (m,"SetElementsToRefineOnSize")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+  class_<RemoveNodesMesherProcess, RemoveNodesMesherProcess::Pointer, MesherProcess>
+      (m,"RemoveNodes")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<RefineMeshBoundaryProcess, RefineMeshBoundaryProcess::Pointer, Process>
-      (m,"RefineMeshBoundary")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
-      ;
-
-  class_<RemoveMeshNodesProcess, RemoveMeshNodesProcess::Pointer, Process>
-      (m,"RemoveMeshNodes")
-      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
-      ;
-
-  class_<GenerateNewNodesProcess, GenerateNewNodesProcess::Pointer, Process>
+  class_<GenerateNewNodesMesherProcess, GenerateNewNodesMesherProcess::Pointer, MesherProcess>
       (m,"GenerateNewNodes")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<SelectMeshElementsProcess, SelectMeshElementsProcess::Pointer, Process>
-      (m,"SelectMeshElements")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+  class_<SelectElementsMesherProcess, SelectElementsMesherProcess::Pointer, MesherProcess>
+      (m,"SelectElements")
+      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<BuildMeshElementsProcess, BuildMeshElementsProcess::Pointer, Process>
-      (m,"BuildMeshElements")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
+  class_<GenerateNewElementsMesherProcess, GenerateNewElementsMesherProcess::Pointer, MesherProcess>
+      (m,"GenerateNewElements")
+      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<BuildMeshBoundaryProcess, BuildMeshBoundaryProcess::Pointer, BuildModelPartBoundaryProcess>
-      (m,"BuildMeshBoundary")
-      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
+  class_<GenerateNewConditionsMesherProcess, GenerateNewConditionsMesherProcess::Pointer, BuildModelPartBoundaryProcess>
+      (m,"GenerateNewConditions")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>())
       ;
 
-  class_<PrintOutputMeshProcess, PrintOutputMeshProcess::Pointer, Process>
-      (m,"PrintOutputMeshProcess")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, std::string, int>())
+  class_<PrintMeshOutputMesherProcess, PrintMeshOutputMesherProcess::Pointer, MesherProcess>
+      (m,"PrintMeshOutput")
+      .def(init<ModelPart&,  MesherUtilities::MeshingParameters&, std::string, int>())
       ;
       
 

@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 #include "delaunay_meshing_application_variables.h"
 
@@ -108,7 +108,7 @@ namespace Kratos
       std::fill( rNodalError.begin(), rNodalError.end(), 100 );
       
       if( !rIds.size() )
-	rIds.resize(ModelerUtilities::GetMaxNodeId(rModelPart)+1);
+	rIds.resize(MesherUtilities::GetMaxNodeId(rModelPart)+1);
 	
       std::fill( rIds.begin(), rIds.end(), 0 );
 
@@ -158,11 +158,11 @@ namespace Kratos
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
 
-      std::vector<double>  ElementVariable(ModelerUtilities::GetMaxElementId(rModelPart)+1);
+      std::vector<double>  ElementVariable(MesherUtilities::GetMaxElementId(rModelPart)+1);
       std::fill( ElementVariable.begin(), ElementVariable.end(), 0 );
 
       std::vector<int> elems_ids;
-      elems_ids.resize(ModelerUtilities::GetMaxElementId(rModelPart)+1); //mesh 0
+      elems_ids.resize(MesherUtilities::GetMaxElementId(rModelPart)+1); //mesh 0
       std::fill( elems_ids.begin(), elems_ids.end(), 0 );
 
       double VariableMax = std::numeric_limits<double>::min();
@@ -194,7 +194,7 @@ namespace Kratos
       std::vector<double> NodalError(rModelPart.NumberOfNodes()+1);
       std::fill( NodalError.begin(), NodalError.end(), 0 );
 
-      std::vector<int> nodes_ids (ModelerUtilities::GetMaxNodeId(rModelPart)+1); //mesh 0
+      std::vector<int> nodes_ids (MesherUtilities::GetMaxNodeId(rModelPart)+1); //mesh 0
       std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
 
       double PatchSize  = 0;
@@ -251,10 +251,10 @@ namespace Kratos
 	}
 
 
-      rElementalError.resize(ModelerUtilities::GetMaxElementId(rModelPart)+1);
+      rElementalError.resize(MesherUtilities::GetMaxElementId(rModelPart)+1);
       std::fill( rElementalError.begin(), rElementalError.end(), 100 );
 
-      rIds.resize(ModelerUtilities::GetMaxElementId(rModelPart)+1); //mesh 0
+      rIds.resize(MesherUtilities::GetMaxElementId(rModelPart)+1); //mesh 0
       std::fill( rIds.begin(), rIds.end(), 0 );
 
       double VariableVariation = VariableMax - VariableMin;

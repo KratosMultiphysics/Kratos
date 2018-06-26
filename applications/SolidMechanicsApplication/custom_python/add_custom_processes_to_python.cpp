@@ -28,6 +28,9 @@
 #include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.h"
 #include "custom_processes/build_string_skin_process.h"
 
+// Solver Processes
+#include "custom_processes/solver_process.hpp"
+
 namespace Kratos
 {
 	
@@ -167,7 +170,15 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("ExecuteBeforeOutputStep", &BuildStringSkinProcess::ExecuteBeforeOutputStep)	
       .def("ExecuteAfterOutputStep", &BuildStringSkinProcess::ExecuteAfterOutputStep)
       ;
-            
+
+
+
+  //**********SOLVER PROCESS*********//
+
+  class_<SolverProcess, SolverProcess::Pointer, Process>(m,"SolverProcess")
+      .def(init<>())
+      ;
+  
 }
  
 }  // namespace Python.
