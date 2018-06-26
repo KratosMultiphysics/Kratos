@@ -277,9 +277,9 @@ public:
         ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
         if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
           it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
-        const double Area = it_node->FastGetSolutionStepValue(NODAL_AREA);
-        it_node->FastGetSolutionStepValue(ADVPROJ) /= Area;
-        it_node->FastGetSolutionStepValue(DIVPROJ) /= Area;
+        const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
+        it_node->FastGetSolutionStepValue(ADVPROJ) *= area_inverse;
+        it_node->FastGetSolutionStepValue(DIVPROJ) *= area_inverse;
       }
     }
   }
@@ -364,7 +364,7 @@ protected:
 
       for (unsigned int i = 0; i < Dimension; i++)
       {
-        Mass(DofIndex,DofIndex) /= (mVelocityRelaxationFactor * LocalDt);
+        Mass(DofIndex,DofIndex) *= 1.0 / (mVelocityRelaxationFactor * LocalDt);
         DofIndex++;
       }
       DofIndex++; // pressure dof
@@ -375,7 +375,7 @@ protected:
     for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
     {
       unsigned int BlockIndex = iNode * (Dimension + 1);
-      LHS_Contribution(BlockIndex+Dimension,BlockIndex+Dimension) /= mPressureRelaxationFactor;
+      LHS_Contribution(BlockIndex+Dimension,BlockIndex+Dimension) *= 1.0 / mPressureRelaxationFactor;
     }
   }
 
@@ -390,7 +390,7 @@ protected:
     const unsigned int local_size = nodal_block_size * number_of_nodes;
 
     if (rLumpedMass.size1() != local_size) {
-      rLumpedMass.resize(local_size,local_size);
+      rLumpedMass.resize(local_size,local_size,false);
     }
 
     noalias(rLumpedMass) = ZeroMatrix(local_size,local_size);
