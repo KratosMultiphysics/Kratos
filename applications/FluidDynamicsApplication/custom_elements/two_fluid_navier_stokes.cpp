@@ -184,17 +184,10 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             const unsigned int number_of_gauss_points = gauss_weights.size(); 
 			// Iterate over integration points to evaluate local contribution
 			for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-
 				data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
 					shape_derivatives[g]);
-
                 data.CalculateDensityAtGaussPoint();
-
-				if (data.IsAir())
-					data.CalculateAirMaterialResponse();
-				else
-					this->CalculateMaterialResponse(data);
-
+				this->CalculateMaterialResponse(data);
 				this->AddTimeIntegratedSystem(
 					data, rLeftHandSideMatrix, rRightHandSideVector);
 			}
@@ -273,6 +266,14 @@ void TwoFluidNavierStokes<TElementData>::AddTimeIntegratedRHS(
     this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
 
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
+    if (rData.IsAir())
+        rData.CalculateAirMaterialResponse();
+    else
+        FluidElement<TElementData>::CalculateMaterialResponse(rData);
+}
 
 template <>
 void TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ComputeGaussPointLHSContribution(

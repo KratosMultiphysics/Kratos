@@ -267,6 +267,9 @@ protected:
     void AddTimeIntegratedRHS(
         TElementData& rData,
         VectorType& rRHS) override;
+    
+    void CalculateMaterialResponse(
+        TElementData& rData) const override;
 
     void ComputeGaussPointLHSContribution(
         TElementData& rData,
