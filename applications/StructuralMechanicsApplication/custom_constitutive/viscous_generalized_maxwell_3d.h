@@ -106,6 +106,22 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override
+    {
+        return 3;
+    };
+
+    /**
+     * @brief Voigt tensor size:
+     */
+    SizeType GetStrainSize() override
+    {
+        return 6;
+    };
+
     int GetVoigtSize() {return 6;}
     int GetWorkingSpaceDimension() {return 3;}
 
@@ -156,7 +172,9 @@ public:
         const Vector& StrainIncrement = StrainVector - PreviousStrain;
 
         const double coef = Kvisco * TimeStep / ((1 + Kvisco)*2.0*DelayTime);
-        const Vector& Aux = -(StrainVector - StrainIncrement)*std::exp(-TimeStep/DelayTime)*(1 - coef);
+        const Vector& Aux = -(StrainVector - StrainIncrement)*std::exp(-TimeStep/DelayTime)*(1 + coef)
+                             + StrainVector*(1 - coef);
+        
 
         noalias(IntegratedStressVector) = PreviousStress*std::exp(-TimeStep/DelayTime) + prod(C, Aux);
 
@@ -204,6 +222,19 @@ public:
         rElasticityTensor(3, 3) = mu;
         rElasticityTensor(4, 4) = mu;
         rElasticityTensor(5, 5) = mu;
+    }
+
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    {
     }
 
     ///@}
