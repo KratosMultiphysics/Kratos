@@ -19,8 +19,8 @@ def Factory(settings, model):
 
 class ComputeDragProcess(KratosMultiphysics.Process):
     """
-    This is the generic implementation for the output of
-    aerodynamic drag.
+    Auxiliary base class to output total flow forces
+    over obstacles in fluid dynamics problems.
     """
     def __init__(self, model, params ):
         """

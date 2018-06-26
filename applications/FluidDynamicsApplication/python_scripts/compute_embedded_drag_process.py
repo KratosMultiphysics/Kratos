@@ -18,8 +18,8 @@ def Factory(settings, model):
 
 class ComputeEmbeddedDragProcess(ComputeDragProcess):
     """
-    This is the specific implementation for the output of
-    embedded drag.
+    The specific implementation for the output of embedded drag forces
+    over obstacles in fluid dynamics problems.
     """
     def _GetFileHeader(self):
         header  = '# Embedded drag for model part ' + self.params["model_part_name"].GetString() + '\n'
@@ -27,7 +27,7 @@ class ComputeEmbeddedDragProcess(ComputeDragProcess):
         return header
 
     def _PrintToScreen(self, result_msg):
-        KratosMultiphysics.Logger.PrintInfo("ComputeEmbeddedDragProcess", "EMBEDDED DRAG RESULTS:")
+        KratosMultiphysics.Logger.PrintInfo("ComputeEmbeddedDragProcess","EMBEDDED DRAG RESULTS:")
         KratosMultiphysics.Logger.PrintInfo("ComputeEmbeddedDragProcess","Current time: " + result_msg)
 
     def _GetCorrespondingDragForce(self):

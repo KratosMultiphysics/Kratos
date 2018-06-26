@@ -18,8 +18,8 @@ def Factory(settings, model):
 
 class ComputeBodyFittedDragProcess(ComputeDragProcess):
     """
-    This is the specific implementation for the output of
-    body fitted drag.
+    The specific implementation for the output of body fitted drag forces
+    over obstacles in fluid dynamics problems.
     """
     def _GetFileHeader(self):
         header  = '# Body fitted drag for model part ' + self.params["model_part_name"].GetString() + '\n'
@@ -27,7 +27,7 @@ class ComputeBodyFittedDragProcess(ComputeDragProcess):
         return header
 
     def _PrintToScreen(self, result_msg):
-        KratosMultiphysics.Logger.PrintInfo("ComputeBodyFittedDragProcess", "BODY FITTED DRAG RESULTS:")
+        KratosMultiphysics.Logger.PrintInfo("ComputeBodyFittedDragProcess","BODY FITTED DRAG RESULTS:")
         KratosMultiphysics.Logger.PrintInfo("ComputeBodyFittedDragProcess","Current time: " + result_msg)
 
     def _GetCorrespondingDragForce(self):
