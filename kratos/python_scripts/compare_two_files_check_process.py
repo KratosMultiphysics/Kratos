@@ -80,7 +80,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         if kratos_utils.IsRankZero():
             if (self.comparison_type == "deterministic"):
                 value = filecmp.cmp(self.reference_file_name, self.output_file_name)
-                self.assertTrue(value)
+                self.assertTrue(value, msg = self.info_msg)
             elif (self.comparison_type == "mesh_file"):
                 self.__CompareMeshVerticesFile()
             elif (self.comparison_type == "sol_file"):
@@ -160,7 +160,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             lines_out_splitted = lines_out[i].split()
 
             self.assertTrue(len(lines_ref_splitted) == len(lines_out_splitted),
-                            msg="Lines have different length!")
+                            msg="Lines have different length!" + self.info_msg)
 
             for ref_value, out_value in zip(lines_ref_splitted, lines_out_splitted):
                 self.assertTrue(ref_value == out_value,
@@ -176,7 +176,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         lines_2_splitted = lines2[current_index].split()
 
         if len(lines_1_splitted) != len(lines_2_splitted):
-            self.assertTrue(False, msg="Result labels have different length!")
+            self.assertTrue(False, msg="Result labels have different length!" + self.info_msg)
 
         for val_1, val_2 in zip(lines_1_splitted, lines_2_splitted):
             self.assertTrue(val_1 == val_2,
