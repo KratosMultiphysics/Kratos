@@ -19,6 +19,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
 #include "custom_utilities/element_size_calculator.h"
+#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos {
 
@@ -205,12 +206,7 @@ bool IsAir() {
 }
 
 void CalculateAirMaterialResponse() {
-	unsigned int strain_size;
-
-	if (TDim == 2)
-		strain_size = 3;
-	else if (TDim == 3)
-		strain_size = 6;
+	const unsigned int strain_size = 3 * (TDim - 1);
 
 	if(this->C.size1() != strain_size)
 		this->C.resize(strain_size,strain_size,false);
@@ -226,29 +222,15 @@ void CalculateAirMaterialResponse() {
 	const double c2 = mu;
 
 	this->C.clear();
-    Matrix& c_mat = this->C;
+    BoundedMatrix<double, strain_size, strain_size> c_mat = this->C;
     Vector& stress = this->ShearStress;
     Vector& strain = this->StrainRate;
 
-    constexpr double two_thirds = 2./3.;
-    constexpr double four_thirds = 4./3.;
+    FluidElementUtilities<TNumNodes>::GetNewtonianConstitutiveMatrix(mu, c_mat);
+    this->C = c_mat;
 
 	if (TDim == 2) 
 	{
-        c_mat(0,0) = mu * four_thirds;
-        c_mat(0,1) = -mu * two_thirds;
-        c_mat(0,2) = 0.0;
-        c_mat(1,0) = -mu * two_thirds;
-        c_mat(1,1) = mu * four_thirds;
-        c_mat(1,2) = 0.0;
-        c_mat(2,0) = 0.0;
-        c_mat(2,1) = 0.0;
-        c_mat(2,2) = mu;
-
-		c_mat(0, 0) = 2.0*mu;
-		c_mat(1, 1) = 2.0*mu;
-		c_mat(2, 2) = mu;
-
         const double trace = strain[0] + strain[1];
         const double volumetric_part = trace/2.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
 
@@ -259,22 +241,6 @@ void CalculateAirMaterialResponse() {
 
 	else if (TDim == 3)
 	{
-        c_mat(0,0) = mu * four_thirds;
-        c_mat(0,1) = -mu * two_thirds;
-        c_mat(0,2) = -mu * two_thirds;
-
-        c_mat(1,0) = -mu * two_thirds;
-        c_mat(1,1) = mu * four_thirds;
-        c_mat(1,2) = -mu * two_thirds;
-
-        c_mat(2,0) = -mu * two_thirds;
-        c_mat(2,1) = -mu * two_thirds;
-        c_mat(2,2) = mu * four_thirds;
-
-        c_mat(3,3) = mu;
-        c_mat(4,4) = mu;
-        c_mat(5,5) = mu;
-
         const double trace = strain[0] + strain[1] + strain[2];
         const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
 
