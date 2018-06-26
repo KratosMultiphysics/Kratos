@@ -95,7 +95,6 @@ namespace Kratos
         .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver)
       ;
 
-
       // Explicit scheme: Central differences 
       class_< FirstOrderForwardEulerSchemeType,FirstOrderForwardEulerSchemeType::Pointer, BaseSchemeType > (m,"FirstOrderForwardEulerSchemeType")
 	.def(init< const double, const double, const double, const bool >() )

@@ -672,7 +672,7 @@ namespace Kratos {
 	      // std::cout<<"DefVol "<<DefVol<<std::endl;
 	      double RHSi =  N[i] * DefVol/count;
 	      rRightHandSideVector[i] += GaussWeight * RHSi;
-	      // std::cout<<"rRightHandSideVector[i] "<<rRightHandSideVector[i]<<std::endl;
+	      std::cout<<"rRightHandSideVector[i] "<<rRightHandSideVector[i]<<std::endl;
 
 	    }
 

@@ -358,6 +358,8 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
+      void NodalFreeSurfaceLength(unsigned int nodeIndex);
+
       void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 					std::vector<double>& rValues,
 					const ProcessInfo& rCurrentProcessInfo ) override;

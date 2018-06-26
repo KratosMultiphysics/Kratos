@@ -151,6 +151,17 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < NumNodes; i++)
 	{
+	  double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+	  WeakPointerVector<Element >& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+	  double numberOfNeighElems=double(neighb_elems.size());
+	  meshSize+=this->ElementSize()/numberOfNeighElems;
+
+	  if(rGeom[i].Is(FREE_SURFACE) || (rGeom[i].Is(SOLID) && rGeom[i].Is(BOUNDARY))){
+	    this->NodalFreeSurfaceLength(i);
+	  }
+
+	  // std::cout<<"meshSize "<<meshSize<<"  numberOfNeighElems="<<numberOfNeighElems<<std::endl;
+	  
 	  const double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
 	  rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
       	  rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
@@ -203,6 +214,31 @@ namespace Kratos {
 
 
 
+  
+  template< >
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2>::NodalFreeSurfaceLength(unsigned int nodeIndex)
+  {
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    array_1d<double,2> Edge(2,0.0);
+
+    for (SizeType i = 0; i < NumNodes; i++){
+      
+      if((rGeom[i].Is(FREE_SURFACE)  || (rGeom[i].Is(SOLID) && rGeom[i].Is(BOUNDARY))) && i!=nodeIndex){
+	noalias(Edge) = rGeom[nodeIndex].Coordinates() - rGeom[i].Coordinates();
+	rGeom[i].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += sqrt(Edge[0]*Edge[0] + Edge[1]*Edge[1])/2.0;
+      }
+    }
+      
+  }
+
+  template< >
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3>::NodalFreeSurfaceLength(unsigned int nodeIndex)
+  {
+    std::cout<<"NodalFreeSurfaceLength is not yet implemented for the 3D"<<std::endl;      
+  }
+
+  
     template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
   {

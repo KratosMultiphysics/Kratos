@@ -37,9 +37,10 @@ class AssignInletProcess(assign_vector_components_to_nodes_process.AssignVectorC
                         #transfer_process = KratosSolid.TransferEntitiesProcess(sub_part,self.model_part,entity_type,transfer_flags,assign_flags)
                         #transfer_process.Execute()
 
+        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
 
         self.echo_level=0
-        self.model_inlet =  KratosPfemFluid.SetInlet(self.model_part,self.echo_level)    
+        self.model_inlet =  KratosPfemFluid.SetInlet(self.main_model_part,self.echo_level)    
         self.model_inlet.Execute()
 
  

@@ -183,21 +183,6 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_CAUCHY_STRESS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_DEVIATORIC_CAUCHY_STRESS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SHAPE_FUNCTION_DERIVATIVE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS_ORDER)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS_COMMON_ELEMENTS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS_VOLUME_COMMON_ELEMENTS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_X)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_Y)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_Z)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_DEFORMATION_GRAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_DEFORMATION_GRAD_VEL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SPATIAL_DEF_RATE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SPATIAL_DEF_RATE_BIS)
-
         print("::[Pfem Fluid Solver]:: Variables ADDED")
                 
 
