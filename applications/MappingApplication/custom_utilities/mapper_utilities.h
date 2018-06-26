@@ -32,7 +32,8 @@ namespace MapperUtilities
 
 using SizeType = std::size_t;
 using IndexType = std::size_t;
-using NodeIterator = ModelPart::NodeIterator;
+
+using NodeType = Node<3>;
 
 using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
 
@@ -46,23 +47,23 @@ using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSyst
 
 
 template< class TVarType >
-static void FillFunction(const NodeIterator& rNodeIt,
+static void FillFunction(const NodeType& rNode,
                          const TVarType& rVariable,
                          double& rValue)
 {
-    rValue = rNodeIt->FastGetSolutionStepValue(rVariable);
+    rValue = rNode.FastGetSolutionStepValue(rVariable);
 }
 
 template< class TVarType >
-static void FillFunctionNonHist(const NodeIterator& rNodeIt,
+static void FillFunctionNonHist(const NodeType& rNode,
                                 const TVarType& rVariable,
                                 double& rValue)
 {
-    rValue = rNodeIt->GetValue(rVariable);
+    rValue = rNode.GetValue(rVariable);
 }
 
 template< class TVarType >
-static std::function<void(const NodeIterator&, const TVarType&, double&)>
+static std::function<void(const NodeType&, const TVarType&, double&)>
 GetFillFunction(const Kratos::Flags& rMappingOptions)
 {
     if (rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL))
@@ -71,43 +72,43 @@ GetFillFunction(const Kratos::Flags& rMappingOptions)
 }
 
 template< class TVarType >
-static void UpdateFunction(const NodeIterator& rNodeIt,
+static void UpdateFunction(NodeType& rNode,
                            const TVarType& rVariable,
                            const double Value,
                            const double Factor)
 {
-    rNodeIt->FastGetSolutionStepValue(rVariable) = Value * Factor;
+    rNode.FastGetSolutionStepValue(rVariable) = Value * Factor;
 }
 
 template< class TVarType >
-static void UpdateFunctionWithAdd(const NodeIterator& rNodeIt,
+static void UpdateFunctionWithAdd(NodeType& rNode,
                             const TVarType& rVariable,
                             const double Value,
                             const double Factor)
 {
-    rNodeIt->FastGetSolutionStepValue(rVariable) += Value * Factor;
+    rNode.FastGetSolutionStepValue(rVariable) += Value * Factor;
 }
 
 template< class TVarType >
-static void UpdateFunctionNonHist(const NodeIterator& rNodeIt,
+static void UpdateFunctionNonHist(NodeType& rNode,
                             const TVarType& rVariable,
                             const double Value,
                             const double Factor)
 {
-    rNodeIt->GetValue(rVariable) = Value * Factor;
+    rNode.GetValue(rVariable) = Value * Factor;
 }
 
 template< class TVarType >
-static void UpdateFunctionNonHistWithAdd(const NodeIterator& rNodeIt,
+static void UpdateFunctionNonHistWithAdd(NodeType& rNode,
                             const TVarType& rVariable,
                             const double Value,
                             const double Factor)
 {
-    rNodeIt->GetValue(rVariable) += Value * Factor;
+    rNode.GetValue(rVariable) += Value * Factor;
 }
 
 template< class TVarType >
-static std::function<void(const NodeIterator&, const TVarType&, const double, const double)>
+static std::function<void(NodeType&, const TVarType&, const double, const double)>
 GetUpdateFunction(const Kratos::Flags& rMappingOptions)
 {
     if (rMappingOptions.Is(MapperFlags::ADD_VALUES) && rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL))

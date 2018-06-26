@@ -44,7 +44,7 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     #pragma omp parallel for
     for (int i=0; i<num_nodes_local; ++i)
     {
-        // TODO this should be working in omp, not usre though
+        // TODO this should be working in omp, not usre though (could allocate data in parallel...)
         ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
     }
 

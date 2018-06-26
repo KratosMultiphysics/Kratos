@@ -21,7 +21,7 @@ namespace Kratos {
 namespace Testing {
 
 using MappingWeightsVector = std::vector<double>;
-using EquationIdVectorType = std::vector<std::size_t>;
+using EquationIdVectorType = std::vector<int>;
 
 KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {

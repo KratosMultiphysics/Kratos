@@ -80,7 +80,7 @@ public:
     using IndexType = std::size_t;
 
     using MappingWeightsVector = std::vector<double>;
-    using EquationIdVectorType = std::vector<IndexType>;
+    using EquationIdVectorType = std::vector<int>; // int bcs of mpi
 
     using NodeType = Node<3>;
     using NodePointerType = Kratos::shared_ptr<Node<3>>;

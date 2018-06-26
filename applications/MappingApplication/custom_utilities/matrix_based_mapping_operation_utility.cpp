@@ -84,7 +84,7 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
 
     #pragma omp parallel for
     for (int i = 0; i<static_cast<int>(rModelPart.NumberOfNodes()); i++)
-        fill_fct(nodes_begin + i, rVariable, rVector[i]);
+        fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
 }
 
 template< class TVarType >
@@ -106,7 +106,7 @@ void Update(UtilityType::TSystemVectorType& rVector,
 
     #pragma omp parallel for
     for (int i = 0; i<static_cast<int>(rModelPart.NumberOfNodes()); i++)
-        update_fct(nodes_begin + i, rVariable, rVector[i]);
+        update_fct(*(nodes_begin + i), rVariable, rVector[i]);
 }
 
 /***********************************************************************************/
@@ -170,8 +170,10 @@ void UtilityType::BuildMappingMatrix(
     for (auto& r_local_sys : rMapperLocalSystems) // TODO omp
     {
         r_local_sys->CalculateLocalSystem(mapping_weights, origin_ids, destination_ids);
-        KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != origin_ids.size()) << "OriginID vector size mismatch" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size()) << "DestinationID vector size mismatch" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != origin_ids.size())
+            << "OriginID vector size mismatch" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size())
+            << "DestinationID vector size mismatch" << std::endl;
 
         // Insert the mapping weights from the local_systems into the mapping matrix
         for (IndexType i=0; i<mapping_weights.size(); ++i)
