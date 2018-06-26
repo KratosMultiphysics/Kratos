@@ -123,7 +123,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         err_msg  = "Files have different number of lines!"
         err_msg += "\nNum Lines Reference File: " + str(num_lines_ref)
         err_msg += "\nNum Lines Output File: " + str(num_lines_out)
-        self.assertTrue(num_lines_ref == num_lines_out, msg=err_msg)
+        self.assertTrue(num_lines_ref == num_lines_out, msg=err_msg + self.info_msg)
 
         return lines_ref, lines_out
 
@@ -258,7 +258,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
 
         error /= nvertices
-        self.assertTrue(error < GetTolerance(self.decimal_places), self.info_msg)
+        self.assertTrue(error < GetTolerance(self.decimal_places), msg = self.info_msg)
 
     def __CompareSolMetricFile(self):
         """This function compares the output of the MMG meshing library
