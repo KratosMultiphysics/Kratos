@@ -263,7 +263,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.adjoint_model_part = self.adjoint_analysis.model.GetModelPart(self.adjoint_model_part_name)
 
         # TODO should be created here, not in solver!
-        self.response_function_utility = self.adjoint_analysis.solver.response_function
+        self.response_function_utility = self.adjoint_analysis._GetSolver().response_function
 
 
     def InitializeSolutionStep(self):
@@ -283,17 +283,17 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # TODO if primal_analysis.status==solved: return
         print("\n> Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
-        self.primal_analysis.time = self.primal_analysis.solver.AdvanceInTime(self.primal_analysis.time)
+        self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
         self.primal_analysis.InitializeSolutionStep()
-        self.primal_analysis.solver.Predict()
-        self.primal_analysis.solver.SolveSolutionStep()
+        self.primal_analysis._GetSolver().Predict()
+        self.primal_analysis._GetSolver().SolveSolutionStep()
         self.primal_analysis.FinalizeSolutionStep()
         self.primal_analysis.OutputSolutionStep()
         print("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
         # TODO the response value calculation for stresses currently only works on the adjoint modelpart
         # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
-        self.adjoint_analysis.time = self.adjoint_analysis.solver.AdvanceInTime(self.adjoint_analysis.time)
+        self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
         self.adjoint_analysis.InitializeSolutionStep()
 
     def CalculateValue(self):
@@ -307,8 +307,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
     def CalculateGradient(self):
         print("\n> Starting adjoint analysis for response:", self.identifier)
         startTime = timer.time()
-        self.adjoint_analysis.solver.Predict()
-        self.adjoint_analysis.solver.SolveSolutionStep()
+        self.adjoint_analysis._GetSolver().Predict()
+        self.adjoint_analysis._GetSolver().SolveSolutionStep()
         self.adjoint_analysis.FinalizeSolutionStep()
         self.adjoint_analysis.OutputSolutionStep()
         print("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
@@ -380,10 +380,10 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
     def InitializeSolutionStep(self):
         print("\n> Starting primal analysis for response:", self.identifier)
         startTime = timer.time()
-        self.primal_analysis.time = self.primal_analysis.solver.AdvanceInTime(self.primal_analysis.time)
+        self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
         self.primal_analysis.InitializeSolutionStep()
-        self.primal_analysis.solver.Predict()
-        self.primal_analysis.solver.SolveSolutionStep()
+        self.primal_analysis._GetSolver().Predict()
+        self.primal_analysis._GetSolver().SolveSolutionStep()
         self.primal_analysis.FinalizeSolutionStep()
         self.primal_analysis.OutputSolutionStep()
         print("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
@@ -404,7 +404,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         for node in self.primal_model_part.Nodes:
             adjoint_displacement = 0.5 * node.GetSolutionStepValue(DISPLACEMENT)
             node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement)
-            if self.primal_analysis.solver.settings["rotation_dofs"].GetBool():
+            if self.primal_analysis._GetSolver().settings["rotation_dofs"].GetBool():
                 adjoint_rotation = 0.5 * node.GetSolutionStepValue(ROTATION)
                 node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation)
 
