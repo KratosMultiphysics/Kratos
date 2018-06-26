@@ -140,7 +140,7 @@ public:
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
-    AddRelaxation(rCurrentElement, LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+    AddRelaxation(rCurrentElement->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
@@ -160,8 +160,7 @@ public:
 
     rCurrentCondition->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-    Matrix Mass;
-    rCurrentCondition->CalculateMassMatrix(Mass, CurrentProcessInfo);
+
     Matrix SteadyLHS;
     rCurrentCondition->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
     rCurrentCondition->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -169,7 +168,7 @@ public:
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
-    AddRelaxation(rCurrentCondition, LHS_Contribution, RHS_Contribution, Mass, CurrentProcessInfo);
+    AddRelaxation(rCurrentCondition->GetGeometry(), LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
@@ -326,7 +325,7 @@ protected:
 
   ///@name Protected Operators
   ///@{
-  void AddRelaxation(Element::Pointer rCurrentElement,
+  void AddRelaxation(const GeometryType& rGeometry,
                      LocalSystemMatrixType& LHS_Contribution,
                      LocalSystemVectorType& RHS_Contribution,
                      ProcessInfo& CurrentProcessInfo)
@@ -334,19 +333,17 @@ protected:
     if (LHS_Contribution.size1() == 0)
       return;
 
-    GeometryType& rGeom = rCurrentElement->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int Dimension = rGeom.WorkingSpaceDimension();
-    const unsigned int BlockSize = NumNodes * (Dimension+1);
+    const unsigned int NumNodes = rGeometry.PointsNumber();
+    const unsigned int Dimension = rGeometry.WorkingSpaceDimension();
 
     Matrix Mass;
-    this->CalculateLumpedMassMatrix(rCurrentElement->GetGeometry(),Mass);
+    this->CalculateLumpedMassMatrix(rGeometry,Mass);
 
     unsigned int DofIndex = 0;
     for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
     {
-      array_1d<double, 3>& rVel = rGeom[iNode].FastGetSolutionStepValue(VELOCITY,0);
-      double Area = rGeom[iNode].FastGetSolutionStepValue(NODAL_AREA,0);
+      const array_1d<double, 3>& rVel = rGeometry[iNode].FastGetSolutionStepValue(VELOCITY,0);
+      const double Area = rGeometry[iNode].FastGetSolutionStepValue(NODAL_AREA,0);
       double VelNorm = 0.0;
       for (unsigned int d = 0; d < Dimension; ++d)
         VelNorm += rVel[d] * rVel[d];
@@ -372,61 +369,6 @@ protected:
       unsigned int BlockIndex = iNode * (Dimension + 1);
       LHS_Contribution(BlockIndex+Dimension,BlockIndex+Dimension) /= mPressureRelaxationFactor;
     }
-  }
-
-  void AddRelaxation(Condition::Pointer rCurrentCondition,
-                     LocalSystemMatrixType& LHS_Contribution,
-                     LocalSystemVectorType& RHS_Contribution,
-                     LocalSystemMatrixType& Mass,
-                     ProcessInfo& CurrentProcessInfo)
-  {
-    if (Mass.size1() == 0)
-      return;
-
-    GeometryType& rGeom = rCurrentCondition->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int Dimension = rGeom.WorkingSpaceDimension();
-    const unsigned int VelocityBlockSize = NumNodes * Dimension;
-    unsigned int DofIndex = 0;
-    for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-    {
-      array_1d<double, 3>& rVel = rGeom[iNode].FastGetSolutionStepValue(VELOCITY,0);
-      double Area = rGeom[iNode].FastGetSolutionStepValue(NODAL_AREA,0);
-      double VelNorm = 0.0;
-      for (unsigned int d = 0; d < Dimension; ++d)
-        VelNorm += rVel[d] * rVel[d];
-      VelNorm = sqrt(VelNorm);
-      double LocalDt;
-      if (VelNorm != 0.0)
-        LocalDt = pow(Area, 1.0 / double(Dimension)) / VelNorm;
-      else
-        LocalDt = 1.0;
-
-      for (unsigned int i = 0; i < Dimension; i++)
-      {
-        double LumpedMass = 0.0;
-        for (unsigned int j = 0; j < VelocityBlockSize; j++)
-        {
-          LumpedMass += Mass(DofIndex,j);
-          Mass(DofIndex,j) = 0.0;
-        }
-        // the relaxation factor defines the local cfl number
-        Mass(DofIndex,DofIndex) = LumpedMass / (mVelocityRelaxationFactor * LocalDt);
-        DofIndex++;
-      }
-      DofIndex++; // pressure dof
-    }
-    noalias(LHS_Contribution) += Mass;
-
-    // pressure relaxation
-    for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-    {
-      unsigned int BlockIndex = iNode * (Dimension + 1);
-      LHS_Contribution(BlockIndex+Dimension,BlockIndex+Dimension) /= mPressureRelaxationFactor;
-    }
-//Vector OldDofValues;
-    //rCurrentCondition->GetFirstDerivativesVector(OldDofValues, 0);
-    //noalias(RHS_Contribution) -= prod(Mass, OldDofValues);
   }
 
   void CalculateLumpedMassMatrix(
