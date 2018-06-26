@@ -196,6 +196,7 @@ public:
         } else { // Damage case
 
             const double CharacteristicLength = rValues.GetElementGeometry().Length();
+
             // This routine updates the PredictiveStress to verify the yield surf
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
                 Damage, Threshold, rMaterialProperties, CharacteristicLength);
@@ -286,7 +287,7 @@ public:
 
         const double F = UniaxialStress - Threshold; 
         if (F <= 0.0) {   // Elastic case
-            noalias(IntegratedStressVector) = PredictiveStressVector;
+            noalias(IntegratedStressVector) = (1.0 - Damage)*PredictiveStressVector;
         } else { // Damage case
             const double CharacteristicLength = rValues.GetElementGeometry().Length();
             // This routine updates the PredictiveStress to verify the yield surf
