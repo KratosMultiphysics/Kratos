@@ -132,8 +132,6 @@ public:
 
     rCurrentElement->InitializeNonLinearIteration(CurrentProcessInfo);
     rCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-    Matrix Mass;
-    this->CalculateLumpedMassMatrix(rCurrentElement->GetGeometry(),Mass);
 
     Matrix SteadyLHS;
     rCurrentElement->CalculateLocalVelocityContribution(SteadyLHS, RHS_Contribution, CurrentProcessInfo);
@@ -142,7 +140,7 @@ public:
     if (SteadyLHS.size1() != 0)
       noalias(LHS_Contribution) += SteadyLHS;
 
-    AddRelaxation(rCurrentElement, LHS_Contribution, RHS_Contribution, Mass, CurrentProcessInfo);
+    AddRelaxation(rCurrentElement, LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
     // apply slip condition
     mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
@@ -331,16 +329,19 @@ protected:
   void AddRelaxation(Element::Pointer rCurrentElement,
                      LocalSystemMatrixType& LHS_Contribution,
                      LocalSystemVectorType& RHS_Contribution,
-                     LocalSystemMatrixType& Mass,
                      ProcessInfo& CurrentProcessInfo)
   {
-    if (Mass.size1() == 0)
+    if (LHS_Contribution.size1() == 0)
       return;
 
     GeometryType& rGeom = rCurrentElement->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int Dimension = rGeom.WorkingSpaceDimension();
-    const unsigned int VelocityBlockSize = NumNodes * Dimension;
+    const unsigned int BlockSize = NumNodes * (Dimension+1);
+
+    Matrix Mass;
+    this->CalculateLumpedMassMatrix(rCurrentElement->GetGeometry(),Mass);
+
     unsigned int DofIndex = 0;
     for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
     {
@@ -358,14 +359,7 @@ protected:
 
       for (unsigned int i = 0; i < Dimension; i++)
       {
-        double LumpedMass = 0.0;
-        for (unsigned int j = 0; j < VelocityBlockSize; j++)
-        {
-          LumpedMass += Mass(DofIndex,j);
-          Mass(DofIndex,j) = 0.0;
-        }
-        // the relaxation factor defines the local cfl number
-        Mass(DofIndex,DofIndex) = LumpedMass / (mVelocityRelaxationFactor * LocalDt);
+        Mass(DofIndex,DofIndex) /= (mVelocityRelaxationFactor * LocalDt);
         DofIndex++;
       }
       DofIndex++; // pressure dof
@@ -454,10 +448,10 @@ protected:
     const double size_fraction = rGeometry.DomainSize() / number_of_nodes;
 
     for (unsigned int i = 0; i < number_of_nodes; i++){
-      const unsigned int dof_block = i*nodal_block_size;
+      const unsigned int node_block = i*nodal_block_size;
       const double lumped_mass = size_fraction * rGeometry[i].FastGetSolutionStepValue(DENSITY);
       for (unsigned int d = 0; d < dimension; d++) {
-        rLumpedMass(dof_block+d,dof_block+d) = lumped_mass;
+        rLumpedMass(node_block+d,node_block+d) = lumped_mass;
       }
     }
   }
