@@ -179,9 +179,6 @@ public:
         // S0 = C:(E-Ep)
         Vector PredictiveStressVector = prod(C, rValues.GetStrainVector());
 
-        //provisional TODO
-        this->SetValue(GREEN_LAGRANGE_STRAIN_VECTOR, rValues.GetStrainVector(), rValues.GetProcessInfo());
-
         // Initialize Plastic Parameters
         double UniaxialStress;
         ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, 
@@ -189,15 +186,15 @@ public:
 
         const double F = UniaxialStress - Threshold; 
 
-        if (F <= 0.0) {   // Elastic case
+        if (F < 0.0 || UniaxialStress == 0.0) {   // Elastic case
             noalias(IntegratedStressVector) = PredictiveStressVector;
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
             noalias(TangentTensor) = (1.0 - Damage)*C;
 
         } else { // Damage case
-            const double CharacteristicLength = rValues.GetElementGeometry().Length();
 
+            const double CharacteristicLength = rValues.GetElementGeometry().Length();
             // This routine updates the PredictiveStress to verify the yield surf
             ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
                 Damage, Threshold, rMaterialProperties, CharacteristicLength);
@@ -211,9 +208,9 @@ public:
             this->CalculateTangentTensor(rValues); 
             noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
         }
-		//this->SetValue(UNIAXIAL_STRESS, IntegratedStressVector[2], rValues.GetProcessInfo());
+
+		// For printing purposes...
         this->SetValue(UNIAXIAL_STRESS, UniaxialStress*(1.0-Damage), rValues.GetProcessInfo());
-        this->SetValue(CAUCHY_STRESS_VECTOR, IntegratedStressVector, rValues.GetProcessInfo());
     } // End CalculateMaterialResponseCauchy
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
@@ -232,7 +229,8 @@ public:
         this->SetThreshold(this->GetNonConvThreshold());
     }
 
-    void CalculateElasticMatrix(Matrix &rElasticityTensor,
+    void CalculateElasticMatrix(
+        Matrix &rElasticityTensor,
         const Properties &rMaterialProperties
     )
     {
@@ -342,31 +340,31 @@ public:
         return rValue;
     }
 
-    Vector& GetValue(
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-    )
-    {
-        if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-            rValue = mStrainVector;
-        } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-            rValue = mStressVector;
-        }
-        return rValue;
-    }
+    // Vector& GetValue(
+    //     const Variable<Vector>& rThisVariable,
+    //     Vector& rValue
+    // )
+    // {
+    //     if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
+    //         rValue = mStrainVector;
+    //     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    //         rValue = mStressVector;
+    //     }
+    //     return rValue;
+    // }
 
-    void SetValue(
-        const Variable<Vector>& rThisVariable,
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-            mStrainVector = rValue;
-        } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-            mStressVector = rValue;
-        }
-    }
+    // void SetValue(
+    //     const Variable<Vector>& rThisVariable,
+    //     const Vector& rValue,
+    //     const ProcessInfo& rCurrentProcessInfo
+    // )
+    // {
+    //     if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+    //         mStrainVector = rValue;
+    //     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    //         mStressVector = rValue;
+    //     }
+    // }
     ///@}
     ///@name Access
     ///@{
@@ -427,8 +425,8 @@ private:
     double mThreshold = 0.0;
     double mUniaxialStress = 0.0;
 
-    Vector mStrainVector = ZeroVector(6); // to remove
-    Vector mStressVector = ZeroVector(6); // to remove
+    // Vector mStrainVector = ZeroVector(6); // to remove
+    // Vector mStressVector = ZeroVector(6); // to remove
 
     // Non Converged values
     double mNonConvDamage = 0.0;

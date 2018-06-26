@@ -181,7 +181,6 @@ public:
 
         // S0 = C:(E-Ep)
         Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
-        this->SetValue(GREEN_LAGRANGE_STRAIN_VECTOR, rValues.GetStrainVector(), rValues.GetProcessInfo());
 
         // Initialize Plastic Parameters
         double UniaxialStress = 0.0, PlasticDenominator = 0.0;
@@ -220,7 +219,6 @@ public:
             this->CalculateTangentTensor(rValues); // this modifies the C
             noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
         }
-        this->SetValue(CAUCHY_STRESS_VECTOR, IntegratedStressVector, rValues.GetProcessInfo());
         this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
     } // End CalculateMaterialResponseCauchy
 
@@ -228,7 +226,6 @@ public:
     {
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
     }
-
 
     void FinalizeSolutionStep(
         const Properties& rMaterialProperties,
@@ -360,31 +357,31 @@ public:
         return rValue;
     }
 
-    Vector& GetValue(
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-    )
-    {
-        if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-            rValue = mStrainVector;
-        } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-            rValue = mStressVector;
-        }
-        return rValue;
-    }
+    // Vector& GetValue(
+    //     const Variable<Vector>& rThisVariable,
+    //     Vector& rValue
+    // )
+    // {
+    //     if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
+    //         rValue = mStrainVector;
+    //     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    //         rValue = mStressVector;
+    //     }
+    //     return rValue;
+    // }
 
-    void SetValue(
-        const Variable<Vector>& rThisVariable,
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-            mStrainVector = rValue;
-        } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-            mStressVector = rValue;
-        }
-    }
+    // void SetValue(
+    //     const Variable<Vector>& rThisVariable,
+    //     const Vector& rValue,
+    //     const ProcessInfo& rCurrentProcessInfo
+    // )
+    // {
+    //     if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+    //         mStrainVector = rValue;
+    //     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    //         mStressVector = rValue;
+    //     }
+    // }
 
     ///@}
     ///@name Access
@@ -453,8 +450,8 @@ private:
 
     // auxiliar to print
     double mUniaxialStress = 0.0;
-    Vector mStrainVector = ZeroVector(6); // to remove
-    Vector mStressVector = ZeroVector(6); // to remove
+    // Vector mStrainVector = ZeroVector(6); // to remove
+    // Vector mStressVector = ZeroVector(6); // to remove
     ///@}
     ///@name Private Operators
     ///@{
