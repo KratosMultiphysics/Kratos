@@ -13,7 +13,8 @@
 
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "utilities/enrichment_utilities_duplicate_dofs.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 
 namespace Kratos {
@@ -77,43 +78,47 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 	noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
 	if (TElementData::ElementManagesTimeIntegration) {
-		// Get Shape function data
-		Vector gauss_weights;
-		Matrix shape_functions;
-		ShapeFunctionDerivativesArrayType shape_derivatives;
-		this->CalculateGeometryData(
-			gauss_weights, shape_functions, shape_derivatives);
-		const unsigned int number_of_gauss_points = gauss_weights.size();
-
 		TElementData data;
 		data.Initialize(*this, rCurrentProcessInfo);
 
-		for (unsigned int i = 0; i < NumNodes; i++)
-		{
-		    if(data.Distance[i] > 0)
-				data.NumPositiveNodes++;
-		    else
-				data.NumNegativeNodes++;
-		}
-
 		if (data.IsCut()) {
-
-			std::vector< MatrixType > enriched_shape_derivatives;
-			MatrixType enriched_shape_functions;
-			data.NumberOfDivisions = ComputeSplitting(data, shape_functions, shape_derivatives, enriched_shape_derivatives, enriched_shape_functions);
+			GeometryType::Pointer p_geom = this->pGetGeometry();
+            Matrix shape_functions_pos;
+            Matrix shape_functions_neg;
+            Matrix shape_functions_enr_pos;
+            Matrix shape_functions_enr_neg;
+            GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos;
+            GeometryType::ShapeFunctionsGradientsType shape_derivatives_neg;
+            GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos;
+            GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_neg;
+            ComputeSplitting(
+                data,
+                shape_functions_pos,
+                shape_functions_neg,
+                shape_functions_enr_pos,
+                shape_functions_enr_neg,
+                shape_derivatives_pos,
+			    shape_derivatives_neg,
+                shape_derivatives_enr_pos,
+                shape_derivatives_enr_neg);
 
 			if (data.NumberOfDivisions == 1) {
 				//cases exist when the element is not subdivided due to the characteristics of the provided distance
 				//in this cases the element is treated as AIR or FLUID depending on the side
+				Vector gauss_weights; 
+                Matrix shape_functions; 
+                ShapeFunctionDerivativesArrayType shape_derivatives; 
+                this->CalculateGeometryData( 
+                    gauss_weights, shape_functions, shape_derivatives); 
+                const unsigned int number_of_gauss_points = gauss_weights.size(); 
 				array_1d<double,NumNodes> Ncenter;
 				for(unsigned int i=0; i<NumNodes; i++) Ncenter[i]=0.25;
 				const double dgauss = inner_prod(data.Distance, Ncenter);
 				for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-					data.UpdateGeometryValues(gauss_weights[g],
-						row(shape_functions, g),
+					data.UpdateGeometryValues(g,gauss_weights[g], row(shape_functions, g),
 						shape_derivatives[g]);
 
-                    data.CalculateMaterialPropertiesAtGaussPoint();
+                    data.CalculateDensityAtGaussPoint();
 
 					if (dgauss > 0.0)
 						data.CalculateAirMaterialResponse();
@@ -140,40 +145,59 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 noalias(Kee_tot) = ZeroMatrix(NumNodes, NumNodes);
                 noalias(rhs_ee_tot) = ZeroVector(NumNodes);
 
-				for (unsigned int g = 0; g < data.PartitionsSigns.size(); g++) {
-					data.UpdateGeometryValues(data.PartitionsVolumes[g],
-						row(shape_functions, g),
-						shape_derivatives[0],
-						row(enriched_shape_functions, g),
-						enriched_shape_derivatives[g]);
-					const double dgauss = inner_prod(data.Distance, data.N);
+                for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); g_pos ++) {
+                    data.UpdateGeometryValues(
+                        g_pos,
+                        data.w_gauss_pos_side[g_pos],
+                        row(shape_functions_pos, g_pos),
+				        shape_derivatives_pos[g_pos],
+                        row(shape_functions_enr_pos,g_pos),
+                        shape_derivatives_enr_pos[g_pos]);
+                    
+                    data.CalculateDensityAtGaussPoint();
+                    data.CalculateAirMaterialResponse();
+                    this->AddTimeIntegratedSystem(
+				 		data, rLeftHandSideMatrix, rRightHandSideVector);
+                    
+                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                }
 
-                    data.CalculateMaterialPropertiesAtGaussPoint();
-
-					if (dgauss > 0.0)
-						data.CalculateAirMaterialResponse();
-					else
-						this->CalculateMaterialResponse(data);
-
-					this->AddTimeIntegratedSystem(
-						data, rLeftHandSideMatrix, rRightHandSideVector);
-
-					ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
-				}
+                for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); g_neg ++) {
+                    data.UpdateGeometryValues(
+                        g_neg,
+                        data.w_gauss_neg_side[g_neg],
+                        row(shape_functions_neg, g_neg),
+				        shape_derivatives_neg[g_neg],
+                        row(shape_functions_enr_neg,g_neg),
+                        shape_derivatives_enr_neg[g_neg]);
+                    
+                    data.CalculateDensityAtGaussPoint();
+                    this->CalculateMaterialResponse(data);
+                    this->AddTimeIntegratedSystem(
+				 		data, rLeftHandSideMatrix, rRightHandSideVector);
+                    
+                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                }
 
 				CondenseEnrichment(data, rLeftHandSideMatrix,rRightHandSideVector,Htot,Vtot,Kee_tot, rhs_ee_tot);
-
 			}
 		}
 
 		else {
+			//Get Shape function data 
+            Vector gauss_weights; 
+            Matrix shape_functions; 
+            ShapeFunctionDerivativesArrayType shape_derivatives; 
+            this->CalculateGeometryData( 
+              gauss_weights, shape_functions, shape_derivatives); 
+            const unsigned int number_of_gauss_points = gauss_weights.size(); 
 			// Iterate over integration points to evaluate local contribution
 			for (unsigned int g = 0; g < number_of_gauss_points; g++) {
 
-				data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+				data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
 					shape_derivatives[g]);
 
-                data.CalculateMaterialPropertiesAtGaussPoint();
+                data.CalculateDensityAtGaussPoint();
 
 				if (data.IsAir())
 					data.CalculateAirMaterialResponse();
@@ -263,7 +287,7 @@ template <>
 void TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >::ComputeGaussPointLHSContribution(
 	TwoFluidNavierStokesData<2, 3>& rData, MatrixType& rLHS) {
     const double rho = rData.Density;
-    const double mu = rData.CorrectedViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
@@ -293,14 +317,14 @@ const double clhs2 =             C(2,2)*DN(0,1) + clhs1;
 const double clhs3 =             pow(DN(0,0), 2);
 const double clhs4 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double clhs5 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
-const double clhs6 =             stab_c2*sqrt(pow(clhs4, 2) + pow(clhs5, 2));
+const double clhs6 =             rho*stab_c2*sqrt(pow(clhs4, 2) + pow(clhs5, 2));
 const double clhs7 =             clhs6*h/stab_c1 + mu;
 const double clhs8 =             bdf0*rho;
 const double clhs9 =             N[0]*rho;
 const double clhs10 =             DN(0,0)*clhs4 + DN(0,1)*clhs5;
 const double clhs11 =             N[0]*bdf0 + clhs10;
 const double clhs12 =             pow(rho, 2);
-const double clhs13 =             1.0/(clhs6*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs13 =             1.0/(clhs6/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double clhs14 =             1.0*clhs10*clhs12*clhs13;
 const double clhs15 =             pow(N[0], 2)*clhs8 + clhs10*clhs9 + clhs11*clhs14;
 const double clhs16 =             C(0,1)*DN(0,1) + clhs1;
@@ -497,7 +521,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
 	TwoFluidNavierStokesData<3, 4>& rData, MatrixType& rLHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.CorrectedViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
@@ -530,14 +554,14 @@ const double clhs5 =             pow(DN(0,0), 2);
 const double clhs6 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
 const double clhs7 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double clhs8 =             N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
-const double clhs9 =             stab_c2*sqrt(pow(clhs6, 2) + pow(clhs7, 2) + pow(clhs8, 2));
+const double clhs9 =             rho*stab_c2*sqrt(pow(clhs6, 2) + pow(clhs7, 2) + pow(clhs8, 2));
 const double clhs10 =             clhs9*h/stab_c1 + mu;
 const double clhs11 =             bdf0*rho;
 const double clhs12 =             N[0]*rho;
 const double clhs13 =             DN(0,0)*clhs6 + DN(0,1)*clhs7 + DN(0,2)*clhs8;
 const double clhs14 =             N[0]*bdf0 + clhs13;
 const double clhs15 =             pow(rho, 2);
-const double clhs16 =             1.0/(clhs9*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs16 =             1.0/(clhs9/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double clhs17 =             1.0*clhs13*clhs15*clhs16;
 const double clhs18 =             pow(N[0], 2)*clhs11 + clhs12*clhs13 + clhs14*clhs17;
 const double clhs19 =             C(0,1)*DN(0,1) + C(0,4)*DN(0,2) + clhs1;
@@ -1113,7 +1137,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
 	TwoFluidNavierStokesData<2, 3>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.CorrectedViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
@@ -1152,10 +1176,10 @@ const double crhs5 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(
 const double crhs6 =             rho*(crhs3*crhs4 + crhs5*(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0)));
 const double crhs7 =             DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
 const double crhs8 =             crhs3 + crhs7;
-const double crhs9 =             stab_c2*sqrt(pow(crhs4, 2) + pow(crhs5, 2));
+const double crhs9 =             rho*stab_c2*sqrt(pow(crhs4, 2) + pow(crhs5, 2));
 const double crhs10 =             crhs8*(crhs9*h/stab_c1 + mu);
 const double crhs11 =             rho*(DN(0,0)*crhs4 + DN(0,1)*crhs5);
-const double crhs12 =             1.0/(crhs9*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs12 =             1.0/(crhs9/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double crhs13 =             1.0*crhs12*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] - crhs1 + crhs2 + crhs6);
 const double crhs14 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1));
 const double crhs15 =             rho*(N[0]*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N[1]*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N[2]*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)));
@@ -1184,7 +1208,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
 	TwoFluidNavierStokesData<3, 4>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.CorrectedViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = rData.ElementSize;
 
@@ -1231,10 +1255,10 @@ const double crhs13 =             DN(1,1)*v(1,1);
 const double crhs14 =             DN(2,1)*v(2,1);
 const double crhs15 =             DN(3,1)*v(3,1);
 const double crhs16 =             crhs11 + crhs12 + crhs13 + crhs14 + crhs15 + crhs3 + crhs4 + crhs5 + crhs6;
-const double crhs17 =             stab_c2*sqrt(pow(crhs7, 2) + pow(crhs8, 2) + pow(crhs9, 2));
+const double crhs17 =             rho*stab_c2*sqrt(pow(crhs7, 2) + pow(crhs8, 2) + pow(crhs9, 2));
 const double crhs18 =             crhs16*(crhs17*h/stab_c1 + mu);
 const double crhs19 =             rho*(DN(0,0)*crhs7 + DN(0,1)*crhs8 + DN(0,2)*crhs9);
-const double crhs20 =             1.0/(crhs17*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs20 =             1.0/(crhs17/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double crhs21 =             1.0*crhs20*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] - crhs1 + crhs10 + crhs2);
 const double crhs22 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1) + N[3]*f(3,1));
 const double crhs23 =             rho*(N[0]*(bdf0*v(0,1) + bdf1*vn(0,1) + bdf2*vnn(0,1)) + N[1]*(bdf0*v(1,1) + bdf1*vn(1,1) + bdf2*vnn(1,1)) + N[2]*(bdf0*v(2,1) + bdf1*vn(2,1) + bdf2*vnn(2,1)) + N[3]*(bdf0*v(3,1) + bdf1*vn(3,1) + bdf2*vnn(3,1)));
@@ -1278,7 +1302,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
-	const double mu = rData.CorrectedViscosity;
+	const double mu = rData.EffectiveViscosity;
 
 	const double h = rData.ElementSize;
 
@@ -1296,7 +1320,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
 	const auto& vconv = v - vmesh;
 	const auto& f = rData.BodyForce;
 	const auto& p = rData.Pressure;
-	const auto& stress = rData.ShearStress;
 
 	// Get shape function values
 	const auto& N = rData.N;
@@ -1443,7 +1466,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 	VectorType& rRHS_ee) {
 
 	const double rho = rData.Density;
-	const double mu = rData.CorrectedViscosity;
+	const double mu = rData.EffectiveViscosity;
 
 	const double h = rData.ElementSize;
 
@@ -1461,7 +1484,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
 	const auto& vconv = v - vmesh;
 	const auto& f = rData.BodyForce;
 	const auto& p = rData.Pressure;
-	const auto& stress = rData.ShearStress;
 
 	// Get shape function values
 	const auto& N = rData.N;
@@ -1709,54 +1731,111 @@ const double crhs_ee16 =             1.0*crhs_ee13*(DN(0,2)*p[0] + DN(1,2)*p[1] 
 }
 
 template <>
-unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeSplitting(
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeSplitting(
 	TwoFluidNavierStokesData<3, 4>& rData,
-	MatrixType& rShapeFunctions,
-	ShapeFunctionDerivativesArrayType& rShapeDerivatives,
-	std::vector< MatrixType>& rEnrichedShapeDerivatives,
-	MatrixType& rEnrichedShapeFunctions)
+	MatrixType& rShapeFunctionsPos,
+    MatrixType& rShapeFunctionsNeg,
+    MatrixType& rEnrichedShapeFunctionsPos,
+    MatrixType& rEnrichedShapeFunctionsNeg,
+	GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesPos,
+	GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
+    GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
+	GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg)
 {
-	MatrixType coords(NumNodes, Dim);
-	//fill coordinates
+    Matrix Enr_Neg_Interp = ZeroMatrix(NumNodes,NumNodes);
+    Matrix Enr_Pos_Interp = ZeroMatrix(NumNodes,NumNodes);
 	for (unsigned int i = 0; i < NumNodes; i++)
 	{
-	    const array_1d<double, Dim > & xyz = this->GetGeometry()[i].Coordinates();
-	    for (unsigned int j = 0; j < Dim; j++)
-	        coords(i, j) = xyz[j];
+        if (rData.Distance[i] > 0.0)
+            Enr_Neg_Interp(i,i) = 1.0;
+        else {
+            Enr_Pos_Interp(i,i) = 1.0;
+        }
 	}
-	Vector distances(NumNodes);
-	for (int i = 0; i < NumNodes; i++)
-		distances[i] = rData.Distance[i];
-	unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rShapeDerivatives[0], distances, rData.PartitionsVolumes, rShapeFunctions, rData.PartitionsSigns, rEnrichedShapeDerivatives, rEnrichedShapeFunctions);
-	return ndivisions;
+    // Construct the modified shape fucntions utility
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+    p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, rData.Distance);
+    p_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        rShapeFunctionsPos,
+        rShapeDerivativesPos,
+        rData.w_gauss_pos_side,
+        GeometryData::GI_GAUSS_2);
 
+    // Call the negative side modified shape functions calculator
+    p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+        rShapeFunctionsNeg,
+        rShapeDerivativesNeg,
+        rData.w_gauss_neg_side,
+        GeometryData::GI_GAUSS_2);
+        
+    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, Enr_Pos_Interp);
+    rEnrichedShapeFunctionsNeg = prod(rShapeFunctionsNeg, Enr_Neg_Interp);
+    rEnrichedShapeDerivativesPos = rShapeDerivativesPos;
+    rEnrichedShapeDerivativesNeg = rShapeDerivativesNeg;
+
+    for (unsigned int i = 0; i < rShapeDerivativesPos.size(); i++) {
+        rEnrichedShapeDerivativesPos[i] = prod(Enr_Pos_Interp, rShapeDerivativesPos[i]);
+    }
+    for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); i++) {
+        rEnrichedShapeDerivativesNeg[i] = prod(Enr_Neg_Interp, rShapeDerivativesNeg[i]);
+    }
+
+    rData.NumberOfDivisions = p_modified_sh_func->pGetSplittingUtil()->mDivisionsNumber;
 }
 
 template <>
-unsigned int TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeSplitting(
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeSplitting(
 	TwoFluidNavierStokesData<2, 3>& rData,
-	MatrixType& rShapeFunctions,
-	ShapeFunctionDerivativesArrayType& rShapeDerivatives,
-	std::vector< MatrixType>& rEnrichedShapeDerivatives,
-	MatrixType& rEnrichedShapeFunctions)
+	MatrixType& rShapeFunctionsPos,
+    MatrixType& rShapeFunctionsNeg,
+    MatrixType& rEnrichedShapeFunctionsPos,
+    MatrixType& rEnrichedShapeFunctionsNeg,
+	GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesPos,
+	GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
+    GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
+	GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg)
 {
-
-	MatrixType coords(NumNodes, Dim);
-
-	//fill coordinates
+        Matrix Enr_Neg_Interp = ZeroMatrix(NumNodes,NumNodes);
+    Matrix Enr_Pos_Interp = ZeroMatrix(NumNodes,NumNodes);
 	for (unsigned int i = 0; i < NumNodes; i++)
 	{
-		const array_1d<double, Dim > & xyz = this->GetGeometry()[i].Coordinates();
-		for (unsigned int j = 0; j < Dim; j++)
-			coords(i, j) = xyz[j];
+        if (rData.Distance[i] > 0.0)
+            Enr_Neg_Interp(i,i) = 1.0;
+        else {
+            Enr_Pos_Interp(i,i) = 1.0;
+        }
 	}
+    // Construct the modified shape fucntions utility
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+    ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+    p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, rData.Distance);
+    p_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
+        rShapeFunctionsPos,
+        rShapeDerivativesPos,
+        rData.w_gauss_pos_side,
+        GeometryData::GI_GAUSS_2);
 
-	Vector distances(NumNodes);
-	for (int i = 0; i < NumNodes; i++)
-		distances[i] = rData.Distance[i];
-	unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, rShapeDerivatives[0], distances, rData.PartitionsVolumes, rShapeFunctions, rData.PartitionsSigns, rEnrichedShapeDerivatives, rEnrichedShapeFunctions);
-	return ndivisions;
+    // Call the negative side modified shape functions calculator
+    p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+        rShapeFunctionsNeg,
+        rShapeDerivativesNeg,
+        rData.w_gauss_neg_side,
+        GeometryData::GI_GAUSS_2);
+        
+    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, Enr_Pos_Interp);
+    rEnrichedShapeFunctionsNeg = prod(rShapeFunctionsNeg, Enr_Neg_Interp);
+    rEnrichedShapeDerivativesPos = rShapeDerivativesPos;
+    rEnrichedShapeDerivativesNeg = rShapeDerivativesNeg;
 
+    for (unsigned int i = 0; i < rShapeDerivativesPos.size(); i++) {
+        rEnrichedShapeDerivativesPos[i] = prod(Enr_Pos_Interp, rShapeDerivativesPos[i]);
+    }
+    for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); i++) {
+        rEnrichedShapeDerivativesNeg[i] = prod(Enr_Neg_Interp, rShapeDerivativesNeg[i]);
+    }
+
+    rData.NumberOfDivisions = p_modified_sh_func->pGetSplittingUtil()->mDivisionsNumber;
 }
 
 template<>
@@ -1771,110 +1850,16 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::CondenseEnrichment(
 {
     const double min_area_ratio = -1e-6;
 
-    double positive_volume = 0.0;
-    double negative_volume = 0.0;
-    for (unsigned int igauss = 0; igauss < rData.PartitionsVolumes.size(); igauss++)
-    {
-        double wGauss = rData.PartitionsVolumes[igauss];
-
-        if(rData.PartitionsSigns[igauss] >= 0) //check positive and negative volume
-            positive_volume += wGauss;
-        else
-            negative_volume += wGauss;
-    }
-    const double Vol = positive_volume + negative_volume;
-
-
-
-    double max_diag = 0.0;
-    for(unsigned int k=0; k<Dim+1; k++)
-        if(fabs(Kee_tot(k,k) ) > max_diag) max_diag = fabs(Kee_tot(k,k) );
-    if(max_diag == 0) max_diag = 1.0;
-    
-
-
-    if(positive_volume/Vol < min_area_ratio)
-    {
-        for(unsigned int i=0; i<Dim+1; i++)
-        {
-            if(rData.Distance[i] >= 0.0)
-            {
-                Kee_tot(i,i) += 1000.0*max_diag;
-            }
-        }
-    }
-    if(negative_volume/Vol < min_area_ratio)
-    {
-        for(unsigned int i=0; i<Dim+1; i++)
-        {
-            if(rData.Distance[i] < 0.0)
-            {
-                Kee_tot(i,i) += 1000.0*max_diag;
-            }
-        }
-    }
-
-    //"weakly" impose continuity
-    for(unsigned int i=0; i<Dim; i++)
-    {
-        const double di = fabs(rData.Distance[i]);
-
-        for(unsigned int j=i+1; j<Dim+1; j++)
-        {
-            const double dj =  fabs(rData.Distance[j]);
-
-            if(rData.Distance[i]* rData.Distance[j] < 0.0) //cut edge
-            {
-                double sum_d = di+dj;
-                double Ni = dj/sum_d;
-                double Nj = di/sum_d;
-
-                double penalty_coeff = max_diag*0.001; // h/BDFVector[0];
-                Kee_tot(i,i) += penalty_coeff * Ni*Ni;
-                Kee_tot(i,j) -= penalty_coeff * Ni*Nj;
-                Kee_tot(j,i) -= penalty_coeff * Nj*Ni;
-                Kee_tot(j,j) += penalty_coeff * Nj*Nj;
-
-            }
-        }
-    }
-	//add to LHS enrichment contributions
-	MatrixType inverse_diag;
-	inverse_diag.resize(NumNodes, NumNodes, false);
-    double det;
-    MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag, det);
-
-    
-    const boost::numeric::ublas::bounded_matrix<double,4,16> tmp = prod(inverse_diag,Htot);
-    noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
-
-    const array_1d<double,4> tmp2 = prod(inverse_diag, rhs_ee_tot);
-    noalias(rRightHandSideVector) -= prod(Vtot,tmp2);
-
-}
-
-template<>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CondenseEnrichment(
-	TwoFluidNavierStokesData<3, 4>& rData,
-	Matrix& rLeftHandSideMatrix,
-	VectorType& rRightHandSideVector,
-	MatrixType& Htot,
-	MatrixType& Vtot,
-	MatrixType& Kee_tot,
-	VectorType& rhs_ee_tot)
-{
-	const double min_area_ratio = -1e-6;
-
 	double positive_volume = 0.0;
 	double negative_volume = 0.0;
-	for (unsigned int igauss = 0; igauss < rData.PartitionsVolumes.size(); igauss++)
+	for (unsigned int igauss_pos = 0; igauss_pos < rData.w_gauss_pos_side.size(); igauss_pos++)
 	{
-		double wGauss = rData.PartitionsVolumes[igauss];
+        positive_volume += rData.w_gauss_pos_side[igauss_pos];
+	}
 
-		if (rData.PartitionsSigns[igauss] >= 0) //check positive and negative volume
-			positive_volume += wGauss;
-		else
-			negative_volume += wGauss;
+    for (unsigned int igauss_neg = 0; igauss_neg < rData.w_gauss_neg_side.size(); igauss_neg++)
+	{
+        negative_volume += rData.w_gauss_neg_side[igauss_neg];
 	}
 	const double Vol = positive_volume + negative_volume;
 
@@ -1938,7 +1923,100 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CondenseEnrichment(
     double det;
     MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag, det);
 
-	const boost::numeric::ublas::bounded_matrix<double, 4, 16> tmp = prod(inverse_diag, Htot);
+	BoundedMatrix<double, 4, 16> tmp = prod(inverse_diag, Htot);
+	noalias(rLeftHandSideMatrix) -= prod(Vtot, tmp);
+
+	const array_1d<double, 4> tmp2 = prod(inverse_diag, rhs_ee_tot);
+	noalias(rRightHandSideVector) -= prod(Vtot, tmp2);
+
+}
+
+template<>
+void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CondenseEnrichment(
+	TwoFluidNavierStokesData<3, 4>& rData,
+	Matrix& rLeftHandSideMatrix,
+	VectorType& rRightHandSideVector,
+	MatrixType& Htot,
+	MatrixType& Vtot,
+	MatrixType& Kee_tot,
+	VectorType& rhs_ee_tot)
+{
+	const double min_area_ratio = -1e-6;
+
+	double positive_volume = 0.0;
+	double negative_volume = 0.0;
+	for (unsigned int igauss_pos = 0; igauss_pos < rData.w_gauss_pos_side.size(); igauss_pos++)
+	{
+        positive_volume += rData.w_gauss_pos_side[igauss_pos];
+	}
+
+    for (unsigned int igauss_neg = 0; igauss_neg < rData.w_gauss_neg_side.size(); igauss_neg++)
+	{
+        negative_volume += rData.w_gauss_neg_side[igauss_neg];
+	}
+	const double Vol = positive_volume + negative_volume;
+
+
+
+	double max_diag = 0.0;
+	for (unsigned int k = 0; k<Dim + 1; k++)
+		if (fabs(Kee_tot(k, k)) > max_diag) max_diag = fabs(Kee_tot(k, k));
+	if (max_diag == 0) max_diag = 1.0;
+
+
+
+	if (positive_volume / Vol < min_area_ratio)
+	{
+		for (unsigned int i = 0; i<Dim + 1; i++)
+		{
+			if (rData.Distance[i] >= 0.0)
+			{
+				Kee_tot(i, i) += 1000.0*max_diag;
+			}
+		}
+	}
+	if (negative_volume / Vol < min_area_ratio)
+	{
+		for (unsigned int i = 0; i<Dim + 1; i++)
+		{
+			if (rData.Distance[i] < 0.0)
+			{
+				Kee_tot(i, i) += 1000.0*max_diag;
+			}
+		}
+	}
+
+	//"weakly" impose continuity
+	for (unsigned int i = 0; i<Dim; i++)
+	{
+		const double di = fabs(rData.Distance[i]);
+
+		for (unsigned int j = i + 1; j<Dim + 1; j++)
+		{
+			const double dj = fabs(rData.Distance[j]);
+
+			if (rData.Distance[i] * rData.Distance[j] < 0.0) //cut edge
+			{
+				double sum_d = di + dj;
+				double Ni = dj / sum_d;
+				double Nj = di / sum_d;
+
+				double penalty_coeff = max_diag*0.001; // h/BDFVector[0];
+				Kee_tot(i, i) += penalty_coeff * Ni*Ni;
+				Kee_tot(i, j) -= penalty_coeff * Ni*Nj;
+				Kee_tot(j, i) -= penalty_coeff * Nj*Ni;
+				Kee_tot(j, j) += penalty_coeff * Nj*Nj;
+
+			}
+		}
+	}
+	//add to LHS enrichment contributions
+	MatrixType inverse_diag;
+	inverse_diag.resize(NumNodes, NumNodes, false);
+    double det;
+    MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag, det);
+
+	BoundedMatrix<double, 4, 16> tmp = prod(inverse_diag, Htot);
 	noalias(rLeftHandSideMatrix) -= prod(Vtot, tmp);
 
 	const array_1d<double, 4> tmp2 = prod(inverse_diag, rhs_ee_tot);

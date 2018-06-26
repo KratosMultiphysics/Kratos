@@ -19,6 +19,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
 #include "custom_utilities/element_size_calculator.h"
+#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 
 namespace Kratos {
 
@@ -40,6 +41,8 @@ using NodalScalarData = typename FluidElementData<TDim,TNumNodes, true>::NodalSc
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVectorData;
 using ShapeFunctionsType = typename FluidElementData<TDim, TNumNodes, true>::ShapeFunctionsType;
 using ShapeDerivativesType = typename FluidElementData<TDim, TNumNodes, true>::ShapeDerivativesType;
+typedef Geometry<Node<3>> GeometryType;
+typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
 ///@}
 ///@name Public Members
@@ -53,12 +56,11 @@ NodalVectorData BodyForce;
 
 NodalScalarData Pressure;
 NodalScalarData Distance;
-NodalScalarData NodalDensity;
-NodalScalarData NodalDynamicViscosity;
+NodalScalarData NodalDensity; 
+NodalScalarData NodalDynamicViscosity; 
 
 double Density;
 double DynamicViscosity;
-double CorrectedViscosity; // Includes smagorinsky contribution at gauss point
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double SmagorinskyConstant;
@@ -68,14 +70,25 @@ double bdf1;
 double bdf2;
 
 // Auxiliary containers for the symbolically-generated matrices
-boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
+BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
-boost::numeric::ublas::bounded_matrix<double, TNumNodes*(TDim + 1), TNumNodes> V;
-boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes*(TDim + 1)> H;
-boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes> Kee;
+BoundedMatrix<double, TNumNodes*(TDim + 1), TNumNodes> V;
+BoundedMatrix<double, TNumNodes, TNumNodes*(TDim + 1)> H;
+BoundedMatrix<double, TNumNodes, TNumNodes> Kee;
 array_1d<double, TNumNodes> rhs_ee;
 
 double ElementSize;
+
+Matrix N_pos_side;
+Matrix N_neg_side;
+ShapeFunctionsGradientsType DN_DX_pos_side;
+ShapeFunctionsGradientsType DN_DX_neg_side;
+
+BoundedMatrix<double,TNumNodes,TNumNodes> Enr_Pos_Interp;
+BoundedMatrix<double,TNumNodes,TNumNodes> Enr_Neg_Interp;
+
+Vector w_gauss_pos_side;
+Vector w_gauss_neg_side;
 
 ShapeFunctionsType Nenr;
 ShapeDerivativesType DN_DXenr;
@@ -83,8 +96,6 @@ ShapeDerivativesType DN_DXenr;
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
 unsigned int NumberOfDivisions;
-Vector PartitionsVolumes;
-Vector PartitionsSigns; //ATTENTION: this shall be initialized of size 6
 
 
 ///@}
@@ -101,12 +112,12 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-    this->FillFromNodalData(NodalDensity, DENSITY, r_geometry);
-    this->FillFromNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
 	this->FillFromNodalData(Distance, DISTANCE, r_geometry);
     this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
+    this->FillFromNodalData(NodalDensity, DENSITY, r_geometry); 
+    this->FillFromNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry); 
     this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
@@ -123,30 +134,36 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     noalias(Kee) = ZeroMatrix(TNumNodes, TNumNodes);
     noalias(rhs_ee) = ZeroVector(TNumNodes);
 
-	NumPositiveNodes = 0;
+    NumPositiveNodes = 0;
 	NumNegativeNodes = 0;
-	NumberOfDivisions = 1;
-	PartitionsSigns.resize(6, false);
 
+    for (unsigned int i = 0; i < TNumNodes; i++){
+        if(Distance[i] > 0)
+            NumPositiveNodes++;
+        else
+            NumNegativeNodes++;
+    }
 }
 
 void UpdateGeometryValues(
+    unsigned int IntegrationPointIndex,
     double NewWeight,
     const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX) override
+    const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX) override
 {
-    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(NewWeight,rN,rDN_DX);
+    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight,rN,rDN_DX);
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
 }
 
 void UpdateGeometryValues(
+    unsigned int IntegrationPointIndex,
 	double NewWeight,
 	const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-	const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
+	const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX,
 	const boost::numeric::ublas::matrix_row<Kratos::Matrix> rNenr,
-	const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DXenr)
+	const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXenr)
 {
-	FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(NewWeight, rN, rDN_DX);
+	FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
 	ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
 	noalias(this->Nenr) = rNenr;
 	noalias(this->DN_DXenr) = rDN_DXenr;
@@ -201,46 +218,82 @@ void CalculateAirMaterialResponse() {
 	if(this->ShearStress.size() != strain_size)
 		this->ShearStress.resize(strain_size,false);
 
-	ComputeStrain();
+    ComputeStrain(); 
 
-	const double nu = DynamicViscosity;
-	const double c1 = 2.0*nu;
-	const double c2 = nu;
+    CalculateEffectiveViscosityAtGaussPoint();
+
+	const double mu = this->EffectiveViscosity;
+	const double c1 = 2.0*mu;
+	const double c2 = mu;
 
 	this->C.clear();
+    Matrix& c_mat = this->C;
+    Vector& stress = this->ShearStress;
+    Vector& strain = this->StrainRate;
 
 	if (TDim == 2) 
 	{
-		this->C(0, 0) = 2.0*nu;
-		this->C(1, 1) = 2.0*nu;
-		this->C(2, 2) = nu;
+        constexpr double two_thirds = 2./3.;
+        constexpr double four_thirds = 4./3.;
 
-		this->ShearStress[0] = c1 * this->StrainRate[0];
-		this->ShearStress[1] = c1 * this->StrainRate[1];
-		this->ShearStress[2] = c2 * this->StrainRate[2];
+        c_mat(0,0) = mu * four_thirds;
+        c_mat(0,1) = -mu * two_thirds;
+        c_mat(0,2) = 0.0;
+        c_mat(1,0) = -mu * two_thirds;
+        c_mat(1,1) = mu * four_thirds;
+        c_mat(1,2) = 0.0;
+        c_mat(2,0) = 0.0;
+        c_mat(2,1) = 0.0;
+        c_mat(2,2) = mu;
+
+		c_mat(0, 0) = 2.0*mu;
+		c_mat(1, 1) = 2.0*mu;
+		c_mat(2, 2) = mu;
+
+        const double trace = strain[0] + strain[1];
+        const double volumetric_part = trace/2.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+
+		stress[0] = c1 * strain[0] - volumetric_part; 
+		stress[1] = c1 * strain[1] - volumetric_part;
+		stress[2] = c2 * strain[2];
 	}
 
 	else if (TDim == 3)
 	{
-		this->C(0, 0) = 2.0*nu;
-		this->C(1, 1) = 2.0*nu;
-		this->C(2, 2) = 2.0*nu;
-		this->C(3, 3) = nu;
-		this->C(4, 4) = nu;
-		this->C(5, 5) = nu;
-		this->ShearStress[0] = c1*this->StrainRate[0];
-		this->ShearStress[1] = c1*this->StrainRate[1];
-		this->ShearStress[2] = c1*this->StrainRate[2];
-		this->ShearStress[3] = c2*this->StrainRate[3];
-		this->ShearStress[4] = c2*this->StrainRate[4];
-		this->ShearStress[5] = c2*this->StrainRate[5];
+        constexpr double two_thirds = 2./3.;
+        constexpr double four_thirds = 4./3.;
+        c_mat(0,0) = mu * four_thirds;
+        c_mat(0,1) = -mu * two_thirds;
+        c_mat(0,2) = -mu * two_thirds;
+
+        c_mat(1,0) = -mu * two_thirds;
+        c_mat(1,1) = mu * four_thirds;
+        c_mat(1,2) = -mu * two_thirds;
+
+        c_mat(2,0) = -mu * two_thirds;
+        c_mat(2,1) = -mu * two_thirds;
+        c_mat(2,2) = mu * four_thirds;
+
+        c_mat(3,3) = mu;
+        c_mat(4,4) = mu;
+        c_mat(5,5) = mu;
+
+        const double trace = strain[0] + strain[1] + strain[2];
+        const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
+
+		stress[0] = c1*(strain[0] - volumetric_part); 
+		stress[1] = c1*(strain[1] - volumetric_part); 
+		stress[2] = c1*(strain[2] - volumetric_part); 
+		stress[3] = c2*strain[3];
+		stress[4] = c2*strain[4];
+		stress[5] = c2*strain[5];
 	}
 }
 
 void ComputeStrain()
 {
-    const bounded_matrix<double, TNumNodes, TDim>& v = Velocity;
-    const bounded_matrix<double, TNumNodes, TDim>& DN = this->DN_DX;
+    const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity;
+    const BoundedMatrix<double, TNumNodes, TDim>& DN = this->DN_DX;
     
     // Compute strain (B*v)
     // 3D strain computation
@@ -279,38 +332,54 @@ double ComputeStrainNorm()
     return strain_rate_norm;
 }
 
-void CalculateMaterialPropertiesAtGaussPoint()
+void CalculateDensityAtGaussPoint()
 {
     double dist = 0.0;
     for (unsigned int i = 0; i < TNumNodes; i++)
         dist += this->N[i] * Distance[i];
 
-    double navg = 0.0;
+    int navg = 0;
     double density = 0.0;
-    double viscosity = 0.0;
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         if (dist * Distance[i] > 0.0)
         {
-            navg += 1.0;
+            navg += 1;
             density += NodalDensity[i];
-            viscosity += NodalDynamicViscosity[i];
         }
     }
 
     Density = density / navg;
-    DynamicViscosity = viscosity / navg;
+}
 
-    if (SmagorinskyConstant > 0.0)
+void CalculateEffectiveViscosityAtGaussPoint()
+{
+    double dist = 0.0;
+    for (unsigned int i = 0; i < TNumNodes; i++)
+        dist += this->N[i] * Distance[i];
+
+    int navg = 0;
+    double dynamic_viscosity = 0.0;
+    for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        ComputeStrain();
-        const double strain_rate_norm = ComputeStrainNorm();
-
-        double length_scale = SmagorinskyConstant*ElementSize;
-        length_scale *= length_scale; // square
-        CorrectedViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
+        if (dist * Distance[i] > 0.0)
+        {
+            navg += 1;
+            dynamic_viscosity += NodalDynamicViscosity[i];
+        }
     }
-    else CorrectedViscosity = DynamicViscosity;
+    DynamicViscosity = dynamic_viscosity / navg;
+
+
+    if (SmagorinskyConstant > 0.0) 
+    { 
+        const double strain_rate_norm = ComputeStrainNorm(); 
+ 
+        double length_scale = SmagorinskyConstant*ElementSize; 
+        length_scale *= length_scale; // square 
+        this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm; 
+    } 
+    else this->EffectiveViscosity = DynamicViscosity; 
 }
 ///@}
 
