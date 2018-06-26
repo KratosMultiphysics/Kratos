@@ -186,11 +186,12 @@ public:
 
         const double F = UniaxialStress - Threshold; 
 
-        if (F < 0.0 || UniaxialStress == 0.0) {   // Elastic case
-            noalias(IntegratedStressVector) = PredictiveStressVector;
+        if (F <= 0.0) {   // Elastic case
+        
             this->SetNonConvDamage(Damage);
             this->SetNonConvThreshold(Threshold);
             noalias(TangentTensor) = (1.0 - Damage)*C;
+            noalias(IntegratedStressVector) = (1.0 - Damage)*PredictiveStressVector;
 
         } else { // Damage case
 

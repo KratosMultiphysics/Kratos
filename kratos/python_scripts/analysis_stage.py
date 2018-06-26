@@ -64,18 +64,32 @@ class AnalysisStage(object):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-            
+            #**********************************************************************************
             # auxiliar fle to print nazi things
-            element = self.model["Structure"].GetElement(1)
+            element = self.model["Structure"].GetElement(1422)
+            DEF = element.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.model["Structure"].ProcessInfo)[0][8]
+            VM = element.GetValuesOnIntegrationPoints(StructuralMechanicsApplication.UNIAXIAL_STRESS, self.model["Structure"].ProcessInfo)[0][0]
+            PlotFile = open("ProvisionalTension1dDEF_1422.txt","a")
+            PlotFile.write("{0:.4e}".format(DEF).rjust(11) +"    " + "{0:.4e}".format(VM).rjust(11) + "\n")
+
+            # element = self.model["Structure"].GetElement(1422)
             # DEF = element.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.model["Structure"].ProcessInfo)[0][8]
-            #VM = element.GetValuesOnIntegrationPoints(StructuralMechanicsApplication.UNIAXIAL_STRESS, self.model["Structure"].ProcessInfo)[7][0]
+            # VM = element.GetValuesOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_TENSOR, self.model["Structure"].ProcessInfo)[0][8]
+            # PlotFile = open("ProvisionalTensionDEF_1422.txt","a")
+            # PlotFile.write("{0:.4e}".format(DEF).rjust(11) +"    " + "{0:.4e}".format(VM).rjust(11) + "\n")
+
+            # element = self.model["Structure"].GetElement(1864)
+            # DEF = element.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.model["Structure"].ProcessInfo)[0][0]
+            # VM = element.GetValuesOnIntegrationPoints(StructuralMechanicsApplication.UNIAXIAL_STRESS, self.model["Structure"].ProcessInfo)[0][0]
+            # PlotFile = open("ProvisionalTension1dDEF_1864.txt","a")
+            # PlotFile.write("{0:.4e}".format(DEF).rjust(11) +"    " + "{0:.4e}".format(VM).rjust(11) + "\n")
 
             # visco
-            DEF = element.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.model["Structure"].ProcessInfo)[0][0]
-            VM = element.GetValuesOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_TENSOR, self.model["Structure"].ProcessInfo)[0][0]
-            PlotFile = open("ProvisionalTensionDEF.txt","a")
-            PlotFile.write("{0:.4e}".format(DEF).rjust(11) +"    " + "{0:.4e}".format(VM).rjust(11) + "\n")
-            
+            # DEF = element.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.model["Structure"].ProcessInfo)[0][0]
+            # VM = element.GetValuesOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_TENSOR, self.model["Structure"].ProcessInfo)[0][0]
+            # PlotFile = open("ProvisionalTensionDEF.txt","a")
+            # PlotFile.write("{0:.4e}".format(DEF).rjust(11) +"    " + "{0:.4e}".format(VM).rjust(11) + "\n")
+            #**********************************************************************************
 
 
 

@@ -200,6 +200,7 @@ public:
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
+			//KRATOS_WATCH(UniaxialStress)
 
         } else { // Plastic case
 
@@ -216,6 +217,10 @@ public:
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
 
+			//KRATOS_WATCH(rValues.GetStrainVector())
+			//KRATOS_WATCH(PlasticDissipation)
+			//KRATOS_WATCH(UniaxialStress)
+			//noalias(TangentTensor) = C;
             this->CalculateTangentTensor(rValues); // this modifies the C
             noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
         }
