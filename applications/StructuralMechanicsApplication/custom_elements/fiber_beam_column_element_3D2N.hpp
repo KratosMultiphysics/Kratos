@@ -135,7 +135,7 @@ namespace KRATOS
             ProcessInfo& rCurrentProcessInfo) override;
         )
 
-        void getValuesVector(
+        void getDeformationValuesVector(
             Vector& rValues,
             int Step = 0 ) override;
 
@@ -167,6 +167,7 @@ namespace KRATOS
     vector mNodalForces = ZeroVector(msLocalSize); // save as the nodal displacement from the last iteration step j-1
 
     Vector mChangeInElementDeformationIncr = ZeroVector(msLocalSize);  // Change in the element deformation increments ddq_i
+    Vector mElementDeformationIncr = ZeroVector(msLocalSize);
     Vector mChangeInElementForceIncr = ZeroVector(msLocalSize); // Change in the element force increments ddQ_j
     Vector mElementForceIncr = ZeroVector(msLocalSize);  // element force increments dQ_j
     Vecotr mElementResistingForces = ZeroVector(msLocalSize); // element resisting forces
@@ -177,12 +178,20 @@ namespace KRATOS
      */ 
 
     /**
+     * Initialize before element state determination
+     * 
+     */
+    void InitializeBeforeElementStateDetermination();
+
+
+    /**
      * (4) Compute the element deformation increments
      * 
      * using the compatibility matrix L_ele, the element deformation increments ddq_i
      * is computed from the structure displacement increments ddp_i
      */
-    void ComputeElementDeformationIncrements();
+    void ComputeChangeInElementDeformationIncr();
+    void ComputeElementDeformationIncr();
 
 
     /**
@@ -211,9 +220,118 @@ namespace KRATOS
      * 
      */
     void ComputeSectionForceIncr();
+    void UpdateCurrentSectionForce();
+
+    /**
+     * (9) Compute the change in section deformation increments
+     * 
+     */ 
+    void ComputeChangeInSectionDeformationIncr();
+    void ComputeSectionDeformationIncr();
+
+    /**
+     * (10) Compute the fiber deformation increments
+     * 
+     * 1. compute the change in fiber deformaiton increments
+     * 2. update the fiber deformations
+     * 
+     */
+    void ComputeChangeInFiberDeformationIncr();
+    void ComputeFiberDeformationIncr();
+
+    /**
+     * (11) Compute fiber stresses and update the tangent modulus of the fibers
+     * 
+     * Using the fiber material models of the steel/concrete, the stress sigma_j
+     * and tangent moduli E_j of all fibers are computed from the stresses sigma_(j-1)
+     * and strains epsilon_(j-1) at the previous step (j-1) and the current fiber 
+     * deformation increments depsilon_j
+     * 
+     */
+    void ComputeFiberStresses();
+    void ComputeFiberTangentStiffnessModulus();
+
+    /**
+     * (12) Compute the section tangent stiffness and flexibility matrices
+     *
+     */
+    void ComputeSectionTangentStiffnessMatrix();
+    void ComputeSectionFlexibilityMatrix();
+
+    /**
+     * (13) Compute the section resisting forces
+     * The section resisting forces are computed by summation of the axial force
+     * and biaxial bending moment contributions of all fibers
+     * 
+     */
+    void ComputeSectionResistingForces();
+
+    /**
+     * (14) Compute the section unbalanced forces
+     * 
+     */
+    void ComputeSectionUnbalancedForces();
+
+    /**
+     * (15) Compute the residual section deformations
+     * 
+     */
+    void ComputeSectionResidualDeformations();
+
+    /**
+     * (16) Compute the element flexibility and stiffness matrices
+     * 
+     */
+    void ComputeElementFlexibilityMatrix();
+    void ComputeElementStiffnessMatrix();
+
+    /**
+     * (17) Check for element convergence
+     * 
+     */
+    bool CheckElementConvergence();
+
+    /**
+     * (18) Compute the structure resisting forces
+     * and update the structure stiffness matrix
+     *
+     * The i-th Newton-Raphson iteration is complete, when all
+     * elements have converged checked in (17).
+     * 
+     */
+    void ComputeStructureResistingForces();
+    void ComputeStructureTangentStiffnessMatrix();
+
+    /**
+     * (19) Compute the structure unbalanced forces
+     * 
+     */
+    void ComputeTotalAppliedLoad();
+    void ComputeStructureUnbalancedForces();
+
+    /**
+     * (20) Check for structure convergence
+     * 
+     */
+    bool CheckStructureConvergence();
+
+    /**
+     * (21) Update force and deformation vectors and start new load step
+     * 
+     * All force and deformation vectors are updated by adding the vector increments for 
+     * load step k to the corresponding total forces and deformations at the end of load step (k-1)
+     * 
+     */
+    void UpdateStructureDisplacement();
+    void UpdateElementDeformation();
+    void UpdateSectionDeformation();
+    void UpdateFiberStresses();
+    void UpdateFiberDeformation();
 
 
-    
+
+
+
 
 
 

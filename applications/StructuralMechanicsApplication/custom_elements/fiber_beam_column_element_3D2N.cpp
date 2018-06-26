@@ -83,7 +83,7 @@ void FiberBeamColumnElement3D2N::Initialize() {
     KRATOS_CATCH("");
 }
 
-viod FiberBeamColumnElement3D2N::GetValuesVector(Vector &rValues, int Step){
+void FiberBeamColumnElement3D2N::getDeformationValuesVector(Vector &rValues, int Step){
     KRATOS_TRY;
     if (rValue.size() != msElementSize)
         rValue.resize(msElementSize, false);
@@ -130,10 +130,54 @@ FiberBeamColumnElement3D2N::CalculateInitialLocalCS(){
     Matrix temp_matrix = ZeroMatrix(msDimension);
 
     // TODO
-
 }
 
+    /**
+     * Initialize before element state determination
+     * 
+     */
+    void InitializeBeforeElementStateDetermination()
+    {
+        mIterationCount = 0;
+    }
 
+
+    /**
+     * Element state determination process consists of the following functions
+     * 
+     */ 
+
+    /**
+     * (4) Compute the element deformation increments
+     * 
+     * using the compatibility matrix L_ele, the element deformation increments ddq_i
+     * is computed from the structure displacement increments ddp_i
+     */
+    void ComputeChangeInElementDeformationIncr()
+    {
+        KRATOS_TRY;
+        // Structure displacement increments ddp_i calculated from the difference of displacement of 
+        // current N-R iteration and previous N-R iteration
+        Vector ddp_i = ZeroMatrix(10);
+        Vector dp_previous = ZeroMatrix(10);;
+        Vecotr dp_current = ZeroMatrix(10);;
+        //ddp_i = this->getDeformationValuesVector(dp_current,0) - this->getDeformationValuesVector(dp_current,0);
+
+        // construct the compatibility matrix L_ele
+        Matrix L_ele = ZeroMatrix(5,10);
+        mChangeInElementDeformationIncr = L_ele * ddp_i;
+        // MathUtils<double>::dot_product(L_ele, ddp_i);
+
+        KRATOS_CATCH("");
+    }
+
+    void ComputeChangeInElementDeformationIncr()
+    {
+        KRATOS_TRY;
+        mElementDeformationIncr += 
+
+        KRATOS_CATCH("");
+    }
 
 
 
