@@ -51,8 +51,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         self.decimal_places = params["decimal_places"].GetInt()
         self.dimension = params["dimension"].GetInt()
 
-        self.info_msg = "".join(["\n[%s] Reference File: %s" % (self.__class__.__name__, self.reference_file_name),
-                                 "\n[%s]    Output File: %s" % (self.__class__.__name__, self.output_file_name)
+        self.info_msg = "".join([  "\n[%s] Process info:\n" % self.__class__.__name__,
+                                    params.PrettyPrintJsonString()
                                 ])
 
     def ExecuteInitialize(self):
