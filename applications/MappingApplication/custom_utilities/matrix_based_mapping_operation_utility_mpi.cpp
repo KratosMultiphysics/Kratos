@@ -23,6 +23,8 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
+// TODO clean up these includes
+// Move to space I guess
 #include <EpetraExt_MatrixMatrix.h>
 #include <EpetraExt_RowMatrixOut.h>
 #include <EpetraExt_MultiVectorOut.h>
@@ -185,7 +187,7 @@ void UtilityType::BuildMappingMatrix(
         rp_local_sys->Clear();
     }
 
-    rMdo.GlobalAssemble();
+    rMdo.GlobalAssemble(); // Check if I should call this with the domain- and the range-map (what are those though...?)
 
     EpetraExt::RowMatrixToMatrixMarketFile("TrilinosMappingMatrix", rMdo);
 }
