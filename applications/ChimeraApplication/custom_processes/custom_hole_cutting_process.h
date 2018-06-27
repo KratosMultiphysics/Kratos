@@ -381,7 +381,6 @@ class CustomHoleCuttingProcess
 
 		for (ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it != rModelPart.ElementsEnd(); ++it)
 		{
-
 			double elementDistance = 0.0;
 			std::size_t numPointsOutside = 0;
 			std::size_t j = 0;
@@ -392,7 +391,10 @@ class CustomHoleCuttingProcess
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
 				elementDistance = elementDistance*MainDomainOrNot;
-
+/*
+				if(geom.size() ==3)
+					elementDistance*=-1;
+ */
 				if (elementDistance < 0)
 				{
 					numPointsOutside++;

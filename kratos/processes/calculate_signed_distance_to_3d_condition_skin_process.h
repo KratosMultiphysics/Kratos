@@ -21,10 +21,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -47,7 +47,7 @@ namespace Kratos
 class DistanceSpatialContainersConditionConfigure
 {
     public:
-        
+
     class CellNodeData
     {
         double mDistance;
@@ -242,25 +242,25 @@ private:
 }; // Class DistanceSpatialContainersConditionConfigure
 
   ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
+  ///@{
+
+  ///@}
   ///@name Type Definitions
   ///@{
 
- 
-  ///@} 
+
+  ///@}
   ///@name  Enum's
   ///@{
-      
+
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
-      
+
   ///@}
   ///@name Kratos Classes
   ///@{
-  
+
   /// Short class definition.
   /** Detail class definition.
   */
@@ -270,10 +270,10 @@ private:
     public:
       ///@name Type Definitions
       ///@{
-      
+
       /// Pointer definition of CalculateSignedDistanceTo3DConditionSkinProcess
         KRATOS_CLASS_POINTER_DEFINITION(CalculateSignedDistanceTo3DConditionSkinProcess);
-        
+
         typedef DistanceSpatialContainersConditionConfigure ConfigurationType;
         typedef OctreeBinaryCell<ConfigurationType> CellType;
         typedef OctreeBinary<CellType> OctreeType;
@@ -290,9 +290,9 @@ private:
 
 
       ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
+      ///@name Life Cycle
+      ///@{
+
       /// Constructor.
       CalculateSignedDistanceTo3DConditionSkinProcess(ModelPart& rThisModelPartStruc, ModelPart& rThisModelPartFluid)
           : mrSkinModelPart(rThisModelPartStruc), mrBodyModelPart(rThisModelPartStruc), mrFluidModelPart(rThisModelPartFluid)
@@ -303,18 +303,18 @@ private:
       ~CalculateSignedDistanceTo3DConditionSkinProcess() override
 	{
 	}
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
 
       void operator()()
 	{
 	  Execute();
 	}
-      
-      
+
+
       ///@}
       ///@name Operations
       ///@{
@@ -326,9 +326,9 @@ private:
       {
           KRATOS_TRY
 	/*
-            std::cout << "Clearing the list of correspondances between the FIXED MESH ELEMENTS and the EMBEDDED CONDITIONS THAT ARE CROSSING THEM..." << std::endl;	
+            std::cout << "Clearing the list of correspondances between the FIXED MESH ELEMENTS and the EMBEDDED CONDITIONS THAT ARE CROSSING THEM..." << std::endl;
 
-		
+
 	  for( ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin();
                                           i_fluidElement != mrFluidModelPart.ElementsEnd();
                                           i_fluidElement++)
@@ -337,8 +337,8 @@ private:
 		( i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES)).reserve(6);
 
 		 WeakPointerVector<GeometricalObject >& rE = i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES);
-	            rE.erase(rE.begin(),rE.end() );	
-          } 
+	            rE.erase(rE.begin(),rE.end() );
+          }
 	*/
 
 
@@ -390,7 +390,7 @@ private:
 
       void DistanceFluidStructure()
       {
-	
+
           // Initialize nodal distances each node in the domain to 1.0
           InitializeDistances();
 
@@ -411,7 +411,10 @@ private:
                                           i_fluidElement++)
           {
               CalcNodalDistancesOfTetNodes( i_fluidElement , TetEdgeIndexTable );
-          } 
+          }
+//rishith
+        std::cout<<" finishded distance fluid structure"<<std::endl;
+
 		KRATOS_WATCH("ENDOF LOOP")
       }
 
@@ -442,7 +445,7 @@ private:
               fluid_elements[i]->SetValue(ELEMENTAL_DISTANCES,ElementalDistances);
               fluid_elements[i]->GetValue(SPLIT_ELEMENT) = false;
           }
-      }      
+      }
 
       ///******************************************************************************************************************
       ///******************************************************************************************************************
@@ -483,11 +486,11 @@ private:
           for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
           {
               IdentifyIntersectionNodes( i_fluidElement , i_tetEdge , leaves , IntersectedTetEdges ,
-                                         NumberIntersectionsOnTetCorner , TetEdgeIndexTable, intersection_counter );  
+                                         NumberIntersectionsOnTetCorner , TetEdgeIndexTable, intersection_counter );
           }
 	  if (intersection_counter!=0)
 		  i_fluidElement->GetValue(EMBEDDED_VELOCITY)/=3.0*intersection_counter;
-	//else 
+	//else
 	//	i_fluidElement->GetValue(EMBEDDED_VELOCITY)=ZeroVector(3);
 	//KRATOS_WATCH("============================================================")
 	 // KRATOS_WATCH(i_fluidElement->GetValue(EMBEDDED_VELOCITY))
@@ -511,7 +514,7 @@ private:
                                       BoundedMatrix<unsigned int,6,2>              TetEdgeIndexTable,
 				      int& intersection_counter)
       {
-	    
+
 
 	  std::vector<unsigned int> IntersectingStructCondID;
           TetEdgeStruct             NewTetEdge;
@@ -534,7 +537,7 @@ private:
               object_container_type* struct_cond = (leaves[i_cell]->pGetObjects());
 
               // loop over all structural elements within each octree cell
-	      
+
               for(object_container_type::iterator i_StructCondition = struct_cond->begin(); i_StructCondition != struct_cond->end(); i_StructCondition++)
               {
 			//KRATOS_WATCH(struct_cond->size())
@@ -572,7 +575,7 @@ private:
 				  array_1d<double,3> emb_vel=(*i_StructCondition)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 				  emb_vel+=(*i_StructCondition)->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 				  emb_vel+=(*i_StructCondition)->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
-						
+
 				  //KRATOS_WATCH(emb_vel)
 				  i_fluidElement->GetValue(EMBEDDED_VELOCITY)+=emb_vel;
 				  intersection_counter++;
@@ -586,30 +589,30 @@ private:
 					  {
 					//	double dummy=0.0;
 					  //(i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES)).push_back( GeometricalObject::WeakPointer( *(i_StructCondition.base()) ) );
-					  
+
 					  array_1d<double,3> emb_vel=(*i_StructCondition)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 					  emb_vel+=(*i_StructCondition)->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 					  emb_vel+=(*i_StructCondition)->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
-						
+
 					  //KRATOS_WATCH(emb_vel)
 
 					  i_fluidElement->GetValue(EMBEDDED_VELOCITY)+=emb_vel;
 					  intersection_counter++;
-					  
+
 				  	  }
 					  //(pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
                               }
 
                           }
-			
-   			
+
+
                       }
-		      
+
                   }
               }
-		
+
           }
-		
+
           // check, if intersection nodes have been found on the tet edge --> if yes, then add these information to the TetEdgeVector
           if( NewTetEdge.IntNodes.size() > 0 )
               IntersectedTetEdges.push_back(NewTetEdge);
@@ -755,7 +758,7 @@ private:
       void CalcNodalDistanceTo3DSkin(std::vector<TetEdgeStruct>&                 IntersectedTetEdges,
                                      ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                      unsigned int                                NumberIntersectionsOnTetCorner)
-      {          
+      {
           std::vector<IntersectionNodeStruct> NodesOfApproximatedStructure;
           array_1d<double,4> ElementalDistances;
 
@@ -1145,7 +1148,7 @@ private:
   ///******************************************************************************************************************
   ///******************************************************************************************************************
 
-      
+
 
 	/*
       void GenerateOctree()
@@ -1153,15 +1156,15 @@ private:
           Timer::Start("Generating Octree");
 
 	   // Setting the boundingbox for non-normalized coordinates
-	   const int dimension = 3;        
+	   const int dimension = 3;
 	   double boundingBox_low[3],boundingBox_high[3];
-	      
+
 	   for(int i = 0; i < dimension; i++)
 	    {
 		boundingBox_low[i]  = mrSkinModelPart.NodesBegin()->Coordinates()[i];
 		boundingBox_high[i] = mrSkinModelPart.NodesBegin()->Coordinates()[i];
 	    }
-     
+
 	   for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
         	i_node != mrSkinModelPart.NodesEnd();
         	i_node++)
@@ -1211,15 +1214,15 @@ private:
     {
         Timer::Start("Generating Octree");
         //std::cout << "Generating the Octree..." << std::endl;
-        
+
         double low[3];
         double high[3];
-        
+
         for (int i = 0 ; i < 3; i++)
         {
             low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinates()[i];
         }
-        
+
         // loop over all structure nodes
         for(ModelPart::NodeIterator i_node = mrFluidModelPart.NodesBegin();
             i_node != mrFluidModelPart.NodesEnd();
@@ -1232,11 +1235,11 @@ private:
                 high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
             }
         }
-// KRATOS_WATCH( low[0] )      
+// KRATOS_WATCH( low[0] )
 // KRATOS_WATCH( low[1] )
 // KRATOS_WATCH( low[2] )
 // KRATOS_WATCH( "" )
-// KRATOS_WATCH( high[0] )      
+// KRATOS_WATCH( high[0] )
 // KRATOS_WATCH( high[1] )
 // KRATOS_WATCH( high[2] )
         mOctree.SetBoundingBox(low,high);
@@ -1269,6 +1272,8 @@ private:
         }
 
         Timer::Stop("Generating Octree");
+        //rishith
+        std::cout << "######## Octree generated #########" << std::endl;
 
 //        KRATOS_WATCH(mOctree);
 
@@ -1339,7 +1344,7 @@ private:
 {
             CellType::key_type point_key[3];
             pCell->GetKey(Position, point_key);
-            
+
             for (std::size_t i_direction = 0; i_direction < 8; i_direction++) {
                 CellType::key_type neighbour_key[3];
                 if (pCell->GetNeighbourKey(Position, i_direction, neighbour_key)) {
@@ -1353,7 +1358,7 @@ private:
                         std::cout << "ERROR!! Bad Position calculated!!!!!!!!!!! position :" << position << std::endl;
                         continue;
                     }
-                    
+
                     (*neighbour_cell->pGetData())[position] = pNode;
                 }
             }
@@ -1885,9 +1890,9 @@ private:
     // get triangle edge vectors and plane normal
     u = rGeometry[1] - rGeometry[0];
     v = rGeometry[2] - rGeometry[0];
-    
+
     MathUtils<double>::CrossProduct(n, u, v);             // cross product
-    
+
     if (norm_2(n) == 0)            // triangle is degenerate
         return -1;                 // do not deal with this case
 
@@ -1947,15 +1952,15 @@ private:
 
       ///@}
       ///@name Access
-      ///@{ 
-      
-      
+      ///@{
+
+
       ///@}
       ///@name Inquiry
       ///@{
-      
-      
-      ///@}      
+
+
+      ///@}
       ///@name Input and output
       ///@{
 
@@ -1964,7 +1969,7 @@ private:
 	{
 	  return "CalculateSignedDistanceTo3DConditionSkinProcess";
 	}
-      
+
       /// Print information about this object.
       void PrintInfo(std::ostream& rOStream) const override
 	{
@@ -1975,7 +1980,7 @@ private:
       void PrintData(std::ostream& rOStream) const override
 	{
 	}
-      
+
         void PrintGiDMesh(std::ostream & rOStream) const {
             std::vector<CellType*> leaves;
 
@@ -2030,59 +2035,59 @@ private:
             rOStream << "End Values" << std::endl;
 
         }
-            
-      ///@}      
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
+      ///@name Protected static Member Variables
+      ///@{
+
+
       ///@}
-      
+      ///@name Protected member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operators
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
+      ///@name Static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Member Variables
+      ///@{
 	ModelPart& mrSkinModelPart;
         ModelPart& mrBodyModelPart;
         ModelPart& mrFluidModelPart;
@@ -2090,61 +2095,61 @@ private:
         ConfigurationType::data_type mOctreeNodes;
 
         OctreeType mOctree;
-        
-        static const double epsilon;
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
 
-        
-      ///@} 
+        static const double epsilon;
+
+      ///@}
+      ///@name Private Operators
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
+      ///@{
+
+
+      ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       /// Assignment operator.
       CalculateSignedDistanceTo3DConditionSkinProcess& operator=(CalculateSignedDistanceTo3DConditionSkinProcess const& rOther);
 
       /// Copy constructor.
       //CalculateSignedDistanceTo3DConditionSkinProcess(CalculateSignedDistanceTo3DConditionSkinProcess const& rOther);
 
-        
-      ///@}    
-        
+
+      ///@}
+
     }; // Class CalculateSignedDistanceTo3DConditionSkinProcess
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+
   /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
+  inline std::istream& operator >> (std::istream& rIStream,
 				    CalculateSignedDistanceTo3DConditionSkinProcess& rThis);
 
   /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
+  inline std::ostream& operator << (std::ostream& rOStream,
 				    const CalculateSignedDistanceTo3DConditionSkinProcess& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -2153,13 +2158,13 @@ private:
 
       return rOStream;
     }
-  ///@} 
-  
+  ///@}
+
   const double CalculateSignedDistanceTo3DConditionSkinProcess::epsilon = 1e-12;
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CALCULATE_DISTANCE_CONDITION_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_CALCULATE_DISTANCE_CONDITION_PROCESS_H_INCLUDED  defined
 
 

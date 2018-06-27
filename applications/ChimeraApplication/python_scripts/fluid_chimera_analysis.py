@@ -38,9 +38,15 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
             chimera_params = self.project_parameters["chimera"][0]
             main_model_part = self.model["MainModelPart"]
             self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,chimera_params)
+            domain_size = main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+
+            print("domain size is",domain_size)
+            if domain_size == 2:
+                self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,chimera_params)
+            else:
+                self.ChimeraProcess = KratosChimera.ApplyChimeraProcessMonolithic3d(main_model_part,chimera_params)
 
             #list_of_processes.insert(0, ChimeraProcess)
-
             print(list_of_processes)
             #err
 

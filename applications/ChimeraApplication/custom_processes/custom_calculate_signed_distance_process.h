@@ -250,7 +250,7 @@ class CustomCalculateSignedDistanceProcess
 		if (TDim == 3)
 		{
 			// From Core ?? Improve performance and algorithm based on CalculateSignedDistanceToSkinProcess
-			std::cout << "Inside the distance function" << std::endl;
+			std::cout << "Inside the distance function " << std::endl;
 			p3DSignedDistanceCalculator = CalculateSignedDistanceTo3DConditionSkinProcess::Pointer(new CalculateSignedDistanceTo3DConditionSkinProcess(patchBoundaryModelPart, toBackgroundModelPart));
 
 			std::cout << "Distance calculation initialised" << std::endl;
