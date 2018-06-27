@@ -72,7 +72,7 @@ private:
     Element::GeometryType::IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
     Matrix mJ;
     Matrix mInvJ0;
-    double mDetJ0;
+    double mDetJ0 = 0.0;
     std::size_t mCurrentIntegrationPoint = -1;
 };
 
