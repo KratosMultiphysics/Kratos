@@ -165,9 +165,8 @@ public:
         this->CalculateElasticMatrix(C, rMaterialProperties);
 
         double Threshold, Damage;
-        // In the 1st step must be set
-        if (std::abs(this->GetThreshold()) < tolerance)
-        {
+        // In the 1st step Threshold must be set
+        if (std::abs(this->GetThreshold()) < tolerance) {
             ConstLawIntegratorType::YieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, Threshold);
             this->SetThreshold(Threshold);
         }
@@ -213,10 +212,12 @@ public:
 
 		// For printing purposes...
         this->SetValue(UNIAXIAL_STRESS, UniaxialStress*(1.0-Damage), rValues.GetProcessInfo());
+
     } // End CalculateMaterialResponseCauchy
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
     {
+        // Calculates the Tangent Constitutive Tensor by perturbation
 		TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
     }
 
@@ -238,8 +239,8 @@ public:
     {
         const double E = rMaterialProperties[YOUNG_MODULUS];
         const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-        const double lambda =
-            E * poisson_ratio / ((1. + poisson_ratio) * (1.0 - 2.0 * poisson_ratio));
+        const double lambda = E * poisson_ratio / ((1.0 + poisson_ratio) * 
+                            (1.0 - 2.0 * poisson_ratio));
         const double mu = E / (2.0 + 2.0 * poisson_ratio);
 
         if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
