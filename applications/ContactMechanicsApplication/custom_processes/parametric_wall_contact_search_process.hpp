@@ -531,7 +531,7 @@ namespace Kratos
       mpProperties->SetValue(THICKNESS, 1.0);
       mpProperties->SetValue(CONTACT_FRICTION_ANGLE, 0.0);
 
-      mrMainModelPart.AddProperties(mpProperties, NumberOfProperties);
+      mrMainModelPart.AddProperties(mpProperties);
 
       // create geometry prototype for the contact conditions
       GeometryType::Pointer pGeometry;
