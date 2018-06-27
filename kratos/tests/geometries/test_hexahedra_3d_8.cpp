@@ -110,7 +110,7 @@ namespace Kratos {
       auto geomRegLen1 = GenerateOriginCenterLen1Hexahedra3D8();
       auto geomRegLen2 = GenerateOriginCenterLen2Hexahedra3D8();
 
-      KRATOS_CHECK_NEAR(geomRegLen1->Length(), 2.828427, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomRegLen1->Length(), 0.353553, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen2->Length(), 1.000000, TOLERANCE);
     }
 
