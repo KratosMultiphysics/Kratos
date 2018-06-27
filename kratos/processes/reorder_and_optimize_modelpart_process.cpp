@@ -169,6 +169,7 @@ namespace Kratos
                 pelem = mrModelPart.Elements()(pelem->Id());
 
             }
+            subpart.Elements().Sort();
 
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(subpart.Conditions().size()); ++i)
