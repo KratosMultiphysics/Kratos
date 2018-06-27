@@ -146,6 +146,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                                                                self.settings["relative_pressure_tolerance"].GetDouble(),
                                                                self.settings["absolute_pressure_tolerance"].GetDouble())
 
+        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
+
         ## Constructing the BDF process (time coefficients update)
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,self.settings["time_order"].GetInt())
 
