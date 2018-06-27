@@ -118,11 +118,8 @@ ProcessInfo::Pointer ProcessInfo::pGetPreviousTimeStepInfo(IndexType StepsBefore
     if(StepsBefore > 1)
         return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
 
-    if(StepsBefore == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
-
-    if(!mpPreviousTimeStepInfo)
-        KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
+    KRATOS_ERROR_IF(StepsBefore == 0) << "Steps before = 0" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpPreviousTimeStepInfo) << "No previous time step exists." << std::endl;
 
     return mpPreviousTimeStepInfo;
 }
@@ -132,11 +129,8 @@ const ProcessInfo::Pointer ProcessInfo::pGetPreviousTimeStepInfo(IndexType Steps
     if(StepsBefore > 1)
         return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
 
-    if(StepsBefore == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
-
-    if(!mpPreviousTimeStepInfo)
-        KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
+    KRATOS_ERROR_IF(StepsBefore == 0) << "Steps before = 0" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpPreviousTimeStepInfo) << "No previous time step exists." << std::endl;
 
     return mpPreviousTimeStepInfo;
 }
@@ -246,11 +240,8 @@ ProcessInfo::Pointer ProcessInfo::pGetPreviousSolutionStepInfo(IndexType StepsBe
     if(StepsBefore > 1)
         return mpPreviousSolutionStepInfo->pGetPreviousSolutionStepInfo(--StepsBefore);
 
-    if(StepsBefore == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
-
-    if(!mpPreviousSolutionStepInfo)
-        KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
+    KRATOS_ERROR_IF(StepsBefore == 0) << "Steps before = 0" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpPreviousTimeStepInfo) << "No previous time step exists." << std::endl;
 
     return mpPreviousSolutionStepInfo;
 }
@@ -260,11 +251,8 @@ const ProcessInfo::Pointer ProcessInfo::pGetPreviousSolutionStepInfo(IndexType S
     if(StepsBefore > 1)
         return mpPreviousSolutionStepInfo->pGetPreviousSolutionStepInfo(--StepsBefore);
 
-    if(StepsBefore == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
-
-    if(!mpPreviousSolutionStepInfo)
-        KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
+    KRATOS_ERROR_IF(StepsBefore == 0) << "Steps before = 0" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpPreviousTimeStepInfo) << "No previous time step exists." << std::endl;
 
     return mpPreviousSolutionStepInfo;
 }
