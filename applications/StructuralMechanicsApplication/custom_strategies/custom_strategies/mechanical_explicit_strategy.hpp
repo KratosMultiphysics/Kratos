@@ -145,8 +145,9 @@ public:
       ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
 
       VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, r_nodes);
+      const array_1d<double, 3> zero_array(3, 0.0);
       if (r_model_part.NodesBegin()->HasDofFor(ROTATION_Z))
-        VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, ZeroVector(3), r_nodes);
+        VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
 
       auto it_elem = r_model_part.ElementsBegin();
       // #pragma omp parallel for firstprivate(it_elem)
