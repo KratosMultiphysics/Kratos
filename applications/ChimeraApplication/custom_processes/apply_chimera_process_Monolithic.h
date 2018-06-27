@@ -510,7 +510,11 @@ class ApplyChimeraProcessMonolithic : public Process
 			KRATOS_THROW_ERROR("", "Overlap distance should be a positive number \n", "");
 		}
 
+		//rishith
+		//this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
+
 		if (m_overlap_distance > epsilon)
+		//rishith if (m_overlap_distance ==10)
 		{
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));

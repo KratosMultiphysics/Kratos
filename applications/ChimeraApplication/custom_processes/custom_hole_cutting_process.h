@@ -390,11 +390,19 @@ class CustomHoleCuttingProcess
 			{
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
-				elementDistance = elementDistance*MainDomainOrNot;
+				//elementDistance = elementDistance*MainDomainOrNot;
+
+				if(geom.size() == 3)
+					elementDistance=elementDistance*MainDomainOrNot;
+				else if(geom.size() == 4)
+					elementDistance=-1*elementDistance*MainDomainOrNot;
+				else
+					std::cout<<"wrong input of domain size"<<std::endl;
+
+				//std::cout<<"Printing element distance on the patch nodes"<<elementDistance<<std::endl;
 /*
-				if(geom.size() ==3)
-					elementDistance*=-1;
- */
+KRATOS_WATCH("Printing element distance on the patch nodes");
+*/
 				if (elementDistance < 0)
 				{
 					numPointsOutside++;
