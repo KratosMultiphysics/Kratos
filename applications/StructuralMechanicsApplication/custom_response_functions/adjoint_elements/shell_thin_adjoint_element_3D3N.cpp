@@ -797,6 +797,7 @@ void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<do
     {
         // Get result value for output
         double output_value = this->GetValue(rVariable);
+        double scaling_factor = this->GetGeometry().DomainSize();
         const SizeType num_gps = GetNumberOfGPs();
 
         // Resize Output
@@ -805,7 +806,7 @@ void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<do
 
         // Write scalar result value on all Gauss-Points
         for(unsigned int i = 0; i < num_gps; i++)
-            rOutput[i] = output_value; 
+            rOutput[i] = output_value / scaling_factor; 
 
         //OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);    
     }
@@ -820,15 +821,24 @@ void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<do
 
         const SizeType num_gps = GetNumberOfGPs();
 
+        //double mean_sensitivity = 0.0;
+
         // Resize Output
         if(rOutput.size() != num_gps)
             rOutput.resize(num_gps);
 
         for(unsigned int i = 0; i < num_gps; i++)
         {
-            rOutput[i] = adjoint_strain[i](0,0)*pseudo_forces[i](0,0) + adjoint_strain[i](0,1)*pseudo_forces[i](0,1) +
-                         adjoint_strain[i](1,0)*pseudo_forces[i](1,0) + adjoint_strain[i](1,1)*pseudo_forces[i](1,1);
+            rOutput[i] = (-1.0)*(adjoint_strain[i](0,0)*pseudo_forces[i](0,0) + adjoint_strain[i](0,1)*pseudo_forces[i](0,1) +
+                         adjoint_strain[i](1,0)*pseudo_forces[i](1,0) + adjoint_strain[i](1,1)*pseudo_forces[i](1,1));
+
+            //Note: mean value of analytic sensitivity is equal to weighted discrete sensitivity because there are linear shape functs used
+            /*mean_sensitivity += (-1.0)*(adjoint_strain[i](0,0)*pseudo_forces[i](0,0) + adjoint_strain[i](0,1)*pseudo_forces[i](0,1) +
+                                        adjoint_strain[i](1,0)*pseudo_forces[i](1,0) + adjoint_strain[i](1,1)*pseudo_forces[i](1,1));*/         
         }
+
+        //for(unsigned int i = 0; i < num_gps; i++)
+        //    rOutput[i] =  mean_sensitivity / num_gps;
         // '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     }
     
@@ -909,12 +919,11 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Mat
             this->SetProperties(p_global_properties);
 
             this->ResetSections();
-            ShellThinElement3D3N::Initialize(); 
-                
+            ShellThinElement3D3N::Initialize();    
         }
-
-
     }
+
+    ShellThinElement3D3N::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
  
     KRATOS_CATCH("")
 }                    
