@@ -115,7 +115,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "domain_size": 2,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "reorder": false
             },
             "stabilization": {
                 "formulation": "vms"
@@ -149,8 +150,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
-            "turbulence_model": "None",
-            "reorder": false
+            "turbulence_model": "None"
         }""")
 
         ## Backwards compatibility -- deprecation warnings
