@@ -42,12 +42,12 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
-    def _apply_material_properties_plasticity(self,mp,dim):
+    def _apply_material_properties_plasticity(self,mp,dim,H,A):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,1000)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,1.5)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,A)
         mp.GetProperties()[0].SetValue(KratosMultiphysics.YIELD_STRESS,100)
-        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.HARDENING_MODULUS_1D,200)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.HARDENING_MODULUS_1D,H)
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
@@ -732,7 +732,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
-        self._apply_material_properties_plasticity(mp,dim)
+        self._apply_material_properties_plasticity(mp,dim,200,1.5)
         self._add_constitutive_law(mp,False)
 
         #create nodes
@@ -777,6 +777,57 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         for i in range(3): self.assertAlmostEqual(reaction_nodes[1][i], 0.0)
 
         plastic_disp = (0.1+((Force_Y/1.5)-100)/((1000*200)/(1000+200)))*1.2
+        self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp)
+
+    def test_truss3D2N_nonlinear_plasticity(self):
+        dim = 3
+        mp = KratosMultiphysics.ModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties_plasticity(mp,dim,750,0.1)
+        self._add_constitutive_law(mp,False)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,0.0,1.2,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_xz.AddNodes([2])
+
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+
+        #create Element
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+
+        #apply boundary conditions
+        Force_Y = 14.00
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_xz,'xz')
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #solve + compare
+        self._solve_nonlinear(mp)
+
+        displacement_nodes = [mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT),
+        mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)]
+        reaction_nodes = [mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.REACTION),
+        mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.REACTION)]
+
+
+        self.assertAlmostEqual(reaction_nodes[0][1], -Force_Y,6)
+        for i in range(2): self.assertAlmostEqual(reaction_nodes[0][2*i], 0.0,6)
+        for i in range(3): self.assertAlmostEqual(reaction_nodes[1][i], 0.0,6)
+
+        plastic_disp = 0.170945051
         self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp)
 
 def _add_explicit_variables(mp):

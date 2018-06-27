@@ -1,0 +1,21 @@
+{
+    "properties": [{
+            "model_part_name": "Parts_structure",
+            "properties_id": 1,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "TrussPlasticityConstitutiveLaw"
+                    },
+                    "Variables": {
+                        "DENSITY"             : 7850.0,
+                        "YOUNG_MODULUS"       : 1000.0,
+                        "CROSS_AREA"          : 0.1,
+                        "TRUSS_PRESTRESS_PK2" : 0.0,
+                        "YIELD_STRESS"        : 100.0,
+                        "HARDENING_MODULUS_1D" : 750
+                    },
+                    "Tables": {}
+            }
+    }]
+}
