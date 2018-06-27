@@ -53,6 +53,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/properties_accessor.h"
 
 namespace Kratos
 {
@@ -460,6 +461,11 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
     .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
+    ;
+
+    class_<PropertiesAccessor, PropertiesAccessor::Pointer, PropertiesAccessor::BaseType >(m,"PropertiesAccessor")
+    .def(init<Kratos::PropertiesAccessor::IndexType>())
+    // All the functions
     ;
 }
 
