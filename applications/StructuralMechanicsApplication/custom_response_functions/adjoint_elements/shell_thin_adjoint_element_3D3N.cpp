@@ -809,6 +809,29 @@ void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<do
 
         //OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rOutput);    
     }
+    else if(rVariable == YOUNG_MODULUS_SENSITIVITY_ANALYTIC)
+    {
+        // Try to compute element wise analytic sensitivity ''''''''''''''''''''
+        std::vector<Matrix> adjoint_strain; 
+        std::vector<Matrix> pseudo_forces; 
+        // This is not correct because the primal strain will be computed. Use same primal and adjoint load case to test.
+        ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_STRAIN_GLOBAL, adjoint_strain, rCurrentProcessInfo);
+        this->GetValueOnIntegrationPoints(SHELL_PSEUDO_STRESSES, pseudo_forces, rCurrentProcessInfo);
+
+        const SizeType num_gps = GetNumberOfGPs();
+
+        // Resize Output
+        if(rOutput.size() != num_gps)
+            rOutput.resize(num_gps);
+
+        for(unsigned int i = 0; i < num_gps; i++)
+        {
+            rOutput[i] = adjoint_strain[i](0,0)*pseudo_forces[i](0,0) + adjoint_strain[i](0,1)*pseudo_forces[i](0,1) +
+                         adjoint_strain[i](1,0)*pseudo_forces[i](1,0) + adjoint_strain[i](1,1)*pseudo_forces[i](1,1);
+        }
+        // '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    }
+    
     else
         KRATOS_ERROR << "Unsupported output variable." << std::endl;
 
@@ -826,6 +849,75 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<dou
     this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
+
+void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, 
+                    std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if(rVariable == SHELL_PSEUDO_STRESSES)
+    {
+        // Define working variables
+        std::vector<Matrix> stress_vector_undist;
+        std::vector<Matrix> stress_vector_dist;
+
+        // Compute stress on GP before disturbance
+        ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector_undist, rCurrentProcessInfo);
+
+        // Get disturbance measure
+        double delta= this->GetValue(DISTURBANCE_MEASURE); 	
+        double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(YOUNG_MODULUS);
+        delta *= correction_factor;	
+
+        const SizeType num_gps = GetNumberOfGPs();
+        rValues.resize(num_gps);
+
+        if( this->GetProperties().Has(YOUNG_MODULUS) ) 
+        {
+            // Save properties and its pointer
+            Properties& r_global_property = this->GetProperties(); 
+            Properties::Pointer p_global_properties = this->pGetProperties(); 
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(new Properties(r_global_property));
+            this->SetProperties(p_local_property);
+
+            // Disturb the design variable
+            const double current_property_value = this->GetProperties()[YOUNG_MODULUS];
+            p_local_property->SetValue(YOUNG_MODULUS, (current_property_value + delta));
+
+            this->ResetSections();
+            ShellThinElement3D3N::Initialize();
+
+            // Compute stress on GP after disturbance
+            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector_dist, rCurrentProcessInfo);
+
+            // Compute derivative of stress w.r.t. design variable with finite differences
+            for(size_t j = 0; j < num_gps; j++)
+            {
+                Matrix & iValue = rValues[j];
+                if(iValue.size1() != 3 || iValue.size2() != 3)
+                    iValue.resize(3, 3, false);
+
+                noalias(stress_vector_dist[j])  -= stress_vector_undist[j];
+                stress_vector_dist[j]  /= delta;
+
+                iValue = stress_vector_dist[j];
+            }
+    
+            // Give element original properties back
+            this->SetProperties(p_global_properties);
+
+            this->ResetSections();
+            ShellThinElement3D3N::Initialize(); 
+                
+        }
+
+
+    }
+ 
+    KRATOS_CATCH("")
+}                    
 
 
 // =====================================================================================
