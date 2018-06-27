@@ -270,6 +270,7 @@ void SmallDisplacementBbar::CalculateConstitutiveVariables(
 
     // Here we essentially set the input parameters
     //rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F); //TODO(marcelo): check if this line is necessary
+    rValues.SetShapeFunctionsValues(rThisKinematicVariables.N); // shape functions
     rValues.SetDeterminantF(rThisKinematicVariables.detF); //assuming the determinant is computed somewhere else
     rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
 
@@ -423,7 +424,7 @@ void SmallDisplacementBbar::CalculateHydrostaticDeformationMatrix(KinematicVaria
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+
     const GeometryType::IntegrationMethod integration_method =
         GetGeometry().GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points =
