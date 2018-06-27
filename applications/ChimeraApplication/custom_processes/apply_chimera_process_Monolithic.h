@@ -196,6 +196,7 @@ class ApplyChimeraProcessMonolithic : public Process
 			{
 				it->SetValue(SPLIT_ELEMENT,false);
 			}
+
 		DoChimeraLoop();
 
 		KRATOS_CATCH("");
@@ -235,7 +236,7 @@ class ApplyChimeraProcessMonolithic : public Process
 
 		std::size_t counter = 0;
 
-     //#pragma omp parallel for firstprivate(results, N)
+//#pragma omp parallel for firstprivate(results, N)
 		//MY NEW LOOP: reset the visited flag
 
 	/*
