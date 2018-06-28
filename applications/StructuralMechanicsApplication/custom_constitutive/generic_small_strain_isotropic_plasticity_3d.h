@@ -23,7 +23,6 @@
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-//#include "custom_utilities/tangent_operator_calculator_template_utility.h"
 
 
 
@@ -157,6 +156,10 @@ public:
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+    {
+        this->CalculateMaterialResponseCauchy(rValues);
+    }
 
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
     {
@@ -166,6 +169,7 @@ public:
         Vector& IntegratedStressVector = rValues.GetStressVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
         const double CharacteristicLength = rValues.GetElementGeometry().Length();
+        const Flags& ConstitutiveLawOptions = rValues.GetOptions();
 
         // Elastic Matrix
         Matrix C;
@@ -195,10 +199,13 @@ public:
         if (F <= std::abs(1.0e-8 * Threshold)) {   // Elastic case
 
             noalias(IntegratedStressVector) = PredictiveStressVector;
-            noalias(TangentTensor) = C;
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
+
+			if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
+				noalias(TangentTensor) = C;
+			}
 
         } else { // Plastic case
 
@@ -210,22 +217,25 @@ public:
                 C, PlasticStrain, rMaterialProperties, CharacteristicLength);
 
 			noalias(IntegratedStressVector) = PredictiveStressVector;
-
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
 
-            this->CalculateTangentTensor(rValues); // this modifies the C
-            noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
+			if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
+				this->CalculateTangentTensor(rValues); // this modifies the C
+				noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
+			}
         }
-        this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+        if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
+            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+        }
+        
     } // End CalculateMaterialResponseCauchy
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
     {
         // Calculates the Tangent Constitutive Tensor by perturbation
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
-        //TangentOperatorCalculatorTemplateUtility<GenericSmallStrainIsotropicPlasticity3D>().CalculateTangentTensor(rValues);
     }
 
     void FinalizeSolutionStep(
@@ -269,53 +279,6 @@ public:
         rElasticityTensor(4, 4) = mu;
         rElasticityTensor(5, 5) = mu;
     }
-
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-    {
-        // now it's used to calculate the tangent tensor by numerical derivation
-        // Integrate Stress plasticity but without modifying the Int Vars
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-        const int VoigtSize = this->GetVoigtSize();
-        Vector& IntegratedStressVector = rValues.GetStressVector();
-        Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-        const double CharacteristicLength = rValues.GetElementGeometry().Length();
-
-        // Elastic Matrix
-        Matrix C;
-        this->CalculateElasticMatrix(C, rMaterialProperties);
-        double Threshold, PlasticDissipation;
-        Vector PlasticStrain = ZeroVector(this->GetVoigtSize());
-
-        Threshold = this->GetThreshold();
-        PlasticDissipation = this->GetPlasticDissipation();
-        PlasticStrain = this->GetPlasticStrain();
-        // S0 = C:(E-Ep)
-        Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
-
-        // Initialize Plastic Parameters
-        double UniaxialStress = 0.0, PlasticDenominator = 0.0;
-        Vector Fflux = ZeroVector(VoigtSize), Gflux = ZeroVector(VoigtSize); // DF/DS & DG/DS
-        Vector PlasticStrainIncrement = ZeroVector(VoigtSize);
-
-        ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, rValues.GetStrainVector(),
-            UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation,
-            PlasticStrainIncrement, C, rMaterialProperties, CharacteristicLength);
-
-        const double F = UniaxialStress - Threshold; 
-
-        if (F <= std::abs(1.0e-8 * Threshold)) {   // Elastic case
-            noalias(IntegratedStressVector) = PredictiveStressVector;
-            noalias(TangentTensor) = C;
-        } else { // Plastic case
-            // while loop backward euler 
-            /* Inside "IntegrateStressVector" the PredictiveStressVector
-               is updated to verify the yield criterion */
-            ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, rValues.GetStrainVector(), 
-                UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
-                C, PlasticStrain, rMaterialProperties, CharacteristicLength);
-			noalias(IntegratedStressVector) = PredictiveStressVector;
-        }
-    }
     
     void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
     {
@@ -358,31 +321,6 @@ public:
         return rValue;
     }
 
-    // Vector& GetValue(
-    //     const Variable<Vector>& rThisVariable,
-    //     Vector& rValue
-    // )
-    // {
-    //     if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR){
-    //         rValue = mStrainVector;
-    //     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-    //         rValue = mStressVector;
-    //     }
-    //     return rValue;
-    // }
-
-    // void SetValue(
-    //     const Variable<Vector>& rThisVariable,
-    //     const Vector& rValue,
-    //     const ProcessInfo& rCurrentProcessInfo
-    // )
-    // {
-    //     if(rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-    //         mStrainVector = rValue;
-    //     } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-    //         mStressVector = rValue;
-    //     }
-    // }
 
     ///@}
     ///@name Access
@@ -451,8 +389,6 @@ private:
 
     // auxiliar to print
     double mUniaxialStress = 0.0;
-    // Vector mStrainVector = ZeroVector(6); // to remove
-    // Vector mStressVector = ZeroVector(6); // to remove
     ///@}
     ///@name Private Operators
     ///@{

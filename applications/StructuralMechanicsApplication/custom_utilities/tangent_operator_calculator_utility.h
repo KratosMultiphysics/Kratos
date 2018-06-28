@@ -80,8 +80,7 @@ public:
 
         const int NumComp = StrainVectorGP.size();
         // Loop over components of the strain
-        for (int Component = 0; Component < NumComp; Component++)
-        {
+        for (int Component = 0; Component < NumComp; Component++) {
             Vector& PerturbedStrain = rValues.GetStrainVector();
 			
             double Perturbation;
@@ -135,7 +134,11 @@ public:
         ConstitutiveLaw* pConstitutiveLaw
     )
     {
-        pConstitutiveLaw->CalculateMaterialResponsePK1(rValues);
+		Flags& ConstitutiveLawOptions = rValues.GetOptions();
+        // In order to avoid recursivity...
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        pConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
     }
 
     static void GetMaxAbsValue(
