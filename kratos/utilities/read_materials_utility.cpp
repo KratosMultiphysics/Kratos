@@ -80,7 +80,7 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
 void ReadMaterialsUtility::TrimComponentName(std::string& rLine){
     std::stringstream ss(rLine);
     std::size_t counter = 0;
-    while (std::getline(ss, rLine, '.')){counter++;}
+    while (std::getline(ss, rLine, '.')){++counter;}
     if (counter > 1)
         KRATOS_WARNING("Read materials") << "Ignoring module information for component " << rLine << std::endl;
 }
@@ -99,16 +99,19 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     // Compute the size using the iterators
     std::size_t variables_size = 0;
     for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it)
-        variables_size++;
+        ++variables_size;
     
     std::size_t tables_size = 0;
     for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it)
-        tables_size++;
+        ++tables_size;
     
     KRATOS_WARNING_IF("Read materials", variables_size > 0 && p_prop->HasVariables())
         << "Property " << std::to_string(property_id) << " already has variables." << std::endl;
     KRATOS_WARNING_IF("Read materials", tables_size > 0 && p_prop->HasTables())
         << "Property " << std::to_string(property_id) << " already has tables." << std::endl;
+
+    // Assign the property to the model part
+    r_model_part.AddProperties(p_prop);
 
     // Assign the p_properties to the model part's elements and conditions.
     auto& r_elements_array = r_model_part.Elements();
@@ -160,7 +163,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
             array_1d<double, 3> temp(3, 0.0);
             const Vector& value_variable = value.GetVector();
             KRATOS_ERROR_IF(value_variable.size() != 3) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 3" << std::endl;
-            for (IndexType index = 0; index < 3; index++)
+            for (IndexType index = 0; index < 3; ++index)
                 temp[index] = value_variable[index];
             p_prop->SetValue(variable, temp);
         } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
@@ -168,7 +171,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
             array_1d<double, 6> temp(6, 0.0);
             const Vector& value_variable = value.GetVector();
             KRATOS_ERROR_IF(value_variable.size() != 6) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 6" << std::endl;
-            for (IndexType index = 0; index < 6; index++)
+            for (IndexType index = 0; index < 6; ++index)
                 temp[index] = value_variable[index];
             p_prop->SetValue(variable, temp);
         } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
@@ -199,7 +202,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
         const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
         const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
-        for (auto i = 0; i < table_param["data"].size(); i++) {
+        for (auto i = 0; i < table_param["data"].size(); ++i) {
             table.insert(table_param["data"][i][0].GetDouble(),
                          table_param["data"][i][1].GetDouble());
         }
