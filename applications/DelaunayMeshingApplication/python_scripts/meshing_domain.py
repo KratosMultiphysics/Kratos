@@ -125,8 +125,11 @@ class MeshingDomain(object):
             BodyType = "FLUID"
         elif(self.main_model_part.Is(KratosMultiphysics.RIGID)):
             BodyType = "RIGID"
-            
-        print("::[---Meshed_Domain---]:: "+self.settings["model_part_name"].GetString()+" ("+BodyType+") Ready ")
+
+        Remesh = "No"
+        if(self.active_remeshing):
+            Remesh = "Yes"
+        print("::[---Meshed_Domain---]:: "+self.settings["model_part_name"].GetString()+" ("+BodyType+") "+Remesh)
 
     ####
 
