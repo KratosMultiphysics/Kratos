@@ -14,6 +14,7 @@
 #define  KRATOS_PROPERTIES_ACCESSOR_H
 
 // System includes
+#include <map>
 
 // External includes
 
@@ -22,8 +23,8 @@
 #include "containers/data_value_container.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
-// #include "includes/process_info.h"
-// #include "includes/properties.h"
+#include "includes/process_info.h"
+#include "includes/properties.h"
 
 
 namespace Kratos
@@ -70,6 +71,23 @@ public:
     using IndexType = std::size_t;
     using SizeType = std::size_t;
 
+    using DoubleVariableType = Variable<double>;
+    using ComponentVariableType = VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >;
+    using Array3VariableType = Variable<array_1d<double, 3>>;
+
+    using DoubleFunction = std::function<double(const Properties::Pointer&,
+                                                const GeometryType::Pointer&,
+                                                const DataValueContainer&,
+                                                const ProcessInfo&,
+                                                const Vector&,
+                                                const int)>;
+
+    using DoubleConfiguration = std::map<DoubleVariableType, DoubleFunction>;
+
+    // std::function<void(int)>
+
+    // using std::unordered_map<DoubleVariableType>
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -92,18 +110,46 @@ public:
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV,
-                                            // const Properties::Pointer& rpProperties,
-                                            const GeometryType::Pointer& rpGeometry,
-                                            const DataValueContainer& rDataContainer,
-                                            // const ProcessInfo& rCurrentProcessInfo,
-                                            const Vector& rShapeFunctionValues,
-                                            const int GaussPointIndex=0)
+                                           const Properties::Pointer& rpProperties,
+                                           const GeometryType::Pointer& rpGeometry,
+                                           const DataValueContainer& rDataContainer,
+                                           const ProcessInfo& rCurrentProcessInfo,
+                                           const Vector& rShapeFunctionValues,
+                                           const int GaussPointIndex=0)
     {
-
-        // Perform some operations depending on the configuration of the Accessor
-
-        // return mData.GetValue(rV);
+        // rpProperties->GetValue(rV);
     }
+
+
+    double GetValue(const DoubleVariableType& rV,
+                     const Properties::Pointer& rpProperties,
+                     const GeometryType::Pointer& rpGeometry,
+                     const DataValueContainer& rDataContainer,
+                     const ProcessInfo& rCurrentProcessInfo,
+                     const Vector& rShapeFunctionValues,
+                     const int GaussPointIndex=0)
+    {
+        if(mConfigurationsDouble.find(rV) != mConfigurationsDouble.end())
+            return mConfigurationsDouble[rV](rpProperties,
+                                             rpGeometry,
+                                             rDataContainer,
+                                             rCurrentProcessInfo,
+                                             rShapeFunctionValues,
+                                             GaussPointIndex);
+        else
+            return rpProperties->GetValue(rV);
+    }
+
+    void Configure(const DoubleVariableType& rV, std::function<double(const Properties::Pointer&,
+                                                const GeometryType::Pointer&,
+                                                const DataValueContainer&,
+                                                const ProcessInfo&,
+                                                const Vector&,
+                                                const int)> DoubleFunction)
+    {
+        mConfigurationsDouble[rV] = DoubleFunction;
+    }
+
 
 
     ///@}
@@ -187,6 +233,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    DoubleConfiguration mConfigurationsDouble;
 
 
     ///@}
