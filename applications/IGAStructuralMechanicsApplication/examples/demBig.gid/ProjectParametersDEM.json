@@ -16,7 +16,7 @@
 "dem_inlet_option"                 : false,
 "GravityX"                         : 0.0,
 "GravityY"                         : 0.0,
-"GravityZ"                         : -29.81,
+"GravityZ"                         : -9.81,
 
 "EnergyCalculationOption"          : false,
 "VelocityTrapOption"               : false,
@@ -39,9 +39,9 @@
 "TranslationalIntegrationScheme"   : "Symplectic_Euler",
 "RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
-"DeltaTimeSafetyFactor"            : 1.0,
-"MaxTimeStep"                      : 2e-3,
-"FinalTime"                        : 0.5,
+"DeltaTimeSafetyFactor"            : 2.0,
+"MaxTimeStep"                      : 1e-3,
+"FinalTime"                        : 2,
 "ControlTime"                      : 4.0,
 "NeighbourSearchFrequency"         : 1,
 

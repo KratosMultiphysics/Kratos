@@ -169,7 +169,7 @@
   ],
   "element_list": [
     {
-      "element_name": "MeshlessShellElement",
+      "element_name": "MeshlessShellKLElement",
       "cad_model_part": [ "IntegrationDomain.FACES.FACE_2" ],
       "iga_model_part": "STRUCTURAL_ANALYSIS_2",
       "parameters": {

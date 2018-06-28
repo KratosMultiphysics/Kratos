@@ -3,7 +3,7 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Table 0 TIME VELOCITY
+0.0  5.0
 0.0  0.0
-1.0  0.0
 End Table
 

@@ -1,5 +1,5 @@
-#if !defined(KRATOS_MESHLESS_SHELL_KL_ELEMENT_H_INCLUDED )
-#define  KRATOS_MESHLESS_SHELL_KL_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TRUSS_DISCRETE_ELEMENT_H_INCLUDED )
+#define  KRATOS_TRUSS_DISCRETE_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -13,46 +13,45 @@
 
 // Project includes
 #include "custom_elements/meshless_base_element.h"
-#include "custom_elements/meshless_base_surface_element.h"
 
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
+/** Truss element.
 */
-class MeshlessShellKLElement
-    : public MeshlessBaseSurfaceElement
+class TrussDiscreteElement
+    : public MeshlessBaseElement
 {
 public:
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of MeshlessShellKLElement
-    KRATOS_CLASS_POINTER_DEFINITION(MeshlessShellKLElement);
+    /// Counted pointer of TrussDiscreteElement
+    KRATOS_CLASS_POINTER_DEFINITION(TrussDiscreteElement);
     ///@}
     ///@name Life Cycle
     ///@{
     /// Default constructor.
 	// Constructor using an array of nodes
-	MeshlessShellKLElement(IndexType NewId, GeometryType::Pointer pGeometry)
-		: MeshlessBaseSurfaceElement(NewId, pGeometry)
+	TrussDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry)
+		: MeshlessBaseElement(NewId, pGeometry)
 	{};
 	// Constructor using an array of nodes with properties
-	MeshlessShellKLElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-		: MeshlessBaseSurfaceElement(NewId, pGeometry, pProperties)
+	TrussDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+		: MeshlessBaseElement(NewId, pGeometry, pProperties)
 	{};
 
 	// default constructor necessary for serialization
-	MeshlessShellKLElement() : MeshlessBaseSurfaceElement() {};
+	TrussDiscreteElement() : MeshlessBaseElement() {};
 
 	/// Destructor.
-	virtual ~MeshlessShellKLElement() override
+	virtual ~TrussDiscreteElement() override
 	{};
 
 	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
 	{
-		return Kratos::make_shared< MeshlessShellKLElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+		return Kratos::make_shared< TrussDiscreteElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 	};
 
     ///@}
@@ -74,7 +73,6 @@ public:
 		const bool CalculateStiffnessMatrixFlag,
 		const bool CalculateResidualVectorFlag
 	) override;
-
 
 	/**
 	* Calculate a double Variable on the Element Constitutive Law
@@ -101,16 +99,6 @@ public:
 	) override;
 
 	/**
-	* This is called during the assembling process in order to calculate the elemental mass matrix
-	* @param rMassMatrix: the elemental mass matrix
-	* @param rCurrentProcessInfo: the current process info instance
-	*/
-	void CalculateMassMatrix(
-		MatrixType& rMassMatrix,
-		ProcessInfo& rCurrentProcessInfo
-	) override;
-
-	/**
 	* Sets on rResult the ID's of the element degrees of freedom
 	* @param rResult: The vector containing the equation id
 	* @param rCurrentProcessInfo: The current process info instance
@@ -130,33 +118,6 @@ public:
 		ProcessInfo& rCurrentProcessInfo
 	) override;
 
-
-	/**
-	* This function provides the place to perform checks on the completeness of the input.
-	* It is designed to be called only once (or anyway, not often) typically at the beginning
-	* of the calculations, so to verify that nothing is missing from the input
-	* or that no common error is found.
-	* @param rCurrentProcessInfo
-	*/
-	int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-
-
-
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "KLElement #" << Id();
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "KLElement #" << Id();
-    }
-
 	///@}
 
 protected:
@@ -173,25 +134,11 @@ protected:
 private:
 	///@name Static Member Variables
 	///@{
+	ConstitutiveLaw::Pointer mConstitutiveLaw;
+	///@}
 	///@name Operations
 	///@{
-	void CalculateMetric( MetricVariables& metric ) override;
 
-
-	/**
-	* This functions updates the constitutive variables
-	* @param rActualMetric: The actual metric
-	* @param rThisConstitutiveVariables: The constitutive variables to be calculated
-	* @param rValues: The CL parameters
-	* @param ThisStressMeasure: The stress measure considered
-	*/
-	void CalculateConstitutiveVariables(
-		MetricVariables& rActualMetric,
-		ConstitutiveVariables& rThisConstitutiveVariables,
-		ConstitutiveLaw::Parameters& rValues,
-		const ConstitutiveLaw::StressMeasure ThisStressMeasure
-	) override;
-	///@}
 
 	///@}
 	///@name Serialization
@@ -211,9 +158,9 @@ private:
 
 	///@}
 
-};	 // Class MeshlessShellKLElement
+};	 // Class TrussDiscreteElement
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_MESHLESS_SHELL_KL_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_MESHLESS_TRUSS_DISCRETE_ELEMENT_H_INCLUDED  defined 

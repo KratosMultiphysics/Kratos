@@ -61,7 +61,10 @@ public:
     ///@{
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
-
+		//void CalculateOnIntegrationPoints(
+		//	const Variable<Vector >& rVariable,
+		//	std::vector< Vector >& rOutput,
+		//	const ProcessInfo& rCurrentProcessInfo) override;
 
     std::string Info() const override
     {
@@ -117,6 +120,22 @@ protected:
 		const array_1d<double, 3>& a,
 		const array_1d<double, 3>& b);
     ///@}
+
+	/**
+	* This functions calculates both the RHS and the LHS
+	* @param rLeftHandSideMatrix: The LHS
+	* @param rRightHandSideVector: The RHS
+	* @param rCurrentProcessInfo: The current process info instance
+	* @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
+	* @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+	*/
+	virtual void CalculateAll(
+		MatrixType& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,
+		ProcessInfo& rCurrentProcessInfo,
+		const bool CalculateStiffnessMatrixFlag,
+		const bool CalculateResidualVectorFlag
+	);
 
 private:
     ///@name Serialization

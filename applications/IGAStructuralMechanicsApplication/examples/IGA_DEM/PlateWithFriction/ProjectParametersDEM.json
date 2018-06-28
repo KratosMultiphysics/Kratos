@@ -54,7 +54,7 @@
 "PostTotalForces"                  : false,
 "PostRigidElementForces"           : false,
 "PostRadius"                       : true,
-"PostAngularVelocity"              : false,
+"PostAngularVelocity"              : true,
 "PostParticleMoment"               : false,
 "PostEulerAngles"                  : false,
 "PostRollingResistanceMoment"      : false,

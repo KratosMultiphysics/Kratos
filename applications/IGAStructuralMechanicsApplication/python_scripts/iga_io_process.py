@@ -77,12 +77,13 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                 file.write("Result \"" + out.GetString() + "\" \"Load Case\" 0  Scalar OnGaussPoints\n")
                 file.write("Values\n")
                 for element in self.sub_model_part.Elements:
-                    value = element.CalculateOnIntegrationPoints(variable, 0)
+                    print("something")
+                    value = element.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
 
                     if isinstance(value,float):
-                        file.write(str(element.Id) + "  " + str(value))
+                        file.write(str(element.Id) + "  " + str(value[0]))
                     else: # It is a vector
-                        file.write(str(element.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
+                        file.write(str(element.Id) + "  " + str(value[0][0]) + "  " + str(value[0][1]) + "  " + str(value[0][2]) + "\n")
                 file.write("End Values\n")
 
         #if(self.params.Has("write_points")):
@@ -126,12 +127,12 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                     file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(step) + " Scalar OnGaussPoints\n")
                     file.write("Values\n")
                     for element in self.sub_model_part.Elements:
-                        value = element.CalculateOnIntegrationPoints(variable, 0)
+                        value = element.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
 
                         if isinstance(value,float):
-                            file.write(str(element.Id) + "  " + str(value))
+                            file.write(str(element.Id) + "  " + str(value[0]))
                         else: # It is a vector
-                            file.write(str(element.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
+                            file.write(str(element.Id) + "  " + str(value[0][0]) + "  " + str(value[0][1]) + "  " + str(value[0][2]) + "\n")
                     file.write("End Values\n")
 
         if(self.params.Has("write_points")):

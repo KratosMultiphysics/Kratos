@@ -36,6 +36,7 @@ namespace Kratos {
 KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication() :
     KratosApplication("IGAStructuralMechanicsApplication"),
 	mMeshlessElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
+	mTrussDiscreteElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessMembraneElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessLaplaceElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessShellElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
@@ -101,7 +102,11 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 	KRATOS_REGISTER_ELEMENT("MeshlessShellElement", mMeshlessShellElement)
 	KRATOS_REGISTER_ELEMENT("MeshlessShellKLElement", mMeshlessShellKLElement)
 	KRATOS_REGISTER_ELEMENT("MeshlessShellKLThickElement", mMeshlessShellKLThickElement)
-	
+
+	// Register discrete integration point elements
+	KRATOS_REGISTER_ELEMENT("TrussDiscreteElement", mTrussDiscreteElement)
+
+
 	// Register meshless condition
 	KRATOS_REGISTER_CONDITION("MeshlessSupportRotationCondition", mMeshlessSupportRotationCondition)
 	KRATOS_REGISTER_CONDITION("MeshlessSurfaceSupportCondition", mMeshlessSurfaceSupportCondition)
@@ -113,6 +118,8 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 	KRATOS_REGISTER_CONDITION("MeshlessPointCondition", mMeshlessPointCondition)
 	KRATOS_REGISTER_CONDITION("MeshlessForceInterfaceCondition", mMeshlessForceInterfaceCondition)
 		
+
+	KRATOS_REGISTER_VARIABLE(PRESTRESS_CAUCHY)
 
 	// for damage constitutive law
 	KRATOS_REGISTER_VARIABLE(DAMAGE_T)

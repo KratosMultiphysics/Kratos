@@ -43,6 +43,7 @@
 #include "custom_elements/meshless_shell_kl_element.h"
 #include "custom_elements/meshless_shell_kl_thick_element.h"
 
+#include "custom_elements/truss_discrete_element.h"
 //#include "custom_conditions/ContinuityConditionLagrange.h"
 //#include "custom_conditions/ContinuityConditionPenalty.h"
 //#include "custom_conditions/LoadCondition.h"
@@ -86,6 +87,9 @@ namespace Kratos {
 	KRATOS_DEFINE_VARIABLE(int, LOAD_TYPE)
 	//KRATOS_DEFINE_VARIABLE(std::string, CONDITION_TYPE_DEFINITION)
 	KRATOS_DEFINE_VARIABLE(double, DISTRIBUTED_LOAD_FACTOR)
+
+	KRATOS_DEFINE_VARIABLE(double, PRESTRESS_CAUCHY)
+
 
 	// for damage constitutive law
 	KRATOS_DEFINE_VARIABLE(Vector, GAP_INTERFACE)
@@ -252,6 +256,8 @@ private:
 	const MeshlessShellElement        mMeshlessShellElement;
 	const MeshlessShellKLElement      mMeshlessShellKLElement;
 	const MeshlessShellKLThickElement mMeshlessShellKLThickElement;
+
+	const TrussDiscreteElement        mTrussDiscreteElement;
 
 	// Meshless Conditions
 	const MeshlessSupportRotationCondition         mMeshlessSupportRotationCondition;

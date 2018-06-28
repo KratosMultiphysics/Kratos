@@ -4,8 +4,8 @@ End ModelPartData
 
 Begin Properties 1
 PARTICLE_DENSITY 100
-YOUNG_MODULUS 1.0e6
-POISSON_RATIO 0.20
+YOUNG_MODULUS 1.0e10
+POISSON_RATIO 0
 PARTICLE_FRICTION 0.3
 PARTICLE_COHESION 0.0
 COEFFICIENT_OF_RESTITUTION 0.4
@@ -23,7 +23,7 @@ BRINELL_HARDNESS 200.0
 End Properties
 
 Begin Nodes // GUI group identifier: rock celemid SphericPartDEMElement3D
-184 1.0 0.0 0.3
+184 0.0 1.0 0.3
 End Nodes
 
 Begin Elements SphericParticle3D   //  GUI group identifier: rock
@@ -32,6 +32,10 @@ End Elements
 
 Begin NodalData RADIUS  // GUI group identifier: rock Elementid SphericPartDEMElement3D
 184 0 0.3
+End NodalData
+
+Begin NodalData VELOCITY_X  // GUI group identifier: ball Elementid SphericPartDEMElement3D
+184 0 5.0
 End NodalData
 
 Begin Table 0 TIME VELOCITY

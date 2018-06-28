@@ -122,7 +122,7 @@ class IGAStructuralMechanicsSolver:
 		self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
 		builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver) 
-
+		builder_and_solver.SetEchoLevel(5)
 		# definition of the type of the solver
 		self.laplace_solver = KratosMultiphysics.SkylineLUFactorizationSolver() 
 

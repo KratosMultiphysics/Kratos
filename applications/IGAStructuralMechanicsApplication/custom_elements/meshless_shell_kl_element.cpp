@@ -91,7 +91,6 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-			std::cout << "here something..." << std::endl;
 			if (GetProperties()[CONSTITUTIVE_LAW] != NULL)
 			{
 				//get shape functions for evaluation of stresses inside the constitutive law
@@ -123,9 +122,6 @@ namespace Kratos
 	)
 	{
 		KRATOS_TRY
-			KRATOS_ERROR << "end here." << std::endl;
-		KRATOS_WATCH("Something in calculate all")
-		std::cout << "here something..." << std::endl;
 		// definition of problem size
 		const unsigned int number_of_nodes = GetGeometry().size();
 		unsigned int mat_size = number_of_nodes * 3;
@@ -157,8 +153,6 @@ namespace Kratos
 		Vector   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
 		Matrix  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 		Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
-
-		KRATOS_WATCH(N)
 
 		MetricVariables actual_metric(3);
 		CalculateMetric(actual_metric);
@@ -388,6 +382,21 @@ namespace Kratos
 
 			rValues[0] = sigma_top;
 		}
+		else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+			const int& number_of_nodes = GetGeometry().size();
+			Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+			Vector external_forces_vector = ZeroVector(3);
+			for (SizeType i = 0; i < number_of_nodes; i++)
+			{
+				const NodeType & iNode = GetGeometry()[i];
+				const Vector& forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
+
+				external_forces_vector[0] += N[i] * forces[0];
+				external_forces_vector[1] += N[i] * forces[1];
+				external_forces_vector[2] += N[i] * forces[2];
+			}
+			rValues[0] = external_forces_vector;
+		}
 		else
 		{
 			rValues[0] = ZeroVector(3);
@@ -512,6 +521,60 @@ namespace Kratos
 			trans(rThisConstitutiveVariables.DMembrane), rThisConstitutiveVariables.StrainVector);
 		rThisConstitutiveVariables.StressCurvatureVector = prod(
 			trans(rThisConstitutiveVariables.DCurvature), rThisConstitutiveVariables.StrainCurvatureVector);
+	}
+
+	void MeshlessShellKLElement::CalculateMassMatrix(
+		MatrixType& rMassMatrix,
+		ProcessInfo& rCurrentProcessInfo
+	)
+	{
+		KRATOS_TRY;
+
+		double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+		Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+		Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+
+		double density = this->GetProperties().GetValue(DENSITY);
+
+
+		Vector g1, g2, g3;
+
+		Matrix J;
+		Jacobian(DN_De, J);
+
+		g1[0] = J(0, 0);
+		g2[0] = J(0, 1);
+		g1[1] = J(1, 0);
+		g2[1] = J(1, 1);
+		g1[2] = J(2, 0);
+		g2[2] = J(2, 1);
+
+		CrossProduct2(g3, g1, g2);
+		//differential area dA
+		double dA = norm_2(g3);
+		KRATOS_WATCH(dA)
+
+			unsigned int dimension = 3;
+		unsigned int number_of_nodes = ShapeFunctionsN.size();
+		unsigned int mat_size = dimension * number_of_nodes;
+
+		if (rMassMatrix.size1() != mat_size)
+		{
+			rMassMatrix.resize(mat_size, mat_size, false);
+		}
+		rMassMatrix = ZeroMatrix(mat_size, mat_size);
+
+		for (int r = 0; r<number_of_nodes; r++)
+		{
+			for (int s = 0; s<number_of_nodes; s++)
+			{
+				rMassMatrix(3 * s, 3 * r) = ShapeFunctionsN(s)*ShapeFunctionsN(r) * density * dA * integration_weight;
+				rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
+				rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
+			}
+		}
+
+		KRATOS_CATCH("")
 	}
 
 	//************************************************************************************

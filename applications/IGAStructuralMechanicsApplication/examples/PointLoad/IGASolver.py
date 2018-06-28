@@ -139,6 +139,8 @@ IGA_IO = iga_io_process.Factory(ProjectParameters["output_configuration"],Model)
 
 IGA_IO.ExecuteInitialize()
 
+#iga_solver.solver.SetEchoLevel(5)
+
 # initialize iga_solver and processes
 iga_solver.Initialize()
 
@@ -165,8 +167,8 @@ mapper_params = Parameters("""
 
 #mapper = KratosMapping.MapperFactory.CreateMapper(iga_model_part, spheres_mp, mapper_params)
 
-condition_model_part = iga_model_part.CreateSubModelPart("ConditionModelPart")
-
+#condition_model_part = iga_model_part.CreateSubModelPart("ConditionModelPart")
+iga_solver.solver.SetEchoLevel(5)
 # solving the problem (time integration)
 while(time <= end_time):
 

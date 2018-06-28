@@ -5,7 +5,7 @@
     "domain_size": 5,
     "start_time": 0,
     "end_time": 2,
-    "time_step": 2e-3
+    "time_step": 1e-3
   },
   "Parameters": { "materials_filename": "materials.json" },
   "solver_settings": {
@@ -35,7 +35,7 @@
     "output_file_name": "IGA_DEM_kratos_0.post.res",
     "model_part_name": "IGAModelPart",
     "sub_model_part_name": "",
-    "time_frequency": 1
+    "time_frequency": 0.001
   },
   "nurbs_brep_configuration": {
     "process_name": "NurbsBrepProcess",
@@ -181,7 +181,7 @@
   ],
   "element_list": [
     {
-      "element_name": "MeshlessShellElement",
+      "element_name": "MeshlessShellKLElement",
       "cad_model_part": [ "IntegrationDomain.FACES.FACE_2" ],
       "iga_model_part": "STRUCTURAL_ANALYSIS_2",
       "parameters": {

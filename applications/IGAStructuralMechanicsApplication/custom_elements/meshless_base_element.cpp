@@ -64,6 +64,33 @@ MeshlessBaseElement::~MeshlessBaseElement()
 {
 }
 //************************************************************************************
+//void MeshlessBaseElement::CalculateOnIntegrationPoints(
+//	const Variable<Vector>& rVariable,
+//	std::vector<Vector>& rOutput,
+//	const ProcessInfo& rCurrentProcessInfo
+//)
+//{
+//	if (rOutput.size() != 1)
+//		rOutput.resize(1);
+//
+//	if (rVariable == EXTERNAL_FORCES_VECTOR) {
+//		const int& number_of_nodes = GetGeometry().size();
+//		Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+//		Vector external_forces_vector = ZeroVector(3);
+//		for (SizeType i = 0; i < number_of_nodes; i++)
+//		{
+//			const NodeType & iNode = GetGeometry()[i];
+//			const Vector& forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
+//
+//			external_forces_vector[0] += N[i] * forces[0];
+//			external_forces_vector[1] += N[i] * forces[1];
+//			external_forces_vector[2] += N[i] * forces[2];
+//		}
+//		rOutput[0] = external_forces_vector;
+//	}
+//}
+
+
 /*
 * GetGeometryData Gets data stored on the element.
 *
@@ -224,6 +251,19 @@ array_1d<double, 3> MeshlessBaseElement::CrossProduct(
 	cross[1] = a[2] * b[0] - a[0] * b[2];
 	cross[2] = a[0] * b[1] - a[1] * b[0];
 	return cross;
+}
+
+//************************************************************************************
+//************************************************************************************
+void MeshlessBaseElement::CalculateAll(
+	MatrixType& rLeftHandSideMatrix,
+	VectorType& rRightHandSideVector,
+	ProcessInfo& rCurrentProcessInfo,
+	const bool CalculateStiffnessMatrixFlag,
+	const bool CalculateResidualVectorFlag
+)
+{
+	KRATOS_ERROR << "You have called to the CalculateAll() from the base class for discrete integration point elements" << std::endl;
 }
 
 //***********************************************************************************
