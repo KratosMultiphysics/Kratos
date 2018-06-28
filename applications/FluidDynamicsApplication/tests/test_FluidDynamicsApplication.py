@@ -51,7 +51,7 @@ def AssambleTestSuites():
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
-    smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
+    #smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -93,8 +93,8 @@ def AssambleTestSuites():
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(VolumeSourceTest('validationEulerian'))
-    validationSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
-    validationSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
+    #validationSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
+    #validationSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
 
 
     # Create a test suite that contains all the tests:

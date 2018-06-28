@@ -28,7 +28,7 @@ void SolidShellThickComputeProcess::Execute()
 
     // We set to zero the thickness
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    VariableUtils().SetNonHistoricalScalarVar(THICKNESS, 0.0, nodes_array);
+    VariableUtils().SetNonHistoricalVariable(THICKNESS, 0.0, nodes_array);
 
     // Connectivity map
     std::unordered_map<IndexType, IndexType> connectivity_map;
