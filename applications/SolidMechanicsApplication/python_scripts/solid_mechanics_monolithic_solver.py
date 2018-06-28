@@ -101,6 +101,7 @@ class MonolithicSolver(object):
         # Echo level
         self.echo_level = 0
 
+        
     def GetMinimumBufferSize(self):
         buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
         time_integration_order = self.settings["time_integration_settings"]["time_integration_order"].GetInt()
@@ -133,7 +134,7 @@ class MonolithicSolver(object):
 
         self.Check()
 
-        print("::[-------Solver------]:: Ready")
+        print(self._class_prefix(),self.settings["time_integration_settings"]["integration_method"].GetString()+"_Scheme Ready")
 
     def GetVariables(self):
 
@@ -309,7 +310,7 @@ class MonolithicSolver(object):
         AddDofsProcess.Execute()
         if( self.echo_level > 1 ):
             print(dof_variables + dof_reactions)
-            print("::[-------Solver------]:: DOF's ADDED")
+            print(self._class_prefix()+" DOF's ADDED")
 
 
     def _get_scheme_custom_processes(self):
@@ -362,11 +363,11 @@ class MonolithicSolver(object):
                 scalar_integration_methods[dof].CalculateParameters(self.process_info)
                 scalar_dof_method_set = True
 
-                print("::[----Integration----]::",scalar_integration_methods[dof],"(",dof,")")
+                print("::[----Integration----]::",scalar_integration_methods[dof],"("+dof+")")
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) and (not vector_dof_method_set) ):
                 component_integration_methods[dof+"_X"].CalculateParameters(self.process_info)
                 vector_dof_method_set = True
-                print("::[----Integration----]::",component_integration_methods[dof+"_X"],"(",dof,")")
+                print("::[----Integration----]::",component_integration_methods[dof+"_X"],"("+dof+")")
 
         return scalar_integration_methods, component_integration_methods
 
@@ -395,3 +396,8 @@ class MonolithicSolver(object):
 
         #print(scalar_integration_methods)
         #print(component_integration_methods)
+        
+    #
+    def _class_prefix(self):
+        header = "::[-Monolithic_Solver-]::"
+        return header

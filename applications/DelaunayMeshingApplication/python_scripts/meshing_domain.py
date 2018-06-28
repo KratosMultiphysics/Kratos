@@ -104,13 +104,13 @@ class MeshingDomain(object):
     def Initialize(self):
 
         self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
-        
+
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         #construct the meshing strategy
         meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
         self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
-        
+
         # Set MeshingParameters
         self.SetMeshingParameters()
 
@@ -118,8 +118,16 @@ class MeshingDomain(object):
         self.MeshingStrategy.SetEchoLevel(self.echo_level)
         self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
 
-        print("::[---Meshing Domain--]:: "+self.settings["model_part_name"].GetString()+" Ready ")
-        
+        BodyType = ""
+        if(self.main_model_part.Is(KratosMultiphysics.SOLID)):
+            BodyType = "SOLID"
+        elif(self.main_model_part.Is(KratosMultiphysics.FLUID)):
+            BodyType = "FLUID"
+        elif(self.main_model_part.Is(KratosMultiphysics.RIGID)):
+            BodyType = "RIGID"
+            
+        print("::[---Meshed_Domain---]:: "+self.settings["model_part_name"].GetString()+" ("+BodyType+") Ready ")
+
     ####
 
     #

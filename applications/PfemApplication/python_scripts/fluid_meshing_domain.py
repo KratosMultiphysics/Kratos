@@ -50,7 +50,7 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
 
         mean_nodal_h*=1.0/numFluid;
 
-        print("the mean_nodal_h is  ",mean_nodal_h)
+        #print("the mean_nodal_h is  ",mean_nodal_h)
     
         self.RefiningParameters.SetCriticalRadius(mean_nodal_h)
         self.RefiningParameters.SetInitialRadius(mean_nodal_h)      

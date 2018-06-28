@@ -18,14 +18,14 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
     def __init__(self, Model, custom_settings ):
 
         super(RemeshFluidDomainsProcess,self).__init__(Model,custom_settings)
-        
+
     #
     def ExecuteInitialize(self):
 
         self.fileTotalVolume = None
 
         remesh_domains_process.RemeshDomainsProcess.ExecuteInitialize(self)
-        
+
         # compute initial average parameters
         if( self.remesh_domains_active ):
 
@@ -73,7 +73,6 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
         if(self.echo_level>1):
             print(self.main_model_part)
 
-        print("::[---Remesh Domains--]:: Ready")
 
     def BuildMeshBoundaryForFluids(self):
 
@@ -148,7 +147,7 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
             if( self.meshing_before_output ):
                 if(self.IsMeshingStep()):
                     if(self.echo_level>1):
-                        print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
+                        print(self._class_prefix()+" RemeshFluidDomains ")
                     self.RemeshFluidDomains()
 
         if(currentStep > 1 and self.fileTotalVolume is not None):
@@ -198,7 +197,7 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
         #if(self.remesh_domains_active):
              #if( self.meshing_before_output ):
                 # if(self.IsMeshingStep()):
-                   #  print("::[Remesh_Fluid_Domains_Process]:: RemeshFluidDomains ")
+                   #  print(self._class_prefix()+" RemeshFluidDomains ")
                     # self.RemeshFluidDomains()
 
 
@@ -285,7 +284,7 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
             #    self.ContactTransfer()
 
             if( self.echo_level > 1 ):
-                print("::[Remesh_fluid_domains_process]:: MESH DOMAIN...", self.counter)
+                print(self._class_prefix()+" MESH DOMAIN...", self.counter)
 
             meshing_options = KratosMultiphysics.Flags()
             self.mesher_utils = KratosDelaunay.MesherUtilities()
@@ -312,4 +311,8 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
             self.model_structure.ExecuteFinalize()
 
             self.counter += 1
-            
+
+    #
+    def _class_prefix(self):
+        header = "::[---Meshing_Fluid---]::"
+        return header

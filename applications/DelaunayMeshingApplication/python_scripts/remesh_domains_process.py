@@ -101,9 +101,12 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
                 domain.Initialize()
                 #domain.Check()
 
+        print(self._class_prefix()+" Ready")
+
+
     def InitializeDomains(self):
 
-        print("::[Meshing_Process]:: Initialize Domains")
+        print(self._class_prefix()+" Initialize Domains")
         import domain_utilities
         domain_utils = domain_utilities.DomainUtilities()
         domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
@@ -143,7 +146,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     def RemeshDomains(self):
 
         if( self.echo_level > 0 ):
-            print("::[Meshing_Process]:: MESHING DOMAIN...( call:", self.counter,")")
+            print(self._class_prefix()+" MESHING DOMAIN...( call:", self.counter,")")
 
         meshing_options = KratosMultiphysics.Flags()
         self.model_structure = KratosDelaunay.ModelStructure(self.main_model_part, meshing_options, self.echo_level)
@@ -207,6 +210,11 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         for domain in self.meshing_domains:
             nodal_variables = nodal_variables + domain.GetVariables()
 
-        print("variables added",nodal_variables)
+        #print(self._class_prefix()+" Variables added")
 
         return nodal_variables
+
+    #
+    def _class_prefix(self):
+        header = "::[--Meshing_Process--]::"
+        return header

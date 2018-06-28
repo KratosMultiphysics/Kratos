@@ -64,8 +64,7 @@
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"                 : false,
-			"max_iteration"               : 15,
-			"bossak_factor"               : 0.0
+			"max_iteration"               : 15
 		    },
 		    "convergence_criterion_settings" : {
 			"convergence_criterion"       : "Residual_criterion",

@@ -50,8 +50,6 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         # Construct the base solver.
         super(ImplicitMonolithicSolver, self).__init__(custom_settings)
 
-        print("::[--Implicit_Solver--]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
-
 
     def GetVariables(self):
 
@@ -129,3 +127,8 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
         return KratosSolid.NewtonRaphsonStrategy(self.model_part, solution_scheme, builder_and_solver, convergence_criterion,
                                                  options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt())
+
+
+    def _class_prefix(self):
+        header = "::[--Implicit_Solver--]::"
+        return header

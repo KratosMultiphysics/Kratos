@@ -68,8 +68,6 @@ class InletManagementMesherProcess
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
   {
-    std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
-
     mEchoLevel = EchoLevel;
   }
 

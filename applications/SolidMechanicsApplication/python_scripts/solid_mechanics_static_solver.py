@@ -44,7 +44,6 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
         # Calling base class of ImplicitMonolithicSolver it is ok.
         super(BaseSolver.ImplicitMonolithicSolver, self).__init__(custom_settings)
 
-        print("::[---Static_Solver---]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
     #### Solver internal methods ####
 
@@ -72,3 +71,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
         return KratosSolid.LinearStrategy(self.model_part, solution_scheme, builder_and_solver, options)
+
+    def _class_prefix(self):
+        header = "::[---Static_Solver---]::"
+        return header

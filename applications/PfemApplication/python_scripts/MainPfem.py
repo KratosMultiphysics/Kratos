@@ -12,8 +12,6 @@ class PfemSolution(MainSolid.Solution):
 
         super(PfemSolution, self).__init__(file_parameters,file_name)
 
-        print("::[---PFEM Solution --]::")
-
     #### Main internal methods ####
 
     def _get_processes_parameters(self):
@@ -104,7 +102,10 @@ class PfemSolution(MainSolid.Solution):
         problem_processes.Append(default_settings)
 
         return problem_processes
-
+    
+    def _class_prefix(self):
+        header = "::[--PFEM Simulation--]::"
+        return header
 
 if __name__ == "__main__":
     PfemSolution().Run()

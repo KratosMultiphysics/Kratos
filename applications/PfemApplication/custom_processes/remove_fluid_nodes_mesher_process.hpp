@@ -80,7 +80,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-      std::cout<<" remove_mesh_nodes_process_for_fluids "<<std::endl;
       mEchoLevel = EchoLevel;
     }
 
