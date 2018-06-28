@@ -608,10 +608,104 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
   ///@name Operations
   ///@{
 
+  /** Calculates the IndexArray (x[,y[,z]]) of the provided object.
+   * Calculates the IndexArray (x[,y[,z]]) of the provided object.
+   * The provided object must provide its coordinates through the [] operator.
+   * @param  ThisObject Input Object
+   * @return            Cell coordinates of 'ThisObject' in the bins
+   */
+  template<class GenericCoordType>
+  IndexArray CalculateCell(const GenericCoordType& ThisObject) {
+    IndexArray IndexCell;
+
+    for(SizeType i = 0 ; i < Dimension ; i++) {
+      IndexCell[i] = CalculatePosition(ThisObject[i],i);
+    }
+
+    return IndexCell;
+  }
+
+  /** Calculates the Index of the provided object.
+   * Calculates the Index of the provided object.
+   * The provided object must provide its coordinates through the [] operator.
+   * @param  ThisObject Input Object
+   * @return            Cell index of 'ThisObject' in the bins
+   */
+  template<class GenericCoordType>
+  IndexType CalculateIndex(const GenericCoordType& ThisObject) {
+    IndexType Index = 0;
+
+    for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--) {
+      Index += CalculatePosition(ThisObject[iDim],iDim);
+      Index *= mN[iDim-1];
+    }
+
+    Index += CalculatePosition(ThisObject[0],0);
+
+    return Index;
+  }
+
+  /**
+   * [CalculatePosition description]
+   * @param  ThisCoord     [description]
+   * @param  ThisDimension [description]
+   * @return               [description]
+   */
+  virtual IndexType CalculatePosition(CoordinateType const& ThisCoord, const SizeType& ThisDimension) {
+    CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
+    IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
+
+    return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
+  }
 
   ///@}
   ///@name Access
   ///@{
+
+  /**
+   * @brief Get the Cell Container object
+   * 
+   * @return CellContainerType& The Cell Container object
+   */
+  CellContainerType& GetCellContainer() {
+    return mCells;
+  }
+
+  /**
+   * @brief Get the Divisions object
+   * 
+   * @return SizeArray& Array containing the number of Cells in each dimension
+   */
+  SizeArray& GetDivisions() {
+    return mN;
+  }
+
+  /**
+   * @brief Get the Cell Size object
+   * 
+   * @return CoordinateArray& Array containing the size of the Cell in each dimension
+   */
+  CoordinateArray& GetCellSize() {
+    return mCellSize;
+  }
+
+  /**
+   * @brief Get the Min Point object
+   * 
+   * @return PointType& Min point of the bins
+   */
+  PointType& GetMinPoint() {
+    return mMinPoint;
+  }
+
+  /**
+   * @brief Get the Max Point object
+   * 
+   * @return PointType& Max point of the bins
+   */
+  PointType& GetMaxPoint() {
+    return mMaxPoint;
+  }
 
 
   ///@}
@@ -685,103 +779,7 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
     rout << "]" << std::endl;
   }
 
-  /**
-   * @brief Get the Cell Container object
-   * 
-   * @return CellContainerType& The Cell Container object
-   */
-  CellContainerType& GetCellContainer() {
-    return mCells;
-  }
-
-  /**
-   * @brief Get the Divisions object
-   * 
-   * @return SizeArray& Array containing the number of Cells in each dimension
-   */
-  SizeArray& GetDivisions() {
-    return mN;
-  }
-
-  /**
-   * @brief Get the Cell Size object
-   * 
-   * @return CoordinateArray& Array containing the size of the Cell in each dimension
-   */
-  CoordinateArray& GetCellSize() {
-    return mCellSize;
-  }
-
-  /**
-   * @brief Get the Min Point object
-   * 
-   * @return PointType& Min point of the bins
-   */
-  PointType& GetMinPoint() {
-    return mMinPoint;
-  }
-
-  /**
-   * @brief Get the Max Point object
-   * 
-   * @return PointType& Max point of the bins
-   */
-  PointType& GetMaxPoint() {
-    return mMaxPoint;
-  }
-
-  /** Calculates the IndexArray (x[,y[,z]]) of the provided object.
-   * Calculates the IndexArray (x[,y[,z]]) of the provided object.
-   * The provided object must provide its coordinates through the [] operator.
-   * @param  ThisObject Input Object
-   * @return            Cell coordinates of 'ThisObject' in the bins
-   */
-  template<class GenericCoordType>
-  IndexArray CalculateCell(const GenericCoordType& ThisObject) {
-    IndexArray IndexCell;
-
-    for(SizeType i = 0 ; i < Dimension ; i++) {
-      IndexCell[i] = CalculatePosition(ThisObject[i],i);
-    }
-
-    return IndexCell;
-  }
-
-  /** Calculates the Index of the provided object.
-   * Calculates the Index of the provided object.
-   * The provided object must provide its coordinates through the [] operator.
-   * @param  ThisObject Input Object
-   * @return            Cell index of 'ThisObject' in the bins
-   */
-  template<class GenericCoordType>
-  IndexType CalculateIndex(const GenericCoordType& ThisObject) {
-    IndexType Index = 0;
-
-    for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--) {
-      Index += CalculatePosition(ThisObject[iDim],iDim);
-      Index *= mN[iDim-1];
-    }
-
-    Index += CalculatePosition(ThisObject[0],0);
-
-    return Index;
-  }
-
-  /**
-   * [CalculatePosition description]
-   * @param  ThisCoord     [description]
-   * @param  ThisDimension [description]
-   * @return               [description]
-   */
-  virtual IndexType CalculatePosition(CoordinateType const& ThisCoord, const SizeType& ThisDimension) {
-    CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
-    IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
-
-    return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
-  }
-
 protected:
-
 
     ///@}
     ///@name Friends
