@@ -346,21 +346,28 @@ class Solution(object):
         # Obtain the list of the processes to be applied
         import process_handler
 
-        process_parameters = KratosMultiphysics.Parameters("{}")
-        process_parameters.AddEmptyValue("echo_level").SetInt(self.echo_level)
-        if( self.ProjectParameters.Has("constraints_process_list") ):
-            process_parameters.AddValue("constraints_process_list", self.ProjectParameters["constraints_process_list"])
-        if( self.ProjectParameters.Has("loads_process_list") ):
-            process_parameters.AddValue("loads_process_list", self.ProjectParameters["loads_process_list"])
-        if( self.ProjectParameters.Has("problem_process_list") ):
-            process_parameters.AddValue("problem_process_list", self.ProjectParameters["problem_process_list"])
-        if( self.ProjectParameters.Has("output_process_list") ):
-            process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
-        if( self.ProjectParameters.Has("check_process_list") ):
-            process_parameters.AddValue("check_process_list", self.ProjectParameters["check_process_list"])
+        # get processes parameters
+        processes_parameters = self._get_processes_parameters()
 
         domain_model = self.model.GetModel()
-        return (process_handler.ProcessHandler(domain_model, process_parameters))
+        return (process_handler.ProcessHandler(domain_model, processes_parameters))
+
+    def _get_processes_parameters(self):
+
+        processes_parameters = KratosMultiphysics.Parameters("{}")
+        processes_parameters.AddEmptyValue("echo_level").SetInt(self.echo_level)
+        if( self.ProjectParameters.Has("constraints_process_list") ):
+            processes_parameters.AddValue("constraints_process_list", self.ProjectParameters["constraints_process_list"])
+        if( self.ProjectParameters.Has("loads_process_list") ):
+            processes_parameters.AddValue("loads_process_list", self.ProjectParameters["loads_process_list"])
+        if( self.ProjectParameters.Has("problem_process_list") ):
+            processes_parameters.AddValue("problem_process_list", self.ProjectParameters["problem_process_list"])
+        if( self.ProjectParameters.Has("output_process_list") ):
+            processes_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
+        if( self.ProjectParameters.Has("check_process_list") ):
+            processes_parameters.AddValue("check_process_list", self.ProjectParameters["check_process_list"])
+
+        return processes_parameters
 
     def _get_graphical_output(self, output_model_part):
         # Output settings start

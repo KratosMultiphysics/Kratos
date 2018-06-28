@@ -14,6 +14,8 @@
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
 
+// Properties
+#include "includes/properties.h"
 
 // Processes
 #include "custom_processes/adaptive_time_interval_process.hpp"
@@ -47,6 +49,17 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   using namespace pybind11;
 
+  //**********MODEL PROPERTIES*********//
+
+  /// Properties container. A vector set of properties with their Id's as key.
+  typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
+  typedef typename PropertiesContainerType::pointer   PropertiesContainerPointerType;
+
+  //to define it as a variable
+  class_<Variable<PropertiesContainerPointerType>, VariableData>(m,"PropertiesVectorPointerVariable")
+      .def( "__repr__", &Variable<PropertiesContainerPointerType>::Info )
+      ;
+  
   //**********MODEL STRUCTURE*********//
   class_<SettleFluidModelStructureProcess, SettleFluidModelStructureProcess::Pointer, SettleModelStructureProcess>
       (m, "FluidModelStructure")

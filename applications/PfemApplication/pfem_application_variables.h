@@ -36,10 +36,14 @@ namespace Kratos
   ///@{
   ///@}
 
+  typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
+  typedef typename PropertiesContainerType::pointer   PropertiesContainerPointerType;
+
   ///@name Kratos Globals
   ///@{
 
   //Define Variables
+  KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, PropertiesContainerPointerType, PROPERTIES_VECTOR )
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, Vector, MATERIAL_PERCENT_COMPOSITION )
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, PRESSURE_VELOCITY )
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_APPLICATION, double, PRESSURE_ACCELERATION )

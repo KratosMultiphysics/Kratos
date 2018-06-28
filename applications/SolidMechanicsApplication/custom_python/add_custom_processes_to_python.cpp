@@ -16,17 +16,17 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 // Processes
-#include "custom_processes/transfer_entities_between_model_parts_process.h"
-#include "custom_processes/assign_flags_to_model_part_entities_process.h"
-#include "custom_processes/assign_scalar_variable_to_entities_process.h"
-#include "custom_processes/assign_vector_variable_to_conditions_process.h"
-#include "custom_processes/assign_vector_field_to_entities_process.h"
-#include "custom_processes/fix_scalar_dof_process.h"
-#include "custom_processes/free_scalar_dof_process.h"
-#include "custom_processes/add_dofs_process.h"
-#include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.h"
-#include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.h"
-#include "custom_processes/build_string_skin_process.h"
+#include "custom_processes/transfer_entities_between_model_parts_process.hpp"
+#include "custom_processes/assign_flags_to_model_part_entities_process.hpp"
+#include "custom_processes/assign_scalar_variable_to_entities_process.hpp"
+#include "custom_processes/assign_vector_variable_to_conditions_process.hpp"
+#include "custom_processes/assign_vector_field_to_entities_process.hpp"
+#include "custom_processes/fix_scalar_dof_process.hpp"
+#include "custom_processes/free_scalar_dof_process.hpp"
+#include "custom_processes/add_dofs_process.hpp"
+#include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.hpp"
+#include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.hpp"
+#include "custom_processes/build_string_skin_process.hpp"
 
 // Solver Processes
 #include "custom_processes/solver_process.hpp"

@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import MainSolid
+import MainPfem
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -31,7 +31,7 @@ class TestFactory(KratosUnittest.TestCase):
             # Set severity to avoid many prints
             # KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-            self.test = MainSolid.Solution(self.file_parameters,self.file_name)
+            self.test = MainPfem.PfemSolution(self.file_parameters,self.file_name)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

@@ -36,9 +36,10 @@ PYBIND11_MODULE(KratosPfemApplication,m)
       ;
 
   AddCustomProcessesToPython(m);
-
       
   //registering variables in python ( if must to be seen from python )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_VECTOR )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MATERIAL_PERCENT_COMPOSITION )      
 }
   
   

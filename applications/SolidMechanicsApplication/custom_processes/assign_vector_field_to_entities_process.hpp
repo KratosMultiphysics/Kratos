@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/assign_scalar_field_to_entities_process.h"
+#include "custom_processes/assign_scalar_field_to_entities_process.hpp"
 
 namespace Kratos
 {

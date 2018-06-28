@@ -257,7 +257,6 @@ class ProcessHandler(KratosMultiphysics.Process):
         }
         """)
 
-
         ##overwrite the default settings with user-provided parameters
         settings = custom_settings
         settings.ValidateAndAssignDefaults(default_settings)

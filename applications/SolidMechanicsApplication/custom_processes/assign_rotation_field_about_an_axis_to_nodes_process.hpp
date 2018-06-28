@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/assign_rotation_about_an_axis_to_nodes_process.h"
+#include "custom_processes/assign_rotation_about_an_axis_to_nodes_process.hpp"
 
 namespace Kratos
 {

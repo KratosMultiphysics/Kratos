@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/assign_torque_about_an_axis_to_conditions_process.h"
+#include "custom_processes/assign_torque_about_an_axis_to_conditions_process.hpp"
 
 namespace Kratos
 {
