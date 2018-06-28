@@ -59,12 +59,24 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
 public:
     ///@name Type Definitions
     ///@{
+
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
+
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// The base element type
+    typedef BaseSolidElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /// Counted pointer of TotalLagrangian
     KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian);
@@ -76,6 +88,11 @@ public:
     /// Default constructor.
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    // Copy constructor
+    TotalLagrangian(TotalLagrangian const& rOther)
+        :BaseType(rOther)
+    {};
 
     /// Destructor.
     ~TotalLagrangian() override;
@@ -190,7 +207,7 @@ protected:
      */ 
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
     
@@ -256,6 +273,7 @@ private:
                          ProcessInfo const& rCurrentProcessInfo);
 
     void CalculateShapeSensitivity(ShapeParameter Deriv,
+                                   Matrix& rDN_DX0,
                                    Matrix& rDN_DX0_Deriv,
                                    Matrix& rF_Deriv,
                                    double& rDetJ0_Deriv,

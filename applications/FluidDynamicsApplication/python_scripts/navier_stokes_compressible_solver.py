@@ -186,7 +186,8 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
     def PrepareModelPart(self):
         super(NavierStokesCompressibleSolver,self).PrepareModelPart()
-        self._ExecuteAfterReading()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._ExecuteAfterReading()
 
     def _ExecuteAfterReading(self):
         ## Replace element and conditions

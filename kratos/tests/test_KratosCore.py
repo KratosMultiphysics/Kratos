@@ -20,6 +20,7 @@ import test_importing
 import test_connectivity_preserve_modeler
 import test_model
 import test_redistance
+import test_levelset_convection
 import test_variable_utils
 import test_reorder
 import test_exact_integration
@@ -63,6 +64,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_levelset_convection.TestLevelSetConvection]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_utils.TestVariableUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_reorder.TestReorder]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_exact_integration.TestExactIntegration]))

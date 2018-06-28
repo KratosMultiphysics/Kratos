@@ -386,8 +386,6 @@ public:
     virtual Matrix GetElasticLeftCauchyGreen( RadialReturnVariables& rReturnMappingVariables )
     {
         KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation for calling GetElasticLeftCauchyGreen!!", "" )
-
-
     };
 
 
@@ -456,7 +454,6 @@ protected:
     };
 
 
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -511,9 +508,6 @@ private:
         rSerializer.save("InternalVariables",mInternalVariables);
         rSerializer.save("ThermalVariables",mThermalVariables);
         rSerializer.save("YieldCriterion",mpYieldCriterion);
-        //rSerializer.save("HardeningLaw",mpHardeningLaw);
-        //std::cout<<" for (mpProperties) the typeid is : " << typeid(*mpProperties).name() << std::endl;
-        //rSerializer.save("Properties",mpProperties);
     };
 
     virtual void load(Serializer& rSerializer)
@@ -521,10 +515,6 @@ private:
         rSerializer.load("InternalVariables",mInternalVariables);
         rSerializer.load("ThermalVariables",mThermalVariables);
         rSerializer.load("YieldCriterion",mpYieldCriterion);
-        //rSerializer.load("HardeningLaw",mpHardeningLaw);
-        //Properties* pProperties;
-        //rSerializer.load("Properties",pProperties);
-        //mpProperties = pProperties;
     };
 
     ///@}
