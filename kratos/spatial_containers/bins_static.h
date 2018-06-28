@@ -85,14 +85,22 @@ public:
 
 public:
 
-
-    //************************************************************************
-
-    // constructor 1
+    /**
+     * @brief Default Constructor
+     * 
+     */
     Bins() : mPointBegin(this->NullIterator()), mPointEnd(this->NullIterator()) {};
 
-    //************************************************************************
 
+    /**
+     * @brief Constructs a new BinsStatic
+     * 
+     * Construct a new BinsStatic using a list of points and an automatically calculate cell size.
+     * 
+     * @param PointBegin Iterator to the first object of the bins
+     * @param PointEnd Iterator to the last object of the bins
+     * @param BucketSize Unused.
+     */
     Bins( IteratorType const& PointBegin, IteratorType const& PointEnd, SizeType BucketSize = 1 )
         : mPointBegin(PointBegin), mPointEnd(PointEnd)
     {
@@ -104,8 +112,17 @@ public:
         GenerateBins();
     }
 
-    //************************************************************************
-
+    /**
+     * @brief Constructs a new BinsStatic
+     * 
+     * Construct a new BinsStatic using a list of points and an automatically calculate cell size and a custom bounding box.
+     * 
+     * @param PointBegin Iterator to the first object of the bins
+     * @param PointEnd Iterator to the last object of the bins
+     * @param MinPoint Lower point of the custom bounding box
+     * @param MaxPoint Upper point of the custom bounding box
+     * @param BucketSize Unused
+     */
     Bins( IteratorType const& PointBegin, IteratorType const& PointEnd, PointType const& MinPoint, PointType const& MaxPoint, SizeType BucketSize = 1 )
         : mPointBegin(PointBegin), mPointEnd(PointEnd)
     {
@@ -123,8 +140,16 @@ public:
         GenerateBins();
     }
 
-    //************************************************************************
-
+    /**
+     * @brief Constructs a new BinsStatic
+     * 
+     * Constructs a new BinsObjectDynamic using a list of objects and an user provided cell size.
+     *
+     * @param PointBegin Iterator to the first object of the bins
+     * @param PointEnd Iterator to the last object of the bins
+     * @param cellsize Size of the cells (equal for every dimension)
+     * @param BucketSize Unsued
+     */
     Bins( IteratorType const& PointBegin, IteratorType const& PointEnd, CoordinateType cellsize, SizeType BucketSize = 1 )
         : mPointBegin(PointBegin), mPointEnd(PointEnd)
     {
@@ -136,9 +161,7 @@ public:
         GenerateBins();
     }
 
-    //************************************************************************
-
-    // destructor
+    // Destructor
     ~Bins() override { }
 
     //************************************************************************

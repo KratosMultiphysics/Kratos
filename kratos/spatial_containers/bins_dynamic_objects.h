@@ -128,7 +128,7 @@ public:
   /**
    * @brief Constructs a new BinsObjectDynamic
    * 
-   * Constructs a new BinsObjectDynamic using a list of objects and a user provided cell size.
+   * Constructs a new BinsObjectDynamic using a list of objects and an user provided cell size.
    * 
    * @param ObjectsBegin Iterator to the first object of the bins
    * @param ObjectsEnd Iterator to the last object of the bins
