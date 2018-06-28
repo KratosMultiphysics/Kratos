@@ -157,16 +157,52 @@ public:
 
     //************************************************************************
 
-    CoordinateType CellSize( SizeType const& iDim )
+    KRATOS_DEPRECATED CoordinateType CellSize( SizeType const& iDim )
     {
         return mCellSize[iDim];
     }
 
     //************************************************************************
 
-    SizeType NumCell( SizeType const& iDim )
+    KRATOS_DEPRECATED SizeType NumCell( SizeType const& iDim )
     {
         return mN[iDim];
+    }
+
+    /**
+     * @brief Get the Divisions object
+     * 
+     * @return SizeArray& Array containing the number of Cells in each dimension
+     */
+    SizeArray& GetDivisions() {
+        return mN;
+    }
+
+    /**
+     * @brief Get the Cell Size object
+     * 
+     * @return CoordinateArray& Array containing the size of the Cell in each dimension
+     */
+    CoordinateArray& GetCellSize() {
+        return mCellSize;
+    }
+
+    /**
+     * @brief Get the Min Point object
+     * 
+     * @return PointType& Min point of the bins
+     */
+    PointType& GetMinPoint() {
+        return mMinPoint;
+    }
+
+    /**
+     * @brief Get the Max Point object
+     * 
+     * @return PointType& Max point of the bins
+     */
+    PointType& GetMaxPoint() {
+        return mMaxPoint;
     }
 
     //************************************************************************
@@ -828,17 +864,6 @@ public:
 
     /// Copy constructor.
     Bins(Bins const& rOther);
-
-    TPointType& GetMinPoint()
-    {
-        return mMinPoint;
-    }
-
-    TPointType& GetMaxPoint()
-    {
-        return mMaxPoint;
-    }
-
 
 private:
 
