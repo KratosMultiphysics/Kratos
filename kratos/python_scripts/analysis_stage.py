@@ -66,7 +66,7 @@ class AnalysisStage(object):
 
             #**********************************************************************************
             # auxiliar fle to print nazi things
-            element = self.model["Structure"].GetElement(1422)
+            element = self.model["Structure"].GetElement(1)
             DEF = element.GetValuesOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_TENSOR, self.model["Structure"].ProcessInfo)[0][8]
             VM = element.GetValuesOnIntegrationPoints(StructuralMechanicsApplication.UNIAXIAL_STRESS, self.model["Structure"].ProcessInfo)[0][0]
             PlotFile = open("ProvisionalTension1dDEF_1422.txt","a")

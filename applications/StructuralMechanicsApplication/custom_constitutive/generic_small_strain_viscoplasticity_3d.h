@@ -9,8 +9,8 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu 
 //
 
-#if !defined (KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED)
-#define  KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED
+#if !defined (KRATOS_SMALL_STRAIN_VISCOPLASTIC_H_INCLUDED)
+#define  KRATOS_SMALL_STRAIN_VISCOPLASTIC_H_INCLUDED
 
 // System includes
 #include <string>
@@ -52,8 +52,8 @@ namespace Kratos
  * @details
  * @author Alejandro Cornejo & Lucia Barbu
  */
-
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
+template <class TPlasticityConstitutiveLaw, class TViscousConstitutiveLaw>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainViscoplasticity3D
     : public ConstitutiveLaw
 {
 public:
@@ -61,7 +61,7 @@ public:
     ///@{
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedKelvin3D);
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainViscoplasticity3D);
 
     ///@}
     ///@name Life Cycle
@@ -70,7 +70,7 @@ public:
     /**
     * Default constructor.
     */
-    ViscousGeneralizedKelvin3D()
+    GenericSmallStrainViscoplasticity3D()
     {
     }
 
@@ -79,22 +79,24 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        ViscousGeneralizedKelvin3D::Pointer p_clone
-            (new ViscousGeneralizedKelvin3D(*this));
+        GenericSmallStrainViscoplasticity3D::Pointer p_clone
+            (new GenericSmallStrainViscoplasticity3D(*this));
         return p_clone;
     }
 
     /**
     * Copy constructor.
     */
-    ViscousGeneralizedKelvin3D (const ViscousGeneralizedKelvin3D& rOther)
+	GenericSmallStrainViscoplasticity3D(const GenericSmallStrainViscoplasticity3D& rOther)
     : ConstitutiveLaw(rOther)
     {
+        TPlasticityConstitutiveLaw mPlasticityConstitutiveLaw = TPlasticityConstitutiveLaw().Create();
+        TViscousConstitutiveLaw mViscousConstitutiveLaw = TViscousConstitutiveLaw().Create();
     }
     /**
     * Destructor.
     */
-    ~ViscousGeneralizedKelvin3D() override
+    ~GenericSmallStrainViscoplasticity3D() override
     {
     }
 
@@ -121,20 +123,9 @@ public:
     {
         return 6;
     };
+	
 
-    int GetVoigtSize(){return 6;}
     int GetWorkingSpaceDimension() {return 3;}
-
-    Vector GetPreviousStressVector() { return mPrevStressVector; }
-    void SetPreviousStressVector(Vector toStress) { mPrevStressVector = toStress; }
-    Vector GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
-    void SetNonConvPreviousStressVector(Vector toStress) { mNonConvPrevStressVector = toStress; }
-
-    Vector GetPreviousInelasticStrainVector() { return mPrevInelasticStrainVector; }
-    void SetPreviousInelasticStrainVector(Vector toStrain) { mPrevInelasticStrainVector = toStrain; }
-    Vector GetNonConvPreviousInelasticStrainVector() { return mNonConvPrevInelasticStrainVector; }
-    void SetNonConvPreviousInelasticStrainVector(Vector toStrain) { mNonConvPrevInelasticStrainVector = toStrain; }
-
 
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
     {
@@ -151,56 +142,11 @@ public:
 
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
     {
-        // Integrate Stress Damage
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-        const int VoigtSize = this->GetVoigtSize();
-        Vector& IntegratedStressVector = rValues.GetStressVector(); // To be updated
-        const Vector& StrainVector = rValues.GetStrainVector();
-        KRATOS_WATCH(StrainVector)
-        Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-        const ProcessInfo& ProcessInfo = rValues.GetProcessInfo();
-        const double TimeStep = ProcessInfo[DELTA_TIME];
+        Vector& IntegratedStressVector = rValues.GetStressVector();
+        Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
+        Vector PlasticStrain = mPlasticityConstitutiveLaw.GetPlasticStrain();
 
-        const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; // C1/Cinf
-        const double DelayTime = rMaterialProperties[DELAY_TIME];
-
-        // Elastic Matrix
-        Matrix C;
-        this->CalculateElasticMatrix(C, rMaterialProperties);
-
-        Vector InelasticStrainVector  = this->GetPreviousInelasticStrainVector();
-        const Vector& PreviousStress  = this->GetPreviousStressVector();
-        //KRATOS_WATCH(PreviousStress)
-
-        const int NumberOfSubIncrements = 10;
-        const double dt = TimeStep / NumberOfSubIncrements;
-
-        Vector AuxStressVector;
-        AuxStressVector = PreviousStress;
-        Vector Aux = ZeroVector(6);
-
-		//KRATOS_WATCH(AuxStressVector)
-		//KRATOS_WATCH(StrainVector)
-		//KRATOS_WATCH(InelasticStrainVector)
-        Vector ElasticStrain;
-        for (int i = 0; i < NumberOfSubIncrements; i++) {
-			//KRATOS_WATCH(Aux)
-			Aux = std::exp(-dt/DelayTime) * prod(C, AuxStressVector) / DelayTime;
-			//KRATOS_WATCH(Aux)
-            InelasticStrainVector = std::exp(-dt/DelayTime)*InelasticStrainVector + Aux;
-            ElasticStrain = StrainVector - InelasticStrainVector;
-            noalias(AuxStressVector) = prod(C, ElasticStrain);
-			//KRATOS_WATCH(Aux)
-			//KRATOS_WATCH(InelasticStrainVector)
-			//KRATOS_WATCH(AuxStressVector)
-        }
-
-        noalias(IntegratedStressVector) = AuxStressVector;
-		// KRATOS_WATCH(IntegratedStressVector)
-		// KRATOS_WATCH(StrainVector)
-        
-        this->SetNonConvPreviousStressVector(IntegratedStressVector);
-        this->SetNonConvPreviousInelasticStrainVector(InelasticStrainVector);
+        Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
 
     } // End CalculateMaterialResponseCauchy
 
@@ -211,12 +157,15 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override
     {
-        // Update the required vectors
-        this->SetPreviousInelasticStrainVector(this->GetNonConvPreviousInelasticStrainVector());
-        this->SetPreviousStressVector(this->GetNonConvPreviousStressVector());
+        // Update the int vars of each SubConstitutiveLaw
+        mPlasticityConstitutiveLaw.FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
+                                    rShapeFunctionsValues,rCurrentProcessInfo);
+        mViscousConstitutiveLaw.FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
+                            rShapeFunctionsValues,rCurrentProcessInfo);
     }
 
-    void CalculateElasticMatrix(Matrix &rElasticityTensor,
+    void CalculateElasticMatrix(
+        Matrix &rElasticityTensor,
         const Properties &rMaterialProperties
     )
     {
@@ -311,15 +260,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    // Converged values
-    Vector mPrevStressVector = ZeroVector(6);
-    Vector mPrevInelasticStrainVector = ZeroVector(6);
-    
-    // Non Converged values
-    Vector mNonConvPrevStressVector = ZeroVector(6);
-    Vector mNonConvPrevInelasticStrainVector = ZeroVector(6);
-
+    TPlasticityConstitutiveLaw mPlasticityConstitutiveLaw;
+    TViscousConstitutiveLaw mViscousConstitutiveLaw;
 
     ///@}
     ///@name Private Operators
@@ -345,24 +287,6 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-        rSerializer.save("PrevStressVector", mPrevStressVector);
-        rSerializer.save("PrevInelasticStrainVector", mPrevInelasticStrainVector);
-        rSerializer.save("NonConvPrevStressVector", mNonConvPrevStressVector);
-        rSerializer.save("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
-
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
-        rSerializer.load("PrevStressVector", mPrevStressVector);
-        rSerializer.load("PrevInelasticStrainVector", mPrevInelasticStrainVector);
-        rSerializer.load("NonConvPrevStressVector", mNonConvPrevStressVector);
-        rSerializer.load("NonConvPrevInelasticStrainVector", mNonConvPrevInelasticStrainVector);
-    }
 
     ///@}
 
