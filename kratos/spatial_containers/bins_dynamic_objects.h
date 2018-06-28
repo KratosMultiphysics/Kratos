@@ -869,7 +869,7 @@ protected:
 
         if (average_length < std::numeric_limits<double>::epsilon()) {
             for(int i = 0; i < Dimension; i++) {
-                    mN[i] = 1;
+                mN[i] = 1;
             }
             return;
         }
@@ -877,14 +877,14 @@ protected:
         for (int i = 0; i < Dimension; i++) {
              mN[i] = static_cast<std::size_t>(lengths[i] / average_length * (double)average_number_of_cells) + 1;
             
-            if (mN[i] > 1)
+            if (mN[i] > 1) {
                 mCellSize[i] = lengths[i] / mN[i];
-            else
+            } else {
                 mCellSize[i] = average_length;
+            }
 
             mInvCellSize[i] = 1.00 / mCellSize[i];
         }
-
     }
 
     /**
