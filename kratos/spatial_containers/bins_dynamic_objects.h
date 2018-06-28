@@ -63,36 +63,37 @@ public:
 
   enum { Dimension = TConfigure::Dimension };
 
-  typedef TConfigure                                   Configure;
-  typedef typename TConfigure::PointType               PointType;
-  typedef typename TConfigure::PointerType             PointerType;
-  typedef typename TConfigure::ContainerType           ContainerType;
-  typedef typename TConfigure::IteratorType            IteratorType;
-  typedef typename TConfigure::ResultContainerType     ResultContainerType;
-  typedef typename TConfigure::ResultIteratorType      ResultIteratorType;
-  typedef typename TConfigure::DistanceIteratorType    DistanceIteratorType;
-
-  typedef Cell<Configure> CellType;
-  typedef std::vector<CellType> CellContainerType;
-  typedef typename CellContainerType::iterator CellContainerIterator;
+  typedef TConfigure                                    Configure;
+  typedef typename TConfigure::PointType                PointType;
+  typedef typename TConfigure::PointerType              PointerType;
+  typedef typename TConfigure::ContainerType            ContainerType;
+  typedef typename TConfigure::IteratorType             IteratorType;
+  typedef typename TConfigure::ResultContainerType      ResultContainerType;
+  typedef typename TConfigure::ResultIteratorType       ResultIteratorType;
+  typedef typename TConfigure::DistanceIteratorType     DistanceIteratorType;
 
   typedef TreeNode<Dimension, PointType, PointerType, IteratorType,  typename TConfigure::DistanceIteratorType> TreeNodeType;
-  typedef typename TreeNodeType::CoordinateType  CoordinateType;  // double
-  typedef typename TreeNodeType::SizeType        SizeType;        // std::size_t
-  typedef typename TreeNodeType::IndexType       IndexType;       // std::size_t
 
+  typedef typename TreeNodeType::CoordinateType         CoordinateType;  // double
+  typedef typename TreeNodeType::SizeType               SizeType;        // std::size_t
+  typedef typename TreeNodeType::IndexType              IndexType;       // std::size_t
 
-  typedef Tvector<IndexType,Dimension>      IndexArray;
-  typedef Tvector<SizeType,Dimension>       SizeArray;
-  typedef Tvector<CoordinateType,Dimension> CoordinateArray;
+  typedef Tvector<CoordinateType,Dimension>             CoordinateArray;
+  typedef Tvector<SizeType,Dimension>                   SizeArray;
+  typedef Tvector<IndexType,Dimension>                  IndexArray;
 
   ///Contact Pair
-  typedef typename TConfigure::ContainerContactType  ContainerContactType;
-  typedef typename TConfigure::IteratorContactType IteratorContactType;
+  typedef typename TConfigure::ContainerContactType     ContainerContactType;
+  typedef typename TConfigure::IteratorContactType      IteratorContactType;
 
   ///typedef TreeNodeType LeafType;
-  typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
-  typedef typename TreeNodeType::SearchStructureType  SearchStructureType;
+  typedef typename TreeNodeType::IteratorIteratorType   IteratorIteratorType;
+  typedef typename TreeNodeType::SearchStructureType    SearchStructureType;
+
+  // Global Container
+  typedef Cell<Configure>                               CellType;
+  typedef std::vector<CellType>                         CellContainerType;
+  typedef typename CellContainerType::iterator          CellContainerIterator;
 
   /// Pointer definition of BinsObjectDynamic
   KRATOS_CLASS_POINTER_DEFINITION(BinsObjectDynamic);
