@@ -88,7 +88,6 @@ SolidShellElementSprism3D6N::SolidShellElementSprism3D6N(IndexType NewId, Geomet
 
 SolidShellElementSprism3D6N::SolidShellElementSprism3D6N( SolidShellElementSprism3D6N const& rOther)
     :BaseType(rOther)
-    ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     ,mFinalizedStep(rOther.mFinalizedStep)
     ,mHistoricalF0(rOther.mHistoricalF0)
 {
@@ -4067,8 +4066,6 @@ void SolidShellElementSprism3D6N::CalculateVolumeForce(
 void SolidShellElementSprism3D6N::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseSolidElement);
-    int IntMethod = int(mThisIntegrationMethod);
-    rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("FinalizedStep",mFinalizedStep);
     rSerializer.save("HistoricalF0",mHistoricalF0);
 }
@@ -4079,9 +4076,6 @@ void SolidShellElementSprism3D6N::save( Serializer& rSerializer ) const
 void SolidShellElementSprism3D6N::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseSolidElement);
-    int IntMethod;
-    rSerializer.load("IntegrationMethod",IntMethod);
-    mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("FinalizedStep",mFinalizedStep);
     rSerializer.load("HistoricalF0",mHistoricalF0);
 }

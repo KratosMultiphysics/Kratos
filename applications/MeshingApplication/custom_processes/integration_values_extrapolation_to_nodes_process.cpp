@@ -86,7 +86,7 @@ void IntegrationValuesExtrapolationToNodesProcess::Execute()
 void IntegrationValuesExtrapolationToNodesProcess::ExecuteBeforeSolutionLoop()
 {
     // We initialize the average variable
-    VariableUtils().SetNonHistoricalScalarVar(mAverageVariable, 0.0, mrThisModelPart.Nodes());
+    VariableUtils().SetNonHistoricalVariable(mAverageVariable, 0.0, mrThisModelPart.Nodes());
 
     // We initialize the map of coincident and maps of sizes
     InitializeMaps();
