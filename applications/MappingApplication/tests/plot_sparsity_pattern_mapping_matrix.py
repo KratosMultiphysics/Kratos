@@ -18,7 +18,7 @@ import matplotlib.pylab as plt
 import scipy.sparse
 import scipy.io as sio
 import matplotlib.colors as colors
-M = sio.mmread('MappingMatrix')
+M = sio.mmread('TrilinosMappingMatrix')
 
 d=M.todense()
 plt.imshow(d,interpolation='none',cmap='binary')

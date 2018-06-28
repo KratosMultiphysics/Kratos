@@ -23,12 +23,6 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
-// TODO clean up these includes
-// Move to space I guess
-#include <EpetraExt_MatrixMatrix.h>
-#include <EpetraExt_RowMatrixOut.h>
-#include <EpetraExt_MultiVectorOut.h>
-
 namespace Kratos
 {
 using SparseSpaceType = MapperDefinitions::MPISparseSpaceType;
@@ -101,7 +95,6 @@ void UtilityType::ResizeAndInitializeVectors(
     const int num_indices_per_row = 25; // TODO this is to be tested => set to zero maybe ...
 
     // TODO do I even need the graph? I think I could directly use the Matrix and perform the same operations ...
-    // TODO I should construct the graph with two maps! => one for row and one for column
     // Performance optimization see https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
     Epetra_FECrsGraph epetra_graph(Epetra_DataAccess::Copy,
                                    epetra_map_rows,
@@ -129,7 +122,7 @@ void UtilityType::ResizeAndInitializeVectors(
         }
     }
 
-    int ierr = epetra_graph.GlobalAssemble(); // TODO check if it should call "FillComplete"
+    int ierr = epetra_graph.GlobalAssemble(epetra_map_cols, epetra_map_rows); // TODO check if it should call "FillComplete"
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsGraph.GlobalAssemble. "
         << "Error code: " << ierr << std::endl;
 
@@ -146,6 +139,9 @@ void UtilityType::ResizeAndInitializeVectors(
 
     // rpQo->GlobalAssemble();
     // rpQd->GlobalAssemble();
+
+    std::cout << "SIZE1: " << SparseSpaceType::Size1(*rpMdo) << std::endl;
+    std::cout << "SIZE2: " << SparseSpaceType::Size2(*rpMdo) << std::endl;
 
     std::cout << "AFTER Trilinos" << std::cout;
 
@@ -187,9 +183,13 @@ void UtilityType::BuildMappingMatrix(
         rp_local_sys->Clear();
     }
 
-    rMdo.GlobalAssemble(); // Check if I should call this with the domain- and the range-map (what are those though...?)
+    // rMdo.GlobalAssemble(); // Check if I should call this with the domain- and the range-map (what are those though...?)
 
-    EpetraExt::RowMatrixToMatrixMarketFile("TrilinosMappingMatrix", rMdo);
+    std::cout << "SIZE1_X: " << SparseSpaceType::Size1(rMdo) << std::endl;
+    std::cout << "SIZE2_X: " << SparseSpaceType::Size2(rMdo) << std::endl;
+
+    if (GetEchoLevel() > 2)
+        SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", rMdo, false);
 }
 
 template< class TVarType >
@@ -203,19 +203,17 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
 
     for (const auto& r_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
     {
-        const int global_index = r_node.GetValue(INTERFACE_EQUATION_ID);
+        const int global_index = r_node.GetValue(INTERFACE_EQUATION_ID); // TODO find a better solution, this might have been overwritten by a different mapper!!! (if parts of the interface are shared)
         const int local_index = rVector.Map().LID(global_index);
         fill_fct(r_node, rVariable, rVector[0][local_index]);
     }
 
-    // rVector.GlobalAssemble();
+    // rVector.GlobalAssemble(); // I am quite sure this is not needed, since one node is one entry ...
 
     for (int localIndex=0; localIndex<rVector.MyLength(); ++localIndex)
         std::cout << "FillSystemVector | rVector[localIndex]: " << rVector[0][localIndex] << std::endl;
 
-
-    // EpetraExt::RowMatrixToMatlabFile();
-    // EpetraExt::MultiVectorToMatrixMarketFile("dummy", rVector);
+    SparseSpaceType::WriteMatrixMarketVector("FillSystemVector", rVector);
 }
 
 template< class TVarType >
