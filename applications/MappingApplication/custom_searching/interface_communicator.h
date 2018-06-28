@@ -232,7 +232,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    // int m_omp_threshold_num_nodes = 1000; // TODO constexpr???
 
     ///@}
     ///@name Private Operators

@@ -556,7 +556,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
 
 }  // namespace Testing

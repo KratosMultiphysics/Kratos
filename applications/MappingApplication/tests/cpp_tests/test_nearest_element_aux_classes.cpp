@@ -44,37 +44,37 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_BasicTests, KratosMappingA
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionsExist, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Approximation, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_NothingFound, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystemWithApproximation, KratosMappingApplicationSerialTestSuite)
 {
-    KRATOS_CHECK(false); // TODO implement test!
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
 
 }  // namespace Testing
