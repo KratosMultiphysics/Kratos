@@ -15,7 +15,7 @@ class DomainUtilities(object):
         if( model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):
 
             # initialize the mesher
-            print("::[Domain_Utilities]:: Initialize", model_part.Name)
+            print("::[--Domain Utilities-]:: Initialize", model_part.Name)
 
             # find node neighbours
             self.SearchNodeNeighbours(model_part, echo_level)
@@ -44,7 +44,7 @@ class DomainUtilities(object):
 
             model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, True)
 
-            print("::[Domain_Utilities]:: Resultant ModelPart")
+            print("::[--Domain Utilities-]:: Resultant ModelPart")
             print(model_part)
 
 
@@ -62,7 +62,7 @@ class DomainUtilities(object):
         # execute search:
         nodal_neighbour_search.Execute()
 
-        print("::[Domain_Utilities]:: Nodal Search executed ")
+        print("::[--Domain Utilities-]:: Nodal Search executed ")
 
     #
     def SearchElementNeighbours(self, model_part, echo_level):
@@ -78,14 +78,14 @@ class DomainUtilities(object):
         elemental_neighbour_search.Execute()
 
         if( echo_level > 0 ):
-            print("::[Domain_Utilities]:: Elemental Search executed ")
+            print("::[--Domain Utilities-]:: Elemental Search executed ")
 
 
     #
     def BuildModelPartBoundary(self, model_part, echo_level):
 
 
-        print("::[Domain_Utilities]:: Build Mesh Boundary ")
+        print("::[--Domain Utilities-]:: Build Mesh Boundary ")
         # set building options:
 
 
@@ -99,7 +99,7 @@ class DomainUtilities(object):
         # skin_build.SearchConditionMasters()
 
         if( echo_level > 0 ):
-            print("::[Domain_Utilities]:: Mesh Boundary Build executed ")
+            print("::[--Domain Utilities-]:: Mesh Boundary Build executed ")
 
 
     ###
@@ -117,7 +117,7 @@ class DomainUtilities(object):
         # print "nodal_h:",nodal_h
 
         if( echo_level > 0 ):
-            print("::[Domain_Utilities]:: Nodal H Search executed ")
+            print("::[--Domain Utilities-]:: Nodal H Search executed ")
 
     #
     def ComputeBoundaryNormals(self, model_part, echo_level):
@@ -132,4 +132,4 @@ class DomainUtilities(object):
         # normals_calculation.CalculateUnitBoundaryNormals(model_part, self.echo_level)
 
         if( echo_level > 0 ):
-            print("::[Domain_Utilities]:: Boundary Normals computed ")
+            print("::[--Domain Utilities-]:: Boundary Normals computed ")

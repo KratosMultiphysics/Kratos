@@ -2,7 +2,7 @@
 //   Project Name:        KratosPfemApplication     $
 //   Created by:          $Author:      JMCarbonell $
 //   Last modified by:    $Co-Author:               $
-//   Date:                $Date:        August 2016 $
+//   Date:                $Date:          July 2018 $
 //   Revision:            $Revision:            0.0 $
 //
 //
@@ -38,7 +38,7 @@ public:
     typedef Node<3> NodeType;
 
     typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
-    typedef typename PropertiesContainerType::pointer   PropertiesContainerPointerType;
+    typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
 
     /// Pointer definition of AssignPropertiesToNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignPropertiesToNodesProcess);
@@ -51,7 +51,7 @@ public:
                                    ) : Process() , mrModelPart(model_part)
     {
         KRATOS_TRY
-			 
+
         Parameters default_parameters( R"(
             {
                 "fluid_mixture": false,
@@ -66,7 +66,7 @@ public:
         mSolidMixture = rParameters["solid_mixture"].GetBool();
 
         mpProperties  = mrModelPart.pProperties();
-        
+
         KRATOS_CATCH("");
     }
 
@@ -103,7 +103,7 @@ public:
       KRATOS_TRY
 
       this->AssignPropertiesToNodes();
-      
+
       KRATOS_CATCH("")
     }
 
@@ -118,8 +118,8 @@ public:
     void ExecuteInitializeSolutionStep() override
     {
       KRATOS_TRY
-          
-      this->AssignMaterialPercentToNodes();
+
+      this->AssignMaterialPercentageToNodes();
 
       KRATOS_CATCH("")
     }
@@ -227,14 +227,14 @@ private:
     bool mFluidMixture;
 
     bool mSolidMixture;
-  
+
     PropertiesContainerPointerType mpProperties;
 
     ///@}
     ///@name Private Operators
     ///@{
 
-    
+
     void AssignPropertiesToNodes()
     {
         const int nnodes = mrModelPart.GetMesh().Nodes().size();
@@ -252,7 +252,7 @@ private:
         }
     }
 
-    void AssignMaterialPercentToNodes()
+    void AssignMaterialPercentageToNodes()
     {
         const int nnodes = mrModelPart.GetMesh().Nodes().size();
 
@@ -264,64 +264,64 @@ private:
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
-                Vector MaterialPercent;
-                this->CalculateMaterialPercent(*it, MaterialPercent)
-		it->SetValue(MATERIAL_PERCENT_COMPOSITION, MaterialPercent);
+                Vector MaterialPercentage;
+                this->CalculateMaterialPercentage(*it, MaterialPercentage);
+		it->SetValue(MATERIAL_PERCENTAGE, MaterialPercentage);
             }
         }
     }
 
-  
-    void CalculateMaterialPercent(NodeType& rNode, Vector& MaterialPercent)
+
+    void CalculateMaterialPercentage(NodeType& rNode, Vector& MaterialPercentage)
     {
       KRATOS_TRY
 
-      unsigned int size = mpProperties.size();
-      MaterialPercent.resize(size,false);
-      noalias(MaterialPercent) = ZeroVector(size);
+      unsigned int size = mpProperties->size();
+      MaterialPercentage.resize(size,false);
+      noalias(MaterialPercentage) = ZeroVector(size);
 
       double counter = 0;
       if( rNode.Is(FLUID) && mFluidMixture ){
-      
-        WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+
+        WeakPointerVector<Element >& rE = rNode.GetValue(NEIGHBOUR_ELEMENTS);
 
         for(unsigned int i = 0; i < rE.size(); i++)
         {
           if(rE[i].Is(FLUID)){
             unsigned int id = rE[i].GetProperties().Id();
             if( id < size ){
-              MaterialPercent[id] += 1;
+              MaterialPercentage[id] += 1;
               ++counter;
             }
           }
         }
       }
       else if( rNode.Is(SOLID) && mSolidMixture ){
-        
-        WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+
+        WeakPointerVector<Element >& rE = rNode.GetValue(NEIGHBOUR_ELEMENTS);
         for(unsigned int i = 0; i < rE.size(); i++)
         {
           if(rE[i].Is(SOLID)){
             unsigned int id = rE[i].GetProperties().Id();
             if( id < size ){
-              MaterialPercent[id] += 1;
+              MaterialPercentage[id] += 1;
               ++counter;
             }
           }
         }
-        
+
       }
-        
+
       double divider = 1.0;
       if( counter != 0 )
         divider = 1.0/counter;
 
-      for(unsigned int i=0, i<size; ++i)
-        MaterialPercent[i] = MaterialPercent[i] * divider; 
-      
+      for(unsigned int i=0; i<size; ++i)
+        MaterialPercentage[i] *= divider;
+
       KRATOS_CATCH("")
     }
-  
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -342,7 +342,7 @@ private:
     ///@name Un accessible methods
     ///@{
     ///@}
-  
+
 }; // Class AssignPropertiesToNodesProcess
 
 ///@}

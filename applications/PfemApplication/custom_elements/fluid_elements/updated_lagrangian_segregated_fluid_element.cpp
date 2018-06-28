@@ -134,8 +134,8 @@ void UpdatedLagrangianSegregatedFluidElement::GetDofList( DofsVectorType& rEleme
   rElementalDofList.resize( 0 );
 
   const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-
-  switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+  
+  switch( StepType(rCurrentProcessInfo[SEGREGATED_STEP]) )
   {
     case VELOCITY_STEP:
       {
@@ -147,6 +147,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetDofList( DofsVectorType& rEleme
           if( dimension == 3 )
             rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_Z ) );
         }
+        break;
       }
     case PRESSURE_STEP:
       {
@@ -154,6 +155,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetDofList( DofsVectorType& rEleme
         {
           rElementalDofList.push_back( GetGeometry()[i].pGetDof( PRESSURE ) );
         }
+        break;
       }
     default:
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;

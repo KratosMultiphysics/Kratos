@@ -25,14 +25,9 @@ class PreRefiningMesher(mesher.Mesher):
         self.model_part = self.main_model_part
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
-            
-        print("Construction of the Pre Refining Mesher finished")
-           
+                       
     #
     def InitializeMeshing(self):
-
-        if(self.echo_level>0):
-            print("::[fluid_pre_refining_mesher]:: -START InitializeMeshing-")
 
         self.MeshingParameters.InitializeMeshing()
    
@@ -85,6 +80,7 @@ class PreRefiningMesher(mesher.Mesher):
         self.MeshingParameters.SetTessellationFlags(mesher_flags)
         self.MeshingParameters.SetTessellationInfo(mesher_info)
 
+        print("::[--Refining Mesher--]:: Ready")
 
     #
     def SetPreMeshingProcesses(self):
@@ -100,7 +96,7 @@ class PreRefiningMesher(mesher.Mesher):
         
         unactive_peak_elements = False
         unactive_sliver_elements = False
-        set_active_flag = KratosPfem.SetActiveEntitiesProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
+        set_active_flag = KratosPfem.SetActiveEntities(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
         self.mesher.SetPreMeshingProcess(set_active_flag)
 
         inlet_management = KratosPfem.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)

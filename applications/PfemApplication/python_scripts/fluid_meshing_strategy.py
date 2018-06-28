@@ -17,8 +17,6 @@ class FluidMeshingStrategy(meshing_strategy.MeshingStrategy):
 
     def SetMeshers(self):
 
-        print("::[Fluid Meshing Strategy]:: SET MESHER")
-
         meshers_list = []        
         if( self.settings["remesh"].GetBool() and self.settings["refine"].GetBool() ):
             meshers_list.append("fluid_pre_refining_mesher")

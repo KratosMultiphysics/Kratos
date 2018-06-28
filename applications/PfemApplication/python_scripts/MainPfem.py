@@ -1,12 +1,16 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+# Import kratos core and applications
+import KratosMultiphysics
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.PfemApplication
 import MainSolid
 
 class PfemSolution(MainSolid.Solution):
 
     def __init__(self, file_parameters = "ProjectParameters.json", file_name = None):
 
-        super(PfemSoludion, self).__init__(file_parameters,file_name)
+        super(PfemSolution, self).__init__(file_parameters,file_name)
 
         print("::[---PFEM Solution --]::")
 
@@ -15,33 +19,92 @@ class PfemSolution(MainSolid.Solution):
     def _get_processes_parameters(self):
         # get processes parameters from base class
         processes_parameters = MainSolid.Solution._get_processes_parameters(self)
-        
+
         # add process to manage assignation of material properties to particles
         # modify processes_parameters to introduce this process in the problem_process_list
         # particles concept : assign initial material percent and properties vector pointer to nodes
         if(processes_parameters.Has("problem_process_list")):
-            problem_processes = processes_parametes["problem_process_list"]
+            problem_processes = processes_parameters["problem_process_list"]
             processes_parameters.__setitem__("problem_process_list", self._set_particle_properties_process(problem_processes))
-        
+
+        if(processes_parameters.Has("loads_process_list")):
+            loads_processes = processes_parameters["loads_process_list"]
+            processes_parameters.__setitem__("loads_process_list", self._set_volume_acceleration_process(loads_processes))
+
+
         return processes_parameters
 
+    def _set_volume_acceleration_process(self, loads_processes):
+
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+             "python_module" : "assign_modulus_and_direction_to_nodes_process",
+             "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+             "Parameters"    : {
+                  "variable_name"   : "VOLUME_ACCELERATION",
+                  "modulus"         : 9.81,
+                  "direction"       : [0.0,-1.0,0.0]
+            }
+        }
+        """)
+
+        if(self.ProjectParameters.Has("problem_data")):
+            if(self.ProjectParameters["problem_data"].Has("gravity_vector")):
+                import math
+                #get normalized direction
+                direction   = []
+                scalar_prod = 0
+                for i in range(self.ProjectParameters["problem_data"]["gravity_vector"].size()):
+                    direction.append( self.ProjectParameters["problem_data"]["gravity_vector"][i].GetDouble() )
+                    scalar_prod = scalar_prod + direction[i]*direction[i]
+
+                norm = math.sqrt(scalar_prod)
+
+                self.value = []
+                if( norm != 0.0 ):
+                    for j in direction:
+                        self.value.append( j/norm )
+                else:
+                    for j in direction:
+                        self.value.append(0.0)
+
+                if(default_settings["Parameters"].Has("modulus")):
+                    default_settings["Parameters"]["modulus"].SetDouble(norm)
+
+                if(default_settings["Parameters"].Has("direction")):
+                    counter = 0
+                    for i in self.value:
+                        default_settings["Parameters"]["direction"][counter].SetDouble(i)
+                        counter+=1
+
+
+        model_part_name = self.model.GetMainModelPart().Name
+        default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
+
+        loads_processes.Append(default_settings)
+
+        return loads_processes
+    
     def _set_particle_properties_process(self, problem_processes):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "python_module" : "assign_properties_to_particles",
+            "python_module" : "assign_properties_to_nodes_process",
             "kratos_module" : "KratosMultiphysics.PfemApplication",
             "Parameters"    : {
                   "fluid_mixture" : true,
                   "solid_mixture" : false
-            }        
+            }
         }
         """)
-        
+
+        model_part_name = self.model.GetMainModelPart().Name
+        default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
+
         problem_processes.Append(default_settings)
 
         return problem_processes
-        
-    
+
+
 if __name__ == "__main__":
     PfemSolution().Run()

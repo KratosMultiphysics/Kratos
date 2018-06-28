@@ -128,15 +128,24 @@ class SolutionScheme:
             if(self.settings["time_integration"].GetString() == "Implicit"):
                 if(len(vector_integration_methods)):
                     if(len(scalar_integration_methods)):
-                        solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods)
-                    else:
                         solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods,scalar_integration_methods)
+                    else:
+                        solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods)
+                elif(len(scalar_integration_methods)):
+                    solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods,scalar_integration_methods)
+                else:
+                    print("WARNING: no integration methods")
+
         elif(self.settings["solution_type"].GetString() == "Static" or self.settings["solution_type"].GetString() == "Quasi-static"):
             if(len(vector_integration_methods)):
                 if(len(scalar_integration_methods)):
-                    solution_scheme = KratosSolid.StaticScheme(vector_integration_methods)
-                else:
                     solution_scheme = KratosSolid.StaticScheme(vector_integration_methods,scalar_integration_methods)
+                else:
+                    solution_scheme = KratosSolid.StaticScheme(vector_integration_methods)
+            elif(len(scalar_integration_methods)):
+                solution_scheme = KratosSolid.StaticScheme(vector_integration_methods,scalar_integration_methods)
+            else:
+                print("WARNING: no integration methods")
 
         return solution_scheme
 

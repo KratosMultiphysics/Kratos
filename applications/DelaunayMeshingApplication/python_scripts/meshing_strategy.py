@@ -40,12 +40,9 @@ class MeshingStrategy(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level = 1
-        #print("::[Mesher_Strategy]:: Construction of Mesh Strategy finished")
 
     #
     def Initialize(self,meshing_parameters,dimension):
-
-        print("::[Meshing Strategy]:: -START-")
 
         #meshing parameters
         self.MeshingParameters = meshing_parameters
@@ -95,8 +92,7 @@ class MeshingStrategy(object):
         self.number_of_elements   = 0
         self.number_of_conditions = 0
 
-        print("::[Meshing Strategy]:: -END-")
-
+        #print("::[--Meshing Strategy-]:: Ready")
     #
     def SetMeshers(self):
 

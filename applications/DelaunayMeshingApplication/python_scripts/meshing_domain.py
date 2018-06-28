@@ -6,8 +6,8 @@ import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateMeshingDomain(main_model_part, custom_settings):
-    return MeshingDomain(main_model_part, custom_settings)
+def CreateMeshingDomain(Model, custom_settings):
+    return MeshingDomain(Model, custom_settings)
 
 class MeshingDomain(object):
 
@@ -16,10 +16,9 @@ class MeshingDomain(object):
     ##
     ##real construction shall be delayed to the function "Initialize" which
     ##will be called once the mesher is already filled
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         self.echo_level = 1
-        self.main_model_part = main_model_part
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -94,25 +93,24 @@ class MeshingDomain(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        #construct the meshing strategy
-        meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
-        self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
+        self.Model = Model
 
         self.active_remeshing = False
         if( self.settings["meshing_strategy"]["remesh"].GetBool() or self.settings["meshing_strategy"]["transfer"].GetBool() ):
             self.active_remeshing = True
 
-        print("::[Meshing_Domain]:: (",self.settings["model_part_name"].GetString()," ) -BUILT-")
-
-
     ####
 
     def Initialize(self):
 
-        print("::[Meshing Domain]:: -START-")
-
+        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
+        
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
+        #construct the meshing strategy
+        meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
+        self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
+        
         # Set MeshingParameters
         self.SetMeshingParameters()
 
@@ -120,8 +118,8 @@ class MeshingDomain(object):
         self.MeshingStrategy.SetEchoLevel(self.echo_level)
         self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
 
-        print("::[Meshing Domain]:: -END- ")
-
+        print("::[---Meshing Domain--]:: "+self.settings["model_part_name"].GetString()+" Ready ")
+        
     ####
 
     #

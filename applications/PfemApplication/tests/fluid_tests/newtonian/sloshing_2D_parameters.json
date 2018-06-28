@@ -1,7 +1,4 @@
 {
-    "input_settings":{
-	"materials_file_name" : "fluid_tests/newtonian/dam_break_2D_materials.json"
-    },
     "time_settings" : {
         "time_step"  : 0.01,
         "end_time"   : 0.1
@@ -22,68 +19,71 @@
         "processes_parts_list"  : ["VELOCITY_Velocity"]
     },
     "problem_data"        : {
+	"echo_level"      : 0,
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
     "solver_settings" : {
         "solver_type" : "solid_mechanics_segregated_solver",
-	"solvers"     : [{
-	    "solver_type" : "solid_mechanics_implicit_dynamic_solver",
-            "Parameters"  : {
-		"time_integration_settings" : {
-                    "solution_type"          : "Dynamic",
-                    "time_integration"       : "Implicit",
-                    "integration_method"     : "Bdf"
-		    "time_integration_order" : 2,
-		},
-		"solving_strategy_settings" : {
-                    "line_search"                 : false,
-		    "max_iteration"               : 15,
-                    "bossak_factor"               : 0.0
-		},
-		"convergence_criterion_settings" : {
-                    "convergence_criterion"       : "Residual_criterion",
-                    "residual_relative_tolerance" : 0.00001,
-                    "residual_absolute_tolerance" : 1e-9
-		},
-		"linear_solver_settings"    : {
+	"Parameters"  : {
+	    "solvers"   : [{
+		"solver_type" : "solid_mechanics_implicit_dynamic_solver",
+		"Parameters"  : {
+		    "time_integration_settings" : {
+			"solution_type"          : "Dynamic",
+			"time_integration"       : "Implicit",
+			"integration_method"     : "Bdf",
+			"time_integration_order" :  2
+		    },
+		    "solving_strategy_settings" : {
+			"line_search"                 : false,
+			"max_iteration"               : 15,
+			"bossak_factor"               : 0.0
+		    },
+		    "convergence_criterion_settings" : {
+			"convergence_criterion"       : "Residual_criterion",
+			"residual_relative_tolerance" : 0.00001,
+			"residual_absolute_tolerance" : 1e-9
+		    },
+		    "linear_solver_settings"    : {
 		    "solver_type"         : "BICGSTABSolver",
-		    "max_iteration"       : 5000,
-		    "tolerance"           : 1e-9,
-		    "preconditioner_type" : "None",
-		    "scaling"             : false
-		},
-		"dofs" : ["VELOCITY"]
-	    }
-        },{
-	    "solver_type" : "solid_mechanics_static_solver",
-            "Parameters"  : {
-		"time_integration_settings" : {
-                    "solution_type"      : "Static",
-		    "analysis_type"      : "Non-linear",
-                    "integration_method" : "Static"
-		},
-		"solving_strategy_settings" : {
-                    "line_search"                 : false,
-		    "max_iteration"               : 15,
-                    "bossak_factor"               : 0.0
-		},
-		"convergence_criterion_settings" : {
-                    "convergence_criterion"       : "Residual_criterion",
-                    "residual_relative_tolerance" : 0.00001,
-                    "residual_absolute_tolerance" : 1e-9
-		},
-		"linear_solver_settings"    : {
-		    "solver_type"         : "BICGSTABSolver",
-		    "max_iteration"       : 5000,
-		    "tolerance"           : 1e-9,
-		    "preconditioner_type" : "None",
-		    "scaling"             : false
-		},
-		"dofs" : ["PRESSURE"]
-            }
-	}],
-	"processes"   : []
+			"max_iteration"       : 5000,
+			"tolerance"           : 1e-9,
+			"preconditioner_type" : "None",
+			"scaling"             : false
+		    },
+		    "dofs" : ["VELOCITY"]
+		}
+            },{
+		"solver_type" : "solid_mechanics_static_solver",
+		"Parameters"  : {
+		    "time_integration_settings" : {
+			"solution_type"      : "Static",
+			"analysis_type"      : "Non-linear",
+			"integration_method" : "Static"
+		    },
+		    "solving_strategy_settings" : {
+			"line_search"                 : false,
+			"max_iteration"               : 15,
+			"bossak_factor"               : 0.0
+		    },
+		    "convergence_criterion_settings" : {
+			"convergence_criterion"       : "Residual_criterion",
+			"residual_relative_tolerance" : 0.00001,
+			"residual_absolute_tolerance" : 1e-9
+		    },
+		    "linear_solver_settings"    : {
+			"solver_type"         : "BICGSTABSolver",
+			"max_iteration"       : 5000,
+			"tolerance"           : 1e-9,
+			"preconditioner_type" : "None",
+			"scaling"             : false
+		    },
+		    "dofs" : ["PRESSURE"]
+		}
+	    }],
+	    "processes"   : []
+	}
     },
     "problem_process_list"     : [{
         "help"          : "This process applies meshing to the problem domains",
@@ -94,7 +94,6 @@
             "model_part_name"       : "main_domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
-            "write_totalVolumeBeforeMeshing" : false,
             "meshing_before_output" : true,
             "meshing_domains"       : [{
                 "model_part_name"                 : "Body1",
@@ -112,7 +111,7 @@
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
                     "elemental_variables_to_smooth" : ["DETERMINANT_F"],
-                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
+                    "reference_element_type"        : "UpdatedLagrangianSegregatedFluidElement2D3N",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
                 "spatial_bounding_box"            : {
@@ -176,7 +175,7 @@
                     "mesh_smoothing"                : false,
                     "variables_smoothing"           : false,
                     "elemental_variables_to_smooth" : ["DETERMINANT_F"],
-                    "reference_element_type"        : "TwoStepUpdatedLagrangianVPFluidElement2D",
+                    "reference_element_type"        : "UpdatedLagrangianSegregatedFluidElement2D3N",
                     "reference_condition_type"      : "CompositeCondition2D2N"
                 },
                 "spatial_bounding_box"            : {

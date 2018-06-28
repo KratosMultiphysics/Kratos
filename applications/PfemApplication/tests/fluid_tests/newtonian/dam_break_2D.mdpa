@@ -6,7 +6,7 @@ Begin Properties 0
 End Properties
 Begin Properties 1
     DENSITY 1000.0
-    VISCOSITY 0.001
+    DYNAMIC_VISCOSITY 0.001
     BULK_MODULUS 2150000000.0
 End Properties
 

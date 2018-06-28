@@ -6,7 +6,7 @@ Begin Properties 0
 End Properties
 Begin Properties 1
     DENSITY 1000.0
-    VISCOSITY 0.001
+    DYNAMIC_VISCOSITY 0.001
     BULK_MODULUS 2150000000.0
 End Properties
 
@@ -431,7 +431,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements TwoStepUpdatedLagrangianVPFluidElement2D// GUI group identifier: Body_Fluid
+Begin Elements UpdatedLagrangianSegregatedFluidElement2D3N // GUI group identifier: Body_Fluid
         1          1        245        214        247 
         2          1        184        155        166 
         3          1        125         98        112 

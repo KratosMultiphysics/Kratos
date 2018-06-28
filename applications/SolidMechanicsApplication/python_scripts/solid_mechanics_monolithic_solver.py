@@ -114,22 +114,12 @@ class MonolithicSolver(object):
 
     def ExecuteInitialize(self):
 
-        # Main model part and computing model part
-        self.main_model_part = self.model_part.GetRootModelPart()
+        # Set model and info
+        self._set_model_info()
 
-        # Process information
-        self.process_info = self.main_model_part.ProcessInfo
+        # Configure model and solver
+        self._set_integration_parameters()
 
-        # Add dofs
-        if( self._is_not_restarted() ):
-            self._add_dofs()
-
-        # Create integration information (needed in other processes)
-        self._set_time_integration_methods()
-
-        # Set buffer
-        if( self._is_not_restarted() ):
-            self._set_and_fill_buffer()
 
     def ExecuteBeforeSolutionLoop(self):
 
@@ -207,6 +197,27 @@ class MonolithicSolver(object):
         else:
             return True
 
+    def _set_model_info(self):
+
+        # Main model part and computing model part
+        self.main_model_part = self.model_part.GetRootModelPart()
+
+        # Process information
+        self.process_info = self.main_model_part.ProcessInfo
+
+        
+    def _set_integration_parameters(self):
+        # Add dofs
+        if( self._is_not_restarted() ):
+            self._add_dofs()
+
+        # Create integration information (needed in other processes)
+        self._set_time_integration_methods()
+
+        # Set buffer
+        if( self._is_not_restarted() ):
+            self._set_and_fill_buffer()       
+
     def _get_solution_scheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._create_solution_scheme()
@@ -237,9 +248,7 @@ class MonolithicSolver(object):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
-        if buffer_size < self.GetMinimumBufferSize():
-            buffer_size = self.GetMinimumBufferSize()
+        buffer_size = self.GetMinimumBufferSize()
         self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.

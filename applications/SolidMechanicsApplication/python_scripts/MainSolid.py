@@ -44,7 +44,7 @@ class Solution(object):
         self._set_parallel_size(num_threads)
 
         print(" ")
-        print("::[---KSM Simulation--]::[OMP USING",num_threads,"THREADS ]")
+        print("::[---KSM Simulation--]:: [OMP USING",num_threads,"THREADS ]")
 
 
     def Run(self):
@@ -335,11 +335,11 @@ class Solution(object):
             problem_path = os.getcwd()
 
             self.model.CleanModel()
-
-            print("   Reading constitutive law from file :" + os.path.join(problem_path, "materials") + ".py ")
+            
+            print("::[-----Material------]:: Reading file: "+ os.path.join(problem_path, "materials") + ".py ")
 
         else:
-            print(" No Materials.json or Materials.py found ")
+            print("No Materials.json or Materials.py found ")
 
 
     def _get_processes(self):

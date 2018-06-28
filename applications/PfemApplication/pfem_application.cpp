@@ -9,7 +9,7 @@
 
 // System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -32,26 +32,26 @@ namespace Kratos
   KratosPfemApplication    ::KratosPfemApplication    ():
       KratosApplication("PfemApplication"),
       mUpdatedLagrangianSegregatedFluidElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-      mUpdatedLagrangianSegregatedFluidElement3D4N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))      
+      mUpdatedLagrangianSegregatedFluidElement3D4N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
   {}
-  
+
   void KratosPfemApplication    ::Register()
   {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-       
+
     std::cout << "            ___  __                            " << std::endl;
     std::cout << "     KRATOS| _ \\/ _|___ _ __                   " << std::endl;
     std::cout << "           |  _/  _/ -_) '  \\                  " << std::endl;
     std::cout << "           |_| |_| \\___|_|_|_|APPLICATION      " << std::endl;
-    std::cout << "Initializing KratosPfemApplication    ...      " << std::endl;                                
+    std::cout << "Initializing KratosPfemApplication    ...      " << std::endl;
 
     //Register Variables (variables created in pfem_application_variables.cpp)
-    KRATOS_REGISTER_VARIABLE( PROPTERTIES_VECTOR )    
-    KRATOS_REGISTER_VARIABLE( MATERIAL_PERCENT_COMPOSITION )
+    KRATOS_REGISTER_VARIABLE( PROPERTIES_VECTOR )
+    KRATOS_REGISTER_VARIABLE( MATERIAL_PERCENTAGE )
     KRATOS_REGISTER_VARIABLE( PRESSURE_VELOCITY )
     KRATOS_REGISTER_VARIABLE( PRESSURE_ACCELERATION )
-        
+
     KRATOS_REGISTER_VARIABLE(INITIAL_DELTA_TIME);
     KRATOS_REGISTER_VARIABLE(CURRENT_DELTA_TIME);
     KRATOS_REGISTER_VARIABLE(TIME_INTERVAL_CHANGED);
@@ -59,11 +59,9 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(BAD_PRESSURE_CONVERGENCE);
     //Register Elements
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianSegregatedFluidElement2D3N",mUpdatedLagrangianSegregatedFluidElement2D3N);
-    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianSegregatedFluidElement2D3N",mUpdatedLagrangianSegregatedFluidElement3D4N);
+    KRATOS_REGISTER_ELEMENT("UpdatedLagrangianSegregatedFluidElement3D4N",mUpdatedLagrangianSegregatedFluidElement3D4N);
 
 
   }
-  
+
 }  // namespace Kratos.
-
-

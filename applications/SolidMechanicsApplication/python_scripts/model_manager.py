@@ -233,7 +233,7 @@ class ModelManager(object):
             self.main_model_part.CreateSubModelPart(body_model_part_name)
             body_model_part = self.main_model_part.GetSubModelPart(body_model_part_name)
 
-            print("::[---Model_Manager---]::Body Created :", body_model_part_name)
+            print("::[---Model_Manager---]:: Body Created: "+body_model_part_name)
             body_model_part.ProcessInfo = self.main_model_part.ProcessInfo
             body_model_part.Properties  = self.main_model_part.Properties
 
@@ -244,18 +244,21 @@ class ModelManager(object):
                 body_parts_list.append(self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()))
 
             body_model_part_type = bodies_list[i]["body_type"].GetString()
-
+            
             for part in body_parts_list:
                 entity_type = "Nodes"
                 if (body_model_part_type=="Fluid"):
+                    part.Set(KratosMultiphysics.FLUID)
                     assign_flags = [KratosMultiphysics.FLUID]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
                 elif (body_model_part_type=="Solid"):
+                    part.Set(KratosMultiphysics.SOLID)
                     assign_flags = [KratosMultiphysics.SOLID]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
                 elif (body_model_part_type=="Rigid"):
+                    part.Set(KratosMultiphysics.RIGID)
                     assign_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
@@ -273,6 +276,7 @@ class ModelManager(object):
             if( body_model_part_type == "Fluid" ):
                 body_model_part.Set(KratosMultiphysics.FLUID)
                 fluid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
+               
             if( body_model_part_type == "Rigid" ):
                 body_model_part.Set(KratosMultiphysics.RIGID)
                 rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
@@ -295,9 +299,19 @@ class ModelManager(object):
         sub_model_part_names       = self.settings["domain_parts_list"]
         processes_model_part_names = self.settings["processes_parts_list"]
 
+        fluid_parts = False
+        solid_parts = False
         domain_parts = []
         for i in range(sub_model_part_names.size()):
-            domain_parts.append(self.main_model_part.GetSubModelPart(sub_model_part_names[i].GetString()))
+            domain_part = self.main_model_part.GetSubModelPart(sub_model_part_names[i].GetString())
+            if( domain_part.Is(KratosMultiphysics.FLUID) ):
+                fluid_parts = True
+            elif( domain_part.Is(KratosMultiphysics.SOLID) ):
+                solid_parts = True
+                
+            domain_parts.append(domain_part)
+        
+            
         processes_parts = []
         for i in range(processes_model_part_names.size()):
             processes_parts.append(self.main_model_part.GetSubModelPart(processes_model_part_names[i].GetString()))
@@ -306,8 +320,12 @@ class ModelManager(object):
         computing_model_part.ProcessInfo = self.main_model_part.ProcessInfo
         computing_model_part.Properties  = self.main_model_part.Properties
 
-        #set flag to identify the solid model part :: solid application
-        computing_model_part.Set(KratosMultiphysics.SOLID)
+        #set flag to identify the fluid/solid body parts in the computing domain
+        if( solid_parts ):
+            computing_model_part.Set(KratosMultiphysics.SOLID)
+        if( fluid_parts ):
+            computing_model_part.Set(KratosMultiphysics.FLUID)
+
         #set flag to identify the computing model part
         computing_model_part.Set(KratosMultiphysics.ACTIVE)
 
@@ -363,7 +381,7 @@ class ModelManager(object):
                 body_parts_name_list = bodies_list[i]["parts_list"]
                 for j in range(body_parts_name_list.size()):
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
-                    print("::[---Model_Manager---]::Body Part Removed:", body_parts_name_list[j].GetString())
+                    print("::[---Model_Manager---]:: Body Part Removed: "+ body_parts_name_list[j].GetString())
 
     #
     def _has_bodies(self):

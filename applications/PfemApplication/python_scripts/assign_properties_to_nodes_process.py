@@ -16,8 +16,9 @@ class AssignPropertiesToNodesProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-             "fluid_mixture": false,
-             "solid_mixture": false
+             "model_part_name": "main_domain",
+             "fluid_mixture"  : false,
+             "solid_mixture"  : false
         }
         """)
 
@@ -25,6 +26,7 @@ class AssignPropertiesToNodesProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
+        self.model = Model
 
     def GetVariables(self):
         nodal_variables = []
@@ -35,7 +37,8 @@ class AssignPropertiesToNodesProcess(KratosMultiphysics.Process):
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
-        self.AssignPropertiesProcess = KratosPfem.AssignPropertiesToNodesProcess(self.model_part, self.settings)
+        self.settings.RemoveValue("model_part_name")
+        self.AssignPropertiesProcess = KratosPfem.AssignPropertiesToNodes(self.model_part, self.settings)
 
         self.AssignPropertiesProcess.ExecuteInitialize()
 

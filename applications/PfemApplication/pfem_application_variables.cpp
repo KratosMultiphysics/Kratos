@@ -16,7 +16,7 @@ namespace Kratos
   ///@}
 
   typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
-  typedef typename PropertiesContainerType::pointer   PropertiesContainerPointerType;
+  typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
 
 
   ///@name Kratos Globals
@@ -24,7 +24,7 @@ namespace Kratos
 
   //Create Variables
   KRATOS_CREATE_VARIABLE( PropertiesContainerPointerType, PROPERTIES_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, MATERIAL_PERCENT_COMPOSITION )
+  KRATOS_CREATE_VARIABLE( Vector, MATERIAL_PERCENTAGE )
   KRATOS_CREATE_VARIABLE( double, PRESSURE_VELOCITY )
   KRATOS_CREATE_VARIABLE( double, PRESSURE_ACCELERATION )
 

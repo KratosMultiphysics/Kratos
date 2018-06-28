@@ -51,13 +51,6 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
         self.Model = Model
 
-    #
-    def ExecuteInitialize(self):
-
-        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
-
-        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
-
         #construct meshing domains
         self.meshing_domains = []
         domains_list = self.settings["meshing_domains"]
@@ -65,8 +58,15 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         for i in range(0,self.number_of_domains):
             item = domains_list[i]
             domain_module = __import__(item["python_module"].GetString())
-            domain = domain_module.CreateMeshingDomain(self.main_model_part,item)
+            domain = domain_module.CreateMeshingDomain(Model,item)
             self.meshing_domains.append(domain)
+
+    #
+    def ExecuteInitialize(self):
+
+        self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
+
+        self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # mesh mesher initial values
         self.remesh_domains_active = False
@@ -94,16 +94,19 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         # initialize all meshing domains
         if( self.remesh_domains_active ):
 
-            print("::[Meshing_Process]:: Initialize Domains")
-            import domain_utilities
-            domain_utils = domain_utilities.DomainUtilities()
-            domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
+            self.InitializeDomains()
 
             for domain in self.meshing_domains:
                 domain.SetEchoLevel(self.echo_level)
                 domain.Initialize()
                 #domain.Check()
 
+    def InitializeDomains(self):
+
+        print("::[Meshing_Process]:: Initialize Domains")
+        import domain_utilities
+        domain_utils = domain_utilities.DomainUtilities()
+        domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
 
     ###
 
@@ -203,5 +206,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         #nodal_variables = nodal_variables + ['CAUCHY_STRESS_VECTOR', 'DEFORMATION_GRADIENT'] # transfer variables
         for domain in self.meshing_domains:
             nodal_variables = nodal_variables + domain.GetVariables()
+
+        print("variables added",nodal_variables)
 
         return nodal_variables

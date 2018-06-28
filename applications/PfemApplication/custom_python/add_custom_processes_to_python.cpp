@@ -21,6 +21,7 @@
 #include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
+#include "custom_processes/assign_properties_to_nodes_process.hpp"
 
 // Mesher initialization and finalization processes
 #include "custom_processes/settle_fluid_model_structure_process.hpp"
@@ -53,7 +54,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   /// Properties container. A vector set of properties with their Id's as key.
   typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
-  typedef typename PropertiesContainerType::pointer   PropertiesContainerPointerType;
+  typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
 
   //to define it as a variable
   class_<Variable<PropertiesContainerPointerType>, VariableData>(m,"PropertiesVectorPointerVariable")
@@ -84,6 +85,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m, "SetActiveEntities")
       .def(init<ModelPart&, bool, bool, int>());
 
+  class_<InletManagementMesherProcess, InletManagementMesherProcess::Pointer, MesherProcess>
+      (m, "InletManagement")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
+  
   
   //*********SET SOLVER PROCESSES*************//
 
@@ -95,6 +100,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m,"SplitElementsProcess")
       .def(init<ModelPart&, int>());
   
+  class_<AssignPropertiesToNodesProcess, AssignPropertiesToNodesProcess::Pointer, Process>
+      (m, "AssignPropertiesToNodes")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>());
 
   //*********ADAPTIVE TIME STEP*************//
   
@@ -102,12 +111,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       (m, "AdaptiveTimeIntervalProcess")
       .def(init<ModelPart&, int>());
   
-  //***************INLET PROCESS************//
-  
-  class_<InletManagementProcess, InletManagementProcess::Pointer, Process>
-      (m, "InletManagement")
-      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
-  
+   
   
   //*********VOLUME RECOVETY PROCESS********//
   

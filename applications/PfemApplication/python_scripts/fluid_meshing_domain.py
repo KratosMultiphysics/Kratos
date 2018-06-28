@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 
 import meshing_domain
 
-def CreateMeshingDomain(main_model_part, custom_settings):
-    return FluidMeshingDomain(main_model_part, custom_settings)
+def CreateMeshingDomain(Model, custom_settings):
+    return FluidMeshingDomain(Model, custom_settings)
 
 class FluidMeshingDomain(meshing_domain.MeshingDomain):
  
@@ -53,12 +53,6 @@ class FluidMeshingDomain(meshing_domain.MeshingDomain):
         print("the mean_nodal_h is  ",mean_nodal_h)
     
         self.RefiningParameters.SetCriticalRadius(mean_nodal_h)
-        self.RefiningParameters.SetInitialRadius(mean_nodal_h)
-        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        self.main_model_part.ProcessInfo.SetValue(KratosPfem.INITIAL_DELTA_TIME,delta_time)
-        self.main_model_part.ProcessInfo.SetValue(KratosPfem.CURRENT_DELTA_TIME,delta_time)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.PREVIOUS_DELTA_TIME,delta_time)
-        self.main_model_part.ProcessInfo.SetValue(KratosPfem.TIME_INTERVAL_CHANGED,False)
-        
+        self.RefiningParameters.SetInitialRadius(mean_nodal_h)      
 
     #

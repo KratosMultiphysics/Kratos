@@ -8,8 +8,8 @@
 //
 
 
-#if !defined(KRATOS_INLET_MANAGEMENT_PROCESS_H_INCLUDED )
-#define  KRATOS_INLET_MANAGEMENT_PROCESS_H_INCLUDED
+#if !defined(KRATOS_INLET_MANAGEMENT_MESHER_PROCESS_H_INCLUDED )
+#define  KRATOS_INLET_MANAGEMENT_MESHER_PROCESS_H_INCLUDED
 
 
 // External includes
@@ -42,7 +42,7 @@ namespace Kratos
     if the ThresholdVariable  is larger than a ReferenceThreshold
 */
 
-class InletManagementProcess
+class InletManagementMesherProcess
     : public MesherProcess
 {
  public:
@@ -50,7 +50,7 @@ class InletManagementProcess
   ///@{
 
   /// Pointer definition of Process
-  KRATOS_CLASS_POINTER_DEFINITION( InletManagementProcess );
+  KRATOS_CLASS_POINTER_DEFINITION( InletManagementMesherProcess );
 
   typedef ModelPart::NodeType                   NodeType;
   typedef ModelPart::ConditionType         ConditionType;
@@ -62,7 +62,7 @@ class InletManagementProcess
   ///@{
 
   /// Default constructor.
-  InletManagementProcess(ModelPart& rModelPart,
+  InletManagementMesherProcess(ModelPart& rModelPart,
                          MesherUtilities::MeshingParameters& rRemeshingParameters,
                          int EchoLevel) 
       : mrModelPart(rModelPart),
@@ -75,7 +75,7 @@ class InletManagementProcess
 
 
   /// Destructor.
-  virtual ~InletManagementProcess() {}
+  virtual ~InletManagementMesherProcess() {}
 
 
   ///@}
@@ -135,13 +135,13 @@ class InletManagementProcess
   /// Turn back information as a string.
   std::string Info() const override
   {
-    return "InletManagementProcess";
+    return "InletManagementMesherProcess";
   }
 
   /// Print information about this object.
   void PrintInfo(std::ostream& rOStream) const override
   {
-    rOStream << "InletManagementProcess";
+    rOStream << "InletManagementMesherProcess";
   }
 
   /// Print object's data.s
@@ -375,7 +375,7 @@ class InletManagementProcess
 
 
   /// Assignment operator.
-  InletManagementProcess& operator=(InletManagementProcess const& rOther);
+  InletManagementMesherProcess& operator=(InletManagementMesherProcess const& rOther);
 
 
   /// this function is a private function
@@ -402,11 +402,11 @@ class InletManagementProcess
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  InletManagementProcess& rThis);
+                                  InletManagementMesherProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const InletManagementProcess& rThis)
+                                  const InletManagementMesherProcess& rThis)
 {
   rThis.PrintInfo(rOStream);
   rOStream << std::endl;
@@ -419,6 +419,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INLET_MANAGEMENT_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_INLET_MANAGEMENT_MESHER_PROCESS_H_INCLUDED  defined 
 
 
