@@ -590,7 +590,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         for (IndexType point_number = 0; point_number < integration_points.size(); point_number++) {
             // Compute element kinematics B, F, DN_DX ...
-            CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
+            CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
             // Compute material reponse
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
