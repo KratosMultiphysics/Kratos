@@ -707,7 +707,6 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
     return mMaxPoint;
   }
 
-
   ///@}
   ///@name Inquiry
   ///@{
@@ -847,10 +846,6 @@ protected:
         }
     }
 
-
-//************************************************************************
-//************************************************************************
-
     /** 
      * @brief Calculates the cell size of the bins.
      * 
@@ -908,9 +903,6 @@ protected:
         }
     }
 
-//************************************************************************
-//************************************************************************
-
     virtual void GenerateBins()
     {
         PointType Low, High;
@@ -924,12 +916,8 @@ protected:
         }
     }
 
-
-//************************************************************************
-//************************************************************************
-
-// **** THREAD SAFE
-// Dimension = 1
+    // **** THREAD SAFE
+    // Dimension = 1
     void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
                           SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
@@ -1004,9 +992,6 @@ protected:
             }
         }
     }
-
-//************************************************************************
-//************************************************************************
 
     // **** THREAD SAFE
 
@@ -1089,11 +1074,9 @@ protected:
         }
     }
 
-//************************************************************************
-//************************************************************************
+    // **** THREAD SAFE
 
-// **** THREAD SAFE
-// Dimension = 1
+    // Dimension = 1
     void SearchObjectLocalExclusive(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
                                 SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
@@ -1168,10 +1151,6 @@ protected:
             }
         }
     }
-
-//************************************************************************
-//************************************************************************
-
 
     // **** THREAD SAFE
 
@@ -1252,10 +1231,6 @@ protected:
         }
     }
 
-//************************************************************************
-//************************************************************************
-
-
     // **** THREAD SAFE
 
     // Dimension = 1
@@ -1334,10 +1309,6 @@ protected:
             }
         }
     }
-
-//************************************************************************
-//************************************************************************
-
 
     // **** THREAD SAFE
 
@@ -1418,10 +1389,6 @@ protected:
         }
     }
 
-//************************************************************************
-//************************************************************************
-
-
     // **** THREAD SAFE
 
     // Dimension = 1
@@ -1500,10 +1467,6 @@ protected:
             }
         }
     }
-
-//************************************************************************
-//************************************************************************
-
 
     // **** THREAD SAFE
 
@@ -1584,9 +1547,6 @@ protected:
         }
     }
 
-//************************************************************************
-//************************************************************************
-
     // Dimension = 1
     void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& i_object)
     {
@@ -1600,10 +1560,6 @@ protected:
                 mCells[I].Add(i_object);
         }
     }
-
-
-//************************************************************************
-//************************************************************************
 
     // Dimension = 2
     void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& i_object)
@@ -1630,10 +1586,6 @@ protected:
             }
         }
     }
-
-
-//************************************************************************
-//************************************************************************
 
     // Dimension = 3
     virtual void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType& i_object)
@@ -1666,9 +1618,6 @@ protected:
         }
     }
 
-//************************************************************************
-//************************************************************************
-
     // Dimension = 1
     void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& i_object)
     {
@@ -1682,10 +1631,6 @@ protected:
                 mCells[I].Remove(i_object);
         }
     }
-
-
-//************************************************************************
-//************************************************************************
 
     // Dimension = 2
     void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& i_object)
@@ -1712,10 +1657,6 @@ protected:
             }
         }
     }
-
-
-//************************************************************************
-//************************************************************************
 
     // Dimension = 3
     void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType& i_object)
@@ -1747,10 +1688,6 @@ protected:
             }
         }
     }
-
-
-//************************************************************************
-//************************************************************************
 
     void AllocateContainer()
     {
