@@ -241,30 +241,53 @@ public:
         rout << "]" << std::endl;
     }
 
+    /**
+     * @brief Get the Cell Container object
+     * 
+     * @return CellContainerType& The Cell Container object
+     */
+    CellContainerType& GetCellContainer() {
+        return mCells;
+    }
 
-    /*
-          CellContainerType& GetCellContainer()
-           {
-             return mCells;
-           }
-    */
-    Tvector<SizeType, Dimension>& GetDivisions()
-    {
+    /**
+     * @brief Get the Divisions object
+     * 
+     * @return SizeArray& Array containing the number of Cells in each dimension
+     */
+    SizeArray& GetDivisions() {
         return mN;
     }
-    /*
-          Tvector<CoordinateType, Dimension>& GetCellSize()
-          {
-           return mCellSize;
-          }
-    */
+
+    /**
+     * @brief Get the Cell Size object
+     * 
+     * @return CoordinateArray& Array containing the size of the Cell in each dimension
+     */
+    CoordinateArray& GetCellSize() {
+        return mCellSize;
+    }
+
+    /**
+     * @brief Get the Min Point object
+     * 
+     * @return PointType& Min point of the bins
+     */
+    PointType& GetMinPoint() {
+        return mMinPoint;
+    }
+
+    /**
+     * @brief Get the Max Point object
+     * 
+     * @return PointType& Max point of the bins
+     */
+    PointType& GetMaxPoint() {
+        return mMaxPoint;
+    }
 
 //************************************************************************
 //************************************************************************
-
-
-
-
 
     ///@}
     ///@name Friends
@@ -285,9 +308,6 @@ public:
     ///@}
     ///@name Protected Operators
     ///@{
-
-
-
 
     /// Computa los boxes de cada uno de los elementos del model part
     void CalculateBoundingBox()

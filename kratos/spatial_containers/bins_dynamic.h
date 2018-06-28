@@ -67,8 +67,8 @@ public:
     typedef typename PointVector::iterator PointIterator;
 
     // Global Container
-    typedef std::vector<PointVector>        CellsContainerType;
-    //typedef typename CellsContainerType::iterator IteratorIteratorType;
+    typedef std::vector<PointVector>        CellContainerType;
+    //typedef typename CellContainerType::iterator IteratorIteratorType;
 
     typedef Tvector<IndexType,TDimension>   CellType;
 
@@ -708,7 +708,7 @@ public:
     virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
     {
         rOStream << Perfix << "Bin[" << SearchUtils::PointerDistance(mPointBegin, mPointEnd) << "] : " << std::endl;
-        for(typename CellsContainerType::const_iterator i_cell = mPoints.begin() ; i_cell != mPoints.end() ; i_cell++)
+        for(typename CellContainerType::const_iterator i_cell = mPoints.begin() ; i_cell != mPoints.end() ; i_cell++)
         {
             rOStream << Perfix << "[ " ;
             for(typename PointVector::const_iterator i_point = i_cell->begin() ; i_point != i_cell->end() ; i_point++)
@@ -739,6 +739,51 @@ public:
         rout << "]" << std::endl;
     }
 
+    /**
+     * @brief Get the Cell Container object
+     * 
+     * @return CellContainerType& The Cell Container object
+     */
+    CellContainerType& GetCellContainer() {
+        return mCells;
+    }
+
+    /**
+     * @brief Get the Divisions object
+     * 
+     * @return SizeArray& Array containing the number of Cells in each dimension
+     */
+    SizeArray& GetDivisions() {
+        return mN;
+    }
+
+    /**
+     * @brief Get the Cell Size object
+     * 
+     * @return CoordinateArray& Array containing the size of the Cell in each dimension
+     */
+    CoordinateArray& GetCellSize() {
+        return mCellSize;
+    }
+
+    /**
+     * @brief Get the Min Point object
+     * 
+     * @return PointType& Min point of the bins
+     */
+    PointType& GetMinPoint() {
+        return mMinPoint;
+    }
+
+    /**
+     * @brief Get the Max Point object
+     * 
+     * @return PointType& Max point of the bins
+     */
+    PointType& GetMaxPoint() {
+        return mMaxPoint;
+    }
+
     /// Assignment operator.
     BinsDynamic& operator=(BinsDynamic const& rOther);
 
@@ -758,7 +803,7 @@ private:
     SizeType                            mNumPoints;
 
     // Bins Access Vector ( vector<Iterator> )
-    CellsContainerType mPoints;
+    CellContainerType mPoints;
 
     // Work Variables ( For non-copy of Search Variables )
     //BinBox SearchBox;

@@ -834,6 +834,51 @@ public:
         rout << "]" << std::endl;
     }
 
+    /**
+     * @brief Get the Cell Container object
+     * 
+     * @return CellContainerType& The Cell Container object
+     */
+    CellContainerType& GetCellContainer() {
+        return mCells;
+    }
+
+    /**
+     * @brief Get the Divisions object
+     * 
+     * @return SizeArray& Array containing the number of Cells in each dimension
+     */
+    SizeArray& GetDivisions() {
+        return mN;
+    }
+
+    /**
+     * @brief Get the Cell Size object
+     * 
+     * @return CoordinateArray& Array containing the size of the Cell in each dimension
+     */
+    CoordinateArray& GetCellSize() {
+        return mCellSize;
+    }
+
+    /**
+     * @brief Get the Min Point object
+     * 
+     * @return PointType& Min point of the bins
+     */
+    PointType& GetMinPoint() {
+        return mMinPoint;
+    }
+
+    /**
+     * @brief Get the Max Point object
+     * 
+     * @return PointType& Max point of the bins
+     */
+    PointType& GetMaxPoint() {
+        return mMaxPoint;
+    }
+
     /// Assignment operator.
     Bins& operator=(Bins const& rOther);
 
@@ -842,18 +887,12 @@ public:
 
     TPointType& GetMinPoint()
     {
-        TPointType point;
-        for(SizeType i = 0 ; i < TDimension ; i++)
-            point[i] = mMinPoint[i];
-        return point;
+        return mMinPoint;
     }
 
     TPointType& GetMaxPoint()
     {
-        TPointType point;
-        for(SizeType i = 0 ; i < TDimension ; i++)
-            point[i] = mMaxPoint[i];
-        return point;
+        return mMaxPoint;
     }
 
 
