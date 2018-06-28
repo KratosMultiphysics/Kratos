@@ -21,6 +21,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <array>
 //#include <time.h>
 
 // Project includes
@@ -125,19 +126,16 @@ public:
     BinsObjectStatic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd)
         : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
     {
+        auto mNumPoints = std::distance(mObjectsBegin, mObjectsEnd);
 
         CalculateBoundingBox();
-        CalculateCellSize();
-        //AllocateCellsContainer();
+        CalculateCellSize(mNumPoints);
         GenerateBins();
-
-
     }
 
     BinsObjectStatic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const SizeType Nx, const SizeType Ny, const SizeType Nz )
         : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
     {
-
         CalculateBoundingBox();
 
         mN[0] = Nx;
@@ -161,10 +159,7 @@ public:
             mInvCellSize[i] = 1.00 / mCellSize[i];
         }
 
-
         GenerateBins();
-
-
     }
 
 
@@ -363,47 +358,44 @@ public:
 //************************************************************************
 //************************************************************************
 
-    void CalculateCellSize()
+    /** 
+     * @brief Calculates the cell size of the bins.
+     * 
+     * Calculates the cell size of the bins using an average aproximation of the objects in the bins.
+     * 
+     * @param ApproximatedSize Aproximate number of objects that will be stored in the bins
+     */
+    void CalculateCellSize(std::size_t ApproximatedSize) 
     {
-
-
-        double delta[Dimension];
-        double alpha[Dimension];
-        double mult_delta = 1.00;
-        SizeType index = 0;
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            delta[i] = mMaxPoint[i] - mMinPoint[i];
-            if ( delta[i] > delta[index] )
-                index = i;
-            delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
+        std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(ApproximatedSize), 1.00 / Dimension));
+        
+        std::array<double, 3> lengths;
+        double average_length = 0.00;
+        
+        for (int i = 0; i < Dimension; i++) {
+            lengths[i] = mMaxPoint[i] - mMinPoint[i];
+            average_length += lengths[i];
         }
+        average_length *= 1.00 / 3.00;
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            alpha[i] = delta[i] / delta[index];
-            mult_delta *= alpha[i];
-        }
-
-
-        mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd)/mult_delta), 1.00/Dimension) +1 );
-
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            if(i!=index)
-            {
-                mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
-                mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
+        if (average_length < std::numeric_limits<double>::epsilon()) {
+            for(int i = 0; i < Dimension; i++) {
+                mN[i] = 1;
             }
+            return;
         }
 
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            mCellSize[i] = delta[i] / mN[i];
+        for (int i = 0; i < Dimension; i++) {
+             mN[i] = static_cast<std::size_t>(lengths[i] / average_length * (double)average_number_of_cells) + 1;
+            
+            if (mN[i] > 1) {
+                mCellSize[i] = lengths[i] / mN[i];
+            } else {
+                mCellSize[i] = average_length;
+            }
+
             mInvCellSize[i] = 1.00 / mCellSize[i];
         }
-
-
     }
 
 
