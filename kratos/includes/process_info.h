@@ -75,28 +75,64 @@ public:
     ///@{
 
     /// Default constructor.
-    ProcessInfo();
+    ProcessInfo() :
+        BaseType(),
+        Flags(),
+        mIsTimeStep(true),
+        mSolutionStepIndex(),
+        mpPreviousSolutionStepInfo(),
+        mpPreviousTimeStepInfo()
+    {
+    }
 
     /// Copy constructor.
-    ProcessInfo(const ProcessInfo& Other);
+    ProcessInfo(const ProcessInfo& Other) :
+        BaseType(Other),
+        Flags(Other),
+        mIsTimeStep(Other.mIsTimeStep),
+        mSolutionStepIndex(Other.mSolutionStepIndex),
+        mpPreviousSolutionStepInfo(Other.mpPreviousSolutionStepInfo),
+        mpPreviousTimeStepInfo(Other.mpPreviousTimeStepInfo)
+    {
+    }
 
     /// Destructor.
-    ~ProcessInfo() override;
+    ~ProcessInfo() override {}
+
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    ProcessInfo& operator=(const ProcessInfo& rOther);
+    ProcessInfo& operator=(const ProcessInfo& rOther)
+    {
+        BaseType::operator=(rOther);
+        Flags::operator=(rOther);
+
+        mIsTimeStep = rOther.mIsTimeStep;
+        mSolutionStepIndex = rOther.mSolutionStepIndex;
+        mpPreviousSolutionStepInfo = rOther.mpPreviousSolutionStepInfo;
+        mpPreviousTimeStepInfo = rOther.mpPreviousTimeStepInfo;
+
+        return *this;
+    }
 
     ///@}
     ///@name Time steps
     ///@{
 
-    void CreateTimeStepInfo(IndexType SolutionStepIndex = 0);
+    void CreateTimeStepInfo(IndexType SolutionStepIndex = 0)
+    {
+        CreateSolutionStepInfo(SolutionStepIndex);
+        mIsTimeStep = true;
+    }
 
-    void CloneTimeStepInfo(IndexType SolutionStepIndex = 0);
+    void CloneTimeStepInfo(IndexType SolutionStepIndex = 0)
+    {
+        CreateSolutionStepInfo(SolutionStepIndex);
+        mIsTimeStep = true;
+    }
 
     /*       void CloneTimeStepInfo(IndexType SolutionStepIndex, IndexType SourceSolutionStepIndex) */
     /* 	{ */
@@ -104,11 +140,23 @@ public:
     /* 	  mIsTimeStep = true; */
     /* 	} */
 
-    void CloneTimeStepInfo(IndexType SolutionStepIndex, ProcessInfo const &  SourceSolutionStepInfo);
+    void CloneTimeStepInfo(IndexType SolutionStepIndex, ProcessInfo const &  SourceSolutionStepInfo)
+    {
+        CloneSolutionStepInfo(SolutionStepIndex, SourceSolutionStepInfo);
+        mIsTimeStep = true;
+    }
 
-    void CreateTimeStepInfo(double NewTime, IndexType SolutionStepIndex = 0);
+    void CreateTimeStepInfo(double NewTime, IndexType SolutionStepIndex = 0)
+    {
+        CreateTimeStepInfo(SolutionStepIndex);
+        SetCurrentTime(NewTime);
+    }
 
-    void CloneTimeStepInfo(double NewTime, IndexType SourceSolutionStepIndex = 0);
+    void CloneTimeStepInfo(double NewTime, IndexType SourceSolutionStepIndex = 0)
+    {
+        CloneTimeStepInfo(SourceSolutionStepIndex);
+        SetCurrentTime(NewTime);
+    }
 
     /*       void CloneTimeStepInfo(double NewTime, IndexType SolutionStepIndex = 0) */
     /* 	{ */
@@ -122,7 +170,11 @@ public:
     /* 	  SetCurrentTime(NewTime); */
     /* 	} */
 
-    void CloneTimeStepInfo(double NewTime, IndexType SolutionStepIndex, ProcessInfo const &  SourceSolutionStepInfo);
+    void CloneTimeStepInfo(double NewTime, IndexType SolutionStepIndex, ProcessInfo const &  SourceSolutionStepInfo)
+    {
+        CloneTimeStepInfo(SolutionStepIndex, SourceSolutionStepInfo);
+        SetCurrentTime(NewTime);
+    }
 
     void SetAsTimeStepInfo();
 
