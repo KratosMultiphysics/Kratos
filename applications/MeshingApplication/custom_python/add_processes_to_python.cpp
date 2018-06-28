@@ -27,6 +27,7 @@
 // #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 #include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
+#include "custom_processes/multi_scale_refining_process.h"
 // #include "custom_processes/set_h_map_process.h"
 // #include "custom_processes/embedded_mesh_locator_process.h"
 
@@ -131,7 +132,13 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         ;
-        
+
+        /* MULTI SCALE PROCESS */
+        class_<MultiScaleRefiningProcess, MultiScaleRefiningProcess::Pointer, Process>(m, "MultiScaleRefiningProcess")
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        ;
+
         /* MMG PROCESS */
     #ifdef INCLUDE_MMG
         // 2D
