@@ -158,7 +158,7 @@ namespace Kratos
 		double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 		Vector   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
 		Matrix  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-		Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
+		//Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
 		//Bending stabilization
 		double E = GetProperties()[YOUNG_MODULUS];
@@ -171,7 +171,7 @@ namespace Kratos
 		//	comp_Geometry_reference_updated(_u_act, deriv, deriv2, R_1, R_2, A, B);
 		//else
 		//	
-		
+
 		//comp_Geometry_reference(_u_act, deriv, deriv2, R_1, R_2, A, B);
 		Vector base_vector_0 = ZeroVector(3);
 		for (int i = 0; i < number_of_control_points; i++)
@@ -257,7 +257,7 @@ namespace Kratos
 				rLeftHandSideMatrix(r, s) = E * area * epsilon_var_dof[r] * epsilon_var_dof[s] + S11_membrane * epsilon_var_2_dof(r, s);
 			}
 
-		rRightHandSideVector = S11_membrane * epsilon_var_dof;
+		rRightHandSideVector = -S11_membrane * epsilon_var_dof;
 
 		integration_weight = this->GetValue(INTEGRATION_WEIGHT);
 
@@ -265,6 +265,48 @@ namespace Kratos
 		rRightHandSideVector = rRightHandSideVector * integration_weight;
 
 		KRATOS_CATCH("");
+	}
+	//************************************************************************************
+	//************************************************************************************
+	void TrussDiscreteElement::Initialize()
+	{
+		KRATOS_TRY
+
+		//Constitutive Law initialisation
+		InitializeMaterial();
+
+
+		KRATOS_CATCH("")
+	}
+
+	//************************************************************************************
+	//************************************************************************************
+	void TrussDiscreteElement::CalculateRightHandSide(
+		VectorType& rRightHandSideVector,
+		ProcessInfo& rCurrentProcessInfo
+	)
+	{
+		// Calculation flags
+		const bool CalculateStiffnessMatrixFlag = false;
+		const bool CalculateResidualVectorFlag = true;
+		MatrixType temp = Matrix();
+
+		CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+	}
+
+	//************************************************************************************
+	//************************************************************************************
+	void TrussDiscreteElement::CalculateLocalSystem(
+		MatrixType& rLeftHandSideMatrix,
+		VectorType& rRightHandSideVector,
+		ProcessInfo& rCurrentProcessInfo
+	)
+	{
+		//calculation flags
+		const bool CalculateStiffnessMatrixFlag = true;
+		const bool CalculateResidualVectorFlag = true;
+
+		CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 	}
 
 	//************************************************************************************
