@@ -50,7 +50,7 @@ public:
     typedef TPointerType                                PointerType;
     typedef TDistanceFunction                           DistanceFunction;
 
-    typedef TreeNode<TDimension,TPointType,TPointerType,TIteratorType,TDistanceIteratorType> TreeNodeType;
+    typedef TreeNode<Dimension,TPointType,TPointerType,TIteratorType,TDistanceIteratorType> TreeNodeType;
 
     typedef typename TreeNodeType::CoordinateType       CoordinateType;  // double
     typedef typename TreeNodeType::SizeType             SizeType;        // std::size_t
@@ -65,22 +65,27 @@ public:
 
     // Local Container ( PointPointer Container per Cell )
     // can be different to ContainerType
-    // not always PointVector == ContainerType ( if ContainerType = C array )
-    typedef std::vector<PointerType>                    PointVector;
-    typedef typename PointVector::iterator              PointIterator;
+    // not always LocalIterator == ContainerType ( if ContainerType = C array )
+    typedef std::vector<PointerType>                    LocalContainerType;
+    typedef typename LocalContainerType::iterator       LocalIterator;
 
     // Global Container
-    typedef Tvector<IndexType,TDimension>               CellType;
-    typedef std::vector<PointVector>                    CellContainerType;
-    // typedef typename CellContainerType::iterator        CellContainerIterator;
+    typedef Tvector<IndexType,Dimension>               CellType;
+    typedef std::vector<LocalContainerType>             CellContainerType;
+    // typedef typename CellContainerType::iterator      CellContainerIterator;
 
-    typedef Kratos::SearchUtils::SearchNearestInRange<PointType,PointerType,PointIterator,DistanceFunction,CoordinateType> SearchNearestInRange;
-    typedef Kratos::SearchUtils::SearchRadiusInRange<PointType,PointIterator,DistanceIteratorType,DistanceFunction,SizeType,CoordinateType,IteratorType> SearchRadiusInRange;
-    typedef Kratos::SearchUtils::SearchBoxInRange<PointType,PointIterator,SizeType,TDimension,IteratorType> SearchBoxInRange;
+    typedef Kratos::SearchUtils::SearchNearestInRange<PointType,PointerType,LocalIterator,DistanceFunction,CoordinateType> SearchNearestInRange;
+    typedef Kratos::SearchUtils::SearchRadiusInRange<PointType,LocalIterator,DistanceIteratorType,DistanceFunction,SizeType,CoordinateType,IteratorType> SearchRadiusInRange;
+    typedef Kratos::SearchUtils::SearchBoxInRange<PointType,LocalIterator,SizeType,Dimension,IteratorType> SearchBoxInRange;
 
     typedef std::vector<CoordinateType>                 CoordinateVectorType;
     typedef std::vector<IteratorType>                   IteratorVectorType;
     typedef std::vector<DistanceIteratorType>           DistanceIteratorVectorType;
+
+    // Legacy typedef ( to preserve compativility in case someone was using this definitions)
+    typedef LocalContainerType                          PointVector;
+    typedef LocalIterator                               PointIterator;
+    typedef TreeNodeType                                LeafType;
     
 public:
 
@@ -113,7 +118,7 @@ public:
             return;
 
         mNumCells = std::distance(mPointBegin,mPointEnd);
-        for(SizeType i = 0 ; i < TDimension ; i++)
+        for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mMinPoint[i] = MinPoint[i];
             mMaxPoint[i] = MaxPoint[i];
@@ -128,7 +133,7 @@ public:
     BinsDynamic( PointType const& MinPoint, PointType const& MaxPoint, SizeType BucketSize )
         : mNumCells(0)
     {
-        for(SizeType i = 0 ; i < TDimension ; i++)
+        for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mMinPoint[i] = MinPoint[i];
             mMaxPoint[i] = MaxPoint[i];
@@ -188,13 +193,13 @@ public:
 
     void CalculateBoundingBox()
     {
-        for(SizeType i = 0 ; i < TDimension ; i++)
+        for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mMinPoint[i] = (**mPointBegin)[i];
             mMaxPoint[i] = (**mPointBegin)[i];
         }
         for(IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
-            for(SizeType i = 0 ; i < TDimension ; i++)
+            for(SizeType i = 0 ; i < Dimension ; i++)
             {
                 if( (**Point)[i] < mMinPoint[i] ) mMinPoint[i] = (**Point)[i];
                 if( (**Point)[i] > mMaxPoint[i] ) mMaxPoint[i] = (**Point)[i];
@@ -247,7 +252,7 @@ public:
 
     void AssignCellSize( CoordinateType BoxSize )
     {
-        for(SizeType i = 0 ; i < TDimension ; i++)
+        for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mCellSize[i] = BoxSize;
             mInvCellSize[i] = 1.00 / mCellSize[i];
@@ -260,7 +265,7 @@ public:
     void AllocateCellsContainer()
     {
         SizeType Size = 1;
-        for(SizeType i = 0 ; i < TDimension ; i++)
+        for(SizeType i = 0 ; i < Dimension ; i++)
             Size *= mN[i];
         // Resize Global Container
         mCells.resize(Size);
@@ -290,7 +295,7 @@ public:
     IndexType CalculateIndex( PointType const& ThisPoint )
     {
         IndexType Index = 0;
-        for(SizeType iDim = TDimension-1 ; iDim > 0 ; iDim--)
+        for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--)
         {
             Index += CalculatePosition(ThisPoint[iDim],iDim);
             Index *= mN[iDim-1];
@@ -304,7 +309,7 @@ public:
     IndexType CalculateIndex( CellType const& ThisIndex )
     {
         IndexType Index = 0;
-        for(SizeType iDim = TDimension-1 ; iDim > 0 ; iDim--)
+        for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--)
         {
             Index += ThisIndex[iDim];
             Index *= mN[iDim-1];
@@ -318,7 +323,7 @@ public:
     CellType CalculateCell( PointType const& ThisPoint )
     {
         CellType Cell;
-        for(SizeType i = 0 ; i < TDimension ; i++)
+        for(SizeType i = 0 ; i < Dimension ; i++)
             Cell[i] = CalculatePosition(ThisPoint[i],i);
         return Cell;
     }
@@ -326,7 +331,7 @@ public:
     CellType CalculateCell( PointType const& ThisPoint, CoordinateType Radius )
     {
         CellType Cell;
-        for(SizeType i = 0 ; i < TDimension ; i++)
+        for(SizeType i = 0 ; i < Dimension ; i++)
             Cell[i] = CalculatePosition(ThisPoint[i]+Radius,i);
         return Cell;
     }
@@ -712,7 +717,7 @@ public:
         for(typename CellContainerType::const_iterator i_cell = mCells.begin() ; i_cell != mCells.end() ; i_cell++)
         {
             rOStream << Perfix << "[ " ;
-            for(typename PointVector::const_iterator i_point = i_cell->begin() ; i_point != i_cell->end() ; i_point++)
+            for(typename LocalContainerType::const_iterator i_point = i_cell->begin() ; i_point != i_cell->end() ; i_point++)
                 rOStream << **i_point << "    ";
             rOStream << " ]" << std::endl;
         }
@@ -723,7 +728,7 @@ public:
     void PrintSize( std::ostream& rout )
     {
         rout << " BinsSize: ";
-        for(SizeType i = 0 ; i < TDimension ; i++)
+        for(SizeType i = 0 ; i < Dimension ; i++)
             rout << "[" << mN[i] << "]";
         rout << std::endl;
     }
@@ -796,11 +801,11 @@ private:
     IteratorType     mPointBegin;
     IteratorType     mPointEnd;
 
-    Tvector<CoordinateType,TDimension>  mMinPoint;
-    Tvector<CoordinateType,TDimension>  mMaxPoint;
-    Tvector<CoordinateType,TDimension>  mCellSize;
-    Tvector<CoordinateType,TDimension>  mInvCellSize;
-    Tvector<SizeType,TDimension>        mN;
+    Tvector<CoordinateType,Dimension>  mMinPoint;
+    Tvector<CoordinateType,Dimension>  mMaxPoint;
+    Tvector<CoordinateType,Dimension>  mCellSize;
+    Tvector<CoordinateType,Dimension>  mInvCellSize;
+    Tvector<SizeType,Dimension>        mN;
     SizeType                            mNumCells;
 
     // Bins Access Vector ( vector<Iterator> )
@@ -826,7 +831,7 @@ public:
 };
 
 template<
-std::size_t TDimension,
+    std::size_t TDimension,
     class TPointType,
     class TContainerType,
     class TPointerType,
