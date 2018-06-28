@@ -15,12 +15,12 @@ class FluidDynamicsAnalysis(AnalysisStage):
     def __init__(self,model,parameters):
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
-        if not solver_settings.Has("domain_size"):
+        if not solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
 
-        if not solver_settings.Has("model_part_name"):
+        if not solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())

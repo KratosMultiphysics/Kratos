@@ -19,8 +19,8 @@ class NavierStokesCompressibleSolver(FluidSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "compressible_solver_from_defaults",
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "two_element_test"
