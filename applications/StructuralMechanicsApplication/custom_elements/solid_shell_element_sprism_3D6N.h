@@ -837,9 +837,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /* Currently selected integration methods */
-    IntegrationMethod mThisIntegrationMethod;
-
     /* Finalize and Initialize label*/
     bool mFinalizedStep;
 
