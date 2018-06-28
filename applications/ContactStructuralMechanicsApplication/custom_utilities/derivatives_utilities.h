@@ -24,6 +24,7 @@
 #include "includes/mortar_classes.h"
 
 /* Utilities */
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
 
@@ -423,10 +424,10 @@ public:
 
                 // The coordinates should be in the projected plane
                 double distance;
-                const array_1d<double, 3> xs1 = MortarUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_start], Normal, distance).Coordinates(); // Start coordinates of the first segment
-                const array_1d<double, 3> xe1 = MortarUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_end], Normal, distance).Coordinates(); // End coordinates of the first segment
-                const array_1d<double, 3> xs2 = MortarUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_start], Normal, distance).Coordinates(); // Start coordinates of the second segment
-                const array_1d<double, 3> xe2 = MortarUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_end], Normal, distance).Coordinates(); // End coordinates of the second segment
+                const array_1d<double, 3> xs1 = GeometricalProjectionUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_start], Normal, distance).Coordinates(); // Start coordinates of the first segment
+                const array_1d<double, 3> xe1 = GeometricalProjectionUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_end], Normal, distance).Coordinates(); // End coordinates of the first segment
+                const array_1d<double, 3> xs2 = GeometricalProjectionUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_start], Normal, distance).Coordinates(); // Start coordinates of the second segment
+                const array_1d<double, 3> xe2 = GeometricalProjectionUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_end], Normal, distance).Coordinates(); // End coordinates of the second segment
 
                 // We define the array containing the indexes of the vertexes
                 array_1d<IndexType, 4> belong_indexes;
@@ -644,8 +645,8 @@ public:
 
             for (IndexType i_mortar_node = 0; i_mortar_node < TNumNodes; ++i_mortar_node) {
                 // Projecting points in opposite geometry, defining mortar nodes
-                MortarUtilities::FastProjectDirection( SlaveGeometry,  MasterGeometry[i_mortar_node], projected_in_slave[i_mortar_node],  SlaveNormal, MasterNormal );
-                MortarUtilities::FastProjectDirection( MasterGeometry, SlaveGeometry[i_mortar_node],  projected_in_master[i_mortar_node], MasterNormal, SlaveNormal );
+                GeometricalProjectionUtilities::FastProjectDirection( SlaveGeometry,  MasterGeometry[i_mortar_node], projected_in_slave[i_mortar_node],  SlaveNormal, MasterNormal );
+                GeometricalProjectionUtilities::FastProjectDirection( MasterGeometry, SlaveGeometry[i_mortar_node],  projected_in_master[i_mortar_node], MasterNormal, SlaveNormal );
             }
 
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -967,7 +968,7 @@ public:
 
                     GeometryType::CoordinatesArrayType slave_gp_global;
                     SlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                    MortarUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, SlaveNormal, -gp_normal ); // The opposite direction
+                    GeometricalProjectionUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, SlaveNormal, -gp_normal ); // The opposite direction
 
                     GeometryType::CoordinatesArrayType projected_gp_local;
                     MasterGeometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;

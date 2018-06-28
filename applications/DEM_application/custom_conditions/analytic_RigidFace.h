@@ -11,19 +11,19 @@
 namespace Kratos
 {
 
-class AnalyticRigidFace3D : public RigidFace3D
+class KRATOS_API(DEM_APPLICATION) AnalyticRigidFace3D : public RigidFace3D
 {
 public:
 
     // Counted pointer of AnalyticRigidFace3D
     KRATOS_CLASS_POINTER_DEFINITION( AnalyticRigidFace3D );
-	
+
     typedef RigidFace3D BaseType;
-    typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+    typedef WeakPointerVector<Element> ParticleWeakVectorType;
     typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
     typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
-    typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
+    typedef WeakPointerVector<Condition> ConditionWeakVectorType;
     typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 
 
@@ -48,6 +48,7 @@ public:
 
     int GetNumberThroughput();
     std::vector<int> GetSignedCollidingIds();
+    int AreThereNewCrossings();
     std::vector<double> GetCollidingNormalRelativeVelocity();
     std::vector<double> GetCollidingTangentialRelativeVelocity();
     std::vector<double> GetMasses();

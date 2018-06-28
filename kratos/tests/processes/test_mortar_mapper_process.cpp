@@ -114,7 +114,7 @@ namespace Kratos
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->X(), 2) + std::pow(p_node_5->Y(), 2);
             p_node_6->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_6->X(), 2) + std::pow(p_node_6->Y(), 2);
                          
-            typedef SimpleMortarMapperProcess<3, 3, Variable<double>, Historical> MapperType;
+            typedef SimpleMortarMapperProcess<3, 3, Variable<double>> MapperType;
             MapperType process = MapperType(master_model_part, slave_model_part, TEMPERATURE);
             process.Execute();
             
@@ -205,7 +205,7 @@ namespace Kratos
             p_node_7->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_7->X(), 2) + std::pow(p_node_7->Y(), 2);
             p_node_8->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_8->X(), 2) + std::pow(p_node_8->Y(), 2);
                          
-            typedef SimpleMortarMapperProcess<3, 4, Variable<double>, Historical> MapperType;
+            typedef SimpleMortarMapperProcess<3, 4, Variable<double>> MapperType;
             MapperType process = MapperType(master_model_part, slave_model_part, TEMPERATURE);
             process.Execute();
             
@@ -313,7 +313,7 @@ namespace Kratos
             p_node_7->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_7->Z(), 2) + std::pow(p_node_7->Y(), 2);
             p_node_8->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_8->Z(), 2) + std::pow(p_node_8->Y(), 2);
                          
-            typedef SimpleMortarMapperProcess<3, 3, Variable<double>, Historical> MapperType;
+            typedef SimpleMortarMapperProcess<3, 3, Variable<double>> MapperType;
             MapperType process = MapperType(master_model_part, slave_model_part, TEMPERATURE);
             process.Execute();
             

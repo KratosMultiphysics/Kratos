@@ -31,10 +31,10 @@ namespace Kratos {
 			for(auto i_SubModelPart = model_part.SubModelPartsBegin() ; i_SubModelPart != model_part.SubModelPartsEnd() ; i_SubModelPart++){
 				i_SubModelPart->CreateNewNode(id++, 0.00,0.00,0.00);
 			}
+
 			KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), 4);
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Inlet1").NumberOfNodes(), 1);
 			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
-			KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").GetNode(2).Id(), 2);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
@@ -49,6 +49,16 @@ namespace Kratos {
                 "Error: Attempting to add the variable \"PRESSURE\" to the model part with name \"Main\" which is not empty");
 
             model_part.AddNodalSolutionStepVariable(VELOCITY); // Adding the same Variable twice is fine bcs it wont do anything
+		}
+
+		KRATOS_TEST_CASE_IN_SUITE(ModelPartHasNodalSolutionStepVariable, KratosCoreFastSuite)
+		{
+			ModelPart model_part("Main");
+
+            model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+			KRATOS_CHECK(model_part.HasNodalSolutionStepVariable(VELOCITY));
+			KRATOS_CHECK_IS_FALSE(model_part.HasNodalSolutionStepVariable(PRESSURE));
 		}
 	}
 }  // namespace Kratos.

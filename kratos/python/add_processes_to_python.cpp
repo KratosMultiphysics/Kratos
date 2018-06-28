@@ -51,6 +51,7 @@
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
+#include "processes/skin_detection_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -85,7 +86,6 @@ void  AddProcessesToPython(pybind11::module& m)
     
     class_<FindNodalHProcess, FindNodalHProcess::Pointer, Process>(m,"FindNodalHProcess")
     .def(init<ModelPart&>())
-    .def("Execute",&FindNodalHProcess::Execute)
     ;
     
     class_<FindNodalNeighboursProcess, FindNodalNeighboursProcess::Pointer, Process>(m,"FindNodalNeighboursProcess")
@@ -163,6 +163,7 @@ void  AddProcessesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
     class_<VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess2D")
             .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;
@@ -170,15 +171,17 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
     ;
 
-    class_<LevelSetConvectionProcess<2>, LevelSetConvectionProcess<2>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
-            .def(init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double >())
-    .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
-    .def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
+    class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
-    class_<LevelSetConvectionProcess<3>, LevelSetConvectionProcess<3>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
-            .def(init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double>())
-            .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
-			.def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
+    class_<LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess3D")
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
+        .def(init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
     ;
 
     class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
@@ -276,255 +279,68 @@ void  AddProcessesToPython(pybind11::module& m)
 
     /* Simple Mortar mapper */
     // 2D 
-    class_<SimpleMortarMapperProcess<2, 2, Variable<double>, Historical>, SimpleMortarMapperProcess<2, 2, Variable<double>, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDoubleHistorical")
+    class_<SimpleMortarMapperProcess<2, 2, Variable<double>>, SimpleMortarMapperProcess<2, 2, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDouble")
     .def(init<ModelPart&, ModelPart&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<double>, Historical>::Execute)
     ;
 
-    class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVectorHistorical")
+    class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVector")
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical>, SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDoubleNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVectorNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical>::Execute)
     ;
 
     // 3D - Triangle
-    class_<SimpleMortarMapperProcess<3, 3, Variable<double>, Historical>, SimpleMortarMapperProcess<3, 3, Variable<double>, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDoubleHistorical")
+    class_<SimpleMortarMapperProcess<3, 3, Variable<double>>, SimpleMortarMapperProcess<3, 3, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDouble")
     .def(init<ModelPart&, ModelPart&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<double>, Historical>::Execute)
     ;
 
-    class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVectorHistorical")
+    class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVector")
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical>, SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDoubleNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVectorNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical>::Execute)
     ;
 
     // 3D - Quadrilateral
-    class_<SimpleMortarMapperProcess<3, 4, Variable<double>, Historical>, SimpleMortarMapperProcess<3, 4, Variable<double>, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDoubleHistorical")
+    class_<SimpleMortarMapperProcess<3, 4, Variable<double>>, SimpleMortarMapperProcess<3, 4, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDouble")
     .def(init<ModelPart&, ModelPart&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<double>, Historical>::Execute)
     ;
 
-    class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVectorHistorical")
+    class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVector")
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical>::Execute)
     ;
 
-    class_<SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical>, SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDoubleNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVectorNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical>::Execute)
-    ;
-    
-    // 2D 
-    class_<SimpleMortarMapperProcess<2, 2, Variable<double>, Historical, NonHistorical>, SimpleMortarMapperProcess<2, 2, Variable<double>, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDoubleHistoricalToNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<double>, Historical, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical, NonHistorical>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVectorHistoricalToNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, Historical, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical, Historical>, SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDoubleNonHistoricalToHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical, Historical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical, Historical>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVectorNonHistoricalToHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >, NonHistorical, Historical>::Execute)
-    ;
-
-    // 3D - Triangle
-    class_<SimpleMortarMapperProcess<3, 3, Variable<double>, Historical, NonHistorical>, SimpleMortarMapperProcess<3, 3, Variable<double>, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDoubleHistoricalToNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<double>, Historical, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical, NonHistorical>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVectorHistoricalToNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, Historical, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical, Historical>, SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDoubleNonHistoricalToHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical, Historical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical, Historical>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVectorNonHistoricalToHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, NonHistorical, Historical>::Execute)
-    ;
-
-    // 3D - Quadrilateral
-    class_<SimpleMortarMapperProcess<3, 4, Variable<double>, Historical, NonHistorical>, SimpleMortarMapperProcess<3, 4, Variable<double>, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDoubleHistoricalToNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<double>, Historical, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical, NonHistorical>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical, NonHistorical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVectorHistoricalToNonHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, Historical, NonHistorical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical, Historical>, SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDoubleNonHistoricalToHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical, Historical>::Execute)
-    ;
-
-    class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical, Historical>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical, Historical>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVectorNonHistoricalToHistorical")
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
-    .def(init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
-    .def("Execute",&SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, NonHistorical, Historical>::Execute)
-    ;
-
+    // Transfer between model parts
     class_<FastTransferBetweenModelPartsProcess, FastTransferBetweenModelPartsProcess::Pointer, Process> FastTransferBetweenModelPartsProcess_Scope(m, "FastTransferBetweenModelPartsProcess");
     
+    FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
-    FastTransferBetweenModelPartsProcess_Scope.def("Execute",&FastTransferBetweenModelPartsProcess::Execute);
 
     // Adding FastTransferBetweenModelPartsProcess related enums
     enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>(FastTransferBetweenModelPartsProcess_Scope, "EntityTransfered")
@@ -532,10 +348,19 @@ void  AddProcessesToPython(pybind11::module& m)
     .value("ELEMENTS", FastTransferBetweenModelPartsProcess::EntityTransfered::ELEMENTS)
     .value("NODESANDELEMENTS", FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS)
     .value("CONDITIONS", FastTransferBetweenModelPartsProcess::EntityTransfered::CONDITIONS)
+    .value("NODESANDCONDITIONS", FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDCONDITIONS)
     .value("ALL", FastTransferBetweenModelPartsProcess::EntityTransfered::ALL)
     ;
 
+    class_<SkinDetectionProcess<2>, SkinDetectionProcess<2>::Pointer, Process>(m, "SkinDetectionProcess2D")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
 
+    class_<SkinDetectionProcess<3>, SkinDetectionProcess<3>::Pointer, Process>(m, "SkinDetectionProcess3D")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
 }
 
 }  // namespace Python.
