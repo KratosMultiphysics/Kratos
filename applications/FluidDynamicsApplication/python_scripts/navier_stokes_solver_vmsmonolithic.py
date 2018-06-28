@@ -259,7 +259,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 if self.settings["consider_periodic_conditions"].GetBool() == True:
                     self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                                         self.settings["alpha"].GetDouble(),
-                                        self.settings["move_mesh_strategy"].GetInt(),
                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                         KratosCFD.PATCH_INDEX)
                 else:
