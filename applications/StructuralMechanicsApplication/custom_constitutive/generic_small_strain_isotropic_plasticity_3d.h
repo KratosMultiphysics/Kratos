@@ -15,17 +15,15 @@
 // System includes
 #include <string>
 #include <iostream>
-
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
-
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
-
 #include "custom_utilities/tangent_operator_calculator_utility.h"
+//#include "custom_utilities/tangent_operator_calculator_template_utility.h"
 
 
 
@@ -49,6 +47,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+    
 /**
  * @class GenericConstitutiveLawIntegrator
  * @ingroup StructuralMechanicsApplication
@@ -226,6 +225,7 @@ public:
     {
         // Calculates the Tangent Constitutive Tensor by perturbation
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
+        //TangentOperatorCalculatorTemplateUtility<GenericSmallStrainIsotropicPlasticity3D>().CalculateTangentTensor(rValues);
     }
 
     void FinalizeSolutionStep(

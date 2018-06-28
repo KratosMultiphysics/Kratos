@@ -106,6 +106,22 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override
+    {
+        return 3;
+    };
+
+    /**
+     * @brief Voigt tensor size:
+     */
+    SizeType GetStrainSize() override
+    {
+        return 6;
+    };
+
     int GetVoigtSize(){return 6;}
     int GetWorkingSpaceDimension() {return 3;}
 
@@ -151,7 +167,7 @@ public:
         Matrix C;
         this->CalculateElasticMatrix(C, rMaterialProperties);
 
-        Vector InelasticStrainVector = this->GetPreviousInelasticStrainVector();
+        Vector InelasticStrainVector  = this->GetPreviousInelasticStrainVector();
         const Vector& PreviousStress  = this->GetPreviousStressVector();
 
         const int NumberOfSubIncrements = 10;
@@ -159,10 +175,17 @@ public:
 
         Vector AuxStressVector;
         noalias(AuxStressVector) = PreviousStress;
-        BoundedVector<double, 6> Aux = ZeroVector(6);
+        Vector Aux = ZeroVector(6);
 
-        for (int i = 0; i < NumberOfSubIncrements; i++)
-        {
+		KRATOS_WATCH(InelasticStrainVector)
+			KRATOS_WATCH(StrainVector)
+			KRATOS_WATCH(InelasticStrainVector)
+			KRATOS_WATCH(C)
+        for (int i = 0; i < NumberOfSubIncrements; i++) {
+
+			KRATOS_WATCH(i)
+				KRATOS_WATCH(StrainVector)
+				KRATOS_WATCH(InelasticStrainVector)
             noalias(Aux) = std::exp(-dt/DelayTime)*prod(C, AuxStressVector) / DelayTime;
             InelasticStrainVector = std::exp(-dt/DelayTime)*InelasticStrainVector + Aux;
             noalias(AuxStressVector) = prod(C, StrainVector - InelasticStrainVector);
@@ -213,6 +236,19 @@ public:
         rElasticityTensor(3, 3) = mu;
         rElasticityTensor(4, 4) = mu;
         rElasticityTensor(5, 5) = mu;
+    }
+
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+    {
+    }
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    {
     }
 
     ///@}

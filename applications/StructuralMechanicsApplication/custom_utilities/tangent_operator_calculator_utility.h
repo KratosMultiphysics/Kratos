@@ -86,7 +86,6 @@ public:
 			
             double Perturbation;
             CalculatePerturbation(PerturbedStrain, Component, Perturbation);
-			//KRATOS_WATCH(Perturbation)
             PerturbateStrainVector(PerturbedStrain, StrainVectorGP, Perturbation, Component);
             IntegratePerturbedStrain(rValues, pConstitutiveLaw);
 
@@ -189,8 +188,7 @@ public:
     )
     {
         const int Dim = DeltaStress.size();
-        for (int row = 0; row < Dim; row++)
-        {
+        for (int row = 0; row < Dim; row++) {
             TangentTensor(row, Component) = DeltaStress[row] / Perturbation;
         }
     }
