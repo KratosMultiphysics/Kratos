@@ -210,6 +210,7 @@ private:
     const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
     //const UpdatedLagrangianUP mUpdatedLagrangianUP3D4N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
+    const UpdatedLagrangianQuadrilateral mUpdatedLagrangian3D8N;
     //const UpdatedLagrangianUPQuadrilateral mUpdatedLagrangianUP2D4N;
     //const TotalLagrangian mTotalLagrangian2D3N;
     //const TotalLagrangian mTotalLagrangian3D4N;
@@ -219,6 +220,7 @@ private:
     const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
     const MPMLineLoadCondition2D mMPMLineLoadCondition2D2N;
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D3N;
+    const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
 
     //constitutive laws
     const HyperElasticViscoplastic3DLaw                mHyperElasticViscoplastic3DLaw;
