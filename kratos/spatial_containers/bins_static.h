@@ -829,20 +829,14 @@ public:
     /// Copy constructor.
     Bins(Bins const& rOther);
 
-    TPointType GetMinPoint()
+    TPointType& GetMinPoint()
     {
-        TPointType point;
-        for(SizeType i = 0 ; i < TDimension ; i++)
-            point[i] = mMinPoint[i];
-        return point;
+        return mMinPoint;
     }
 
-    TPointType GetMaxPoint()
+    TPointType& GetMaxPoint()
     {
-        TPointType point;
-        for(SizeType i = 0 ; i < TDimension ; i++)
-            point[i] = mMaxPoint[i];
-        return point;
+        return mMaxPoint;
     }
 
 

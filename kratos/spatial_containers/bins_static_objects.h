@@ -858,12 +858,12 @@ private:
     IteratorType mObjectsBegin;
     IteratorType mObjectsEnd;
 
-    Tvector<CoordinateType,Dimension>  mCellSize;
-    Tvector<CoordinateType,Dimension>  mInvCellSize;
-    Tvector<SizeType,Dimension>  mN;
+    CoordinateArray mCellSize;
+    CoordinateArray mInvCellSize;
+    SizeArray       mN;
 
-    LocalContainerType       mObjectList;
-    IndexContainer          mObjectsAccess;
+    LocalContainerType  mObjectList;
+    IndexContainer      mObjectsAccess;
 
 
 
