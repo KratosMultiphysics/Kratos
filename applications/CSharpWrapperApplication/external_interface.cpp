@@ -4,18 +4,18 @@
 
 using namespace CSharpKratosWrapper;
 
-int* Interface::pmTriangles;
-int Interface::mTrianglesCount;
-int Interface::mNodesCount;
-float* Interface::pmXCoordinates;
-float* Interface::pmYCoordinates;
-float* Interface::pmZCoordinates;
-KratosInternals Interface::mKratosInternals;
-std::vector<Kratos::NodeType::Pointer> Interface::mFixedNodes;
-IdTranslator Interface::idTranslator;
+int* CSharpInterface::pmTriangles;
+int CSharpInterface::mTrianglesCount;
+int CSharpInterface::mNodesCount;
+float* CSharpInterface::pmXCoordinates;
+float* CSharpInterface::pmYCoordinates;
+float* CSharpInterface::pmZCoordinates;
+KratosInternals CSharpInterface::mKratosInternals;
+std::vector<Kratos::NodeType::Pointer> CSharpInterface::mFixedNodes;
+IdTranslator CSharpInterface::idTranslator;
 
 //Fetch faces from mesh converter and create skin model part
-void Interface::saveTriangles(MeshConverter& meshConverter) {
+void CSharpInterface::saveTriangles(MeshConverter& meshConverter) {
 
 	Kratos::ModelPart::Pointer pSkinModelPart = mKratosInternals.pGetSkinModelPart();
 	Kratos::ModelPart::Pointer pMainModelPart = mKratosInternals.pGetMainModelPart();
@@ -39,7 +39,7 @@ void Interface::saveTriangles(MeshConverter& meshConverter) {
 }
 
 //Fetch surface nodes from mesh converter and initialize ID translator
-void Interface::saveNodes(MeshConverter& meshConverter) {
+void CSharpInterface::saveNodes(MeshConverter& meshConverter) {
 	std::vector<int> nodes = meshConverter.GetNodes();
 	mNodesCount = nodes.size();
 	
@@ -52,7 +52,7 @@ void Interface::saveNodes(MeshConverter& meshConverter) {
 }
 
 //Save recalculated surface nodes positions
-void Interface::retrieveNodesPos() {
+void CSharpInterface::retrieveNodesPos() {
 	Kratos::ModelPart::Pointer skin_part = mKratosInternals.pGetSkinModelPart();
 
 #pragma omp parallel for
@@ -66,7 +66,7 @@ void Interface::retrieveNodesPos() {
 	}
 }
 
-void Interface::freeNodes() {
+void CSharpInterface::freeNodes() {
 	for (auto& node : mFixedNodes) {
 		node->Free(Kratos::DISPLACEMENT_X);
 		node->Free(Kratos::DISPLACEMENT_Y);
@@ -75,7 +75,7 @@ void Interface::freeNodes() {
 	mFixedNodes.clear();
 }
 
-void Interface::init(char* mdpaPath) {
+void CSharpInterface::init(char* mdpaPath) {
 	mKratosInternals.initInternals();
 	mKratosInternals.loadMDPA(std::string(mdpaPath));
 	mKratosInternals.initSolver();
@@ -88,7 +88,7 @@ void Interface::init(char* mdpaPath) {
 }
 
 //Update DISPLACEMENT variable of a node, so that final position is as given. X0 + DISPLACEMENT_X = x
-void Interface::updateNodePos(int nodeId, float x, float y, float z) {
+void CSharpInterface::updateNodePos(int nodeId, float x, float y, float z) {
 	Kratos::NodeType::Pointer node =  mKratosInternals.pGetMainModelPart()->pGetNode(idTranslator.getKratosId(nodeId));
 	node->Fix(Kratos::DISPLACEMENT_X);
 	node->Fix(Kratos::DISPLACEMENT_Y);
@@ -101,7 +101,7 @@ void Interface::updateNodePos(int nodeId, float x, float y, float z) {
 	mFixedNodes.push_back(node);
 }
 
-void Interface::calculate() {
+void CSharpInterface::calculate() {
 	mKratosInternals.solve();
 	retrieveNodesPos();
 
@@ -109,26 +109,26 @@ void Interface::calculate() {
 	
 }
 
-float* Interface::getXCoordinates() {
+float* CSharpInterface::getXCoordinates() {
 	return pmXCoordinates;
 }
 
-float* Interface::getYCoordinates() {
+float* CSharpInterface::getYCoordinates() {
 	return pmYCoordinates;
 }
 
-float* Interface::getZCoordinates() {
+float* CSharpInterface::getZCoordinates() {
 	return pmZCoordinates;
 }
 
-int Interface::getNodesCount() {
+int CSharpInterface::getNodesCount() {
 	return mNodesCount;
 }
 
-int* Interface::getTriangles() {
+int* CSharpInterface::getTriangles() {
 	return pmTriangles;
 }
 
-int Interface::getTrianglesCount() {
+int CSharpInterface::getTrianglesCount() {
 	return mTrianglesCount;
 }

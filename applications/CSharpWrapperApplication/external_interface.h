@@ -6,7 +6,7 @@
 
 namespace CSharpKratosWrapper {
 
-	class Interface {
+	class CSharpInterface {
 	public:
 		static void init(char* mdpaPath);
 		static void updateNodePos(int nodeId, float x, float y, float z);
