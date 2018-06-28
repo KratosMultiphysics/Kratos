@@ -97,7 +97,8 @@ public:
     }
 
     /// Destructor.
-    ~ProcessInfo() {}
+    ~ProcessInfo() override {}
+
 
     ///@}
     ///@name Operators
