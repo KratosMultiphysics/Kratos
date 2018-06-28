@@ -13,8 +13,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_SEARCH_STRUCTURE_BASE_H_INCLUDED )
-#define  KRATOS_INTERFACE_SEARCH_STRUCTURE_BASE_H_INCLUDED
+#if !defined(KRATOS_INTERFACE_COMMUNICATOR_H_INCLUDED )
+#define  KRATOS_INTERFACE_COMMUNICATOR_H_INCLUDED
 
 // System includes
 
@@ -62,14 +62,14 @@ namespace Kratos
 * If no neighbors are found, the search radius is increased by a factor ("increase_factor" in "Search")
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
-class InterfaceSearchStructureBase
+class InterfaceCommunicator
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of InterfaceSearchStructureBase
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructureBase);
+    /// Pointer definition of InterfaceCommunicator
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCommunicator);
 
     using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
 
@@ -90,7 +90,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    InterfaceSearchStructureBase(ModelPart& rModelPartOrigin,
+    InterfaceCommunicator(ModelPart& rModelPartOrigin,
                              MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
                              Parameters SearchSettings)
         : mrModelPartOrigin(rModelPartOrigin),
@@ -99,11 +99,12 @@ public:
     {
         mEchoLevel = mSearchSettings["echo_level"].GetInt();
         mpMapperInterfaceInfosContainer = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
+        mpMapperInterfaceInfosContainer->resize(1);
     }
 
 
     /// Destructor.
-    virtual ~InterfaceSearchStructureBase() {}
+    virtual ~InterfaceCommunicator() {}
 
 
     ///@}
@@ -138,14 +139,14 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "InterfaceSearchStructureBase" ;
+        buffer << "InterfaceCommunicator" ;
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "InterfaceSearchStructureBase";
+        rOStream << "InterfaceCommunicator";
     }
 
     /// Print object's data.
@@ -190,24 +191,16 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void ConductLocalSearch();
-
-    void CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
-
-    void UpdateInterfaceObjectsOrigin();
-
-    void InitializeBinsSearchStructure();
-
-    virtual void PrepareSearch(const Kratos::Flags& rOptions,
+    virtual void InitializeSearch(const Kratos::Flags& rOptions,
                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                         InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
 
     virtual void FinalizeSearch();
 
     virtual void InitializeSearchIteration(const Kratos::Flags& rOptions,
-                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo) = 0;
+                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
-    virtual void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo) = 0;
+    virtual void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo);
 
     void FilterInterfaceInfosSuccessfulSearch();
 
@@ -250,6 +243,14 @@ private:
     ///@name Private Operations
     ///@{
 
+    void ConductLocalSearch();
+
+    void CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin);
+
+    void UpdateInterfaceObjectsOrigin();
+
+    void InitializeBinsSearchStructure();
+
     // this function performs the search and the exchange of the data on the interface
     void ConductSearchIteration(const Kratos::Flags& rOptions,
                                 const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
@@ -271,15 +272,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    // InterfaceSearchStructureBase& operator=(InterfaceSearchStructureBase const& rOther){}
+    // InterfaceCommunicator& operator=(InterfaceCommunicator const& rOther){}
 
     //   /// Copy constructor.
-    //   InterfaceSearchStructureBase(InterfaceSearchStructureBase const& rOther){}
+    //   InterfaceCommunicator(InterfaceCommunicator const& rOther){}
 
 
     ///@}
 
-}; // Class InterfaceSearchStructureBase
+}; // Class InterfaceCommunicator
 
 ///@}
 
@@ -298,4 +299,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTERFACE_SEARCH_STRUCTURE_BASE_H_INCLUDED  defined
+#endif // KRATOS_INTERFACE_COMMUNICATOR_H_INCLUDED  defined

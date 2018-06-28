@@ -27,7 +27,7 @@
 #include "custom_utilities/interface_preprocessor.h"
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapper_flags.h"
-#include "custom_searching/interface_search_structure_base.h"
+#include "custom_searching/interface_communicator.h"
 #include "mapping_application_variables.h"
 
 
@@ -82,14 +82,14 @@ public:
     typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
     typedef typename Kratos::unique_ptr<MappingOperationUtilityType> MappingOperationUtilityPointerType;
     using InterfacePreprocessorPointerType = Kratos::unique_ptr<InterfacePreprocessor>;
-    using SearchStructureBaseType = InterfaceSearchStructureBase;
-    using SearchStructurePointerType = Kratos::unique_ptr<SearchStructureBaseType>;
+    using InterfaceCommunicatorType = InterfaceCommunicator;
+    using InterfaceCommunicatorPointerType = Kratos::unique_ptr<InterfaceCommunicatorType>;
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
     using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
 
-    using MapperInterfaceInfoUniquePointerType = typename SearchStructureBaseType::MapperInterfaceInfoUniquePointerType;
+    using MapperInterfaceInfoUniquePointerType = typename InterfaceCommunicatorType::MapperInterfaceInfoUniquePointerType;
 
     using MapperLocalSystemPointer = typename MappingOperationUtilityType::MapperLocalSystemPointer;
     using MapperLocalSystemPointerVector = typename MappingOperationUtilityType::MapperLocalSystemPointerVector;
@@ -269,7 +269,7 @@ protected:
 
     MappingOperationUtilityPointerType mpMappingOperationUtility;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
-    SearchStructurePointerType mpSearchStructure;
+    InterfaceCommunicatorPointerType mpIntefaceCommunicator;
     MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
     // The mapping matrix and the corresponding vectors
@@ -298,7 +298,7 @@ protected:
      * */
     virtual void Initialize();
 
-    virtual void InitializeSearchStructure();
+    virtual void InitializeInterfaceCommunicator();
 
     virtual void InitializeMappingOperationUtility();
 

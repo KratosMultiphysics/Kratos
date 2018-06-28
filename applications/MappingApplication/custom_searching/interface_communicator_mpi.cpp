@@ -19,7 +19,7 @@
 #include "mpi.h"
 
 // Project includes
-#include "interface_search_structure_mpi.h"
+#include "interface_communicator_mpi.h"
 #include "custom_utilities/mapper_utilities.h"
 
 namespace Kratos
@@ -30,10 +30,10 @@ using IndexType = std::size_t;
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-InterfaceSearchStructureMPI::InterfaceSearchStructureMPI(ModelPart& rModelPartOrigin,
+InterfaceCommunicatorMPI::InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
                                 MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
                                 Parameters SearchSettings) :
-    InterfaceSearchStructureBase(rModelPartOrigin,
+    InterfaceCommunicator(rModelPartOrigin,
                                  pMapperLocalSystems,
                                  SearchSettings)
 {
@@ -56,17 +56,17 @@ InterfaceSearchStructureMPI::InterfaceSearchStructureMPI(ModelPart& rModelPartOr
 /***********************************************************************************/
 /* PROTECTED Methods */
 /***********************************************************************************/
-void InterfaceSearchStructureMPI::PrepareSearch(const Kratos::Flags& rOptions,
+void InterfaceCommunicatorMPI::InitializeSearch(const Kratos::Flags& rOptions,
                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                     InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
 {
-    InterfaceSearchStructureBase::PrepareSearch(rOptions, rpRefInterfaceInfo, InterfaceObjectTypeOrigin);
+    InterfaceCommunicator::InitializeSearch(rOptions, rpRefInterfaceInfo, InterfaceObjectTypeOrigin);
 
     // Exchange Bounding Boxes => has to be done every time
     ComputeGlobalBoundingBoxes();
 }
 
-void InterfaceSearchStructureMPI::InitializeSearchIteration(const Kratos::Flags& rOptions,
+void InterfaceCommunicatorMPI::InitializeSearchIteration(const Kratos::Flags& rOptions,
                                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
@@ -105,12 +105,12 @@ void InterfaceSearchStructureMPI::InitializeSearchIteration(const Kratos::Flags&
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void InterfaceSearchStructureMPI::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+void InterfaceCommunicatorMPI::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
     std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
-    InterfaceSearchStructureBase::FilterInterfaceInfosSuccessfulSearch();
+    FilterInterfaceInfosSuccessfulSearch();
 
     MapperUtilities::FillBufferAfterLocalSearch(mpMapperInterfaceInfosContainer,
                                                 rpRefInterfaceInfo,
@@ -128,7 +128,7 @@ void InterfaceSearchStructureMPI::FinalizeSearchIteration(const MapperInterfaceI
                                                                mCommRank,
                                                                mpMapperInterfaceInfosContainer);
 
-   InterfaceSearchStructureBase::AssignInterfaceInfos();
+   AssignInterfaceInfos();
 
     MPI_Barrier(MPI_COMM_WORLD);
 }
@@ -136,7 +136,7 @@ void InterfaceSearchStructureMPI::FinalizeSearchIteration(const MapperInterfaceI
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
-void InterfaceSearchStructureMPI::ComputeGlobalBoundingBoxes()
+void InterfaceCommunicatorMPI::ComputeGlobalBoundingBoxes()
 {
     const auto local_bounding_box = MapperUtilities::ComputeLocalBoundingBox(mrModelPartOrigin); // TODO is const ok here?
 
@@ -152,7 +152,7 @@ inline MPI_Datatype GetMPIDatatype(const double& rValue) { return MPI_DOUBLE; }
 inline MPI_Datatype GetMPIDatatype(const char& rValue)   { return MPI_CHAR; }
 
 template< typename TDataType >
-int InterfaceSearchStructureMPI::ExchangeDataAsync(
+int InterfaceCommunicatorMPI::ExchangeDataAsync(
     const std::vector<std::vector<TDataType>>& rSendBuffer,
     std::vector<std::vector<TDataType>>& rRecvBuffer)
 {
@@ -203,11 +203,11 @@ int InterfaceSearchStructureMPI::ExchangeDataAsync(
 }
 
 // Explicit instantiation for function
-template int InterfaceSearchStructureMPI::ExchangeDataAsync<double>(
+template int InterfaceCommunicatorMPI::ExchangeDataAsync<double>(
     const std::vector<std::vector<double>>& rSendBuffer,
     std::vector<std::vector<double>>& rRecvBuffer);
 
-template int InterfaceSearchStructureMPI::ExchangeDataAsync<char>(
+template int InterfaceCommunicatorMPI::ExchangeDataAsync<char>(
     const std::vector<std::vector<char>>& rSendBuffer,
     std::vector<std::vector<char>>& rRecvBuffer);
 

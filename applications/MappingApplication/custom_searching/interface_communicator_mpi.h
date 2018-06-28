@@ -13,15 +13,15 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_INTERFACE_SEARCH_STRUCTURE_MPI_H_INCLUDED )
-#define  KRATOS_INTERFACE_SEARCH_STRUCTURE_MPI_H_INCLUDED
+#if !defined(KRATOS_INTERFACE_COMMUNICATOR_MPI_H_INCLUDED )
+#define  KRATOS_INTERFACE_COMMUNICATOR_MPI_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "interface_search_structure_base.h"
+#include "interface_communicator.h"
 
 
 namespace Kratos
@@ -57,16 +57,16 @@ namespace Kratos
 * The results are sent back to the partition where the object is local, and the best result is then chosen.
 * Look into the class description of the MapperCommunicator to see how this Object is used in the application
 */
-class InterfaceSearchStructureMPI : public InterfaceSearchStructureBase
+class InterfaceCommunicatorMPI : public InterfaceCommunicator
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of InterfaceSearchStructureMPI
-    KRATOS_CLASS_POINTER_DEFINITION(InterfaceSearchStructureMPI);
+    /// Pointer definition of InterfaceCommunicatorMPI
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCommunicatorMPI);
 
-    using BaseType = InterfaceSearchStructureBase;
+    using BaseType = InterfaceCommunicator;
 
     using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
     using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
@@ -79,12 +79,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    InterfaceSearchStructureMPI(ModelPart& rModelPartOrigin,
+    InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
                                 MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
                                 Parameters SearchSettings);
 
     /// Destructor.
-    virtual ~InterfaceSearchStructureMPI()
+    virtual ~InterfaceCommunicatorMPI()
     {
     }
 
@@ -117,14 +117,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "InterfaceSearchStructureMPI" ;
+        buffer << "InterfaceCommunicatorMPI" ;
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "InterfaceSearchStructureMPI";
+        rOStream << "InterfaceCommunicatorMPI";
     }
 
     /// Print object's data.
@@ -157,7 +157,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void PrepareSearch(const Kratos::Flags& rOptions,
+    void InitializeSearch(const Kratos::Flags& rOptions,
                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                        InterfaceObject::ConstructionType InterfaceObjectTypeOrigin) override;
 
@@ -246,15 +246,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    // InterfaceSearchStructureMPI& operator=(InterfaceSearchStructureMPI const& rOther) {}
+    // InterfaceCommunicatorMPI& operator=(InterfaceCommunicatorMPI const& rOther) {}
 
     //   /// Copy constructor.
-    //   InterfaceSearchStructureMPI(InterfaceSearchStructureMPI const& rOther){}
+    //   InterfaceCommunicatorMPI(InterfaceCommunicatorMPI const& rOther){}
 
 
     ///@}
 
-}; // Class InterfaceSearchStructureMPI
+}; // Class InterfaceCommunicatorMPI
 
 ///@}
 
@@ -273,4 +273,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTERFACE_SEARCH_STRUCTURE_MPI_H_INCLUDED  defined
+#endif // KRATOS_INTERFACE_COMMUNICATOR_MPI_H_INCLUDED  defined

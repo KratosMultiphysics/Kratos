@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "interface_search_structure_base.h"
+#include "interface_communicator.h"
 
 namespace Kratos
 {
@@ -28,7 +28,7 @@ using IndexType = std::size_t;
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void InterfaceSearchStructureBase::ExchangeInterfaceData(const Communicator& rComm,
+void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
                             const Kratos::Flags& rOptions,
                             const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
                             InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
@@ -41,7 +41,7 @@ void InterfaceSearchStructureBase::ExchangeInterfaceData(const Communicator& rCo
     IndexType num_iteration = 1;
     bool last_iteration = (max_search_iterations == 1) ? true : false; // true in case only one search iteration is conducted // TODO needed???
 
-    PrepareSearch(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
+    InitializeSearch(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
     // First Iteration is done outside the search loop bcs it has
     // to be done in any case
@@ -73,7 +73,7 @@ void InterfaceSearchStructureBase::ExchangeInterfaceData(const Communicator& rCo
 /***********************************************************************************/
 /* PROTECTED Methods */
 /***********************************************************************************/
-void InterfaceSearchStructureBase::PrepareSearch(const Kratos::Flags& rOptions,
+void InterfaceCommunicator::InitializeSearch(const Kratos::Flags& rOptions,
                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                     InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
 {
@@ -86,13 +86,74 @@ void InterfaceSearchStructureBase::PrepareSearch(const Kratos::Flags& rOptions,
         InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
 }
 
-void InterfaceSearchStructureBase::FinalizeSearch()
+void InterfaceCommunicator::FinalizeSearch()
 {
     for (auto& r_interface_infos_rank : (*mpMapperInterfaceInfosContainer))
         r_interface_infos_rank.clear();
 }
 
-void InterfaceSearchStructureBase::CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+void InterfaceCommunicator::InitializeSearchIteration(const Kratos::Flags& rOptions,
+                                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+{
+    // Creating the MapperInterfaceInfos
+    (*mpMapperInterfaceInfosContainer)[0].clear();
+
+    auto& r_mapper_interface_infos = (*mpMapperInterfaceInfosContainer)[0];
+    r_mapper_interface_infos.reserve(mpMapperLocalSystems->size());
+
+    IndexType local_sys_idx = 0;
+    for (const auto& r_local_sys : (*mpMapperLocalSystems))
+    {
+        if (!r_local_sys->HasInterfaceInfo()) // Only the local_systems that have not received an InterfaceInfo create a new one
+        {
+            const auto& r_coords = r_local_sys->Coordinates();
+            r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx));
+        }
+        ++local_sys_idx;
+    }
+}
+
+void InterfaceCommunicator::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
+{
+    FilterInterfaceInfosSuccessfulSearch();
+    AssignInterfaceInfos();
+}
+
+void InterfaceCommunicator::FilterInterfaceInfosSuccessfulSearch()
+{
+    // Erasing all the MapperLocalSystems that don't have a successful search
+    // using the erase–remove idiom
+    for (IndexType i_rank=0; i_rank<mpMapperInterfaceInfosContainer->size(); ++i_rank)
+    {
+        auto& r_interface_infos_rank = (*mpMapperInterfaceInfosContainer)[i_rank];
+
+        auto new_end = std::remove_if(
+            r_interface_infos_rank.begin(),
+            r_interface_infos_rank.end(),
+            [](const auto& rp_interface_info)
+            { return !((*rp_interface_info).GetLocalSearchWasSuccessful()); });
+
+        r_interface_infos_rank.erase(new_end, r_interface_infos_rank.end());
+    }
+}
+
+void InterfaceCommunicator::AssignInterfaceInfos()
+{
+    // NOTE: mpMapperInterfaceInfosContainer must contain only the ones that are a successfuls search!
+    const SizeType comm_size = mpMapperInterfaceInfosContainer->size();
+
+    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
+    {
+        for (const auto& rp_interface_info : (*mpMapperInterfaceInfosContainer)[i_rank])
+            (*mpMapperLocalSystems)[rp_interface_info->GetLocalSystemIndex()]
+                ->AddInterfaceInfo(rp_interface_info);
+    }
+}
+
+/***********************************************************************************/
+/* PRIVATE Methods */
+/***********************************************************************************/
+void InterfaceCommunicator::CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
 {
     mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
 
@@ -148,7 +209,7 @@ void InterfaceSearchStructureBase::CreateInterfaceObjectsOrigin(InterfaceObject:
         << mrModelPartOrigin.Name() << "\"!" << std::endl;
 }
 
-void InterfaceSearchStructureBase::UpdateInterfaceObjectsOrigin()
+void InterfaceCommunicator::UpdateInterfaceObjectsOrigin()
 {
     const auto begin = mpInterfaceObjectsOrigin->begin();
 
@@ -157,7 +218,7 @@ void InterfaceSearchStructureBase::UpdateInterfaceObjectsOrigin()
         (*(begin + i))->UpdateCoordinates();
 }
 
-void InterfaceSearchStructureBase::InitializeBinsSearchStructure()
+void InterfaceCommunicator::InitializeBinsSearchStructure()
 {
     if (mpInterfaceObjectsOrigin->size() > 0)   // only construct the bins if the partition has a part of the interface
     {
@@ -166,7 +227,7 @@ void InterfaceSearchStructureBase::InitializeBinsSearchStructure()
     }
 }
 
-void InterfaceSearchStructureBase::ConductLocalSearch()
+void InterfaceCommunicator::ConductLocalSearch()
 {
     SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
@@ -213,41 +274,7 @@ void InterfaceSearchStructureBase::ConductLocalSearch()
     }
 }
 
-void InterfaceSearchStructureBase::FilterInterfaceInfosSuccessfulSearch()
-{
-    // Erasing all the MapperLocalSystems that don't have a successful search
-    // using the erase–remove idiom
-    for (IndexType i_rank=0; i_rank<mpMapperInterfaceInfosContainer->size(); ++i_rank)
-    {
-        auto& r_interface_infos_rank = (*mpMapperInterfaceInfosContainer)[i_rank];
-
-        auto new_end = std::remove_if(
-            r_interface_infos_rank.begin(),
-            r_interface_infos_rank.end(),
-            [](const auto& rp_interface_info)
-            { return !((*rp_interface_info).GetLocalSearchWasSuccessful()); });
-
-        r_interface_infos_rank.erase(new_end, r_interface_infos_rank.end());
-    }
-}
-
-void InterfaceSearchStructureBase::AssignInterfaceInfos()
-{
-    // NOTE: mpMapperInterfaceInfosContainer must contain only the ones that are a successfuls search!
-    const SizeType comm_size = mpMapperInterfaceInfosContainer->size();
-
-    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
-    {
-        for (const auto& rp_interface_info : (*mpMapperInterfaceInfosContainer)[i_rank])
-            (*mpMapperLocalSystems)[rp_interface_info->GetLocalSystemIndex()]
-                ->AddInterfaceInfo(rp_interface_info);
-    }
-}
-
-/***********************************************************************************/
-/* PRIVATE Methods */
-/***********************************************************************************/
-void InterfaceSearchStructureBase::ConductSearchIteration(const Kratos::Flags& rOptions,
+void InterfaceCommunicator::ConductSearchIteration(const Kratos::Flags& rOptions,
                             const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
 {
     InitializeSearchIteration(rOptions, rpInterfaceInfo);
@@ -257,7 +284,7 @@ void InterfaceSearchStructureBase::ConductSearchIteration(const Kratos::Flags& r
     FinalizeSearchIteration(rpInterfaceInfo);
 }
 
-bool InterfaceSearchStructureBase::AllNeighborsFound(const Communicator& rComm) const
+bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
 {
     int all_neighbors_found = 1; // set to "1" aka "true" by default in case
     // this partition doesn't have a part of the interface!

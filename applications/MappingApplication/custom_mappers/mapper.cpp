@@ -21,9 +21,8 @@
 #include "mapper.h"
 #include "custom_utilities/mapper_typedefs.h"
 #include "custom_utilities/mapper_utilities.h"
-#include "custom_searching/interface_search_structure.h"
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
-#include "custom_searching/interface_search_structure_mpi.h"
+#include "custom_searching/interface_communicator_mpi.h"
 #endif
 
 namespace Kratos
@@ -63,7 +62,7 @@ void Mapper<TSparseSpace, TDenseSpace>::Initialize()
                                                                          mpMapperLocalSystems);
     InitializeMappingOperationUtility();
 
-    InitializeSearchStructure();
+    InitializeInterfaceCommunicator();
 
     InitializeInterface();
 }
@@ -92,13 +91,13 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags Mapping
 {
     AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
-    KRATOS_ERROR_IF_NOT(mpSearchStructure) << "mpSearchStructure is a nullptr!" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpIntefaceCommunicator) << "mpIntefaceCommunicator is a nullptr!" << std::endl;
 
     const MapperInterfaceInfoUniquePointerType p_ref_interface_info = GetMapperInterfaceInfo();
     const InterfaceObject::ConstructionType interface_object_construction_type_origin =
         GetInterfaceObjectConstructionTypeOrigin();
 
-    mpSearchStructure->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
+    mpIntefaceCommunicator->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
                                              MappingOptions,
                                              p_ref_interface_info,
                                              interface_object_construction_type_origin);
@@ -126,27 +125,27 @@ void Mapper<TSparseSpace, TDenseSpace>::InitializeMappingOperationUtility()
 }
 
 template<>
-void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
+void Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeInterfaceCommunicator()
 {
     // The current solution is just a workaround since cloning doesn't work
     // Parameters search_settings(mGeneralMapperSettings.Clone());
     // Parameters search_settings = mGeneralMapperSettings.Clone(); //TODO I think this would be the correct solution ...
     Parameters search_settings(R"({})"); // TODO fill this
     search_settings.ValidateAndAssignDefaults(mGeneralMapperSettings);
-    mpSearchStructure = Kratos::make_unique<InterfaceSearchStructure>(mrModelPartOrigin,
+    mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicator>(mrModelPartOrigin,
                                                                       mpMapperLocalSystems,
                                                                       search_settings);
 }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 template<>
-void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeSearchStructure()
+void Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeInterfaceCommunicator()
 {
     // The current solution is just a workaround since cloning doesn't work
     // Parameters search_settings = mGeneralMapperSettings.Clone();
     Parameters search_settings(R"({})"); // TODO fill this
     search_settings.ValidateAndAssignDefaults(mGeneralMapperSettings);
-    mpSearchStructure = Kratos::make_unique<InterfaceSearchStructureMPI>(mrModelPartOrigin,
+    mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicatorMPI>(mrModelPartOrigin,
                                                                          mpMapperLocalSystems,
                                                                          search_settings);
 }

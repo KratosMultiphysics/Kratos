@@ -16,8 +16,7 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_neighbor_mapper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_mappers/nearest_element_mapper.cpp
     # # Searching
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_base.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_communicator.cpp
     # # Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocessor.cpp
@@ -36,7 +35,7 @@ if(${MPI_NEEDED} MATCHES ON )
 
     set( KRATOS_MAPPING_APPLICATION_SOURCES_MPI ${KRATOS_MAPPING_APPLICATION_SOURCES_MPI}
         # Searching
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_search_structure_mpi.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_searching/interface_communicator_mpi.cpp
         # Utilities
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/matrix_based_mapping_operation_utility_mpi.cpp
     )
