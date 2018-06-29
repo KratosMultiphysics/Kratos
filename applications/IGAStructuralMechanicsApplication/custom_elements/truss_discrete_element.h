@@ -5,14 +5,15 @@
 // System includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
+//#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
 // External includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "custom_elements/meshless_base_element.h"
+#include "custom_elements/curve_base_discrete_element.h"
 
 namespace Kratos
 {
@@ -22,7 +23,7 @@ namespace Kratos
 /** Truss element.
 */
 class TrussDiscreteElement
-    : public MeshlessBaseElement
+    : public CurveBaseDiscreteElement
 {
 public:
     ///@name Type Definitions
@@ -35,15 +36,15 @@ public:
     /// Default constructor.
 	// Constructor using an array of nodes
 	TrussDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry)
-		: MeshlessBaseElement(NewId, pGeometry)
+		: CurveBaseDiscreteElement(NewId, pGeometry)
 	{};
 	// Constructor using an array of nodes with properties
 	TrussDiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-		: MeshlessBaseElement(NewId, pGeometry, pProperties)
+		: CurveBaseDiscreteElement(NewId, pGeometry, pProperties)
 	{};
 
 	// default constructor necessary for serialization
-	TrussDiscreteElement() : MeshlessBaseElement() {};
+	TrussDiscreteElement() : CurveBaseDiscreteElement() {};
 
 	/// Destructor.
 	virtual ~TrussDiscreteElement() override
@@ -57,32 +58,7 @@ public:
     ///@}
     ///@name Operations
 	///@{
-	/**
-	* Called to initialize the element.
-	* Must be called before any calculation is done
-	*/
-	void Initialize() override;
-	/**
-	* This function provides a more general interface to the element.
-	* It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
-	* @param rLeftHandSideMatrices: container with the output left hand side matrices
-	* @param rLHSVariables: paramter describing the expected LHSs
-	* @param rRightHandSideVectors: container for the desired RHS output
-	* @param rRHSVariables: parameter describing the expected RHSs
-	*/
-	void CalculateLocalSystem(
-		MatrixType& rLeftHandSideMatrix,
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo) override;
 
-	/**
-	* This is called during the assembling process in order to calculate the elemental right hand side vector only
-	* @param rRightHandSideVector: the elemental right hand side vector
-	* @param rCurrentProcessInfo: the current process info instance
-	*/
-	void CalculateRightHandSide(
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo) override;
 	/**
 	* This functions calculates both the RHS and the LHS
 	* @param rLeftHandSideMatrix: The LHS
@@ -159,7 +135,6 @@ protected:
 private:
 	///@name Static Member Variables
 	///@{
-	ConstitutiveLaw::Pointer mConstitutiveLaw;
 	///@}
 	///@name Operations
 	///@{

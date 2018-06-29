@@ -155,9 +155,9 @@ namespace Kratos
 		}
 
 		//reading in of integration weight, shape function values and shape function derivatives
-		double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-		Vector   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
-		Matrix  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+		const double& integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+		const Vector&   N     = this->GetValue(SHAPE_FUNCTION_VALUES);
+		const Matrix&  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 		//Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
 		//Bending stabilization
@@ -165,33 +165,14 @@ namespace Kratos
 		double area = GetProperties()[AREA];
 		double prestress = GetProperties()[PRESTRESS_CAUCHY];
 
-		//FOR FORMFINDING ONLY:
-		////compute configurations
-		//if (mode == "UPDATED")
-		//	comp_Geometry_reference_updated(_u_act, deriv, deriv2, R_1, R_2, A, B);
-		//else
-		//	
-
-		//comp_Geometry_reference(_u_act, deriv, deriv2, R_1, R_2, A, B);
-		Vector base_vector_0 = ZeroVector(3);
-		for (int i = 0; i < number_of_control_points; i++)
-		{
-			base_vector_0[0] += DN_De(0, i) * GetGeometry()[i].X0();
-			base_vector_0[1] += DN_De(0, i) * GetGeometry()[i].Y0();
-			base_vector_0[2] += DN_De(0, i) * GetGeometry()[i].Z0();
-		}
-
 		Vector base_vector = ZeroVector(3);
-		for (int i = 0; i < number_of_control_points; i++)
-		{
-			base_vector[0] += DN_De(0, i) * GetGeometry()[i].X();
-			base_vector[1] += DN_De(0, i) * GetGeometry()[i].Y();
-			base_vector[2] += DN_De(0, i) * GetGeometry()[i].Z();
-		}
+		GetBaseVector(base_vector, DN_De);
 
-		double a0 = norm_2(base_vector_0);
+		double a0 = norm_2(mBaseVector0);
 		double a = norm_2(base_vector);
 
+		//KRATOS_WATCH(mBaseVector0)
+		//KRATOS_WATCH(base_vector)
 
 		//stresses
 		double E11_membrane = 0.5 * (pow(a, 2) - pow(a0,2));   //Green Lagrange formulation (strain)
@@ -205,51 +186,16 @@ namespace Kratos
 		// 1st variation
 		// variation of the axial strain 
 		Vector epsilon_var_dof = ZeroVector(mat_size);
-
-		int number_of_dofs = 3;
-
-		for (int r = 0; r < mat_size; r++)
-		{
-			int xyz_r = r % number_of_dofs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-			int i = r / number_of_dofs;     // index for the shape functions
-			if (xyz_r>2)
-				epsilon_var_dof[r] = 0.0;
-			else
-				epsilon_var_dof[r] = base_vector[xyz_r] * DN_De(0, i);
-		}
-
+		Get1stVariationsAxialStrain(epsilon_var_dof, base_vector, 3, DN_De);
 		epsilon_var_dof = epsilon_var_dof / pow(a0, 2);
+		//KRATOS_WATCH(epsilon_var_dof)
 
 		// 2nd variation
 		// variation of the axial strain 
 		Matrix epsilon_var_2_dof = ZeroMatrix(mat_size, mat_size);
-
-		for (int r = 0; r<mat_size; r++) //in the case
-		{
-			int xyz_r = r % number_of_dofs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z; 3 -> rot_tan
-			int i = r / number_of_dofs;     // index for the shape functions
-			if (xyz_r>2)
-				for (int s = 0; s<mat_size; s++)
-					epsilon_var_2_dof(r, s) = 0.0;
-			else
-			{
-				for (int s = 0; s<mat_size; s++)
-				{
-					int xyz_s = s % number_of_dofs; //0 ->disp_x; 1 ->disp_y; 2 ->disp_z
-					int j = s / number_of_dofs;     // index for the shape functions
-					if (xyz_s>2)
-						epsilon_var_2_dof(r, s) = 0;
-					else
-						if (xyz_r == xyz_s)
-							epsilon_var_2_dof(r, s) = DN_De(0, i) * DN_De(0, j);
-						else
-							epsilon_var_2_dof(r, s) = 0;
-				}
-			}
-		}
-
+		Get2ndVariationsAxialStrain(epsilon_var_2_dof, 3, DN_De);
 		epsilon_var_2_dof = epsilon_var_2_dof / pow(a0, 2);
-
+		//KRATOS_WATCH(epsilon_var_2_dof)
 
 		for (int r = 0; r<mat_size; r++)
 			for (int s = 0; s<mat_size; s++)
@@ -259,55 +205,12 @@ namespace Kratos
 
 		rRightHandSideVector = -S11_membrane * epsilon_var_dof;
 
-		integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-
 		rLeftHandSideMatrix = rLeftHandSideMatrix * integration_weight;
 		rRightHandSideVector = rRightHandSideVector * integration_weight;
 
 		KRATOS_CATCH("");
 	}
-	//************************************************************************************
-	//************************************************************************************
-	void TrussDiscreteElement::Initialize()
-	{
-		KRATOS_TRY
 
-		//Constitutive Law initialisation
-		InitializeMaterial();
-
-
-		KRATOS_CATCH("")
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	void TrussDiscreteElement::CalculateRightHandSide(
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo
-	)
-	{
-		// Calculation flags
-		const bool CalculateStiffnessMatrixFlag = false;
-		const bool CalculateResidualVectorFlag = true;
-		MatrixType temp = Matrix();
-
-		CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	void TrussDiscreteElement::CalculateLocalSystem(
-		MatrixType& rLeftHandSideMatrix,
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo
-	)
-	{
-		//calculation flags
-		const bool CalculateStiffnessMatrixFlag = true;
-		const bool CalculateResidualVectorFlag = true;
-
-		CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-	}
 
 	//************************************************************************************
 	//************************************************************************************
