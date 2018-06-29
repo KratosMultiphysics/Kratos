@@ -177,6 +177,8 @@ protected:
 
     void CalculateNormalsAngle(ElementVariables& rVariables);
 
+    void CalculateBoundaryLv(ElementVariables& rVariables);
+
     void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
     void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
