@@ -15,16 +15,12 @@
 #define KRATOS_KRATOS_APPLICATION_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_components.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/periodic_condition.h"
-#include "utilities/quaternion.h"
 
 namespace Kratos {
 ///@name Kratos Classes
