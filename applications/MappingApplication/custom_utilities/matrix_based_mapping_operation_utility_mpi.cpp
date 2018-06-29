@@ -78,13 +78,13 @@ void UtilityType::ResizeAndInitializeVectors(
     const int num_global_elements = -1; // this means its gonna be computed by Epetra_Map
     const int index_base = 0; // for C/C++
 
-    Epetra_Map epetra_map_cols(num_global_elements,
+    Epetra_Map epetra_domain_map(num_global_elements,
                                 num_local_nodes_orig,
                                 global_elements_orig.data(), // taken as const
                                 index_base,
                                 epetra_comm);
 
-    Epetra_Map epetra_map_rows(num_global_elements,
+    Epetra_Map epetra_range_map(num_global_elements,
                                 num_local_nodes_dest,
                                 global_elements_dest.data(), // taken as const
                                 index_base,
@@ -97,8 +97,7 @@ void UtilityType::ResizeAndInitializeVectors(
     // TODO do I even need the graph? I think I could directly use the Matrix and perform the same operations ...
     // Performance optimization see https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
     Epetra_FECrsGraph epetra_graph(Epetra_DataAccess::Copy,
-                                   epetra_map_rows,
-                                   epetra_map_cols,
+                                   epetra_range_map,
                                    num_indices_per_row);
 
     EquationIdVectorType origin_ids;
@@ -122,7 +121,7 @@ void UtilityType::ResizeAndInitializeVectors(
         }
     }
 
-    int ierr = epetra_graph.GlobalAssemble(epetra_map_cols, epetra_map_rows); // TODO check if it should call "FillComplete"
+    int ierr = epetra_graph.GlobalAssemble(epetra_domain_map, epetra_range_map); // TODO check if it should call "FillComplete"
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsGraph.GlobalAssemble. "
         << "Error code: " << ierr << std::endl;
 
@@ -131,10 +130,10 @@ void UtilityType::ResizeAndInitializeVectors(
     TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
     rpMdo.swap(p_Mdo);
 
-    TSystemVectorUniquePointerType p_new_vector_destination = Kratos::make_unique<TSystemVectorType>(epetra_map_rows);
+    TSystemVectorUniquePointerType p_new_vector_destination = Kratos::make_unique<TSystemVectorType>(epetra_range_map);
     rpQd.swap(p_new_vector_destination);
 
-    TSystemVectorUniquePointerType p_new_vector_origin = Kratos::make_unique<TSystemVectorType>(epetra_map_cols);
+    TSystemVectorUniquePointerType p_new_vector_origin = Kratos::make_unique<TSystemVectorType>(epetra_domain_map);
     rpQo.swap(p_new_vector_origin);
 
     // rpQo->GlobalAssemble();
