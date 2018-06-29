@@ -168,34 +168,16 @@ namespace Kratos
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int mat_size = number_of_nodes * dimension;
 
-        rOutput = ZeroMatrix(mat_size,mat_size);
+        if ((rOutput.size1() != mat_size) or (rOutput.size2() != mat_size))
+	        rOutput.resize(mat_size, mat_size, false);
+
+        noalias(rOutput) = ZeroMatrix(mat_size,mat_size);
 
         if( rDesignVariable == POINT_LOAD )
         {
-            const auto backup = mpPrimalCondition->GetValue(POINT_LOAD);
-            mpPrimalCondition->SetValue(POINT_LOAD, this->GetValue(POINT_LOAD));
-
-            Vector RHS;
-            ProcessInfo copy_process_info = rCurrentProcessInfo;
-
-            mpPrimalCondition->CalculateRightHandSide(RHS, copy_process_info);
-
-            // Check if intensities of the point load are still available after the replacement process
-            const double numerical_limit = std::numeric_limits<double>::epsilon();
-            const double load_norm = MathUtils<double>::Norm(RHS);
-            KRATOS_ERROR_IF(load_norm < numerical_limit) << "The norm of the point load is zero. Something went wrong!" << std::endl;
-
-            int k = 0;
-            for(unsigned int i = 0; i < RHS.size(); ++i)
-            {
-                rOutput(k,i)=(RHS[i]>0) ? 1.0 : -1.0;
-                k++;
-            }
-
-            mpPrimalCondition->SetValue(POINT_LOAD, backup);
+            for(unsigned int i = 0; i < mat_size; ++i)
+                rOutput(i,i) = 1.0;
         }
-        else
-            rOutput.clear();
 
         KRATOS_CATCH( "" )
     }
