@@ -28,6 +28,8 @@ class LineOutputProcess(KratosMultiphysics.Process):
             "sampling_points"   : 3,
             "output_variables"  : [],
             "output_file_name"  : "",
+            "save_in_folder"    : true,
+            "output_folder"     : "Line",
             "write_buffer_size" : -1,
             "print_format"      : ""
         }''')

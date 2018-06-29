@@ -33,6 +33,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 "model_part_name"           : "",
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,
+                "save_in_folder"            : false,
                 "print_drag_to_screen"      : false,
                 "write_buffer_size"         : -1,
                 "print_format"              : ""
@@ -72,10 +73,15 @@ class ComputeDragProcess(KratosMultiphysics.Process):
 
                 output_file_name = self.params["model_part_name"].GetString() + "_drag.dat"
 
-                file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
-
+                file_handler_params = self.params.Clone()
+                file_handler_params.AddEmptyValue("output_file_name")
                 file_handler_params["output_file_name"].SetString(output_file_name)
-                file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
+
+                file_handler_params.RemoveValue("model_part_name")
+                file_handler_params.RemoveValue("interval")
+                file_handler_params.RemoveValue("write_drag_output_file")
+                file_handler_params.RemoveValue("print_drag_to_screen")
+                file_handler_params.RemoveValue("print_format")
 
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,

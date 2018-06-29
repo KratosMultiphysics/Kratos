@@ -979,6 +979,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "model_part_name"  : "Main",
                             "output_file_name" : "node_output",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "save_in_folder"    : false,
                             "entity_type"      : "node"
                         }
                     },{
@@ -1045,6 +1046,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "end_point"         : [0.9,  0.5, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "line_output",
+                            "save_in_folder"    : false,
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
                         }
                     },{
