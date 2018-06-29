@@ -101,7 +101,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
 
     def Initialize(self):
 
-        print("::[Pfem Fluid Nodal Integation Solver]:: -START-")
+        print("::[Pfem Fluid Nodal Integration Solver]:: -START-")
 
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
@@ -131,7 +131,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.fluid_solver.Check()
 
 
-        print("::[Pfem Fluid Nodal Integartion Solver]:: -END- ")
+        print("::[Pfem Fluid Nodal Integration Solver]:: -END- ")
 
 
         
@@ -183,13 +183,11 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_VOLUME)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_CAUCHY_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_DEVIATORIC_CAUCHY_STRESS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SHAPE_FUNCTION_DERIVATIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS_ORDER)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS_COMMON_ELEMENTS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SFD_NEIGHBOURS_VOLUME_COMMON_ELEMENTS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_DEFORMATION_GRAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_DEFORMATION_GRAD_VEL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_SPATIAL_DEF_RATE)

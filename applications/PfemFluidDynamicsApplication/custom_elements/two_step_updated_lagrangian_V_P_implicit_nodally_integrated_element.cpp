@@ -69,49 +69,6 @@ namespace Kratos {
     KRATOS_TRY;
 
 
-    
-    GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = TDim * NumNodes;
-
-    // Check sizes and initialize
-    if( rLeftHandSideMatrix.size1() != LocalSize )
-      rLeftHandSideMatrix.resize(LocalSize,LocalSize);
-
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
-
-    // Shape functions and integration points
-    ShapeFunctionDerivativesArrayType DN_DX;
-    Matrix NContainer;
-    VectorType GaussWeights;
-    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-    
-    const ShapeFunctionDerivativesType& rDN_DX = DN_DX[0]; 
-
-    SizeType FirstRow=0;
-    SizeType FirstCol=0;
-
-
-    /// to check----é sicuramente sbagliato!! non ci fare cas0!!!!!!!!!!
-    for (SizeType j = 0; j < NumNodes; ++j)
-      {
-	const double nodalPatchVolume=rGeom[j].FastGetSolutionStepValue(NODAL_AREA);
-	for (SizeType i = 0; i < NumNodes; ++i)
-	  {
-          // First Row
-            rLeftHandSideMatrix(FirstRow,FirstCol) += rDN_DX(j,0)*GaussWeights[0]/nodalPatchVolume;
-            rLeftHandSideMatrix(FirstRow,FirstCol+1) += rDN_DX(j,1)*GaussWeights[0]/nodalPatchVolume;
-
-            // Second Row
-            rLeftHandSideMatrix(FirstRow+1,FirstCol) += rDN_DX(j,0)*GaussWeights[0]/nodalPatchVolume;
-            rLeftHandSideMatrix(FirstRow+1,FirstCol+1) += rDN_DX(j,1)*GaussWeights[0]/nodalPatchVolume;
-
-            // Update Counter
-            FirstRow += 2;
-	  }
-        FirstRow = 0;
-        FirstCol += 2;
-      }
 
 
     
@@ -151,58 +108,68 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < NumNodes; i++)
 	{
-	  double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
-	  WeakPointerVector<Element >& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-	  double numberOfNeighElems=double(neighb_elems.size());
-	  meshSize+=this->ElementSize()/numberOfNeighElems;
 
-	  if(rGeom[i].Is(FREE_SURFACE) || (rGeom[i].Is(SOLID) && rGeom[i].Is(BOUNDARY))){
-	    this->NodalFreeSurfaceLength(i);
-	  }
-
-	  // std::cout<<"meshSize "<<meshSize<<"  numberOfNeighElems="<<numberOfNeighElems<<std::endl;
-	  
-	  const double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
-	  rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
-      	  rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
-      	  rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)+=rElementalVariables.SpatialDefRate*elementVolume/nodalVolume;
-	  
 	  VectorType nodalSFDneighbours=rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
 	  unsigned int nodalSFDneighboursSize=nodalSFDneighbours.size();
-	   
-	  for (unsigned int j = 0; j< NumNodes; j++)
-	    {
-	      unsigned int position=rGeom[j].Id();
-	      double dnDX=rDN_DX(j,0)*elementVolume/nodalVolume;
-	      double dnDY=rDN_DX(j,1)*elementVolume/nodalVolume;
-	      double dnDZ=rDN_DX(j,2)*elementVolume/nodalVolume;
 
-	      unsigned int SFDposition=0;
-	      for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
-		{
-		  if(position==nodalSFDneighbours[k]){
-		    // rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_COMMON_ELEMENTS)[k]+=1.0;
-		    rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VOLUME_COMMON_ELEMENTS)[k]=elementVolume*3.0;
+	  if(nodalSFDneighboursSize>1){
+	    double& meshSize = rGeom[i].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE);
+	    WeakPointerVector<Element >& neighb_elems = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+	    double numberOfNeighElems=double(neighb_elems.size());
+	    meshSize+=this->ElementSize()/numberOfNeighElems;
+
+	    if(rGeom[i].Is(FREE_SURFACE)){
+	      this->NodalFreeSurfaceLength(i);
+	    }
+
+	    // std::cout<<"meshSize "<<meshSize<<"  numberOfNeighElems="<<numberOfNeighElems<<std::endl;
+	  
+	    const double nodalVolume=rGeom[i].FastGetSolutionStepValue(NODAL_VOLUME);
+	  
+	    rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)+=rElementalVariables.Fgrad*elementVolume/nodalVolume;
+	    rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL)+=rElementalVariables.FgradVel*elementVolume/nodalVolume;
+	    rGeom[i].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)+=rElementalVariables.SpatialDefRate*elementVolume/nodalVolume;
+	   
+	    for (unsigned int j = 0; j< NumNodes; j++)
+	      {
+		unsigned int position=rGeom[j].Id();
+	      
+		double dnDX=rDN_DX(j,0)*elementVolume/nodalVolume;
+		double dnDY=rDN_DX(j,1)*elementVolume/nodalVolume;
+		double dnDZ=rDN_DX(j,2)*elementVolume/nodalVolume;
+	   
+
+		unsigned int SFDposition=0;
+		for (unsigned int k = 0; k< nodalSFDneighboursSize; k++)
+		  {
+		    if(position==nodalSFDneighbours[k]){
+		      if(TDim==3){
+			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]+=dnDX;
+			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1]+=dnDY;
+			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2]+=dnDZ;		      
+			break;
+		      }else if(TDim==2){
+			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]+=dnDX;
+			rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1]+=dnDY;
+			break;
+		      }
+		    }
 		    if(TDim==3){
-		      rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]+=dnDX;
-		      rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1]+=dnDY;
-		      rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+2]+=dnDZ;		      
-		      break;
+		      SFDposition+=3;
 		    }else if(TDim==2){
-		      rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition]+=dnDX;
-		      rGeom[i].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)[SFDposition+1]+=dnDY;
-		      break;
+		      SFDposition+=2;
 		    }
 		  }
-		  if(TDim==3){
-		    SFDposition+=3;
-		  }else if(TDim==2){
-		    SFDposition+=2;
-		  }
-		}
 	      
 
-	    }
+	      }
+	  }else{
+	    std::cout<<rGeom[i].Id()<<"  this node is isolated!!! "<<std::endl;
+	    for (unsigned int k = 0; k< TDim; k++)
+	      {
+		rGeom[i].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD)(k,k)=1.0;
+	      }
+	  }
 	}
 	 
 
@@ -226,7 +193,7 @@ namespace Kratos {
       
       if((rGeom[i].Is(FREE_SURFACE)  || (rGeom[i].Is(SOLID) && rGeom[i].Is(BOUNDARY))) && i!=nodeIndex){
 	noalias(Edge) = rGeom[nodeIndex].Coordinates() - rGeom[i].Coordinates();
-	rGeom[i].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += sqrt(Edge[0]*Edge[0] + Edge[1]*Edge[1])/2.0;
+	rGeom[nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += sqrt(Edge[0]*Edge[0] + Edge[1]*Edge[1])/2.0;
       }
     }
       
@@ -235,7 +202,57 @@ namespace Kratos {
   template< >
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3>::NodalFreeSurfaceLength(unsigned int nodeIndex)
   {
-    std::cout<<"NodalFreeSurfaceLength is not yet implemented for the 3D"<<std::endl;      
+
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    array_1d<double,2> Edge(3,0.0);
+
+
+    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)){
+      
+      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0)-rGeom.GetPoint(1));
+      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(1)-rGeom.GetPoint(2));
+      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(2)-rGeom.GetPoint(0));
+	  
+      const double s = (a+b+c) / 2.0;
+	  
+      rGeom[ nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += std::sqrt(s*(s-a)*(s-b)*(s-c))/3.0;
+      
+    }
+    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+            
+      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0)-rGeom.GetPoint(1));
+      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(1)-rGeom.GetPoint(3));
+      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3)-rGeom.GetPoint(0));
+	  
+      const double s = (a+b+c) / 2.0;
+	  
+      rGeom[ nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += std::sqrt(s*(s-a)*(s-b)*(s-c))/3.0;
+
+    }
+    if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){
+      
+      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0)-rGeom.GetPoint(2));
+      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(2)-rGeom.GetPoint(3));
+      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3)-rGeom.GetPoint(0));
+	  
+      const double s = (a+b+c) / 2.0;
+	  
+      rGeom[ nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += std::sqrt(s*(s-a)*(s-b)*(s-c))/3.0;
+      
+    }
+    if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE)  && rGeom[3].Is(FREE_SURFACE)){      
+      
+      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(1)-rGeom.GetPoint(2));
+      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(2)-rGeom.GetPoint(3));
+      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3)-rGeom.GetPoint(1));
+	  
+      const double s = (a+b+c) / 2.0;
+	  
+      rGeom[ nodeIndex].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA) += std::sqrt(s*(s-a)*(s-b)*(s-c))/3.0;
+      
+    }
+
   }
 
   
@@ -243,80 +260,6 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<TDim>::CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY; 
-
-    GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumNodes = rGeom.PointsNumber();
-    const unsigned int LocalSize = TDim * NumNodes;
-
-    MatrixType MassMatrix= ZeroMatrix(LocalSize,LocalSize);
-    MatrixType StiffnessMatrix= ZeroMatrix(LocalSize,LocalSize);
-
-    // Check sizes and initialize
-    if( rLeftHandSideMatrix.size1() != LocalSize )
-      rLeftHandSideMatrix.resize(LocalSize,LocalSize);
-
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
-
-    if( rRightHandSideVector.size() != LocalSize )
-      rRightHandSideVector.resize(LocalSize);
-
-    rRightHandSideVector = ZeroVector(LocalSize);
-
-    // Shape functions and integration points
-    ShapeFunctionDerivativesArrayType DN_DX;
-    Matrix NContainer;
-    VectorType GaussWeights;
-    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-
-    const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-
-    double totalVolume=0;
-    double MeanValueMass=0;
-    double Density=this->GetProperties()[DENSITY];
-
-      if(TDim==3){
-	totalVolume=rGeom.Volume();
-      }else if(TDim==2){
-	totalVolume=rGeom.Area();
-      }
-
-      this->ComputeExternalForces(rRightHandSideVector,Density,totalVolume);
-
-
-    double lumpedDynamicWeight=totalVolume*Density;
-    this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);    
-
-    // double BulkReductionCoefficient=1.0;
-    // double MeanValueStiffness=0.0;
-    // this->ComputeBulkReductionCoefficient(MassMatrix,StiffnessMatrix,MeanValueStiffness,BulkReductionCoefficient,TimeStep);
-    // if(BulkReductionCoefficient!=1.0){
-    //   // VolumetricCoeff*=BulkReductionCoefficient;
-    //   VolumetricCoeff*=MeanValueMass*2.0/(TimeStep*MeanValueStiffness);
-    //   StiffnessMatrix= ZeroMatrix(LocalSize,LocalSize);
-
-    //   for (unsigned int g = 0; g < NumGauss; g++)
-    // 	{
-    // 	  const double GaussWeight = GaussWeights[g];
-    // 	  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g]; 
-    // 	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,nodalPatchVolume);
-    // 	}
-    // }
-
-    // Add residual of previous iteration to RHS
-    VectorType VelocityValues = ZeroVector(LocalSize);
-    VectorType AccelerationValues = ZeroVector(LocalSize);
-
-    //2nd order 
-    this->GetAccelerationValues(AccelerationValues,0);
-    this->GetVelocityValues(VelocityValues,0);
-    noalias(AccelerationValues)+=-2.0*VelocityValues/TimeStep;
-    this->GetVelocityValues(VelocityValues,1);
-    noalias(AccelerationValues)+=2.0*VelocityValues/TimeStep;//these are negative accelerations
-
-    // MassMatrix= ZeroMatrix(LocalSize,LocalSize);
-    noalias( rRightHandSideVector )+= prod(MassMatrix,AccelerationValues);
-    noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix + MassMatrix*2/TimeStep;
-  
 
 
     KRATOS_CATCH( "" );
@@ -536,46 +479,7 @@ namespace Kratos {
 											       const double theta,
 											       const double Weight)
   {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    SizeType FirstRow=0;
-    SizeType FirstCol=0;
-
-    for (SizeType j = 0; j < NumNodes; ++j)
-      {
-
-        for (SizeType i = 0; i < NumNodes; ++i)
-	  {
-	    // double lagDNXi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,0);
-	    // double lagDNYi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,1);
-	    // double lagDNXj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,0);
-	    // double lagDNYj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,1);
-	    double coeffI=this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA)/Weight;
-	    double coeffJ=this->GetGeometry()[j].FastGetSolutionStepValue(NODAL_AREA)/Weight;
-	    coeffI=1.0;
-	    coeffJ=1.0;
-	    double lagDNXi=rDN_DX(i,0)/coeffI;
-	    double lagDNYi=rDN_DX(i,1)/coeffI;
-	    double lagDNXj=rDN_DX(j,0)/coeffJ;
-	    double lagDNYj=rDN_DX(j,1)/coeffJ;
-
-
-            // First Row
-            rDampingMatrix(FirstRow,FirstCol) += Weight * ( (FourThirds * secondLame + bulkModulus)*  lagDNXi * lagDNXj + lagDNYi * lagDNYj * secondLame ) *theta;
-            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame )*theta;
-
-            // Second Row
-            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + lagDNXi * lagDNXj * secondLame )*theta;
-
-            // Update Counter
-            FirstRow += 2;
-	  }
-        FirstRow = 0;
-        FirstCol += 2;
-      }
+  
   }
  
 
@@ -588,52 +492,7 @@ namespace Kratos {
 											       const double theta,
 											       const double Weight){
     
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const double FourThirds = 4.0 / 3.0;
-    const double nTwoThirds = -2.0 / 3.0;
-
-    SizeType FirstRow=0;
-    SizeType FirstCol=0;
-
-    for (SizeType j = 0; j < NumNodes; ++j)
-      {
-        for (SizeType i = 0; i < NumNodes; ++i)
-	  {
-	    // double lagDNXi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,0)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,0);
-	    // double lagDNYi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,1)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,1);
-	    // double lagDNZi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,2);
-	    // double lagDNXj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,0)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,0);
-	    // double lagDNYj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,1)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,1);
-	    // double lagDNZj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,2);
-	    
-	    double lagDNXi=rDN_DX(i,0);
-	    double lagDNYi=rDN_DX(i,1);
-	    double lagDNZi=rDN_DX(i,2);
-	    double lagDNXj=rDN_DX(j,0);
-	    double lagDNYj=rDN_DX(j,1);
-	    double lagDNZj=rDN_DX(j,2);
-
-            // First Row
-            rDampingMatrix(FirstRow,FirstCol)     += Weight * ( (FourThirds * secondLame + bulkModulus)*  lagDNXi * lagDNXj + (lagDNYi * lagDNYj +lagDNZi * lagDNZj) * secondLame ) *theta;
-            rDampingMatrix(FirstRow,FirstCol+1)   += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNYj + lagDNYi * lagDNXj * secondLame )*theta;
-            rDampingMatrix(FirstRow,FirstCol+2)   += Weight * ( (nTwoThirds* secondLame + bulkModulus) *  lagDNXi * lagDNZj + lagDNZi * lagDNXj * secondLame )*theta;
-
-            // Second Row
-            rDampingMatrix(FirstRow+1,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNXj + lagDNXi * lagDNYj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNYi * lagDNYj + (lagDNXi * lagDNXj + lagDNZi * lagDNZj) * secondLame )*theta;
-            rDampingMatrix(FirstRow+1,FirstCol+2) += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNYi * lagDNZj + lagDNZi * lagDNYj *  secondLame )*theta;
-
-            // Third Row
-            rDampingMatrix(FirstRow+2,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNZi * lagDNXj + lagDNXi * lagDNZj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+2,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus)  * lagDNZi * lagDNYj + lagDNYi * lagDNZj *  secondLame )*theta;
-            rDampingMatrix(FirstRow+2,FirstCol+2) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNZi * lagDNZj + (lagDNXi * lagDNXj + lagDNYi * lagDNYj) * secondLame )*theta;
-	   
-	    // Update Counter
-            FirstRow += 3;
-	  }
-        FirstRow = 0;
-        FirstCol += 3;
-      }
+   
   }
 
 
@@ -707,44 +566,6 @@ namespace Kratos {
 											  const double Weight)
   {
 
-    std::cout<<"DO NOT ENTER HERE ComputeInternalForces"<<std::endl;
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    SizeType FirstRow = 0;    
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	// double lagDNXi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,0);
-	// double lagDNYi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,1);
-	double lagDNXi=rDN_DX(i,0);
-	double lagDNYi=rDN_DX(i,1);
-
-	rRHSVector[FirstRow]   += -Weight*(lagDNXi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0] +
-					   lagDNYi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]);
-	
-	rRHSVector[FirstRow+1] += -Weight*(lagDNYi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1] +
-					   lagDNXi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]);
-
-	// rRHSVector[FirstRow]   += -Weight*(lagDNXi*(rGeom[i].GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]+rGeom[i].GetSolutionStepValue(PRESSURE)) +
-	// 				   lagDNYi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]);
-	
-	// rRHSVector[FirstRow+1] += -Weight*(lagDNYi*(rGeom[i].GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]+rGeom[i].GetSolutionStepValue(PRESSURE)) +
-	// 				   lagDNXi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]);
-
-	// rRHSVector[FirstRow]   += -Weight*(lagDNXi*sigmaX + lagDNYi*sigmaXY);
-	
-	// rRHSVector[FirstRow+1] += -Weight*(lagDNYi*sigmaY + lagDNXi*sigmaXY);
-	
-
-	
-	// rRHSVector[FirstRow]   += -Weight*(lagDNXi*rElementalVariables.UpdatedTotalCauchyStress[0] +
-	// 				   lagDNYi*rElementalVariables.UpdatedTotalCauchyStress[2]);
-	
-	// rRHSVector[FirstRow+1] += -Weight*(lagDNYi*rElementalVariables.UpdatedTotalCauchyStress[1] +
-	// 				   lagDNXi*rElementalVariables.UpdatedTotalCauchyStress[2]);
-	
-	FirstRow += 2;
-      }
   }
 
   template< >
@@ -753,37 +574,7 @@ namespace Kratos {
 											  ElementalVariables& rElementalVariables,
 											  const double Weight)
   {
-    std::cout<<"DO NOT ENTER HERE ComputeInternalForces"<<std::endl;
-
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    SizeType FirstRow = 0;
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-	// double lagDNXi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,0)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,0);
-	// double lagDNYi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,1)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,1);
-	// double lagDNZi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,2);
-	double lagDNXi=rDN_DX(i,0);
-	double lagDNYi=rDN_DX(i,1);
-	double lagDNZi=rDN_DX(i,2);
-
-	rRHSVector[FirstRow]   += -Weight*(lagDNXi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0] +
-					   lagDNYi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[3] +
-					   lagDNZi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[4]);
-
-	rRHSVector[FirstRow+1] += -Weight*(lagDNYi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1] +
-					   lagDNXi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[3] +
-					   lagDNZi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[5]);
-
-	rRHSVector[FirstRow+2] += -Weight*(lagDNZi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2] +
-					   lagDNXi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[4] +
-					   lagDNYi*rGeom[i].GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[5]);
-
-	FirstRow += 3;
-      }
-
-
+   
   }
 
 
@@ -795,34 +586,7 @@ namespace Kratos {
 											 const double Density,
 											 const double Weight)
   {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-    SizeType FirstRow = 0;
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-      {
-
-	if( this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
-	  array_1d<double, 3 >& VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-	  // Build RHS
-	  for (SizeType d = 0; d < TDim; ++d)
-	    {
-	      // Body force
-	      double coeff=0;
-	      if(TDim==2){
-		coeff=1.0/3.0;
-	      }else if(TDim==3){
-		coeff=0.25;
-	      }
-	      rRHSVector[FirstRow+d] += Weight * Density * coeff * VolumeAcceleration[d];
-	      // std::cout<<"rRHSVector[FirstRow+d] "<<rRHSVector[FirstRow+d]<<std::endl;
-	    }
-
-	}
-
-        FirstRow += TDim;
-
-      }
+   
   }
 
 
