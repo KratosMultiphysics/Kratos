@@ -31,9 +31,15 @@ namespace Kratos {
 template<class T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
 
-    std::cout << "[";
-    std::copy(data.begin(), data.end(), std::ostream_iterator<T>(std::cout, ", "));
-    std::cout << "]";
+    os << "[";
+    const int vector_size = static_cast<int>(data.size());
+    if(vector_size) os << data[0];
+    if(vector_size>1) {
+        for(int i = 1; i < vector_size; i++) {
+            os<<", "<<data[i];
+        }
+    }
+    os << "]";
 
     return os;
 }
