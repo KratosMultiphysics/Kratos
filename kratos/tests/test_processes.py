@@ -730,6 +730,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "position"         : [0.5, 0.25, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "node_output",
+                            "output_folder"    : "",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
                         }
@@ -774,6 +775,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "position"         : [0.563, 0.89, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "element_output",
+                            "output_folder"    : "",
                             "output_variables" : ["DISPLACEMENT_X", "VISCOSITY", "ACCELERATION"]
                         }
                     },{
@@ -819,6 +821,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "position"         : [16.0, 0.2, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "condition_output",
+                            "output_folder"    : "",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "condition",
                             "write_buffer_size" : 512
@@ -866,6 +869,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "position"         : [0.5, 0.25, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "point_output_rest",
+                            "output_folder"    : "",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
                         }
@@ -928,6 +932,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "position"         : [0.5, 0.25, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "node_output_failed_restart",
+                            "output_folder"     : "",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
                         }
@@ -979,7 +984,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "model_part_name"  : "Main",
                             "output_file_name" : "node_output",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
-                            "save_in_folder"    : false,
+                            "output_folder"    : "",
                             "entity_type"      : "node"
                         }
                     },{
@@ -1046,7 +1051,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             "end_point"         : [0.9,  0.5, 0.0],
                             "model_part_name"  : "Main",
                             "output_file_name" : "line_output",
-                            "save_in_folder"    : false,
+                            "output_folder"    : "",
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
                         }
                     },{

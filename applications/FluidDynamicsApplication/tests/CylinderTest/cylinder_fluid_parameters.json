@@ -101,6 +101,7 @@
             "position"         : [3.150768, 4.043068, 0.0],
             "model_part_name"  : "Parts_fluid",
             "output_file_name" : "cylinder_test_probe1.dat",
+            "output_folder"    : "",
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -115,6 +116,7 @@
             "position"         : [4.849232,4.043068, 0.0],
             "model_part_name"  : "Parts_fluid",
             "output_file_name" : "cylinder_test_probe2.dat",
+            "output_folder"    : "",
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -127,6 +129,7 @@
         "Parameters"    : {
             "model_part_name"        : "NoSlip2D_cylinder",
             "write_drag_output_file" : true,
+            "output_folder"    : "",
             "print_drag_to_screen"   : true,
             "interval"               : [0.0,"End"]
         }

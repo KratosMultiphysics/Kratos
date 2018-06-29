@@ -28,7 +28,6 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             "positions"         : [[]],
             "output_variables"  : [],
             "output_file_name"  : "",
-            "save_in_folder"    : true,
             "output_folder"     : "MultiplePoints",
             "write_buffer_size" : -1,
             "print_format"      : ""
@@ -52,7 +51,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
         if params["output_file_name"].GetString().endswith(".dat"):
             params["output_file_name"].SetString(params["output_file_name"].GetString()[:-4])
 
-        if params["save_in_folder"].GetBool():
+        if params["output_folder"].GetString() != "":
             params["output_folder"].SetString(os_path_join("TimeBasedAsciiResults", params["output_folder"].GetString()))
 
         # Create the individual point_output_processes

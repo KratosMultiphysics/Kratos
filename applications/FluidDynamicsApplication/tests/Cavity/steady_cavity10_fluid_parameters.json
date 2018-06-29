@@ -121,6 +121,7 @@
             "position"         : [0.6, 0.6, 0.0],
             "model_part_name"  : "Cavity",
             "output_file_name" : "steady_cavity10_probe_1.dat",
+            "output_folder"    : "",
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -135,6 +136,7 @@
             "position"         : [0.6, 0.4, 0.0],
             "model_part_name"  : "Cavity",
             "output_file_name" : "steady_cavity10_probe_2.dat",
+            "output_folder"    : "",
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",

@@ -31,7 +31,6 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "position"          : [],
             "output_variables"  : [],
             "output_file_name"  : "",
-            "save_in_folder"    : false,
             "output_folder"     : "TimeBasedAsciiResults",
             "write_buffer_size" : -1,
             "print_format"      : ""

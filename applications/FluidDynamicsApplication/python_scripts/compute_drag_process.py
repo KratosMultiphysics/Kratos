@@ -33,7 +33,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 "model_part_name"           : "",
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,
-                "save_in_folder"            : false,
+                "output_folder"             : "TimeBasedAsciiResults",
                 "print_drag_to_screen"      : false,
                 "write_buffer_size"         : -1,
                 "print_format"              : ""

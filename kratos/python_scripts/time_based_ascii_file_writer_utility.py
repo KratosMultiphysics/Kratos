@@ -111,21 +111,18 @@ class TimeBasedAsciiFileWriterUtility(object):
         # check if relative path was erroneously specified in file name
         raw_path, raw_output_file_name = os.path.split(self.output_file_name)
 
-        if self.save_in_folder:
-            if self.output_folder == "":
-                raise Exception('No valid "output_folder" was specified!')
-            else:
-                if raw_path != "":
-                    # assign the default value
-                    self.output_folder = "TimeBasedAsciiResults"
+        if self.output_folder != "":
+            if raw_path != "":
+                # assign the default value
+                self.output_folder = "TimeBasedAsciiResults"
 
-                    warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ self.output_file_name +'"\n'
-                    warn_msg += 'Use parameter "output_folder" to specify correctly\n'
-                    warn_msg += 'Using the default relative path "' + self.output_folder + '" instead'
-                    KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
+                warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ self.output_file_name +'"\n'
+                warn_msg += 'Use parameter "output_folder" to specify correctly\n'
+                warn_msg += 'Using the default relative path "' + self.output_folder + '" instead'
+                KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
 
-                absolute_folder_path = os.path.join(os.getcwd(), self.output_folder)
-                self.output_file_name = os.path.join(self.output_folder, raw_output_file_name)
+            absolute_folder_path = os.path.join(os.getcwd(), self.output_folder)
+            self.output_file_name = os.path.join(self.output_folder, raw_output_file_name)
 
         else:
             if raw_path != "":
