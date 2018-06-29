@@ -14,6 +14,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/response_data.h"
 #include "includes/checks.h"
+#include "custom_utilities/shell_utilities.h"
 
 //#include <string>
 //#include <iomanip>
@@ -815,8 +816,8 @@ void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<do
         // Try to compute element wise analytic sensitivity ''''''''''''''''''''
         std::vector<Matrix> adjoint_strain; 
         std::vector<Matrix> pseudo_forces; 
-        // This is not correct because the primal strain will be computed. Use same primal and adjoint load case to test.
-        ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_STRAIN_GLOBAL, adjoint_strain, rCurrentProcessInfo);
+        
+        this->TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(SHELL_CURVATURE_GLOBAL, adjoint_strain, rCurrentProcessInfo);
         this->GetValueOnIntegrationPoints(SHELL_PSEUDO_STRESSES, pseudo_forces, rCurrentProcessInfo);
 
         const SizeType num_gps = GetNumberOfGPs();
@@ -832,9 +833,9 @@ void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<do
             rOutput[i] = (-1.0)*(adjoint_strain[i](0,0)*pseudo_forces[i](0,0) + adjoint_strain[i](0,1)*pseudo_forces[i](0,1) +
                          adjoint_strain[i](1,0)*pseudo_forces[i](1,0) + adjoint_strain[i](1,1)*pseudo_forces[i](1,1));
 
-            //Note: mean value of analytic sensitivity is equal to weighted discrete sensitivity because there are linear shape functs used
-            /*mean_sensitivity += (-1.0)*(adjoint_strain[i](0,0)*pseudo_forces[i](0,0) + adjoint_strain[i](0,1)*pseudo_forces[i](0,1) +
-                                        adjoint_strain[i](1,0)*pseudo_forces[i](1,0) + adjoint_strain[i](1,1)*pseudo_forces[i](1,1));*/         
+            //Note: mean value of analytic sensitivity is equal to weighted discrete sensitivity
+            //mean_sensitivity += (-1.0)*(adjoint_strain[i](0,0)*pseudo_forces[i](0,0) + adjoint_strain[i](0,1)*pseudo_forces[i](0,1) +
+            //                            adjoint_strain[i](1,0)*pseudo_forces[i](1,0) + adjoint_strain[i](1,1)*pseudo_forces[i](1,1));        
         }
 
         //for(unsigned int i = 0; i < num_gps; i++)
@@ -872,7 +873,7 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Mat
         std::vector<Matrix> stress_vector_dist;
 
         // Compute stress on GP before disturbance
-        ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector_undist, rCurrentProcessInfo);
+        ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector_undist, rCurrentProcessInfo);
 
         // Get disturbance measure
         double delta= this->GetValue(DISTURBANCE_MEASURE); 	
@@ -900,7 +901,7 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Mat
             ShellThinElement3D3N::Initialize();
 
             // Compute stress on GP after disturbance
-            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector_dist, rCurrentProcessInfo);
+            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector_dist, rCurrentProcessInfo);
 
             // Compute derivative of stress w.r.t. design variable with finite differences
             for(size_t j = 0; j < num_gps; j++)
@@ -922,10 +923,119 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Mat
             ShellThinElement3D3N::Initialize();    
         }
     }
-
-    ShellThinElement3D3N::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    else if(rVariable == SHELL_CURVATURE_GLOBAL || rVariable == SHELL_STRAIN_GLOBAL )
+        this->TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo);
  
     KRATOS_CATCH("")
+}
+
+void ShellThinAdjointElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    bool bGlobal = false;
+    int ijob = 0;
+
+    if (rVariable == SHELL_STRAIN_GLOBAL)
+	{
+		ijob = 1;
+		bGlobal = true;
+	}
+
+	else if (rVariable == SHELL_CURVATURE_GLOBAL)
+	{
+		ijob = 2;
+		bGlobal = true;
+	}
+
+    const SizeType num_gps = GetNumberOfGPs();
+
+    // resize output
+    if(rValues.size() != num_gps)
+        rValues.resize(num_gps);
+
+    // Just to store the rotation matrix for visualization purposes
+
+    Matrix R(ShellThinElement3D3N::mStrainSize, ShellThinElement3D3N::mStrainSize);
+    Matrix aux33(3, 3);
+
+    // Initialize common calculation variables
+
+    CalculationData data(ShellThinElement3D3N::mpCoordinateTransformation, rCurrentProcessInfo);
+    data.CalculateLHS = false;
+    data.CalculateRHS = true;
+    ShellThinElement3D3N::InitializeCalculationData(data);
+
+    data.globalDisplacements.resize(18, false);
+    this->GetValuesVector( data.globalDisplacements );
+
+    data.localDisplacements =
+        ShellThinElement3D3N::mpCoordinateTransformation->CalculateLocalDisplacements(
+            data.LCS, data.globalDisplacements);
+
+    // Gauss Loop.
+
+    for(std::size_t i = 0; i < num_gps; i++)
+    {
+        // set the current integration point index
+        data.gpIndex = i;
+        ShellCrossSection::Pointer& section = ShellThinElement3D3N::mSections[i];
+
+        // calculate beta0
+        ShellThinElement3D3N::CalculateBeta0( data );
+
+        // calculate the total strain displ. matrix
+        ShellThinElement3D3N::CalculateBMatrix( data );
+
+        // compute generalized strains
+        noalias( data.generalizedStrains ) = prod( data.B, data.localDisplacements );
+
+        // adjust output
+        ShellThinElement3D3N::DecimalCorrection( data.generalizedStrains );
+        ShellThinElement3D3N::DecimalCorrection( data.generalizedStresses );
+
+        // store the results, but first rotate them back to the section coordinate system.
+        // we want to visualize the results in that system not in the element one!
+        if(section->GetOrientationAngle() != 0.0 && !bGlobal)
+        {
+            section->GetRotationMatrixForGeneralizedStrains( -(section->GetOrientationAngle()), R );
+            data.generalizedStrains = prod( R, data.generalizedStrains );
+        }
+
+        // save results
+        Matrix & iValue = rValues[i];
+        if(iValue.size1() != 3 || iValue.size2() != 3)
+            iValue.resize(3, 3, false);
+
+        if(ijob == 1) // strains
+        {
+            iValue(0, 0) = data.generalizedStrains(0);
+            iValue(1, 1) = data.generalizedStrains(1);
+            iValue(2, 2) = 0.0;
+            iValue(0, 1) = iValue(1, 0) = 0.5 * data.generalizedStrains(2);
+            iValue(0, 2) = iValue(2, 0) = 0.0;
+            iValue(1, 2) = iValue(2, 1) = 0.0;
+        }
+        else if(ijob == 2) // curvatures
+        {
+            iValue(0, 0) = data.generalizedStrains(3);
+            iValue(1, 1) = data.generalizedStrains(4);
+            iValue(2, 2) = 0.0;
+            iValue(0, 1) = iValue(1, 0) = 0.5 * data.generalizedStrains(5);
+            iValue(0, 2) = iValue(2, 0) = 0.0;
+            iValue(1, 2) = iValue(2, 1) = 0.0;
+        }
+
+        // if requested, rotate the results in the global coordinate system
+        if(bGlobal)
+        {
+            const Matrix& RG = data.LCS.Orientation();
+            noalias( aux33 ) = prod( trans( RG ), iValue );
+            noalias( iValue ) = prod( aux33, RG );
+        }
+    }
+
+    OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 }                    
 
 

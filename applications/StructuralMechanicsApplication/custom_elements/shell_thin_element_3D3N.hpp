@@ -60,6 +60,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public
 {
 public:
 
+    friend class ShellThinAdjointElement3D3N;
+
     ///@name Type Definitions
     ///@{
 

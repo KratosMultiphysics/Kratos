@@ -140,6 +140,9 @@ public:
 
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+
+    void TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
     ///@}
 
     ///@name Public specialized Access - Temporary
