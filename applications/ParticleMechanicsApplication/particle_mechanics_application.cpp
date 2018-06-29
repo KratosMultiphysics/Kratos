@@ -67,15 +67,16 @@ namespace Kratos
         mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
         mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
         //mUpdatedLagrangianUP3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-        mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4) ) ) ),
+        mUpdatedLagrangian2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
+        mUpdatedLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) ),
         //mUpdatedLagrangianUP2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) )
         //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
         //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
         mMPMPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
         mMPMPointLoadCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3>>(Condition::GeometryType::PointsArrayType(1)))),
         mMPMLineLoadCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
-        mMPMSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))))
-
+        mMPMSurfaceLoadCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
+        mMPMSurfaceLoadCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4))))
     {}
 
     void KratosParticleMechanicsApplication::Register()
@@ -85,7 +86,7 @@ namespace Kratos
         KRATOS_INFO("") << "           ____ __   ____ _____ _  ___ _   ____                 " << std::endl
                         << "     KRATOS  _ |  \\ |  _ |_   _| |/   | | | ___|               " << std::endl
                         << "          |   _| \\ \\|    | | | | |   (  |_| _|_               " << std::endl
-                        << "          |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____| MECHANICS " << std::endl
+                        << "          |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____|MECHANICS  " << std::endl
                         << "Initializing KratosParticleMechanicsApplication...              " << std::endl;
 
         //Registering elements
@@ -94,6 +95,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D3N", mUpdatedLagrangianUP2D3N )
         //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP3D4N", mUpdatedLagrangianUP3D4N )
         KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian2D4N", mUpdatedLagrangian2D4N )
+        KRATOS_REGISTER_ELEMENT( "UpdatedLagrangian3D8N", mUpdatedLagrangian3D8N )
         //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUP2D4N", mUpdatedLagrangianUP2D4N )
 
         //Registering conditions
@@ -101,6 +103,7 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "MPMPointLoadCondition3D1N", mMPMPointLoadCondition3D1N )
         KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition2D2N", mMPMLineLoadCondition2D2N)
         KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D3N", mMPMSurfaceLoadCondition3D3N)
+        KRATOS_REGISTER_CONDITION( "MPMSurfaceLoadCondition3D4N", mMPMSurfaceLoadCondition3D4N)
 
         //element
         KRATOS_REGISTER_VARIABLE( COUNTER )
@@ -125,8 +128,8 @@ namespace Kratos
         //consitutive law
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
         KRATOS_REGISTER_VARIABLE( DILATANCY_COEFFICIENT )
-        KRATOS_REGISTER_VARIABLE(COHESION )
-        KRATOS_REGISTER_VARIABLE(INTERNAL_DILATANCY_ANGLE )
+        KRATOS_REGISTER_VARIABLE( COHESION )
+        KRATOS_REGISTER_VARIABLE( INTERNAL_DILATANCY_ANGLE )
 
         //nodal dofs
         KRATOS_REGISTER_VARIABLE( AUX_R )

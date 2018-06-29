@@ -22,8 +22,9 @@
 
 // Application includes
 #include "trilinos_space.h"
-#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/trilinos_pointer_wrapper.h"
+#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
@@ -45,11 +46,41 @@ namespace Python
 {
 using namespace pybind11;
 
+typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+
+template <unsigned int TDim>
+void AuxiliarUpdateInterfaceValues(
+    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TDim> &dummy,
+    ModelPart &rModelPart,
+    const Variable<array_1d<double, 3>> &rSolutionVariable,
+    AuxiliaryVectorWrapper &rCorrectedGuess)
+{
+    dummy.UpdateInterfaceValues(rModelPart, rSolutionVariable, rCorrectedGuess.GetReference());
+}
+
+template <unsigned int TDim>
+void AuxiliarComputeInterfaceResidualVector(
+    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TDim> &dummy,
+    ModelPart &rInterfaceModelPart,
+    const Variable<array_1d<double, 3>> &rOriginalVariable,
+    const Variable<array_1d<double, 3>> &rModifiedVariable,
+    AuxiliaryVectorWrapper &rInterfaceResidual)
+{
+    dummy.ComputeInterfaceResidualVector(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rInterfaceResidual.GetReference());
+}
+
+void AuxiliarUpdateSolution(
+    ConvergenceAccelerator<TrilinosSparseSpaceType> &dummy,
+    AuxiliaryVectorWrapper &rResidualVector,
+    AuxiliaryVectorWrapper &rIterationGuess)
+{
+    dummy.UpdateSolution(rResidualVector.GetReference(), rIterationGuess.GetReference());
+}
+
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-    typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
     class_<TrilinosDeactivationUtility >
     (m,"TrilinosDeactivationUtility")
@@ -63,7 +94,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     class_<ParallelFillCommunicator >
     (m,"ParallelFillCommunicator")
-     .def(init<ModelPart& >() )
+    .def(init<ModelPart& >() )
     .def("Execute", &ParallelFillCommunicator::Execute )
     .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
     ;
@@ -154,35 +185,42 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
             ;
 
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, 2> BasePartitionedFSIUtilities2DType;
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, 3> BasePartitionedFSIUtilities3DType;
+
+    class_<BasePartitionedFSIUtilities2DType, BasePartitionedFSIUtilities2DType::Pointer>(m, "PartitionedFSIUtilities2D");
+    class_<BasePartitionedFSIUtilities3DType, BasePartitionedFSIUtilities3DType::Pointer>(m, "PartitionedFSIUtilities3D");
+
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,2> TrilinosPartitionedFSIUtilities2DType;
     typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,3> TrilinosPartitionedFSIUtilities3DType;
 
-    class_< TrilinosPartitionedFSIUtilities2DType > (m,"TrilinosPartitionedFSIUtilities2D").def(init < const Epetra_MpiComm& >())
+    class_<TrilinosPartitionedFSIUtilities2DType, TrilinosPartitionedFSIUtilities2DType::Pointer, BasePartitionedFSIUtilities2DType>(m, "TrilinosPartitionedFSIUtilities2D")
+        .def(init<const Epetra_MpiComm &>())
         .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceResidualSize)
-        .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities2DType::SetUpInterfaceVector)
-        .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities2DType::ComputeInterfaceVectorResidual)
-        .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities2DType::UpdateInterfaceValues)
-        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities2DType& self, ModelPart& rModelPart){ 
+            return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<2>)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<2>)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
         .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesFluid)
-        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesStructure)
-        ;
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesStructure);
 
-    class_< TrilinosPartitionedFSIUtilities3DType >(m,"TrilinosPartitionedFSIUtilities3D").def(init < const Epetra_MpiComm& >())
+    class_<TrilinosPartitionedFSIUtilities3DType, TrilinosPartitionedFSIUtilities3DType::Pointer, BasePartitionedFSIUtilities3DType>(m, "TrilinosPartitionedFSIUtilities3D")
+        .def(init<const Epetra_MpiComm &>())
         .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceResidualSize)
-        .def("SetUpInterfaceVector", &TrilinosPartitionedFSIUtilities3DType::SetUpInterfaceVector)
-        .def("ComputeInterfaceVectorResidual", &TrilinosPartitionedFSIUtilities3DType::ComputeInterfaceVectorResidual)
-        .def("UpdateInterfaceValues", &TrilinosPartitionedFSIUtilities3DType::UpdateInterfaceValues)
-        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities3DType& self, ModelPart& rModelPart){ 
+            return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<3>)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<3>)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
         .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintFluidInterfaceNorms)
         .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintStructureInterfaceNorms)
         .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesFluid)
-        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesStructure)
-        ;
-
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesStructure);
 
     // Convergence accelerators (from FSIApplication)
     typedef ConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosConvergenceAccelerator;
@@ -194,20 +232,20 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Initialize", &TrilinosConvergenceAccelerator::Initialize)
         .def("InitializeSolutionStep", &TrilinosConvergenceAccelerator::InitializeSolutionStep)
         .def("InitializeNonLinearIteration", &TrilinosConvergenceAccelerator::InitializeNonLinearIteration)
-        .def("UpdateSolution", &TrilinosConvergenceAccelerator::UpdateSolution)
+        .def("UpdateSolution", AuxiliarUpdateSolution)
         .def("FinalizeNonLinearIteration", &TrilinosConvergenceAccelerator::FinalizeNonLinearIteration)
         .def("FinalizeSolutionStep", &TrilinosConvergenceAccelerator::FinalizeSolutionStep)
         .def("SetEchoLevel", &TrilinosConvergenceAccelerator::SetEchoLevel)
         ;
 
     class_<TrilinosAitkenAccelerator, TrilinosConvergenceAccelerator>(m,"TrilinosAitkenConvergenceAccelerator")
-    .def(init<double>())
+        .def(init<double>())
         .def(init< Parameters& >())
         ;
 
     class_< TrilinosMVQNRecursiveAccelerator, TrilinosConvergenceAccelerator>(m,"TrilinosMVQNRecursiveJacobianConvergenceAccelerator")
-        .def(init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >())
         .def(init< ModelPart&, const Epetra_MpiComm&, Parameters& >())
+        .def(init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >())
         ;
 
 }

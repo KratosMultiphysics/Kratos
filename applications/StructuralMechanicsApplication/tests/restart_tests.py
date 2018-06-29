@@ -56,25 +56,40 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             self.start_time = 0.0
             self.end_time = 5.9
 
-            self.project_parameters_save["problem_data"]["time_step"].SetDouble(self.time_step)
+            self.project_parameters_save["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.time_step)
             self.project_parameters_save["problem_data"]["start_time"].SetDouble(self.start_time)
             self.project_parameters_save["problem_data"]["end_time"].SetDouble(self.end_time)
-
-            self.project_parameters_save["solver_settings"].RemoveValue("restart_settings") # to start clean
 
             # Now clone the settings after the common settings are set
             self.project_parameters_load = self.project_parameters_save.Clone()
 
             # Adding the specific settings (minimal to test the default settings)
             save_restart_parameters = KratosMultiphysics.Parameters("""{
-                "save_restart" : true
-            }""")
+                "restart_processes" : [
+                    {
+                    "python_module"   : "save_restart_process",
+                    "kratos_module"   : "KratosMultiphysics",
+                    "process_name"    : "SaveRestartProcess",
+                    "Parameters"            : {
+                    }
+                }]
+             }""")
 
-            self.project_parameters_save["solver_settings"].AddValue("restart_settings", save_restart_parameters)
+            save_restart_parameters["restart_processes"][0]["Parameters"].AddValue(
+                "model_part_name",
+                self.project_parameters_save["solver_settings"]["model_part_name"])
+
+
+            self.project_parameters_save.AddValue("output_processes", save_restart_parameters)
+
             load_mp_import_settings = self.project_parameters_load["solver_settings"]["model_import_settings"]
             load_mp_import_settings.AddEmptyValue("restart_load_file_label")
             load_mp_import_settings["input_type"].SetString("rest")
             load_mp_import_settings["restart_load_file_label"].SetString("3.0")
+
+            # Correct the path
+            restart_file_path = load_mp_import_settings["input_filename"].GetString()
+            restart_file_path = load_mp_import_settings["input_filename"].SetString(os.path.split(restart_file_path)[1])
 
     def test_execution(self):
         # Within this location context:
@@ -85,11 +100,13 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             structural_mechanics_analysis.StructuralMechanicsAnalysis(model_load, self.project_parameters_load).Run()
 
     def tearDown(self):
-        # remove the created restart files
-        raw_path, raw_file_name = os.path.split(self.file_name)
-        folder_name = os.path.join(raw_path, raw_file_name + "__restart_files")
+        # Within this location context:
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # remove the created restart files
+            raw_path, raw_file_name = os.path.split(self.file_name)
+            folder_name = raw_file_name + "__restart_files"
 
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath(folder_name))
+            kratos_utils.DeleteDirectoryIfExisting(GetFilePath(folder_name))
 
 
 class TestSmallDisplacement2D4N(StructuralMechanicsRestartTestFactory):

@@ -111,8 +111,8 @@
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto3",
-            "contact_model_part"          : ["Contact_Part"],
+            "assume_master_slave"         : { "0" : ["Parts_Parts_Auto3"]},
+            "contact_model_part"          : { "0" : ["Contact_Part"]},
             "contact_type"                : "Frictionless"
         }
     }

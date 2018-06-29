@@ -22,11 +22,11 @@
 namespace Kratos
 {
 
-/** 
+/**
  * @namespace TrussConstitutiveLaw
- * 
+ *
  * @brief This constitutive law represents a linear elastic 1D law
- * 
+ *
  * @author Klaus B Sautter
  */
 
@@ -89,7 +89,7 @@ public:
     {
         return 1;
     }
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -110,7 +110,7 @@ public:
 
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,double& rValue) override;
-        
+
     Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
@@ -122,19 +122,27 @@ public:
         const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues,
         bool CalculateStresses,int CalculateTangent,bool SaveInternalVariables) override;
 
+
+    //empty because called in the element and this base class throws an error
+    //if this is not overriden
+    void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
+                    const GeometryType& rElementGeometry,
+                    const Vector& rShapeFunctionsValues,
+                    const ProcessInfo& rCurrentProcessInfo) override {} ;
+
 protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -144,7 +152,7 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -184,4 +192,4 @@ private:
 
 }; // Class TrussConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined 
+#endif // KRATOS_DUMMY_TRUSS_LAW_H_INCLUDED  defined

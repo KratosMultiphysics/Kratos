@@ -22,8 +22,8 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "FractionalStep",
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -133,7 +133,8 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
-        self._set_physical_properties()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._set_physical_properties()
         super(NavierStokesSolverFractionalStep, self).PrepareModelPart()
 
     def Initialize(self):

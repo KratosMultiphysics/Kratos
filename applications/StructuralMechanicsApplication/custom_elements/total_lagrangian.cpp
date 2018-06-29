@@ -29,8 +29,9 @@ namespace
 {
 class LargeDisplacementKinematics
 {
-    public:
-    LargeDisplacementKinematics(Element::GeometryType const& rGeom) : mrGeom(rGeom) {}
+public:
+    LargeDisplacementKinematics(Element::GeometryType const& rGeom) : mrGeom(rGeom) { mThisIntegrationMethod = rGeom.GetDefaultIntegrationMethod();}
+    LargeDisplacementKinematics(Element::GeometryType const& rGeom, Element::GeometryType::IntegrationMethod ThisIntegrationMethod) : mrGeom(rGeom), mThisIntegrationMethod(ThisIntegrationMethod) {}
 
     void DeformationGradient(std::size_t IntegrationPoint, Matrix& rF)
     {
@@ -43,7 +44,7 @@ class LargeDisplacementKinematics
     {
         if (IntegrationPoint != mCurrentIntegrationPoint)
             Recalculate(IntegrationPoint);
-        Matrix const& rDN_De = mrGeom.ShapeFunctionsLocalGradients()[IntegrationPoint];
+        Matrix const& rDN_De = mrGeom.ShapeFunctionsLocalGradients(mThisIntegrationMethod)[IntegrationPoint];
         GeometryUtils::ShapeFunctionsGradients(rDN_De, mInvJ0, rDN_DX0);
     }
 
@@ -59,18 +60,19 @@ private:
     {
         // Calculate mInvJ0 and mDetJ0.
         GeometryUtils::JacobianOnInitialConfiguration(
-            mrGeom, mrGeom.IntegrationPoints()[IntegrationPoint], mJ);
+            mrGeom, mrGeom.IntegrationPoints(mThisIntegrationMethod)[IntegrationPoint], mJ);
         MathUtils<double>::InvertMatrix(mJ, mInvJ0, mDetJ0);
         // Calculate mJ.
-        mrGeom.Jacobian(mJ, IntegrationPoint);
+        mrGeom.Jacobian(mJ, IntegrationPoint, mThisIntegrationMethod);
         // Update current integration point.
         mCurrentIntegrationPoint = IntegrationPoint;
     }
 
-    Element::GeometryType const& mrGeom;
+    Element::GeometryType const& mrGeom; /// Currently geometry
+    Element::GeometryType::IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
     Matrix mJ;
     Matrix mInvJ0;
-    double mDetJ0;
+    double mDetJ0 = 0.0;
     std::size_t mCurrentIntegrationPoint = -1;
 };
 
@@ -81,6 +83,9 @@ void CalculateGreenLagrangeStrainSensitivity(Matrix const& rF,
     rE_Deriv = 0.5 * (prod(trans(rF_Deriv), rF) + prod(trans(rF), rF_Deriv));
 }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 TotalLagrangian::TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry)
     : BaseSolidElement(NewId, pGeometry)
@@ -133,15 +138,15 @@ void TotalLagrangian::CalculateAll(
 {
     KRATOS_TRY;
 
-    const unsigned int number_of_nodes = this->GetGeometry().size();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
     const auto strain_size = GetStrainSize();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
     
     // Resizing as needed the LHS
-    const unsigned int mat_size = number_of_nodes * dimension;
+    const SizeType mat_size = number_of_nodes * dimension;
 
     if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
         if ( rLeftHandSideMatrix.size1() != mat_size )
@@ -159,9 +164,7 @@ void TotalLagrangian::CalculateAll(
     }
 
     // Reading integration points
-    const GeometryType::IntegrationMethod integration_method =
-        GetGeometry().GetDefaultIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(integration_method);
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
     
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     
@@ -174,12 +177,12 @@ void TotalLagrangian::CalculateAll(
     // If strain has to be computed inside of the constitutive law with PK2
     Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
 
-    for ( unsigned int point_number = 0; point_number < integration_points.size(); ++point_number ){
+    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ){
         // Contribution to external forces
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
         
         // Compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematicVariables(this_kinematic_variables, point_number, integration_method);
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
         
         // Compute material reponse
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
@@ -212,7 +215,7 @@ void TotalLagrangian::CalculateAll(
 
 void TotalLagrangian::CalculateKinematicVariables(
     KinematicVariables& rThisKinematicVariables,
-    const unsigned int PointNumber,
+    const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
 {
@@ -224,17 +227,14 @@ void TotalLagrangian::CalculateKinematicVariables(
     
     Matrix J;
     J = this->GetGeometry().Jacobian(J, PointNumber, rIntegrationMethod);
-    if (IsAxissymmetric())
-    {
+    if (IsAxissymmetric()) {
         CalculateAxisymmetricF(J, rThisKinematicVariables.InvJ0,
                                rThisKinematicVariables.N,
                                rThisKinematicVariables.F);
         CalculateAxisymmetricB(
             rThisKinematicVariables.B, rThisKinematicVariables.F,
             rThisKinematicVariables.DN_DX, rThisKinematicVariables.N);
-    }
-    else
-    {
+    } else {
         GeometryUtils::DeformationGradient(J, rThisKinematicVariables.InvJ0,
                                            rThisKinematicVariables.F);
         CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F,
@@ -263,10 +263,10 @@ void TotalLagrangian::Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& r
 {
     KRATOS_TRY
     
-    const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    for (IndexType i = 0; i < number_of_nodes; ++i)
     {
         const auto index = dimension * i;
         rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
@@ -284,10 +284,10 @@ void TotalLagrangian::Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& r
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    for (IndexType i = 0; i < number_of_nodes; ++i)
     {
         const auto index = dimension * i;
         rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
@@ -320,13 +320,13 @@ void TotalLagrangian::CalculateAxisymmetricB(Matrix& rB,
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
     double radius = 0.0;
     radius = StructuralMechanicsMathUtilities::CalculateRadius(rN, this->GetGeometry());
-    for (unsigned int i = 0; i < number_of_nodes; ++i)
+    for (IndexType i = 0; i < number_of_nodes; ++i)
     {
-        const unsigned int index = dimension * i;
+        const SizeType index = dimension * i;
 
         rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
         rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
@@ -409,6 +409,7 @@ void TotalLagrangian::CalculateStrain(Matrix const& rF,
 }
 
 void TotalLagrangian::CalculateShapeSensitivity(ShapeParameter Deriv,
+                                                Matrix& rDN_DX0,
                                                 Matrix& rDN_DX0_Deriv,
                                                 Matrix& rF_Deriv,
                                                 double& rDetJ0_Deriv,
@@ -419,7 +420,7 @@ void TotalLagrangian::CalculateShapeSensitivity(ShapeParameter Deriv,
     const unsigned ls_dim = GetGeometry().LocalSpaceDimension();
     Matrix J0(ws_dim, ls_dim);
     GeometryUtils::JacobianOnInitialConfiguration(
-        GetGeometry(), GetGeometry().IntegrationPoints()[IntegrationPointIndex], J0);
+        GetGeometry(), GetGeometry().IntegrationPoints(this->GetIntegrationMethod())[IntegrationPointIndex], J0);
     const Matrix& rDN_De = GetGeometry().ShapeFunctionsLocalGradients()[IntegrationPointIndex];
     auto sensitivity_utility =
         GeometricalSensitivityUtility(J0, rDN_De);
@@ -433,6 +434,8 @@ void TotalLagrangian::CalculateShapeSensitivity(ShapeParameter Deriv,
                 rF_Deriv(i, j) +=
                     GetGeometry()[k].Coordinates()[i] * rDN_DX0_Deriv(k, j);
         }
+    for (unsigned j = 0; j < ws_dim; ++j)
+      rF_Deriv(Deriv.Direction, j) += rDN_DX0(Deriv.NodeIndex, j);
     KRATOS_CATCH("");
 }
 
@@ -455,10 +458,17 @@ void TotalLagrangian::CalculateBSensitivity(Matrix const& rDN_DX,
     KRATOS_CATCH("");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 std::size_t TotalLagrangian::GetStrainSize() const
 {
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 
 bool TotalLagrangian::IsAxissymmetric() const
 {
@@ -479,9 +489,14 @@ int  TotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_CATCH( "" );
 }
 
-void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
-                                                 Matrix& rOutput,
-                                                 const ProcessInfo& rCurrentProcessInfo)
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TotalLagrangian::CalculateSensitivityMatrix(
+    const Variable<array_1d<double, 3>>& rDesignVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
 {
     KRATOS_TRY;
     
@@ -502,7 +517,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
         Vector residual_deriv(ws_dim * nnodes);
         Vector body_force, acceleration;
         double detJ0_deriv;
-        LargeDisplacementKinematics large_disp_kinematics(r_geom);
+        LargeDisplacementKinematics large_disp_kinematics(r_geom, this->GetIntegrationMethod());
         for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
         {
             large_disp_kinematics.DeformationGradient(g, F);
@@ -510,28 +525,29 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
             CalculateB(B, F, DN_DX0);
             CalculateStress(F, g, stress_vector, rCurrentProcessInfo);
             double weight = GetIntegrationWeight(
-                r_geom.IntegrationPoints(), g, large_disp_kinematics.DetJ0(g));
+                r_geom.IntegrationPoints(this->GetIntegrationMethod()), g, large_disp_kinematics.DetJ0(g));
             const Vector& rN = row(GetGeometry().ShapeFunctionsValues(), g);
-            body_force = GetBodyForce(r_geom.IntegrationPoints(), g);
+            body_force = GetBodyForce(r_geom.IntegrationPoints(this->GetIntegrationMethod()), g);
 
             for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
             {
                 const auto& deriv = s.CurrentValue();
-                CalculateShapeSensitivity(deriv, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
+                CalculateShapeSensitivity(deriv, DN_DX0, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
                 CalculateGreenLagrangeStrainSensitivity(F, F_deriv, strain_tensor_deriv);
                 noalias(strain_vector_deriv) =
                     MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
                 CalculateStress(strain_vector_deriv, g, stress_vector_deriv, rCurrentProcessInfo);
                 CalculateBSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
                 const double weight_deriv =
-                    GetIntegrationWeight(r_geom.IntegrationPoints(), g, detJ0_deriv);
+                    GetIntegrationWeight(r_geom.IntegrationPoints(this->GetIntegrationMethod()), g, detJ0_deriv);
                 noalias(residual_deriv) = -weight_deriv * prod(trans(B), stress_vector);
                 noalias(residual_deriv) -= weight * prod(trans(B_deriv), stress_vector);
                 noalias(residual_deriv) -= weight * prod(trans(B), stress_vector_deriv);
                 CalculateAndAddExtForceContribution(
                     rN, rCurrentProcessInfo, body_force, residual_deriv, weight_deriv);
                 for (std::size_t k = 0; k < residual_deriv.size(); ++k)
-                    rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) += residual_deriv(k);
+                    rOutput(deriv.NodeIndex * ws_dim + deriv.Direction, k) +=
+                        residual_deriv(k);
             }
         }
 
@@ -542,7 +558,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(const Variable<array_1d<double,
             GetSecondDerivativesVector(acceleration);
             noalias(residual_deriv) = -prod(M_deriv, acceleration);
             for (std::size_t k = 0; k < residual_deriv.size(); ++k)
-                rOutput(k, deriv.NodeIndex * ws_dim + deriv.Direction) +=
+                rOutput(deriv.NodeIndex * ws_dim + deriv.Direction, k) +=
                     residual_deriv(k);
         }
     }
