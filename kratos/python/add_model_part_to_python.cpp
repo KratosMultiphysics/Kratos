@@ -870,9 +870,9 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels2)
         .def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels3)
         .def("AddMasterSlaveConstraint", &ModelPart::AddElement)
-        .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1)
-        .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2)
-        .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3)
+        .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
+        .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)
+        .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, return_value_policy::reference_internal)
 
          .def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
         ;
