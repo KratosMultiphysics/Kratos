@@ -68,6 +68,8 @@ namespace Testing
         rMaterialProperties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
         rMaterialProperties.SetValue(FRICTION_ANGLE, 32.0);
         rMaterialProperties.SetValue(DILATANCY_ANGLE, 16.0);
+        rMaterialProperties.SetValue(SOFTENING_TYPE, 0);
+        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1.0e3);
     }
 
     /** 
@@ -84,8 +86,8 @@ namespace Testing
         MCres = 2.1991e+07;
         VMres = 1.58114e+06;
         DPres = 1.17878e+07;
-        Rres = 2.2406e+06;
-        Tres = 1.82564e+06;
+        Rres  = 2.2406e+06;
+        Tres  = 1.82564e+06;
         SJres =  774.919;
 
         // Solutions to test...
@@ -97,6 +99,7 @@ namespace Testing
         T::CalculateEquivalentStress(rStressVector, rStrainVector, TestT, rMaterialProperties);
         SJ::CalculateEquivalentStress(rStressVector, rStrainVector, TestSJ, rMaterialProperties);
 
+        // Check the results!
         KRATOS_CHECK_NEAR(MCres, TestMC, 100.0);
         KRATOS_CHECK_NEAR(VMres, TestVM, 100.0);
         KRATOS_CHECK_NEAR(DPres, TestDP, 100.0);
@@ -124,9 +127,9 @@ namespace Testing
         MCres = { 0.109261,2.07822,10.6714,2.6863,11.8748,2.62528 };
         VMres = { -0.316228,-0.316228,0.632456,0.948683,0.948683,0.0 };
         DPres = { 0.244142,0.244142,1.9703,1.72615,1.72615,0.0 };
-        Tres =  { -0.369513,-0.364032,0.733545,1.08113,1.10671,0.0073077 };
+        Tres  = { -0.369513,-0.364032,0.733545,1.08113,1.10671,0.0073077 };
 
-        Vector TestMC= ZeroVector(6), TestVM= ZeroVector(6), TestDP= ZeroVector(6),TestT= ZeroVector(6);
+        Vector TestMC = ZeroVector(6), TestVM = ZeroVector(6), TestDP = ZeroVector(6),TestT = ZeroVector(6);
 
         MC::CalculateYieldSurfaceDerivative(rStressVector, Deviator, J2, TestMC, rMaterialProperties);
         VM::CalculateYieldSurfaceDerivative(rStressVector, Deviator, J2, TestVM, rMaterialProperties);
@@ -134,26 +137,108 @@ namespace Testing
         T::CalculateYieldSurfaceDerivative(rStressVector, Deviator, J2, TestT, rMaterialProperties);
 
         // Check the results!
-        for (int comp = 0; comp < 6; ++comp) {
+        for (int comp = 0; comp < 6; comp++) {
             KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
             KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
             KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
-            KRATOS_CHECK_NEAR(Tres[comp], TestT[comp], 1.0e-3);
+            KRATOS_CHECK_NEAR(Tres[comp],  TestT[comp],  1.0e-3);
         }
     }
 
+    /** 
+    * Check the correct calculation of the initial threshold of the yield surfaces
+    */
+    KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructuralMechanicsFastSuite)
+    {
+        Properties rMaterialProperties;
+        Vector Strain, Stress;
+        GenerateTestVariables(Stress, Strain, rMaterialProperties);
 
+        // Analytical solutions of the initial threshold
+        double MCres, VMres, DPres, Rres, Tres, SJres;
+        MCres = 30.0e6;
+        VMres = 3.0e6;
+        DPres = 7.50918e+06;
+        Rres  = 3.0e6;
+        Tres  = 3.0e6;
+        SJres = 65.4654;
 
+        double TestMC, TestVM, TestDP, TestR, TestT, TestSJ;
+        MC::GetInitialUniaxialThreshold(rMaterialProperties, TestMC);
+        VM::GetInitialUniaxialThreshold(rMaterialProperties, TestVM);
+        DP::GetInitialUniaxialThreshold(rMaterialProperties, TestDP);
+        R::GetInitialUniaxialThreshold(rMaterialProperties, TestR);
+        T::GetInitialUniaxialThreshold(rMaterialProperties, TestT);
+        SJ::GetInitialUniaxialThreshold(rMaterialProperties, TestSJ);
 
+        // Check the results!
+        KRATOS_CHECK_NEAR(MCres, TestMC, 100.0);
+        KRATOS_CHECK_NEAR(VMres, TestVM, 100.0);
+        KRATOS_CHECK_NEAR(DPres, TestDP, 100.0);
+        KRATOS_CHECK_NEAR(Rres, TestR, 100.0);
+        KRATOS_CHECK_NEAR(Tres, TestT, 100.0);
+        KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-3);
+    }
 
+    /** 
+    * Check the correct calculation of the Damage Parameter of the yield surfaces
+    */
+    KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameter, KratosStructuralMechanicsFastSuite)
+    {
+        Properties rMaterialProperties;
+        Vector Strain, Stress;
+        GenerateTestVariables(Stress, Strain, rMaterialProperties);
+        double Lchar = 0.1;
 
+        // Analytical solutions damage parameter Linear Softening
+        double MCres, VMres, DPres, Rres, Tres, SJres;
+        MCres = -0.00214286;
+        VMres = -0.214286;
+        DPres = -0.00214286;
+        Rres  = -0.214286;
+        Tres  = -0.00214286;
+        SJres = -4.5e+08;
 
+        double TestMC, TestVM, TestDP, TestR, TestT, TestSJ;
+        MC::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        VM::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        DP::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        R::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        T::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        SJ::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
 
+        // Check the results!
+        KRATOS_CHECK_NEAR(MCres, TestMC, 1.0e-4);
+        KRATOS_CHECK_NEAR(VMres, TestVM, 1.0e-4);
+        KRATOS_CHECK_NEAR(DPres, TestDP, 1.0e-4);
+        KRATOS_CHECK_NEAR(Rres, TestR, 1.0e-4);
+        KRATOS_CHECK_NEAR(Tres, TestT, 1.0e-4);
+        KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0);
 
+        rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
+        // Analytical solutions damage parameter Exponential Softening
+        MCres = 0.00429492;
+        VMres = 0.545455;
+        DPres = 0.00429492;
+        Rres  = 0.545455;
+        Tres  = 0.00429492;
+        SJres = -2.0;
 
+        MC::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        VM::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        DP::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        R::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        T::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        SJ::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
 
-
-
+        // Check the results!
+        KRATOS_CHECK_NEAR(MCres, TestMC, 1.0e-4);
+        KRATOS_CHECK_NEAR(VMres, TestVM, 1.0e-4);
+        KRATOS_CHECK_NEAR(DPres, TestDP, 1.0e-4);
+        KRATOS_CHECK_NEAR(Rres, TestR, 1.0e-4);
+        KRATOS_CHECK_NEAR(Tres, TestT, 1.0e-4);
+        KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-4);
+    }
 
 
 }
