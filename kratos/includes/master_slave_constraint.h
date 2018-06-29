@@ -218,6 +218,10 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     void Clear()
     {
         //TODO: clear the relation matrix and the constant vector.
+        mSlaveDofsVector.clear();
+        mMasterDofsVector.clear();
+        mRelationMatrix.resize(0,0,false);
+        mConstantVector.resize(0, false);
     }
 
 
