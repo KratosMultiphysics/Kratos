@@ -43,7 +43,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_PSEUDO_LOAD)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPartForSolver(self):
