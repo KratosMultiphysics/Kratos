@@ -312,9 +312,9 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     ///@}
     virtual void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << " MasterSlaveConstraint Id  : " <<Id()<<std::endl;
-        rOStream << " Number of Slaves          : " <<mSlaveDofsVector.size()<<std::endl;
-        rOStream << " Number of Masters         : " <<mMasterDofsVector.size()<<std::endl;
+        rOStream << " MasterSlaveConstraint Id  : " <<this->Id()<<std::endl;
+        rOStream << " Number of Slaves          : " <<this->mSlaveDofsVector.size()<<std::endl;
+        rOStream << " Number of Masters         : " <<this->mMasterDofsVector.size()<<std::endl;
     }
 
     ///@name Serialization
