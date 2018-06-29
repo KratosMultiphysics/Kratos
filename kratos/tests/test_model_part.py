@@ -673,6 +673,10 @@ class TestModelPart(KratosUnittest.TestCase):
 
         model_part.AddMasterSlaveConstraint(c1)
 
+        consts = model_part.GetMasterSlaveConstraints()
+
+        self.assertTrue( c1.Id in model_part.MasterSlaveConstraints )
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
