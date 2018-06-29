@@ -81,7 +81,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
    /*
     * Empty Constructor
     */
-    MasterSlaveConstraint():IndexedObject(0), Flags()
+    MasterSlaveConstraint(IndexType Id = 0):IndexedObject(Id), Flags()
     {
     }
 
@@ -114,10 +114,8 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         mConstantVector.resize(1,false);
 
         // Obtaining the dofs from the variables
-        DofType::Pointer pointer_slave_dof  = rSlaveNode.pGetDof(rSlaveVariable);
-        mSlaveDofsVector.push_back(pointer_slave_dof);
-        DofType::Pointer pointer_master_dof = rMasterNode.pGetDof(rMasterVariable);
-        mMasterDofsVector.push_back(pointer_master_dof);
+        mSlaveDofsVector.push_back(rSlaveNode.pGetDof(rSlaveVariable));
+        mMasterDofsVector.push_back(rMasterNode.pGetDof(rMasterVariable));
 
         mRelationMatrix(0,0) = Weight;
         mConstantVector(0) = Constant;
@@ -141,10 +139,8 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         mConstantVector.resize(1,false);
 
         // Obtaining the dofs from the variables
-        DofType::Pointer pointer_slave_dof  = rSlaveNode.pGetDof(rSlaveVariable);
-        mSlaveDofsVector.push_back(pointer_slave_dof);
-        DofType::Pointer pointer_master_dof = rMasterNode.pGetDof(rMasterVariable);
-        mMasterDofsVector.push_back(pointer_master_dof);
+        mSlaveDofsVector.push_back(rSlaveNode.pGetDof(rSlaveVariable));
+        mMasterDofsVector.push_back(rMasterNode.pGetDof(rMasterVariable));
 
         mRelationMatrix(0,0) = Weight;
         mConstantVector(0) = Constant;
@@ -154,7 +150,10 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     }
 
     /// Destructor.
-    virtual ~MasterSlaveConstraint(){};
+    virtual ~MasterSlaveConstraint() override
+    {
+
+    }
 
     /**
      * creates a new constraint pointer
@@ -357,7 +356,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     VectorType mConstantVector;
 
     /**
-     * pointer to the data related to this element
+     * pointer to the data related to this constraint
      */
     DataValueContainer mData;
     ///@}
