@@ -25,6 +25,7 @@
 #include "python/add_model_part_to_python.h"
 #include "includes/process_info.h"
 #include "utilities/quaternion.h"
+#include "python/containers_interface.h"
 
 namespace Kratos
 {
@@ -679,6 +680,7 @@ void AddModelPartToPython(pybind11::module& m)
     // ModelPart::MeshType::Pointer (ModelPart::*pointer_to_get_mesh)() = &ModelPart::pGetMesh;
     //      std::string& (ModelPart::*pointer_to_name)(void) = &ModelPart::Name;
 
+
     using namespace pybind11;
 
     class_<Communicator > (m,"Communicator")
@@ -721,6 +723,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return make_iterator(self.begin(), self.end());},  keep_alive<0,1>())
 
         ;
+
+    PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart")
         .def(init<std::string const&>())
