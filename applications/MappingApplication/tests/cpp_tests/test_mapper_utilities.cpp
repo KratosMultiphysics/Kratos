@@ -23,6 +23,12 @@ namespace Testing {
 using SizeType = std::size_t;
 using IndexType = std::size_t;
 
+using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
+
+using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
+using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
+using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
+
 void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
 {
     const int rank = rModelPart.GetCommunicator().MyPID();
@@ -267,12 +273,6 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, KratosMappingApplicationSerialTestSuite)
 {
-    using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
-
-    using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
-    using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
-    using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
-
     // set up receive buffer
     std::vector<double> recv_buffer_rank_1 {0.0, -2.0, 3.5, 3.0,
                                             15.0, 10.0, -25.0, 3.0};
@@ -556,7 +556,39 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplicationSerialTestSuite)
 {
+
+    using BufferTypeChar = std::vector<std::vector<char>>;
+
+    const int comm_rank = 1; // Whatever is on this rank is not being serialized, since no sending is required
+    const int comm_size = 3;
+
+    MapperInterfaceInfoPointerVectorPointerType p_interface_info_container
+        = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>(comm_size);
+
+    MapperInterfaceInfoUniquePointerType p_ref_interface_info(Kratos::make_unique<NearestNeighborInterfaceInfo>());
+
+    std::vector<int> send_sizes(comm_size);
+    BufferTypeChar send_buffer(comm_size);
+    BufferTypeChar recv_buffer(comm_size);
+
+    // Create the MapperInterfaceInfos
     KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
+
+
+    MapperUtilities::FillBufferAfterLocalSearch(p_interface_info_container,
+                                                p_ref_interface_info,
+                                                comm_rank,
+                                                send_buffer,
+                                                send_sizes);
+
+    MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(recv_buffer,
+                                                               p_ref_interface_info,
+                                                               comm_rank,
+                                                               p_interface_info_container);
+
+    // Check the MapperInterfaceInfos
+
+
 }
 
 }  // namespace Testing

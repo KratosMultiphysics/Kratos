@@ -47,7 +47,7 @@ Mapper<TSparseSpace, TDenseSpace>::Mapper(ModelPart& rModelPartOrigin,
     // TODO throw error in case of MPI-execution with one core
 
 
-    // mEchoLevel = MapperSettings["echo_level"].GetInt();
+    mEchoLevel = MapperSettings["echo_level"].GetInt();
 }
 
 /* This function initializes the Mapper
@@ -221,6 +221,7 @@ void Mapper<TSparseSpace, TDenseSpace>::PrintPairingInfo()
     for (const auto& rp_local_sys : *mpMapperLocalSystems)
     {
         const auto pairing_status = rp_local_sys->GetPairingStatus();
+
         if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound)
         {
             warning_msg << rp_local_sys->PairingInfo(mEchoLevel, comm_rank);

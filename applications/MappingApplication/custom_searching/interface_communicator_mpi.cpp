@@ -69,6 +69,7 @@ void InterfaceCommunicatorMPI::InitializeSearch(const Kratos::Flags& rOptions,
 void InterfaceCommunicatorMPI::InitializeSearchIteration(const Kratos::Flags& rOptions,
                                                     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
+    // Reset to zero
     std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
     std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
@@ -107,6 +108,7 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const Kratos::Flags& rO
 
 void InterfaceCommunicatorMPI::FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
+    // Reset to zero
     std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
     std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
@@ -128,7 +130,7 @@ void InterfaceCommunicatorMPI::FinalizeSearchIteration(const MapperInterfaceInfo
                                                                mCommRank,
                                                                mpMapperInterfaceInfosContainer);
 
-   AssignInterfaceInfos();
+    AssignInterfaceInfos();
 
     MPI_Barrier(MPI_COMM_WORLD);
 }
