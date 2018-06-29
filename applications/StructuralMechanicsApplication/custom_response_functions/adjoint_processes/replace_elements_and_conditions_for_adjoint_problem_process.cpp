@@ -16,6 +16,7 @@
 #include "../adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "../adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "../adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+#include "../adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 #include "../adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
 namespace Kratos
@@ -36,13 +37,11 @@ namespace Kratos
 
         if ( (!mr_model_part.GetProcessInfo().Has(IS_ADJOINT)) or (!mr_model_part.GetProcessInfo()[IS_ADJOINT]) )
         {
-            KRATOS_WATCH("ReplaceToAdjoint")
             this->ReplaceToAdjoint();
             mr_model_part.GetProcessInfo()[IS_ADJOINT] = true;
         }
         else
         {
-            KRATOS_WATCH("ReplaceToPrimal")
             this->ReplaceToPrimal();
             mr_model_part.GetProcessInfo()[IS_ADJOINT] = false;
         }
@@ -50,7 +49,33 @@ namespace Kratos
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToPrimal()
     {
-        // TODO
+        #pragma omp parallel for
+        for(int i=0; i< (int)mr_model_part.Elements().size(); i++)
+        {
+            ModelPart::ElementsContainerType::iterator it = mr_model_part.ElementsBegin() + i;
+
+            AdjointFiniteDifferencingBaseElement::Pointer p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement>(*it.base());
+            if (p_adjoint_element != nullptr)
+            {
+                (*it.base()) = p_adjoint_element->pGetPrimalElement();
+            }
+        }
+
+        #pragma omp parallel for
+        for(int i=0; i< (int)mr_model_part.Conditions().size(); i++)
+        {
+            ModelPart::ConditionsContainerType::iterator it = mr_model_part.ConditionsBegin() + i;
+
+            AdjointSemiAnalyticBaseCondition::Pointer p_adjoint_condition = dynamic_pointer_cast<AdjointSemiAnalyticBaseCondition>(*it.base());
+            if (p_adjoint_condition != nullptr)
+            {
+                (*it.base()) = p_adjoint_condition->pGetPrimalCondition();
+            }
+        }
+
+        //change the sons
+        for (ModelPart::SubModelPartIterator i_sub_model_part = mr_model_part.SubModelPartsBegin(); i_sub_model_part != mr_model_part.SubModelPartsEnd(); i_sub_model_part++)
+            UpdateSubModelPart( *i_sub_model_part, mr_model_part );
     }
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToAdjoint()

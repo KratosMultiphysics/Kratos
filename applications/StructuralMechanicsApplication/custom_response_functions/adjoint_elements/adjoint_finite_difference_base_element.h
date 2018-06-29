@@ -360,6 +360,11 @@ public:
     void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
                                             const Variable<Vector>& rStressVariable,
                                              Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
+
+    Element::Pointer pGetPrimalElement()
+    {
+        return mpPrimalElement;
+    }
     ///@}
 
     ///@name Public specialized Access - Temporary
