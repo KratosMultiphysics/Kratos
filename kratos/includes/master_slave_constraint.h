@@ -155,6 +155,16 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     }
 
+    /// Copy Constructor
+    MasterSlaveConstraint(const MasterSlaveConstraint& rOther)
+    {
+        this->mSlaveDofsVector = rOther.mSlaveDofsVector;
+        this->mMasterDofsVector = rOther.mMasterDofsVector;
+
+        this->mRelationMatrix = rOther.mRelationMatrix;
+        this->mConstantVector = rOther.mConstantVector;
+    }
+
     /**
      * creates a new constraint pointer
      * @param NewId the ID of the new element
