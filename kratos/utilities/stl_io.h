@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
-//                    
+//
 //
 
 #if !defined(KRATOS_KRATOS_STL_IO_H_INCLUDED )
@@ -24,14 +24,21 @@
 #include "includes/define.h"
 
 // Std::vecotr << operator
+
+namespace Kratos {
+
+// Std::vector << operator
 template<class T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
 
     std::cout << "[";
     std::copy(data.begin(), data.end(), std::ostream_iterator<T>(std::cout, ", "));
-    std::cout << "[";
-    
+    std::cout << "]";
+
     return os;
 }
+
+} //namespace Kratos
+
 
 #endif // KRATOS_KRATOS_STL_IO_H_INCLUDED  defined
