@@ -396,9 +396,8 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
 
     def CalculateGradient(self):
         # Replace elements and conditions by its adjoint equivalents
-        self.__performReplacementProcess(True)
+        self.__performReplacementProcess()
         self.response_function_utility.Initialize()
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = True
 
         # 'Solve' the adjoint problem
         for node in self.primal_model_part.Nodes:
@@ -412,9 +411,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.response_function_utility.FinalizeSolutionStep()
 
         # Replace elements and conditions back to its origins
-        self.__performReplacementProcess(False)
-        self.__initializeAfterReplacement(self.primal_model_part)
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = False
+        self.__performReplacementProcess()
 
     def GetValue(self):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
@@ -429,7 +426,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
     def Finalize(self):
         self.primal_analysis.Finalize()
 
-    def __performReplacementProcess(self, from_primal_to_adjoint=True):
+    def __performReplacementProcess(self):
         if(self.primal_model_part.ProcessInfo[DOMAIN_SIZE] != 3):
             raise Exception("there are currently only 3D adjoint elements available")
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(

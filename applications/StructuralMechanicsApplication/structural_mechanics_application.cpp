@@ -144,9 +144,9 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Adding the spring damper element
       mSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       // Adding the adjoint elements
-      mAdjointFiniteDifferencingBaseElement( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-      mAdjointFiniteDifferencingShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
-      mAdjointFiniteDifferenceCrBeamElement( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
+      mAdjointFiniteDifferencingBaseElement(),
+      mAdjointFiniteDifferencingShellElement(),
+      mAdjointFiniteDifferenceCrBeamElement(),
       mShellThinAdjointElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
       mCrLinearBeamAdjointElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
       /* CONDITIONS */
@@ -174,8 +174,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Adding adjoint conditions
       mPointLoadAdjointCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
       mPointLoadAdjointCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ) ,
-      mAdjointSemiAnalyticPointLoadCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
-      mAdjointSemiAnalyticPointLoadCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ) {}
+      mAdjointSemiAnalyticPointLoadCondition2D1N(),
+      mAdjointSemiAnalyticPointLoadCondition3D1N() {}
 
 void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components

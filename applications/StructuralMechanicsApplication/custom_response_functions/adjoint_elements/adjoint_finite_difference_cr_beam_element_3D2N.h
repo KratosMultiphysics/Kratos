@@ -35,20 +35,15 @@ public:
     typedef BaseType::EquationIdVectorType EquationIdVectorType;
     typedef BaseType::DofsVectorType DofsVectorType;
 
-    AdjointFiniteDifferenceCrBeamElement(IndexType NewId,
-                            GeometryType::Pointer pGeometry);
-    AdjointFiniteDifferenceCrBeamElement(IndexType NewId,
-                            GeometryType::Pointer pGeometry,
-                            PropertiesType::Pointer pProperties,
-                            Element::Pointer pPrimalElement);
+    AdjointFiniteDifferenceCrBeamElement(): AdjointFiniteDifferencingBaseElement()
+    {
+    }
+
+    AdjointFiniteDifferenceCrBeamElement(Element::Pointer pPrimalElement);
 
     ~AdjointFiniteDifferenceCrBeamElement() override;
 
-    BaseType::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& rThisNodes,
-        PropertiesType::Pointer pProperties,
-        Element::Pointer pPrimalElement) const override;
+    BaseType::Pointer Create(Element::Pointer pPrimalElement) const override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
@@ -71,9 +66,6 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
-    AdjointFiniteDifferenceCrBeamElement(): AdjointFiniteDifferencingBaseElement()
-    {
-    }
 
 
 private:

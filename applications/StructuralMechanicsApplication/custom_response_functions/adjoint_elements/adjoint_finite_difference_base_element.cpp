@@ -23,27 +23,17 @@
 namespace Kratos
 {
 
-AdjointFiniteDifferencingBaseElement::AdjointFiniteDifferencingBaseElement(IndexType NewId,
-                        GeometryType::Pointer pGeometry)
-                        : Element(NewId, pGeometry) {}
-
-AdjointFiniteDifferencingBaseElement::AdjointFiniteDifferencingBaseElement(IndexType NewId,
-                        GeometryType::Pointer pGeometry,
-                        PropertiesType::Pointer pProperties, Element::Pointer pPrimalElement)
-                    : Element(NewId, pGeometry, pProperties) {
+AdjointFiniteDifferencingBaseElement::AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement)
+                    : Element(pPrimalElement->Id(), pPrimalElement->pGetGeometry(), pPrimalElement->pGetProperties()) {
 
     mpPrimalElement = pPrimalElement;
-    }
+}
 
 AdjointFiniteDifferencingBaseElement::~AdjointFiniteDifferencingBaseElement() {}
 
-Element::Pointer AdjointFiniteDifferencingBaseElement::Create(IndexType NewId,
-                NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties,
-                Element::Pointer pPrimalElement) const
+Element::Pointer AdjointFiniteDifferencingBaseElement::Create(Element::Pointer pPrimalElement) const
 {
-    const GeometryType& rGeom = this->GetGeometry();
-    return Kratos::make_shared<AdjointFiniteDifferencingBaseElement>(
-        NewId, rGeom.Create(rThisNodes), pProperties, pPrimalElement);
+    return Kratos::make_shared<AdjointFiniteDifferencingBaseElement>(pPrimalElement);
 }
 
 void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType& rResult,

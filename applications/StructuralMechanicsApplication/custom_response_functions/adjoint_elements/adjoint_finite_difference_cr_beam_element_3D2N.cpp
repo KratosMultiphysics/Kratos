@@ -19,16 +19,8 @@
 namespace Kratos
 {
 
-AdjointFiniteDifferenceCrBeamElement::AdjointFiniteDifferenceCrBeamElement(IndexType NewId,
-    GeometryType::Pointer pGeometry)
-    : AdjointFiniteDifferencingBaseElement(NewId, pGeometry)
-{
-}
-
-AdjointFiniteDifferenceCrBeamElement::AdjointFiniteDifferenceCrBeamElement(IndexType NewId,
-    GeometryType::Pointer pGeometry,
-    PropertiesType::Pointer pProperties, Element::Pointer pPrimalElement)
-    : AdjointFiniteDifferencingBaseElement(NewId, pGeometry, pProperties, pPrimalElement)
+AdjointFiniteDifferenceCrBeamElement::AdjointFiniteDifferenceCrBeamElement(Element::Pointer pPrimalElement)
+    : AdjointFiniteDifferencingBaseElement(pPrimalElement)
 {
     mpPrimalBeamElement = dynamic_pointer_cast<CrBeamElement3D2N>(pPrimalElement);
 }
@@ -37,13 +29,9 @@ AdjointFiniteDifferenceCrBeamElement::~AdjointFiniteDifferenceCrBeamElement()
 {
 }
 
-Element::Pointer AdjointFiniteDifferenceCrBeamElement::Create(IndexType NewId,
-    NodesArrayType const& rThisNodes,
-    PropertiesType::Pointer pProperties, Element::Pointer pPrimalElement) const
+Element::Pointer AdjointFiniteDifferenceCrBeamElement::Create(Element::Pointer pPrimalElement) const
 {
-    const GeometryType& rGeom = this->GetGeometry();
-    return Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(
-        NewId, rGeom.Create(rThisNodes), pProperties, pPrimalElement);
+    return Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(pPrimalElement);
 }
 
 void AdjointFiniteDifferenceCrBeamElement::EquationIdVector(EquationIdVectorType& rResult,
@@ -131,10 +119,6 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
                         const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-
-    KRATOS_WATCH(rVariable)
-    KRATOS_WATCH(mpPrimalElement)
-    KRATOS_WATCH(this)
 
     if(rVariable == STRESS_ON_GP || rVariable == STRESS_ON_NODE)
     {
@@ -279,11 +263,13 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
     KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
     << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 
-    mpPrimalBeamElement->CheckVariables();
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(CROSS_AREA);
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-
-    mpPrimalBeamElement->CheckProperties();
 
     // check dofs
     GeometryType& r_geom = GetGeometry();
@@ -303,6 +289,24 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
     }
+
+    const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+    KRATOS_ERROR_IF(this->GetProperties().Has(CROSS_AREA) == false || this->GetProperties()[CROSS_AREA] <= numerical_limit)
+    << "CROSS_AREA not provided for this element" << this->Id() << std::endl;
+    KRATOS_ERROR_IF(this->GetProperties().Has(YOUNG_MODULUS) == false || this->GetProperties()[YOUNG_MODULUS] <= numerical_limit)
+    << "YOUNG_MODULUS not provided for this element" << this->Id() << std::endl;
+    KRATOS_ERROR_IF_NOT( this->GetProperties().Has(DENSITY) )
+    << "DENSITY not provided for this element" << this->Id() << std::endl;
+    KRATOS_ERROR_IF_NOT( this->GetProperties().Has(POISSON_RATIO) )
+    << "POISSON_RATIO not provided for this element" << this->Id() << std::endl;
+    KRATOS_ERROR_IF_NOT( this->GetProperties().Has(TORSIONAL_INERTIA) )
+    << "TORSIONAL_INERTIA not provided for this element" << this->Id() << std::endl;
+
+    KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I22) )
+    << "I22 not provided for this element" << this->Id() << std::endl;
+    KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
+    << "I33 not provided for this element" << this->Id() << std::endl;
 
     return 0;
 

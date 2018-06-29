@@ -69,14 +69,10 @@ public:
 
     ///@name Life Cycle
     ///@{
+    AdjointFiniteDifferencingBaseElement() : Element()
+    {}
 
-    AdjointFiniteDifferencingBaseElement(IndexType NewId,
-                         GeometryType::Pointer pGeometry);
-
-    AdjointFiniteDifferencingBaseElement(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         Element::Pointer pPrimalElement);
+    AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement);
 
     ~AdjointFiniteDifferencingBaseElement() override;
 
@@ -91,8 +87,7 @@ public:
 
     // Basic
 
-    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties,
-                Element::Pointer pPrimalElement) const;
+    virtual Element::Pointer Create(Element::Pointer pPrimalElement) const;
 
     // TODO Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
@@ -100,7 +95,7 @@ public:
 
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
 
-        
+
     IntegrationMethod GetIntegrationMethod() const override
     {
         return mpPrimalElement->GetIntegrationMethod();
@@ -312,7 +307,7 @@ public:
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-    }                      
+    }
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
@@ -376,12 +371,6 @@ protected:
     ///@name Protected Lyfe Cycle
     ///@{
 
-    /**
-     * Protected empty constructor TODO needed?
-     */
-    AdjointFiniteDifferencingBaseElement() : Element()
-    {
-    }
 
     ///@}
     ///@name Operations

@@ -23,27 +23,18 @@
 namespace Kratos
 {
 
-AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(IndexType NewId,
-                        GeometryType::Pointer pGeometry)
-                        : AdjointFiniteDifferencingBaseElement(NewId, pGeometry) {}
-
-AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(IndexType NewId,
-                        GeometryType::Pointer pGeometry,
-                        PropertiesType::Pointer pProperties, Element::Pointer pPrimalElement)
-                    : AdjointFiniteDifferencingBaseElement(NewId, pGeometry, pProperties, pPrimalElement) {
+AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(Element::Pointer pPrimalElement)
+                    : AdjointFiniteDifferencingBaseElement(pPrimalElement) {
 
     mpPrimalShellElement = dynamic_pointer_cast<ShellThinElement3D3N>(pPrimalElement);
-    }
+    KRATOS_ERROR_IF(mpPrimalShellElement == nullptr) << "AdjointFiniteDifferencingShellElement can only be created with a ShellThinElement3D3N element!" << std::endl;
+}
 
 AdjointFiniteDifferencingShellElement::~AdjointFiniteDifferencingShellElement() {}
 
-Element::Pointer AdjointFiniteDifferencingShellElement::Create(IndexType NewId,
-                NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties,
-                Element::Pointer pPrimalElement) const
+Element::Pointer AdjointFiniteDifferencingShellElement::Create(Element::Pointer pPrimalElement) const
 {
-    const GeometryType& rGeom = this->GetGeometry();
-    return Kratos::make_shared<AdjointFiniteDifferencingShellElement>(
-        NewId, rGeom.Create(rThisNodes), pProperties, pPrimalElement);
+    return Kratos::make_shared<AdjointFiniteDifferencingShellElement>(pPrimalElement);
 }
 
 void AdjointFiniteDifferencingShellElement::EquationIdVector(EquationIdVectorType& rResult,
@@ -321,6 +312,7 @@ void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Matrix >& r
 int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
 
     GeometryType& r_geom = GetGeometry();
 

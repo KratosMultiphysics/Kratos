@@ -109,14 +109,15 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-    ModelPart& ObtainRootModelPart( ModelPart& r_model_part );
+    void ReplaceToAdjoint();
 
+    void ReplaceToPrimal();
 
-    void UpdateSubModelPart(ModelPart& r_model_part, ModelPart& r_root_model_part);
+    void UpdateSubModelPart(ModelPart& r_sub_model_part, ModelPart& r_root_model_part);
 
-    bool GetNewElementName(const Element& rElement, std::string& rName);
+    bool GetAdjointElementName(const Element& rElement, std::string& rName);
 
-    bool GetNewConditionName(const Condition& rCondition, std::string& rName);
+    bool GetAdjointConditionName(const Condition& rCondition, std::string& rName);
 
     /// Assignment operator.
     ReplaceElementsAndConditionsForAdjointProblemProcess& operator=(ReplaceElementsAndConditionsForAdjointProblemProcess const& rOther) = delete;

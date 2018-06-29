@@ -16,6 +16,7 @@
 #include "../adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "../adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "../adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+#include "../adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
 namespace Kratos
 {
@@ -30,101 +31,88 @@ namespace Kratos
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::Execute()
     {
-        ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
+        if (mr_model_part.IsSubModelPart())
+            KRATOS_ERROR << "The replacement process can only be done for the root model part!" << std::endl;
 
-    #pragma omp parallel for
-        for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
+        if ( (!mr_model_part.GetProcessInfo().Has(IS_ADJOINT)) or (!mr_model_part.GetProcessInfo()[IS_ADJOINT]) )
         {
-            ModelPart::ElementsContainerType::iterator it = r_root_model_part.ElementsBegin() + i;
+            KRATOS_WATCH("ReplaceToAdjoint")
+            this->ReplaceToAdjoint();
+            mr_model_part.GetProcessInfo()[IS_ADJOINT] = true;
+        }
+        else
+        {
+            KRATOS_WATCH("ReplaceToPrimal")
+            this->ReplaceToPrimal();
+            mr_model_part.GetProcessInfo()[IS_ADJOINT] = false;
+        }
+    }
+
+    void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToPrimal()
+    {
+        // TODO
+    }
+
+    void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToAdjoint()
+    {
+
+        #pragma omp parallel for
+        for(int i=0; i< (int)mr_model_part.Elements().size(); i++)
+        {
+            ModelPart::ElementsContainerType::iterator it = mr_model_part.ElementsBegin() + i;
 
             std::string element_name;
-            bool replace_element = GetNewElementName(*it, element_name);
+            bool replace_element = GetAdjointElementName(*it, element_name);
 
             if(replace_element)
             {
                 if (element_name == "AdjointFiniteDifferencingShellElement")
                 {
-                    KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
-                        << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
-
-                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingShellElement>(
-                        it->Id(), it->pGetGeometry(), it->pGetProperties(), *it.base() );
-
-                    //deep copy elemental data
-                    p_element->Data() = it->Data();
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingShellElement>(*it.base() );
 
                     (*it.base()) = p_element;
                 }
                 else if (element_name == "AdjointFiniteDifferenceCrBeamElement")
                 {
-                    KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
-                        << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
-
-                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(
-                        it->Id(), it->pGetGeometry(), it->pGetProperties(), *it.base() );
-
-                    //deep copy elemental data
-                    p_element->Data() = it->Data();
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(*it.base() );
 
                     (*it.base()) = p_element;
                 }
                 else if (element_name == "AdjointFiniteDifferencingBaseElement")
                 {
-                    KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
-                        << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
-
-                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingBaseElement>(
-                        it->Id(), it->pGetGeometry(), it->pGetProperties(), *it.base() );
-
-                    //deep copy elemental data
-                    p_element->Data() = it->Data();
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingBaseElement>(*it.base() );
 
                     (*it.base()) = p_element;
                 }
                 else
-                {
-                    KRATOS_ERROR_IF_NOT( KratosComponents< Element >::Has( element_name ) )
-                        << "Element name not found in KratosComponents< Element > -- name is " << element_name << std::endl;
-                    const Element& rReferenceElement = KratosComponents<Element>::Get(element_name);
-
-                    Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->GetGeometry().Points(), it->pGetProperties());
-
-                    //deep copy elemental data
-                    p_element->Data() = it->Data();
-
-                    (*it.base()) = p_element;
-                }
+                    KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
             }
         }
 
-    #pragma omp parallel for
-        for(int i=0; i< (int)r_root_model_part.Conditions().size(); i++)
+        #pragma omp parallel for
+        for(int i=0; i< (int)mr_model_part.Conditions().size(); i++)
         {
-            ModelPart::ConditionsContainerType::iterator it = r_root_model_part.ConditionsBegin() + i;
+            ModelPart::ConditionsContainerType::iterator it = mr_model_part.ConditionsBegin() + i;
 
             std::string condition_name;
-            bool replace_condition = GetNewConditionName(*it, condition_name);
+            bool replace_condition = GetAdjointConditionName(*it, condition_name);
 
             if(replace_condition)
             {
-                KRATOS_ERROR_IF_NOT( KratosComponents< Condition >::Has( condition_name ) )
-                    << "Condition name not found in KratosComponents< Condition > -- name is " << condition_name;
-                const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name);
+                if (condition_name == "AdjointSemiAnalyticPointLoadCondition")
+                {
+                    Condition::Pointer p_condition = Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition>(*it.base() );
 
-                Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(),it->GetGeometry().Points(), it->pGetProperties());
-
-                //deep copy elemental data
-                p_condition->Data() = it->Data();
-
-                (*it.base()) = p_condition;
+                    (*it.base()) = p_condition;
+                }
+                else
+                    KRATOS_ERROR << "Unknown adjoint condition: " << condition_name << std::endl;
             }
         }
 
         //change the sons
-        for (ModelPart::SubModelPartIterator i_sub_model_part = r_root_model_part.SubModelPartsBegin(); i_sub_model_part != r_root_model_part.SubModelPartsEnd(); i_sub_model_part++)
-            UpdateSubModelPart( *i_sub_model_part, r_root_model_part );
-
-
+        for (ModelPart::SubModelPartIterator i_sub_model_part = mr_model_part.SubModelPartsBegin(); i_sub_model_part != mr_model_part.SubModelPartsEnd(); i_sub_model_part++)
+            UpdateSubModelPart( *i_sub_model_part, mr_model_part );
     }
 
     /// Turn back information as a string.
@@ -142,14 +130,6 @@ namespace Kratos
     /// Print object's data.
     void ReplaceElementsAndConditionsForAdjointProblemProcess::PrintData(std::ostream& rOStream) const
     {
-    }
-
-    ModelPart& ReplaceElementsAndConditionsForAdjointProblemProcess::ObtainRootModelPart( ModelPart& r_model_part )
-    {
-        if (r_model_part.IsSubModelPart())
-            return ObtainRootModelPart(*r_model_part.GetParentModelPart());
-        else
-            return r_model_part;
     }
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::UpdateSubModelPart(ModelPart& r_model_part, ModelPart& r_root_model_part)
@@ -176,7 +156,7 @@ namespace Kratos
             UpdateSubModelPart( *i_sub_model_part, r_root_model_part );
     }
 
-    bool ReplaceElementsAndConditionsForAdjointProblemProcess::GetNewElementName(const Element& rElement, std::string& rName)
+    bool ReplaceElementsAndConditionsForAdjointProblemProcess::GetAdjointElementName(const Element& rElement, std::string& rName)
     {
         KRATOS_TRY
 
@@ -187,12 +167,8 @@ namespace Kratos
         // Add here all new adjoint elements or elements which should be ignored by the replacement process
         if(name_current_element == "CrLinearBeamElement3D2N")
             rName = "AdjointFiniteDifferenceCrBeamElement";
-        else if(name_current_element == "AdjointFiniteDifferenceCrBeamElement")
-            rName = "CrLinearBeamElement3D2N";
         else if(name_current_element == "ShellThinElement3D3N")
             rName = "AdjointFiniteDifferencingShellElement";
-        else if(name_current_element == "AdjointFiniteDifferencingShellElement")
-            rName = "ShellThinElement3D3N";
         else
         {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
@@ -204,7 +180,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    bool ReplaceElementsAndConditionsForAdjointProblemProcess::GetNewConditionName(const Condition& rCondition, std::string& rName)
+    bool ReplaceElementsAndConditionsForAdjointProblemProcess::GetAdjointConditionName(const Condition& rCondition, std::string& rName)
     {
         KRATOS_TRY
 
@@ -214,13 +190,9 @@ namespace Kratos
 
         // Add here all new adjoint conditions or conditions which should be ignored by the replacement process
         if(name_current_condition == "PointLoadCondition2D1N")
-            rName = "PointLoadAdjointCondition2D1N";
+            rName = "AdjointSemiAnalyticPointLoadCondition";
         else if(name_current_condition == "PointLoadCondition3D1N")
-            rName = "PointLoadAdjointCondition3D1N";
-        else if(name_current_condition == "PointLoadAdjointCondition2D1N")
-            rName = "PointLoadCondition2D1N";
-        else if(name_current_condition == "PointLoadAdjointCondition3D1N")
-            rName = "PointLoadCondition3D1N";
+            rName = "AdjointSemiAnalyticPointLoadCondition";
         else if(name_current_condition == "ShapeOptimizationCondition3D3N")
             replacement_necessary = false;
         else if(name_current_condition == "ShapeOptimizationCondition3D4N")

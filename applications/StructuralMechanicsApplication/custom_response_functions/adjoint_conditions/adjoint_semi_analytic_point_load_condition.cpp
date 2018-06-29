@@ -25,35 +25,17 @@ namespace Kratos
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
 
-    AdjointSemiAnalyticPointLoadCondition::AdjointSemiAnalyticPointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
-        : AdjointSemiAnalyticBaseCondition( NewId, pGeometry )
-    {
-        //DO NOT ADD DOFS HERE!!!
-    }
-
-    //************************************************************************************
-    //************************************************************************************
-
-    AdjointSemiAnalyticPointLoadCondition::AdjointSemiAnalyticPointLoadCondition( IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
-        Condition::Pointer pPrimalCondition )
-        : AdjointSemiAnalyticBaseCondition( NewId, pGeometry, pProperties, pPrimalCondition )
+    AdjointSemiAnalyticPointLoadCondition::AdjointSemiAnalyticPointLoadCondition(Condition::Pointer pPrimalCondition )
+        : AdjointSemiAnalyticBaseCondition(pPrimalCondition )
     {
     }
 
     //********************************* CREATE *******************************************
     //************************************************************************************
 
-    Condition::Pointer AdjointSemiAnalyticPointLoadCondition::Create( IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties,
-        Condition::Pointer pPrimalCondition ) const
+    Condition::Pointer AdjointSemiAnalyticPointLoadCondition::Create(Condition::Pointer pPrimalCondition ) const
     {
-        return Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition>( NewId,
-                                                GetGeometry().Create( ThisNodes ),
-                                                pProperties,
-                                                pPrimalCondition );
+        return Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition>( pPrimalCondition );
     }
 
     //******************************* DESTRUCTOR *****************************************
@@ -190,6 +172,9 @@ namespace Kratos
 
         if( rDesignVariable == POINT_LOAD )
         {
+            const auto backup = mpPrimalCondition->GetValue(POINT_LOAD);
+            mpPrimalCondition->SetValue(POINT_LOAD, this->GetValue(POINT_LOAD));
+
             Vector RHS;
             ProcessInfo copy_process_info = rCurrentProcessInfo;
 
@@ -206,6 +191,8 @@ namespace Kratos
                 rOutput(k,i)=(RHS[i]>0) ? 1.0 : -1.0;
                 k++;
             }
+
+            mpPrimalCondition->SetValue(POINT_LOAD, backup);
         }
         else
             rOutput.clear();

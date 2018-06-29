@@ -57,18 +57,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    AdjointSemiAnalyticPointLoadCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry
-        );
+    AdjointSemiAnalyticPointLoadCondition(): AdjointSemiAnalyticBaseCondition(){};
 
-    AdjointSemiAnalyticPointLoadCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
-        Condition::Pointer pPrimalCondition
-        );
+    AdjointSemiAnalyticPointLoadCondition(Condition::Pointer pPrimalCondition);
 
     /// Destructor.
     ~AdjointSemiAnalyticPointLoadCondition() override;
@@ -82,8 +73,7 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties, Condition::Pointer pPrimalCondition ) const override;
+    Condition::Pointer Create(Condition::Pointer pPrimalCondition ) const override;
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
 
@@ -155,9 +145,6 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
-    // A protected default constructor necessary for serialization
-    AdjointSemiAnalyticPointLoadCondition(): AdjointSemiAnalyticBaseCondition(){};
 
     ///@}
 

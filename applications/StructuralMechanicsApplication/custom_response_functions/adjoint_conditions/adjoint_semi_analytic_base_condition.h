@@ -64,19 +64,13 @@ public:
     ///@{
 
     /// Default constructor.
-    AdjointSemiAnalyticBaseCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry
-        ): Condition( NewId, pGeometry )
+    AdjointSemiAnalyticBaseCondition(): Condition()
     {
     }
 
     AdjointSemiAnalyticBaseCondition(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
         Condition::Pointer pPrimalCondition
-        ): Condition( NewId, pGeometry )
+        ): Condition( pPrimalCondition->Id(), pPrimalCondition->pGetGeometry() )
         {
             mpPrimalCondition = pPrimalCondition;
         }
@@ -104,10 +98,9 @@ public:
     ///@name Operations
     ///@{
 
-    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties, Condition::Pointer pPrimalCondition ) const
+    virtual Condition::Pointer Create(Condition::Pointer pPrimalCondition ) const
     {
-        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties, pPrimalCondition );
+        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition>(pPrimalCondition);
     }
 
     // TODO add missing create and clone methods
@@ -640,9 +633,6 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
-    // A protected default constructor necessary for serialization
-    AdjointSemiAnalyticBaseCondition(): Condition(){};
 
     ///@}
 

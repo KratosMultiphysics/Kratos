@@ -69,14 +69,11 @@ public:
 
     ///@name Life Cycle
     ///@{
+    AdjointFiniteDifferencingShellElement() : AdjointFiniteDifferencingBaseElement()
+    {
+    }
 
-    AdjointFiniteDifferencingShellElement(IndexType NewId,
-                         GeometryType::Pointer pGeometry);
-
-    AdjointFiniteDifferencingShellElement(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         Element::Pointer pPrimalElement);
+    AdjointFiniteDifferencingShellElement(Element::Pointer pPrimalElement);
 
     ~AdjointFiniteDifferencingShellElement() override;
 
@@ -87,8 +84,7 @@ public:
 
     // Basic
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties,
-                Element::Pointer pPrimalElement) const override;
+    Element::Pointer Create(Element::Pointer pPrimalElement) const override;
 
     // TODO Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
@@ -126,13 +122,6 @@ protected:
 
     ///@name Protected Lyfe Cycle
     ///@{
-
-    /**
-     * Protected empty constructor TODO needed?
-     */
-    AdjointFiniteDifferencingShellElement() : AdjointFiniteDifferencingBaseElement()
-    {
-    }
 
     ///@}
 
