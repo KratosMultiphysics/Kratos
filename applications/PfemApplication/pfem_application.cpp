@@ -19,7 +19,6 @@
 
 #include "includes/element.h"
 #include "includes/condition.h"
-#include "includes/variables.h"
 
 // Core applications
 #include "pfem_application.h"

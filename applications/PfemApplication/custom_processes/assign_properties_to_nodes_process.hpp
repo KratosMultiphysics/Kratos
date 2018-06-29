@@ -19,6 +19,8 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
+#include "pfem_application_variables.h"
+
 namespace Kratos
 {
 

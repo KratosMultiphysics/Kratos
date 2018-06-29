@@ -25,11 +25,9 @@
 // External includes 
 
 // Project includes
-#include "containers/flags.h"
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
-#include "containers/flags.h"
 
 //elements
 #include "custom_elements/fluid_elements/updated_lagrangian_segregated_fluid_element.hpp"

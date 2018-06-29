@@ -11,21 +11,17 @@
 #define  KRATOS_ELEMENTAL_NEIGHBOURS_SEARCH_PROCESS_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/kratos_flags.h"
 #include "processes/process.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
-#include "delaunay_meshing_application_variables.h"
 #include "custom_processes/mesher_process.hpp"
+#include "delaunay_meshing_application_variables.h"
 
 ///VARIABLES used:
 //Data:     NEIGHBOUR_ELEMENTS(set)

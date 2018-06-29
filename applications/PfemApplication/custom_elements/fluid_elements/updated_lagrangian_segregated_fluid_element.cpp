@@ -64,7 +64,7 @@ UpdatedLagrangianSegregatedFluidElement&  UpdatedLagrangianSegregatedFluidElemen
   FluidElement::operator=(rOther);
 
   mStepVariable = rOther.mStepVariable;
-  
+
   return *this;
 }
 
@@ -134,7 +134,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetDofList( DofsVectorType& rEleme
   rElementalDofList.resize( 0 );
 
   const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-  
+
   switch( StepType(rCurrentProcessInfo[SEGREGATED_STEP]) )
   {
     case VELOCITY_STEP:
@@ -212,7 +212,7 @@ void UpdatedLagrangianSegregatedFluidElement::InitializeNonLinearIteration( Proc
   KRATOS_TRY
 
   mStepVariable = StepType(rCurrentProcessInfo[SEGREGATED_STEP]);
-      
+
   KRATOS_CATCH( "" )
 }
 
@@ -223,7 +223,7 @@ void UpdatedLagrangianSegregatedFluidElement::FinalizeNonLinearIteration( Proces
 {
   KRATOS_TRY
 
-  
+
   KRATOS_CATCH( "" )
 }
 
@@ -354,6 +354,103 @@ void UpdatedLagrangianSegregatedFluidElement::GetSecondDerivativesVector( Vector
   }
 
 }
+
+//*********************************COMPUTE KINEMATICS*********************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataType& rVariables, const double& rPointNumber)
+{
+    KRATOS_TRY
+
+    //Get the parent coodinates derivative [dN/d£]
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+
+    //Get the shape functions for the order of the integration method [N]
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
+    //Parent to reference configuration
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    Matrix InvJ;
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+
+    //Compute cartesian derivatives [dN/dx_n]
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
+
+    //Deformation Gradient F [dx_n+1/dx_n] to be updated
+    noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
+
+    //Determinant of the deformation gradient F
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
+    Matrix Invj;
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
+
+    //Compute cartesian derivatives [dN/dx_n+1]
+    noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+
+    //Determinant of the Deformation Gradient F0
+    //
+    //rVariables.detF0 = mDeterminantF0[rPointNumber];
+    //rVariables.F0    = mDeformationGradientF0[rPointNumber];
+
+    //Set Shape Functions Values for this integration point
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
+
+    //Compute the deformation matrix B
+    //CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
+
+    KRATOS_CATCH( "" )
+}
+
+//*********************************COMPUTE KINETICS***********************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateKinetics(ElementDataType& rVariables, const double& rPointNumber)
+{
+    KRATOS_TRY
+
+    //TotalDeltaPosition must not be used in this element as mDeterminantF0 and mDeformationGradientF0 are stored for reduced order
+    //however then the storage of variables in the full integration order quadrature must be considered
+
+    //const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+
+    //Get the parent coodinates derivative [dN/d£]
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+
+    //Get the shape functions for the order of the integration method [N]
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
+    rVariables.DeltaPosition = this->CalculateTotalDeltaPosition(rVariables.DeltaPosition);
+
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod, rVariables.DeltaPosition );
+
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    Matrix InvJ;
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], InvJ, rVariables.detJ);
+
+    //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
+
+    //Deformation Gradient F [dx_n+1/dx_0] = [dx_n+1/d£] [d£/dx_0]
+    noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
+
+    //Determinant of the deformation gradient F
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+
+    //Determinant of the Deformation Gradient F0
+    // (in this element F = F0, then F0 is set to the identity for coherence in the constitutive law)
+    //rVariables.detF0 = 1;
+    //rVariables.F0    = identity_matrix<double> ( dimension );
+
+    //Set Shape Functions Values for this integration point
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
+
+    KRATOS_CATCH( "" )
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -607,12 +704,12 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp(MatrixType& rLe
       GeometryType& rGeometry = GetGeometry();
   const SizeType dimension = rGeometry.PointsNumber();
   const SizeType number_of_nodes = rGeometry.PointsNumber();
-  double element_size = rGeometry.AverageEdgeLength();    
-    
+  double element_size = rGeometry.AverageEdgeLength();
+
   // Get Free surface Faces
   std::vector<std::vector<SizeType> > Faces;
   this->GetFreeSurfaceFaces(Faces);
-    
+
   // Add Boundary Matrix
   if( Faces.size() != 0 ){ //if there are free surfaces
     double BoundFactor = rVariables.Tau*4.0*rVariables.IntegrationWeight/(element_size*element_size);
@@ -650,8 +747,8 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp(MatrixType& rLe
 
   double coefficient = rGeometry.IntegrationPointsNumber() + dimension + 1; //integration points independent
   BulkFactor /= coefficient;
-    
-    
+
+
   for( SizeType i=0; i<number_of_nodes; ++i)
   {
     rLeftHandSideMatrix(i,i) += BulkFactor;
@@ -690,7 +787,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
     double BoundFactorB = 0;
     const double& Viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double& Density   = GetProperties()[DENSITY];
-    
+
     Matrix D = 0.5 * (trans(rVariables.L)+rVariables.L);
     for( SizeType i=0; i<Faces.size(); ++i ){
       double coefficient = 1.0 / double(Faces[i].size()+1);
@@ -723,7 +820,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
   Vector VolumeForce(dimension);
   noalias(VolumeForce) = ZeroVector(dimension);
   VolumeForce = this->CalculateVolumeForce( VolumeForce, rVariables );
-    
+
   for( SizeType i=0; i<number_of_nodes; ++i)
   {
     // Velocity divergence
@@ -735,7 +832,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
       rRightHandSideVector[i] -= rVariables.IntegrationWeight * rVariables.DN_DX(i,j) * rVariables.Tau * VolumeForce[j];
     }
   }
- 
+
   // Add Bulk Vector
   double MassFactor = GetGeometry().DomainSize() * GetProperties()[DENSITY] / double(number_of_nodes);
   const double& BulkModulus = GetProperties()[BULK_MODULUS];
@@ -754,10 +851,10 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
     rRightHandSideVector[i] -= BulkFactor * (rGeometry[i].FastGetSolutionStepValue(PRESSURE,0)-rGeometry[i].FastGetSolutionStepValue(PRESSURE,1));
     rRightHandSideVector[i] -= BulkFactor * (rGeometry[i].FastGetSolutionStepValue(PRESSURE,0)-rGeometry[i].FastGetSolutionStepValue(PRESSURE,1) - rVariables.TimeStep * rGeometry[i].FastGetSolutionStepValue(PRESSURE_VELOCITY));
   }
-    
+
 
   // Add LHS to RHS: stabilization and boundary terms
-        
+
   // Add Boundary Matrix to RHS
   if( Faces.size() != 0 ){ //if there are free surfaces
     double BoundFactor = rVariables.Tau*4.0*rVariables.IntegrationWeight/(element_size*element_size);
@@ -772,7 +869,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
   // Add Stabilized Laplacian Matrix to RHS
   coefficient = double(rGeometry.IntegrationPointsNumber()); //integration points independent
   StabilizationFactor = rVariables.Tau * rVariables.IntegrationWeight / coefficient;
-    
+
   for( SizeType i=0; i<number_of_nodes; ++i)
   {
     for( SizeType j=0; j<number_of_nodes; ++j)
@@ -832,7 +929,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateStabilizationTau(ElementD
 void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<std::vector<SizeType> >& Faces)
 {
   KRATOS_TRY
-      
+
   GeometryType& rGeometry = GetGeometry();
 
   DenseMatrix<unsigned int> NodesInFaces;
@@ -873,10 +970,10 @@ void UpdatedLagrangianSegregatedFluidElement::GetFreeSurfaceFaces(std::vector<st
       }
       Faces.push_back(Nodes);
     }
-		    
+
     counter++;
   }
-  
+
   KRATOS_CATCH( "" )
 }
 

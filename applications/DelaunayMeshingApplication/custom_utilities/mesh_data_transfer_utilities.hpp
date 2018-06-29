@@ -11,12 +11,9 @@
 #define KRATOS_MESH_DATA_TRANSFER_UTILITIES_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 #include <stdlib.h>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"

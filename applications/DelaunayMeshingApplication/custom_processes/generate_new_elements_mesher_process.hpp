@@ -12,15 +12,11 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
 #include "custom_meshers/laplacian_smoothing.hpp"
-#include "custom_utilities/mesher_utilities.hpp"
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:

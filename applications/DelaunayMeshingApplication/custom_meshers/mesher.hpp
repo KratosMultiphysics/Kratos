@@ -11,15 +11,10 @@
 #define  KRATOS_MESHER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/variables.h"
 #include "includes/model_part.h"
 #include "containers/variables_list_data_value_container.h"
 #include "spatial_containers/spatial_containers.h"

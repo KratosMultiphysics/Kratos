@@ -32,12 +32,7 @@
 //conditions
 #include "custom_conditions/composite_condition.hpp"
 
-//constitutive laws
-#include "containers/flags.h"
-#include "includes/variables.h"
 #include "includes/kratos_application.h"
-
-#include "containers/flags.h"
 
 #include "delaunay_meshing_application_variables.h"
 

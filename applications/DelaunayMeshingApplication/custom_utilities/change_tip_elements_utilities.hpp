@@ -12,16 +12,12 @@
 
 
 // System includes
-#include <cmath>
-#include <string>
-#include <iostream>
 #include <stdlib.h>
 
 // External includes
 #include "utilities/timer.h"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"

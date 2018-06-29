@@ -12,13 +12,11 @@
 
 
 // System includes
-#include <cmath>
 
 // External includes
 #include "utilities/timer.h"
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "custom_utilities/mesher_utilities.hpp"

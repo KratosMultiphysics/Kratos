@@ -26,18 +26,17 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_application.h"
-
+#include "containers/pointer_vector_set.h"
+#include "includes/element.h"
+#include "includes/condition.h"
+#include "utilities/indexed_object.h"
 
 namespace Kratos
 {
   ///@name Type Definitions
   ///@{
-  typedef array_1d<double,3> Vector3;
-  typedef array_1d<double,6> Vector6;
   typedef PointerVectorSet<Condition, IndexedObject> ConditionContainerType;
   ///@}
 

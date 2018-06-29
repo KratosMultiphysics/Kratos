@@ -12,13 +12,8 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 #include <limits>
 
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/beam_math_utilities.hpp"

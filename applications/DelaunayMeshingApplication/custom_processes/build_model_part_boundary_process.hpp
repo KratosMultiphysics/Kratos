@@ -12,13 +12,10 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
 #include "includes/node.h"
 #include "includes/element.h"

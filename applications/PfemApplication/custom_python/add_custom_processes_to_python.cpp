@@ -18,7 +18,7 @@
 #include "includes/properties.h"
 
 // Processes
-#include "custom_processes/adaptive_time_interval_process.hpp"
+//#include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
 #include "custom_processes/assign_properties_to_nodes_process.hpp"
@@ -107,10 +107,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //*********ADAPTIVE TIME STEP*************//
   
-  class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
-      (m, "AdaptiveTimeIntervalProcess")
-      .def(init<ModelPart&, int>());
-  
+  // class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
+  //     (m, "AdaptiveTimeIntervalProcess")
+  //     .def(init<ModelPart&, int>());
    
   
   //*********VOLUME RECOVETY PROCESS********//

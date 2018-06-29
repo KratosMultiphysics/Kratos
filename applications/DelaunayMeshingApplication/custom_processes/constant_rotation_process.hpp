@@ -10,13 +10,10 @@
 #define KRATOS_CONSTANT_ROTATION_PROCESS_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"

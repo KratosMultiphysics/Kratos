@@ -18,12 +18,10 @@
 // Project includes
 
 
-#include "spatial_containers/spatial_containers.h"
-
-#include "custom_processes/split_elements_process.hpp"
+//#include "spatial_containers/spatial_containers.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "custom_utilities/mesher_utilities.hpp"
-#include "includes/model_part.h"
-
 
 ///VARIABLES used:
 //Data:     

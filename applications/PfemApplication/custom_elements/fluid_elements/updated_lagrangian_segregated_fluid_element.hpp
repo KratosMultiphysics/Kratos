@@ -64,7 +64,7 @@ public:
   ///@}
 
   enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
-    
+
   ///@name Life Cycle
   ///@{
 
@@ -121,12 +121,12 @@ public:
    * this is called for non-linear analysis at the beginning of the iteration process
    */
   void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-  
+
   /**
    * this is called for non-linear analysis at the beginning of the iteration process
    */
   void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-    
+
   //************* GETTING METHODS
 
   /**
@@ -153,7 +153,7 @@ public:
    * Sets on rValues the nodal accelerations
    */
   void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-    
+
   //************************************************************************************
   //************************************************************************************
   /**
@@ -207,7 +207,7 @@ protected:
   ///@{
 
   StepType mStepVariable;
-  
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -215,6 +215,17 @@ protected:
   ///@name Protected Operations
   ///@{
 
+  /**
+   * Calculate Element Kinematics
+   */
+  void CalculateKinematics(ElementDataType& rVariables,
+                           const double& rPointNumber) override;
+
+  /**
+   * Calculate Element Jacobian
+   */
+  void CalculateKinetics(ElementDataType& rVariables,
+                         const double& rPointNumber) override;
 
   /**
    * Calculation and addition of the matrices of the LHS
@@ -227,26 +238,25 @@ protected:
    */
   void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                           ElementDataType& rVariables) override;
-    
+
   /**
    * Get element size from the dofs
-   
-   */    
+   */
   unsigned int GetDofsSize() override;
 
-    
+
   /**
    * Calculation of the Geometric Stiffness Matrix. Kvvg = BT * S
    */
   void CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
-                           ElementDataType& rVariables) override;    
+                           ElementDataType& rVariables) override;
 
   /**
    * Calculation of the Bulk Matrix.
    */
   void CalculateAndAddKBulk(MatrixType& rLeftHandSideMatrix,
                             ElementDataType& rVariables);
-        
+
   /**
    * Calculation of the Pressure Stiffness Matrix. Kpp
    */
@@ -254,11 +264,11 @@ protected:
                           ElementDataType& rVariables);
 
   /**
-   * Calculation of the Pressure Vector. 
+   * Calculation of the Pressure Vector.
    */
   void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
                                      ElementDataType & rVariables);
-    
+
   /**
    * Set Variables of the Element to the Parameters of the Constitutive Law
    */
@@ -270,7 +280,7 @@ protected:
    * Calculate stabilization factor
    */
   void CalculateStabilizationTau(ElementDataType& rVariables);
-    
+
   /**
    * Get Faces with nodes in the freesurface
    */
@@ -278,10 +288,10 @@ protected:
 
   /**
    * Get Historical variables
-   */    
+   */
   void GetHistoricalVariables(ElementDataType& rVariables, const double& rPointNumber);
 
-  
+
   ///@}
   ///@name Protected  Access
   ///@{
@@ -340,4 +350,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_SEGREGATED_FLUID_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_SEGREGATED_FLUID_ELEMENT_H_INCLUDED  defined

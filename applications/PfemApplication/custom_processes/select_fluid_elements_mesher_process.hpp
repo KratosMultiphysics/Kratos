@@ -19,7 +19,6 @@
 #include "containers/variables_list_data_value_container.h"
 #include "spatial_containers/spatial_containers.h"
 
-#include "includes/model_part.h"
 #include "custom_utilities/mesher_utilities.hpp"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"

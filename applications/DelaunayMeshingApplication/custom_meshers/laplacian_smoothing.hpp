@@ -11,15 +11,9 @@
 #define  KRATOS_LAPLACIAN_SMOOTHING_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
 
 // Project includes
-#include "includes/define.h"
 #include "includes/variables.h"
-#include "includes/kratos_flags.h"
-#include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
 #include "custom_utilities/mesher_utilities.hpp"
 

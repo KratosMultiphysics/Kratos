@@ -20,8 +20,6 @@
 
 
 // Project includes
-#include "includes/kratos_flags.h"
-#include "utilities/math_utils.h"
 #include "delaunay_meshing_application_variables.h"
 
 namespace Kratos

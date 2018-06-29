@@ -12,7 +12,6 @@
 // External includes
 
 // Project includes
-#include "includes/kratos_flags.h"
 #include "custom_utilities/mesher_utilities.hpp"
 
 namespace Kratos
