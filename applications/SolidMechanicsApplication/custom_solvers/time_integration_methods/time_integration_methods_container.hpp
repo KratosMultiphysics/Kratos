@@ -44,6 +44,7 @@ namespace Kratos
 /** A container for time integration methods.     
  * This class implements a container for setting all methods in ProcessInfo     
  */
+template<class TVariableType, class TValueType>
 class TimeIntegrationMethodsContainer
 {
 public:
@@ -53,10 +54,8 @@ public:
   /// Pointer definition of TimeIntegrationMethodsContainer
   KRATOS_CLASS_POINTER_DEFINITION(TimeIntegrationMethodsContainer);
     
-  typedef array_1d<double, 3>                                                                VectorType;
-  typedef VariableComponent< VectorComponentAdaptor< VectorType > >               VariableComponentType;
-  typedef TimeIntegrationMethod<VariableComponentType, double>                TimeIntegrationMethodType;
-  typedef typename TimeIntegrationMethodType::Pointer                  TimeIntegrationMethodPointerType;
+  typedef TimeIntegrationMethod<TVariableType,TValueType>                TimeIntegrationMethodType;
+  typedef typename TimeIntegrationMethodType::Pointer             TimeIntegrationMethodPointerType;
   typedef std::string LabelType;
 
   ///@name Life Cycle
@@ -107,7 +106,18 @@ public:
       return false;
   }
   
-      
+  LabelType GetMethodVariableName(LabelType const& rLabel)
+  {
+
+    for(typename std::map<LabelType,TimeIntegrationMethodPointerType>::const_iterator it=mTimeIntegrationMethods.begin(); it!=mTimeIntegrationMethods.end(); ++it)
+    {      
+      if( (*it->second).HasVariableName(rLabel) )
+        return it->first;
+    }
+
+    return rLabel;
+  }
+  
   ///@}
   ///@name Inquiry
   ///@{
@@ -221,16 +231,17 @@ public:
 ///@}
 ///@name Input and output
 ///@{
+template<class TVariableType, class TValueType>
+inline std::istream & operator >> (std::istream & rIStream, TimeIntegrationMethodsContainer<TVariableType,TValueType>& rThis)
+{
+  return rIStream;
+}
 
-  inline std::istream & operator >> (std::istream & rIStream, TimeIntegrationMethodsContainer& rThis)
-  {
-    return rIStream;
-  }
-
-  inline std::ostream & operator << (std::ostream & rOStream, const TimeIntegrationMethodsContainer& rThis)
-  {
-    return rOStream << rThis.Info();
-  }
+template<class TVariableType, class TValueType>
+inline std::ostream & operator << (std::ostream & rOStream, const TimeIntegrationMethodsContainer<TVariableType,TValueType>& rThis)
+{
+  return rOStream << rThis.Info();
+}
 
 
 ///@}

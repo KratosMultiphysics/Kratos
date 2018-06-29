@@ -416,7 +416,6 @@ public:
     void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                    array_1d<double, 3 > & Output,
                    const ProcessInfo& rCurrentProcessInfo) override;
-    void IterativeExtrapolation(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process

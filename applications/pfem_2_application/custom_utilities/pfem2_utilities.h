@@ -1296,7 +1296,7 @@ public:
         for(ModelPart::PropertiesContainerType::iterator i_properties = full_model_part.PropertiesBegin() ;
                 i_properties != full_model_part.PropertiesEnd() ; ++i_properties)
         {
-            reduced_model_part.AddProperties(*(i_properties.base()),NumberOfProperties);
+            reduced_model_part.AddProperties(*(i_properties.base()));
 
         }
 	

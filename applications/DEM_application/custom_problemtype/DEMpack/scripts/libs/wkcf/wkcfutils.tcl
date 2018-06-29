@@ -11,7 +11,7 @@
 #    CREATED AT: 10/05/10
 #
 #    HISTORY:
-#
+#	  4.1- 08/05/18-M. Lopez,   create a new proc FindBoundariesOfNonSphericElements to substitute the old FindBoundaries_no_spheric_elems
 #     4.0- 10/10/13-G. Socorro, create a new proc GetMaterialPropertiesFromAttributes to get some material properties using
 #                                the container CLawProperties in the kratos_key_words.xml file
 #                               - Modify the proc GetMaterialProperties to write the the properties of the material model "HyperElastic-Plastic"
@@ -1959,7 +1959,7 @@ proc ::wkcf::FindBoundaries {entity} {
     return $boundarylist
 }
 
-proc ::wkcf::FindBoundaries_no_spheric_elems {entity} {
+proc ::wkcf::FindBoundariesOfNonSphericElements {entity} {
     # ABSTRACT: Return a list containing all boundaries entities
     # Arguments
     # entity => Entity to be processed
@@ -1993,6 +1993,40 @@ proc ::wkcf::FindBoundaries_no_spheric_elems {entity} {
 	    lappend boundarylist $surface_id
 	}
     }
+    return $boundarylist
+}
+
+proc ::wkcf::FindAllSurfacesOfNonSphericElements {entity} {
+    # ABSTRACT: Return a list containing all boundaries entities
+    # Arguments
+    # entity => surface
+
+	set surf_high_entities [list]
+	set surf_no_high_entities [list]
+	set boundarylist [list]
+
+	# Boundary surfaces of all the volumes in the domain
+    foreach volume_id [GiD_Geometry list volume 1:end] { ; #list of volume identifiers in the whole range
+		set volume_info [GiD_Info list_entities volume $volume_id] ; #info about those volumes
+		set is_spheric [regexp {Elemtype=9} $volume_info] ; #finding out if the element type is spheric
+
+		# Sphere volumes are excluded
+		if {$is_spheric==0} {
+		    foreach item [lrange [GiD_Geometry get volume $volume_id] 2 end] {
+		        lappend surf_high_entities [lindex $item 0]
+		   }
+		}
+    }
+
+	# Surfaces with no higher entities (not belonging to a volume)
+	set layers [GiD_Info layers]
+	foreach layer $layers {
+		lappend surf_no_high_entities [GiD_Info layers -entities surfaces -higherentity 0 $layer]
+	}
+
+	set boundarylist [concat {*}$surf_high_entities {*}$surf_no_high_entities]
+	#W "boundarylist surfaces: $boundarylist"
+
     return $boundarylist
 }
 
@@ -2042,7 +2076,7 @@ proc ::wkcf::FindBoundariesOfCircularElements {entity} {
 	}
 
 	set number_of_lines_in_the_surface [lindex [GiD_Geometry get surface $surface_id] 2]
-	
+
 	if {$is_circular==1} {
 	    foreach item [lrange [GiD_Geometry get surface $surface_id] 9 [expr {8 + $number_of_lines_in_the_surface}]] {
 		set line_id [lindex $item 0]
@@ -2061,13 +2095,13 @@ proc ::wkcf::FindBoundariesOfCircularElements {entity} {
 }
 
 proc ::wkcf::AssignGeometricalEntitiesToSkinSphere2D {} {
-    
+
     set list_of_points [GiD_Geometry list point 1:end]
     set list_of_lines [GiD_Geometry list line 1:end]
     if {![GiD_Groups exists SKIN_SPHERE_DO_NOT_DELETE]} {
-        GiD_Groups create SKIN_SPHERE_DO_NOT_DELETE
+	GiD_Groups create SKIN_SPHERE_DO_NOT_DELETE
     }
-    
+
     set points_to_add_to_skin_circles [list]
     set lines_to_add_to_skin_circles [list]
     set boundary_circle_line_list [::wkcf::FindBoundariesOfCircularElements line]
@@ -2083,14 +2117,14 @@ proc ::wkcf::AssignGeometricalEntitiesToSkinSphere3D {} {
     set list_of_lines [GiD_Geometry list line 1:end]
     set list_of_surfaces [GiD_Geometry list surface 1:end]
     if {![GiD_Groups exists SKIN_SPHERE_DO_NOT_DELETE]} {
-        GiD_Groups create SKIN_SPHERE_DO_NOT_DELETE
+	GiD_Groups create SKIN_SPHERE_DO_NOT_DELETE
     }
-    
+
     set points_to_add_to_skin_spheres [list]
     set lines_to_add_to_skin_spheres [list]
     set surfaces_to_add_to_skin_spheres [list]
     set bound_sphere_surface_list [::wkcf::FindBoundariesOfSphericElements surface]
-    
+
     foreach point_id $list_of_points line_id $list_of_lines surface_id $list_of_surfaces {
 	set point_info [GiD_Info list_entities point $point_id]
 	set line_info [GiD_Info list_entities line $line_id]

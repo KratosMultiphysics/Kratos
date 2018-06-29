@@ -2,41 +2,41 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## Source auxiliar procedures
     source [file join $problemtypedir ProjectParametersAuxProcs.tcl]
-        
+
     ## Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
     set FileVar [open $filename w]
-    
+
     puts $FileVar "\{"
-        
+
     ## problem_data
     puts $FileVar "    \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
-    puts $FileVar "        \"model_part_name\":      \"PorousDomain\","
-    puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
-    puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
+    puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
-    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
-    if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
-        puts $FileVar "        \"fracture_propagation\": false"
-    } else {
-        puts $FileVar "        \"fracture_propagation\": [GiD_AccessValue get gendata Fracture_Propagation]"
-    }
+    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads]"
     puts $FileVar "    \},"
-    
+
     ## solver_settings
     puts $FileVar "    \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         puts $FileVar "        \"solver_type\":                        \"poromechanics_MPI_U_Pw_solver\","
     } else {
-        puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+        if { [GiD_AccessValue get gendata Fracture_Propagation] eq false } {
+            puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+        } else {
+            puts $FileVar "        \"solver_type\":                        \"poromechanics_fracture_U_Pw_solver\","
+        }
     }
+    puts $FileVar "        \"model_part_name\":                    \"PorousDomain\","
+    puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
+    puts $FileVar "        \"start_time\":                         [GiD_AccessValue get gendata Start_Time],"
+    puts $FileVar "        \"time_step\":                          [GiD_AccessValue get gendata Delta_Time],"
     puts $FileVar "        \"model_import_settings\":              \{"
     puts $FileVar "            \"input_type\":       \"mdpa\","
-    puts $FileVar "            \"input_filename\":   \"$basename\","
-    puts $FileVar "            \"input_file_label\": 0"
+    puts $FileVar "            \"input_filename\":   \"$basename\""
     puts $FileVar "        \},"
     puts $FileVar "        \"buffer_size\":                        2,"
     puts $FileVar "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
@@ -47,9 +47,11 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     if {$IsPeriodic eq true} {
         puts $FileVar "        \"periodic_interface_conditions\":      true,"
         puts $FileVar "        \"reform_dofs_at_each_step\":           true,"
+        puts $FileVar "        \"nodal_smoothing\":                    true,"
     } else {
         puts $FileVar "        \"periodic_interface_conditions\":      false,"
         puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
+        puts $FileVar "        \"nodal_smoothing\":                    [GiD_AccessValue get gendata Nodal_Smoothing],"
     }
     puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
@@ -156,7 +158,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Body_Acceleration
     # Periodic_Bars
     if {$IsPeriodic eq true} {
-        set Groups [GiD_Info conditions Interface_Part groups]    
+        set Groups [GiD_Info conditions Interface_Part groups]
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             if {[lindex [lindex $Groups $i] 20] eq true} {
                 append PutStrings \" Periodic_Bars_[lindex [lindex $Groups $i] 1] \" ,
@@ -171,7 +173,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Body_Part
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+    if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
         puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings,"
         ## loads_sub_model_part_list
         set PutStrings \[
@@ -221,7 +223,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings"
         puts $FileVar "    \},"
     }
-    
+
     ## output_configuration
     puts $FileVar "    \"output_configuration\": \{"
     puts $FileVar "        \"result_file_configuration\": \{"
@@ -264,9 +266,12 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         incr iGroup
         append PutStrings \" PARTITION_INDEX \" ,
     }
-    if {$IsPeriodic eq true} {
-        incr iGroup
-        append PutStrings \" NODAL_CAUCHY_STRESS_TENSOR \" , \" NODAL_VON_MISES_STRESS \" ,
+    # Nodal smoothed variables
+    if {[GiD_AccessValue get gendata Nodal_Smoothing] eq true} {
+        AppendOutputVariables PutStrings iGroup Write_Effective_Stress NODAL_CAUCHY_STRESS_TENSOR
+        AppendOutputVariables PutStrings iGroup Write_Damage NODAL_DAMAGE_VARIABLE
+        AppendOutputVariables PutStrings iGroup Write_Joint_Width NODAL_JOINT_WIDTH
+        AppendOutputVariables PutStrings iGroup Write_Damage NODAL_JOINT_DAMAGE
     }
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
@@ -296,7 +301,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \},"
     puts $FileVar "        \"point_data_configuration\":  \[\]"
     puts $FileVar "    \},"
-    
+
     ## constraints_process_list
     set Groups [GiD_Info conditions Solid_Displacement groups]
     set NumGroups [llength $Groups]
@@ -375,6 +380,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     }
 
     puts $FileVar "\}"
-    
+
     close $FileVar
 }

@@ -46,6 +46,8 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -55,6 +57,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/brute_force_point_locator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/sub_model_parts_list_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
@@ -106,7 +109,8 @@ set( KRATOS_PYTHON_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_memory_info_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 )
 

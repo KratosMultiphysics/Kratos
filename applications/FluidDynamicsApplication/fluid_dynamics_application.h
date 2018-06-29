@@ -40,6 +40,7 @@
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/d_vms.h"
+#include "custom_elements/fic.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 #include "custom_elements/embedded_fluid_element.h"
 //#include "custom_elements/dynamic_vms.h"
@@ -72,6 +73,8 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/fic_data.h"
+#include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
@@ -80,6 +83,7 @@
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 
 
 namespace Kratos
@@ -253,6 +257,12 @@ private:
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
+    const FIC< FICData<2,3> > mFIC2D3N;
+    const FIC< FICData<2,4> > mFIC2D4N;
+    const FIC< FICData<3,4> > mFIC3D4N;
+    const FIC< FICData<3,8> > mFIC3D8N;
+    const FIC< TimeIntegratedFICData<2,3> > mTimeIntegratedFIC2D3N;
+    const FIC< TimeIntegratedFICData<3,4> > mTimeIntegratedFIC3D4N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
@@ -364,6 +374,7 @@ private:
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
     const Newtonian2DLaw mNewtonian2DLaw;
     const Newtonian3DLaw mNewtonian3DLaw;
+    const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
 
     ///@}
     ///@name Private Operators

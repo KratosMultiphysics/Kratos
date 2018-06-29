@@ -63,11 +63,12 @@ namespace Kratos
 
 	void  LinearElasticOrthotropic2DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 	{
-		//1.- Lame constants
-		//const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
-		//const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+        KRATOS_TRY;
+        // 1.- Lame constants
+        // const double& YoungModulus = MaterialProperties[YOUNG_MODULUS];
+        // const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
 
-		//a.-Check if the constitutive parameters are passed correctly to the law calculation
+        //a.-Check if the constitutive parameters are passed correctly to the law calculation
 		//CheckParameters(rValues);
 
 		//b.- Get Values to compute the constitutive law:
@@ -76,7 +77,6 @@ namespace Kratos
 		const Properties& MaterialProperties = rValues.GetMaterialProperties();
 
 		Vector& StrainVector = rValues.GetStrainVector();
-		Vector& StressVector = rValues.GetStressVector();
 
 		//-----------------------------//
 
@@ -98,6 +98,7 @@ namespace Kratos
 
 		if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS))
 		{
+			Vector& StressVector = rValues.GetStressVector();
 			if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
 			{
 				Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
@@ -117,9 +118,10 @@ namespace Kratos
 			Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 			this->CalculateLinearElasticMatrix(ConstitutiveMatrix, MaterialProperties);
 		}
-	}
+        KRATOS_CATCH("");
+    }
 
-	//************************************************************************************
+    //************************************************************************************
 	//************************************************************************************
 
 	bool& LinearElasticOrthotropic2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)

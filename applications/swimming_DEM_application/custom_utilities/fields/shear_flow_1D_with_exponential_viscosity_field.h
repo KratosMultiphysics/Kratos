@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-class ShearFlow1DWithExponentialViscosityField : public VelocityField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) ShearFlow1DWithExponentialViscosityField : public VelocityField
 {
 public:
 

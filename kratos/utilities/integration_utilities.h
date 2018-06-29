@@ -34,7 +34,7 @@ namespace Kratos
 class IntegrationUtilities
 {
 public:
-    static Geometry<Node<3> >::IntegrationMethod GetIntegrationMethodForExactMassMatrixEvaluation(Geometry<Node<3>>& geom)
+    static Geometry<Node<3> >::IntegrationMethod GetIntegrationMethodForExactMassMatrixEvaluation(Geometry<Node<3>> const& geom)
     {
         Geometry<Node<3> >::IntegrationMethod integration_method = geom.GetDefaultIntegrationMethod();
         if(integration_method == GeometryData::GI_GAUSS_1)

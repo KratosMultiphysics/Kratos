@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "includes/serializer.h"
 #include "includes/table_stream.h"
 
 namespace Kratos
@@ -134,6 +135,24 @@ public:
         return mTable;
     }
     
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "TableStreamUtility";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info() << std::endl;
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info() << std::endl;
+    }
+
 protected:
 
     ///@name Protected static Member Variables
@@ -189,6 +208,18 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Table", mTable);
+    }
+
+    void load(Serializer& rSerializer)
+    {
+        rSerializer.load("Table", mTable);
+    }
 
     ///@name Private Inquiry
     ///@{

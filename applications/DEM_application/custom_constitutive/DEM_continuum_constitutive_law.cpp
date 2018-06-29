@@ -124,7 +124,6 @@ namespace Kratos {
 
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
         //double a = 1.4142-equiv_gamma*equiv_gamma;
-        //KRATOS_WATCH(a)
 
         //double sqr_period = kn_el / equiv_mass - rescaled_damping*rescaled_damping;
         double sqr_period = sqrt(2.0) * kn_el / equiv_mass - rescaled_damping*rescaled_damping;   //esta es la correcta en continuu suponiendo un maximo de Kt= Kn

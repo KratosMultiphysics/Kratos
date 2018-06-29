@@ -1,7 +1,10 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+# Importing the Kratos Library
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
+
+# Other imports
 import os
 
 def GetFilePath(fileName):
@@ -26,22 +29,17 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
         model_part_io.ReadModelPart(model_part)
 
-        #define a Model TODO: replace to use the real Model once available
-        Model = {
-            "Main" : model_part,
-            "Inlets" : model_part.GetSubModelPart("Inlets"),
-            "Inlet1" : model_part.GetSubModelPart("Inlets").GetSubModelPart("Inlet1"),
-            "Inlet2" : model_part.GetSubModelPart("Inlets").GetSubModelPart("Inlet2"),
-            "Outlet" : model_part.GetSubModelPart("Outlet")
-            }
+        # Define a Model
+        Model = KratosMultiphysics.Model()
+        Model.AddModelPart(model_part)
 
         test_settings = KratosMultiphysics.Parameters("""
-            {
-                    "Parameters": {
-                            "materials_filename": "materials.json"
-                    }
+        {
+            "Parameters": {
+                    "materials_filename": "materials.json"
             }
-            """)
+        }
+        """)
 
         #assign the real path
         test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("materials.json"))

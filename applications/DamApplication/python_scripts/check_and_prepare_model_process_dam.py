@@ -1,23 +1,23 @@
-import KratosMultiphysics 
+import KratosMultiphysics
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcess(Model, settings["Parameters"])
 
 
-##all the python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
-    
+
     def __init__(self, main_model_part, Parameters ):
-        
+
         self.main_model_part = main_model_part
-        
+
         self.thermal_model_part_name  = Parameters["thermal_model_part_name"].GetString()
         self.thermal_domain_sub_model_part_list = Parameters["thermal_domain_sub_model_part_list"]
         self.thermal_loads_sub_model_part_list = Parameters["thermal_loads_sub_model_part_list"]
         self.thermal_domain_sub_sub_model_part_list = Parameters["thermal_domain_sub_sub_model_part_list"]
-        
+
         self.mechanical_model_part_name  = Parameters["mechanical_model_part_name"].GetString()
         self.mechanical_domain_sub_model_part_list = Parameters["mechanical_domain_sub_model_part_list"]
         self.mechanical_loads_sub_model_part_list = Parameters["mechanical_loads_sub_model_part_list"]
@@ -27,7 +27,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.loads_sub_sub_model_part_list = Parameters["loads_sub_sub_model_part_list"]
 
     def Execute(self):
-        
+
         ## Construct the thermal model part:
         thermal_parts = []
         for i in range(self.thermal_domain_sub_model_part_list.size()):
@@ -75,7 +75,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 list_of_ids.add(node.Id)
             thermal_sub_sub_model_part.AddNodes(list(list_of_ids))
         print(thermal_model_part)
-        
+
         ## Construct the mechanical model part:
         mechanical_parts = []
         for i in range(self.mechanical_domain_sub_model_part_list.size()):

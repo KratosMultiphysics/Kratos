@@ -26,14 +26,17 @@ namespace Kratos
     namespace Testing
     {
         typedef Node<3> NodeType;
-        typedef std::unordered_map<int,int> IntIntMapType;
-        typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
+        typedef std::size_t IndexSize;
+        typedef std::unordered_map<IndexSize,IndexSize> IndexIntMapType;
+        typedef std::unordered_map<IndexSize,std::vector<std::string>> IntStringMapType;
+        typedef std::map<std::pair<IndexSize,IndexSize>,IndexSize> PairIntMapType;
+        typedef std::unordered_map<IndexSize,std::vector<ModelPart*>> IntModelPartPtrMapType;
 
         /**
         * Checks the correct work of the sub modelparts list utility
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosSubModelPartsListUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosCoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
             ModelPart first_model_part("Main");
@@ -98,7 +101,7 @@ namespace Kratos
 
             SubModelPartsListUtility colors_utility(first_model_part);
 
-            IntIntMapType nodes_colors, cond_colors, elem_colors;
+            IndexIntMapType nodes_colors, cond_colors, elem_colors;
             IntStringMapType colors;
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
@@ -114,9 +117,9 @@ namespace Kratos
             second_model_part.AddElements(first_model_part.Elements().begin(), first_model_part.Elements().end());
 
             for (auto & nodes_color : nodes_colors) {
-                const int id = nodes_color.first;
+                const IndexSize id = nodes_color.first;
                 NodeType::Pointer p_node = second_model_part.pGetNode(id);
-                const int key = nodes_color.second;
+                const IndexSize key = nodes_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -127,9 +130,9 @@ namespace Kratos
                 }
             }
             for (auto & elems_color : elem_colors) {
-                const int id = elems_color.first;
+                const IndexSize id = elems_color.first;
                 ElementType::Pointer p_elem = second_model_part.pGetElement(id);
-                const int key = elems_color.second;
+                const IndexSize key = elems_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -167,7 +170,7 @@ namespace Kratos
         * Checks the correct work of the modelparts colors utility (with different sublevels of modelparts)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosSubModelPartsListUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosCoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts
             ModelPart first_model_part("Main");
@@ -238,7 +241,7 @@ namespace Kratos
 
             SubModelPartsListUtility colors_utility(first_model_part);
 
-            IntIntMapType nodes_colors, cond_colors, elem_colors;
+            IndexIntMapType nodes_colors, cond_colors, elem_colors;
             IntStringMapType colors;
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
@@ -256,9 +259,9 @@ namespace Kratos
             second_model_part.AddElements(first_model_part.Elements().begin(), first_model_part.Elements().end());
 
             for (auto & nodes_color : nodes_colors) {
-                const int id = nodes_color.first;
+                const IndexSize id = nodes_color.first;
                 NodeType::Pointer p_node = second_model_part.pGetNode(id);
-                const int key = nodes_color.second;
+                const IndexSize key = nodes_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -269,9 +272,9 @@ namespace Kratos
                 }
             }
             for (auto & elems_color : elem_colors) {
-                const int id = elems_color.first;
+                const IndexSize id = elems_color.first;
                 ElementType::Pointer p_elem = second_model_part.pGetElement(id);
-                const int key = elems_color.second;
+                const IndexSize key = elems_color.second;
                 if (key != 0) {// NOTE: key == 0 is the MainModelPart
                     if (colors.find(key) != colors.end()) {
                         for (auto sub_model_part_name : colors[key]) {
@@ -305,57 +308,5 @@ namespace Kratos
             }
         }
 
-
-        /**
-        * Checks the correct work of the modelparts colors utility (computing the colors intersection)
-        */
-
-        KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityIntersections, KratosSubModelPartsListUtilityFastSuite)
-        {
-            // Creating the reference model part and the relative submodelparts
-            ModelPart model_part("Main");
-            ModelPart::Pointer p_sub_modelpart_1 = model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart::Pointer p_sub_modelpart_2 = model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart::Pointer p_sub_modelpart_3 = model_part.CreateSubModelPart("ZSubModelPart3");
-
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = model_part.CreateNewNode(3, 2.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_4 = model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_5 = model_part.CreateNewNode(5, 1.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_6 = model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-
-            // Add the nodes to sub model parts
-            p_sub_modelpart_1->AddNode(p_node_1);
-            p_sub_modelpart_1->AddNode(p_node_4);
-            p_sub_modelpart_2->AddNode(p_node_4);
-            p_sub_modelpart_2->AddNode(p_node_5);
-            p_sub_modelpart_2->AddNode(p_node_6);
-            p_sub_modelpart_3->AddNode(p_node_3);
-            p_sub_modelpart_3->AddNode(p_node_6);
-
-            SubModelPartsListUtility colors_utility(model_part);
-
-            IntIntMapType nodes_colors, cond_colors, elem_colors;
-            IntStringMapType colors;
-            colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
-
-            int key;
-            // The intersection gives the main model part
-            key = colors_utility.IntersectKeys(nodes_colors[p_node_1->Id()], nodes_colors[p_node_3->Id()], colors);
-            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_2->Id()]);
-            KRATOS_CHECK_EQUAL(key, 0);
-
-            // The intersection is a sub model part
-            key = colors_utility.IntersectKeys(nodes_colors[p_node_4->Id()], nodes_colors[p_node_6->Id()], colors);
-            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_5->Id()]);
-
-            // The input is included in the intersection
-            key = colors_utility.IntersectKeys(nodes_colors[p_node_1->Id()], nodes_colors[p_node_4->Id()], colors);
-            KRATOS_CHECK_EQUAL(key, nodes_colors[p_node_1->Id()]);
-        }
-
     } // namespace Testing
 }  // namespace Kratos.
-

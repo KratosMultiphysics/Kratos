@@ -32,12 +32,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   typedef std::vector<SpatialBoundingBox::Pointer>   BoundingBoxContainer;
 
   // Mesh modeler process
-  class_<ContactRefineMeshBoundaryProcess, RefineMeshBoundaryProcess>(m,"ContactRefineMeshBoundary")
+  class_<ContactRefineMeshBoundaryProcess, ContactRefineMeshBoundaryProcess::Pointer, RefineMeshBoundaryProcess>(m,"ContactRefineMeshBoundary")
       .def(init<ModelPart&, BoundingBoxContainer&, ModelerUtilities::MeshingParameters&, int>())
       ;
 
   // Set initial mechanical state
-  class_<SetMechanicalInitialStateProcess, Process>(m,"SetMechanicalInitialStateProcess")
+  class_<SetMechanicalInitialStateProcess, SetMechanicalInitialStateProcess::Pointer, Process>(m,"SetMechanicalInitialStateProcess")
       .def(init<ModelPart&, Parameters>())
       .def(init< ModelPart&, Parameters >())
       .def("Execute", &SetMechanicalInitialStateProcess::Execute)

@@ -24,7 +24,6 @@
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
 #include "custom_utilities/process_factory_utility.h"
-#include "custom_utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos
 {
@@ -40,6 +39,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<2, 2>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<2, 2>::ClearMortarConditions)
+    .def("CheckContactModelParts",&TreeContactSearch<2, 2>::CheckContactModelParts)
     .def("CreatePointListMortar",&TreeContactSearch<2, 2>::CreatePointListMortar)
     .def("UpdatePointListMortar",&TreeContactSearch<2, 2>::UpdatePointListMortar)
     .def("UpdateMortarConditions",&TreeContactSearch<2, 2>::UpdateMortarConditions)
@@ -52,6 +52,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 3>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<3, 3>::ClearMortarConditions)
+    .def("CheckContactModelParts",&TreeContactSearch<3, 3>::CheckContactModelParts)
     .def("CreatePointListMortar",&TreeContactSearch<3, 3>::CreatePointListMortar)
     .def("UpdatePointListMortar",&TreeContactSearch<3, 3>::UpdatePointListMortar)
     .def("UpdateMortarConditions",&TreeContactSearch<3, 3>::UpdateMortarConditions)
@@ -64,6 +65,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 4>::InitializeMortarConditions)
     .def("ClearMortarConditions",&TreeContactSearch<3, 4>::ClearMortarConditions)
+    .def("CheckContactModelParts",&TreeContactSearch<3, 4>::CheckContactModelParts)
     .def("CreatePointListMortar",&TreeContactSearch<3, 4>::CreatePointListMortar)
     .def("UpdatePointListMortar",&TreeContactSearch<3, 4>::UpdatePointListMortar)
     .def("UpdateMortarConditions",&TreeContactSearch<3, 4>::UpdateMortarConditions)
@@ -90,14 +92,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("IsOutputStep",&ProcessFactoryUtility::IsOutputStep)
     .def("PrintOutput",&ProcessFactoryUtility::PrintOutput)
     .def("Clear",&ProcessFactoryUtility::Clear)
-    ;
-
-    // Sparse matrix multiplication utility
-    class_<SparseMatrixMultiplicationUtility, typename SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
-    .def(init<>())
-    .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
-    .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
-    .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
     ;
 }
 

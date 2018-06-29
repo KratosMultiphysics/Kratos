@@ -61,13 +61,20 @@ class ContactStructuralMechanicsTestFactory(KratosUnittest.TestCase):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             # Creating the test
-            self.test = contact_structural_mechanics_analysis.ContactStructuralMechanicsAnalysis(ProjectParameters)
+            model = KratosMultiphysics.Model()
+            self.test = contact_structural_mechanics_analysis.ContactStructuralMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
+
+    def modify_parameters(self, project_parameters):
+        """This function can be used in derived classes to modify existing parameters
+        before the execution of the test (e.g. switch to MPI)
+        """
+        pass
 
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.RunMainTemporalLoop()
+            self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:

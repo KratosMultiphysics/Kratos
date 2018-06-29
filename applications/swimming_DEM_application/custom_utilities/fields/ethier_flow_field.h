@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-class EthierFlowField : public VelocityField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) EthierFlowField : public VelocityField
 {
 public:
 

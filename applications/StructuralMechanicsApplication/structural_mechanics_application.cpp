@@ -73,8 +73,6 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mShellThinCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3))), true),
       mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3))), true),
       // Adding the membrane element
-      mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-      mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mPreStressMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mPreStressMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       // Adding the SPRISM element
@@ -170,10 +168,13 @@ void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "     KRATOS   ___|  |                   |                   |                     " << std::endl;
-    std::cout << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                   " << std::endl;
-    std::cout << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl;
-    std::cout << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
+    KRATOS_INFO("") << "     KRATOS   ___|  |                   |                   |                     " << std::endl
+                    << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                   " << std::endl
+                    << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl
+                    << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
+
+    // General pourpose
+    KRATOS_REGISTER_VARIABLE(INTEGRATION_ORDER); // The integration order considered on the element
 
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
@@ -197,6 +198,9 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Truss generalized variables
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
+    KRATOS_REGISTER_VARIABLE(HARDENING_MODULUS_1D)
+    KRATOS_REGISTER_VARIABLE(TANGENT_MODULUS)
+    KRATOS_REGISTER_VARIABLE(PLASTIC_ALPHA)
 
     // Beam generalized variables
     KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Y)
@@ -245,14 +249,19 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Prestresse membrane generalized vairiables
     KRATOS_REGISTER_VARIABLE( MEMBRANE_PRESTRESS )
+    KRATOS_REGISTER_VARIABLE( PRESTRESS_VECTOR )
     KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_1_GLOBAL )
     KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_2_GLOBAL )
-    KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_1_LOCAL )
-    KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_2_LOCAL )
+    KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_1 )
+    KRATOS_REGISTER_VARIABLE( PRESTRESS_AXIS_2 )
+    KRATOS_REGISTER_VARIABLE( PROJECTION_TYPE_COMBO )
 
     // Formfinding
     KRATOS_REGISTER_VARIABLE(LAMBDA_MAX)
     KRATOS_REGISTER_VARIABLE(IS_FORMFINDING)
+    KRATOS_REGISTER_VARIABLE(BASE_REF_1)
+    KRATOS_REGISTER_VARIABLE(BASE_REF_2)
+    
 
 
     // Cross section
@@ -338,8 +347,6 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
 
     // Register the membrane element
-    KRATOS_REGISTER_ELEMENT("MembraneElement3D3N", mMembraneElement3D3N)
-    KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
     KRATOS_REGISTER_ELEMENT("PreStressMembraneElement3D3N", mPreStressMembraneElement3D3N)
     KRATOS_REGISTER_ELEMENT("PreStressMembraneElement3D4N", mPreStressMembraneElement3D4N)
 
@@ -452,6 +459,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
     // Register linear elastics laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussConstitutiveLaw", mTrussConstitutiveLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussPlasticityConstitutiveLaw", mTrussPlasticityConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BeamConstitutiveLaw", mBeamConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mElasticIsotropic3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mLinearPlaneStrain);

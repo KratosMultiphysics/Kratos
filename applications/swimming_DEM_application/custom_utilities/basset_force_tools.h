@@ -38,7 +38,7 @@
 
 namespace Kratos
 {
-class BassetForceTools
+class KRATOS_API(SWIMMING_DEM_APPLICATION) BassetForceTools
 {
 public:
 

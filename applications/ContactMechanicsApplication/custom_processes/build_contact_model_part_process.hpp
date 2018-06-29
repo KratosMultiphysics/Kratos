@@ -362,8 +362,8 @@ namespace Kratos
     
       //*******************************************************************
       //set holes (inside point of the contact domains):
-      std::vector<bounded_vector<double, 3> > Holes;
-      bounded_vector<double, 3> Point;
+      std::vector<BoundedVector<double, 3> > Holes;
+      BoundedVector<double, 3> Point;
 
       for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
 	{

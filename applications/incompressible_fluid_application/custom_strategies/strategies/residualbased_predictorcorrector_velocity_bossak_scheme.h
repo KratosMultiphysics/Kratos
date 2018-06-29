@@ -231,41 +231,16 @@ public:
         KRATOS_CATCH("")
     }
 
-    //***************************************************************************
-    virtual void BasicUpdateOperations(
-        ModelPart& rModelPart,
+    void BasicUpdateOperations(
+        ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
-        TSystemVectorType& Dv,
-        TSystemVectorType& b
-    )
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
     {
-        KRATOS_TRY
-
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(),NumThreads,DofSetPartition);
-
-        //update of velocity (by DOF)
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofSetBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofSetEnd = rDofSet.begin() + DofSetPartition[k+1];
-
-            for (typename DofsArrayType::iterator itDof = DofSetBegin; itDof != DofSetEnd; itDof++)
-            {
-                if (itDof->IsFree())
-                {
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dv,itDof->EquationId());
-                }
-            }
-
-        }
-
-        KRATOS_CATCH("")
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
     }
+
 
     void AdditionalUpdateOperations(
         ModelPart& rModelPart,
@@ -618,6 +593,11 @@ public:
     //************************************************************************************************
     //************************************************************************************************
 
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
+    }
+
     /*@} */
     /**@name Operations */
     /*@{ */
@@ -837,6 +817,9 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
     /*		Matrix mMass;
                     Matrix mDamp;
 

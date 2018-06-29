@@ -22,6 +22,7 @@
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "utilities/geometrical_sensitivity_utility.h"
 
 namespace Kratos
 {
@@ -120,7 +121,31 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
+
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    ///StressMeasure from constitutive laws
+    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// This is the definition of the node.
+    typedef Node<3> NodeType;
+
+    /// The base element type
+    typedef Element BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_POINTER_DEFINITION( BaseSolidElement );
 
@@ -140,6 +165,12 @@ public:
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
     {};
 
+    // Copy constructor
+    BaseSolidElement(BaseSolidElement const& rOther)
+        :BaseType(rOther)
+        ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
+    {};
+
     // Destructor
     ~BaseSolidElement() override
     {};
@@ -147,7 +178,6 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -209,6 +239,15 @@ public:
         ) override;
 
     /**
+     * @brief Returns the used integration method
+     * @return default integration method of the used Geometry
+     */
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mThisIntegrationMethod;
+    }
+
+    /**
      * @brief Sets on rValues the nodal displacements
      * @param rValues The values of displacements
      * @param Step The step to be computed
@@ -248,6 +287,16 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix, 
         VectorType& rRightHandSideVector, 
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This is called during the assembling process in order to calculate the elemental left hand side matrix only
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -484,7 +533,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
+    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
+
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
@@ -534,7 +585,7 @@ protected:
      */ 
     virtual void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables, 
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         );
         
@@ -551,7 +602,7 @@ protected:
         KinematicVariables& rThisKinematicVariables, 
         ConstitutiveVariables& rThisConstitutiveVariables, 
         ConstitutiveLaw::Parameters& rValues,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
         );
@@ -576,7 +627,7 @@ protected:
         Matrix& rJ0, 
         Matrix& rInvJ0, 
         Matrix& rDN_DX, 
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
         );
     
@@ -593,7 +644,7 @@ protected:
         Matrix& rJ, 
         Matrix& rInvJ, 
         Matrix& rDN_DX, 
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
         );
     
@@ -604,7 +655,7 @@ protected:
      */ 
     Vector GetBodyForce(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const IndexType PointNumber
         ) const;
     
     /**
@@ -676,11 +727,13 @@ protected:
      * @param detJ The determinant of the jacobian of the element
      */
     virtual double GetIntegrationWeight(
-        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
-        const unsigned int PointNumber,
+        const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
+        const IndexType PointNumber,
         const double detJ
         );
-    
+
+    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
+
     ///@}
     ///@name Protected  Access
     ///@{

@@ -34,7 +34,6 @@
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
-#include "utilities/sub_model_parts_list_utility.h"
 
 
 namespace Kratos
@@ -216,16 +215,13 @@ private:
     IndexType mBufferSize;           /// The buffer size
     NodeType::DofsContainerType mDofs;  /// Storage for the dof of the node
 
-    std::unordered_map<int,int> mNodesColorMap;
-    std::unordered_map<int,int> mCondColorMap;
-    std::unordered_map<int,int> mElemColorMap;
-    std::unordered_map<int,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
+    std::unordered_map<IndexType,IndexType> mNodesColorMap;
+    std::unordered_map<IndexType,IndexType> mCondColorMap;
+    std::unordered_map<IndexType,IndexType> mElemColorMap;
+    std::unordered_map<IndexType,std::vector<std::string>> mColors;    /// Where the sub model parts IDs are stored
 
     NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored
     NodesInFaceMapType mNodesInFaceMap;        /// Where the father nodes IDs are stored
-
-    SubModelPartsListUtility mSubModelPartsColors;
-
 
     ///@}
     ///@name Private Operators
@@ -247,7 +243,7 @@ private:
      * If the middle node is created before, do nothing
      * If the middle node does not exist, create a new one and set the nodal values
      */
-    void CreateNodeInEdge(const EdgeType& rEdge, const int& rRefinementLevel);
+    typename NodeType::Pointer  CreateNodeInEdge(const EdgeType& rEdge, const int& rRefinementLevel);
 
     /**
      * Get the middle node on an edge and return a pointer to it
@@ -260,7 +256,7 @@ private:
      * If the middle node is created before, do nothing
      * If the middle node does not exist, create a new one
      */
-    void CreateNodeInFace(const FaceType& rFace, const int& rRefinementLevel);
+    typename NodeType::Pointer  CreateNodeInFace(const FaceType& rFace, const int& rRefinementLevel);
 
     /**
      * Get the node inside a face
@@ -302,7 +298,7 @@ private:
      */
     void CreateElement(
         Element::Pointer pOriginElement,
-        std::vector<NodeType::Pointer> ThisNodes,
+        std::vector<NodeType::Pointer>& rThisNodes,
         const int& rRefinementLevel
         );
 
@@ -314,7 +310,7 @@ private:
      */
     void CreateCondition(
         Condition::Pointer pOriginCondition,
-        std::vector<NodeType::Pointer> ThisNodes,
+        std::vector<NodeType::Pointer>& rThisNodes,
         const int& rRefinementLevel
         );
 
@@ -333,7 +329,7 @@ private:
     std::vector<typename NodeType::Pointer> GetSubTriangleNodes(
         const int Position,
         const Geometry<NodeType>& rGeom,
-        std::array<NodeType::Pointer, 3>& rMiddleNodes
+        std::vector<NodeType::Pointer>& rMiddleNodes
         );
 
     /**
@@ -342,8 +338,22 @@ private:
     std::vector<typename NodeType::Pointer> GetSubQuadrilateralNodes(
         const int Position,
         const Geometry<NodeType>& rGeom,
-        std::array<NodeType::Pointer, 5>& rMiddleNodes
+        std::vector<NodeType::Pointer>& rMiddleNodes
         );
+
+    /**
+     * This method adds a node to the sub model parts  
+     * specified by a tag
+     * TODO: improve this function with Model
+     */
+    void AddNodeToSubModelParts(NodeType::Pointer pNode, IndexType Tag);
+
+    /**
+     * This method adds the nodes to the sub model parts  
+     * specified by a tag
+     * TODO: improve this function with Model
+     */
+    void AddNodesToSubModelParts(std::vector<NodeType::Pointer>& rThisNodes, IndexType Tag);
 
     ///@}
     ///@name Private  Access

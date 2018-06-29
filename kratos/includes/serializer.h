@@ -426,6 +426,7 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
+	KRATOS_SERIALIZATION_DIRECT_LOAD(std::complex<double>)
 
 	template<class TDataType, std::size_t TDataSize>
 	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
@@ -637,6 +638,7 @@ public:
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::size_t)
 #endif
+	KRATOS_SERIALIZATION_DIRECT_SAVE(std::complex<double>)
 
 
     template<class TDataType>

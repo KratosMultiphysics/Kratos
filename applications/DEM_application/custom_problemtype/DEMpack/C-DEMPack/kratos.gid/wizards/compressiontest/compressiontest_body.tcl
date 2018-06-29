@@ -2233,7 +2233,7 @@ proc ::kwiz::Terminate { } {
 
      # Tamaños !
      wm minsize $bwinpath 855 715
-     wm maxsize $bwinpath 855 715
+     #wm maxsize $bwinpath 855 715
 
      # First destroy all defined command (snit step data type)
      foreach cmdid [info commands ::kwiz::step*] {
