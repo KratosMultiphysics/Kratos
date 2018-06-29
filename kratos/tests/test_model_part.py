@@ -671,7 +671,7 @@ class TestModelPart(KratosUnittest.TestCase):
         c1 = MasterSlaveConstraint(10)
         c2 = model_part.CeateNewMasterSlaveConstraint("MasterSlaveConstraint", 1, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
 
-        print("Python test completion ...")
+        model_part.AddMasterSlaveConstraint(c1)
 
 
 if __name__ == '__main__':
