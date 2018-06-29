@@ -84,6 +84,7 @@
                 "model_part_name" : "Parts_Parts_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "interval"        : [0.0, "End"],
+                "reference_conf"  : true,
                 "value"           : ["1.0e-7 * (x + y/2)", "1.0e-7 * (y + x/2)", 0.0],
                 "tolerance_rank"  : 3
         }
@@ -101,6 +102,26 @@
             }
     }
     ],
+    "_output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION"],
+            "gauss_point_results" : ["VON_MISES_STRESS"]
+        },
+        "point_data_configuration"  : []
+    },
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,
