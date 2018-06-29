@@ -21,7 +21,6 @@
 #include "includes/node.h"
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
-#include "containers/master_slave_relation.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
@@ -63,6 +62,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
   public:
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
+    typedef IndexedObject BaseType;
     typedef std::size_t IndexType;
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofPointerVectorType;
@@ -312,7 +312,9 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     ///@}
     virtual void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << " Constraint base class !" << std::endl;
+        rOStream << " MasterSlaveConstraint Id  : " <<Id()<<std::endl;
+        rOStream << " Number of Slaves          : " <<mSlaveDofsVector.size()<<std::endl;
+        rOStream << " Number of Masters         : " <<mMasterDofsVector.size()<<std::endl;
     }
 
     ///@name Serialization
