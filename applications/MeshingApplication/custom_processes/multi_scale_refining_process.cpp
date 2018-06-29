@@ -48,8 +48,8 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     mDivisions = mParameters["number_of_divisions_at_level"].GetInt();
     mConditionName = mParameters["refining_boundary_condition"].GetString();
 
-    std::string own_name = mParameters["own_name"].GetString();
-    std::string refined_name = mParameters["refined_name"].GetString();
+    std::string own_name = mParameters["own_model_part_name"].GetString();
+    std::string refined_name = mParameters["refined_model_part_name"].GetString();
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;

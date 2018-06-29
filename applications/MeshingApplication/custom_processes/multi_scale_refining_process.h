@@ -22,10 +22,8 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 
 
@@ -64,7 +62,8 @@ namespace Kratos {
  *             Own
  *             ...
  */
-class MultiScaleRefiningProcess : public Process {
+class MultiScaleRefiningProcess : public Process
+{
 public:
 
     ///@name Type Definitions
@@ -110,13 +109,14 @@ public:
         );
 
     /// Destructor.
-    virtual ~MultiScaleRefiningProcess() {}
+    ~MultiScaleRefiningProcess() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
-    void operator()() {
+    void operator()()
+    {
         Execute();
     }
 
@@ -124,7 +124,7 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override;
+    void Execute() override {}
 
     ///@}
     ///@name Access
@@ -147,7 +147,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "MultiScaleRefiningProcess";
+        rOStream << Info();
     }
 
     /// Print object's data.
@@ -260,10 +260,10 @@ public:
     ///@{
 
     /// Assignment operator.
-    MultiScaleRefiningProcess& operator=(MultiScaleRefiningProcess const& rOther);
+    // MultiScaleRefiningProcess& operator=(MultiScaleRefiningProcess const& rOther);
 
     /// Copy constructor.
-    //MultiScaleRefiningProcess(MultiScaleRefiningProcess const& rOther);
+    // MultiScaleRefiningProcess(MultiScaleRefiningProcess const& rOther);
 
     ///@}
 
