@@ -45,8 +45,9 @@ typename TVariableType::Type GetValueHelperFunction(TContainerType &el, const TV
 
 void AddConstraintToPython(pybind11::module &m)
 {
-    class_<MasterSlaveConstraint>(m, "MasterSlaveConstraint")
+    class_<MasterSlaveConstraint, MasterSlaveConstraint::Pointer>(m, "MasterSlaveConstraint")
         .def(init<>())
+        .def(init<int>())
         .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
         .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
         .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< bool > >)
