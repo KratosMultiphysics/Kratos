@@ -122,8 +122,8 @@ public:
         ere1 = SumC / SumA;
 
         // Check SimoJu criterion
-        if (std::abs(StrainVector[0]) > tolerance) {
-            rEqStress = 0;
+        if (std::abs(StrainVector[0]) < tolerance && std::abs(StrainVector[1]) < tolerance) {
+            rEqStress = 0.0;
         } else {
             double auxf = 0.0;
             for (std::size_t cont = 0; cont < 6; cont++) {
