@@ -37,6 +37,7 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_laplace_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/curve_base_discrete_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_discrete_element.cpp
 
 	##CONDITIONS  ContinuityConditionPenalty

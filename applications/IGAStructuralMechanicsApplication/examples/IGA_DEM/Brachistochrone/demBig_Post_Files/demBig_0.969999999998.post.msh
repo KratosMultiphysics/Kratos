@@ -1,0 +1,12 @@
+MESH "Kratos Mesh" dimension 3 ElemType Sphere Nnode 1
+Coordinates
+1 1.12543 0.028 -2.38781
+End Coordinates
+Elements
+1 1 0.01 1
+End Elements
+MESH "Kratos Mesh" dimension 3 ElemType Point Nnode 1
+Coordinates
+End Coordinates
+Elements
+End Elements
