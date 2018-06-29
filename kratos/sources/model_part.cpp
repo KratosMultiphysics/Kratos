@@ -1002,11 +1002,9 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
         this->AddMasterSlaveConstraint(p_new_constraint);
         return p_new_constraint;
     }
-
-    auto existing_element_iterator = this->mMasterSlaveConstraints.find(Id);
-    if(existing_element_iterator != this->MasterSlaveConstraintsEnd() )
+    auto existing_constraint_iterator = this->mMasterSlaveConstraints.find(Id);
+    if(existing_constraint_iterator != this->MasterSlaveConstraintsEnd() )
         KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
-
 
     //create the new element
     MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
@@ -1019,7 +1017,6 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
 
     //add the new element
     this->AddMasterSlaveConstraint(p_new_constraint);
-
     return p_new_constraint;
     KRATOS_CATCH("")
 
@@ -1047,8 +1044,8 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPart::CreateNewMasterSlaveCon
         return p_new_constraint;
     }
 
-    auto existing_element_iterator = this->mMasterSlaveConstraints.find(Id);
-    if(existing_element_iterator != this->MasterSlaveConstraintsEnd() )
+    auto existing_constraint_iterator = this->mMasterSlaveConstraints.find(Id);
+    if(existing_constraint_iterator != this->MasterSlaveConstraintsEnd() )
         KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
 
 
