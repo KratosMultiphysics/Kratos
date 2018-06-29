@@ -1036,6 +1036,35 @@ void ShellThinAdjointElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStra
     }
 
     OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
+}
+
+
+void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+				     std::vector<array_1d<double, 3 > >& rValues,
+				     const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    if(rVariable == ADJOINT_DIRECTED_STRAIN)
+    {
+        std::vector<Matrix> adjoint_strain; 
+        this->TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(SHELL_CURVATURE_GLOBAL, adjoint_strain, rCurrentProcessInfo);
+
+        const SizeType num_gps = GetNumberOfGPs();
+
+        // Resize Output
+        if(rValues.size() != num_gps)
+            rValues.resize(num_gps);
+
+        for(unsigned int i = 0; i < num_gps; i++)
+        {
+            rValues[i][0] = adjoint_strain[i](0,0);
+            rValues[i][1] = adjoint_strain[i](1,1);
+            rValues[i][2] = adjoint_strain[i](1,0);
+        }
+    }         
+
+    KRATOS_CATCH("")
 }                    
 
 
