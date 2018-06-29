@@ -226,7 +226,6 @@ public:
 
     /// The container of the constraints
     typedef PointerVectorSet<MasterSlaveConstraintType, IndexedObject> MasterSlaveConstraintContainerType;
-    //typedef PointerVectorSet<DofType, MasterSlaveConstraintType> MasterSlaveConstraintContainerType;
 
     /** Iterator over the constraints. This iterator is an indirect
     iterator over MasterSlaveConstraint::Pointer which turn back a reference to
