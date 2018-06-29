@@ -97,6 +97,9 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
+    // The vector containing the weak pointers to the nodes
+    typedef WeakPointerVector<NodeType> WeakPointerVectorNodesType;
+
     /// Counted pointer of SolidShellElementSprism3D6N
     KRATOS_CLASS_POINTER_DEFINITION(SolidShellElementSprism3D6N);
 
@@ -1018,7 +1021,7 @@ protected:
      * @param CartesianDerivativesCenter The cartesian derivatives in the plane
      * @param Part The enum that indicates upper or lower face
      */
-    void CalculateCartesianDerOnCenterPlane(
+    void CalculateCartesianDerivativesOnCenterPlane(
         BoundedMatrix<double, 2, 4 >& CartesianDerivativesCenter,
         const OrthogonalBase& ThisOrthogonalBase,
         const GeometricLevel Part

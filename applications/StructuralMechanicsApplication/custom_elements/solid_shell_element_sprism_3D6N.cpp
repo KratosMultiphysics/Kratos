@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -59,27 +59,6 @@ SolidShellElementSprism3D6N::SolidShellElementSprism3D6N(IndexType NewId, Geomet
 SolidShellElementSprism3D6N::SolidShellElementSprism3D6N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : BaseType(NewId, pGeometry, pProperties)
 {
-    mFinalizedStep = true; // the creation is out of the time step, it must be true
-
-    if( GetProperties().Has(NINT_TRANS) ) {
-        if (GetProperties()[NINT_TRANS] == 2) {
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
-        } else if (GetProperties()[NINT_TRANS] == 3) {
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
-        } else if (GetProperties()[NINT_TRANS] == 5) {
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
-        } else if (GetProperties()[NINT_TRANS] == 7) {
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
-        } else if (GetProperties()[NINT_TRANS] == 11) {
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
-        } else {
-            KRATOS_INFO("SolidShellElementSprism3D6N") << "The number of integration points is not defined.  NINT_TRANS: "<< GetProperties()[NINT_TRANS] << "\nOptions are: 2, 3, 5, 7, 11  " << "\nTaking default number of integration points (NINT_TRANS = 2)  " << std::endl;
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
-        }
-    } else {
-        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
-    }
-
     //DO NOT ADD DOFS HERE!!!
 }
 
@@ -112,7 +91,7 @@ SolidShellElementSprism3D6N&  SolidShellElementSprism3D6N::operator=(SolidShellE
     mHistoricalF0.clear();
     mHistoricalF0.resize( rOther.mHistoricalF0.size());
 
-    for(IndexType i = 0; i < mConstitutiveLawVector.size(); i++) {
+    for(IndexType i = 0; i < mConstitutiveLawVector.size(); ++i) {
         mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
         mHistoricalF0[i]=rOther.mHistoricalF0[i];
     }
@@ -160,13 +139,13 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
 
     KRATOS_ERROR_IF( new_element.mConstitutiveLawVector.size() != new_element.GetGeometry().IntegrationPointsNumber() ) << "Constitutive law not has the correct size " << new_element.mConstitutiveLawVector.size() << std::endl;
 
-    for(IndexType i = 0; i < integration_point_number; i++)
+    for(IndexType i = 0; i < integration_point_number; ++i)
         new_element.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
 
     if ( new_element.mHistoricalF0.size() != mHistoricalF0.size() )
         new_element.mHistoricalF0.resize(mHistoricalF0.size());
 
-    for(IndexType i = 0; i < mHistoricalF0.size(); i++)
+    for(IndexType i = 0; i < mHistoricalF0.size(); ++i)
         new_element.mHistoricalF0[i] = mHistoricalF0[i];
 
     return Kratos::make_shared<SolidShellElementSprism3D6N>(new_element);
@@ -191,7 +170,7 @@ void SolidShellElementSprism3D6N::EquationIdVector(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     const IndexType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
     const IndexType dim = number_of_nodes * 3;
@@ -201,7 +180,7 @@ void SolidShellElementSprism3D6N::EquationIdVector(
 
     // Nodes of the central element
     IndexType index = 0;
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
         rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
@@ -209,7 +188,7 @@ void SolidShellElementSprism3D6N::EquationIdVector(
     }
 
     // Adding the ids of the neighbouring nodes
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         if (HasNeighbour(i, p_neighbour_nodes[i])) {
             rResult[index]     = p_neighbour_nodes[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = p_neighbour_nodes[i].GetDof(DISPLACEMENT_Y).EquationId();
@@ -231,18 +210,18 @@ void SolidShellElementSprism3D6N::GetDofList(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     rElementalDofList.resize(0);
 
     // Nodes of the central element
-    for (IndexType i = 0; i < GetGeometry().size(); i++) {
+    for (IndexType i = 0; i < GetGeometry().size(); ++i) {
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
     }
 
     // Adding the dofs of the neighbouring nodes
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         if (HasNeighbour(i, p_neighbour_nodes[i])) {
             rElementalDofList.push_back(p_neighbour_nodes[i].pGetDof(DISPLACEMENT_X));
             rElementalDofList.push_back(p_neighbour_nodes[i].pGetDof(DISPLACEMENT_Y));
@@ -261,7 +240,7 @@ void SolidShellElementSprism3D6N::GetValuesVector(
     int Step
     )
 {
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
 
     const SizeType mat_size = number_of_nodes * 3;
@@ -271,18 +250,18 @@ void SolidShellElementSprism3D6N::GetValuesVector(
     IndexType index = 0;
 
     // Nodes of the central element
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         const array_1d<double, 3 > & disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        for (IndexType j = 0; j < 3; j++)
+        for (IndexType j = 0; j < 3; ++j)
             rValues[index + j] = disp[j];
         index += 3;
     }
 
     // Neighbour nodes
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 6; ++i) {
         if (HasNeighbour(i, p_neighbour_nodes[i])) {
             const array_1d<double, 3 > & disp = p_neighbour_nodes[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-            for (IndexType j = 0; j < 3; j++)
+            for (IndexType j = 0; j < 3; ++j)
                 rValues[index + j] = disp[j];
             index += 3;
         }
@@ -297,7 +276,7 @@ void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
     int Step
     )
 {
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
 
     const SizeType mat_size = number_of_nodes * 3;
@@ -307,18 +286,18 @@ void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
     IndexType index = 0;
 
     // Nodes of the central element
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         const array_1d<double, 3 > & vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-        for (IndexType j = 0; j < 3; j++)
+        for (IndexType j = 0; j < 3; ++j)
             rValues[index + j] = vel[j];
         index += 3;
     }
 
     // Neighbour nodes
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 6; ++i) {
         if (HasNeighbour(i, p_neighbour_nodes[i])) {
             const array_1d<double, 3 > & vel = p_neighbour_nodes[i].FastGetSolutionStepValue(VELOCITY, Step);
-            for (IndexType j = 0; j < 3; j++)
+            for (IndexType j = 0; j < 3; ++j)
                 rValues[index + j] = vel[j];
             index += 3;
         }
@@ -333,7 +312,7 @@ void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
     int Step
     )
 {
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
 
     const SizeType mat_size = number_of_nodes * 3;
@@ -343,18 +322,18 @@ void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
     IndexType index = 0;
 
     // Nodes of the central element
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         const array_1d<double, 3 > & acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-        for (IndexType j = 0; j < 3; j++)
+        for (IndexType j = 0; j < 3; ++j)
             rValues[index + j] = acc[j];
         index += 3;
     }
 
     // Neighbour nodes
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 6; ++i) {
         if (HasNeighbour(i, p_neighbour_nodes[i])) {
             const array_1d<double, 3 > & acc = p_neighbour_nodes[i].FastGetSolutionStepValue(ACCELERATION, Step);
-            for (IndexType j = 0; j < 3; j++)
+            for (IndexType j = 0; j < 3; ++j)
                 rValues[index + j] = acc[j];
             index += 3;
         }
@@ -418,7 +397,7 @@ void SolidShellElementSprism3D6N::CalculateRightHandSide(
         rRightHandSideVectors.resize(rRHSVariables.size());
     }
 
-    for( IndexType i = 0; i < rRightHandSideVectors.size(); i++ ) {
+    for( IndexType i = 0; i < rRightHandSideVectors.size(); ++i ) {
         this->InitializeSystemMatrices( left_hand_side_matrix, rRightHandSideVectors[i], local_system.CalculationFlags );
     }
 
@@ -527,14 +506,14 @@ void SolidShellElementSprism3D6N::CalculateLocalSystem(
     }
 
     local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_LHS_MATRIX);
-    for( IndexType i = 0; i < rLeftHandSideMatrices.size(); i++ ) {
+    for( IndexType i = 0; i < rLeftHandSideMatrices.size(); ++i ) {
         this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], local_system.CalculationFlags );
     }
 
     local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR, true);
     local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_LHS_MATRIX, false);
 
-    for( IndexType i = 0; i < rRightHandSideVectors.size(); i++ ) {
+    for( IndexType i = 0; i < rRightHandSideVectors.size(); ++i ) {
         this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], local_system.CalculationFlags );
     }
 
@@ -563,7 +542,7 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     const double density = GetProperties()[DENSITY]; // TODO: Take into account the volume variation
 
@@ -583,9 +562,9 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
     if (compute_lumped_mass_matrix == true) {
         Vector LumpFact;
         GetGeometry().LumpingFactors(LumpFact);
-        for (IndexType i = 0; i < 3; i++) {
+        for (IndexType i = 0; i < 3; ++i) {
             double temp = LumpFact[i] * total_mass;
-            for (IndexType j = 0; j < 6; j++) {
+            for (IndexType j = 0; j < 6; ++j) {
                 IndexType index = i * 6 + j;
                 rMassMatrix(index, index) = temp;
             }
@@ -593,8 +572,8 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
     } else { // CONSISTENT MASS MATRIX
     // Manually
         total_mass /= 72.0; // Dividing for the coefficient
-        for (IndexType i = 0; i < 6; i++) { // Main nodes
-            for (IndexType j = 0; j < 3; j++) { // DOF (X, Y, Z)
+        for (IndexType i = 0; i < 6; ++i) { // Main nodes
+            for (IndexType j = 0; j < 3; ++j) { // DOF (X, Y, Z)
                 const IndexType index = i * 3 + j;
                 if (i == 0) {
                     // Superior band
@@ -662,7 +641,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     // 0.-Initialize the DampingMatrix:
     const IndexType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -723,7 +702,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
 {
     KRATOS_TRY;
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     // 0.-Initialize the DampingMatrix:
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -949,7 +928,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             rOutput[point_number] = general_variables.detJ * IntegrationPoints[point_number].Weight() * strain_energy;  // 1/2 * sigma * epsilon
         }
     } else {
-        for ( IndexType ii = 0; ii < integration_point_number; ii++ )
+        for ( IndexType ii = 0; ii < integration_point_number; ++ii )
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
     }
 
@@ -960,7 +939,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
         rOutput.resize( 6, false );
         Matrix interpol = StructuralMechanicsMathUtilities::InterpolPrismGiD(integration_point_number);
 
-        for (IndexType iii = 0; iii < 6; iii++) {
+        for (IndexType iii = 0; iii < 6; ++iii) {
             rOutput[iii] = 0.0;
 
             for (IndexType i_gp = 0; i_gp < integration_point_number; i_gp++)
@@ -1101,7 +1080,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             rOutput[point_number] = general_variables.StrainVector;
         }
     } else {
-        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable , rOutput[ii]);
     }
 
@@ -1112,7 +1091,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
         rOutput.resize( 6 );
         Matrix interpol = StructuralMechanicsMathUtilities::InterpolPrismGiD(integration_point_number);
 
-        for (IndexType iii = 0; iii < 6; iii++) {
+        for (IndexType iii = 0; iii < 6; ++iii) {
             rOutput[iii] = ZeroVector(rOutput[0].size());
 
             for (IndexType i_gp = 0; i_gp < integration_point_number; i_gp++)
@@ -1214,8 +1193,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy(Values);
 
-            if( rOutput[point_number].size2() != general_variables.ConstitutiveMatrix.size2() )
-            {
+            if( rOutput[point_number].size2() != general_variables.ConstitutiveMatrix.size2() ) {
                 rOutput[point_number].resize( general_variables.ConstitutiveMatrix.size1() , general_variables.ConstitutiveMatrix.size2() , false );
             }
             rOutput[point_number] = general_variables.ConstitutiveMatrix;
@@ -1251,7 +1229,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             rOutput[point_number] = general_variables.F;
         }
     } else {
-        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
     }
 
@@ -1262,7 +1240,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
         rOutput.resize( 6 );
         Matrix interpol = StructuralMechanicsMathUtilities::InterpolPrismGiD(integration_point_number);
 
-        for (IndexType iii = 0; iii < 6; iii++) {
+        for (IndexType iii = 0; iii < 6; ++iii) {
             rOutput[iii] = ZeroMatrix(rOutput[0].size1(), rOutput[0].size2());
 
             for (IndexType Gauss_Point = 0; Gauss_Point < integration_point_number; Gauss_Point++)
@@ -1337,7 +1315,7 @@ void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
         const IndexType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
         if ( rValues.size() != integration_points_number )
             rValues.resize( integration_points_number, false );
-        for ( IndexType ii = 0; ii < integration_points_number; ii++ ) {
+        for ( IndexType ii = 0; ii < integration_points_number; ++ii ) {
             rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
         }
     }
@@ -1420,7 +1398,7 @@ int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_ERROR_IF(p_neighbour_elements.size() == 0) << "The neighbour elements are not calculated" << std::endl;
 
     // Neighbour nodes
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     KRATOS_ERROR_IF(p_neighbour_nodes.size() == 0) << "The neighbour nodes are not calculated" << std::endl;
 
     const int check = BaseType::Check(rCurrentProcessInfo);
@@ -1447,7 +1425,7 @@ int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 
     // Check strain measure
     bool correct_strain_measure = false;
-    for(IndexType i = 0; i < law_features.mStrainMeasures.size(); i++)
+    for(IndexType i = 0; i < law_features.mStrainMeasures.size(); ++i)
         if (law_features.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
             correct_strain_measure = true;
 
@@ -1617,6 +1595,35 @@ void SolidShellElementSprism3D6N::Initialize()
 {
     KRATOS_TRY;
 
+    mFinalizedStep = true; // the creation is out of the time step, it must be true
+
+    if( GetProperties().Has(INTEGRATION_ORDER) ) {
+        const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
+        switch ( integration_order )
+        {
+        case 1:
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
+            break;
+        case 2:
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
+            break;
+        case 3:
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
+            break;
+        case 4:
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
+            break;
+        case 5:
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
+            break;
+        default:
+            KRATOS_WARNING("SolidShellElementSprism3D6N") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
+            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
+        }
+    } else {
+        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
+    }
+
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     /* Constitutive Law initialisation */
@@ -1624,20 +1631,20 @@ void SolidShellElementSprism3D6N::Initialize()
         mConstitutiveLawVector.resize( integration_points.size() );
 
     /* Implicit or explicit EAS update */
-    if( GetProperties().Has(EAS_IMP) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, GetProperties()[EAS_IMP]);
+    if( GetProperties().Has(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT) )
+        mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, GetProperties()[CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT]);
     else
         mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, true);
 
     /* Total or updated lagrangian */
-    if( GetProperties().Has(SPRISM_TL_UL) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, GetProperties()[SPRISM_TL_UL]);
+    if( GetProperties().Has(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT) )
+        mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, GetProperties()[CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT]);
     else
         mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, true);
 
     /* Quadratic or linear element */
-    if( GetProperties().Has(QUAD_ON) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, GetProperties()[QUAD_ON]);
+    if( GetProperties().Has(CONSIDER_QUADRATIC_SPRISM_ELEMENT) )
+        mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, GetProperties()[CONSIDER_QUADRATIC_SPRISM_ELEMENT]);
     else
         mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, true);
 
@@ -1781,10 +1788,10 @@ void SolidShellElementSprism3D6N::PrintElementCalculation(
 
     KRATOS_INFO("SolidShellElementSprism3D6N") << " Element: " << this->Id() << std::endl;
 
-    WeakPointerVector< NodeType >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
     const IndexType number_of_neighbours = NumberOfActiveNeighbours(NeighbourNodes);
 
-    for ( IndexType i = 0; i < 6; i++ ) {
+    for ( IndexType i = 0; i < 6; ++i ) {
         const array_1d<double, 3> &current_position  = GetGeometry()[i].Coordinates();
         const array_1d<double, 3 > & current_displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
         const array_1d<double, 3 > & previous_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
@@ -1792,7 +1799,7 @@ void SolidShellElementSprism3D6N::PrintElementCalculation(
         KRATOS_INFO("SolidShellElementSprism3D6N") << " Previous  Position  node[" << GetGeometry()[i].Id() << "]: "<<previous_position << std::endl;
     }
 
-    for ( IndexType i = 0; i < number_of_neighbours; i++ ) {
+    for ( IndexType i = 0; i < number_of_neighbours; ++i ) {
         const array_1d<double, 3> &current_position  = NeighbourNodes[i].Coordinates();
         const array_1d<double, 3 > & current_displacement  = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT);
         const array_1d<double, 3 > & previous_displacement = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT,1);
@@ -1800,32 +1807,32 @@ void SolidShellElementSprism3D6N::PrintElementCalculation(
         KRATOS_INFO("SolidShellElementSprism3D6N") << " Previous  Position  neighbour node[" << NeighbourNodes[i].Id() << "]: "<<previous_position << std::endl;
     }
 
-    for ( IndexType i = 0; i < 6; i++ ) {
+    for ( IndexType i = 0; i < 6; ++i ) {
         const array_1d<double, 3> & current_position  = GetGeometry()[i].Coordinates();
         KRATOS_INFO("SolidShellElementSprism3D6N") << " Current  Position  node[" << GetGeometry()[i].Id()<<"]: " << current_position << std::endl;
     }
 
-    for ( IndexType i = 0; i < number_of_neighbours; i++ ) {
+    for ( IndexType i = 0; i < number_of_neighbours; ++i ) {
         const array_1d<double, 3> & current_position  = NeighbourNodes[i].Coordinates();
         KRATOS_INFO("SolidShellElementSprism3D6N") << " Current  Position neighbour node[" << NeighbourNodes[i].Id()<<"]: " << current_position << std::endl;
     }
 
-    for ( IndexType i = 0; i < 6; i++ ) {
+    for ( IndexType i = 0; i < 6; ++i ) {
         const array_1d<double, 3 > & previous_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
         KRATOS_INFO("SolidShellElementSprism3D6N") << " Previous Displacement node[" << GetGeometry()[i].Id() << "]: " << previous_displacement << std::endl;
     }
 
-    for ( IndexType i = 0; i < number_of_neighbours; i++ ) {
+    for ( IndexType i = 0; i < number_of_neighbours; ++i ) {
         const array_1d<double, 3 > & previous_displacement = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT,1);
         KRATOS_INFO("SolidShellElementSprism3D6N") << " Previous Displacement neighbour node[" << NeighbourNodes[i].Id() << "]: " << previous_displacement << std::endl;
     }
 
-    for ( IndexType i = 0; i < 6; i++ ) {
+    for ( IndexType i = 0; i < 6; ++i ) {
         const array_1d<double, 3 > & current_displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
         KRATOS_INFO("SolidShellElementSprism3D6N") << " Current  Displacement  node[" << GetGeometry()[i].Id() << "]: " << current_displacement << std::endl;
     }
 
-    for ( IndexType i = 0; i < number_of_neighbours; i++ ) {
+    for ( IndexType i = 0; i < number_of_neighbours; ++i ) {
         const array_1d<double, 3 > & current_displacement  = NeighbourNodes[i].FastGetSolutionStepValue(DISPLACEMENT);
         KRATOS_INFO("SolidShellElementSprism3D6N") << " Current  Displacement  node[" << NeighbourNodes[i].Id() << "]: " << current_displacement << std::endl;
     }
@@ -1851,7 +1858,7 @@ bool SolidShellElementSprism3D6N::HasNeighbour(
     if (NeighbourNode.Id() == GetGeometry()[Index].Id()) {
         return false;
     } else {
-        if ( mELementalFlags.Is(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT) == true )
+        if ( mELementalFlags.Is(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT))
             return true;
         else
             return false;
@@ -1861,12 +1868,12 @@ bool SolidShellElementSprism3D6N::HasNeighbour(
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::size_t SolidShellElementSprism3D6N::NumberOfActiveNeighbours(WeakPointerVector< NodeType >& pNeighbourNodes)
+std::size_t SolidShellElementSprism3D6N::NumberOfActiveNeighbours(WeakPointerVectorNodesType& pNeighbourNodes)
 {
     std::size_t active_neighbours = 0;
-    for (IndexType i = 0; i < pNeighbourNodes.size(); i++) {
+    for (IndexType i = 0; i < pNeighbourNodes.size(); ++i) {
         if (HasNeighbour(i, pNeighbourNodes[i]))
-            active_neighbours++;
+           ++active_neighbours;
     }
     return active_neighbours;
 }
@@ -1876,7 +1883,7 @@ std::size_t SolidShellElementSprism3D6N::NumberOfActiveNeighbours(WeakPointerVec
 
 void SolidShellElementSprism3D6N::GetNodalCoordinates(
     BoundedMatrix<double, 12, 3 > & NodesCoord,
-    WeakPointerVector< NodeType >& NeighbourNodes,
+    WeakPointerVectorNodesType& NeighbourNodes,
     const Configuration ThisConfiguration
     )
 {
@@ -1885,54 +1892,54 @@ void SolidShellElementSprism3D6N::GetNodalCoordinates(
 
      if (ThisConfiguration == Configuration::INITIAL) {
          /* Fill the aux matrix of coordinates */
-         for (IndexType i = 0; i < 6; i++) {
+         for (IndexType i = 0; i < 6; ++i) {
              const array_1d<double, 3> &initial_position = GetGeometry()[i].GetInitialPosition().Coordinates();
-             for (IndexType j = 0; j < 3; j++)
+             for (IndexType j = 0; j < 3; ++j)
                  NodesCoord(i, j) = initial_position[j];
          }
 
-         if (number_of_neighbours == 6) { // All the possible neighours
-             for (IndexType i = 0; i < 6; i++) {
+         if (number_of_neighbours == 6) { // All the possible neighbours
+             for (IndexType i = 0; i < 6; ++i) {
                  const array_1d<double, 3> &initial_position = NeighbourNodes[i].GetInitialPosition().Coordinates();
-                 for (IndexType j = 0; j < 3; j++)
+                 for (IndexType j = 0; j < 3; ++j)
                     NodesCoord(i + 6, j) = initial_position[j];
              }
          } else {
-             for (IndexType i = 0; i < 6; i++) {
+             for (IndexType i = 0; i < 6; ++i) {
                  if (HasNeighbour(i, NeighbourNodes[i])) {
                      const array_1d<double, 3> &initial_position = NeighbourNodes[i].GetInitialPosition().Coordinates();
 
-                     for (IndexType j = 0; j < 3; j++)
+                     for (IndexType j = 0; j < 3; ++j)
                         NodesCoord(i + 6, j) = initial_position[j];
 
                  } else {
-                     for (IndexType j = 0; j < 3; j++)
+                     for (IndexType j = 0; j < 3; ++j)
                         NodesCoord(i + 6, j) = 0.0;
                  }
              }
          }
      } else if (ThisConfiguration == Configuration::CURRENT) {
          /* Fill the aux matrix of coordinates */
-         for (IndexType i = 0; i < 6; i++) {
+         for (IndexType i = 0; i < 6; ++i) {
              const array_1d<double, 3> &current_position = GetGeometry()[i].Coordinates();
-             for (IndexType j = 0; j < 3; j++)
+             for (IndexType j = 0; j < 3; ++j)
                 NodesCoord(i, j) = current_position[j];
          }
 
-         if (number_of_neighbours == 6) { // All the possible neighours
-             for (IndexType i = 0; i < 6; i++) {
+         if (number_of_neighbours == 6) { // All the possible neighbours
+             for (IndexType i = 0; i < 6; ++i) {
                  const array_1d<double, 3> &current_position = NeighbourNodes[i].Coordinates();
-                 for (IndexType j = 0; j < 3; j++)
+                 for (IndexType j = 0; j < 3; ++j)
                     NodesCoord(i + 6, j) = current_position[j];
              }
          } else {
-             for (IndexType i = 0; i < 6; i++) {
+             for (IndexType i = 0; i < 6; ++i) {
                  if (HasNeighbour(i, NeighbourNodes[i])) {
                      const array_1d<double, 3> &current_position = NeighbourNodes[i].Coordinates();
-                     for (IndexType j = 0; j < 3; j++)
+                     for (IndexType j = 0; j < 3; ++j)
                         NodesCoord(i + 6, j) = current_position[j];
                  } else {
-                     for (IndexType j = 0; j < 3; j++)
+                     for (IndexType j = 0; j < 3; ++j)
                         NodesCoord(i + 6, j) = 0.0;
                  }
              }
@@ -1949,7 +1956,7 @@ void SolidShellElementSprism3D6N::GetNodalCoordinates(
 void SolidShellElementSprism3D6N::CalculateCartesianDerivatives(CartesianDerivatives& rCartesianDerivatives)
 {
     BoundedMatrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
-    WeakPointerVector< NodeType >& neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN) == true ) {
         this->GetNodalCoordinates(nodes_coord, neighbour_nodes, Configuration::INITIAL);
     } else {
@@ -1966,9 +1973,9 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerivatives(CartesianDerivat
     BoundedMatrix<double, 2, 4 > cartesian_derivatives_center_lower,  cartesian_derivatives_center_upper;
 
     // Lower face
-    CalculateCartesianDerOnCenterPlane(cartesian_derivatives_center_lower, this_orthogonal_base, GeometricLevel::LOWER);
+    CalculateCartesianDerivativesOnCenterPlane(cartesian_derivatives_center_lower, this_orthogonal_base, GeometricLevel::LOWER);
     // Upperr face
-    CalculateCartesianDerOnCenterPlane(cartesian_derivatives_center_upper, this_orthogonal_base, GeometricLevel::UPPER );
+    CalculateCartesianDerivativesOnCenterPlane(cartesian_derivatives_center_upper, this_orthogonal_base, GeometricLevel::UPPER );
 
     /* Transversal derivative */
     CalculateCartesianDerOnCenterTrans(rCartesianDerivatives, nodes_coord, this_orthogonal_base, GeometricLevel::CENTER); // Center
@@ -1999,7 +2006,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerivatives(CartesianDerivat
     CalculateCartesianDerOnGaussTrans(rCartesianDerivatives.TransversalCartesianDerivativesGauss[5], nodes_coord, this_orthogonal_base, local_coordinates);
 
     /* In-plane derivative */
-    for (IndexType i = 0; i < 3 ;i++) {
+    for (IndexType i = 0; i < 3 ;++i) {
         if (HasNeighbour(i, neighbour_nodes[i])) { // Assuming that if the upper element has neighbours the lower has too
             CalculateCartesianDerOnGaussPlane(rCartesianDerivatives.InPlaneCartesianDerivativesGauss[i    ], nodes_coord, this_orthogonal_base, i, GeometricLevel::LOWER);
             CalculateCartesianDerOnGaussPlane(rCartesianDerivatives.InPlaneCartesianDerivativesGauss[i + 3], nodes_coord, this_orthogonal_base, i, GeometricLevel::UPPER);
@@ -2021,7 +2028,7 @@ void SolidShellElementSprism3D6N::CalculateCommonComponents(
     KRATOS_TRY;
 
     BoundedMatrix<double, 12, 3 > NodesCoord; // Coordinates of the nodes
-    WeakPointerVector< NodeType >& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
     this->GetNodalCoordinates(NodesCoord, NeighbourNodes, Configuration::CURRENT);
 
     /* Declare deformation Gradient F components */
@@ -2037,7 +2044,7 @@ void SolidShellElementSprism3D6N::CalculateCommonComponents(
     /* MEMBRANE CONTRIBUTION */
     /* Calculating the membrane strain-displacement matrix */
     // Lower face
-    for (IndexType i = 0; i < 3; i++) {
+    for (IndexType i = 0; i < 3; ++i) {
         CalculateInPlaneGradientFGauss(in_plane_gradient_F_gauss, rCartesianDerivatives.InPlaneCartesianDerivativesGauss[i], NodesCoord, i, GeometricLevel::LOWER);
         CalculateAndAddBMembrane(rCommonComponents.BMembraneLower, rCommonComponents.CMembraneLower, rCartesianDerivatives.InPlaneCartesianDerivativesGauss[i], in_plane_gradient_F_gauss, i);
     }
@@ -2046,7 +2053,7 @@ void SolidShellElementSprism3D6N::CalculateCommonComponents(
     rCommonComponents.CMembraneLower *= 1.0/3.0;
 
     // Upper face
-    for (IndexType i = 0; i < 3; i++) {
+    for (IndexType i = 0; i < 3; ++i) {
         CalculateInPlaneGradientFGauss(in_plane_gradient_F_gauss, rCartesianDerivatives.InPlaneCartesianDerivativesGauss[i + 3], NodesCoord, i, GeometricLevel::UPPER);
         CalculateAndAddBMembrane(rCommonComponents.BMembraneUpper, rCommonComponents.CMembraneUpper, rCartesianDerivatives.InPlaneCartesianDerivativesGauss[i + 3], in_plane_gradient_F_gauss, i);
     }
@@ -2088,10 +2095,11 @@ void SolidShellElementSprism3D6N::CalculateCommonComponents(
 
     /* NORMAL TRANSVERSE */
     /* Calculate f normal components */
-    CalculateTransverseGradientF(transverse_gradient.F0, rCartesianDerivatives.TransversalCartesianDerivativesCenter, NodesCoord);
+    array_1d<double, 3 > F3;
+    CalculateTransverseGradientF(F3, rCartesianDerivatives.TransversalCartesianDerivativesCenter, NodesCoord);
 
     /* Calculating the normal transverse strain-displacement matrix */
-    CalculateAndAddBNormal(rCommonComponents.BNormal, rCommonComponents.CNormal, rCartesianDerivatives.TransversalCartesianDerivativesCenter, transverse_gradient.F0);
+    CalculateAndAddBNormal(rCommonComponents.BNormal, rCommonComponents.CNormal, rCartesianDerivatives.TransversalCartesianDerivativesCenter, F3);
 
     KRATOS_CATCH("");
 }
@@ -2235,18 +2243,20 @@ void SolidShellElementSprism3D6N::CalculateIdVector(array_1d<IndexType, 18 >& rI
 {
     KRATOS_TRY;
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
-    /* Compute ID vector */ // TODO: Optimze this
+    /* Compute ID vector */ // TODO: Optimize this
     IndexType index = 18;
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         if (HasNeighbour(i, p_neighbour_nodes[i])) {
-            for (IndexType j = 0; j < 3; j++)
-                rIdVector[i * 3 + j] = index + j;
-            index += 3;
+            for (IndexType j = 0; j < 3; ++j) {
+                rIdVector[i * 3 + j] = index;
+                ++index;
+            }
         } else {
-            for (IndexType j = 0; j < 3; j++)
+            for (IndexType j = 0; j < 3; ++j) {
                 rIdVector[i * 3 + j] = 36;
+            }
         }
     }
 
@@ -2263,6 +2273,7 @@ void SolidShellElementSprism3D6N::ComputeLocalDerivatives(
 {
     const double L_1 = 0.5 * (1.0 - rLocalCoordinates[2]);
     const double L_2 = 0.5 * (1.0 + rLocalCoordinates[2]);
+    const double zzeta = 1.0 - rLocalCoordinates[0] - rLocalCoordinates[1];
 
     /* Derivative in direction nu and xi */
     // Lower face
@@ -2284,12 +2295,12 @@ void SolidShellElementSprism3D6N::ComputeLocalDerivatives(
     LocalDerivativePatch(5, 1) =   L_2;
 
     /* Derivative in direction zeta */
-    LocalDerivativePatch(0, 2) = - 1.0 + rLocalCoordinates[1] + rLocalCoordinates[0];
-    LocalDerivativePatch(1, 2) = - rLocalCoordinates[0];
-    LocalDerivativePatch(2, 2) = - rLocalCoordinates[1];
-    LocalDerivativePatch(3, 2) =   1.0 - rLocalCoordinates[1] - rLocalCoordinates[0];
-    LocalDerivativePatch(4, 2) =   rLocalCoordinates[0];
-    LocalDerivativePatch(5, 2) =   rLocalCoordinates[1];
+    LocalDerivativePatch(0, 2) = - zzeta/2.0;
+    LocalDerivativePatch(1, 2) = - rLocalCoordinates[0]/2.0;
+    LocalDerivativePatch(2, 2) = - rLocalCoordinates[1]/2.0;
+    LocalDerivativePatch(3, 2) =   zzeta/2.0;
+    LocalDerivativePatch(4, 2) =   rLocalCoordinates[0]/2.0;
+    LocalDerivativePatch(5, 2) =   rLocalCoordinates[1]/2.0;
 }
 
 /***********************************************************************************/
@@ -2349,9 +2360,9 @@ void SolidShellElementSprism3D6N::CalculateJacobianCenterGauss(
 {
     /* Fill the aux matrix of coordinates */
     BoundedMatrix<double, 3, 6 > nodes_coord;
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         const array_1d<double, 3> &current_position  = GetGeometry()[i].Coordinates();
-        for (IndexType j = 0; j < 3; j++)
+        for (IndexType j = 0; j < 3; ++j)
             nodes_coord(j, i) = current_position[j];
     }
 
@@ -2385,8 +2396,8 @@ void SolidShellElementSprism3D6N::CalculateJacobian(
     /* Auxiliar coordinates of the nodes */
     BoundedMatrix<double, 3, 6 > nodes_coord_aux;
 
-    for (IndexType i = 0; i < 6; i++)
-        for (IndexType j = 0; j < 3; j++)
+    for (IndexType i = 0; i < 6; ++i)
+        for (IndexType j = 0; j < 3; ++j)
             nodes_coord_aux(j, i) = NodesCoord(i, j);
 
     /* Local derivatives patch */
@@ -2446,7 +2457,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterPlane(
+void SolidShellElementSprism3D6N::CalculateCartesianDerivativesOnCenterPlane(
     BoundedMatrix<double, 2, 4 >& CartesianDerivativesCenter,
     const OrthogonalBase& ThisOrthogonalBase,
     const GeometricLevel Part
@@ -2497,7 +2508,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterPlane(
     b[2] = -(b[0] + b[1]);
 
     CartesianDerivativesCenter = ZeroMatrix(2, 4);
-    for (IndexType i = 0; i < 3; i++) {
+    for (IndexType i = 0; i < 3; ++i) {
        CartesianDerivativesCenter(0, i) = - b[i];
        CartesianDerivativesCenter(1, i) =   a[i];
     }
@@ -2523,11 +2534,13 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
     /* Auxiliar coordinates of the nodes */
     BoundedMatrix<double, 3, 4 > nodes_coord_aux;
 
-    for (IndexType i = 0; i < 3; i++)
-        for (IndexType j = 0; j < 3; j++)
+    for (IndexType i = 0; i < 3; ++i) {
+        for (IndexType j = 0; j < 3; ++j) {
             nodes_coord_aux(j, i) = NodesCoord(i + index, j);
+        }
+    }
 
-    for (IndexType j = 0; j < 3; j++)
+    for (IndexType j = 0; j < 3; ++j)
         nodes_coord_aux(j, 3) = NodesCoord(NodeGauss + 6 + index, j);
 
     /* Compute local derivatives */
@@ -2591,8 +2604,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussTrans(
     StructuralMechanicsMathUtilities::Comp_Orthonor_Base(t, ThisOrthogonalBase.Vxi, Xdxi, Xdeta);
 
     /* Compute Jacobian */
-    BoundedMatrix<double, 3, 3 > jac;
-    noalias(jac) = prod(t, Xd);
+    const BoundedMatrix<double, 3, 3 > jac = prod(t, Xd);
 
     /* Compute inverse of the Jaccobian (just third column) */
     BoundedMatrix<double, 3 ,1> JinvTrans;
@@ -2627,8 +2639,8 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
 
     /* Auxiliar coordinates of the nodes */
     BoundedMatrix<double, 3, 6 > nodes_coord_aux;
-    for (IndexType i = 0; i < 6; i++)
-        for (IndexType j = 0; j < 3; j++)
+    for (IndexType i = 0; i < 6; ++i)
+        for (IndexType j = 0; j < 3; ++j)
             nodes_coord_aux(j, i) = NodesCoord(i, j);
 
     /* Auxiliar components to calculate the Jacobian and his inverse */
@@ -2641,10 +2653,9 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
 
         // Compute cartesian (y3) derivatives of the shape functions necessary to compute f_3
         /* Compute Cartesian derivatives */
-        BoundedMatrix<double, 6, 3 > transverse_cartesian_derivatives_gauss_aux;
-        noalias(transverse_cartesian_derivatives_gauss_aux) = prod(local_derivatives_patch, Jinv);
+        const BoundedMatrix<double, 6, 3 > transverse_cartesian_derivatives_gauss_aux = prod(local_derivatives_patch, Jinv);
 
-        for (IndexType i = 0; i < 6 ; i++)
+        for (IndexType i = 0; i < 6 ; ++i)
             rCartesianDerivatives.TransversalCartesianDerivativesCenter(i, 0) = inner_prod(ThisOrthogonalBase.Vzeta, row(transverse_cartesian_derivatives_gauss_aux, i));
 
      } else {
@@ -2691,8 +2702,8 @@ void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
     BoundedMatrix<double, 3, 3 > nodes_coord_aux;
     BoundedMatrix<double, 3, 2 > in_plane_cartesian_derivatives_gauss_aux;
 
-    for (IndexType i = 0; i < 3; i++) {
-        for (IndexType j = 0; j < 3; j++)
+    for (IndexType i = 0; i < 3; ++i) {
+        for (IndexType j = 0; j < 3; ++j)
             nodes_coord_aux(j, i) = NodesCoord(i + index, j);
 
         in_plane_cartesian_derivatives_gauss_aux(i, 0) = InPlaneCartesianDerivativesGauss(0, i);
@@ -2701,9 +2712,9 @@ void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
 
     noalias(InPlaneGradientFGauss) = prod(nodes_coord_aux, in_plane_cartesian_derivatives_gauss_aux);
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     if (HasNeighbour(NodeGauss, p_neighbour_nodes[NodeGauss])) {
-        for (IndexType j = 0; j < 3 ; j++) {
+        for (IndexType j = 0; j < 3 ; ++j) {
             InPlaneGradientFGauss(j, 0) += NodesCoord(NodeGauss + 6 + index, j) * InPlaneCartesianDerivativesGauss(0, 3);
             InPlaneGradientFGauss(j, 1) += NodesCoord(NodeGauss + 6 + index, j) * InPlaneCartesianDerivativesGauss(1, 3);
         }
@@ -2714,15 +2725,17 @@ void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateTransverseGradientF(
-    array_1d<double, 3 > & TransverseGradientF,
-    const BoundedMatrix<double, 6, 1 > & TransversalCartesianDerivativesGauss,
-    const BoundedMatrix<double, 12, 3 > & NodesCoord
+    array_1d<double, 3 >& TransverseGradientF,
+    const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesGauss,
+    const BoundedMatrix<double, 12, 3 >& NodesCoord
     )
 {
-    noalias(TransverseGradientF) = ZeroVector(3);
+    for (IndexType j = 0; j < 3; ++j) {
+        TransverseGradientF[j] = 0.0;
+    }
 
-    for (IndexType i = 0; i < 6; i++) {
-        for (IndexType j = 0; j < 3; j++) {
+    for (IndexType i = 0; i < 6; ++i) {
+        for (IndexType j = 0; j < 3; ++j) {
             TransverseGradientF[j] += TransversalCartesianDerivativesGauss(i, 0) * NodesCoord(i, j);
         }
     }
@@ -2739,7 +2752,7 @@ void SolidShellElementSprism3D6N::CalculateTransverseGradientFinP(
 {
     const IndexType index = Part == GeometricLevel::UPPER ? 3 : 0;
 
-    for (IndexType i = 0; i < 3; i++) {
+    for (IndexType i = 0; i < 3; ++i) {
         TransverseGradientIsoParametric.Ft[i]   = NodesCoord(2 + index, i) - NodesCoord(1 + index, i);
         TransverseGradientIsoParametric.Fxi[i]  = NodesCoord(0 + index, i) - NodesCoord(2 + index, i);
         TransverseGradientIsoParametric.Feta[i] = NodesCoord(1 + index, i) - NodesCoord(0 + index, i);
@@ -2757,12 +2770,13 @@ void SolidShellElementSprism3D6N::CalculateAndAddBMembrane(
     const IndexType NodeGauss
     )
 {
-    for (IndexType i = 0; i < 4; i++) {
+    for (IndexType i = 0; i < 4; ++i) {
         IndexType base = i * 3;
-        if (i == 3)
+        if (i == 3) {
             base += NodeGauss * 3;
+        }
 
-        for (IndexType j = 0; j < 3; j++) {
+        for (IndexType j = 0; j < 3; ++j) {
             BMembrane(0, base + j) += InPlaneCartesianDerivativesGauss(0, i) * InPlaneGradientFGauss(j, 0);
             BMembrane(1, base + j) += InPlaneCartesianDerivativesGauss(1, i) * InPlaneGradientFGauss(j, 1);
             BMembrane(2, base + j) += InPlaneCartesianDerivativesGauss(1, i) * InPlaneGradientFGauss(j, 0)
@@ -2774,7 +2788,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBMembrane(
     // In plane auxiliar components
     array_1d<double, 3 > aux_deformation_gradient_F1, aux_deformation_gradient_F2;
 
-    for (IndexType i = 0; i < 3; i++) {
+    for (IndexType i = 0; i < 3; ++i) {
         aux_deformation_gradient_F1[i] = InPlaneGradientFGauss(i, 0);
         aux_deformation_gradient_F2[i] = InPlaneGradientFGauss(i, 1);
     }
@@ -2799,10 +2813,9 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
 
     BoundedMatrix<double, 6, 6 > H = ZeroMatrix(6, 6);
 
-    IndexType ii;
-    IndexType jj;
-    for (IndexType i = 0; i < 4; i++) {
-        for (IndexType j = 0; j < 4; j++) {
+    IndexType ii, jj;
+    for (IndexType i = 0; i < 4; ++i) {
+        for (IndexType j = 0; j < 4; ++j) {
             // Gauss 1
             ii = i;
             jj = j;
@@ -2812,14 +2825,8 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
                                        + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 0](0, j));
 
             // Gauss 2
-            if (i ==  3)
-                ii = 4;
-            else
-                ii = i;
-            if (j ==  3)
-                jj = 4;
-            else
-                jj = j;
+            ii = (i ==  3) ? 4 : i;
+            jj = (j ==  3) ? 4 : j;
 
             H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, j)
                        + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, j)
@@ -2827,14 +2834,8 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
                                        + rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 1](0, j));
 
             // Gauss 3
-            if (i ==  3)
-                ii = 5;
-            else
-                ii = i;
-            if (j ==  3)
-                jj = 5;
-            else
-                jj = j;
+            ii = (i ==  3) ? 5 : i;
+            jj = (j ==  3) ? 5 : j;
 
             H(ii, jj) += SMembrane[0] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](0, j)
                        + SMembrane[1] *  rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, i) * rCartesianDerivatives.InPlaneCartesianDerivativesGauss[auxiliar_index + 2](1, j)
@@ -2847,19 +2848,11 @@ void SolidShellElementSprism3D6N::CalculateAndAddMembraneKgeometric(
 
     // Assembling in Kgeometricmembrane
     IndexType rowindex, colindex;
-    for (IndexType i = 0; i < 6; i++) {
-        if (i < 3)
-            rowindex = i * 3 + index;
-        else
-            rowindex = i * 3 + index + 9;
-
-        for (IndexType j = i; j < 6; j++) {
-            if (j < 3)
-                colindex = j * 3 + index;
-            else
-                colindex = j * 3 + index + 9;
-
-            for(IndexType ii = 0; ii < 3; ii++) {
+    for (IndexType i = 0; i < 6; ++i) {
+        rowindex = (i < 3) ? i * 3 + index : i * 3 + index + 9;
+        for (IndexType j = i; j < 6; ++j) {
+            colindex = (j < 3) ? j * 3 + index : j * 3 + index + 9;
+            for(IndexType ii = 0; ii < 3; ++ii) {
                 Kgeometricmembrane(rowindex + ii,colindex + ii) += H (i, j);
                 if (rowindex != colindex) { // Skip diagonal
                     Kgeometricmembrane(colindex + ii, rowindex + ii) += H (i, j); // Symmetric part
@@ -2900,9 +2893,9 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
     BoundedMatrix<double, 3, 18 > aux_b_shear = ZeroMatrix(3, 18);
 
     /* First contribution*/
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         IndexType base = i * 3;
-        for (IndexType j = 0; j < 3; j++) {
+        for (IndexType j = 0; j < 3; ++j) {
             aux_b_shear(0, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 0](i, 0) * rTransverseGradientIsoParametric.Ft[j];
             aux_b_shear(1, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 1](i, 0) * rTransverseGradientIsoParametric.Fxi[j];
             aux_b_shear(2, base + j) += rCartesianDerivatives.TransversalCartesianDerivativesGauss[auxiliar_index + 2](i, 0) * rTransverseGradientIsoParametric.Feta[j];
@@ -2910,7 +2903,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddBShear(
     }
 
     /* Second contibution */
-    for (IndexType i = 0; i < 3; i++) {
+    for (IndexType i = 0; i < 3; ++i) {
         /* First row */
         aux_b_shear(0, i + index + 3) -= rTransverseGradient.F0[i];
         aux_b_shear(0, i + index + 6) += rTransverseGradient.F0[i];
@@ -2965,7 +2958,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
 //    else
 //        delta = 0;
 
-//    for (IndexType i = 0; i < 3; i++) { // For each DOF
+//    for (IndexType i = 0; i < 3; ++i) { // For each DOF
 //        /* First assembling */
 //        Kgeometricshear(i + index + 3, i + index + 3) -= q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](1 + delta, 0);
 //        Kgeometricshear(i + index + 6, i + index + 6) += q[0] * rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](2 + delta, 0);
@@ -3021,7 +3014,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
     double value = 0.0;
     for (IndexType k = 0; k < 3; k++) {
         IndexType l = 0; // Initializes DOF associated to N_3
-        for (IndexType i = 0; i < 6; i++) { //  For each node
+        for (IndexType i = 0; i < 6; ++i) { //  For each node
             if (k == 0)
                 value = (-Q1 + Q2) *  rCartesianDerivatives.TransversalCartesianDerivativesGauss[0 + auxiliar_index](i, 0);
             else if (k == 1)
@@ -3029,12 +3022,12 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
             else if (k == 2)
                 value = (2.0 * Q1 + Q2) * rCartesianDerivatives.TransversalCartesianDerivativesGauss[2 + auxiliar_index](i, 0);
 
-            for (IndexType j = 0; j < 3; j++) { // For each DOF (diagonal only)
+            for (IndexType j = 0; j < 3; ++j) { // For each DOF (diagonal only)
                 Kgeometricshear(n1[k] + j, l + j) += value;
                 Kgeometricshear(l + j, n1[k] + j) += value;
             }
 
-            for (IndexType j = 0; j < 3; j++) { // For each DOF (diagonal only)
+            for (IndexType j = 0; j < 3; ++j) { // For each DOF (diagonal only)
                 Kgeometricshear(n2[k] + j, l + j) -= value;
                 Kgeometricshear(l + j, n2[k] + j) -= value;
             }
@@ -3048,16 +3041,18 @@ void SolidShellElementSprism3D6N::CalculateAndAddShearKgeometric(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateAndAddBNormal(
-    BoundedMatrix<double, 1, 18 > & BNormal,
-    double & CNormal,
-    const BoundedMatrix<double, 6, 1 > & TransversalCartesianDerivativesCenter,
-    const array_1d<double, 3 > & TransversalDeformationGradientF
+    BoundedMatrix<double, 1, 18 >& BNormal,
+    double& CNormal,
+    const BoundedMatrix<double, 6, 1 >& TransversalCartesianDerivativesCenter,
+    const array_1d<double, 3 >& TransversalDeformationGradientF
     )
 {
-    for (IndexType i = 0; i < 6; i++) {
-        IndexType base = i * 3;
-        for (IndexType j = 0; j < 3; j++)
+    IndexType base;
+    for (IndexType i = 0; i < 6; ++i) {
+        base = i * 3;
+        for (IndexType j = 0; j < 3; ++j) {
             BNormal(0, base + j) = TransversalCartesianDerivativesCenter(i, 0) * TransversalDeformationGradientF[j];
+        }
     }
 
     CNormal = inner_prod(TransversalDeformationGradientF, TransversalDeformationGradientF);
@@ -3073,22 +3068,23 @@ void SolidShellElementSprism3D6N::CalculateAndAddNormalKgeometric(
     )
 {
     BoundedMatrix<double, 6, 6 > H = ZeroMatrix(6, 6);
-    for (IndexType i = 0; i < 6; i++) {
+    for (IndexType i = 0; i < 6; ++i) {
         const double aux = SNormal * TransversalCartesianDerivativesCenter(i, 0);
-        for (IndexType j = 0; j < 6; j++)
+        for (IndexType j = 0; j < 6; ++j) {
             H(i, j) =  aux * TransversalCartesianDerivativesCenter(j, 0);
+        }
     }
 
     noalias(H) = SNormal * prod(TransversalCartesianDerivativesCenter, trans(TransversalCartesianDerivativesCenter));
 
-    IndexType rowindex;
-    IndexType colindex;
-    for (IndexType i = 0; i < 6; i++) {
+    IndexType rowindex, colindex;
+    for (IndexType i = 0; i < 6; ++i) {
         rowindex = i * 3;
-        for (IndexType j = 0; j < 6; j++) {
+        for (IndexType j = 0; j < 6; ++j) {
             colindex = j * 3;
-            for(IndexType ii = 0; ii < 3; ii++)
+            for(IndexType ii = 0; ii < 3; ++ii) {
                 Kgeometricnormal(rowindex + ii,colindex + ii) += H(i, j);
+            }
         }
     }
 }
@@ -3102,32 +3098,32 @@ BoundedMatrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorCurrentPosit
 
     BoundedMatrix<double, 36, 1 > vector_current_position;
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     /* Element nodes */
-    for (IndexType index = 0; index < 6; index++) {
+    for (IndexType index = 0; index < 6; ++index) {
         const array_1d<double,3>& current_position = GetGeometry()[index].Coordinates();
-        for (IndexType j = 0; j < 3; j++)
+        for (IndexType j = 0; j < 3; ++j)
             vector_current_position(index * 3 + j, 0) = current_position[j];
     }
 
     /* Neighbour nodes */
     const SizeType number_of_neighbours = NumberOfActiveNeighbours(p_neighbour_nodes);
 
-    if (number_of_neighbours == 6) { // All the possible neighours
-        for (IndexType index = 0; index < 6; index++) {
+    if (number_of_neighbours == 6) { // All the possible neighbours
+        for (IndexType index = 0; index < 6; ++index) {
             const array_1d<double,3>& current_position = p_neighbour_nodes[index].Coordinates();
-            for (IndexType j = 0; j < 3; j++)
+            for (IndexType j = 0; j < 3; ++j)
                 vector_current_position(18 + index * 3 + j, 0) = current_position[j];
         }
     } else {
-        for (IndexType index = 0; index < 6; index++) {
+        for (IndexType index = 0; index < 6; ++index) {
             if (HasNeighbour(index, p_neighbour_nodes[index])) {
                 const array_1d<double,3>& current_position = p_neighbour_nodes[index].Coordinates();
-                for (IndexType j = 0; j < 3; j++)
+                for (IndexType j = 0; j < 3; ++j)
                     vector_current_position(18 + index * 3 + j, 0) = current_position[j];
             } else {
-                for (IndexType j = 0; j < 3; j++)
+                for (IndexType j = 0; j < 3; ++j)
                     vector_current_position(18 + index * 3 + j, 0) = 0.0;
             }
         }
@@ -3147,36 +3143,36 @@ BoundedMatrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorPreviousPosi
 
     BoundedMatrix<double, 36, 1 > vector_current_position;
 
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     /* Element nodes */
-    for (IndexType index = 0; index < 6; index++) {
+    for (IndexType index = 0; index < 6; ++index) {
         const array_1d<double,3>& previous_position = GetGeometry()[index].GetInitialPosition().Coordinates()
                                                     + GetGeometry()[index].FastGetSolutionStepValue(DISPLACEMENT, 1);
-        for (IndexType j = 0; j < 3; j++)
+        for (IndexType j = 0; j < 3; ++j)
             vector_current_position(index * 3 + j, 0) = previous_position[j];
     }
 
     /* Neighbour nodes */
     const SizeType number_of_neighbours = NumberOfActiveNeighbours(p_neighbour_nodes);
 
-    if (number_of_neighbours == 6) { // All the possible neighours
-        for (IndexType index = 0; index < 6; index++) {
+    if (number_of_neighbours == 6) { // All the possible neighbours
+        for (IndexType index = 0; index < 6; ++index) {
             const array_1d<double,3>& previous_position = p_neighbour_nodes[index].GetInitialPosition().Coordinates()
                                                  + p_neighbour_nodes[index].FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-            for (IndexType j = 0; j < 3; j++)
+            for (IndexType j = 0; j < 3; ++j)
                 vector_current_position(18 + index * 3 + j, 0) = previous_position[j];
         }
     } else {
-        for (IndexType index = 0; index < 6; index++) {
+        for (IndexType index = 0; index < 6; ++index) {
             if (HasNeighbour(index, p_neighbour_nodes[index])) {
                 const array_1d<double,3>& previous_position = p_neighbour_nodes[index].GetInitialPosition().Coordinates()
                                                      + p_neighbour_nodes[index].FastGetSolutionStepValue(DISPLACEMENT, 1);
-                for (IndexType j = 0; j < 3; j++)
+                for (IndexType j = 0; j < 3; ++j)
                     vector_current_position(18 + index * 3 + j, 0) = previous_position[j];
             } else {
-                for (IndexType j = 0; j < 3; j++)
+                for (IndexType j = 0; j < 3; ++j)
                     vector_current_position(18 + index * 3 + j, 0) = 0.0;
             }
         }
@@ -3248,20 +3244,20 @@ void SolidShellElementSprism3D6N::IntegrateEASInZeta(
     rEAS.mRHSAlpha += IntegrationWeight * ZetaGauss * rVariables.StressVector[2] * rVariables.C[2];
 
     // Calculate EAS stiffness
-    rEAS.mStiffAlpha += IntegrationWeight * ZetaGauss * ZetaGauss * rVariables.C[2]
-            * (rVariables.ConstitutiveMatrix(2, 2) * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
+    rEAS.mStiffAlpha += IntegrationWeight * ZetaGauss * ZetaGauss * rVariables.C[2] * (rVariables.ConstitutiveMatrix(2, 2) * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
 
     BoundedMatrix<double, 1, 36 > B3;
     BoundedMatrix<double, 1,  6 > D3;
 
-    for (IndexType i = 0; i < 6; i++)
+    for (IndexType i = 0; i < 6; ++i) {
         D3(0, i) = rVariables.ConstitutiveMatrix(2, i);
-    for (IndexType i = 0; i < 36; i++)
+    }
+    for (IndexType i = 0; i < 36; ++i) {
         B3(0, i) = rVariables.B(2, i);
+    }
 
     // Calculate H operator
-    noalias(rEAS.mHEAS) += IntegrationWeight * ZetaGauss
-            * (rVariables.C[2] * prod(D3, rVariables.B) + 2.0 * rVariables.StressVector[2] * B3);
+    noalias(rEAS.mHEAS) += IntegrationWeight * ZetaGauss * (rVariables.C[2] * prod(D3, rVariables.B) + 2.0 * rVariables.StressVector[2] * B3);
 
     KRATOS_CATCH( "" );
 }
@@ -3285,7 +3281,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddLHS(
         std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
         const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
 
-        for( IndexType i = 0; i < rLeftHandSideVariables.size(); i++ ) {
+        for( IndexType i = 0; i < rLeftHandSideVariables.size(); ++i ) {
             bool calculated = false;
             /* Calculate the Material Stiffness Matrix */
             if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX ) {
@@ -3389,7 +3385,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddRHS(
     if( rLocalSystem.CalculationFlags.Is( SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) ) {
         std::vector<VectorType>& RightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
         const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
-        for( IndexType i = 0; i < rRightHandSideVariables.size(); i++ ) {
+        for( IndexType i = 0; i < rRightHandSideVariables.size(); ++i ) {
             bool calculated = false;
             if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ) {
                 /* Operation performed: RightHandSideVector += ExtForce */
@@ -3437,14 +3433,16 @@ void SolidShellElementSprism3D6N::CalculateAndAddKuum(
 
     IndexType index_i, index_j;
 
-    for (IndexType i = 0; i < 36; i++) {
+    for (IndexType i = 0; i < 36; ++i) {
         index_i = i < 18 ? i : id_vector[i - 18];
-        if (index_i < 36)
-            for (IndexType j = 0; j < 36; j++) {
+        if (index_i < 36) {
+            for (IndexType j = 0; j < 36; ++j) {
                 index_j = j < 18 ? j : id_vector[j - 18];
-                if (index_j < 36)
+                if (index_j < 36) {
                     rLeftHandSideMatrix(index_i, index_j) += K(i, j);
+                }
             }
+        }
     }
 
     KRATOS_CATCH( "" );
@@ -3491,15 +3489,16 @@ void SolidShellElementSprism3D6N::CalculateAndAddKuug(
     CalculateIdVector(id_vector);
 
     IndexType index_i, index_j;
-
-    for (IndexType i = 0; i < 36; i++) {
+    for (IndexType i = 0; i < 36; ++i) {
         index_i = i < 18 ? i : id_vector[i - 18];
-        if (index_i < 36)
-            for (IndexType j = 0; j < 36; j++) {
+        if (index_i < 36) {
+            for (IndexType j = 0; j < 36; ++j) {
                 index_j = j < 18 ? j : id_vector[j - 18];
-                if (index_j < 36)
+                if (index_j < 36) {
                     rLeftHandSideMatrix(index_i, index_j) += K(i, j);
+                }
             }
+        }
     }
 
     KRATOS_CATCH( "" );
@@ -3523,15 +3522,16 @@ void SolidShellElementSprism3D6N::ApplyEASLHS(
 
     // Note: IntegrationWeight already considered in the integration
     IndexType index_i, index_j;
-
-    for (IndexType i = 0; i < 36; i++) {
+    for (IndexType i = 0; i < 36; ++i) {
         index_i = i < 18 ? i : id_vector[i - 18];
-        if (index_i < 36)
-            for (IndexType j = 0; j < 36; j++) {
+        if (index_i < 36) {
+            for (IndexType j = 0; j < 36; ++j) {
                 index_j = j < 18 ? j : id_vector[j - 18];
-                if (index_j < 36)
+                if (index_j < 36) {
                     rLeftHandSideMatrix(index_i, index_j) += lhs_aux(i, j);
+                }
             }
+        }
     }
 
     KRATOS_CATCH( "" );
@@ -3570,9 +3570,10 @@ void SolidShellElementSprism3D6N::CalculateAndAddExternalForces(
 
     const IndexType number_of_nodes = GetGeometry().PointsNumber();
 
-    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-        const IndexType index = 3 * i;
-        for ( IndexType j = 0; j < 3; j++ ) {
+    IndexType index;
+    for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+        index = 3 * i;
+        for ( IndexType j = 0; j < 3; ++j ) {
             rRightHandSideVector[index + j] += rVolumeForce[j]/static_cast<double>(number_of_nodes);
         }
     }
@@ -3596,9 +3597,8 @@ void SolidShellElementSprism3D6N::CalculateAndAddInternalForces(
     BoundedMatrix<double, 36, 1 > rhs_full = ZeroMatrix(36, 1);
 
     IndexType aux_index = 0;
-    for (IndexType i = 0; i < 18; i++) {
-        if (i == 9)
-            aux_index += 9;
+    for (IndexType i = 0; i < 18; ++i) {
+        if (i == 9) aux_index += 9;
 
         /* Calculate residual forces */
         /* Apply membrane stress, adding the in-plane nodal force contribution */
@@ -3631,11 +3631,11 @@ void SolidShellElementSprism3D6N::CalculateAndAddInternalForces(
     CalculateIdVector(id_vector);
 
     IndexType index_i;
-
-    for (IndexType i = 0; i < 36; i++) {
+    for (IndexType i = 0; i < 36; ++i) {
         index_i = i < 18 ? i : id_vector[i - 18];
-        if (index_i < 36)
+        if (index_i < 36) {
             rRightHandSideVector[index_i] -= rhs_full(i, 0);
+        }
     }
 
     KRATOS_CATCH( "" );
@@ -3677,7 +3677,7 @@ void SolidShellElementSprism3D6N::InitializeSystemMatrices(
     )
 {
     // Resizing as needed the LHS
-    WeakPointerVector< NodeType >& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const IndexType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
     const IndexType mat_size = number_of_nodes * 3;
 
@@ -3765,11 +3765,11 @@ void SolidShellElementSprism3D6N::CalculateDeltaPosition(Matrix & rDeltaPosition
 {
     KRATOS_TRY;
 
-    for ( IndexType i = 0; i < 6; i++ ) {
+    for ( IndexType i = 0; i < 6; ++i ) {
         const array_1d<double, 3 > & current_displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
         const array_1d<double, 3 > & previous_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, 1);
 
-        for ( IndexType j = 0; j < 3; j++ )
+        for ( IndexType j = 0; j < 3; ++j )
             rDeltaPosition(i,j) = current_displacement[j] - previous_displacement[j];
     }
 
@@ -3798,7 +3798,7 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     // Decompose matrix C_bar
     MathUtils<double>::EigenSystem<3>(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
 
-    for (IndexType i = 0; i < 3; i++)
+    for (IndexType i = 0; i < 3; ++i)
         eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
 
     const Matrix U_bar = prod( eigen_values_matrix, eigen_vector_matrix );
@@ -3822,7 +3822,7 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     // Decompose matrix C
     MathUtils<double>::EigenSystem<3>(C, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
 
-    for (IndexType i = 0; i < 3; i++)
+    for (IndexType i = 0; i < 3; ++i)
         eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
 
     const Matrix U  = prod( eigen_values_matrix, eigen_vector_matrix );
@@ -3857,7 +3857,7 @@ void SolidShellElementSprism3D6N::CalculateDeformationMatrix(
 
     const double factor_eas = std::exp(2.0 * AlphaEAS * ZetaGauss); // EAS factor
 
-    for (IndexType index = 0; index < 9; index++) {
+    for (IndexType index = 0; index < 9; ++index) {
         /* Element nodes */ // Note: It's important to consider the Voigt notation order considered in Kratos
         // Lower face
         rB(0, index)      = L1 * rCommonComponents.BMembraneLower(0, index);  // xx
@@ -3943,6 +3943,18 @@ void SolidShellElementSprism3D6N::InitializeGeneralVariables(GeneralVariables& r
         this->CalculateDeltaPosition(delta_position);
         rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, delta_position);
     }
+
+    // Computing gradient
+    const IndexType integration_point_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DX(integration_point_number, ZeroMatrix(6, 3));
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+    double detJ;
+    Matrix inv_j;
+    for (IndexType i_point = 0; i_point < integration_point_number; ++i_point) {
+        MathUtils<double>::InvertMatrix( rVariables.j[i_point], inv_j, detJ );
+        noalias(DN_DX[i_point]) = prod(DN_De[i_point], inv_j);
+    }
+    rVariables.SetShapeFunctionsGradients(DN_DX);
 }
 
 /***********************************************************************************/
