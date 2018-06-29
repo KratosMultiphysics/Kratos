@@ -15,34 +15,26 @@
 #define  KRATOS_KRATOS_STL_IO_H_INCLUDED
 
 // System includes
-#include <algorithm>
-#include <iterator>
-#include <iostream>
-#include <vector>
 
 // Project includes
 #include "includes/define.h"
 
-// Std::vecotr << operator
-
 namespace Kratos {
 
-// Std::vector << operator
 template<class T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T> & data) {
+std::ostream& operator<<(std::ostream& rOStream, const std::vector<T>& rVec) {
 
-    std::size_t vector_size = data.size();
+    std::size_t vector_size = rVec.size();
 
-    os << "[";
-    if(vector_size>0) os << data[0];
+    rOStream << "[";
+    if(vector_size>0) rOStream << rVec[0];
     if(vector_size>1) {
-        for(std::size_t i = 1; i < vector_size; i++) {
-            os<<", "<<data[i];
-        }
+        for(std::size_t i = 1; i < vector_size; i++)
+            rOStream<<", "<<rVec[i];
     }
-    os << "]";
+    rOStream << "]";
 
-    return os;
+    return rOStream;
 }
 
 } //namespace Kratos
