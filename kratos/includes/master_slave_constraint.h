@@ -113,10 +113,10 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    virtual MasterSlaveConstraint::Pointer Create(IndexType Id, 
-                                                DofPointerVectorType& MasterDofsVector, 
-                                                DofPointerVectorType& SlaveDofsVector, 
-                                                const MatrixType& RelationMatrix, 
+    virtual MasterSlaveConstraint::Pointer Create(IndexType Id,
+                                                DofPointerVectorType& MasterDofsVector,
+                                                DofPointerVectorType& SlaveDofsVector,
+                                                const MatrixType& RelationMatrix,
                                                 const VectorType& ConstantVector) const
     {
         KRATOS_TRY
@@ -213,7 +213,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      */
     virtual void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
                                   EquationIdVectorType& rMasterEquationIds,
-                                  ProcessInfo& rCurrentProcessInfo) 
+                                  ProcessInfo& rCurrentProcessInfo)
     {
         if (rSlaveEquationIds.size() != 0)
             rSlaveEquationIds.resize(0);
@@ -260,20 +260,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     virtual void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << " MasterSlaveConstraint Id  : " <<this->Id()<<std::endl;
-        }
-
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
-
-    virtual void save(Serializer &rSerializer) const override
-    {
-        //TODO: fill this
-    }
-
-    virtual void load(Serializer &rSerializer) override
-    {
-        //TODO: fill this
     }
 
 
@@ -314,6 +300,24 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      */
     DataValueContainer mData;
     ///@}
+
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    virtual void save(Serializer &rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags);
+        rSerializer.save("Data", mData);
+    }
+
+    virtual void load(Serializer &rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags);
+        rSerializer.load("Data", mData);
+    }
 };
 
 

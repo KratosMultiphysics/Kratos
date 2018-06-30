@@ -37,7 +37,7 @@ namespace Kratos
     * SlaveDof = weight * MasterDof + Constant
     *
     * the data T and ConstantVector (or the equivalent scalars) are not stored in the base class, since they can be eventually evaluated on the flight
-    * 
+    *
     * This class's object will provide its slave, master details and relation matrix between them.
     *
     * One can add two UserProvidedLinearMasterSlaveConstraint objects with same slave but different masters and weights.
@@ -81,7 +81,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
     /*
     * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
     */
-    UserProvidedLinearMasterSlaveConstraint(IndexType Id, 
+    UserProvidedLinearMasterSlaveConstraint(IndexType Id,
                                         DofPointerVectorType& rMasterDofsVector,
                                         DofPointerVectorType& rSlaveDofsVector,
                                         const MatrixType& rRelationMatrix,
@@ -98,7 +98,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
     /*
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
-    UserProvidedLinearMasterSlaveConstraint(IndexType Id, 
+    UserProvidedLinearMasterSlaveConstraint(IndexType Id,
                                         NodeType& rMasterNode,
                                         const VariableType& rMasterVariable,
                                         NodeType& rSlaveNode,
@@ -124,7 +124,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
     /*
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
-    UserProvidedLinearMasterSlaveConstraint(IndexType Id, 
+    UserProvidedLinearMasterSlaveConstraint(IndexType Id,
                                         NodeType& rMasterNode,
                                         const VariableComponentType& rMasterVariable,
                                         NodeType& rSlaveNode,
@@ -156,7 +156,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
     /// Copy Constructor
     UserProvidedLinearMasterSlaveConstraint(const UserProvidedLinearMasterSlaveConstraint& rOther)
     {
-        this->SetId(rOther.Id()); 
+        this->SetId(rOther.Id());
         // this->Flags = rOther.Flags;
         this->mSlaveDofsVector = rOther.mSlaveDofsVector;
         this->mMasterDofsVector = rOther.mMasterDofsVector;
@@ -173,10 +173,10 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    MasterSlaveConstraint::Pointer Create(IndexType Id, 
-                                                DofPointerVectorType& MasterDofsVector, 
-                                                DofPointerVectorType& SlaveDofsVector, 
-                                                const MatrixType& RelationMatrix, 
+    MasterSlaveConstraint::Pointer Create(IndexType Id,
+                                                DofPointerVectorType& MasterDofsVector,
+                                                DofPointerVectorType& SlaveDofsVector,
+                                                const MatrixType& RelationMatrix,
                                                 const VectorType& ConstantVector) const override
     {
         KRATOS_TRY
@@ -185,7 +185,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
         KRATOS_CATCH("");
     }
 
-    MasterSlaveConstraint::Pointer Create(IndexType Id, 
+    MasterSlaveConstraint::Pointer Create(IndexType Id,
                                         NodeType& rMasterNode,
                                         const VariableType& rMasterVariable,
                                         NodeType& rSlaveNode,
@@ -266,20 +266,6 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
         rOStream << " Number of Masters         : " <<this->mMasterDofsVector.size()<<std::endl;
     }
 
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
-
-    virtual void save(Serializer &rSerializer) const override
-    {
-        //TODO: fill this
-    }
-
-    virtual void load(Serializer &rSerializer) override
-    {
-
-    }
-
 
 
   private:
@@ -288,6 +274,29 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
     DofPointerVectorType mMasterDofsVector;
     MatrixType mRelationMatrix;
     VectorType mConstantVector;
+
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    void save(Serializer &rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, MasterSlaveConstraint);
+        rSerializer.save("SlaveDofVec", mSlaveDofsVector);
+        rSerializer.save("MasterDofVec", mMasterDofsVector);
+        rSerializer.save("RelationMat", mRelationMatrix);
+        rSerializer.save("ConstantVec", mConstantVector);
+    }
+
+    void load(Serializer &rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, MasterSlaveConstraint);
+        rSerializer.load("SlaveDofVec", mSlaveDofsVector);
+        rSerializer.load("MasterDofVec", mMasterDofsVector);
+        rSerializer.load("RelationMat", mRelationMatrix);
+        rSerializer.load("ConstantVec", mConstantVector);
+
+    }
 };
 
 

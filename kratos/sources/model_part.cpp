@@ -868,7 +868,7 @@ void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::P
         // First add it to the parent modelpart
         mpParentModelPart->AddMasterSlaveConstraint(pNewMasterSlaveConstraint);
 
-        // Now add it here, to this submodelpart. 
+        // Now add it here, to this submodelpart.
         auto existing_constraint_it = MasterSlaveConstraints().find(pNewMasterSlaveConstraint->Id());
         if( existing_constraint_it == MasterSlaveConstraintsEnd()) //master-slave constraint did not exist
         {
@@ -900,7 +900,7 @@ void ModelPart::AddMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType::P
             {
                 KRATOS_ERROR << "attempting to add Master-Slave constraint with Id :" << pNewMasterSlaveConstraint->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
             }
-            else 
+            else
             {
                 //in this case do nothing...we are passing twice the same constraint
             }
@@ -945,7 +945,7 @@ void ModelPart::AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSl
 /** Inserts an master-slave constraint in the current mesh.
  */
 MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id, 
+                                                                                    IndexType Id,
                                                                                     ModelPart::DofsVectorType& rMasterDofsVector,
                                                                                     ModelPart::DofsVectorType& rSlaveDofsVector,
                                                                                     const ModelPart::MatrixType& RelationMatrix,
@@ -985,8 +985,8 @@ MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const s
 
 }
 
-MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
-                                                                                    ModelPart::IndexType Id, 
+MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    ModelPart::IndexType Id,
                                                                                     ModelPart::NodeType& rMasterNode,
                                                                                     const ModelPart::DoubleVariableType& rMasterVariable,
                                                                                     ModelPart::NodeType& rSlaveNode,
@@ -1025,7 +1025,7 @@ MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const s
                                                                                             Constant);
 
     mMasterSlaveConstraints.push_back(p_new_constraint);
-    mMasterSlaveConstraints.Unique();    
+    mMasterSlaveConstraints.Unique();
     return p_new_constraint;
 
     KRATOS_CATCH("")
@@ -1033,8 +1033,8 @@ MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const s
 }
 
 
-MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
-                                                                                    ModelPart::IndexType Id, 
+MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    ModelPart::IndexType Id,
                                                                                     ModelPart::NodeType& rMasterNode,
                                                                                     const ModelPart::VariableComponentType& rMasterVariable,
                                                                                     ModelPart::NodeType& rSlaveNode,
@@ -1088,7 +1088,7 @@ void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveCons
     mMasterSlaveConstraints.erase(MasterSlaveConstraintId);
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveMasterSlaveConstraint(MasterSlaveConstraintId); 
+        i_sub_model_part->RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
 }
 
 /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
@@ -1575,6 +1575,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
     rSerializer.save("SubModelParts", mSubModelParts);
+    rSerializer.save("MasterSlaveConstraints", mMasterSlaveConstraints);
 }
 
 void ModelPart::load(Serializer& rSerializer)
@@ -1589,10 +1590,10 @@ void ModelPart::load(Serializer& rSerializer)
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
     rSerializer.load("SubModelParts", mSubModelParts);
+    rSerializer.load("MasterSlaveConstraints", mMasterSlaveConstraints);
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-    i_sub_model_part->SetParentModelPart(this);
-
+        i_sub_model_part->SetParentModelPart(this);
 }
 
 
