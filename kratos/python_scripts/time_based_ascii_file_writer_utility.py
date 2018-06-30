@@ -16,8 +16,7 @@ class TimeBasedAsciiFileWriterUtility(object):
 
         default_settings = KratosMultiphysics.Parameters('''{
             "output_file_name"  : "",
-            "save_in_folder"    : true,
-            "output_folder"     : "TimeBasedAsciiResults",
+            "output_folder_name"     : "TimeBasedAsciiResults",
             "write_buffer_size" : -1
         }''')
         # write_buffer_size: -1 means we use the system default
@@ -28,8 +27,7 @@ class TimeBasedAsciiFileWriterUtility(object):
 
         # file name and folder path specifications and check
         self.output_file_name = params["output_file_name"].GetString()
-        self.save_in_folder = params["save_in_folder"].GetBool()
-        self.output_folder = params["output_folder"].GetString()
+        self.output_folder_name = params["output_folder_name"].GetString()
         self.__ValidateAndAssignOutputFolderPath()
 
         # size of the buffer in bytes. Set to "0" for flushing always
@@ -111,23 +109,30 @@ class TimeBasedAsciiFileWriterUtility(object):
         # check if relative path was erroneously specified in file name
         raw_path, raw_output_file_name = os.path.split(self.output_file_name)
 
-        if self.output_folder != "":
+        if self.output_folder_name != "":
             if raw_path != "":
                 # assign the default value
-                self.output_folder = "TimeBasedAsciiResults"
+                self.output_folder_name = "TimeBasedAsciiResults"
 
                 warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ self.output_file_name +'"\n'
-                warn_msg += 'Use parameter "output_folder" to specify correctly\n'
-                warn_msg += 'Using the default relative path "' + self.output_folder + '" instead'
+                warn_msg += 'Use parameter "output_folder_name" to specify correctly\n'
+                warn_msg += 'Using the default relative path "' + self.output_folder_name + '" instead'
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
 
-            absolute_folder_path = os.path.join(os.getcwd(), self.output_folder)
-            self.output_file_name = os.path.join(self.output_folder, raw_output_file_name)
+            subfolders = os.path.normpath(self.output_folder_name).split(os.sep)
+
+            absolute_folder_path = os.getcwd()
+            relative_folder_path = ""
+            for folder in subfolders:
+                absolute_folder_path = os.path.join(absolute_folder_path, folder)
+                relative_folder_path = os.path.join(relative_folder_path, folder)
+
+            self.output_file_name = os.path.join(relative_folder_path, raw_output_file_name)
 
         else:
             if raw_path != "":
                 warn_msg  = 'Relative path "'+ raw_path +'" contained wrongly in "output_file_name": "'+ self.output_file_name +'"\n'
-                warn_msg += 'Use the parameters "save_in_folder" and "output_folder" to specify correctly\n'
+                warn_msg += 'Use the parameter "output_folder_name" to specify correctly\n'
                 warn_msg += 'Using the current directory instead'
                 KratosMultiphysics.Logger.PrintWarning("TimeBasedAsciiFileWriteUtility", warn_msg)
 

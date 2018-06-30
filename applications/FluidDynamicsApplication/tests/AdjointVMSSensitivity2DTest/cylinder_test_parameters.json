@@ -156,7 +156,7 @@
             "position"         : [0.015717, 0.0043484, 0.0],
             "model_part_name"  : "Parts_Fluid",
             "output_file_name" : "cylinder_test_probe1.dat",
-            "output_folder"    : "AdjointVMSSensitivity2DTest",
+            "output_folder_name"    : "AdjointVMSSensitivity2DTest",
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -171,7 +171,7 @@
             "position"         : [0.02601,-0.0018744, 0.0],
             "model_part_name"  : "Parts_Fluid",
             "output_file_name" : "cylinder_test_probe2.dat",
-            "output_folder"    : "AdjointVMSSensitivity2DTest",
+            "output_folder_name"    : "AdjointVMSSensitivity2DTest",
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
