@@ -106,7 +106,7 @@ public:
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}
 
     /// Destructor.
-    ~Properties() override;
+    ~Properties() override {}
 
 
     ///@}

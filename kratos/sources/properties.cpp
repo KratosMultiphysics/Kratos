@@ -29,9 +29,4 @@ Properties::AccessorPointerType& Properties::GetAccessor()
     return mpAccessor;
 }
 
-Properties::~Properties()
-{
-
-}
-
 }  // namespace Kratos.
