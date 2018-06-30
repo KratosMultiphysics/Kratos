@@ -109,7 +109,7 @@ public:
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV,
-                                           const GeometryType::Pointer& rpGeometry,
+                                           const GeometryType& rpGeometry,
                                            const DataValueContainer& rDataContainer,
                                            const ProcessInfo& rCurrentProcessInfo,
                                            const Vector& rShapeFunctionValues,
@@ -252,14 +252,15 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        // rSerializer.save("Data", mData);
-        // rSerializer.save("Tables", mTables);
+        // rSerializer.save("ParentProps", mpParentProperties);
+        // TODO check if this works... (=> circular dependencies)
+        // If it is not working I could make a "SetAccessorProps"
+        // that is called in the load fct of the Properties and passes a "this"
     }
 
     void load(Serializer& rSerializer)
     {
-        // rSerializer.load("Data", mData);
-        // rSerializer.load("Tables", mTables);
+        // rSerializer.load("ParentProps", mpParentProperties);
     }
 
     ///@}
