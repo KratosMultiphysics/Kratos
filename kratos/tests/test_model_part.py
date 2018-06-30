@@ -663,19 +663,42 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_add_constraint(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(PRESSURE)
+        
         n1 = model_part.CreateNewNode(1, 1.0,1.1,0.2)
         n2 = model_part.CreateNewNode(2, 2.0,3.1,0.2)
 
         VariableUtils().AddDof(PRESSURE,model_part)
 
         c1 = MasterSlaveConstraint(10)
-        c2 = model_part.CeateNewMasterSlaveConstraint("MasterSlaveConstraint", 1, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
-
+        c2 = model_part.CeateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
+        
         model_part.AddMasterSlaveConstraint(c1)
 
         consts = model_part.GetMasterSlaveConstraints()
 
         self.assertTrue( c1.Id in model_part.MasterSlaveConstraints )
+
+        #now try to add to submodelparts
+        sub1 = model_part.CreateSubModelPart("sub1")
+        sub2 = model_part.CreateSubModelPart("sub2")
+        subsub1 = sub1.CreateSubModelPart("subsub1")
+        
+        ss1 = subsub1.CeateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 2, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
+
+        self.assertTrue(ss1 in subsub1.MasterSlaveConstraints)
+        self.assertTrue(ss1 in sub1.MasterSlaveConstraints)
+        self.assertTrue(ss1 in model_part.MasterSlaveConstraints)
+        self.assertFalse(ss1 in sub2.MasterSlaveConstraints)
+        
+        sub1.RemoveMasterSlaveConstraint(ss1)
+        self.assertFalse(ss1 in subsub1.MasterSlaveConstraints)
+        self.assertFalse(ss1 in sub1.MasterSlaveConstraints)
+        self.assertTrue(ss1 in model_part.MasterSlaveConstraints)
+
+        subsub1.RemoveMasterSlaveConstraintFromAllLevels(ss1)
+        
+        ##TODO: uncomment and debug the following statement
+        #self.assertFalse(ss1 in model_part.MasterSlaveConstraints)
 
 
 if __name__ == '__main__':
