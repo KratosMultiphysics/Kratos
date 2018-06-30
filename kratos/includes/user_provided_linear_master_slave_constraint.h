@@ -52,8 +52,7 @@ namespace Kratos
     */
 class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
 {
-
-  public:
+public:
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(UserProvidedLinearMasterSlaveConstraint);
     typedef IndexedObject BaseType;
@@ -148,7 +147,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
     }
 
     /// Destructor.
-    virtual ~UserProvidedLinearMasterSlaveConstraint() override
+    ~UserProvidedLinearMasterSlaveConstraint() override
     {
 
     }
@@ -209,7 +208,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
      * @param rResult the elemental equation ID vector
      * @param rCurrentProcessInfo the curent process info instance
      */
-    virtual void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
+    void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
                                   EquationIdVectorType& rMasterEquationIds,
                                   ProcessInfo& rCurrentProcessInfo) override
     {
@@ -234,7 +233,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
      * @param rConstant the elemental right hand side
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalSystem(MatrixType& rTransformationMatrix,
+    void CalculateLocalSystem(MatrixType& rTransformationMatrix,
                                       VectorType& rConstantVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
@@ -247,7 +246,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
 	* Returns the string containing a detailed description of this object.
 	* @return the string with informations
 	*/
-    virtual std::string GetInfo() const override
+    std::string GetInfo() const override
     {
         return "Linear User Provded Master Slave Constraint class !";
     }
@@ -259,7 +258,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
     //@{
 
     ///@}
-    virtual void PrintInfo(std::ostream &rOStream) const override
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << " UserProvidedLinearMasterSlaveConstraint Id  : " <<this->Id()<<std::endl;
         rOStream << " Number of Slaves          : " <<this->mSlaveDofsVector.size()<<std::endl;
@@ -268,7 +267,7 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
 
 
 
-  private:
+private:
     ///@}
     DofPointerVectorType mSlaveDofsVector;
     DofPointerVectorType mMasterDofsVector;
@@ -295,11 +294,8 @@ class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
         rSerializer.load("MasterDofVec", mMasterDofsVector);
         rSerializer.load("RelationMat", mRelationMatrix);
         rSerializer.load("ConstantVec", mConstantVector);
-
     }
 };
-
-
 
 ///@name Input/Output funcitons
 ///@{
@@ -318,9 +314,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
 ///@}
-
 
 
 } // namespace Kratos

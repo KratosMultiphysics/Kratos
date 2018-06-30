@@ -167,7 +167,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     {
     }
 
-
     /**
      * is called to initialize the constraint
      * if the constraint needs to perform any operation before any calculation is done
@@ -240,7 +239,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
       }
     }
 
-
     /**
 	* Returns the string containing a detailed description of this object.
 	* @return the string with informations
@@ -261,7 +259,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     {
         rOStream << " MasterSlaveConstraint Id  : " <<this->Id()<<std::endl;
     }
-
 
     /**
      * Check if the Data exists with Has(..) methods:
@@ -294,7 +291,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
   private:
     ///@}
 
-
     /**
      * pointer to the data related to this constraint
      */
@@ -319,7 +315,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         rSerializer.load("Data", mData);
     }
 };
-
 
 
 ///@name Input/Output funcitons
