@@ -123,7 +123,7 @@ public:
         if (I1 == 0.0) { rEqStress = 0; }
         else {
             const double CFL = -Root3*(3.0 - SinPhi) / (3.0 * SinPhi - 3.0);
-            const double TEN0 = 6.0 * I1*SinPhi / (Root3*(3.0 - SinPhi)) + std::sqrt(J2);
+            const double TEN0 = 2.0 * I1 * SinPhi / (Root3*(3.0 - SinPhi)) + std::sqrt(J2);
             rEqStress = std::abs(CFL*TEN0);
         }
     }
