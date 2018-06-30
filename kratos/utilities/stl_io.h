@@ -15,6 +15,8 @@
 #define  KRATOS_KRATOS_STL_IO_H_INCLUDED
 
 // System includes
+#include <iostream>
+#include <vector>
 
 // Project includes
 #include "includes/define.h"
