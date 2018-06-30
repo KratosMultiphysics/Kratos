@@ -652,9 +652,6 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_WEIGHT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INTEGRATION_COORDINATES )
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_ACCESSOR )
-
-
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
     .def(init<	>() )
     .def("SetDensityVariable",&ConvectionDiffusionSettings::SetDensityVariable)

@@ -91,6 +91,9 @@ public:
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
+    typedef class PropertiesAccessor AccessorType;
+
+    typedef Kratos::shared_ptr<AccessorType> AccessorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -103,7 +106,7 @@ public:
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}
 
     /// Destructor.
-    ~Properties() override {}
+    ~Properties() override;
 
 
     ///@}
@@ -291,6 +294,7 @@ public:
         return mData;
     }
 
+    AccessorPointerType& GetAccessor();
 
 
     ///@}
@@ -389,6 +393,7 @@ private:
 
     ContainerType mData;
     TablesContainerType mTables;
+    AccessorPointerType mpAccessor = nullptr;
 
     ///@}
     ///@name Private Operators

@@ -462,8 +462,8 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 
-    class_<PropertiesAccessor, PropertiesAccessor::Pointer, PropertiesAccessor::BaseType >(m,"PropertiesAccessor")
-    .def(init<Kratos::PropertiesAccessor::IndexType>())
+    class_<PropertiesAccessor, PropertiesAccessor::Pointer>(m,"PropertiesAccessor")
+    .def(init<Properties*>())
     // All the functions
     ;
 }

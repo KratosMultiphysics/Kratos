@@ -54,7 +54,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PropertiesAccessor : public IndexedObject
+class PropertiesAccessor
 {
 public:
     ///@name Type Definitions
@@ -62,8 +62,6 @@ public:
 
     /// Pointer definition of PropertiesAccessor
     KRATOS_CLASS_POINTER_DEFINITION(PropertiesAccessor);
-
-    using BaseType = IndexedObject;
 
     using NodeType = Node<3>;
     using GeometryType = Geometry<NodeType>;
@@ -75,8 +73,8 @@ public:
     using ComponentVariableType = VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >;
     using Array3VariableType = Variable<array_1d<double, 3>>;
 
-    using DoubleFunction = std::function<double(const Properties::Pointer&,
-                                                const GeometryType::Pointer&,
+    using DoubleFunction = std::function<double(const Properties*,
+                                                const GeometryType&,
                                                 const DataValueContainer&,
                                                 const ProcessInfo&,
                                                 const Vector&,
@@ -93,7 +91,8 @@ public:
     ///@{
 
     /// Default constructor.
-    PropertiesAccessor(IndexType NewId = 0) : BaseType(NewId) {}
+    PropertiesAccessor(Properties* pParentProperties)
+        : mpParentProperties(pParentProperties) {}
 
     /// Destructor.
     virtual ~PropertiesAccessor() {}
@@ -110,38 +109,37 @@ public:
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV,
-                                           const Properties::Pointer& rpProperties,
                                            const GeometryType::Pointer& rpGeometry,
                                            const DataValueContainer& rDataContainer,
                                            const ProcessInfo& rCurrentProcessInfo,
                                            const Vector& rShapeFunctionValues,
                                            const int GaussPointIndex=0)
     {
-        // rpProperties->GetValue(rV);
+        mpParentProperties->GetValue(rV);
     }
 
 
     double GetValue(const DoubleVariableType& rV,
-                     const Properties::Pointer& rpProperties,
-                     const GeometryType::Pointer& rpGeometry,
+                     const GeometryType& rGeometry,
                      const DataValueContainer& rDataContainer,
                      const ProcessInfo& rCurrentProcessInfo,
                      const Vector& rShapeFunctionValues,
                      const int GaussPointIndex=0)
     {
         if(mConfigurationsDouble.find(rV) != mConfigurationsDouble.end())
-            return mConfigurationsDouble[rV](rpProperties,
-                                             rpGeometry,
+            return mConfigurationsDouble[rV](mpParentProperties,
+                                             rGeometry,
                                              rDataContainer,
                                              rCurrentProcessInfo,
                                              rShapeFunctionValues,
                                              GaussPointIndex);
         else
-            return rpProperties->GetValue(rV);
+            return mpParentProperties->GetValue(rV);
     }
 
-    void Configure(const DoubleVariableType& rV, std::function<double(const Properties::Pointer&,
-                                                const GeometryType::Pointer&,
+    void Configure(const DoubleVariableType& rV, std::function<double(
+                                                const Properties*,
+                                                const GeometryType&,
                                                 const DataValueContainer&,
                                                 const ProcessInfo&,
                                                 const Vector&,
@@ -167,7 +165,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "PropertiesAccessor" ;
@@ -175,10 +173,10 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "PropertiesAccessor";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "PropertiesAccessor";}
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const {}
 
 
     ///@}
@@ -234,8 +232,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    Properties* mpParentProperties;
     DoubleConfiguration mConfigurationsDouble;
-
 
     ///@}
     ///@name Private Operators
@@ -252,16 +250,14 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         // rSerializer.save("Data", mData);
         // rSerializer.save("Tables", mTables);
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         // rSerializer.load("Data", mData);
         // rSerializer.load("Tables", mTables);
     }
@@ -323,5 +319,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_PROPERTIES_ACCESSOR_H  defined
-
-
