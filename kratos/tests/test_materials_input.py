@@ -23,7 +23,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         except:
             self.skipTest("KratosMultiphysics.StructuralMechanicsApplication is not available")
 
-        model_part = KratosMultiphysics.ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory

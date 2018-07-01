@@ -39,8 +39,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosSubModelPartsListUtilityFastSuite)
         {
+            Model current_model;
+
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
-            ModelPart& first_model_part = Kernel::GetModel().CreateModelPart("Main");
+            ModelPart& first_model_part = current_model.CreateModelPart("Main");
             ModelPart* p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart* p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("ASubModelPart2");
             ModelPart* p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
@@ -107,7 +109,7 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart& second_model_part = Kernel::GetModel().CreateModelPart("OtherMain");
+            ModelPart& second_model_part = current_model.CreateModelPart("OtherMain");
             second_model_part.CreateSubModelPart("BSubModelPart1");
             second_model_part.CreateSubModelPart("ASubModelPart2");
             second_model_part.CreateSubModelPart("ZSubModelPart3");
@@ -173,8 +175,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosSubModelPartsListUtilityFastSuite)
         {
+            Model current_model;
+
             // Creating the reference model part and the relative submodelparts
-            ModelPart& first_model_part = Kernel::GetModel().CreateModelPart("Main");
+            ModelPart& first_model_part = current_model.CreateModelPart("Main");
             ModelPart* p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart* p_first_sub_modelpart_1a = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             ModelPart* p_first_sub_modelpart_1b = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
@@ -247,7 +251,7 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart& second_model_part = Kernel::GetModel().CreateModelPart("OtherMain");
+            ModelPart& second_model_part = current_model.CreateModelPart("OtherMain");
             ModelPart* p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
 
             p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
@@ -317,8 +321,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityPointers, KratosSubModelPartsListUtilityFastSuite)
         {
+            Model current_model;
+
             // Creating the reference model part and the relative submodelparts
-            ModelPart& model_part = Kernel::GetModel().CreateModelPart("ModelPart");
+            ModelPart& model_part = current_model.CreateModelPart("ModelPart");
             ModelPart* p_sub_modelpart_1 = model_part.CreateSubModelPart("First");
             ModelPart* p_sub_modelpart_2 = model_part.CreateSubModelPart("Second");
             ModelPart* p_sub_modelpart_3 = p_sub_modelpart_2->CreateSubModelPart("Third");
@@ -367,8 +373,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityIntersections, KratosSubModelPartsListUtilityFastSuite)
         {
+            Model current_model;
+            
             // Creating the reference model part and the relative submodelparts
-            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             ModelPart* p_sub_modelpart_1 = model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart* p_sub_modelpart_2 = model_part.CreateSubModelPart("ASubModelPart2");
             ModelPart* p_sub_modelpart_3 = model_part.CreateSubModelPart("ZSubModelPart3");

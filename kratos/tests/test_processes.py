@@ -12,7 +12,9 @@ def GetFilePath(fileName):
 class TestProcesses(KratosUnittest.TestCase):
 
     def test_assign_processes(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -164,10 +166,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for node in model_part.Nodes:
             self.assertFalse(node.IsFixed(DISPLACEMENT_X))
@@ -337,7 +337,9 @@ class TestProcesses(KratosUnittest.TestCase):
             process.ExecuteFinalizeSolutionStep()
 
     def test_rotated_system(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -370,10 +372,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(3.0)
 
@@ -394,7 +394,9 @@ class TestProcesses(KratosUnittest.TestCase):
 
 
     def test_assign_scalar_value_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -427,10 +429,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
@@ -441,7 +441,9 @@ class TestProcesses(KratosUnittest.TestCase):
 
 
     def test_assign_scalar_field_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -464,10 +466,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
 
@@ -484,7 +484,9 @@ class TestProcesses(KratosUnittest.TestCase):
                 i=i+1
 
     def test_assign_scalar_field_component_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -507,10 +509,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
 
@@ -523,7 +523,9 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(v[0],t)
 
     def test_find_nodal_h_process(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(NODAL_H)
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
@@ -535,7 +537,9 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetNode(len(model_part.Nodes)).GetSolutionStepValue(NODAL_H), 0.5)
 
     def test_assign_acceleration_to_nodes(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -564,10 +568,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         ################### here we are within the interval
         model_part.CloneTimeStep(3.0)
@@ -645,7 +647,9 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
             
     def test_assign_vector_variable_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         
         model_part.CreateNewNode(1,0.5,0.5,0.5)
@@ -672,11 +676,9 @@ class TestProcesses(KratosUnittest.TestCase):
                 ]
             }
             """)    
-            
-        Model = {"Main":model_part}
-
+ 
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         ################### here we are within the interval
         model_part.CloneTimeStep(3.0)

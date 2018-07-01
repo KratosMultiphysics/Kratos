@@ -20,7 +20,9 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
 		{
-			ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
+			Model current_model;
+
+			ModelPart& model_part = current_model.CreateModelPart("Main");
  
 			model_part.CreateSubModelPart("Inlet1");
 			model_part.CreateSubModelPart("Inlet2");
@@ -39,7 +41,9 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
 		{
-			ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
+			Model current_model;
+
+			ModelPart& model_part = current_model.CreateModelPart("Main");
 
             model_part.AddNodalSolutionStepVariable(VELOCITY);
 

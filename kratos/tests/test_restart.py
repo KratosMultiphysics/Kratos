@@ -12,9 +12,9 @@ import sys
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-def ReadModelPart(file_path):
+def ReadModelPart(file_path, current_model):
     model_part_name = "MainRestart"
-    model_part = KratosMultiphysics.ModelPart(model_part_name)
+    model_part = current_model.CreateModelPart(model_part_name)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
     model_part_io = KratosMultiphysics.ModelPartIO(file_path)
@@ -136,17 +136,19 @@ class TestRestart(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
 
     def __execute_restart_save(self, file_name, serializer_flag):
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"))
+
+        temporary_model = KratosMultiphysics.Model() #this lives only until the end of this function
+
+        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"), temporary_model)
 
         serializer_save = KratosMultiphysics.Serializer(file_name, serializer_flag)
         serializer_save.Save(model_part.Name, model_part)
         
 
-    def __execute_restart_load(self, file_name, serializer_flag):
-        KratosMultiphysics.Model().Reset()
+    def __execute_restart_load(self, current_model, file_name, serializer_flag):
         model_part_name = "MainRestart"
 
-        loaded_model_part = KratosMultiphysics.ModelPart(model_part_name)
+        loaded_model_part = current_model.CreateModelPart(model_part_name)
 
         serializer_load = KratosMultiphysics.Serializer(file_name, serializer_flag)
         serializer_load.Load(loaded_model_part.Name, loaded_model_part)
@@ -156,11 +158,16 @@ class TestRestart(KratosUnittest.TestCase):
     def __execute_restart_test(self, serializer_flag):
         file_name = "test_restart_file"
         self.__execute_restart_save(file_name, serializer_flag)
-        model_part = self.__execute_restart_load(file_name, serializer_flag)
+
+        current_model = KratosMultiphysics.Model() #here we create the Model which will live to the end of this function
+        model_part = self.__execute_restart_load(current_model, file_name, serializer_flag)
         self._check_modelpart(model_part)
 
     def __execute_restart_utility_save(self, model_part_name, restart_time):
-        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"))
+        #creating a Model which will be destroyed at the end of the save function
+        temporary_model = KratosMultiphysics.Model()
+
+        model_part = ReadModelPart(GetFilePath("test_model_part_io_read"), temporary_model)
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = restart_time # saving is only done if time > 0.0
 
@@ -176,9 +183,8 @@ class TestRestart(KratosUnittest.TestCase):
 
         rest_utility.SaveRestart()
 
-    def __execute_restart_utility_load(self, model_part_name, restart_time):
-        KratosMultiphysics.Model().Reset()
-        loaded_model_part = KratosMultiphysics.ModelPart(model_part_name)
+    def __execute_restart_utility_load(self, current_model, model_part_name, restart_time):
+        loaded_model_part = current_model.CreateModelPart(model_part_name)
 
         restart_parameters = KratosMultiphysics.Parameters("""
         {
@@ -206,11 +212,16 @@ class TestRestart(KratosUnittest.TestCase):
         self.__execute_restart_test(KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL)
 
     def test_restart_utility(self):
+        
+
         # Here we only test SERIALIZER_NO_TRACE since the others are tested in the simple tests
         model_part_name = "MainRestart"
         restart_time = 5.3
         self.__execute_restart_utility_save(model_part_name, restart_time)
-        loaded_model_part = self.__execute_restart_utility_load(model_part_name, restart_time)
+
+        #we create here the model to which we will load
+        current_model = KratosMultiphysics.Model()
+        loaded_model_part = self.__execute_restart_utility_load(current_model, model_part_name, restart_time)
 
         self._check_modelpart(loaded_model_part)
 

@@ -96,6 +96,8 @@ KRATOS_TEST_CASE_IN_SUITE(
     application.Register();
     kernel.Initialize();
 
+    Model current_model;
+
     ModelPartIO model_part_io(p_input);
 
     Kratos::shared_ptr<std::stringstream> p_output_0(new std::stringstream);
@@ -120,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(
         conditions_partitions, nodes_all_partitions, elements_all_partitions,
         conditions_all_partitions);
 
-    ModelPart& model_part_0 = Kernel::GetModel().CreateModelPart("Partition 0");
+    ModelPart& model_part_0 = current_model.CreateModelPart("Partition 0");
     model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_0.AddNodalSolutionStepVariable(FORCE);
     model_part_0.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -141,7 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(
     KRATOS_CHECK_EQUAL(
         model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
 
-    ModelPart& model_part_1 = Kernel::GetModel().CreateModelPart("Partition 1");
+    ModelPart& model_part_1 = current_model.CreateModelPart("Partition 1");
     model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_1.AddNodalSolutionStepVariable(FORCE);
     model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -174,9 +176,11 @@ KRATOS_TEST_CASE_IN_SUITE(
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
+
+    Model current_model;
     
     // Create a model part to write
-    ModelPart& main_model_part = Kernel::GetModel().CreateModelPart("MainModelPart");
+    ModelPart& main_model_part = current_model.CreateModelPart("MainModelPart");
     main_model_part.SetBufferSize(1);
     Properties::Pointer p_properties_1(new Properties(1));
     p_properties_1->SetValue(DENSITY, 1000.0);
@@ -240,7 +244,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
 
     // Read and check the written .mdpa file
     ModelPartIO * model_part_io_output = new ModelPartIO(output_file_name);
-    ModelPart& main_model_part_output = Kernel::GetModel().CreateModelPart("MainModelPartOutput");
+    ModelPart& main_model_part_output = current_model.CreateModelPart("MainModelPartOutput");
     model_part_io_output->ReadModelPart(main_model_part_output);
 
     // Assert results

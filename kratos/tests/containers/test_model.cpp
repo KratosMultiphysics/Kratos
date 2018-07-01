@@ -23,13 +23,13 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelGetModelPart, KratosCoreFastSuite)
 		{
-                    
-            auto& model_part = Kernel::GetModel().CreateModelPart("Main");
+            Model model;
+                
+            auto& model_part = model.CreateModelPart("Main");
 
             model_part.CreateSubModelPart("Inlet1");
 
-            auto& model = Kernel::GetModel();
-
+    
             KRATOS_CHECK_EQUAL(model.GetModelPart("Main").Name(), model_part.Name());
 
             ModelPart& smp = model_part.GetSubModelPart("Inlet1");
@@ -48,11 +48,12 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelHasModelPart, KratosCoreFastSuite)
 		{
-            auto& model_part = Kernel::GetModel().CreateModelPart("Main");
+            Model model;
+
+            auto& model_part = model.CreateModelPart("Main");
 
 			model_part.CreateSubModelPart("Inlet1");
 
-            Model& model = Kernel::GetModel();
 
             KRATOS_CHECK(model.HasModelPart("Main"));
             KRATOS_CHECK(model.HasModelPart("Main.Inlet1"));

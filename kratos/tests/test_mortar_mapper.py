@@ -12,11 +12,10 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
 
     def __base_test_mapping(self, input_filename, num_nodes, pure_implicit):
-        self.main_model_part = KratosMultiphysics.ModelPart("Structure")
-        self.main_model_part.SetBufferSize(2)
+        self.StructureModel = KratosMultiphysics.Model()
 
-        ## Creation of the Kratos model (build sub_model_parts or submeshes)
-        self.StructureModel = {"Structure": self.main_model_part}
+        self.main_model_part = self.StructureModel.CreateModelPart("Structure")
+        self.main_model_part.SetBufferSize(2)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)

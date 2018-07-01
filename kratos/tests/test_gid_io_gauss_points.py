@@ -41,7 +41,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
                 
 
     def setModelPart(self):
-        modelPart = ModelPart("Test ModelPart")
+        modelPart= current_model.CreateModelPart("Test ModelPart")
 
         modelPart.AddNodalSolutionStepVariable(DISTANCE)
         modelPart.AddNodalSolutionStepVariable(VELOCITY)

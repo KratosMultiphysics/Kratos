@@ -26,7 +26,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
 
     def test_model_part_io_read_model_part(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -158,7 +160,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertFalse(inlets_model_part[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT])
 
     def test_model_part_io_write_model_part(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model =  KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write"))
         model_part_io.ReadModelPart(model_part)
@@ -172,7 +176,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model =  KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("wrong_properties_input"))
 
         #an error shall be thrown while reading the input since the format is not correct
@@ -188,7 +194,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
 
     #def test_model_part_io_properties_block(self):
-    #    model_part = ModelPart("Main")
+    #    model_part= current_model.CreateModelPart("Main")
     #    model_part_io = ModelPartIO("test_model_part_io")
     #    model_part_io.ReadProperties(model_part.Properties)
 
