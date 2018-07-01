@@ -17,16 +17,23 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "utilities/properties_accessor.h"
+#include "utilities/properties_configuration.h"
 
 namespace Kratos
 {
 
-Properties::AccessorPointerType& Properties::GetAccessor()
+Properties::ConfigurationType& Properties::GetAccessor()
 {
-    if (!mpAccessor)
-        mpAccessor = Kratos::make_shared<PropertiesAccessor>(this);
-    return mpAccessor;
+    if (!mpConfiguration)
+        mpConfiguration = Kratos::make_shared<PropertiesConfiguration>(this);
+    return *mpConfiguration;
+}
+
+const Properties::ConfigurationType& Properties::GetAccessor() const
+{
+    KRATOS_DEBUG_ERROR_IF_NOT(mpConfiguration) << "PropertiesConfiguration "
+        << "is not initialized!" << std::endl;
+    return *mpConfiguration;
 }
 
 }  // namespace Kratos.

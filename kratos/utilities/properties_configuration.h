@@ -10,8 +10,8 @@
 //  Main authors:    Philipp Bucher
 //
 
-#if !defined(KRATOS_PROPERTIES_ACCESSOR_H)
-#define  KRATOS_PROPERTIES_ACCESSOR_H
+#if !defined(KRATOS_PROPERTIES_CONFIGURATION_H)
+#define  KRATOS_PROPERTIES_CONFIGURATION_H
 
 // System includes
 #include <map>
@@ -54,14 +54,14 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PropertiesAccessor
+class PropertiesConfiguration
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of PropertiesAccessor
-    KRATOS_CLASS_POINTER_DEFINITION(PropertiesAccessor);
+    /// Pointer definition of PropertiesConfiguration
+    KRATOS_CLASS_POINTER_DEFINITION(PropertiesConfiguration);
 
     using NodeType = Node<3>;
     using GeometryType = Geometry<NodeType>;
@@ -73,7 +73,7 @@ public:
     using ComponentVariableType = VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >;
     using Array3VariableType = Variable<array_1d<double, 3>>;
 
-    using DoubleFunction = std::function<double(const Properties*,
+    using DoubleFunction = std::function<double(const Properties&,
                                                 const GeometryType&,
                                                 const DataValueContainer&,
                                                 const ProcessInfo&,
@@ -91,11 +91,11 @@ public:
     ///@{
 
     /// Default constructor.
-    PropertiesAccessor(Properties* pParentProperties)
+    PropertiesConfiguration(Properties* pParentProperties)
         : mpParentProperties(pParentProperties) {}
 
     /// Destructor.
-    virtual ~PropertiesAccessor() {}
+    virtual ~PropertiesConfiguration() {}
 
 
     ///@}
@@ -127,7 +127,7 @@ public:
                      const int GaussPointIndex=0)
     {
         if(mConfigurationsDouble.find(rV) != mConfigurationsDouble.end())
-            return mConfigurationsDouble[rV](mpParentProperties,
+            return mConfigurationsDouble[rV](*mpParentProperties,
                                              rGeometry,
                                              rDataContainer,
                                              rCurrentProcessInfo,
@@ -138,7 +138,7 @@ public:
     }
 
     void Configure(const DoubleVariableType& rV, std::function<double(
-                                                const Properties*,
+                                                const Properties&,
                                                 const GeometryType&,
                                                 const DataValueContainer&,
                                                 const ProcessInfo&,
@@ -168,12 +168,12 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "PropertiesAccessor" ;
+        buffer << "PropertiesConfiguration" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const {rOStream << "PropertiesAccessor";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "PropertiesConfiguration";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const {}
@@ -278,15 +278,15 @@ private:
     ///@{
 
     // /// Assignment operator.
-    // PropertiesAccessor& operator=(PropertiesAccessor const& rOther){}
+    // PropertiesConfiguration& operator=(PropertiesConfiguration const& rOther){}
 
     // /// Copy constructor.
-    // PropertiesAccessor(PropertiesAccessor const& rOther){}
+    // PropertiesConfiguration(PropertiesConfiguration const& rOther){}
 
 
     ///@}
 
-}; // Class PropertiesAccessor
+}; // Class PropertiesConfiguration
 
 ///@}
 
@@ -301,11 +301,11 @@ private:
 
 // /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                 PropertiesAccessor& rThis){}
+//                 PropertiesConfiguration& rThis){}
 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                 const PropertiesAccessor& rThis)
+//                 const PropertiesConfiguration& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -319,4 +319,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROPERTIES_ACCESSOR_H  defined
+#endif // KRATOS_PROPERTIES_CONFIGURATION_H  defined

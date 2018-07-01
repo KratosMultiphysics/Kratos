@@ -91,9 +91,9 @@ public:
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
-    typedef class PropertiesAccessor AccessorType;
+    typedef class PropertiesConfiguration ConfigurationType; // forward declaration of PropertiesConfiguration
 
-    typedef Kratos::shared_ptr<AccessorType> AccessorPointerType;
+    typedef Kratos::shared_ptr<ConfigurationType> ConfigurationPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -294,8 +294,9 @@ public:
         return mData;
     }
 
-    AccessorPointerType& GetAccessor();
+    ConfigurationType& GetAccessor();
 
+    const ConfigurationType& GetAccessor() const;
 
     ///@}
     ///@name Inquiry
@@ -393,7 +394,7 @@ private:
 
     ContainerType mData;
     TablesContainerType mTables;
-    AccessorPointerType mpAccessor = nullptr;
+    ConfigurationPointerType mpConfiguration = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -416,7 +417,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
-        // rSerializer.save("Tables", mpAccessor); // TODO I guess I have to move this fct to the cpp, pretty sure this won't work with an incomplete type.
+        // rSerializer.save("Tables", mpConfiguration); // TODO I guess I have to move this fct to the cpp, pretty sure this won't work with an incomplete type.
     }
 
     void load(Serializer& rSerializer) override
@@ -424,7 +425,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
-        // rSerializer.load("Tables", mpAccessor);
+        // rSerializer.load("Tables", mpConfiguration);
     }
 
     ///@}
