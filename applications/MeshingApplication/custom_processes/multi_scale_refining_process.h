@@ -225,8 +225,6 @@ public:
     ///@name Private Operators
     ///@{
 
-    void InitializeModelPart();
-
     void InterpolateLevelBoundaryValuesAtSubStep(const int& rSubStep, const int& rSubSteps);
 
     void UpdateSubLevel();

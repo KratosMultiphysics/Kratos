@@ -55,8 +55,8 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     std::string own_name = mParameters["own_model_part_name"].GetString();
     std::string refined_name = mParameters["refined_model_part_name"].GetString();
 
-    std::string mInterfaceName = mParameters["refining_interface_model_part"].GetString();
-    std::string mConditionName = mParameters["refining_boundary_condition"].GetString();
+    mInterfaceName = mParameters["refining_interface_model_part"].GetString();
+    mConditionName = mParameters["refining_boundary_condition"].GetString();
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
@@ -72,45 +72,6 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 
     // Initialize the refined model part
     InitializeRefinedModelPart(sub_model_parts_names);
-}
-
-
-void MultiScaleRefiningProcess::InitializeModelPart()
-{
-    // ModelPart& root_mp = mrModel.GetModelPart(mModelPartsNames[0]);
-    
-    // StringVectorType sub_model_parts_names = root_mp.GetSubModelPartNames();
-    StringVectorType sub_model_parts_names = this->RecursiveGetSubModelPartNames(mrRootModelPart);
-
-    // for (unsigned int i = 1; i <= mMaxMultiScaleLevels; i++)
-    // {
-    //     std::string name = mModelPartsNames[0] + "-level_" + std::to_string(i);
-    //     KRATOS_INFO_IF(this->Info(), mEchoLevel>1) << "Creating Model Part " << name << std::endl;
-    //     mModelPartsNames.push_back(name);
-
-    //     ModelPart::Pointer new_model_part = Kratos::make_shared<ModelPart>( name );
-    //     mrModel.AddModelPart(new_model_part);
-    //     KRATOS_WATCH(mrModel)
-    //     // TODO: using the new Model interface:
-    //     // mrModel.CreateModelPart(name);
-
-    //     for (auto sub_full_name : sub_model_parts_names)
-    //     {
-    //         ModelPart::Pointer p_sub_model_part = new_model_part;
-    //         KRATOS_WATCH(sub_full_name)
-    //         std::istringstream iss(sub_full_name);
-    //         std::string token;
-    //         while (std::getline(iss, token, '.'))
-    //         {
-    //             if (p_sub_model_part->HasSubModelPart(token))
-    //                 p_sub_model_part = p_sub_model_part->pGetSubModelPart(token);
-    //             else
-    //                 p_sub_model_part = p_sub_model_part->CreateSubModelPart(token);
-    //         }
-    //         KRATOS_WATCH(*new_model_part)
-    //     }
-    // }
-
 }
 
 
