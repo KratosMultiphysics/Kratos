@@ -38,6 +38,7 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
         "refined_model_part_name"      : "refined",
         "echo_level"                   : 0,
         "number_of_divisions_at_level" : 2,
+        "refining_interface_model_part": "refining_interface",
         "refining_boundary_condition"  : "Condition2D3N"
     }
     )");
@@ -53,6 +54,9 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 
     std::string own_name = mParameters["own_model_part_name"].GetString();
     std::string refined_name = mParameters["refined_model_part_name"].GetString();
+
+    std::string mInterfaceName = mParameters["refining_interface_model_part"].GetString();
+    std::string mConditionName = mParameters["refining_boundary_condition"].GetString();
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
@@ -183,6 +187,9 @@ void MultiScaleRefiningProcess::InitializeOwnModelPart(const StringVectorType& r
             AddAllElementsToModelPart(origin_model_part, p_sub_model_part);
             AddAllConditionsToModelPart(origin_model_part, p_sub_model_part);
         }
+
+        // Create a model part to store the interface boundary conditions
+        mpOwnModelPart->CreateSubModelPart(mInterfaceName);
     }
 }
 
@@ -263,6 +270,9 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
         // Note: we don't add the nodes, elements and conditions
         // This operation is the refining process itself
     }
+
+    // Create a model part to store the interface boundary conditions
+    mpRefinedModelPart->CreateSubModelPart(mInterfaceName);
 }
 
 
@@ -367,5 +377,135 @@ void MultiScaleRefiningProcess::AddAllConditionsToModelPart(ModelPart& rOriginMo
     }
     pDestinationModelPart->AddConditions(origin_conds);
 }
+
+
+void MultiScaleRefiningProcess::MarkElementsFromNodalCondition()
+{
+    const int nelems = static_cast<int>(mpOwnModelPart->Elements().size());
+    ModelPart::ElementsContainerType::iterator elem_begin = mpOwnModelPart->ElementsBegin();
+
+    const IndexType number_of_nodes = elem_begin->GetGeometry().size();
+
+    // We will refine the elements which all the nodes are to refine
+    #pragma omp parallel for
+    for (int i = 0; i < nelems; i++)
+    {
+        auto elem = elem_begin + i;
+        bool to_refine = true;
+        for (IndexType node = 0; node < number_of_nodes; node++)
+        {
+            if (elem->GetGeometry()[node].IsNot(TO_REFINE))
+                to_refine = false;
+        }
+        elem->Set(TO_REFINE, to_refine);
+    }
+}
+
+
+void MultiScaleRefiningProcess::MarkConditionsFromNodalCondition()
+{
+    const int nconds = static_cast<int>(mpOwnModelPart->Conditions().size());
+    ModelPart::ConditionsContainerType::iterator cond_begin = mpOwnModelPart->ConditionsBegin();
+
+    const IndexType number_of_nodes = cond_begin->GetGeometry().size();
+
+    // We will refine the conditions which all the nodes are to refine
+    #pragma omp parallel for
+    for (int i = 0; i < nconds; i++)
+    {
+        auto cond = cond_begin + i;
+        bool to_refine = true;
+        for (IndexType node = 0; node < number_of_nodes; node++)
+        {
+            if (cond->GetGeometry()[node].IsNot(TO_REFINE))
+                to_refine = false;
+        }
+        cond->Set(TO_REFINE, to_refine);
+    }
+}
+
+
+void MultiScaleRefiningProcess::CloneNodesToRefine()
+{}
+
+
+void MultiScaleRefiningProcess::CreateElementsToRefine()
+{}
+
+
+void MultiScaleRefiningProcess::CreateConditionsToRefine()
+{}
+
+
+void MultiScaleRefiningProcess::IdentifyRefiningInterface()
+{
+    // 0. Reset the flags
+    
+    // 1. Identify the nodes which define the boundary
+    const int nelems = static_cast<int>(mpOwnModelPart->Elements().size());
+    ModelPart::ElementsContainerType::iterator elem_begin = mpOwnModelPart->ElementsBegin();
+
+    // The number of nodes of the elements
+    const IndexType element_nodes = elem_begin->GetGeometry().size();
+
+    // Look for the elements which are not to refine and have some nodes to refine
+    for (int i = 0; i < nelems; i++)
+    {
+        auto elem = elem_begin + i;
+        if (elem->IsNot(TO_REFINE))
+        {
+            for (IndexType node = 0; node < element_nodes; node++)
+            {
+                if (elem->GetGeometry()[node].Is(TO_REFINE))
+                    elem->GetGeometry()[node].Set(INTERFACE, true);
+            }
+        }
+    }
+
+    // TODO: here I need to tranfer the INTERFACE flag from the father nodes to the middle nodes
+    /* do some stuff */
+
+    // 2. Remove the old conditions
+    ModelPart& interface = mpRefinedModelPart->GetSubModelPart(mInterfaceName);
+    const int nconds = static_cast<int>(interface.Conditions().size());
+    ModelPart::ConditionsContainerType::iterator cond_begin = interface.ConditionsBegin();
+
+    // The number of nodes of the conditions
+    const IndexType condition_nodes = cond_begin->GetGeometry().size();
+
+    // Find the conditions which are not interface
+    #pragma omp parallel for
+    for (int i = 0; i < nconds; i++)
+    {
+        auto cond = cond_begin + i;
+        bool to_erase = false;
+        for (IndexType node = 0; node < condition_nodes; node++)
+        {
+            if (cond->GetGeometry()[node].IsNot(INTERFACE))
+                to_erase = true;
+        }
+        cond->Set(TO_ERASE, to_erase);
+
+        // We need to preserve the old interface
+        // Warning: what should I do with OMP???????
+        // NOTE: I am accessing the nodes twice
+        if (!to_erase)
+        {
+            for (IndexType node = 0; node < condition_nodes; node++)
+                cond->GetGeometry()[node].Set(OLD_ENTITY, true);
+        }
+    }
+
+    // 3. And finally, create the new conditions where needed
+    // The condition should inherit the refining level from the coarse element
+    /**
+     *  loop elements
+     *      loop edges
+     *          loop nodes
+     *              if (all nodes are INTERFACE and are not OLD_ENTITY)
+     *                  Create condition
+     **/
+}
+
 
 } // namespace Kratos

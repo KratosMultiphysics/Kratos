@@ -218,6 +218,7 @@ public:
     IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from own to refined
     IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to own
 
+    std::string mInterfaceName;
     std::string mConditionName;
 
     ///@}
@@ -253,6 +254,18 @@ public:
     void AddAllElementsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
     void AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+
+    void MarkElementsFromNodalCondition();
+
+    void MarkConditionsFromNodalCondition();
+
+    void CloneNodesToRefine();
+
+    void CreateElementsToRefine();
+
+    void CreateConditionsToRefine();
+
+    void IdentifyRefiningInterface();
 
     ///@}
     ///@name Private Operations
