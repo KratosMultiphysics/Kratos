@@ -2271,7 +2271,7 @@ void SolidShellElementSprism3D6N::ComputeLocalDerivatives(
 {
     const double L_1 = 0.5 * (1.0 - rLocalCoordinates[2]);
     const double L_2 = 0.5 * (1.0 + rLocalCoordinates[2]);
-    const double zzeta = 1.0 - rLocalCoordinates[0] - rLocalCoordinates[1];
+//     const double zzeta = 1.0 - rLocalCoordinates[0] - rLocalCoordinates[1];
 
     /* Derivative in direction nu and xi */
     // Lower face
@@ -2292,13 +2292,21 @@ void SolidShellElementSprism3D6N::ComputeLocalDerivatives(
     LocalDerivativePatch(4, 1) =   0.0;
     LocalDerivativePatch(5, 1) =   L_2;
 
+//     /* Derivative in direction zeta */
+//     LocalDerivativePatch(0, 2) = - zzeta/2.0;
+//     LocalDerivativePatch(1, 2) = - rLocalCoordinates[0]/2.0;
+//     LocalDerivativePatch(2, 2) = - rLocalCoordinates[1]/2.0;
+//     LocalDerivativePatch(3, 2) =   zzeta/2.0;
+//     LocalDerivativePatch(4, 2) =   rLocalCoordinates[0]/2.0;
+//     LocalDerivativePatch(5, 2) =   rLocalCoordinates[1]/2.0;
+
     /* Derivative in direction zeta */
-    LocalDerivativePatch(0, 2) = - zzeta/2.0;
-    LocalDerivativePatch(1, 2) = - rLocalCoordinates[0]/2.0;
-    LocalDerivativePatch(2, 2) = - rLocalCoordinates[1]/2.0;
-    LocalDerivativePatch(3, 2) =   zzeta/2.0;
-    LocalDerivativePatch(4, 2) =   rLocalCoordinates[0]/2.0;
-    LocalDerivativePatch(5, 2) =   rLocalCoordinates[1]/2.0;
+    LocalDerivativePatch(0, 2) = - 1.0 + rLocalCoordinates[1] + rLocalCoordinates[0];
+    LocalDerivativePatch(1, 2) = - rLocalCoordinates[0];
+    LocalDerivativePatch(2, 2) = - rLocalCoordinates[1];
+    LocalDerivativePatch(3, 2) =   1.0 - rLocalCoordinates[1] - rLocalCoordinates[0];
+    LocalDerivativePatch(4, 2) =   rLocalCoordinates[0];
+    LocalDerivativePatch(5, 2) =   rLocalCoordinates[1];
 }
 
 /***********************************************************************************/
