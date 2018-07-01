@@ -26,7 +26,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "includes/element.h"
 #include "geometries/geometry_data.h"
@@ -96,7 +95,7 @@ public:
     }
 
     /// Default constructor.
-    bool RunTest() //std::string& out_error_msg)
+    bool RunTest(Model& rModel) //std::string& out_error_msg)
     {
         //create a cloud of 27 nodes, to be used in testing the geometries, so that 1 10 19 are on the same vertical
         //side has a lenght 0f 2.0/3.0
@@ -109,7 +108,7 @@ public:
         //| 7---8---9
         //|4   5   6
         //1---2---3
-        ModelPart& model_part = Kernel::GetModel().CreateModelPart("aux_model_part");
+        ModelPart& model_part = rModel.CreateModelPart("aux_model_part");
         GenerateNodes(model_part);
 
         bool succesful = true;
