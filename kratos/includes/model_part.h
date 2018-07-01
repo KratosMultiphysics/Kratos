@@ -248,17 +248,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
-
-    /// Constructor with name
-    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
-
-    /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
-
-    /// Copy constructor.
-    ModelPart(ModelPart const& rOther) = delete;
 
 
     /// Destructor.
@@ -1295,6 +1284,22 @@ public:
     ///@}
 
 private:
+
+    friend class Model;
+
+    /// Default constructor.
+    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Constructor with name
+    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Constructor with name and bufferSize
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
+
+    /// Copy constructor.
+    ModelPart(ModelPart const& rOther) = delete;
+
+
     ///@name Static Member Variables
     ///@{
 

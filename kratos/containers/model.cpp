@@ -45,7 +45,11 @@ namespace Kratos
             auto pvar_list = Kratos::make_unique<VariablesList>();
 
             Model& rthis = *this;
-            mRootModelPartMap[ModelPartName] = Kratos::make_unique<ModelPart>(ModelPartName, NewBufferSize, pvar_list.get(), rthis );
+            //mRootModelPartMap[ModelPartName] = Kratos::make_unique<ModelPart>(ModelPartName, NewBufferSize, pvar_list.get(), rthis );
+
+            ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list.get(), rthis );
+            mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(pmodel_part); //note that i create it separately since Model is friend of ModelPart but unique_ptr is not
+
             mListOfVariablesLists.insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
         } else {
