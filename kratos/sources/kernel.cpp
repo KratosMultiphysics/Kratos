@@ -37,13 +37,6 @@ std::unordered_set<std::string> &Kernel::GetApplicationsList() {
   return application_list;
 }
 
-Model& Kernel::GetModel()
-{
-    static Model smodel;
-    return smodel;
-}
-
-
 bool Kernel::IsImported(std::string ApplicationName) const {
     if (GetApplicationsList().find(ApplicationName) !=
         GetApplicationsList().end())
