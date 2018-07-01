@@ -22,14 +22,14 @@
 namespace Kratos
 {
 
-Properties::ConfigurationType& Properties::GetAccessor()
+Properties::ConfigurationType& Properties::GetConfiguration()
 {
     if (!mpConfiguration)
         mpConfiguration = Kratos::make_shared<PropertiesConfiguration>(this);
     return *mpConfiguration;
 }
 
-const Properties::ConfigurationType& Properties::GetAccessor() const
+const Properties::ConfigurationType& Properties::GetConfiguration() const
 {
     KRATOS_DEBUG_ERROR_IF_NOT(mpConfiguration) << "PropertiesConfiguration "
         << "is not initialized!" << std::endl;

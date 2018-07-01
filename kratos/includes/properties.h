@@ -294,9 +294,9 @@ public:
         return mData;
     }
 
-    ConfigurationType& GetAccessor();
+    ConfigurationType& GetConfiguration();
 
-    const ConfigurationType& GetAccessor() const;
+    const ConfigurationType& GetConfiguration() const;
 
     ///@}
     ///@name Inquiry
