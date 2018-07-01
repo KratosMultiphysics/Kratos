@@ -12,7 +12,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "linear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "sprism_test/patch_test"
@@ -45,7 +45,7 @@
             "model_part_name" : "Parts_Parts_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,true],
-            "value"           : [0.0,0.0,0.0]
+            "value"           : [null,null,0.0]
         }
     },{
         "python_module" : "assign_vector_variable_process",
@@ -56,9 +56,9 @@
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
             "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,false,false],
+            "constrained"     : [true,true,true],
             "interval"        : [0.0, "End"],
-            "value"           : ["1.0e-7 * (x + y/2)", "1.0e-7 * (y + x/2)", 0.0]
+            "value"           : ["1.0e-2 * (x + y/2)", "1.0e-2 * (y + x/2)", 0.0]
         }
     }
     ],
@@ -72,7 +72,7 @@
                 "variable_name"   : "DISPLACEMENT",
                 "interval"        : [0.0, "End"],
                 "reference_conf"  : true,
-                "value"           : ["1.0e-7 * (x + y/2)", "1.0e-7 * (y + x/2)", 0.0],
+                "value"           : ["1.0e-2 * (x + y/2)", "1.0e-2 * (y + x/2)", 0.0],
                 "tolerance_rank"  : 3
         }
     }
