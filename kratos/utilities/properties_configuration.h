@@ -73,12 +73,30 @@ public:
     using ComponentVariableType = VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >;
     using Array3VariableType = Variable<array_1d<double, 3>>;
 
+    struct ConfigurationParameters
+    {
+    public:
+
+        ConfigurationParameters(const GeometryType& rGeom,
+                                const DataValueContainer& rData) :
+                                mpGeometry(&rGeom),
+                                mpData(&rData)
+                                {}
+
+        void SetShapeFunctionsValues (const Vector& rShapeFunctionsValues) {mpShapeFunctionsValues=&rShapeFunctionsValues;};
+        void SetGaussPointIndex      (const int GaussPointIndex)           {mGaussPointIndex=GaussPointIndex;};
+        void SetProcessInfo          (ProcessInfo& rProcessInfo)           {mpProcessInfo = &rProcessInfo;};
+
+    private:
+        const Vector*               mpShapeFunctionsValues;
+        int                         mGaussPointIndex;
+        const ProcessInfo*          mpProcessInfo;
+        const GeometryType*         mpGeometry;
+        const DataValueContainer*   mpData;
+    };
+
     using DoubleFunction = std::function<double(const Properties&,
-                                                const GeometryType&,
-                                                const DataValueContainer&,
-                                                const ProcessInfo&,
-                                                const Vector&,
-                                                const int)>;
+                                                const ConfigurationParameters&)>;
 
     using DoubleConfiguration = std::map<DoubleVariableType, DoubleFunction>;
 
@@ -109,41 +127,25 @@ public:
 
     template<class TVariableType>
     typename TVariableType::Type& GetValue(const TVariableType& rV,
-                                           const GeometryType& rpGeometry,
-                                           const DataValueContainer& rDataContainer,
-                                           const ProcessInfo& rCurrentProcessInfo,
-                                           const Vector& rShapeFunctionValues,
-                                           const int GaussPointIndex=0)
+                                           const ConfigurationParameters& rParams)
     {
         mpParentProperties->GetValue(rV);
     }
 
 
     double GetValue(const DoubleVariableType& rV,
-                     const GeometryType& rGeometry,
-                     const DataValueContainer& rDataContainer,
-                     const ProcessInfo& rCurrentProcessInfo,
-                     const Vector& rShapeFunctionValues,
-                     const int GaussPointIndex=0)
+                    const ConfigurationParameters& rParams)
     {
         if(mConfigurationsDouble.find(rV) != mConfigurationsDouble.end())
             return mConfigurationsDouble[rV](*mpParentProperties,
-                                             rGeometry,
-                                             rDataContainer,
-                                             rCurrentProcessInfo,
-                                             rShapeFunctionValues,
-                                             GaussPointIndex);
+                                             rParams);
         else
             return mpParentProperties->GetValue(rV);
     }
 
     void Configure(const DoubleVariableType& rV, std::function<double(
                                                 const Properties&,
-                                                const GeometryType&,
-                                                const DataValueContainer&,
-                                                const ProcessInfo&,
-                                                const Vector&,
-                                                const int)> DoubleFunction)
+                                                const ConfigurationParameters&)> DoubleFunction)
     {
         mConfigurationsDouble[rV] = DoubleFunction;
     }
