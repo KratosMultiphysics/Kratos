@@ -65,12 +65,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+//forward declaring Model to be avoid cross references
+class Model;
+
 /// ModelPart class.
 
 /** Detail class definition.
  */
 class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
 {
+
+
+
+
     class GetModelPartName : public std::unary_function<const ModelPart* const, std::string>
     {
     public:
@@ -242,13 +249,13 @@ public:
     ///@{
 
     /// Default constructor.
-    ModelPart(VariablesList* pVariableList);
+    ModelPart(VariablesList* pVariableList, Model& rOwnerModel);
 
     /// Constructor with name
-    ModelPart(std::string const& NewName,VariablesList* pVariableList);
+    ModelPart(std::string const& NewName,VariablesList* pVariableList, Model& rOwnerModel);
 
     /// Constructor with name and bufferSize
-    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList);
+    ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariableList, Model& rOwnerModel);
 
     /// Copy constructor.
     ModelPart(ModelPart const& rOther) = delete;
@@ -290,6 +297,12 @@ public:
     IndexType CloneTimeStep(double NewTime);
 
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
+
+    //this function returns the "Owner" Model
+    Model& GetOwnerModel()
+    {
+        return mrOwnerModel;
+    }
 
     ///ATTENTION: this function does not touch the coordinates of the nodes.
     ///It just resets the database values to the values at the beginning of the time step
@@ -1309,6 +1322,8 @@ private:
     ModelPart* mpParentModelPart;
 
     SubModelPartsContainerType mSubModelParts;
+
+    Model& mrOwnerModel;
 
     ///@}
     ///@name Private Operators

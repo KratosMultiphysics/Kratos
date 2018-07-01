@@ -29,7 +29,7 @@ KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
 /// Default constructor.
-ModelPart::ModelPart(VariablesList* pVariablesList)
+ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(1)
@@ -39,6 +39,7 @@ ModelPart::ModelPart(VariablesList* pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
+    , mrOwnerModel(rOwnerModel)
 {
     mName = "Default";
     MeshType mesh;
@@ -47,7 +48,7 @@ ModelPart::ModelPart(VariablesList* pVariablesList)
 }
 
 /// Constructor with name
-ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList)
+ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(1)
@@ -57,6 +58,7 @@ ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
+    , mrOwnerModel(rOwnerModel)
 {
     KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
@@ -66,7 +68,7 @@ ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList)
 }
 
 /// Constructor with name and bufferSize
-ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList)
+ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(NewBufferSize)
@@ -76,6 +78,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
+    , mrOwnerModel(rOwnerModel)
 {
     KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
@@ -1096,7 +1099,7 @@ ModelPart*  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        ModelPart::Pointer p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName,mpVariablesList);
+        ModelPart::Pointer p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName,mpVariablesList, this->GetOwnerModel());
         p_model_part->SetParentModelPart(this);
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
