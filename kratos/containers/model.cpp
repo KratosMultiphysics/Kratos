@@ -43,7 +43,9 @@ namespace Kratos
         if( search == mRootModelPartMap.end()) {
 //             KRATOS_INFO("Model") << ModelPartName << std::endl; //TODO: remove only for debugging purposes
             auto pvar_list = Kratos::make_unique<VariablesList>();
-            mRootModelPartMap[ModelPartName] = Kratos::make_unique<ModelPart>(ModelPartName, NewBufferSize, pvar_list.get());
+
+            Model& rthis = *this;
+            mRootModelPartMap[ModelPartName] = Kratos::make_unique<ModelPart>(ModelPartName, NewBufferSize, pvar_list.get(), rthis );
             mListOfVariablesLists.insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
         } else {
