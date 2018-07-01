@@ -150,7 +150,6 @@ void AddKernelToPython(pybind11::module& m) {
                                 self.Initialize(); 
                                 /*RegisterInPythonApplicationVariables(App);*/ }) //&Kernel::InitializeApplication)
         //.def(""A,&Kernel::Initialize)
-        .def("GetModel", [](Kernel& self) -> Model& { return self.GetModel();}, return_value_policy::reference_internal)
         .def("IsImported", &Kernel::IsImported)
         .def("HasFlag", HasFlag)
         .def("GetFlag", GetFlag)

@@ -608,12 +608,13 @@ void AddModelPartToPython(pybind11::module& m)
         ;
 
         class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
-        .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return make_iterator(self.begin(), self.end());},  keep_alive<0,1>())
+        .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self)	
+			{ return make_iterator(self.begin(), self.end());},  keep_alive<0,1>())
         
         ;
 
         //NOTE: name changed to ModelPartInterface to allow using a function as constructor, and to call the function ModelPart()
-	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPartInterface") 
+	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart") 
 // 		.def(init<std::string const&>()) //this constructor is deliberately removed
 		.def_property("Name", GetModelPartName, SetModelPartName)
 		//  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
@@ -746,13 +747,14 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
+		.def("GetOwnerModel", &ModelPart::GetOwnerModel, return_value_policy::reference_internal)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },  
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; }) 
  		.def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
 		;
                 
         //defining the "constructor"
-        m.def("ModelPart", [](std::string const& name) -> ModelPart& { return Kernel::GetModel().CreateModelPart(name);}, return_value_policy::reference);
+        // m.def("ModelPart", [](std::string const& name) -> ModelPart& { return Kernel::GetModel().CreateModelPart(name);}, return_value_policy::reference);
 
 }
 

@@ -31,12 +31,13 @@ using namespace pybind11;
 
 void  AddModelToPython(pybind11::module& m)
 {
-    m.def("Model", &Kernel::GetModel, return_value_policy::reference);
-    
-    //NOTE: we call this class "ModelInterface" instead of "Model" since the cosntructor is emulated as a standalone function which gets it from the kernel
-    class_<Model >(m,"ModelInterface")
+    class_<Model >(m,"Model")
+    .def(init<>())
     .def("Reset", &Model::Reset)
-    .def("AddModelPart", &Model::AddModelPart)
+    // .def("AddModelPart", &Model::AddModelPart)
+    .def("CreateModelPart", [&](Model& self, const std::string& Name){return &self.CreateModelPart(Name);}, return_value_policy::reference_internal )
+    .def("CreateModelPart", [&](Model& self, const std::string& Name, unsigned int BufferSize){return &self.CreateModelPart(Name, BufferSize);}, return_value_policy::reference_internal )
+    .def("DeleteModelPart", &Model::DeleteModelPart)
     .def("GetModelPart", &Model::GetModelPart, return_value_policy::reference_internal)
     .def("HasModelPart", &Model::HasModelPart)
     .def("__getitem__", &Model::GetModelPart, return_value_policy::reference_internal)
