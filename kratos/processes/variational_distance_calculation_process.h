@@ -30,7 +30,6 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "includes/kernel.h"
 #include "includes/kratos_flags.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
@@ -440,8 +439,10 @@ protected:
     {
         KRATOS_TRY
 
+        Model& current_model = base_model_part.GetOwnerModel();
+
         //generate
-        mp_distance_model_part = &(Kernel::GetModel().CreateModelPart("DistancePart"));
+        mp_distance_model_part = &(current_model.CreateModelPart("DistancePart"));
         mp_distance_model_part->SetBufferSize(1);
 //         mp_distance_model_part.swap(pAuxModelPart);
 

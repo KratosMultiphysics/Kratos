@@ -28,7 +28,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "processes/process.h"
 #include "includes/convection_diffusion_settings.h"
@@ -358,8 +357,10 @@ protected:
     {
         KRATOS_TRY
 
+        Model& current_model = base_model_part.GetOwnerModel();
+
         //generate
-        mp_distance_model_part = &(Kernel::GetModel().CreateModelPart("DistancePart"));
+        mp_distance_model_part = &(current_model.CreateModelPart("DistancePart"));
 //         mp_distance_model_part.swap(pAuxModelPart);
 
         mp_distance_model_part->Nodes().clear();
