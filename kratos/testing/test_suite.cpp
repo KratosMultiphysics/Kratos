@@ -40,7 +40,6 @@ void TestSuite::ResetResult() {
 void TestSuite::Run() {
     for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
     {
-        Kernel::GetModel().Reset();
         (*i_test)->Run();
     }
 }
@@ -48,7 +47,6 @@ void TestSuite::Run() {
 void TestSuite::Profile() {
     for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
     {
-        Kernel::GetModel().Reset();
         (*i_test)->Profile();
     }
 }

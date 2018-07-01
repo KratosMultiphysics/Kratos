@@ -258,7 +258,6 @@ namespace Kratos
 			{
                                 
 				if (i_test->second->IsSelected()) {
-                                        Kernel::GetModel().Reset();
                                         
 					StartShowProgress(test_number, number_of_run_tests, i_test->second);
 					if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS) {
@@ -294,7 +293,6 @@ namespace Kratos
 			i_test != GetInstance().mTestCases.end(); i_test++)
 			{
 				if (i_test->second->IsSelected()) {
-                                        Kernel::GetModel().Reset();
 					StartShowProgress(test_number, number_of_run_tests, i_test->second);
 					i_test->second->Profile();
 					EndShowProgress(++test_number, number_of_run_tests, i_test->second);
