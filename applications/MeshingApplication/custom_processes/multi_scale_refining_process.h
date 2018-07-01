@@ -204,6 +204,9 @@ public:
     ModelPart& mrRootModelPart;
     Parameters mParameters;
 
+    std::string mOwnName;     /// The coarse sub model part
+    std::string mRefinedName; /// Where the refinement is performed
+
     unsigned int mEchoLevel;
     unsigned int mDivisions;
 
@@ -233,9 +236,13 @@ public:
 
     ModelPart& RecursiveGetSubModelPart(ModelPart& rThisModelPart, std::string FullName);
 
-    void InitializeOwnModelPart(const std::string& rOwnName, const StringVectorType& rNames);
+    void InitializeOwnModelPart(const StringVectorType& rNames);
 
-    void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames);
+    void InitializeOwnModelPart(const std::string& rOwnName, const StringVectorType& rNames);  // TODO: remove this method
+
+    void InitializeRefinedModelPart(const StringVectorType& rNames);
+
+    void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames); // TODO: remove this method
 
     void AddNodesToSubModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 

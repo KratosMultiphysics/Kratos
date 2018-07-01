@@ -48,21 +48,26 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     mDivisions = mParameters["number_of_divisions_at_level"].GetInt();
     mConditionName = mParameters["refining_boundary_condition"].GetString();
 
+    mOwnName = mParameters["own_model_part_name"].GetString();
+    mRefinedName = mParameters["refined_model_part_name"].GetString();
+
     std::string own_name = mParameters["own_model_part_name"].GetString();
     std::string refined_name = mParameters["refined_model_part_name"].GetString();
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
     if (mrRootModelPart.HasSubModelPart(own_name))
-        sub_model_parts_names = RecursiveGetSubModelPartNames(mrRootModelPart.GetSubModelPart(own_name));
+        sub_model_parts_names = mrRootModelPart.GetSubModelPart(own_name).GetSubModelPartNames();
+        // sub_model_parts_names = RecursiveGetSubModelPartNames(mrRootModelPart.GetSubModelPart(own_name));
     else
-        sub_model_parts_names = RecursiveGetSubModelPartNames(mrRootModelPart);
+        sub_model_parts_names = mrRootModelPart.GetSubModelPartNames();
+        // sub_model_parts_names = RecursiveGetSubModelPartNames(mrRootModelPart);
 
     // Clone the model part at the own level
-    InitializeOwnModelPart(own_name, sub_model_parts_names);
+    InitializeOwnModelPart(sub_model_parts_names);
 
     // Initialize the refined model part
-    InitializeRefinedModelPart(refined_name, own_name, sub_model_parts_names);
+    InitializeRefinedModelPart(sub_model_parts_names);
 }
 
 
@@ -140,6 +145,35 @@ ModelPart& MultiScaleRefiningProcess::RecursiveGetSubModelPart(ModelPart& rThisM
 }
 
 
+void MultiScaleRefiningProcess::InitializeOwnModelPart(const StringVectorType& rNames)
+{
+    // Get the own model part
+    if (mrRootModelPart.HasSubModelPart(mOwnName))
+        mpOwnModelPart = mrRootModelPart.pGetSubModelPart(mOwnName);
+    else
+    {
+        mpOwnModelPart = mrRootModelPart.CreateSubModelPart(mOwnName);
+    
+        // Copy the hierarchy to the own model part
+        for (auto name : rNames)
+        {
+            ModelPart::Pointer sub_model_part;
+            if (mpOwnModelPart->HasSubModelPart(name))
+                sub_model_part = mpOwnModelPart->pGetSubModelPart(name);
+            else
+                sub_model_part = mpOwnModelPart->CreateSubModelPart(name);
+
+            // Copy all the nodes, elements and conditions
+            ModelPart& origin_model_part = mrRootModelPart.GetSubModelPart(name);
+            AddNodesToSubModelPart(origin_model_part, sub_model_part);
+            AddElementsToSubModelPart(origin_model_part, sub_model_part);
+            AddConditionsToSubModelPart(origin_model_part, sub_model_part);
+        }
+    }
+}
+
+
+// TODO: remove this method
 void MultiScaleRefiningProcess::InitializeOwnModelPart(
     const std::string& rOwnName,
     const StringVectorType& rNames
@@ -168,9 +202,7 @@ void MultiScaleRefiningProcess::InitializeOwnModelPart(
             if (aux_model_part->HasSubModelPart(token))
                 aux_model_part = aux_model_part->pGetSubModelPart(token);
             else
-            {
                 aux_model_part = aux_model_part->CreateSubModelPart(token);
-            }
         }
         // Copy all the nodes, elements and conditions
         ModelPart& origin_model_part = RecursiveGetSubModelPart(mrRootModelPart, full_name);
@@ -181,6 +213,25 @@ void MultiScaleRefiningProcess::InitializeOwnModelPart(
 }
 
 
+void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorType& rNames)
+{
+    // Create the refined sub model part
+    KRATOS_ERROR_IF(mrRootModelPart.HasSubModelPart(mRefinedName)) << "MultiScaleRefiningProcess: a refined model part with name : " << mRefinedName << " is already present in the model part : " << mrRootModelPart.Name() << std::endl;
+    ModelPart::Pointer refined_model_part = mrRootModelPart.CreateSubModelPart(mRefinedName);
+    mpRefinedModelPart = refined_model_part->CreateSubModelPart(mOwnName);
+
+    // Copy the hierarchy to the refined model part
+    for (auto name : rNames)
+    {
+        mpRefinedModelPart->CreateSubModelPart(name);
+    
+    // Note: we don't add the nodes, elements and conditions
+    // This operation is the refining process itself
+    }
+}
+
+
+// TODO: remove this method
 void MultiScaleRefiningProcess::InitializeRefinedModelPart(
     const std::string& rRefinedName,
     const std::string& rOwnName,
@@ -189,7 +240,7 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(
 {
     // Create the refined sub model part
     ModelPart::Pointer refined_model_part = mrRootModelPart.CreateSubModelPart(rRefinedName);
-    mpRefinedModelPart = refined_model_part->pGetSubModelPart(rOwnName);
+    mpRefinedModelPart = refined_model_part->CreateSubModelPart(rOwnName);
 
     // Copy the hierarchy to the refined model part
     for (auto full_name : rNames)
