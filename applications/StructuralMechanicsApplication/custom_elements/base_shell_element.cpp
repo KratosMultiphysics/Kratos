@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_elements/base_shell_element.h"
 #include "includes/checks.h"
+#include "utilities/properties_configuration.h"
 
 namespace Kratos
 {
@@ -303,6 +304,14 @@ int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
     KRATOS_ERROR_IF(GetGeometry().Area() < std::numeric_limits<double>::epsilon()*1000)
         << "Element #" << Id() << " has an Area of zero!" << std::endl;
+
+    auto& acc = GetProperties().GetConfiguration();
+
+    PropertiesConfiguration::ConfigurationParameters params(GetGeometry(), GetData());
+
+    double someVal = acc.GetValue(THICKNESS, params);
+
+    int u= 0;
 
     // TODO check ConstLaws
 
