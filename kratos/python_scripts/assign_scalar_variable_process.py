@@ -3,13 +3,13 @@ import sys
 from math import *
 
 
-def Factory(settings, Model):
+def Factory(settings, current_model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignScalarVariableProcess(Model, settings["Parameters"])
+    return AssignScalarVariableProcess(current_model, settings["Parameters"])
 
 class AssignScalarVariableProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    def __init__(self, current_model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
@@ -40,7 +40,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             msg = "Error in AssignScalarToNodesProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a scalar or a component"
             raise Exception(msg)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = current_model[settings["model_part_name"].GetString()]
         self.mesh = self.model_part.GetMesh(settings["mesh_id"].GetInt())
         self.is_fixed = settings["constrained"].GetBool()
 

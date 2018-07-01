@@ -76,7 +76,7 @@ class RestartUtility(object):
 
     #### Public functions ####
 
-    def LoadRestart(self, restart_file_name=""):
+    def LoadRestart(self,  restart_file_name=""):
         """
         This function loads a restart file into a ModelPart
         """
@@ -94,8 +94,9 @@ class RestartUtility(object):
         self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
-        KratosMultiphysics.Model().Reset()
-        self.model_part = KratosMultiphysics.ModelPart(self.model_part_name)
+        owner_model = self.model_part.GetOwnerModel()
+        owner_model.DeleteModelPart(self.model_part.Name)
+        self.model_part = owner_model.CreateModelPart(self.model_part_name) #here we overwrite the destination model
                
         serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
         serializer.Load(self.model_part_name, self.model_part)

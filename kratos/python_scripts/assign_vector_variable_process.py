@@ -1,14 +1,14 @@
 import KratosMultiphysics
 from math import *
 
-def Factory(settings, Model):
+def Factory(settings, current_model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorVariableProcess(Model, settings["Parameters"])
+    return AssignVectorVariableProcess(current_model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
 class AssignVectorVariableProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    def __init__(self, current_model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
@@ -50,7 +50,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             msg = "Error in AssignVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = current_model[settings["model_part_name"].GetString()]
 
         self.aux_processes = []
 
@@ -66,7 +66,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
             x_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, x_params) )
+            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(current_model, x_params) )
 
         #component Y
         if(not settings["value"][1].IsNull()):
@@ -78,7 +78,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             y_params.AddValue("value",settings["value"][1])
             y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
             y_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, y_params) )
+            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(current_model, y_params) )
 
         #component Z
         if(not settings["value"][2].IsNull()):
@@ -90,7 +90,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             z_params.AddValue("value",settings["value"][2])
             z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
             z_params.AddValue("local_axes",settings["local_axes"])
-            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, z_params) )
+            self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(current_model, z_params) )
 
     def ExecuteBeforeSolutionLoop(self):
         self.ExecuteInitializeSolutionStep()

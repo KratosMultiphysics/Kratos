@@ -2,14 +2,14 @@ import KratosMultiphysics
 import sys
 from math import *
 
-def Factory(settings, Model):
+def Factory(settings, current_model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignScalarVariableToConditionsProcess(Model, settings["Parameters"])
+    return AssignScalarVariableToConditionsProcess(current_model, settings["Parameters"])
 
 ## all the processes python processes should be derived from "python_process"
 class AssignScalarVariableToConditionsProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    def __init__(self, current_model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
@@ -34,7 +34,7 @@ class AssignScalarVariableToConditionsProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = current_model[settings["model_part_name"].GetString()]
 
         self.value_is_numeric = False
 
