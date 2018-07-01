@@ -92,16 +92,16 @@ void MultiScaleRefiningProcess::InitializeModelPart()
 
     //     for (auto sub_full_name : sub_model_parts_names)
     //     {
-    //         ModelPart::Pointer sub_model_part = new_model_part;
+    //         ModelPart::Pointer p_sub_model_part = new_model_part;
     //         KRATOS_WATCH(sub_full_name)
     //         std::istringstream iss(sub_full_name);
     //         std::string token;
     //         while (std::getline(iss, token, '.'))
     //         {
-    //             if (sub_model_part->HasSubModelPart(token))
-    //                 sub_model_part = sub_model_part->pGetSubModelPart(token);
+    //             if (p_sub_model_part->HasSubModelPart(token))
+    //                 p_sub_model_part = p_sub_model_part->pGetSubModelPart(token);
     //             else
-    //                 sub_model_part = sub_model_part->CreateSubModelPart(token);
+    //                 p_sub_model_part = p_sub_model_part->CreateSubModelPart(token);
     //         }
     //         KRATOS_WATCH(*new_model_part)
     //     }
@@ -153,21 +153,35 @@ void MultiScaleRefiningProcess::InitializeOwnModelPart(const StringVectorType& r
     else
     {
         mpOwnModelPart = mrRootModelPart.CreateSubModelPart(mOwnName);
+        
+        // Copy all the tables and properties
+        AddAllTablesToModelPart(mrRootModelPart, mpOwnModelPart);
+        AddAllPropertiesToModelPart(mrRootModelPart, mpOwnModelPart);
+
+        // Copy all the nodes, elements and conditions
+        AddAllNodesToModelPart(mrRootModelPart, mpOwnModelPart);
+        AddAllElementsToModelPart(mrRootModelPart, mpOwnModelPart);
+        AddAllConditionsToModelPart(mrRootModelPart, mpOwnModelPart);
     
-        // Copy the hierarchy to the own model part
+        // Copy the hierarchy from the root model part to the own model part
         for (auto name : rNames)
         {
-            ModelPart::Pointer sub_model_part;
+            ModelPart::Pointer p_sub_model_part;
             if (mpOwnModelPart->HasSubModelPart(name))
-                sub_model_part = mpOwnModelPart->pGetSubModelPart(name);
+                p_sub_model_part = mpOwnModelPart->pGetSubModelPart(name);
             else
-                sub_model_part = mpOwnModelPart->CreateSubModelPart(name);
+                p_sub_model_part = mpOwnModelPart->CreateSubModelPart(name);
+
+            ModelPart& origin_model_part = mrRootModelPart.GetSubModelPart(name);
+
+            // Copy all the tables and properties
+            AddAllTablesToModelPart(origin_model_part, p_sub_model_part);
+            AddAllPropertiesToModelPart(origin_model_part, p_sub_model_part);
 
             // Copy all the nodes, elements and conditions
-            ModelPart& origin_model_part = mrRootModelPart.GetSubModelPart(name);
-            AddNodesToSubModelPart(origin_model_part, sub_model_part);
-            AddElementsToSubModelPart(origin_model_part, sub_model_part);
-            AddConditionsToSubModelPart(origin_model_part, sub_model_part);
+            AddAllNodesToModelPart(origin_model_part, p_sub_model_part);
+            AddAllElementsToModelPart(origin_model_part, p_sub_model_part);
+            AddAllConditionsToModelPart(origin_model_part, p_sub_model_part);
         }
     }
 }
@@ -185,13 +199,18 @@ void MultiScaleRefiningProcess::InitializeOwnModelPart(
     else
     {
         mpOwnModelPart = mrRootModelPart.CreateSubModelPart(rOwnName);
+
+        // Copy all the tables and properties
+        AddAllTablesToModelPart(mrRootModelPart, mpOwnModelPart);
+        AddAllPropertiesToModelPart(mrRootModelPart, mpOwnModelPart);
+
         // Copy the nodes, elements and conditions
-        AddNodesToSubModelPart(mrRootModelPart, mpOwnModelPart);
-        AddElementsToSubModelPart(mrRootModelPart, mpOwnModelPart);
-        AddConditionsToSubModelPart(mrRootModelPart, mpOwnModelPart);
+        AddAllNodesToModelPart(mrRootModelPart, mpOwnModelPart);
+        AddAllElementsToModelPart(mrRootModelPart, mpOwnModelPart);
+        AddAllConditionsToModelPart(mrRootModelPart, mpOwnModelPart);
     }
 
-    // Copy the hierarchy to the own model part
+    // Copy the hierarchy from the root model part to the own model part
     for (auto full_name : rNames)
     {
         ModelPart::Pointer aux_model_part = mpOwnModelPart;
@@ -204,11 +223,17 @@ void MultiScaleRefiningProcess::InitializeOwnModelPart(
             else
                 aux_model_part = aux_model_part->CreateSubModelPart(token);
         }
-        // Copy all the nodes, elements and conditions
+
         ModelPart& origin_model_part = RecursiveGetSubModelPart(mrRootModelPart, full_name);
-        AddNodesToSubModelPart(origin_model_part, aux_model_part);
-        AddElementsToSubModelPart(origin_model_part, aux_model_part);
-        AddConditionsToSubModelPart(origin_model_part, aux_model_part);
+
+        // Copy all the tables and properties
+        AddAllTablesToModelPart(origin_model_part, aux_model_part);
+        AddAllPropertiesToModelPart(origin_model_part, aux_model_part);
+
+        // Copy the nodes, elements and conditions
+        AddAllNodesToModelPart(origin_model_part, aux_model_part);
+        AddAllElementsToModelPart(origin_model_part, aux_model_part);
+        AddAllConditionsToModelPart(origin_model_part, aux_model_part);
     }
 }
 
@@ -220,13 +245,23 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     ModelPart::Pointer refined_model_part = mrRootModelPart.CreateSubModelPart(mRefinedName);
     mpRefinedModelPart = refined_model_part->CreateSubModelPart(mOwnName);
 
+    // Copy all the tables and properties
+    AddAllTablesToModelPart(mrRootModelPart, mpRefinedModelPart);
+    AddAllPropertiesToModelPart(mrRootModelPart, mpRefinedModelPart);
+
     // Copy the hierarchy to the refined model part
     for (auto name : rNames)
     {
-        mpRefinedModelPart->CreateSubModelPart(name);
+        ModelPart::Pointer p_sub_model_part = mpRefinedModelPart->CreateSubModelPart(name);
+
+        ModelPart& origin_model_part = mrRootModelPart.GetSubModelPart(name);
+
+        // Copy all the tables and properties
+        AddAllTablesToModelPart(origin_model_part, p_sub_model_part);
+        AddAllPropertiesToModelPart(origin_model_part, p_sub_model_part);
     
-    // Note: we don't add the nodes, elements and conditions
-    // This operation is the refining process itself
+        // Note: we don't add the nodes, elements and conditions
+        // This operation is the refining process itself
     }
 }
 
@@ -261,7 +296,32 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(
 }
 
 
-void MultiScaleRefiningProcess::AddNodesToSubModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart)
+void MultiScaleRefiningProcess::AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart)
+{
+    const IndexType nprop = rOriginModelPart.NumberOfProperties();
+    ModelPart::PropertiesContainerType::iterator prop_begin = rOriginModelPart.PropertiesBegin();
+
+    for (IndexType i = 0; i < nprop; i++)
+    {
+        auto prop = prop_begin + i;
+        pDestinationModelPart->AddProperties(*prop.base());
+    }
+}
+
+
+void MultiScaleRefiningProcess::AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart)
+{
+    const IndexType ntables = rOriginModelPart.NumberOfTables();
+    ModelPart::TablesContainerType::iterator table_begin = rOriginModelPart.TablesBegin();
+
+    for (IndexType i = 0; i < ntables; i++)
+    {
+        auto table = table_begin + i;
+        pDestinationModelPart->AddTable(table.base()->first, table.base()->second);
+    }
+}
+
+void MultiScaleRefiningProcess::AddAllNodesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart)
 {
     const int nnodes = static_cast<int>(rOriginModelPart.Nodes().size());
     IndexVectorType origin_nodes(nnodes);
@@ -277,7 +337,7 @@ void MultiScaleRefiningProcess::AddNodesToSubModelPart(ModelPart& rOriginModelPa
 }
 
 
-void MultiScaleRefiningProcess::AddElementsToSubModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart)
+void MultiScaleRefiningProcess::AddAllElementsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart)
 {
     const int nelems = static_cast<int>(rOriginModelPart.Elements().size());
     IndexVectorType origin_elems(nelems);
@@ -293,7 +353,7 @@ void MultiScaleRefiningProcess::AddElementsToSubModelPart(ModelPart& rOriginMode
 }
 
 
-void MultiScaleRefiningProcess::AddConditionsToSubModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart)
+void MultiScaleRefiningProcess::AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart)
 {
     const int nconds = static_cast<int>(rOriginModelPart.Conditions().size());
     IndexVectorType origin_conds(nconds);

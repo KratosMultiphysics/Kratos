@@ -244,11 +244,15 @@ public:
 
     void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames); // TODO: remove this method
 
-    void AddNodesToSubModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+    void AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
-    void AddElementsToSubModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+    void AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
-    void AddConditionsToSubModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+    void AddAllNodesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+
+    void AddAllElementsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
+
+    void AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
     ///@}
     ///@name Private Operations
