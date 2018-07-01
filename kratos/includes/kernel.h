@@ -126,9 +126,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     virtual void PrintData(std::ostream& rOStream) const;
 
     static std::unordered_set<std::string>& GetApplicationsList();
-    
-    static Model& GetModel();
-    
+        
     ///@}
    protected:
    private:
