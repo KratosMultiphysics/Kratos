@@ -93,6 +93,7 @@ void UtilityType::ResizeAndInitializeVectors(
         row_indices.insert( row_indices.end(), destination_ids.begin(), destination_ids.end() );
     }
 
+    // "Uniqueify" the vectors
     std::sort( col_indices.begin(), col_indices.end() );
     col_indices.erase( std::unique( col_indices.begin(), col_indices.end() ), col_indices.end() );
     std::sort( row_indices.begin(), row_indices.end() );
@@ -175,9 +176,6 @@ void UtilityType::ResizeAndInitializeVectors(
 
     // rpQo->GlobalAssemble();
     // rpQd->GlobalAssemble();
-
-    // Philipp check if you assigned the rows/colums correctly!!!
-
 }
 
 // The "Build" function
@@ -214,7 +212,7 @@ void UtilityType::BuildMappingMatrix(
         rp_local_sys->Clear();
     }
 
-    // rMdo.GlobalAssemble(); // Check if I should call this with the domain- and the range-map (what are those though...?)
+    // rMdo.GlobalAssemble(epetra_domain_map, epetra_range_map);
 
     if (GetEchoLevel() > 2)
         SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", rMdo, false);
@@ -224,7 +222,8 @@ template< class TVarType >
 void FillSystemVector(UtilityType::TSystemVectorType& rVector,
                         ModelPart& rModelPart,
                         const TVarType& rVariable,
-                        const Kratos::Flags& rMappingOptions)
+                        const Kratos::Flags& rMappingOptions,
+                        const int EchoLevel)
 {
     // Here we construct a function pointer to not have the if all the time inside the loop
     const auto fill_fct = MapperUtilities::GetFillFunction<TVarType>(rMappingOptions);
@@ -237,15 +236,16 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
     }
 
     // rVector.GlobalAssemble(); // I am quite sure this is not needed, since one node is one entry ...
-
-    // SparseSpaceType::WriteMatrixMarketVector("FillSystemVector", rVector);
+    if (EchoLevel > 2)
+        SparseSpaceType::WriteMatrixMarketVector("TrilinosFillSystemVector", rVector);
 }
 
 template< class TVarType >
 void Update(UtilityType::TSystemVectorType& rVector,
             ModelPart& rModelPart,
             const TVarType& rVariable,
-            const Kratos::Flags& rMappingOptions)
+            const Kratos::Flags& rMappingOptions,
+            const int EchoLevel)
 {
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
 
@@ -265,6 +265,9 @@ void Update(UtilityType::TSystemVectorType& rVector,
 
     // for (int localIndex = 0; localIndex < rVector.MyLength(); ++localIndex)
     //     std::cout << "Updates | rVector[localIndex]: " << rVector[0][localIndex] << std::endl;
+    // rVector.GlobalAssemble(); // I am quite sure this is not needed, since one node is one entry ...
+    if (EchoLevel > 2)
+        SparseSpaceType::WriteMatrixMarketVector("TrilinosUpdate", rVector);
 }
 
 
@@ -277,12 +280,13 @@ void TInitializeMappingStep(UtilityType::TSystemMatrixType& rMdo,
     const TVarType& rOriginVariable,
     const TVarType& rDestinationVariable,
     const Kratos::Flags MappingOptions,
-    const bool UseTranspose)
+    const bool UseTranspose,
+    const int EchoLevel)
 {
     if (UseTranspose)
-        FillSystemVector(rQd, rModelPartDestination, rDestinationVariable, MappingOptions);
+        FillSystemVector(rQd, rModelPartDestination, rDestinationVariable, MappingOptions, EchoLevel);
     else
-        FillSystemVector(rQo, rModelPartOrigin, rOriginVariable, MappingOptions);
+        FillSystemVector(rQo, rModelPartOrigin, rOriginVariable, MappingOptions, EchoLevel);
 }
 
 template<>
@@ -300,7 +304,7 @@ void UtilityType::InitializeMappingStep(
     TInitializeMappingStep(rMdo, rQo, rQd,
                             rModelPartOrigin, rModelPartDestination,
                             rOriginVariable, rDestinationVariable,
-                            MappingOptions, UseTranspose);
+                            MappingOptions, UseTranspose, GetEchoLevel());
 }
 
 template<>
@@ -318,7 +322,7 @@ void UtilityType::InitializeMappingStep(
     TInitializeMappingStep(rMdo, rQo, rQd,
                             rModelPartOrigin, rModelPartDestination,
                             rOriginVariable, rDestinationVariable,
-                            MappingOptions, UseTranspose);
+                            MappingOptions, UseTranspose, GetEchoLevel());
 }
 
 void ExecuteMapping(UtilityType::TSystemMatrixType& rMdo,
@@ -371,12 +375,13 @@ void TFinalizeMappingStep(UtilityType::TSystemMatrixType& rMdo,
     const TVarType& rOriginVariable,
     const TVarType& rDestinationVariable,
     const Kratos::Flags MappingOptions,
-    const bool UseTranspose)
+    const bool UseTranspose,
+    const int EchoLevel)
 {
     if (UseTranspose)
-        Update(rQo, rModelPartOrigin, rOriginVariable, MappingOptions);
+        Update(rQo, rModelPartOrigin, rOriginVariable, MappingOptions, EchoLevel);
     else
-        Update(rQd, rModelPartDestination, rDestinationVariable, MappingOptions);
+        Update(rQd, rModelPartDestination, rDestinationVariable, MappingOptions, EchoLevel);
 }
 
 template<>
@@ -394,7 +399,7 @@ void UtilityType::FinalizeMappingStep(
     TFinalizeMappingStep(rMdo, rQo, rQd,
                             rModelPartOrigin, rModelPartDestination,
                             rOriginVariable, rDestinationVariable,
-                            MappingOptions, UseTranspose);
+                            MappingOptions, UseTranspose, GetEchoLevel());
 }
 
 template<>
@@ -412,7 +417,7 @@ void UtilityType::FinalizeMappingStep(
     TFinalizeMappingStep(rMdo, rQo, rQd,
                             rModelPartOrigin, rModelPartDestination,
                             rOriginVariable, rDestinationVariable,
-                            MappingOptions, UseTranspose);
+                            MappingOptions, UseTranspose, GetEchoLevel());
 }
 
 /***********************************************************************************/
