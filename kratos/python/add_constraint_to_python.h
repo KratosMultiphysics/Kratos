@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_ADD_CONSTRANT_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CONSTRANT_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CONSTRAINT_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_CONSTRAINT_TO_PYTHON_H_INCLUDED
 
 
 
@@ -37,4 +37,4 @@ void  AddConstraintToPython(pybind11::module& m);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_CONSTRANT_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_CONSTRAINT_TO_PYTHON_H_INCLUDED  defined 
