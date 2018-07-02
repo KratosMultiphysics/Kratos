@@ -239,7 +239,8 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     /**
      * this determines the master equation IDs connected to this constraint
-     * @param rResult the elemental equation ID vector
+     * @param rSlaveEquationIds the vector of slave equation ids.
+     * @param rMasterEquationIds the vector of master equation ids.
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
@@ -255,10 +256,10 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     /**
      * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
+     * to calculate the relation between the master and slave.
      * matrix and the right hand side
-     * @param rTransformationMatrix the elemental left hand side matrix
-     * @param rConstant the elemental right hand side
+     * @param rTransformationMatrix the matrix which relates the master and slave degree of freedom
+     * @param rConstant The constant vector (one entry for each slave)
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(MatrixType& rTransformationMatrix,
@@ -268,6 +269,11 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
       if (rTransformationMatrix.size1() != 0)
       {
     	rTransformationMatrix.resize(0, 0, false);
+      }
+
+      if (rConstantVector.size() != 0)
+      {
+    	rTransformationMatrix.resize(0, false);
       }
     }
 
