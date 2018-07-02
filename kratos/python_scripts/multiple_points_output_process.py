@@ -5,7 +5,6 @@ import KratosMultiphysics
 
 # other imports
 from point_output_process import PointOutputProcess
-from os.path import join as os_path_join
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
