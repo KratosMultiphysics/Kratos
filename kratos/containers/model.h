@@ -226,7 +226,7 @@ namespace Kratos
           
           for(unsigned int i=0; i<aux_names.size(); ++i)
           {
-              mRootModelPartMap.insert(std::make_pair(aux_names[i],aux_model_part_pointers[i]));
+              mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(aux_model_part_pointers[i])));
           }
           
           
