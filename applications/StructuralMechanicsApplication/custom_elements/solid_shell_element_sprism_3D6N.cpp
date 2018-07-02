@@ -561,63 +561,11 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
                 rMassMatrix(index, index) = temp;
             }
         }
-    } else { // CONSISTENT MASS MATRIX
-    // Manually
-        total_mass /= 72.0; // Dividing for the coefficient
-        for (IndexType i = 0; i < 6; ++i) { // Main nodes
-            for (IndexType j = 0; j < 3; ++j) { // DOF (X, Y, Z)
-                const IndexType index = i * 3 + j;
-                if (i == 0) {
-                    // Superior band
-                    rMassMatrix(index, index +  3) = 2.0 * total_mass;
-                    rMassMatrix(index, index +  6) = 2.0 * total_mass;
-                    rMassMatrix(index, index +  9) = 2.0 * total_mass;
-                    rMassMatrix(index, index + 12) =       total_mass;
-                    rMassMatrix(index, index + 15) =       total_mass;
-                    // Symmetric part
-                    rMassMatrix(index +  3, index) = 2.0 * total_mass;
-                    rMassMatrix(index +  6, index) = 2.0 * total_mass;
-                    rMassMatrix(index +  9, index) = 2.0 * total_mass;
-                    rMassMatrix(index + 12, index) =       total_mass;
-                    rMassMatrix(index + 15, index) =       total_mass;
-                } else if (i == 1) {
-                    // Superior band
-                    rMassMatrix(index, index +  3) = 2.0 * total_mass;
-                    rMassMatrix(index, index +  6) =       total_mass;
-                    rMassMatrix(index, index +  9) = 2.0 * total_mass;
-                    rMassMatrix(index, index + 12) =       total_mass;
-                    // Symmetric part
-                    rMassMatrix(index +  3, index) = 2.0 * total_mass;
-                    rMassMatrix(index +  6, index) =       total_mass;
-                    rMassMatrix(index +  9, index) = 2.0 * total_mass;
-                    rMassMatrix(index + 12, index) =       total_mass;
-                }  else if (i == 2) {
-                    // Superior band
-                    rMassMatrix(index, index + 3) =       total_mass;
-                    rMassMatrix(index, index + 6) =       total_mass;
-                    rMassMatrix(index, index + 9) = 2.0 * total_mass;
-                    // Symmetric part
-                    rMassMatrix(index + 3, index) =       total_mass;
-                    rMassMatrix(index + 6, index) =       total_mass;
-                    rMassMatrix(index + 9, index) = 2.0 * total_mass;
-                } else if (i == 3) {
-                    // Superior band
-                    rMassMatrix(index, index + 3) = 2.0 * total_mass;
-                    rMassMatrix(index, index + 6) = 2.0 * total_mass;
-                    // Symmetric part
-                    rMassMatrix(index + 3, index) = 2.0 * total_mass;
-                    rMassMatrix(index + 6, index) = 2.0 * total_mass;
-                } else if (i == 4) {
-                    // Superior band
-                    rMassMatrix(index, index + 3) = 2.0 * total_mass;
-                    // Symmetric part
-                    rMassMatrix(index + 3, index) = 2.0 * total_mass;
-                }
-
-                // Diagonal part
-                rMassMatrix(index, index)         = 4.0 * total_mass;
-            }
-        }
+    } else { // CONSISTENT MASS
+        Matrix aux_matrix;
+        const SizeType aux_mat_size = GetGeometry().size() * 3;
+        BaseType::CalculateMassMatrix(aux_matrix, rCurrentProcessInfo);
+        noalias(subrange(rMassMatrix, 0, aux_mat_size, 0, aux_mat_size)) = aux_matrix;
     }
 
     KRATOS_CATCH("");
