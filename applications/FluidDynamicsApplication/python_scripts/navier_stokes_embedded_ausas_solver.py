@@ -22,8 +22,8 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "EmbeddedAusas",
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
