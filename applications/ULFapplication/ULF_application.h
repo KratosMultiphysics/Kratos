@@ -38,6 +38,7 @@
 #include "custom_elements/ulf_frac2d.h"
 #include "custom_elements/ulf_frac3d.h"
 #include "custom_elements/ulf_axisym.h"
+#include "custom_elements/fluid_2dGLS_expl.h"
 //#include "custom_elements/ulf_frac2d_swimming.h"
 //#include "custom_elements/ulf_frac3d_swimming.h"
 #include "custom_conditions/Point_Neumann3D.h"
@@ -210,6 +211,7 @@ private:
     const UlfFrac2D mUlfFrac2D;
     const UlfFrac3D mUlfFrac3D;
     const UlfAxisym mUlfAxisym;    
+    const Fluid2DGLS_expl mFluid2DGLS_expl;
     const PointNeumann3D  mPointNeumann3D;
     const PointNeumann2D  mPointNeumann2D;
     const PointNeumannAxisym  mPointNeumannAxisym;

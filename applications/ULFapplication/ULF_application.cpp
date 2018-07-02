@@ -58,8 +58,8 @@ KratosULFApplication::KratosULFApplication():
     mPointNeumann2D(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mPointNeumannAxisym(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mSurfaceTension2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-    mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))))
-    
+    mSurfaceTension3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3 ))))
 
 {}
 
@@ -111,6 +111,13 @@ void KratosULFApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SOLID_FRACTION_GRADIENT_PROJECTED )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE_VELOCITY)
 
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
+    //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
+    //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY) 
+    //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1)
+
+
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid2D", mUpdatedLagrangianFluid2D);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid3D", mUpdatedLagrangianFluid3D);
     KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid2Dinc", mUpdatedLagrangianFluid2Dinc);
@@ -119,6 +126,7 @@ void KratosULFApplication::Register()
     //
     KRATOS_REGISTER_ELEMENT("UlfFrac2D", mUlfFrac2D);
     KRATOS_REGISTER_ELEMENT("UlfFrac3D", mUlfFrac3D);
+    KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl", mFluid2DGLS_expl);
     KRATOS_REGISTER_CONDITION("PointNeumann3D", mPointNeumann3D);
     KRATOS_REGISTER_CONDITION("PointNeumann2D", mPointNeumann2D);
     KRATOS_REGISTER_CONDITION("PointNeumannAxisym", mPointNeumannAxisym);

@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_quasiincompresible_builder_and_solver.h"
 #include "custom_strategies/strategies/modified_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
@@ -84,7 +85,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-
+ 
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
@@ -178,6 +180,29 @@ class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpace
     .def("ComputePressureAtFreeSurface", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ComputePressureAtFreeSurface)
     .def("SavePressureIteration", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SavePressureIteration)
     ;
+
+
+    class_< RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >, RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, BaseSolvingStrategyType > (m,"RungeKuttaFracStepStrategy2D")
+     .def(init < ModelPart&, LinearSolverType::Pointer, bool, bool, bool >())
+     //.def("SolveStep1", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+     .def("SolveStep2", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+     .def("SolveStep3", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+     //.def("SolveStep_ForwardEuler", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep_ForwardEuler)
+     .def("SolveStep1", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)	
+     .def("Clear", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+     ;
+
+
+//    class_< ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+//            ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
+//            BaseSolvingStrategyType >
+//            (m,"ResidualBasedSemiEulerianConvectionDiffusionStrategy")
+//            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
+//            .def("Clear",&ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+//            ;   
+
+
+
     //********************************************************************
     //********************************************************************
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
