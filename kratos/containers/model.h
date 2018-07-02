@@ -56,7 +56,7 @@ namespace Kratos
    * @class Model
    * @ingroup KratosCore
    * @brief This class aims to manage different model parts across multi-physics simulations
-   * @details The class behaves as a manager of the different model parts. It uses unordered_maps of the variables and the model parts for that pourpose
+   * @details The class behaves as a manager of the different model parts. It uses unordered_maps of the variables and the model parts for that purpose
    * @author Riccardo Rossi
   */
   class KRATOS_API(KRATOS_CORE)  Model
@@ -97,8 +97,6 @@ namespace Kratos
       
       void RenameModelPart( const std::string OldName, const std::string NewName );
       
-      void AddModelPart(ModelPart::Pointer pModelPart); //TODO: change this conveniently
-
       ModelPart& GetModelPart(const std::string& rFullModelPartName);
 
       bool HasModelPart(const std::string& rFullModelPartName);
@@ -152,8 +150,7 @@ namespace Kratos
       ///@}
       ///@name Protected Operators
       ///@{
-      void AddModelPartRawPointer(ModelPart* pModelPart); //TODO: change this conveniently
-
+ 
       ///@}
       ///@name Protected Operations
       ///@{
@@ -220,9 +217,9 @@ namespace Kratos
           std::vector<std::string> aux_names;
           std::vector<ModelPart* > aux_model_part_pointers;
           
-          rSerializer.save("ListOfVariablesLists", aux_var_lists);
-          rSerializer.save("ModelPartNames", aux_names);
-          rSerializer.save("ModelPartPointers", aux_model_part_pointers);   
+          rSerializer.load("ListOfVariablesLists", aux_var_lists);
+          rSerializer.load("ModelPartNames", aux_names);
+          rSerializer.load("ModelPartPointers", aux_model_part_pointers);   
 
           for(unsigned int i=0; i<aux_var_lists.size(); ++i)
               mListOfVariablesLists.insert(std::move(std::unique_ptr<VariablesList>(aux_var_lists[i]))); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
@@ -230,7 +227,6 @@ namespace Kratos
           for(unsigned int i=0; i<aux_names.size(); ++i)
           {
               mRootModelPartMap.insert(std::make_pair(aux_names[i],aux_model_part_pointers[i]));
-//               mRootModelPartMap[aux_names[i]] = aux_model_part_pointers[i];              
           }
           
           
@@ -247,8 +243,7 @@ namespace Kratos
       ///@{
       ModelPart* RecursiveSearchByName(const std::string& ModelPartName, ModelPart* pModelPart);
       
-      void GetSubPartsList(const std::string& rFullModelPartName,
-                           std::vector<std::string>& rSubPartsList);
+      std::vector<std::string> GetSubPartsList(const std::string& rFullModelPartName);
 
 
       ///@}
