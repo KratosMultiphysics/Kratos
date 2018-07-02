@@ -240,6 +240,18 @@ protected:
                           ElementDataType& rVariables) override;
 
   /**
+   * Calculation and addition of the matrices of the LHS
+   */
+  void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
+                                 ElementDataType& rVariables) override;
+
+  /**
+   * Calculation and addition of the vectors of the RHS
+   */
+  void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+                                 ElementDataType& rVariables) override;
+
+  /**
    * Get element size from the dofs
    */
   unsigned int GetDofsSize() override;
@@ -254,7 +266,7 @@ protected:
   /**
    * Calculation of the Bulk Matrix.
    */
-  void CalculateAndAddKBulk(MatrixType& rLeftHandSideMatrix,
+  void CalculateAndAddKbulk(MatrixType& rLeftHandSideMatrix,
                             ElementDataType& rVariables);
 
   /**
@@ -269,6 +281,41 @@ protected:
   void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
                                      ElementDataType & rVariables);
 
+  /**
+   * Calculation of the Deformation Matrix  BL
+   */
+  void CalculateDeformationMatrix(Matrix& rB,
+                                  const Matrix& rF,
+                                  const Matrix& rDN_DX);
+
+  /**
+   * Calculation of the velocity gradient
+   */
+  void CalculateVelocityGradient(Matrix& rH,
+                                 const Matrix& rDN_DX,
+                                 unsigned int step = 0);
+
+  /**
+   * Calculation of the velocity gradient
+   */
+  void CalculateVelocityGradientVector(Vector& rH,
+                                       const Matrix& rDN_DX,
+                                       unsigned int step = 0);
+  
+  
+  /**
+   * Calculation of the symmetric velocity gradient Vector
+   */
+  void CalculateSymmetricVelocityGradient(const Matrix& rH,
+                                          Vector& rStrainVector);
+  
+  /**
+   * Calculation of the skew symmetric velocity gradient Vector
+   */
+  void CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
+                                              Vector& rStrainVector);
+  
+  
   /**
    * Set Variables of the Element to the Parameters of the Constitutive Law
    */
@@ -290,6 +337,24 @@ protected:
    * Get Historical variables
    */
   void GetHistoricalVariables(ElementDataType& rVariables, const double& rPointNumber);
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental mass matrix
+   * @param rMassMatrix: the elemental mass matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  void CalculateMassMatrix(MatrixType& rMassMatrix,
+                           ProcessInfo& rCurrentProcessInfo) override;
+
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental damping matrix
+   * @param rDampingMatrix: the elemental damping matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  void CalculateDampingMatrix(MatrixType& rDampingMatrix,
+                              ProcessInfo& rCurrentProcessInfo) override;
 
 
   ///@}

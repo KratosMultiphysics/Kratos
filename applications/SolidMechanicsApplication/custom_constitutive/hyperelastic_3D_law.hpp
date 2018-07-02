@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/properties.h"
 #include "includes/constitutive_law.h"
 
 

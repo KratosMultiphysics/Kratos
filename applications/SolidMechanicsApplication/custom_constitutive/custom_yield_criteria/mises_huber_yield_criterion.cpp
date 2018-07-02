@@ -8,15 +8,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
+
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

@@ -253,7 +253,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
     {
       this->GetModelPart().GetProcessInfo().SetValue(SEGREGATED_STEP, counter);
-      convergences[counter-1] = (*it)->SolveIteration();
+      convergences[counter] = (*it)->SolveIteration();
       ++counter;
     }
 

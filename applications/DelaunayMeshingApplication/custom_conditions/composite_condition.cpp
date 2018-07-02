@@ -734,144 +734,14 @@ void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
 }
 
 
-//***********************COMPUTE LOCAL SYSTEM CONTRIBUTIONS***************************
-//************************************************************************************
-
-
-void CompositeCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
-					       const std::vector< Variable< MatrixType > >& rLHSVariables,
-					       std::vector< VectorType >& rRightHandSideVectors,
-					       const std::vector< Variable< VectorType > >& rRHSVariables,
-					       ProcessInfo& rCurrentProcessInfo )
-{
-  for( unsigned int i=0; i< rLeftHandSideMatrices.size(); i++)
-    {
-      rLeftHandSideMatrices[i].clear();
-      rLeftHandSideMatrices[i].resize(0,0);
-    }
-
-  for( unsigned int i=0; i< rRightHandSideVectors.size(); i++)
-    {
-      rRightHandSideVectors[i].clear();
-      rRightHandSideVectors[i].resize(0);
-    }
-
-  //std::cout<<" Calculate local system Skin "<<std::endl;
-  std::vector< MatrixType > LocalLeftHandSideMatrices;
-  std::vector< VectorType > LocalRightHandSideVectors;
-
-  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
-    {
-      if( IsActive(cn,rCurrentProcessInfo) ){
-	
-	cn->CalculateLocalSystem(LocalLeftHandSideMatrices, rLHSVariables, LocalRightHandSideVectors, rRHSVariables, rCurrentProcessInfo);
-	//std::cout<<" LocalRightHandSideVector "<<LocalRightHandSideVector<<std::endl;
-
-	//resizing as needed the LHSs
-	for( unsigned int i=0; i< rLeftHandSideMatrices.size(); i++)
-	  {
-	    unsigned int GlobalSize1 = rLeftHandSideMatrices[i].size1();
-	    unsigned int LocalSize1  = LocalLeftHandSideMatrices[i].size1();
-	    unsigned int MatSize1    = GlobalSize1+LocalSize1;
-	    
-	    unsigned int GlobalSize2 = rLeftHandSideMatrices[i].size2();
-	    unsigned int LocalSize2  = LocalLeftHandSideMatrices[i].size2();
-	    unsigned int MatSize2    = GlobalSize2+LocalSize2;
-
-	    rLeftHandSideMatrices[i].resize( MatSize1, MatSize2, true );
-	  
-
-
-	    unsigned int indexi = 0;
-	    for(unsigned int i=GlobalSize1; i<MatSize1; i++)
-	      {
-		unsigned int indexj = 0;
-		for(unsigned int j=GlobalSize2; j<MatSize2; j++)
-		  {
-		    rLeftHandSideMatrices[i](i,j)=LocalLeftHandSideMatrices[i](indexi,indexj);
-		    indexj++;
-		  }
-		indexi++;
-	      }
-
-	  }
-
-    
-	//resizing as needed the RHSs
-	for( unsigned int i=0; i< rRightHandSideVectors.size(); i++)
-	  {
-
-	    unsigned int GlobalSize1 = rRightHandSideVectors[i].size();
-	    unsigned int LocalSize1  = LocalRightHandSideVectors[i].size();
-	    unsigned int MatSize1    = GlobalSize1+LocalSize1;
-    
-	    rRightHandSideVectors[i].resize( MatSize1, true );
-    
-	    unsigned int indexi = 0;
-	    for(unsigned int j=GlobalSize1; j<MatSize1; j++)
-	      {
-		rRightHandSideVectors[i][j]=LocalRightHandSideVectors[i][indexi];
-		indexi++;
-	      }
-
-	  }
-    
-      }
-    }
-
-}
-
 //************************************************************************************
 //************************************************************************************
-
-
-void CompositeCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
-{
-  //std::cout<<" Calculate local rhs system Skin "<<std::endl;
-  for( unsigned int i=0; i< rRightHandSideVectors.size(); i++)
-    {
-      rRightHandSideVectors[i].clear();
-      rRightHandSideVectors[i].resize(0);
-    }
-
-
-  std::vector< VectorType > LocalRightHandSideVectors;
-  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
-    {
-      if( IsActive(cn,rCurrentProcessInfo) ){
-	
-	cn->CalculateRightHandSide(LocalRightHandSideVectors, rRHSVariables, rCurrentProcessInfo);
-
-	//resizing as needed the RHSs
-	for( unsigned int i=0; i< rRightHandSideVectors.size(); i++)
-	  {
-
-	    unsigned int GlobalSize  = rRightHandSideVectors[i].size();
-	    unsigned int LocalSize   = LocalRightHandSideVectors[i].size();
-	    unsigned int MatSize     = GlobalSize+LocalSize;
-    
-	    rRightHandSideVectors[i].resize( MatSize, true );
-    
-	    unsigned int indexi = 0;
-	    for(unsigned int j=GlobalSize; j<MatSize; j++)
-	      {
-		rRightHandSideVectors[i][j]=LocalRightHandSideVectors[i][indexi];
-		indexi++;
-	      }
-	  }
-      }
-    }
-
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
-
 
 void CompositeCondition::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
+  rMassMatrix.clear();
+  rMassMatrix.resize(0,0);
+
   // MatrixType LocalMassMatrix;
   // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   //    {
@@ -887,6 +757,9 @@ void CompositeCondition::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInf
 
 void CompositeCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
+  rDampingMatrix.clear();
+  rDampingMatrix.resize(0,0);
+
   // MatrixType LocalDampingMatrix;
   // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   //    {

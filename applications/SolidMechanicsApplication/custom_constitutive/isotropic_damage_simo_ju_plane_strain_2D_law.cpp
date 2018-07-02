@@ -8,11 +8,8 @@
 //
 
 // System includes
-#include <iostream>
-#include <cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
 #include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"

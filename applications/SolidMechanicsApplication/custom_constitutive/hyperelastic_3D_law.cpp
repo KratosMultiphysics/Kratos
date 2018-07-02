@@ -11,10 +11,9 @@
 #include <iostream>
 
 // External includes
-#include<cmath>
+#include <cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"

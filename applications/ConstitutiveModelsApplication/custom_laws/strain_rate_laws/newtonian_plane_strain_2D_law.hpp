@@ -175,9 +175,9 @@ namespace Kratos
        * @param rStrainVector strain rates
        * @param rMaterialProperties properties of the material
        */
-      virtual void CalculateStress(Vector& rStressVector,
-                                   const Vector & rStrainVector,
-                                   const Properties& rMaterialProperties) override
+      void CalculateStress(Vector& rStressVector,
+                           const Vector & rStrainVector,
+                           const Properties& rMaterialProperties) override
       {
         KRATOS_TRY
             
@@ -188,7 +188,7 @@ namespace Kratos
         // Cauchy StressVector
         rStressVector[0] = 2.0*rViscosity*(rStrainVector[0] - pressure);
         rStressVector[1] = 2.0*rViscosity*(rStrainVector[1] - pressure);
-        rStressVector[3] = rViscosity*rStrainVector[3];       
+        rStressVector[2] = rViscosity*rStrainVector[2];       
         
         KRATOS_CATCH(" ")
 
@@ -200,8 +200,8 @@ namespace Kratos
        * @param rConstitutiveMatrix constitutive matrix return value
        * @param rMaterialProperties properties of the material     
        */
-      virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                               const Properties& rMaterialProperties) override
+      void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+                                       const Properties& rMaterialProperties) override
       {
 	KRATOS_TRY
 
@@ -215,7 +215,7 @@ namespace Kratos
         rConstitutiveMatrix ( 0 , 0 ) = diagonal_component;
         rConstitutiveMatrix ( 1 , 1 ) = diagonal_component;
         
-        rConstitutiveMatrix ( 3 , 3 ) = rViscosity;
+        rConstitutiveMatrix ( 2 , 2 ) = rViscosity;
         
         rConstitutiveMatrix ( 0 , 1 ) = side_component;
         rConstitutiveMatrix ( 1 , 0 ) = side_component;

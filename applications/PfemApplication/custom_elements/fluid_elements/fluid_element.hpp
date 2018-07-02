@@ -676,16 +676,14 @@ protected:
      */
 
     virtual void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, 
-					   ElementDataType& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo);
+					   ElementDataType& rVariables);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
     virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
-					   ElementDataType& rVariables, 
-					   ProcessInfo& rCurrentProcessInfo);
+					   ElementDataType& rVariables);
 
 
 

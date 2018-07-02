@@ -11,15 +11,11 @@
 #define  KRATOS_YIELD_CRITERION_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
-#include "includes/properties.h"
 #include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
 
 namespace Kratos

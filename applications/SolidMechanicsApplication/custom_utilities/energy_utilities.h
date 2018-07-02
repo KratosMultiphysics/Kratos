@@ -13,19 +13,19 @@
 
 
 // System includes
-#include <cmath>
-#include <set>
+//#include <cmath>
+//#include <set>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// #ifdef _OPENMP
+// #include <omp.h>
+// #endif
 
 // External includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 #include "utilities/timer.h"
 
 // Project includes
-#include "includes/define.h"
+//#include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"

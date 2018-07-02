@@ -138,11 +138,6 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
                     #fileTotalVolume.write(outstring)
                     #fileTotalVolume.close
 
-        volume_acceleration=self.main_model_part.ProcessInfo[KratosMultiphysics.GRAVITY]
-        if(currentStep == 1):
-            for node in self.main_model_part.Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION,volume_acceleration)
-
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
                 if(self.IsMeshingStep()):

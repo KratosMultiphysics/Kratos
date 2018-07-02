@@ -8,16 +8,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/properties.h"
-#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
+
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {

@@ -23,17 +23,22 @@ class PfemSolution(MainSolid.Solution):
         # particles concept : assign initial material percent and properties vector pointer to nodes
         if(processes_parameters.Has("problem_process_list")):
             problem_processes = processes_parameters["problem_process_list"]
-            processes_parameters.__setitem__("problem_process_list", self._set_particle_properties_process(problem_processes))
-
+            #print(" PROBLEM_PROCESSES ", processes_parameters["problem_process_list"].PrettyPrintJsonString())
+            extended_problem_processes = self._set_particle_properties_process(problem_processes)
+            processes_parameters.AddValue("problem_process_list", extended_problem_processes)
+            #print(" EXTENDED_PROBLEM_PROCESSES ", processes_parameters["problem_process_list"].PrettyPrintJsonString())
+            
         if(processes_parameters.Has("loads_process_list")):
             loads_processes = processes_parameters["loads_process_list"]
-            processes_parameters.__setitem__("loads_process_list", self._set_volume_acceleration_process(loads_processes))
-
+            print(" LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
+            extended_loads_processes = self._set_volume_acceleration_process(loads_processes)
+            processes_parameters.AddValue("loads_process_list", extended_loads_processes)
+            print(" EXTENDED_LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
 
         return processes_parameters
 
     def _set_volume_acceleration_process(self, loads_processes):
-
+        
         default_settings = KratosMultiphysics.Parameters("""
         {
              "python_module" : "assign_modulus_and_direction_to_nodes_process",
@@ -84,7 +89,7 @@ class PfemSolution(MainSolid.Solution):
         return loads_processes
     
     def _set_particle_properties_process(self, problem_processes):
-
+        
         default_settings = KratosMultiphysics.Parameters("""
         {
             "python_module" : "assign_properties_to_nodes_process",
@@ -98,9 +103,9 @@ class PfemSolution(MainSolid.Solution):
 
         model_part_name = self.model.GetMainModelPart().Name
         default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
-
+        
         problem_processes.Append(default_settings)
-
+        
         return problem_processes
     
     def _class_prefix(self):

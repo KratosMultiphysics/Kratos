@@ -402,7 +402,7 @@ void LargeDisplacementVElement::CalculateSymmetricVelocityGradient(const Matrix&
 
         rStrainVector[0] = rH( 0, 0 );
         rStrainVector[1] = rH( 1, 1 );
-        rStrainVector[2] = (rH( 0, 1 ) + rH( 1, 0 )); // xy
+        rStrainVector[2] = 0.5 * (rH( 0, 1 ) + rH( 1, 0 )); // xy
 
     }
     else if( dimension == 3 )
@@ -412,9 +412,9 @@ void LargeDisplacementVElement::CalculateSymmetricVelocityGradient(const Matrix&
         rStrainVector[0] = rH( 0, 0 );
         rStrainVector[1] = rH( 1, 1 );
         rStrainVector[2] = rH( 2, 2 );
-        rStrainVector[3] = ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
-        rStrainVector[4] = ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
-        rStrainVector[5] = ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
+        rStrainVector[3] = 0.5 * ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
+        rStrainVector[4] = 0.5 * ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
+        rStrainVector[5] = 0.5 * ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
 
     }
     else
@@ -442,7 +442,7 @@ void LargeDisplacementVElement::CalculateSkewSymmetricVelocityGradient(const Mat
 
         rStrainVector[0] = 0.0;
         rStrainVector[1] = 0.0;
-        rStrainVector[2] = (rH( 0, 1 ) - rH( 1, 0 )); // xy
+        rStrainVector[2] = 0.5 * (rH( 0, 1 ) - rH( 1, 0 )); // xy
 
     }
     else if( dimension == 3 )
@@ -452,9 +452,9 @@ void LargeDisplacementVElement::CalculateSkewSymmetricVelocityGradient(const Mat
         rStrainVector[0] = 0.0;
         rStrainVector[1] = 0.0;
         rStrainVector[2] = 0.0;
-        rStrainVector[3] = ( rH( 0, 1 ) - rH( 1, 0 ) ); // xy
-        rStrainVector[4] = ( rH( 1, 2 ) - rH( 2, 1 ) ); // yz
-        rStrainVector[5] = ( rH( 0, 2 ) - rH( 2, 0 ) ); // xz
+        rStrainVector[3] = 0.5 * ( rH( 0, 1 ) - rH( 1, 0 ) ); // xy
+        rStrainVector[4] = 0.5 * ( rH( 1, 2 ) - rH( 2, 1 ) ); // yz
+        rStrainVector[5] = 0.5 * ( rH( 0, 2 ) - rH( 2, 0 ) ); // xz
 
     }
     else

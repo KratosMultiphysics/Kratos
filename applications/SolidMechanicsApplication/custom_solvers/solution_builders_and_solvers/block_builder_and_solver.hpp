@@ -245,7 +245,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
       {
         ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
 
-        //detect if the element is active or not. If the user did not make any choice the element
+        //detect if the condition is active or not. If the user did not make any choice the condition
         //is active by default
         bool condition_is_active = true;
         if ((it)->IsDefined(ACTIVE))

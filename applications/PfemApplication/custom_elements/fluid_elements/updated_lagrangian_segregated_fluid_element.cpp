@@ -362,6 +362,13 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
 {
     KRATOS_TRY
 
+    //to take in account previous step for output print purposes
+    SizeType step = 0;
+    if( this->Is(FluidElement::FINALIZED_STEP) ){
+      step = 1;
+      this->GetHistoricalVariables(rVariables,rPointNumber);
+    }
+
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
@@ -400,7 +407,10 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    //CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
+    CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
+    
+    //Calculate velocity gradient matrix
+    CalculateVelocityGradient( rVariables.L, rVariables.DN_DX, step );
 
     KRATOS_CATCH( "" )
 }
@@ -455,17 +465,261 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinetics(ElementDataType&
 //************************************************************************************
 //************************************************************************************
 
+void UpdatedLagrangianSegregatedFluidElement::CalculateDeformationMatrix(Matrix& rB,
+                                                                         const Matrix& rF,
+                                                                         const Matrix& rDN_DX)
+{
+    KRATOS_TRY
+
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+
+    rB.clear(); //set all components to zero
+
+    if( dimension == 2 )
+    {
+
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+            unsigned int index = 2 * i;
+
+            rB( 0, index + 0 ) = rDN_DX( i, 0 );
+            rB( 1, index + 1 ) = rDN_DX( i, 1 );
+            rB( 2, index + 0 ) = rDN_DX( i, 1 );
+            rB( 2, index + 1 ) = rDN_DX( i, 0 );
+
+        }
+
+    }
+    else if( dimension == 3 )
+    {
+
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+            unsigned int index = 3 * i;
+
+            rB( 0, index + 0 ) = rDN_DX( i, 0 );
+            rB( 1, index + 1 ) = rDN_DX( i, 1 );
+            rB( 2, index + 2 ) = rDN_DX( i, 2 );
+
+            rB( 3, index + 0 ) = rDN_DX( i, 1 );
+            rB( 3, index + 1 ) = rDN_DX( i, 0 );
+
+            rB( 4, index + 1 ) = rDN_DX( i, 2 );
+            rB( 4, index + 2 ) = rDN_DX( i, 1 );
+
+            rB( 5, index + 0 ) = rDN_DX( i, 2 );
+            rB( 5, index + 2 ) = rDN_DX( i, 0 );
+
+        }
+    }
+    else
+    {
+      KRATOS_ERROR << " something is wrong with the dimension when computing B " << std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateVelocityGradient(Matrix& rL,
+                                                                        const Matrix& rDN_DX,
+                                                                        unsigned int step)
+{
+    KRATOS_TRY
+
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+
+    rL = zero_matrix<double> ( dimension );
+
+    if( dimension == 2 )
+    {
+
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+          
+            rL ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rL ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rL ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rL ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+        }
+
+    }
+    else if( dimension == 3)
+    {
+
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+            
+            rL ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rL ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rL ( 0 , 2 ) += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+            rL ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rL ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rL ( 1 , 2 ) += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+            rL ( 2 , 0 ) += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+            rL ( 2 , 1 ) += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+            rL ( 2 , 2 ) += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+        }
+
+    }
+    else
+    {
+      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
+    }
+    
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateVelocityGradientVector(Vector& rL,
+                                                                              const Matrix& rDN_DX,
+                                                                              unsigned int step)
+{
+    KRATOS_TRY
+
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+
+    rL = ZeroVector( dimension * dimension );
+
+    if( dimension == 2 )
+    {
+
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+          
+            rL[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rL[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rL[2] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rL[3] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+
+        }
+
+    }
+    else if( dimension == 3)
+    {
+
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
+            
+            rL[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
+            rL[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
+            rL[2] += rCurrentVelocity[2]*rDN_DX ( i , 2 );
+            
+            rL[3] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
+            rL[4] += rCurrentVelocity[1]*rDN_DX ( i , 2 );
+            rL[5] += rCurrentVelocity[2]*rDN_DX ( i , 0 );
+
+            rL[6] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
+            rL[7] += rCurrentVelocity[2]*rDN_DX ( i , 1 );
+            rL[8] += rCurrentVelocity[0]*rDN_DX ( i , 2 );
+        }
+
+    }
+    else
+    {
+      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
+    }
+    
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateSymmetricVelocityGradient(const Matrix& rL,
+                                                                                 Vector& rStrainVector)
+{
+    KRATOS_TRY
+
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+
+    if( dimension == 2 )
+    {
+        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+
+        rStrainVector[0] = rL( 0, 0 );
+        rStrainVector[1] = rL( 1, 1 );
+        rStrainVector[2] = 0.5 * (rL( 0, 1 ) + rL( 1, 0 )); // xy
+
+    }
+    else if( dimension == 3 )
+    {
+        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
+
+        rStrainVector[0] = rL( 0, 0 );
+        rStrainVector[1] = rL( 1, 1 );
+        rStrainVector[2] = rL( 2, 2 );
+        rStrainVector[3] = 0.5 * ( rL( 0, 1 ) + rL( 1, 0 ) ); // xy
+        rStrainVector[4] = 0.5 * ( rL( 1, 2 ) + rL( 2, 1 ) ); // yz
+        rStrainVector[5] = 0.5 * ( rL( 0, 2 ) + rL( 2, 0 ) ); // xz
+
+    }
+    else
+    {
+        KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateSkewSymmetricVelocityGradient(const Matrix& rL,
+                                                                                     Vector& rStrainVector)
+{
+    KRATOS_TRY
+
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+
+    if( dimension == 2 )
+    {
+        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+
+        rStrainVector[0] = 0.0;
+        rStrainVector[1] = 0.0;
+        rStrainVector[2] = 0.5 * (rL( 0, 1 ) - rL( 1, 0 )); // xy
+
+    }
+    else if( dimension == 3 )
+    {
+        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
+
+        rStrainVector[0] = 0.0;
+        rStrainVector[1] = 0.0;
+        rStrainVector[2] = 0.0;
+        rStrainVector[3] = 0.5 * ( rL( 0, 1 ) - rL( 1, 0 ) ); // xy
+        rStrainVector[4] = 0.5 * ( rL( 1, 2 ) - rL( 2, 1 ) ); // yz
+        rStrainVector[5] = 0.5 * ( rL( 0, 2 ) - rL( 2, 0 ) ); // xz
+
+    }
+    else
+    {
+        KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rVariables,
                                                              ConstitutiveLaw::Parameters& rValues,
                                                              const int & rPointNumber)
 {
-
-  //to take in account previous step for output print purposes
-  SizeType step = 0;
-  if( this->Is(FluidElement::FINALIZED_STEP) ){
-    step = 1;
-    this->GetHistoricalVariables(rVariables,rPointNumber);
-  }
 
   if(rVariables.detF<0){
 
@@ -486,26 +740,15 @@ void UpdatedLagrangianSegregatedFluidElement::SetElementData(ElementDataType& rV
     KRATOS_ERROR << " UPDATED LAGRANGIAN SEGREGATED FLUID ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
   }
 
-
-
   //Compute strain rate measures if they are required by the constitutive law
   ConstitutiveLaw::Features LawFeatures;
   mConstitutiveLawVector[rPointNumber]->GetLawFeatures(LawFeatures);
 
-  bool strain_rate_measure = false;
-  for(SizeType i=0; i<LawFeatures.mStrainMeasures.size(); i++)
-  {
-    if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient)
-      strain_rate_measure = true;
-  }
-
-  if( strain_rate_measure ){
-    //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
-    this->CalculateVelocityGradientVector( rVariables.StrainVector, rVariables.DN_DX, step );
-    Flags &ConstitutiveLawOptions=rValues.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-  }
-
+  //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
+  this->CalculateSymmetricVelocityGradient( rVariables.L, rVariables.StrainVector );
+  Flags& ConstitutiveLawOptions = rValues.GetOptions();
+  ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+ 
   rValues.SetDeterminantF(rVariables.detH);
   rValues.SetDeformationGradientF(rVariables.F);
   rValues.SetStrainVector(rVariables.StrainVector);
@@ -523,7 +766,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddLHS(LocalSystemComp
 {
   KRATOS_TRY
 
-      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
   switch(mStepVariable)
   {
@@ -536,7 +779,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddLHS(LocalSystemComp
         // this->CalculateAndAddKvvg( rLeftHandSideMatrix, rVariables );
 
         // operation performed: add Bulk term matrix to rLeftHandSideMatrix
-        this->CalculateAndAddKBulk( rLeftHandSideMatrix, rVariables );
+        this->CalculateAndAddKbulk( rLeftHandSideMatrix, rVariables );
 
         break;
       }
@@ -566,7 +809,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddRHS(LocalSystemComp
 {
   KRATOS_TRY
 
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
   switch(mStepVariable)
   {
@@ -578,6 +821,8 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddRHS(LocalSystemComp
         // operation performed: add ExternalForces to the rRightHandSideVector
         this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables );
 
+        //std::cout<< " velocity RHS "<<  rRightHandSideVector << "(" << this->Id() << ")" <<std::endl;
+
         break;
       }
     case PRESSURE_STEP:
@@ -587,6 +832,8 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddRHS(LocalSystemComp
 
         // operation performed: add PressureForces to the rRightHandSideVector
         this->CalculateAndAddPressureForces( rRightHandSideVector, rVariables );
+
+        //std::cout<< " pressure RHS "<<  rRightHandSideVector << "(" << this->Id() << ")" <<std::endl;
 
         break;
       }
@@ -599,7 +846,65 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddRHS(LocalSystemComp
   KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
 
+void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables)
+{
+  KRATOS_TRY
+      
+  if( StepType(rVariables.GetProcessInfo()[SEGREGATED_STEP]) == VELOCITY_STEP )
+  {
+    FluidElement::CalculateAndAddDynamicLHS(rLeftHandSideMatrix, rVariables);   
+  }
+  
+  KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables)
+{
+  KRATOS_TRY
+      
+  if( StepType(rVariables.GetProcessInfo()[SEGREGATED_STEP]) == VELOCITY_STEP )
+  {
+    FluidElement::CalculateAndAddDynamicRHS(rRightHandSideVector, rVariables);
+  }
+
+  KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+  KRATOS_TRY
+      
+  if( StepType(rCurrentProcessInfo[SEGREGATED_STEP]) == VELOCITY_STEP )
+  {
+    FluidElement::CalculateMassMatrix( rMassMatrix, rCurrentProcessInfo );
+  }
+
+  KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+  KRATOS_TRY
+      
+  if( StepType(rCurrentProcessInfo[SEGREGATED_STEP]) == VELOCITY_STEP )
+  {
+    FluidElement::CalculateDampingMatrix( rDampingMatrix, rCurrentProcessInfo );
+  }
+
+  KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -638,7 +943,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvg(MatrixType& rL
 {
   KRATOS_TRY
 
-      SizeType dimension = GetGeometry().WorkingSpaceDimension();
+  SizeType dimension = GetGeometry().WorkingSpaceDimension();
   Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
   Matrix ReducedKg = prod( rVariables.DN_DX, rVariables.IntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
   MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
@@ -649,7 +954,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvg(MatrixType& rL
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKBulk(MatrixType& rLeftHandSideMatrix,
+void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKbulk(MatrixType& rLeftHandSideMatrix,
                                                                    ElementDataType& rVariables)
 {
   KRATOS_TRY
@@ -685,12 +990,10 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKBulk(MatrixType& r
     rVariables.ConstitutiveMatrix(i,i) += BulkFactor;
   }
 
-
   this->CalculateAndAddKvvm( rLeftHandSideMatrix, rVariables );
 
-
   KRATOS_CATCH( "" )
-      }
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -701,8 +1004,8 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp(MatrixType& rLe
 {
   KRATOS_TRY
 
-      GeometryType& rGeometry = GetGeometry();
-  const SizeType dimension = rGeometry.PointsNumber();
+  GeometryType& rGeometry = GetGeometry();
+  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
   const SizeType number_of_nodes = rGeometry.PointsNumber();
   double element_size = rGeometry.AverageEdgeLength();
 
@@ -719,16 +1022,15 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp(MatrixType& rLe
         rLeftHandSideMatrix(Faces[i][j],Faces[i][j]) += coefficient * BoundFactor;
       }
     }
-
   }
 
   // Add Stabilized Laplacian Matrix
   double StabilizationFactor = rVariables.Tau * rVariables.IntegrationWeight;
-  for( SizeType i=0; i<number_of_nodes; ++i)
+  for( SizeType i=0; i<number_of_nodes; ++i )
   {
-    for( SizeType j=0; j<number_of_nodes; ++j)
+    for( SizeType j=0; j<number_of_nodes; ++j )
     {
-      for ( SizeType k = 0; k < dimension; ++k )
+      for ( SizeType k = 0; k<dimension; ++k )
       {
         rLeftHandSideMatrix(i,j) += StabilizationFactor * rVariables.DN_DX(i,k) * rVariables.DN_DX(j,k);
       }
@@ -742,6 +1044,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp(MatrixType& rLe
 
   double BulkFactor = MassFactor*rVariables.Tau*Density/(BulkModulus*rVariables.TimeStep*rVariables.TimeStep);
 
+
   // for pressure velocity only or x2 if adding pressure acceleration
   // BulkFactor *= 2;
 
@@ -754,9 +1057,10 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp(MatrixType& rLe
     rLeftHandSideMatrix(i,i) += BulkFactor;
   }
 
+  //std::cout<< "Kpp" << rLeftHandSideMatrix << "(" << this->Id() << ")" << std::endl;
 
   KRATOS_CATCH( "" )
-      }
+}
 
 
 //************************************************************************************
@@ -768,7 +1072,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
   KRATOS_TRY
 
   GeometryType& rGeometry = GetGeometry();
-  const SizeType dimension = rGeometry.PointsNumber();
+  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
   const SizeType number_of_nodes = rGeometry.PointsNumber();
   double element_size = rGeometry.AverageEdgeLength();
 
@@ -779,8 +1083,8 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
   // Add Boundary Vector
   if( Faces.size() != 0 ){ //if there are free surfaces
 
-    Vector Normal(3);
-    noalias(Normal) = ZeroVector(3);
+    Vector Normal(dimension);
+    noalias(Normal) = ZeroVector(dimension);
 
     double ProjectionVelocityGradient = 0;
     double BoundFactorA = 0;
@@ -792,7 +1096,10 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
     for( SizeType i=0; i<Faces.size(); ++i ){
       double coefficient = 1.0 / double(Faces[i].size()+1);
       for( SizeType j=0; j<Faces[i].size(); ++j ){
-        noalias(Normal) += coefficient * rGeometry[Faces[i][j]].FastGetSolutionStepValue(NORMAL);
+        for ( SizeType k = 0; k<dimension; ++k )
+        {
+          Normal[k] += coefficient * rGeometry[Faces[i][j]].FastGetSolutionStepValue(NORMAL)[k];
+        }
       }
 
       ProjectionVelocityGradient = inner_prod(Normal, prod(D,Normal));
@@ -800,7 +1107,12 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
       BoundFactorB = rVariables.Tau * 8.0 * ProjectionVelocityGradient * Viscosity * rVariables.IntegrationWeight / (element_size*element_size);
 
       for( SizeType j=0; j<Faces[i].size(); ++j ){
-        const array_1d<double,3>& Acceleration = rGeometry[Faces[i][j]].FastGetSolutionStepValue(ACCELERATION);
+        Vector Acceleration (dimension);
+        noalias(Acceleration) = ZeroVector(dimension);
+        for ( SizeType k = 0; k<dimension; ++k )
+        {
+          Acceleration[k] = rGeometry[Faces[i][j]].FastGetSolutionStepValue(ACCELERATION)[k];
+        }
         rRightHandSideVector[Faces[i][j]] += coefficient * (BoundFactorA * inner_prod(Normal,Acceleration) + BoundFactorB);
       }
     }
@@ -852,7 +1164,6 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
     rRightHandSideVector[i] -= BulkFactor * (rGeometry[i].FastGetSolutionStepValue(PRESSURE,0)-rGeometry[i].FastGetSolutionStepValue(PRESSURE,1) - rVariables.TimeStep * rGeometry[i].FastGetSolutionStepValue(PRESSURE_VELOCITY));
   }
 
-
   // Add LHS to RHS: stabilization and boundary terms
 
   // Add Boundary Matrix to RHS
@@ -865,6 +1176,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
       }
     }
   }
+
 
   // Add Stabilized Laplacian Matrix to RHS
   coefficient = double(rGeometry.IntegrationPointsNumber()); //integration points independent
@@ -883,8 +1195,6 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
 
   KRATOS_CATCH( "" )
 }
-
-
 
 //************************************************************************************
 //************************************************************************************
@@ -921,7 +1231,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateStabilizationTau(ElementD
   }
 
   KRATOS_CATCH( "" )
-      }
+}
 
 //************************************************************************************
 //************************************************************************************

@@ -583,7 +583,7 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
     //set constitutive law flags:
-    Flags &ConstitutiveLawOptions=Values.GetOptions();
+    Flags& ConstitutiveLawOptions = Values.GetOptions();
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -619,8 +619,6 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
-            //VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
-
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables );
         }
 
@@ -638,7 +636,7 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
 //************************************************************************************
 
 void FluidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-					   ProcessInfo& rCurrentProcessInfo)
+					   ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -674,14 +672,14 @@ void FluidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
         if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
 	  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables, rCurrentProcessInfo );
+	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables );
 
         }
 
         if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
 	  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables, rCurrentProcessInfo );
+	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables );
         }
 
 	//for debugging purposes
@@ -761,10 +759,10 @@ void FluidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, Eleme
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo)
+void FluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables)
 {
   KRATOS_TRY
-
+      
   //mass matrix
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -779,39 +777,37 @@ void FluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
 
   double CurrentDensity = VolumeChange * GetProperties()[DENSITY];
 
-
   unsigned int indexi = 0;
   unsigned int indexj = 0;
 
   for ( unsigned int i = 0; i < number_of_nodes; i++ )
+  {
+    for ( unsigned int k = 0; k < dimension; k++ )
     {
-      for ( unsigned int k = 0; k < dimension; k++ )
-	{
-	  indexj = 0;
-	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
-	    {
+      indexj = 0;
+      for ( unsigned int j = 0; j < number_of_nodes; j++ )
+      {
 
-	      rLeftHandSideMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rVariables.IntegrationWeight;
-	      indexj += dimension;
-	    }
+        rLeftHandSideMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rVariables.IntegrationWeight;
+        indexj += dimension;
+      }
 
-	}
-
-      indexi += dimension;
     }
 
+    indexi += dimension;
+  }
 
-    KRATOS_CATCH( "" )
+  KRATOS_CATCH( "" )
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void FluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo)
+void FluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables)
 {
   KRATOS_TRY
-
+      
   //mass matrix
   const unsigned int number_of_nodes = GetGeometry().PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -832,6 +828,7 @@ void FluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, E
   this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
 
   double AlphaM = 0.0;
+  const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
   if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
     AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
     Vector PreviousAccelerationVector(MatSize);
@@ -845,25 +842,25 @@ void FluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, E
   unsigned int indexj = 0;
 
   for ( unsigned int i = 0; i < number_of_nodes; i++ )
+  {
+    for ( unsigned int k = 0; k < dimension; k++ )
     {
-      for ( unsigned int k = 0; k < dimension; k++ )
-	{
-	  indexj = 0;
-	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
-	    {
+      indexj = 0;
+      for ( unsigned int j = 0; j < number_of_nodes; j++ )
+      {
 
-	      MassMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rVariables.IntegrationWeight;
-	      indexj += dimension;
-	    }
+        MassMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rVariables.IntegrationWeight;
+        indexj += dimension;
+      }
 
-	}
-
-      indexi += dimension;
     }
+
+    indexi += dimension;
+  }
 
 
   noalias(rRightHandSideVector) = prod( MassMatrix, CurrentAccelerationVector );
-
+  
   KRATOS_CATCH( "" )
 }
 
@@ -1163,10 +1160,12 @@ void FluidElement::CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
 				       ElementDataType& rVariables)
 {
     KRATOS_TRY
-
+   
     //contributions to stiffness matrix calculated on the reference config
     noalias( rLeftHandSideMatrix ) += rVariables.IntegrationWeight * prod( trans( rVariables.B ), Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
 
+    //std::cout << "Kvvm" << rLeftHandSideMatrix << "(" << this->Id() << ")" << std::endl;
+    
     KRATOS_CATCH( "" )
 }
 
@@ -1206,6 +1205,8 @@ void FluidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVecto
 	  rRightHandSideVector[index + j] += rVariables.IntegrationWeight * rVariables.N[i] * VolumeForce[j];
         }
     }
+
+    
 
     KRATOS_CATCH( "" )
 }
@@ -1256,9 +1257,9 @@ void FluidElement::InitializeExplicitContributions()
 //***********************************************************************************
 
 void FluidElement::AddExplicitContribution(const VectorType& rRHSVector,
-						       const Variable<VectorType>& rRHSVariable,
-						       Variable<array_1d<double,3> >& rDestinationVariable,
-						       const ProcessInfo& rCurrentProcessInfo)
+                                           const Variable<VectorType>& rRHSVariable,
+                                           Variable<array_1d<double,3> >& rDestinationVariable,
+                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1720,8 +1721,8 @@ Vector& FluidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementDataTyp
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
       if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
-	array_1d<double, 3 >& VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-	for( unsigned int i = 0; i < dimension; i++ )
+       	array_1d<double, 3 >& VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        for( unsigned int i = 0; i < dimension; i++ )
 	  rVolumeForce[i] += rVariables.N[j] * VolumeAcceleration[i] ;
       }
     }
@@ -1730,7 +1731,7 @@ Vector& FluidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementDataTyp
     VolumeChange = this->CalculateVolumeChange( VolumeChange, rVariables );
 
     rVolumeForce *= VolumeChange * GetProperties()[DENSITY];
-
+    
     return rVolumeForce;
 
     KRATOS_CATCH( "" )
@@ -1957,69 +1958,68 @@ void FluidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVecto
 
 void FluidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
+  KRATOS_TRY
+    
+  bool ComputeLumpedMassMatrix = false;
+  if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) )
+    if(rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == true)
+      ComputeLumpedMassMatrix = true;
 
-    bool ComputeLumpedMassMatrix = false;
-    if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) )
-      if(rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] == true)
-	ComputeLumpedMassMatrix = true;
 
+  if( ComputeLumpedMassMatrix == false ){
 
-    if( ComputeLumpedMassMatrix == false ){
+    //create local system components
+    LocalSystemComponents LocalSystem;
 
-      //create local system components
-      LocalSystemComponents LocalSystem;
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(FluidElement::COMPUTE_LHS_MATRIX);
 
-      //calculation flags
-      LocalSystem.CalculationFlags.Set(FluidElement::COMPUTE_LHS_MATRIX);
+    VectorType RightHandSideVector = Vector();
 
-      VectorType RightHandSideVector = Vector();
+    //Initialize sizes for the system components:
+    this->InitializeSystemMatrices( rMassMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
 
-      //Initialize sizes for the system components:
-      this->InitializeSystemMatrices( rMassMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(rMassMatrix);
+    LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
-      //Set Variables to Local system components
-      LocalSystem.SetLeftHandSideMatrix(rMassMatrix);
-      LocalSystem.SetRightHandSideVector(RightHandSideVector);
+    //Calculate elemental system
+    CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
-      //Calculate elemental system
-      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
+  }
+  else{
 
-    }
-    else{
+    //lumped
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int MatSize = this->GetDofsSize();
+    if ( rMassMatrix.size1() != MatSize )
+      rMassMatrix.resize( MatSize, MatSize, false );
 
-      //lumped
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-      const unsigned int MatSize = this->GetDofsSize();
-      if ( rMassMatrix.size1() != MatSize )
-        rMassMatrix.resize( MatSize, MatSize, false );
+    noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
 
-      noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
+    double TotalMass = 0;
+    TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
+ 
+    Vector LumpFact(number_of_nodes);
+    noalias(LumpFact) = ZeroVector(number_of_nodes);
 
-      double TotalMass = 0;
-      TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
+    LumpFact  = GetGeometry().LumpingFactors( LumpFact );
+      
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+      double temp = LumpFact[i] * TotalMass;
 
-      Vector LumpFact(number_of_nodes);
-      noalias(LumpFact) = ZeroVector(number_of_nodes);
-
-      LumpFact  = GetGeometry().LumpingFactors( LumpFact );
-
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	{
-	  double temp = LumpFact[i] * TotalMass;
-
-	  for ( unsigned int j = 0; j < dimension; j++ )
-	    {
-	      unsigned int index = i * dimension + j;
-	      rMassMatrix( index, index ) = temp;
-	    }
-	}
-
+      for ( unsigned int j = 0; j < dimension; j++ )
+      {
+        unsigned int index = i * dimension + j;
+        rMassMatrix( index, index ) = temp;
+      }
     }
 
+  }
 
-    KRATOS_CATCH( "" )
+  KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -2027,57 +2027,57 @@ void FluidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
 
 void FluidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    //0.-Initialize the DampingMatrix:
+  //0.-Initialize the DampingMatrix:
 
-    //resizing as needed the LHS
-    const unsigned int MatSize = this->GetDofsSize();
+  //resizing as needed the LHS
+  const unsigned int MatSize = this->GetDofsSize();
 
-    if ( rDampingMatrix.size1() != MatSize )
-        rDampingMatrix.resize( MatSize, MatSize, false );
+  if ( rDampingMatrix.size1() != MatSize )
+    rDampingMatrix.resize( MatSize, MatSize, false );
 
-    noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
-
-
-    //1.-Calculate StiffnessMatrix:
-
-    MatrixType StiffnessMatrix  = Matrix();
-
-    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
-
-    //2.-Calculate MassMatrix:
-
-    MatrixType MassMatrix  = Matrix();
-
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+  noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
 
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-    double alpha = 0;
-    if( GetProperties().Has(RAYLEIGH_ALPHA) ){
-      alpha = GetProperties()[RAYLEIGH_ALPHA];
-    }
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) ){
-      alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-    }
+  //1.-Calculate StiffnessMatrix:
 
-    double beta  = 0;
-    if( GetProperties().Has(RAYLEIGH_BETA) ){
-      beta = GetProperties()[RAYLEIGH_BETA];
-    }
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) ){
-      beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-    }
+  MatrixType StiffnessMatrix  = Matrix();
 
-    //4.-Compose the Damping Matrix:
+  this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
 
-    //Rayleigh Damping Matrix: alpha*M + beta*K
-    rDampingMatrix  = alpha * MassMatrix;
-    rDampingMatrix += beta  * StiffnessMatrix;
+  //2.-Calculate MassMatrix:
+
+  MatrixType MassMatrix  = Matrix();
+
+  this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
 
 
-    KRATOS_CATCH( "" )
+  //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+  double alpha = 0;
+  if( GetProperties().Has(RAYLEIGH_ALPHA) ){
+    alpha = GetProperties()[RAYLEIGH_ALPHA];
+  }
+  else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) ){
+    alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+  }
+
+  double beta  = 0;
+  if( GetProperties().Has(RAYLEIGH_BETA) ){
+    beta = GetProperties()[RAYLEIGH_BETA];
+  }
+  else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) ){
+    beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+  }
+
+  //4.-Compose the Damping Matrix:
+
+  //Rayleigh Damping Matrix: alpha*M + beta*K
+  rDampingMatrix  = alpha * MassMatrix;
+  rDampingMatrix += beta  * StiffnessMatrix;
+
+  
+  KRATOS_CATCH( "" )
 }
 
 

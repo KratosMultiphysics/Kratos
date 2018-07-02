@@ -98,10 +98,10 @@ namespace Kratos
 
       Vector& rStrainVector                  = rValues.GetStrainVector();
       Vector& rStressVector                  = rValues.GetStressVector();
-      this->CalculateStress( rStressVector, rStrainVector, rMaterialProperties);
+      this->CalculateStress(rStressVector, rStrainVector, rMaterialProperties);
       
     }
-    else if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
+    if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
       Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
       this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);

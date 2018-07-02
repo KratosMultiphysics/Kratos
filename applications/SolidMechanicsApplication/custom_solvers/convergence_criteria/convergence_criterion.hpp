@@ -16,8 +16,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "includes/define.h"
-#include "includes/dof.h"
+//#include "includes/dof.h"
 
 namespace Kratos
 {

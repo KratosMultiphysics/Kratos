@@ -11,15 +11,10 @@
 #define  KRATOS_FLOW_RULE_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
 #include "utilities/math_utils.h"
 
 #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"

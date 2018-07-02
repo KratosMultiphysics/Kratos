@@ -14,11 +14,10 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 

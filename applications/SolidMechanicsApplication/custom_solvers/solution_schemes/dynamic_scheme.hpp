@@ -303,7 +303,7 @@ namespace Kratos
         
       }
       else{
-      
+        
         (pCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
 
         (pCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
