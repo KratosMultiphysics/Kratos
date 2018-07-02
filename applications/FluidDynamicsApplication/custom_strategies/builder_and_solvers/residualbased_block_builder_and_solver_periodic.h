@@ -134,10 +134,26 @@ public:
         // Assign an Equation Id to all non-duplicate nodes
         unsigned int EqId = 0;
 
+        // Modify edge/corner periodic condtions so that one of the nodes gets EquationId
+        for (ModelPart::ConditionIterator itCond = r_model_part.ConditionsBegin(); itCond != r_model_part.ConditionsEnd(); itCond++) {
+            auto& r_geometry = itCond->GetGeometry();
+            if (itCond->Is(PERIODIC) && (r_geometry.PointsNumber() == 4 || r_geometry.PointsNumber() == 8)) {
+                r_geometry[0].GetSolutionStepValue(mPeriodicIdVar) = 0;
+            }
+        }
+
         for (typename DofsArrayType::iterator itDof = BaseType::mDofSet.begin(); itDof != BaseType::mDofSet.end(); ++itDof)
         {
             if ( itDof->GetSolutionStepValue(mPeriodicIdVar) < static_cast<int>(itDof->Id()) )
                 itDof->SetEquationId(EqId++);
+        }
+
+        // Reset edge/corner periodic condtions
+        for (ModelPart::ConditionIterator itCond = r_model_part.ConditionsBegin(); itCond != r_model_part.ConditionsEnd(); itCond++) {
+            auto& r_geometry = itCond->GetGeometry();
+            if (itCond->Is(PERIODIC) && (r_geometry.PointsNumber() == 4 || r_geometry.PointsNumber() == 8)) {
+                r_geometry[0].GetSolutionStepValue(mPeriodicIdVar) = r_geometry[1].GetSolutionStepValue(mPeriodicIdVar);
+            }
         }
 
         // Copy Equation Id to duplicate nodes.
@@ -145,21 +161,26 @@ public:
         {
             // PeriodicCondition always have exactly 2 nodes
             ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-            if ( (itCond->Is(PERIODIC)) && (rGeom.PointsNumber() == 2) )
-            {
-                int Node0 = rGeom[0].Id();
-                int Node0Pair = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);
+            if (itCond->Is(PERIODIC)) {
+                if (rGeom.PointsNumber() == 2) {
+                    int Node0 = rGeom[0].Id();
+                    int Node0Pair = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);
 
-                int Node1 = rGeom[1].Id();
-                int Node1Pair = rGeom[1].FastGetSolutionStepValue(mPeriodicIdVar);
+                    int Node1 = rGeom[1].Id();
+                    int Node1Pair = rGeom[1].FastGetSolutionStepValue(mPeriodicIdVar);
 
-                // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
-                if ( ( Node0 == Node1Pair ) && ( Node1 == Node0Pair ) )
-                {
-                    if ( Node0 < Node0Pair ) // If Node0 is the one with lower Id (the one that does not have an EquationId yet)
-                        CopyEquationId(rGeom[1],rGeom[0]);
-                    else
-                        CopyEquationId(rGeom[0],rGeom[1]);
+                    // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
+                    if ( ( Node0 == Node1Pair ) && ( Node1 == Node0Pair ) ) {
+                        if ( Node0 < Node0Pair ) // If Node0 is the one with lower Id (the one that does not have an EquationId yet)
+                            CopyEquationId(rGeom[1],rGeom[0]);
+                        else
+                            CopyEquationId(rGeom[0],rGeom[1]);
+                    }
+                }
+                else {
+                    for (unsigned int i = 1; i < rGeom.PointsNumber(); i++) {
+                        CopyEquationId(rGeom[0],rGeom[i]);
+                    }
                 }
             }
         }
