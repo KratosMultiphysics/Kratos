@@ -80,7 +80,7 @@ public:
         KRATOS_TRY;
 
         // Initialize new model part (same nodes, new elements, no conditions)
-        mpStokesModelPart = &(Kernel::GetModel().CreateModelPart("StokesModelPart"));
+        mpStokesModelPart = &(rModelPart.GetOwnerModel().CreateModelPart("StokesModelPart"));
         mpStokesModelPart->GetNodalSolutionStepVariablesList() = mrReferenceModelPart.GetNodalSolutionStepVariablesList();
         mpStokesModelPart->SetBufferSize(1);
         mpStokesModelPart->SetNodes( mrReferenceModelPart.pNodes() );

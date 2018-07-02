@@ -106,7 +106,7 @@ public:
         bool ReformDofSet,
         unsigned int TimeOrder)
         : mr_model_part(rModelPart),
-        mrspalart_model_part(Kernel::GetModel().CreateModelPart("SpalartModelPart")),
+        mrspalart_model_part(rModelPart.GetOwnerModel().CreateModelPart("SpalartModelPart")),
         mdomain_size(DomainSize),
         mtol(NonLinearTol),
         mmax_it(MaxIter),
@@ -190,7 +190,8 @@ public:
 
     ~SpalartAllmarasTurbulenceModel() override
     {
-        Kernel::GetModel().DeleteModelPart("SpalartModelPart");
+        Model& r_model = mrspalart_model_part.GetOwnerModel();
+        r_model.DeleteModelPart("SpalartModelPart");
     }
 
 
@@ -399,7 +400,7 @@ protected:
         :
         Process(),
         mr_model_part(rModelPart),
-        mrspalart_model_part(Kernel::GetModel().CreateModelPart("SpalartModelPart"))
+        mrspalart_model_part(rModelPart.GetOwnerModel().CreateModelPart("SpalartModelPart"))
     {}
 
     ///@}
