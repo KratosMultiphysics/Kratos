@@ -142,7 +142,7 @@ void AssignScalarFieldToConditionsProcess::CallFunctionLocalSystemComponents(
 {
     GeometryType& rConditionGeometry = pCondition->GetGeometry();
 
-    array_1d<double,3> center = rConditionGeometry.Center();
+    const array_1d<double,3>& center = rConditionGeometry.Center();
 
     rValue = mpFunction->RotateAndCallFunction(center[0],center[1],center[2], Time  );
 }
