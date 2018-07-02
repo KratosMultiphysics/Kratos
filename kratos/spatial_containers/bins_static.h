@@ -105,7 +105,7 @@ public:
         : mPointBegin(PointBegin), mPointEnd(PointEnd)
     {
         auto NumPoints = std::distance(mPointBegin, mPointEnd);
-        
+
         if(mPointBegin==mPointEnd)
             return;
 
@@ -425,7 +425,7 @@ public:
         PointerType Nearest;
         CoordinateType Distance = static_cast<CoordinateType>(DBL_MAX);
         bool Found;
-        SearchStructureType Box( CalculateCell(*ThisPoint,-Tolerance), CalculateCell(*ThisPoint,Tolerance), mN );
+        SearchStructureType Box( CalculateCell(*ThisPoint), mN, mIndexCellBegin );
         SearchNearestInBox( *ThisPoint, Nearest, Distance, Box, Found );
         if(Found)
             return Nearest;
