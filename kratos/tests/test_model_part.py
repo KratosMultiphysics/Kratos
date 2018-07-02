@@ -660,13 +660,11 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertTrue(model_part.HasNodalSolutionStepVariable(VELOCITY))
         self.assertFalse(model_part.HasNodalSolutionStepVariable(PRESSURE))
 
-    def test_add_constraint(self):
+    def test_model_part_master_slave_constraint(self):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(PRESSURE)
-
         n1 = model_part.CreateNewNode(1, 1.0,1.1,0.2)
         n2 = model_part.CreateNewNode(2, 2.0,3.1,0.2)
-
         VariableUtils().AddDof(PRESSURE,model_part)
 
         c1 = MasterSlaveConstraint(10)
@@ -697,8 +695,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
         subsub1.RemoveMasterSlaveConstraintFromAllLevels(ss1)
 
-        ##TODO: uncomment and debug the following statement
-        #self.assertFalse(ss1 in model_part.MasterSlaveConstraints)
+        self.assertFalse(ss1 in model_part.MasterSlaveConstraints)
 
 
 if __name__ == '__main__':
