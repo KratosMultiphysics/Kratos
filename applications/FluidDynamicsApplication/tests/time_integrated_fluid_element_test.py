@@ -63,7 +63,8 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         self.testCavity()
 
     def setUpModel(self):
-        self.fluid_model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
 

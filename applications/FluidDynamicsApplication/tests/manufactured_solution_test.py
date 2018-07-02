@@ -71,7 +71,6 @@ class ManufacturedSolutionTest(KratosUnittest.TestCase):
             for mesh_name in self.meshes_list:
                 # Solve the problem imposing the previously obtained values
                 CaseProjectParameters = self.OriginalProjectParameters.Clone()
-                KratosMultiphysics.Model().Reset()
                 FluidProblem = ManufacturedSolutionProblem(CaseProjectParameters, mesh_name, self.print_output, self.problem_type, self.analytical_solution_type)
                 FluidProblem.SetFluidProblem()
                 FluidProblem.SolveFluidProblem()

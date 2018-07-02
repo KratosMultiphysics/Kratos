@@ -50,7 +50,8 @@ variables_dictionary = {"PRESSURE": PRESSURE,
                         "VORTICITY": VORTICITY, }
 
 # defining a model part for the fluid
-fluid_model_part = ModelPart("FluidPart")
+model = Model()
+fluid_model_part = model.CreateModelPart("FluidPart")
 
 
 if "REACTION" in ProjectParameters.nodal_results:

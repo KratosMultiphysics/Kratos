@@ -18,7 +18,8 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 import benchmarking
 
 # defining a model part for the fluid and one for the structure
-fluid_model_part = ModelPart("FluidPart")
+model = Model()
+fluid_model_part = model.CreateModelPart("FluidPart")
 
 #
 # Problem definition

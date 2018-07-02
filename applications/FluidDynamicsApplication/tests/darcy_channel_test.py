@@ -198,8 +198,8 @@ class DarcyChannelTest(UnitTest.TestCase):
         outfile.write("{0}; {1}; {2}; {3}; {4}; {5}; {6}\n".format(fluid.name,filt.name,self.dt,self.dynamic_tau,expected_pressure_drop,measured_pressure_drop,rel_error))
 
     def setUpModel(self):
-
-        self.fluid_model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
         self.fluid_model_part.Properties[0].SetValue(LIN_DARCY_COEF,self.linear_darcy_coefficient)
         self.fluid_model_part.Properties[0].SetValue(NONLIN_DARCY_COEF,self.nonlinear_darcy_coefficient)

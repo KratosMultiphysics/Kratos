@@ -191,7 +191,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
     TestPropertiesData properties_data;
     TestProcessInfoData process_info_data;
 
-    ModelPart& full_model_part  = Kernel::GetModel().CreateModelPart("Test Full");
+    Model model;
+    ModelPart& full_model_part = model.CreateModelPart("Test Full");
 
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestCompleteModelPart(full_model_part,DeltaTime,2);
@@ -226,8 +227,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSuite) {
-
-    ModelPart& empty_model_part  = Kernel::GetModel().CreateModelPart("Test Empty");
+    Model model;
+    ModelPart& empty_model_part = model.CreateModelPart("Test Empty");
 
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestEmptyModelPart(empty_model_part,DeltaTime,1);
@@ -269,8 +270,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSui
 
 KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite)
 {
-    ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
-    model_part.SetBufferSize(3);
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("Main", 3);
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(DENSITY); // TODO: To be removed once the element migration is finally finished
@@ -500,9 +501,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
 
 KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 {
-    ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main");
-    unsigned int buffer_size = 2;
-    model_part.SetBufferSize(buffer_size);
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("Main", 2);
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
@@ -543,7 +543,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     model_part.CreateNewElement("QSVMS2D4N", 1, element_nodes, p_properties);
 
     // Loop starts at 1 because you need one less clone than time steps (JC)
-    for (unsigned int i = 1; i < buffer_size; i++) {
+    for (unsigned int i = 1; i < model_part.GetBufferSize(); i++) {
         model_part.CloneTimeStep(i * delta_time);
     }
 

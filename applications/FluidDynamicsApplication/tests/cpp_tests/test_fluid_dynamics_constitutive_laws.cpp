@@ -93,7 +93,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Get the trial element
-            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTriangle(model_part, p_cons_law);
             Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -149,7 +150,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Get the trial element
-            ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTetrahedron(model_part, p_cons_law);
             Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -214,7 +216,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Create a raw model part
-			ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main", 3);
+            Model model;
+			ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTriangle(model_part, p_cons_law);
 			Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -266,7 +269,8 @@ namespace Kratos {
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
 
             // Create a raw model part
-			ModelPart& model_part = Kernel::GetModel().CreateModelPart("Main", 3);
+            Model model;
+			ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTetrahedron(model_part, p_cons_law);
 			Element::Pointer p_element = model_part.pGetElement(1);
 
