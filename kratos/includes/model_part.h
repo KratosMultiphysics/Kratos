@@ -618,9 +618,14 @@ public:
         return mMasterSlaveConstraints;
     }
 
-    void SetMasterSlaveConstraints(MasterSlaveConstraintContainerType::Pointer& pOtherMasterSlaveConstraints)
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints() const 
     {
-        mMasterSlaveConstraints = *pOtherMasterSlaveConstraints;
+        return mMasterSlaveConstraints;
+    }
+
+    void SetMasterSlaveConstraints(const MasterSlaveConstraintContainerType& rOtherMasterSlaveConstraints)
+    {
+        mMasterSlaveConstraints = rOtherMasterSlaveConstraints;
     }
 
     MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin() const
@@ -654,23 +659,30 @@ public:
     void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds);
 
     /** Creates a new master-slave constraint in the current modelpart.
+     * //TODO: replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
      */
-    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(const std::string ConstraintName, IndexType Id, DofsVectorType& rMasterDofsVector,
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id, 
+                                                                                    DofsVectorType& rMasterDofsVector,
                                                                                     DofsVectorType& rSlaveDofsVector,
-                                                                                    MatrixType RelationMatrix,
-                                                                                    VectorType ConstantVector);
+                                                                                    const MatrixType& RelationMatrix,
+                                                                                    const VectorType& ConstantVector);
 
-    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(const std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
-                                                                                    DoubleVariableType& rMasterVariable,
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
+                                                                                    IndexType Id, 
+                                                                                    NodeType& rMasterNode,
+                                                                                    const DoubleVariableType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
-                                                                                    DoubleVariableType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant);
+                                                                                    const DoubleVariableType& rSlaveVariable,
+                                                                                    const double Weight,
+                                                                                    const double Constant);
 
-    MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(const std::string ConstraintName, IndexType Id, NodeType& rMasterNode,
-                                                                                    VariableComponentType& rMasterVariable,
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
+                                                                                    IndexType Id, 
+                                                                                    NodeType& rMasterNode,
+                                                                                    const VariableComponentType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
-                                                                                    VariableComponentType& rSlaveVariable,
+                                                                                    const VariableComponentType& rSlaveVariable,
                                                                                     double Weight,
                                                                                     double Constant);
 
@@ -682,10 +694,6 @@ public:
     */
     void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint);
 
-    /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
-    */
-    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint);
-
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
     */
     void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId);
@@ -693,10 +701,6 @@ public:
     /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
     */
     void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint);
-
-    /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
-    */
-    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType::Pointer pThisMasterSlaveConstraint);
 
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
     MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId);

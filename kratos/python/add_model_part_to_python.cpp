@@ -503,7 +503,7 @@ const ModelPart::MasterSlaveConstraintContainerType& ModelPartGetMasterSlaveCons
     return rModelPart.MasterSlaveConstraints();
 }
 
-void ModelPartSetMasterSlaveConstraints1(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintContainerType::Pointer pOtherMasterSlaveConstraints)
+void ModelPartSetMasterSlaveConstraints1(ModelPart& rModelPart, const ModelPart::MasterSlaveConstraintContainerType& pOtherMasterSlaveConstraints)
 {
     rModelPart.SetMasterSlaveConstraints(pOtherMasterSlaveConstraints);
 }
@@ -523,9 +523,9 @@ void ModelPartRemoveMasterSlaveConstraint1(ModelPart& rModelPart, ModelPart::Ind
 	rModelPart.RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
 }
 
-void ModelPartRemoveMasterSlaveConstraint2(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType::Pointer pOtherMasterSlaveConstraint)
+void ModelPartRemoveMasterSlaveConstraint2(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType& rOtherMasterSlaveConstraint)
 {
-	rModelPart.RemoveMasterSlaveConstraint(pOtherMasterSlaveConstraint);
+	rModelPart.RemoveMasterSlaveConstraint(rOtherMasterSlaveConstraint);
 }
 
 void ModelPartRemoveMasterSlaveConstraintFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId)
@@ -533,15 +533,15 @@ void ModelPartRemoveMasterSlaveConstraintFromAllLevels1(ModelPart& rModelPart, M
 	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintId);
 }
 
-void ModelPartRemoveMasterSlaveConstraintFromAllLevels2(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType::Pointer pOtherMasterSlaveConstraint)
+void ModelPartRemoveMasterSlaveConstraintFromAllLevels2(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType& rMasterSlaveConstraint)
 {
-	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(pOtherMasterSlaveConstraint);
+	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(rMasterSlaveConstraint);
 }
 
-void ModelPartRemoveMasterSlaveConstraintFromAllLevels3(ModelPart& rModelPart, Flags identifier_flag)
-{
-	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(identifier_flag);
-}
+// void ModelPartRemoveMasterSlaveConstraintFromAllLevels3(ModelPart& rModelPart, Flags identifier_flag)
+// {
+// 	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(identifier_flag);
+// }
 
 
 // Communicator
@@ -870,9 +870,9 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("GetMasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
 		.def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint1)
 		.def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint2)
-		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels1)
-		.def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels2)
-        .def("RemoveRemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels3)
+		.def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels1)
+        .def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels2)
+        // .def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels3)
         .def("AddMasterSlaveConstraint", &ModelPart::AddMasterSlaveConstraint)
         .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
         .def("CeateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)
