@@ -996,37 +996,43 @@ MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const s
 {
 
     KRATOS_TRY
-    if (IsSubModelPart())
+    if (rMasterNode.HasDofFor(rMasterVariable) && rSlaveNode.HasDofFor(rSlaveVariable) )
     {
-        MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode,
-                                                                                                                    rMasterVariable,
-                                                                                                                    rSlaveNode,
-                                                                                                                    rSlaveVariable,
-                                                                                                                    Weight,
-                                                                                                                    Constant);
+        if (IsSubModelPart())
+        {
+                MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode,
+                                                                                                                            rMasterVariable,
+                                                                                                                            rSlaveNode,
+                                                                                                                            rSlaveVariable,
+                                                                                                                            Weight,
+                                                                                                                            Constant);
+
+                mMasterSlaveConstraints.push_back(p_new_constraint);
+                mMasterSlaveConstraints.Unique();
+                return p_new_constraint;
+        }
+
+        auto existing_constraint_iterator = this->mMasterSlaveConstraints.find(Id);
+        if(existing_constraint_iterator != this->MasterSlaveConstraintsEnd() )
+            KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists"<<std::endl;
+
+
+            //create the new element
+        MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
+        MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(Id, rMasterNode,
+                                                                                                rMasterVariable,
+                                                                                                rSlaveNode,
+                                                                                                rSlaveVariable,
+                                                                                                Weight,
+                                                                                                Constant);
 
         mMasterSlaveConstraints.push_back(p_new_constraint);
         mMasterSlaveConstraints.Unique();
         return p_new_constraint;
+    } else
+    {
+        KRATOS_ERROR << "Master or Slave node does not have requested DOF " <<std::endl;
     }
-
-    auto existing_constraint_iterator = this->mMasterSlaveConstraints.find(Id);
-    if(existing_constraint_iterator != this->MasterSlaveConstraintsEnd() )
-        KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
-
-
-        //create the new element
-    MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
-    MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(Id, rMasterNode,
-                                                                                            rMasterVariable,
-                                                                                            rSlaveNode,
-                                                                                            rSlaveVariable,
-                                                                                            Weight,
-                                                                                            Constant);
-
-    mMasterSlaveConstraints.push_back(p_new_constraint);
-    mMasterSlaveConstraints.Unique();
-    return p_new_constraint;
 
     KRATOS_CATCH("")
 
@@ -1044,38 +1050,44 @@ MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const s
 {
 
     KRATOS_TRY
-    if (IsSubModelPart())
+    if (rMasterNode.HasDofFor(rMasterVariable) && rSlaveNode.HasDofFor(rSlaveVariable) )
     {
-        MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode,
-                                                                                                                    rMasterVariable,
-                                                                                                                    rSlaveNode,
-                                                                                                                    rSlaveVariable,
-                                                                                                                    Weight,
-                                                                                                                    Constant);
+        if (IsSubModelPart())
+        {
+            MasterSlaveConstraintType::Pointer p_new_constraint = mpParentModelPart->CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode,
+                                                                                                                        rMasterVariable,
+                                                                                                                        rSlaveNode,
+                                                                                                                        rSlaveVariable,
+                                                                                                                        Weight,
+                                                                                                                        Constant);
+            mMasterSlaveConstraints.push_back(p_new_constraint);
+            mMasterSlaveConstraints.Unique();
+
+            return p_new_constraint;
+        }
+
+        auto existing_constraint_iterator = this->mMasterSlaveConstraints.find(Id);
+        if(existing_constraint_iterator != this->MasterSlaveConstraintsEnd() )
+            KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
+
+
+        //create the new element
+        MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
+        MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(Id, rMasterNode,
+                                                                                            rMasterVariable,
+                                                                                            rSlaveNode,
+                                                                                            rSlaveVariable,
+                                                                                            Weight,
+                                                                                            Constant);
+
         mMasterSlaveConstraints.push_back(p_new_constraint);
         mMasterSlaveConstraints.Unique();
 
         return p_new_constraint;
+    } else
+    {
+        KRATOS_ERROR << "Master or Slave node does not have requested DOF " <<std::endl;
     }
-
-    auto existing_constraint_iterator = this->mMasterSlaveConstraints.find(Id);
-    if(existing_constraint_iterator != this->MasterSlaveConstraintsEnd() )
-        KRATOS_ERROR << "trying to construct an master-slave constraint with ID " << Id << " however a constraint with the same Id already exists";
-
-
-    //create the new element
-    MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraintType>::Get(ConstraintName);
-    MasterSlaveConstraintType::Pointer p_new_constraint = r_clone_constraint.Create(Id, rMasterNode,
-                                                                                        rMasterVariable,
-                                                                                        rSlaveNode,
-                                                                                        rSlaveVariable,
-                                                                                        Weight,
-                                                                                        Constant);
-
-    mMasterSlaveConstraints.push_back(p_new_constraint);
-    mMasterSlaveConstraints.Unique();
-
-    return p_new_constraint;
     KRATOS_CATCH("")
 
 }
