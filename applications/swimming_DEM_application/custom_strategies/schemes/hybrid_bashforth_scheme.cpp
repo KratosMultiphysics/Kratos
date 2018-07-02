@@ -21,18 +21,17 @@ namespace Kratos {
             const double delta_t,
             const bool Fix_vel[3]) {
 
-        array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
 
         if (StepFlag == 1){
             for (int k = 0; k < 3; k++) {
-                delta_displ[k] = 0.5 * delta_t * (3 * vel[k] - old_vel[k]);
+                delta_displ[k] = 0.5 * delta_t * (3 * vel[k] - mOldVelocity[k]);
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             } // dimensions
         }
 
         else {
-            noalias(old_vel) = vel;
+            noalias(mOldVelocity) = vel;
 
             for (int k = 0; k < 3; k++) {
                 if (Fix_vel[k] == false) {

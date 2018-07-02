@@ -77,7 +77,7 @@ proc kipt::Splash {} {
     } elseif { $KPriv(what_dempack_package) eq "S-DEMPack"} {
 	set imagename splash_S.png
     } else {
-	set imagename splash_D.png
+	set imagename splash_F.png
     }
 
     ::GidUtils::Splash [file join $::KPriv(dir) images Classic $imagename] .splash 1 \
