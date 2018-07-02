@@ -163,6 +163,8 @@ void UtilityType::ResizeAndInitializeVectors(
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsGraph.GlobalAssemble. "
         << "Error code: " << ierr << std::endl;
 
+    epetra_graph.OptimizeStorage();
+
     // // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
     // // https://trilinos.org/docs/dev/packages/epetra/doc/html/Epetra__DataAccess_8h.html#ad1a985e79f94ad63030815a0d7d90928
     TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
