@@ -135,10 +135,48 @@ void MmgProcess<TDim>::Execute()
 {       
     KRATOS_TRY;
     
-    const bool safe_to_file = mThisParameters["save_external_files"].GetBool();
+    // We execute all the necessary steps
+    ExecuteInitialize();
+    ExecuteInitializeSolutionStep();
+    ExecuteFinalize();
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteInitialize()
+{       
+    KRATOS_TRY;
     
     /* We restart the MMG mesh and solution */       
     InitMesh();
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteBeforeSolutionLoop()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteInitializeSolutionStep()
+{       
+    KRATOS_TRY;
+    
+    const bool safe_to_file = mThisParameters["save_external_files"].GetBool();
     
     /* We print the original model part */
     KRATOS_INFO_IF("", mEchoLevel > 0) <<
@@ -173,7 +211,54 @@ void MmgProcess<TDim>::Execute()
     
     KRATOS_CATCH("");
 }
-
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteFinalizeSolutionStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteBeforeOutputStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteAfterOutputStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteFinalize()
+{       
+    KRATOS_TRY;
+    
+    // We release the memory
+    FreeMemory();
+    
+    KRATOS_CATCH("");
+}
+    
 /************************************* OPERATOR() **********************************/
 /***********************************************************************************/
 
@@ -640,8 +725,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* Save to file */
     if (save_to_file == true) SaveSolutionToFile(true);
 
-    /* Free memory */
-    FreeMemory();
+    ///* Free memory */
+    //FreeMemory();
     
     /* After that we reorder nodes, conditions and elements: */
     ReorderAllIds();
