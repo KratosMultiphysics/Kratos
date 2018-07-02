@@ -9,8 +9,8 @@
 //  Main authors:    Alejandro Cornejo & Lucia Barbu 
 //
 
-#if !defined (KRATOS_SMALL_STRAIN_VISCOPLASTIC_H_INCLUDED)
-#define  KRATOS_SMALL_STRAIN_VISCOPLASTIC_H_INCLUDED
+#if !defined (KRATOS_GENERIC_SMALL_STRAIN_VISCOPLASTICITY_3D_H_INCLUDED)
+#define  KRATOS_GENERIC_SMALL_STRAIN_VISCOPLASTICITY_3D_H_INCLUDED
 
 // System includes
 #include <string>
@@ -24,6 +24,8 @@
 
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
+
+
 
 namespace Kratos
 {
@@ -52,7 +54,6 @@ namespace Kratos
  * @details
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class TPlasticityConstitutiveLaw, class TViscousConstitutiveLaw>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainViscoplasticity3D
     : public ConstitutiveLaw
 {
@@ -60,7 +61,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of GenericYieldSurface
+    /// Counted pointer of GenericSmallStrainViscoplasticity3D
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainViscoplasticity3D);
 
     ///@}
@@ -90,8 +91,8 @@ public:
 	GenericSmallStrainViscoplasticity3D(const GenericSmallStrainViscoplasticity3D& rOther)
     : ConstitutiveLaw(rOther)
     {
-        TPlasticityConstitutiveLaw mPlasticityConstitutiveLaw = TPlasticityConstitutiveLaw().Create();
-        TViscousConstitutiveLaw mViscousConstitutiveLaw = TViscousConstitutiveLaw().Create();
+		// ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw = TPlasticityConstitutiveLaw().Clone();
+		// ConstitutiveLaw::Pointer mpViscousConstitutiveLaw    = TViscousConstitutiveLaw().Clone();
     }
     /**
     * Destructor.
@@ -144,7 +145,8 @@ public:
     {
         Vector& IntegratedStressVector = rValues.GetStressVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
-        Vector PlasticStrain = mPlasticityConstitutiveLaw.GetPlasticStrain();
+		Vector PlasticStrain = ZeroVector(6);
+		mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, PlasticStrain);
 
         //Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
 
@@ -158,9 +160,9 @@ public:
     ) override
     {
         // Update the int vars of each SubConstitutiveLaw
-        mPlasticityConstitutiveLaw.FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
+        mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
                                     rShapeFunctionsValues,rCurrentProcessInfo);
-        mViscousConstitutiveLaw.FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
+        mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
                             rShapeFunctionsValues,rCurrentProcessInfo);
     }
 
@@ -260,8 +262,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    TPlasticityConstitutiveLaw mPlasticityConstitutiveLaw;
-    TViscousConstitutiveLaw mViscousConstitutiveLaw;
+	ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw;
+	ConstitutiveLaw::Pointer mpViscousConstitutiveLaw;
 
     ///@}
     ///@name Private Operators
@@ -293,4 +295,6 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace kratos
+
 #endif
+

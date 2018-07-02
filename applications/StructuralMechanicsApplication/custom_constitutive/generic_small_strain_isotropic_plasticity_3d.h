@@ -311,11 +311,22 @@ public:
         double& rValue
     )
     {
-        if(rThisVariable == UNIAXIAL_STRESS){
+        if(rThisVariable == UNIAXIAL_STRESS) {
             rValue = mUniaxialStress;
 
         } else if (rThisVariable == PLASTIC_DISSIPATION) {
             rValue = mPlasticDissipation;
+        }
+        return rValue;
+    }
+
+    Vector& GetValue(
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+    )
+    {
+        if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+            rValue = mPlasticStrain;
         }
         return rValue;
     }
@@ -379,7 +390,7 @@ private:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
-    Vector mPlasticStrain = ZeroVector(this->GetVoigtSize());
+    Vector mPlasticStrain = ZeroVector(6);
 
     // Non Converged values
     double mNonConvPlasticDissipation = 0.0;

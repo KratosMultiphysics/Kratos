@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/process_info.h"
+#include "testing/testing.h"
 
 // Application includes
 
@@ -92,20 +93,20 @@ namespace Testing
 
         // Solutions to test...
         double TestMC, TestVM, TestDP, TestR, TestT, TestSJ;
-        MC::CalculateEquivalentStress(rStressVector, rStrainVector, TestMC, rMaterialProperties);
-        VM::CalculateEquivalentStress(rStressVector, rStrainVector, TestVM, rMaterialProperties);
-        DP::CalculateEquivalentStress(rStressVector, rStrainVector, TestDP, rMaterialProperties);
-        R::CalculateEquivalentStress(rStressVector, rStrainVector, TestR, rMaterialProperties);
-        T::CalculateEquivalentStress(rStressVector, rStrainVector, TestT, rMaterialProperties);
-        SJ::CalculateEquivalentStress(rStressVector, rStrainVector, TestSJ, rMaterialProperties);
+        MC::CalculateEquivalentStress(Stress, Strain, TestMC, rMaterialProperties);
+        VM::CalculateEquivalentStress(Stress, Strain, TestVM, rMaterialProperties);
+        DP::CalculateEquivalentStress(Stress, Strain, TestDP, rMaterialProperties);
+        R::CalculateEquivalentStress(Stress, Strain, TestR, rMaterialProperties);
+        T::CalculateEquivalentStress(Stress, Strain, TestT, rMaterialProperties);
+        SJ::CalculateEquivalentStress(Stress, Strain, TestSJ, rMaterialProperties);
 
         // Check the results!
-        KRATOS_CHECK_NEAR(MCres, TestMC, 100.0);
-        KRATOS_CHECK_NEAR(VMres, TestVM, 100.0);
-        KRATOS_CHECK_NEAR(DPres, TestDP, 100.0);
-        KRATOS_CHECK_NEAR(Rres, TestR, 100.0);
-        KRATOS_CHECK_NEAR(Tres, TestT, 100.0);
-        KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0);
+        KRATOS_CHECK_NEAR(MCres, TestMC, 1.0e-3);
+        KRATOS_CHECK_NEAR(VMres, TestVM, 1.0e-3);
+        KRATOS_CHECK_NEAR(DPres, TestDP, 1.0e-3);
+        KRATOS_CHECK_NEAR(Rres, TestR, 1.0e-3);
+        KRATOS_CHECK_NEAR(Tres, TestT, 1.0e-3);
+        KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-3);
     }
 
     /** 
@@ -131,10 +132,10 @@ namespace Testing
 
         Vector TestMC = ZeroVector(6), TestVM = ZeroVector(6), TestDP = ZeroVector(6),TestT = ZeroVector(6);
 
-        MC::CalculateYieldSurfaceDerivative(rStressVector, Deviator, J2, TestMC, rMaterialProperties);
-        VM::CalculateYieldSurfaceDerivative(rStressVector, Deviator, J2, TestVM, rMaterialProperties);
-        DP::CalculateYieldSurfaceDerivative(rStressVector, Deviator, J2, TestDP, rMaterialProperties);
-        T::CalculateYieldSurfaceDerivative(rStressVector, Deviator, J2, TestT, rMaterialProperties);
+        MC::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestMC, rMaterialProperties);
+        VM::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestVM, rMaterialProperties);
+        DP::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestDP, rMaterialProperties);
+        T::CalculateYieldSurfaceDerivative(Stress, Deviator, J2, TestT, rMaterialProperties);
 
         // Check the results!
         for (int comp = 0; comp < 6; comp++) {
@@ -213,7 +214,7 @@ namespace Testing
         KRATOS_CHECK_NEAR(DPres, TestDP, 1.0e-4);
         KRATOS_CHECK_NEAR(Rres, TestR, 1.0e-4);
         KRATOS_CHECK_NEAR(Tres, TestT, 1.0e-4);
-        KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0);
+        KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-4);
 
         rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
         // Analytical solutions damage parameter Exponential Softening

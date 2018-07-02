@@ -171,11 +171,10 @@ public:
         const Vector& PreviousStress  = this->GetPreviousStressVector();
         const Vector& StrainIncrement = StrainVector - PreviousStrain;
 
-        const double coef = Kvisco * TimeStep / ((1 + Kvisco)*2.0*DelayTime);
-        const Vector& Aux = -(StrainVector - StrainIncrement)*std::exp(-TimeStep/DelayTime)*(1 + coef)
-                             + StrainVector*(1 - coef);
+        const double coef = Kvisco * TimeStep / ((1.0 + Kvisco)*2.0*DelayTime);
+        const Vector& Aux = -(StrainVector - StrainIncrement)*std::exp(-TimeStep/DelayTime)*(1.0 + coef)
+                             + StrainVector*(1.0 - coef);
         
-
         noalias(IntegratedStressVector) = PreviousStress*std::exp(-TimeStep/DelayTime) + prod(C, Aux);
         noalias(TangentTensor) = C;
 
