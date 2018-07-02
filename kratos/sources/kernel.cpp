@@ -14,7 +14,6 @@
 #include "includes/kernel.h"
 #include "includes/kratos_version.h"
 #include "input_output/logger.h"
-#include "containers/model.h"
 
 
 namespace Kratos {
