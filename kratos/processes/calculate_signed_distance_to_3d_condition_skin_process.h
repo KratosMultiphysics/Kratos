@@ -1235,6 +1235,16 @@ private:
                 high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
             }
         }
+        for (ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
+             i_node != mrSkinModelPart.NodesEnd();
+             i_node++)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                low[i] = i_node->Coordinates()[i] < low[i] ? i_node->Coordinates()[i] : low[i];
+                high[i] = i_node->Coordinates()[i] > high[i] ? i_node->Coordinates()[i] : high[i];
+            }
+        }
 // KRATOS_WATCH( low[0] )
 // KRATOS_WATCH( low[1] )
 // KRATOS_WATCH( low[2] )

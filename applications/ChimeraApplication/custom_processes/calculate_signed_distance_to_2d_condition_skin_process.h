@@ -1278,6 +1278,7 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
         }
 
         // Element is not set
+        //rishith
         if (numberNodesPositiveDistance == 3 && distChangedToLimit == true)
             Element->GetValue(SPLIT_ELEMENT) = false;
     }

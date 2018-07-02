@@ -45,6 +45,8 @@
 #include "geometries/triangle_3d_3.h"					  // Skin face geometry template
 #include "geometries/line_2d_2.h"
 
+#include "custom_utilities/vtk_output.hpp"
+
 namespace Kratos
 {
 
@@ -390,14 +392,8 @@ class CustomHoleCuttingProcess
 			{
 				elementDistance = it->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);
 
-				//elementDistance = elementDistance*MainDomainOrNot;
+				elementDistance = elementDistance*MainDomainOrNot;
 
-				if(geom.size() == 3)
-					elementDistance=elementDistance*MainDomainOrNot;
-				else if(geom.size() == 4)
-					elementDistance=-1*elementDistance*MainDomainOrNot;
-				else
-					std::cout<<"wrong input of domain size"<<std::endl;
 
 				//std::cout<<"Printing element distance on the patch nodes"<<elementDistance<<std::endl;
 /*
@@ -435,12 +431,14 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 			{
 				count++;
 				Element::Pointer pElem = *(it.base());
-				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber();
-				rExtractedModelPart.Elements().push_back(pElem);
+				std::size_t numNodesPerElem = pElem->GetGeometry().PointsNumber(); // Size()
+				rExtractedModelPart.Elements().push_back(pElem); //AddElement()
 				for (j = 0; j <numNodesPerElem; j++)
 					vector_of_node_ids.push_back(pElem->GetGeometry()[j].Id());
 			}
 		}
+
+		rExtractedModelPart.Nodes() = rModelPart.Nodes();
 
 		std::cout<<" Rishith debug : printing number of elements added to modified patch part"<<count<<std::endl;
 		//sorting and making unique list of node ids
@@ -628,6 +626,29 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 
 		std::cout << "::rishith [Surface Mesh Extraction]::" << std::endl;
 
+			Parameters parameters= Parameters(R"({
+						"result_file_configuration" : {
+							"gidpost_flags"       : {
+								"GiDPostMode"           : "GiD_PostAscii",
+								"WriteDeformedMeshFlag" : "WriteDeformed",
+								"WriteConditionsFlag"   : "WriteConditions",
+								"MultiFileFlag"         : "SingleFile"
+							},
+							"file_label"          : "time",
+							"output_control_type" : "time",
+							"output_frequency"    : 1.0,
+							"body_output"         : true,
+							"node_output"         : false,
+							"skin_output"         : false,
+							"plane_output"        : [],
+							"nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE"],
+							"gauss_point_results" : []
+						},
+						"point_data_configuration"  : []})" );
+
+		VtkOutput VtkOutput_InsideBoundary = VtkOutput(rInsideBoundaryModelPart,"nnn",parameters);
+		VtkOutput_InsideBoundary.PrintOutput();
+
 		// Some type-definitions
 		typedef std::unordered_map<vector<std::size_t>, std::size_t, KeyHasher, KeyComparor> hashmap;
 		typedef std::unordered_map<vector<std::size_t>, vector<std::size_t>, KeyHasher, KeyComparor> hashmap_vec;
@@ -666,7 +687,9 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 				ids[i] = itCond->GetGeometry()[i].Id();
 
 			std::sort(ids.begin(), ids.end());
-			n_faces_map[ids] += 1;
+			if(n_faces_map[ids]==1)
+				n_faces_map[ids] += 1;
+
 		}
 
 		// Create a map to get nodes of skin face in original order for given set of node ids representing that face
@@ -693,9 +716,9 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 
 				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
 				std::sort(ids.begin(), ids.end());
-
 				if (n_faces_map[ids] == 1)
 					ordered_skin_face_nodes_map[ids] = unsorted_ids;
+
 			}
 		}
 		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
@@ -761,7 +784,6 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 				}
 			}
 		}
-
 		//sorting and making unique list of node ids
 
 		std::set<std::size_t> s(vector_of_node_ids.begin(), vector_of_node_ids.end());
@@ -776,6 +798,9 @@ KRATOS_WATCH("Printing element distance on the patch nodes");
 		}
 
 		std::cout << "Successful extraction of the Surface rishith" << rExtractedSurfaceModelPart.GetMesh() << std::endl;
+
+		VtkOutput VtkOutput_Extracted_Surface = VtkOutput(rExtractedSurfaceModelPart,"ExtracetedModelPart",parameters);
+		VtkOutput_Extracted_Surface.PrintOutput();
 
 		KRATOS_CATCH("");
 	}

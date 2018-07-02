@@ -476,7 +476,7 @@ class ApplyChimeraProcessMonolithic : public Process
 				}
 			}
 		}
-
+		std::cout<<"End of chimera loop"<<std::endl;
 	}
 
 	//Apply Chimera with or without overlap
@@ -514,7 +514,7 @@ class ApplyChimeraProcessMonolithic : public Process
 		//this->pCalculateDistanceProcess->CalculateSignedDistance(rPatchModelPart, rDomainBoundaryModelPart);
 
 		if (m_overlap_distance > epsilon)
-		//rishith if (m_overlap_distance ==10)
+		//if (m_overlap_distance ==10)//rishith
 		{
 			ModelPart::Pointer pHoleModelPart = ModelPart::Pointer(new ModelPart("HoleModelpart"));
 			ModelPart::Pointer pHoleBoundaryModelPart = ModelPart::Pointer(new ModelPart("HoleBoundaryModelPart"));
@@ -530,7 +530,6 @@ class ApplyChimeraProcessMonolithic : public Process
 
 			//rishith
 			//CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
-
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);
 			this->pHoleCuttingProcess->CreateHoleAfterDistance(rBackgroundModelPart, *pHoleModelPart, *pHoleBoundaryModelPart, m_overlap_distance);
 
