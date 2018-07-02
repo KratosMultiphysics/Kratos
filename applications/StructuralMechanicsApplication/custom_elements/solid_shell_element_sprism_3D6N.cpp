@@ -1909,21 +1909,21 @@ void SolidShellElementSprism3D6N::GetNodalCoordinates(
      } else if (ThisConfiguration == Configuration::CURRENT) {
          /* Fill the aux matrix of coordinates */
          for (IndexType i = 0; i < 6; ++i) {
-             const array_1d<double, 3> &current_position = GetGeometry()[i].Coordinates();
+             const array_1d<double, 3>& current_position  = GetGeometry()[i].Coordinates();
              for (IndexType j = 0; j < 3; ++j)
                 NodesCoord(i, j) = current_position[j];
          }
 
-         if (number_of_neighbours == 6) { // All the possible neighbours
+         if (number_of_neighbours == 6) { // All the possible neighours
              for (IndexType i = 0; i < 6; ++i) {
-                 const array_1d<double, 3> &current_position = NeighbourNodes[i].Coordinates();
+                 const array_1d<double, 3>& current_position  = NeighbourNodes[i].Coordinates();
                  for (IndexType j = 0; j < 3; ++j)
                     NodesCoord(i + 6, j) = current_position[j];
              }
          } else {
              for (IndexType i = 0; i < 6; ++i) {
                  if (HasNeighbour(i, NeighbourNodes[i])) {
-                     const array_1d<double, 3> &current_position = NeighbourNodes[i].Coordinates();
+                     const array_1d<double, 3>& current_position  = NeighbourNodes[i].Coordinates();
                      for (IndexType j = 0; j < 3; ++j)
                         NodesCoord(i + 6, j) = current_position[j];
                  } else {
@@ -1945,7 +1945,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerivatives(CartesianDerivat
 {
     BoundedMatrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
     WeakPointerVectorNodesType& neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
-    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN) == true ) {
+    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) {
         this->GetNodalCoordinates(nodes_coord, neighbour_nodes, Configuration::INITIAL);
     } else {
         this->GetNodalCoordinates(nodes_coord, neighbour_nodes, Configuration::CURRENT);
@@ -1967,8 +1967,8 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerivatives(CartesianDerivat
 
     /* Transversal derivative */
     CalculateCartesianDerOnCenterTrans(rCartesianDerivatives, nodes_coord, this_orthogonal_base, GeometricLevel::CENTER); // Center
-    CalculateCartesianDerOnCenterTrans(rCartesianDerivatives, nodes_coord, this_orthogonal_base, GeometricLevel::LOWER); // Lower part
-    CalculateCartesianDerOnCenterTrans(rCartesianDerivatives, nodes_coord, this_orthogonal_base, GeometricLevel::UPPER); // Upper part
+    CalculateCartesianDerOnCenterTrans(rCartesianDerivatives, nodes_coord, this_orthogonal_base, GeometricLevel::LOWER);  // Lower part
+    CalculateCartesianDerOnCenterTrans(rCartesianDerivatives, nodes_coord, this_orthogonal_base, GeometricLevel::UPPER);  // Upper part
 
     //******************************** GAUSS POINTS *******************************
 
@@ -2106,7 +2106,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
     /* Mid-surface vectors */
     double norm; // TODO: Use the geometry normal when avalaible
     array_1d<double, 3 > vxe, vye;
-    if( GetProperties().Has(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT) ) {
+    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) {
         vxe[0] = 0.5 * ((GetGeometry()[2].X0() + GetGeometry()[5].X0()) - (GetGeometry()[1].X0() + GetGeometry()[4].X0()));
         vxe[1] = 0.5 * ((GetGeometry()[2].Y0() + GetGeometry()[5].Y0()) - (GetGeometry()[1].Y0() + GetGeometry()[4].Y0()));
         vxe[2] = 0.5 * ((GetGeometry()[2].Z0() + GetGeometry()[5].Z0()) - (GetGeometry()[1].Z0() + GetGeometry()[4].Z0()));
@@ -2129,6 +2129,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
     ThisOrthogonalBase.Vzeta /= norm;
 
     const double threshold = 1e-5;
+//     const double threshold = std::numeric_limits<double>::epsilon();
     double ortho_comp;
 
     /* Performing the calculation */
@@ -2663,7 +2664,6 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
 
         for (IndexType i = 0; i < 6 ; ++i)
             rCartesianDerivatives.TransversalCartesianDerivativesCenter(i, 0) = inner_prod(ThisOrthogonalBase.Vzeta, row(transverse_cartesian_derivatives_gauss_aux, i));
-
      } else {
         /* Calculate the Jacobian and his inverse */
         CalculateJacobianAndInv(J, Jinv, nodes_coord_aux, local_coordinates);
@@ -2696,9 +2696,9 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnCenterTrans(
 /***********************************************************************************/
 
 void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
-    BoundedMatrix<double, 3, 2 >& InPlaneGradientFGauss,
-    const BoundedMatrix<double, 2, 4 >& InPlaneCartesianDerivativesGauss,
-    const BoundedMatrix<double, 12, 3 >& NodesCoord,
+    BoundedMatrix<double, 3, 2>& InPlaneGradientFGauss,
+    const BoundedMatrix<double, 2, 4>& InPlaneCartesianDerivativesGauss,
+    const BoundedMatrix<double, 12, 3>& NodesCoord,
     const IndexType NodeGauss,
     const GeometricLevel Part
     )
@@ -2781,7 +2781,6 @@ void SolidShellElementSprism3D6N::CalculateAndAddBMembrane(
         if (i == 3) {
             base += NodeGauss * 3;
         }
-
         for (IndexType j = 0; j < 3; ++j) {
             BMembrane(0, base + j) += InPlaneCartesianDerivativesGauss(0, i) * InPlaneGradientFGauss(j, 0);
             BMembrane(1, base + j) += InPlaneCartesianDerivativesGauss(1, i) * InPlaneGradientFGauss(j, 1);
