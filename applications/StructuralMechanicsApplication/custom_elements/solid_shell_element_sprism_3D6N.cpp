@@ -2128,8 +2128,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
     norm = norm_2(ThisOrthogonalBase.Vzeta);
     ThisOrthogonalBase.Vzeta /= norm;
 
-    const double threshold = 1e-5;
-//     const double threshold = std::numeric_limits<double>::epsilon();
+    const double threshold = std::numeric_limits<double>::epsilon();
     double ortho_comp;
 
     /* Performing the calculation */
