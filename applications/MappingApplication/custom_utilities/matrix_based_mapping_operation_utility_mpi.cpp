@@ -73,16 +73,54 @@ void UtilityType::ResizeAndInitializeVectors(
     for (int i=0; i<num_local_nodes_dest; ++i)
         global_elements_dest[i] = ( nodes_begin_dest + i )->GetValue(INTERFACE_EQUATION_ID);
 
+    // Construct vectors containing all the indices this processor contributes to
+    std::vector<int> row_indices(num_local_nodes_dest*2); // using number of nodes as size estimation
+    std::vector<int> col_indices(num_local_nodes_orig*2);
+
+    EquationIdVectorType origin_ids;
+    EquationIdVectorType destination_ids;
+
+    for (auto& rp_local_sys : rMapperLocalSystems)
+    {
+        rp_local_sys->EquationIdVectors(origin_ids, destination_ids);
+
+        KRATOS_DEBUG_ERROR_IF(origin_ids.size() != destination_ids.size())
+            << "EquationID vectors have size mismatch!" << std::endl;
+
+        col_indices.reserve( col_indices.size() + origin_ids.size() );
+        col_indices.insert( col_indices.end(), origin_ids.begin(), origin_ids.end() );
+        row_indices.reserve( row_indices.size() + destination_ids.size() );
+        row_indices.insert( row_indices.end(), destination_ids.begin(), destination_ids.end() );
+    }
+
+    std::sort( col_indices.begin(), col_indices.end() );
+    col_indices.erase( std::unique( col_indices.begin(), col_indices.end() ), col_indices.end() );
+    std::sort( row_indices.begin(), row_indices.end() );
+    row_indices.erase( std::unique( row_indices.begin(), row_indices.end() ), row_indices.end() );
+
+
     // Epetra_Map (long long NumGlobalElements, int NumMyElements, const long long *MyGlobalElements, int IndexBase, const Epetra_Comm &Comm)
 
     const int num_global_elements = -1; // this means its gonna be computed by Epetra_Map
     const int index_base = 0; // for C/C++
 
+    Epetra_Map epetra_col_map(num_global_elements,
+                              col_indices.size(),
+                              col_indices.data(), // taken as const
+                              index_base,
+                              epetra_comm);
+
+    Epetra_Map epetra_row_map(num_global_elements,
+                              row_indices.size(),
+                              row_indices.data(), // taken as const
+                              index_base,
+                              epetra_comm);
+
     Epetra_Map epetra_domain_map(num_global_elements,
-                                num_local_nodes_orig,
-                                global_elements_orig.data(), // taken as const
-                                index_base,
-                                epetra_comm);
+                                 num_local_nodes_orig,
+                                 global_elements_orig.data(), // taken as const
+                                 index_base,
+                                 epetra_comm);
 
     Epetra_Map epetra_range_map(num_global_elements,
                                 num_local_nodes_dest,
@@ -92,16 +130,15 @@ void UtilityType::ResizeAndInitializeVectors(
 
 
     // explanation in here: https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
-    const int num_indices_per_row = 25; // TODO this is to be tested => set to zero maybe ...
+    const int num_indices_per_row = 5; // TODO this is to be tested => set to zero maybe ...
 
     // TODO do I even need the graph? I think I could directly use the Matrix and perform the same operations ...
     // Performance optimization see https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
     Epetra_FECrsGraph epetra_graph(Epetra_DataAccess::Copy,
-                                   epetra_range_map,
+                                   epetra_row_map,
+                                   epetra_col_map,
                                    num_indices_per_row);
 
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
 
     for (auto& rp_local_sys : rMapperLocalSystems)
     {
@@ -138,11 +175,6 @@ void UtilityType::ResizeAndInitializeVectors(
 
     // rpQo->GlobalAssemble();
     // rpQd->GlobalAssemble();
-
-    std::cout << "SIZE1: " << SparseSpaceType::Size1(*rpMdo) << std::endl;
-    std::cout << "SIZE2: " << SparseSpaceType::Size2(*rpMdo) << std::endl;
-
-    std::cout << "AFTER Trilinos" << std::cout;
 
     // Philipp check if you assigned the rows/colums correctly!!!
 
@@ -184,9 +216,6 @@ void UtilityType::BuildMappingMatrix(
 
     // rMdo.GlobalAssemble(); // Check if I should call this with the domain- and the range-map (what are those though...?)
 
-    std::cout << "SIZE1_X: " << SparseSpaceType::Size1(rMdo) << std::endl;
-    std::cout << "SIZE2_X: " << SparseSpaceType::Size2(rMdo) << std::endl;
-
     if (GetEchoLevel() > 2)
         SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", rMdo, false);
 }
@@ -209,10 +238,7 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
 
     // rVector.GlobalAssemble(); // I am quite sure this is not needed, since one node is one entry ...
 
-    for (int localIndex=0; localIndex<rVector.MyLength(); ++localIndex)
-        std::cout << "FillSystemVector | rVector[localIndex]: " << rVector[0][localIndex] << std::endl;
-
-    SparseSpaceType::WriteMatrixMarketVector("FillSystemVector", rVector);
+    // SparseSpaceType::WriteMatrixMarketVector("FillSystemVector", rVector);
 }
 
 template< class TVarType >
@@ -237,8 +263,8 @@ void Update(UtilityType::TSystemVectorType& rVector,
         update_fct(r_node, rVariable, rVector[0][local_index]);
     }
 
-    for (int localIndex = 0; localIndex < rVector.MyLength(); ++localIndex)
-        std::cout << "Updates | rVector[localIndex]: " << rVector[0][localIndex] << std::endl;
+    // for (int localIndex = 0; localIndex < rVector.MyLength(); ++localIndex)
+    //     std::cout << "Updates | rVector[localIndex]: " << rVector[0][localIndex] << std::endl;
 }
 
 
