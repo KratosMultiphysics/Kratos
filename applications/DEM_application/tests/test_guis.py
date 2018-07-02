@@ -2,6 +2,10 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics import Logger
 from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import os
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestGUIs(KratosUnittest.TestCase):
 
@@ -12,7 +16,9 @@ class TestGUIs(KratosUnittest.TestCase):
         import filecmp
         f1 = "../custom_problemtype/DEMpack/G-DEMPack/kratos.gid/python/KratosDEM.py"
         f2 = "../python_scripts/KratosDEM.py"
-        self.assertTrue(filecmp.cmp(f1, f2))
+        f1_absolute_path = GetFilePath(f1)
+        f2_absolute_path = GetFilePath(f2)
+        self.assertTrue(filecmp.cmp(f1_absolute_path, f2_absolute_path))
 
     def tearDown(self):
         pass
