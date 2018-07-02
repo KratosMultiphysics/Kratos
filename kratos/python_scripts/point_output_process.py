@@ -30,10 +30,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "entity_type"       : "element",
             "position"          : [],
             "output_variables"  : [],
-            "output_file_name"  : "",
-            "output_folder_name": "TimeBasedAsciiResults",
-            "write_buffer_size" : -1,
-            "print_format"      : ""
+            "print_format"      : "",
+            "output_file_settings": {}
         }''')
 
         self.model = model
@@ -125,12 +123,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
 
         if my_rank == writing_rank:
 
-            file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
-            file_handler_params["output_file_name"].SetString(self.params["output_file_name"].GetString())
-            file_handler_params.AddEmptyValue("output_folder_name")
-            file_handler_params["output_folder_name"].SetString(self.params["output_folder_name"].GetString())
-            file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
-
+            file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
             file_header = GetFileHeader(entity_type, found_id, point, self.output_variables[0])
             self.output_file.append(TimeBasedAsciiFileWriterUtility(
                 self.model_part, file_handler_params, file_header).file)

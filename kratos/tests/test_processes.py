@@ -721,6 +721,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         reference_file_name = GetFilePath("point_output_process_ref_files/node_output_ref.dat")
 
+        # Here we also test if the output to folder(s) (and subfolder(s)) works
         settings = Parameters("""{
                 "process_list" : [ {
                         "python_module"  : "point_output_process",
@@ -729,8 +730,10 @@ class TestProcesses(KratosUnittest.TestCase):
                         "Parameters"            : {
                             "position"         : [0.5, 0.25, 0.0],
                             "model_part_name"  : "Main",
-                            "output_file_name" : "node_output",
-                            "output_folder_name"    : "test_parent_folder/test_subfolder",
+                            "output_file_settings": {
+                                "file_name"   : "node_output",
+                                "folder_name" : "test_parent_folder/test_subfolder"
+                            },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
                         }
@@ -755,8 +758,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
-        os.rmdir("test_parent_folder/test_subfolder")
-        os.rmdir("test_parent_folder")
+        kratos_utils.DeleteDirectoryIfExisting(os.path.join("test_parent_folder","test_parent_folder"))
 
     def test_point_output_process_element(self):
         model_part = ModelPart("Main")
@@ -777,8 +779,9 @@ class TestProcesses(KratosUnittest.TestCase):
                         "Parameters"            : {
                             "position"         : [0.563, 0.89, 0.0],
                             "model_part_name"  : "Main",
-                            "output_file_name" : "element_output",
-                            "output_folder_name"    : "",
+                            "output_file_settings": {
+                                "file_name"   : "element_output"
+                            },
                             "output_variables" : ["DISPLACEMENT_X", "VISCOSITY", "ACCELERATION"]
                         }
                     },{
@@ -823,11 +826,12 @@ class TestProcesses(KratosUnittest.TestCase):
                         "Parameters"            : {
                             "position"         : [16.0, 0.2, 0.0],
                             "model_part_name"  : "Main",
-                            "output_file_name" : "condition_output",
-                            "output_folder_name"    : "",
+                            "output_file_settings": {
+                                "file_name"   : "condition_output",
+                                "write_buffer_size" : 512
+                            },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
-                            "entity_type"      : "condition",
-                            "write_buffer_size" : 512
+                            "entity_type"      : "condition"
                         }
                     },{
                         "python_module"  : "compare_two_files_check_process",
@@ -871,8 +875,9 @@ class TestProcesses(KratosUnittest.TestCase):
                         "Parameters"            : {
                             "position"         : [0.5, 0.25, 0.0],
                             "model_part_name"  : "Main",
-                            "output_file_name" : "point_output_rest",
-                            "output_folder_name"    : "",
+                            "output_file_settings": {
+                                "file_name"   : "point_output_rest"
+                            },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
                         }
@@ -895,7 +900,7 @@ class TestProcesses(KratosUnittest.TestCase):
         ref_file_name = os.path.abspath(ref_file_name) # making it work independent of OS
 
         # here we create a dat file from a "previous run"
-        out_file_name = settings["process_list"][0]["Parameters"]["output_file_name"].GetString()
+        out_file_name = settings["process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()
         out_file_name += ".dat"
 
         with open(ref_file_name, 'r') as ref_file, open(out_file_name, 'w') as out_file:
@@ -934,8 +939,9 @@ class TestProcesses(KratosUnittest.TestCase):
                         "Parameters"            : {
                             "position"         : [0.5, 0.25, 0.0],
                             "model_part_name"  : "Main",
-                            "output_file_name" : "node_output_failed_restart",
-                            "output_folder_name"     : "",
+                            "output_file_settings": {
+                                "file_name"   : "node_output_failed_restart"
+                            },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
                             "entity_type"      : "node"
                         }
@@ -985,9 +991,10 @@ class TestProcesses(KratosUnittest.TestCase):
                                                    [0.25, 0.5, 0.0],
                                                    [1.0,  0.0, 0.0]],
                             "model_part_name"  : "Main",
-                            "output_file_name" : "node_output",
+                            "output_file_settings": {
+                                "file_name" : "node_output"
+                            },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
-                            "output_folder_name"    : "",
                             "entity_type"      : "node"
                         }
                     },{
@@ -1053,8 +1060,9 @@ class TestProcesses(KratosUnittest.TestCase):
                             "start_point"       : [0.0,  0.1, 0.0],
                             "end_point"         : [0.9,  0.5, 0.0],
                             "model_part_name"  : "Main",
-                            "output_file_name" : "line_output",
-                            "output_folder_name"    : "",
+                            "output_file_settings": {
+                                "file_name" : "line_output"
+                            },
                             "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
                         }
                     },{

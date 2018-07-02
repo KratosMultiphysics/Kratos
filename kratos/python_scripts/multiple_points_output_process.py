@@ -27,10 +27,8 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             "entity_type"       : "element",
             "positions"         : [[]],
             "output_variables"  : [],
-            "output_file_name"  : "",
-            "output_folder_name": "MultiplePoints",
-            "write_buffer_size" : -1,
-            "print_format"      : ""
+            "print_format"      : "",
+            "output_file_settings": {}
         }''')
 
         params.ValidateAndAssignDefaults(default_settings)
@@ -48,11 +46,8 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
         params.AddEmptyValue("position")
         position_vec = KratosMultiphysics.Vector(3)
 
-        if params["output_file_name"].GetString().endswith(".dat"):
-            params["output_file_name"].SetString(params["output_file_name"].GetString()[:-4])
-
-        if params["output_folder_name"].GetString() != "":
-            params["output_folder_name"].SetString(os_path_join("TimeBasedAsciiResults", params["output_folder_name"].GetString()))
+        if params["output_file_settings"]["file_name"].GetString().endswith(".dat"):
+            params["output_file_settings"]["file_name"].SetString(params["output_file_settings"]["file_name"].GetString()[:-4])
 
         # Create the individual point_output_processes
         for i in range(num_points):
@@ -61,7 +56,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
             for j in range(3):
                 position_vec[j] = positions[i,j]
             point_proc_params["position"].SetVector(position_vec)
-            point_proc_params["output_file_name"].SetString(params["output_file_name"].GetString() + "_" + str(i+1))
+            point_proc_params["output_file_settings"]["file_name"].SetString(params["output_file_settings"]["file_name"].GetString() + "_" + str(i+1))
 
             self.point_output_processes.append(PointOutputProcess(model, point_proc_params))
 
