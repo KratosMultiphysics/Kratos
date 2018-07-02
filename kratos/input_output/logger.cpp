@@ -51,11 +51,9 @@ namespace Kratos
 
 	void Logger::Flush() {
 		auto outputs = GetOutputsInstance();
-		#pragma omp critical
-		{
-            GetDefaultOutputInstance().Flush();
-			for (auto i_output = outputs.begin(); i_output != outputs.end(); ++i_output)
-				(*i_output)->Flush();
+		GetDefaultOutputInstance().Flush();
+		for (auto i_output = outputs.begin(); i_output != outputs.end(); ++i_output) {
+			(*i_output)->Flush();
 		}
 	}
 
