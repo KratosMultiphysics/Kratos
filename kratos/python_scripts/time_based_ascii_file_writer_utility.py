@@ -102,6 +102,9 @@ class TimeBasedAsciiFileWriterUtility(object):
             return None
 
     def __ValidateAndAssignOutputFolderPath(self):
+        # a file name must be specified
+        if self.file_name == "":
+            raise Exception('No "file_name" was specified!')
         # check and correct file extension
         if not self.file_name.endswith(".dat"):
             self.file_name += ".dat"
