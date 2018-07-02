@@ -1093,7 +1093,7 @@ MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const s
 }
 
 
-/** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
+/** Remove the master-slave constraint with given Id from this modelpart and all its subs.
 */
 void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId)
 {
@@ -1103,7 +1103,7 @@ void ModelPart::RemoveMasterSlaveConstraint(ModelPart::IndexType MasterSlaveCons
         i_sub_model_part->RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
 }
 
-/** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
+/** Remove given master-slave constraint from this modelpart and all its subs.
 */
 void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint)
 {
@@ -1118,10 +1118,11 @@ void ModelPart::RemoveMasterSlaveConstraint(ModelPart::MasterSlaveConstraintType
 void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::IndexType MasterSlaveConstraintId)
 {
 
-    if (IsSubModelPart())
-        mpParentModelPart->RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
-    else
-        RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
+    if (IsSubModelPart()){
+        mpParentModelPart->RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintId);
+        return;
+    }
+    RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
 
 }
 
@@ -1130,10 +1131,12 @@ void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::IndexType Ma
 void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveConstraintType& ThisMasterSlaveConstraint)
 {
 
-    if (IsSubModelPart())
-        mpParentModelPart->RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint);
-    else
-        RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint);
+    if (IsSubModelPart()){
+        mpParentModelPart->RemoveMasterSlaveConstraintFromAllLevels(ThisMasterSlaveConstraint.Id());
+        return;
+    }
+    RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint.Id());
+
 
 }
 
