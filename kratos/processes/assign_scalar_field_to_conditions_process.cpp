@@ -61,10 +61,10 @@ void AssignScalarFieldToConditionsProcess::Execute()
 
     const double rCurrentTime = rCurrentProcessInfo[TIME];
 
-    if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
-        InternalAssignValue<>(KratosComponents< Variable<Vector> >::Get(mVariableName), rCurrentTime);
+    if( KratosComponents< Variable<double> >::Has( mVariableName ) ) { //case of double variable
+        InternalAssignValue<>(KratosComponents< Variable<double> >::Get(mVariableName), rCurrentTime);
     } else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) { //case of component variable
-        InternalAssignValueComponents<>(KratosComponents< array_1d_component_type >::Get(mVariableName), rCurrentTime);
+        InternalAssignValue<>(KratosComponents< array_1d_component_type >::Get(mVariableName), rCurrentTime);
     } else {
         KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mVariableName << std::endl;
     }
@@ -75,29 +75,7 @@ void AssignScalarFieldToConditionsProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-
 void AssignScalarFieldToConditionsProcess::CallFunction(
-    const Condition::Pointer& pCondition,
-    const double Time,
-    Vector& rValue
-    )
-{
-    GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    const SizeType size = rConditionGeometry.size();
-
-    if(rValue.size() !=  size) {
-        rValue.resize(size,false);
-    }
-
-    for (IndexType i=0; i<size; ++i) {
-        rValue[i] = mpFunction->CallFunction(rConditionGeometry[i].X(),rConditionGeometry[i].Y(),rConditionGeometry[i].Z(),Time  );
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void AssignScalarFieldToConditionsProcess::CallFunctionComponents(
     const Condition::Pointer& pCondition,
     const double Time,
     double& rValue
@@ -113,28 +91,6 @@ void AssignScalarFieldToConditionsProcess::CallFunctionComponents(
 /***********************************************************************************/
 
 void AssignScalarFieldToConditionsProcess::CallFunctionLocalSystem(
-    const Condition::Pointer& pCondition,
-    const double Time,
-    Vector& rValue
-    )
-{
-
-    GeometryType& rConditionGeometry = pCondition->GetGeometry();
-    const SizeType size = rConditionGeometry.size();
-
-    if (rValue.size() !=  size) {
-        rValue.resize(size,false);
-    }
-
-    for (IndexType i=0; i<size; ++i) {
-        rValue[i] = mpFunction->RotateAndCallFunction(rConditionGeometry[i].X(),rConditionGeometry[i].Y(),rConditionGeometry[i].Z(), Time  );
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void AssignScalarFieldToConditionsProcess::CallFunctionLocalSystemComponents(
     const Condition::Pointer& pCondition,
     const double Time,
     double& rValue
