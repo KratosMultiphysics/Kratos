@@ -250,7 +250,6 @@ public:
         this->SetPlasticStrain(this->GetNonConvPlasticStrain());
     }
 
-
     void CalculateElasticMatrix(
         Matrix &rElasticityTensor,
         const Properties &rMaterialProperties

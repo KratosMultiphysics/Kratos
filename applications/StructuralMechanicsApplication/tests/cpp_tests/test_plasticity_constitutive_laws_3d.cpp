@@ -116,10 +116,10 @@ namespace Testing
 		T TrescaCL = T();
 
         std::vector<double> MCres, VMres, DPres, Tres;
-        MCres = { -9.07262e+06, -9.07262e+06, -1.18548e+07, 0.0, 0, -2.94576e-11 };
+        MCres = { -9.07262e+06, -9.07262e+06, -1.18548e+07, 0.0, 0.0, -2.94576e-11 };
         VMres = { -9.09508e+06, -9.09508e+06, -1.18098e+07, 0.0, 0.0, -2.87441e-11 };
-        DPres = { -5.40984e+06, -5.40984e+06, -1.91803e+07,0.0, 0.0, -1.45804e-10 };
-        Tres  = { -9.09508e+06, -9.09508e+06, -1.18098e+07,0.0, 0.0, -2.87441e-11 };
+        DPres = { -5.40984e+06, -5.40984e+06, -1.91803e+07, 0.0, 0.0, -1.45804e-10 };
+        Tres  = { -9.09508e+06, -9.09508e+06, -1.18098e+07, 0.0, 0.0, -2.87441e-11 };
 
         Vector TestMC, TestVM, TestDP, TestT;
         MohrCoulombCL.CalculateMaterialResponseCauchy(rValues);

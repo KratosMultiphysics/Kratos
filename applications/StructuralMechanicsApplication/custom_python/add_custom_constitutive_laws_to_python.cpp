@@ -139,7 +139,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"ViscousGeneralizedMaxwell3D").def( init<>())
     ;
 
-    class_< SmallStrainViscoPlasticityFactory3D, typename SmallStrainViscoPlasticityFactory3D, SmallStrainViscoPlasticityFactory3D::Pointer,  ConstitutiveLaw  >
+    class_< SmallStrainViscoPlasticityFactory3D, typename SmallStrainViscoPlasticityFactory3D::Pointer,  ConstitutiveLaw  >
     (m,"SmallStrainViscoPlasticityFactory3D").def( init<>())
     ;
 }

@@ -146,7 +146,7 @@ public:
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
         Vector PlasticStrain = mPlasticityConstitutiveLaw.GetPlasticStrain();
 
-        Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
+        //Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
 
     } // End CalculateMaterialResponseCauchy
 

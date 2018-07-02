@@ -124,10 +124,10 @@ namespace Testing
 
         // Analytical solutions of the yield surfaces derivatives
         std::vector<double> MCres, VMres, DPres, Rres, Tres, SJres;
-        MCres = { 0.109261,2.07822,10.6714,2.6863,11.8748,2.62528 };
-        VMres = { -0.316228,-0.316228,0.632456,0.948683,0.948683,0.0 };
-        DPres = { 0.244142,0.244142,1.9703,1.72615,1.72615,0.0 };
-        Tres  = { -0.369513,-0.364032,0.733545,1.08113,1.10671,0.0073077 };
+        MCres = { 0.109261, 2.07822, 10.6714, 2.6863, 11.8748, 2.62528 };
+        VMres = { -0.316228, -0.316228, 0.632456, 0.948683, 0.948683, 0.0 };
+        DPres = { 0.244142, 0.244142, 1.9703, 1.72615, 1.72615, 0.0 };
+        Tres  = { -0.369513, -0.364032, 0.733545, 1.08113, 1.10671, 0.0073077 };
 
         Vector TestMC = ZeroVector(6), TestVM = ZeroVector(6), TestDP = ZeroVector(6),TestT = ZeroVector(6);
 
@@ -239,7 +239,5 @@ namespace Testing
         KRATOS_CHECK_NEAR(Tres, TestT, 1.0e-4);
         KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-4);
     }
-
-
 }
 }

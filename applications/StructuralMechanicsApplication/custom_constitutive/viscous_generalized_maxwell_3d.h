@@ -177,6 +177,7 @@ public:
         
 
         noalias(IntegratedStressVector) = PreviousStress*std::exp(-TimeStep/DelayTime) + prod(C, Aux);
+        noalias(TangentTensor) = C;
 
         this->SetNonConvPreviousStressVector(IntegratedStressVector);
         this->SetNonConvPreviousStrainVector(StrainVector);

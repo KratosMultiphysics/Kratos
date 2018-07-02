@@ -25,6 +25,7 @@
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
 
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -156,7 +157,6 @@ public:
         const int VoigtSize = this->GetVoigtSize();
         Vector& IntegratedStressVector = rValues.GetStressVector(); // To be updated
         const Vector& StrainVector = rValues.GetStrainVector();
-        KRATOS_WATCH(StrainVector)
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
         const ProcessInfo& ProcessInfo = rValues.GetProcessInfo();
         const double TimeStep = ProcessInfo[DELTA_TIME];
@@ -165,12 +165,13 @@ public:
         const double DelayTime = rMaterialProperties[DELAY_TIME];
 
         // Elastic Matrix
-        Matrix C;
+        Matrix C, InvC;
+        double detC = 0.0;
         this->CalculateElasticMatrix(C, rMaterialProperties);
+        MathUtils<double>::InvertMatrix( C, InvC, detC ); 
 
         Vector InelasticStrainVector  = this->GetPreviousInelasticStrainVector();
         const Vector& PreviousStress  = this->GetPreviousStressVector();
-        //KRATOS_WATCH(PreviousStress)
 
         const int NumberOfSubIncrements = 10;
         const double dt = TimeStep / NumberOfSubIncrements;
@@ -179,25 +180,16 @@ public:
         AuxStressVector = PreviousStress;
         Vector Aux = ZeroVector(6);
 
-		//KRATOS_WATCH(AuxStressVector)
-		//KRATOS_WATCH(StrainVector)
-		//KRATOS_WATCH(InelasticStrainVector)
         Vector ElasticStrain;
         for (int i = 0; i < NumberOfSubIncrements; i++) {
-			//KRATOS_WATCH(Aux)
-			Aux = std::exp(-dt/DelayTime) * prod(C, AuxStressVector) / DelayTime;
-			//KRATOS_WATCH(Aux)
+			Aux = std::exp(-dt/DelayTime) * prod(InvC, AuxStressVector) / DelayTime;
             InelasticStrainVector = std::exp(-dt/DelayTime)*InelasticStrainVector + Aux;
             ElasticStrain = StrainVector - InelasticStrainVector;
             noalias(AuxStressVector) = prod(C, ElasticStrain);
-			//KRATOS_WATCH(Aux)
-			//KRATOS_WATCH(InelasticStrainVector)
-			//KRATOS_WATCH(AuxStressVector)
         }
 
         noalias(IntegratedStressVector) = AuxStressVector;
-		// KRATOS_WATCH(IntegratedStressVector)
-		// KRATOS_WATCH(StrainVector)
+        noalias(TangentTensor) = C;
         
         this->SetNonConvPreviousStressVector(IntegratedStressVector);
         this->SetNonConvPreviousInelasticStrainVector(InelasticStrainVector);
@@ -256,6 +248,7 @@ public:
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
     {
     }
+
 
     ///@}
     ///@name Access
