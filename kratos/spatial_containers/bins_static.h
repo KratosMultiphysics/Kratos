@@ -420,6 +420,13 @@ public:
     //************************************************************************
     //************************************************************************
 
+    /**
+     * @brief Return the closest point to ThisPoint in case it exists or a null pointer otherwise
+     * 
+     * @param ThisPoint Searched Point.
+     * @param Tolerance Tolerance of the search.
+     * @return PointerType a pointer to the nearest point in case it exists or nullptr otherwise.
+     */
     PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
     {
         PointerType Nearest;
@@ -432,9 +439,12 @@ public:
         return this->NullPointer();
     }
 
-    //************************************************************************
-    //************************************************************************
-
+    /**
+     * @brief Return the nearest point to ThisPoint. This function can not return the same point.
+     * 
+     * @param ThisPoint Searched Point.
+     * @return PointerType Pointer to the nearest element. Cannot return the same point as the one given as input.
+     */
     PointerType SearchNearestPointInner( PointerType& ThisPoint )
     {
         PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
@@ -444,8 +454,12 @@ public:
         return Result;
     }
 
-    //************************************************************************
-
+    /**
+     * @brief Return the nearest point to ThisPoint. This function can return the same point with distance 0.
+     * 
+     * @param ThisPoint Searched Point.
+     * @return PointerType Pointer to the nearest element. ThisPoint in case it exists inside the bins.
+     */
     PointerType SearchNearestPoint( PointType const& ThisPoint )
     {
         PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
@@ -503,7 +517,7 @@ public:
     {
         #pragma omp parallel for
         for(int k=0; k< NumberOfPoints; k++)
-	  Results[k] = SearchNearestPoint((&(*ThisPoints))[k],ResultsDistances[k]);
+	        Results[k] = SearchNearestPoint((&(*ThisPoints))[k],ResultsDistances[k]);
     }
 
     //************************************************************************
