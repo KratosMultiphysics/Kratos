@@ -73,7 +73,7 @@
                 "interval"        : [0.0, "End"],
                 "reference_conf"  : true,
                 "value"           : ["1.0e-2 * (x + y/2)", "1.0e-2 * (y + x/2)", 0.0],
-                "tolerance_rank"  : 3
+                "tolerance_rank"  : 8
         }
     }
     ],

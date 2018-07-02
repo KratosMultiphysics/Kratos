@@ -61,7 +61,7 @@
                 "interval"        : [0.0, "End"],
                 "reference_conf"  : true,
                 "value"           : ["-1.0e-3 * (z - 0.0005) * (x + y/2)", "-1.0e-3 * (z - 0.0005) * (y + x/2)", "0.5 * 1.0e-3 * (x ** 2 + x * y + y ** 2)"],
-                "tolerance_rank"  : 3
+                "tolerance_rank"  : 8
         }
     }
     ],
