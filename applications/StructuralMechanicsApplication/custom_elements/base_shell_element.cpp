@@ -202,7 +202,7 @@ void BaseShellElement::Initialize()
             p_ref_section = Kratos::make_shared<ShellCrossSection>();
 
             // Parse material properties for each layer
-            p_ref_section->ParseOrthotropicPropertyMatrix(this->pGetProperties());
+            p_ref_section->ParseOrthotropicPropertyMatrix(r_props);
         }
         else
         {
@@ -210,7 +210,7 @@ void BaseShellElement::Initialize()
             const IndexType ply_index = 0;
             const SizeType num_points = 5;
             p_ref_section->BeginStack();
-            p_ref_section->AddPly(ply_index, num_points, this->pGetProperties());
+            p_ref_section->AddPly(ply_index, num_points, r_props);
             p_ref_section->EndStack();
         }
 
@@ -490,7 +490,7 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
         // TODO is this needed???? => it is, the dummy is needed for "Check" => unify!
         ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
         dummySection->BeginStack();
-        dummySection->AddPly(0, 5, pGetProperties());
+        dummySection->AddPly(0, 5, GetProperties());
         dummySection->EndStack();
         dummySection->SetSectionBehavior(ShellCrossSection::Thick);
         dummySection->Check(props, geom, rCurrentProcessInfo);

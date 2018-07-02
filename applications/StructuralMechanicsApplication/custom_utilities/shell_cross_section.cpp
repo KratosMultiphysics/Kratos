@@ -51,10 +51,10 @@ void ShellCrossSection::BeginStack()
     }
 }
 
-void ShellCrossSection::AddPly(const IndexType PlyIndex, int numPoints, const Properties::Pointer & pProperties)
+void ShellCrossSection::AddPly(const IndexType PlyIndex, int numPoints, const Properties& rProps)
 {
-    if((mEditingStack) && (pProperties != nullptr))
-        mStack.push_back( Ply( PlyIndex, numPoints, pProperties ) );
+    if(mEditingStack)
+        mStack.push_back( Ply( PlyIndex, numPoints, rProps ) );
 }
 
 void ShellCrossSection::EndStack()
@@ -65,43 +65,43 @@ void ShellCrossSection::EndStack()
 std::string ShellCrossSection::GetInfo()
 {
     std::stringstream ss;
-    ss << std::fixed;
+    // ss << std::fixed;
 
-    ss << std::endl;
-    ss << "===============================================================" << std::endl;
-    ss << "                      SellCrossSection Info:" << std::endl;
-    ss << "===============================================================" << std::endl;
-    ss << "Total Thickness: " << GetThickness() << std::endl;
-    ss << "Offset from the midplane: " << GetOffset() << std::endl;
-    ss << "Number of Plies: " << mStack.size() << std::endl;
-    ss << "===============================================================" << std::endl;
-    ss << "=======================       STACK      ======================" << std::endl;
-    ss << "===============================================================" << std::endl;
-    if(mStack.size() < 1)
-    {
-        ss << " EMPTY STACK" << std::endl;
-        ss << "===============================================================" << std::endl;
-    }
-    else
-    {
-        for (auto& r_ply : mStack)
-        {
-            ss << " - Thickness :" << r_ply.GetThickness() << std::endl;
-            ss << " - Location :" << r_ply.GetLocation() << std::endl;
-            ss << " - Orientation Angle: " << r_ply.GetOrientationAngle() << " (degrees)" << std::endl;
-            const auto& r_integration_points = r_ply.GetIntegrationPoints();
-            ss << " - Through-The-Thickness Integration Points (" << r_integration_points.size() << "):" << std::endl;
-            for(IndexType i = 0; i < r_integration_points.size(); ++i)
-            {
-                const IntegrationPoint& iPoint = r_integration_points[i];
-                ss << " - - [" << i << "] "
-                   << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
-                   << std::endl;
-            }
-            ss << "===============================================================" << std::endl;
-        }
-    }
-    ss << std::endl;
+    // ss << std::endl;
+    // ss << "===============================================================" << std::endl;
+    // ss << "                      SellCrossSection Info:" << std::endl;
+    // ss << "===============================================================" << std::endl;
+    // ss << "Total Thickness: " << GetThickness() << std::endl;
+    // ss << "Offset from the midplane: " << GetOffset() << std::endl;
+    // ss << "Number of Plies: " << mStack.size() << std::endl;
+    // ss << "===============================================================" << std::endl;
+    // ss << "=======================       STACK      ======================" << std::endl;
+    // ss << "===============================================================" << std::endl;
+    // if(mStack.size() < 1)
+    // {
+    //     ss << " EMPTY STACK" << std::endl;
+    //     ss << "===============================================================" << std::endl;
+    // }
+    // else
+    // {
+    //     for (auto& r_ply : mStack)
+    //     {
+    //         ss << " - Thickness :" << r_ply.GetThickness() << std::endl;
+    //         ss << " - Location :" << r_ply.GetLocation() << std::endl;
+    //         ss << " - Orientation Angle: " << r_ply.GetOrientationAngle() << " (degrees)" << std::endl;
+    //         const auto& r_integration_points = r_ply.GetIntegrationPoints();
+    //         ss << " - Through-The-Thickness Integration Points (" << r_integration_points.size() << "):" << std::endl;
+    //         for(IndexType i = 0; i < r_integration_points.size(); ++i)
+    //         {
+    //             const IntegrationPoint& iPoint = r_integration_points[i];
+    //             ss << " - - [" << i << "] "
+    //                << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
+    //                << std::endl;
+    //         }
+    //         ss << "===============================================================" << std::endl;
+    //     }
+    // }
+    // ss << std::endl;
     return ss.str();
 }
 
@@ -137,14 +137,14 @@ bool ShellCrossSection::Has(const Variable<array_1d<double, 6 > >& rThisVariable
     return false;
 }
 
-double& ShellCrossSection::GetValue(const Variable<double>& rThisVariable, double& rValue)
+double& ShellCrossSection::GetValue(const Variable<double>& rThisVariable, const Properties& rProps, double& rValue)
 {
     double meanValue = 0.0;
     double iValue = 0.0;
     double accum = 0.0;
     for (auto& r_ply : mStack)
     {
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints())
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rProps))
         {
             iValue = 0.0;
             if (r_int_point.GetConstitutiveLaw()->Has(rThisVariable))
@@ -229,10 +229,9 @@ void ShellCrossSection::InitializeCrossSection(const Properties& rMaterialProper
 
         for (auto& r_ply : mStack)
         {
-            const Properties& r_ply_props = r_ply.GetProperties();
-            for (const auto& r_int_point : r_ply.GetIntegrationPoints())
+            for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
             {
-                r_int_point.GetConstitutiveLaw()->InitializeMaterial(r_ply_props, rElementGeometry, rShapeFunctionsValues);
+                r_int_point.GetConstitutiveLaw()->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
                 if(!mNeedsOOPCondensation)
                     if(r_int_point.GetConstitutiveLaw()->GetStrainSize() == 6)
@@ -265,9 +264,8 @@ void ShellCrossSection::InitializeSolutionStep(const Properties& rMaterialProper
 {
     for (auto& r_ply : mStack)
     {
-        const Properties& r_ply_props = r_ply.GetProperties();
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints())
-            r_int_point.GetConstitutiveLaw()->InitializeSolutionStep(r_ply_props, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
+            r_int_point.GetConstitutiveLaw()->InitializeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
     }
 
     if(mNeedsOOPCondensation) mOOP_CondensedStrains = mOOP_CondensedStrains_converged;
@@ -280,9 +278,8 @@ void ShellCrossSection::FinalizeSolutionStep(const Properties& rMaterialProperti
 {
     for (auto& r_ply : mStack)
     {
-        const Properties& r_ply_props = r_ply.GetProperties();
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints())
-            r_int_point.GetConstitutiveLaw()->FinalizeSolutionStep(r_ply_props, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
+            r_int_point.GetConstitutiveLaw()->FinalizeSolutionStep(rMaterialProperties, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
     }
 
     if(mNeedsOOPCondensation) mOOP_CondensedStrains_converged = mOOP_CondensedStrains;
@@ -308,6 +305,8 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
     ConstitutiveLaw::Parameters materialValues;
     GeneralVariables variables;
     InitializeParameters(rValues, materialValues, variables);
+
+    const Properties& r_props = rValues.GetMaterialProperties();
 
     Flags& Options = rValues.GetOptions();
     bool compute_stress              = Options.Is(ConstitutiveLaw::COMPUTE_STRESS);
@@ -401,26 +400,24 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
         // BEGIN LOOP: integrate the response of each ply in this cross section
         for (auto& r_ply : mStack)
         {
-            const Properties& r_ply_props = r_ply.GetProperties();
-			Properties LaminaProps;
-
-            if(ShellUtilities::IsOrthotropic(r_ply_props))
+            Properties LaminaProps;
+            if(ShellUtilities::IsOrthotropic(r_props))
             {
-				LaminaProps = Properties(r_ply_props);
+				LaminaProps = Properties(r_props);
                 r_ply.RecoverOrthotropicProperties(ply_number, LaminaProps);
 				materialValues.SetMaterialProperties(LaminaProps);
             }
 			else
 			{
-				materialValues.SetMaterialProperties(r_ply_props);
+				materialValues.SetMaterialProperties(r_props);
 			}
 
-            double iPlyAngle = r_ply.GetOrientationAngle();
+            double iPlyAngle = r_ply.GetOrientationAngle(r_props);
 
             if(iPlyAngle == 0.0)
             {
                 // BEGIN LOOP: integrate the response of each integration point in this ply
-                for (const auto& r_int_point : r_ply.GetIntegrationPoints())
+                for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props))
                 {
                     UpdateIntegrationPointParameters(r_int_point, materialValues, variables);
                     CalculateIntegrationPointResponse(r_int_point, materialValues, rValues, variables, rStressMeasure,ply_number);
@@ -498,7 +495,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
                 }
 
                 // BEGIN LOOP: integrate the response of each integration point in this ply
-                for (const auto& r_int_point : r_ply.GetIntegrationPoints())
+                for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props))
                 {
                     UpdateIntegrationPointParameters(r_int_point, materialValues, variables);
                     CalculateIntegrationPointResponse(r_int_point, materialValues, rValues, variables, rStressMeasure,ply_number);
@@ -674,10 +671,11 @@ void ShellCrossSection::FinalizeSectionResponse(SectionParameters& rValues, cons
     ConstitutiveLaw::Parameters materialValues;
     GeneralVariables variables;
     InitializeParameters(rValues, materialValues, variables);
+    const Properties& r_props = rValues.GetMaterialProperties();
 
     for (auto& r_ply : mStack)
     {
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints())
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(r_props))
         {
             UpdateIntegrationPointParameters(r_int_point, materialValues, variables);
             r_int_point.GetConstitutiveLaw()->FinalizeMaterialResponse(materialValues, rStressMeasure);
@@ -693,9 +691,8 @@ void ShellCrossSection::ResetCrossSection(const Properties& rMaterialProperties,
 
     for (auto& r_ply : mStack)
     {
-        const Properties& r_ply_props = r_ply.GetProperties();
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints())
-            r_int_point.GetConstitutiveLaw()->ResetMaterial(r_ply_props, rElementGeometry, rShapeFunctionsValues);
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
+            r_int_point.GetConstitutiveLaw()->ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
     }
 
     if(mNeedsOOPCondensation)
@@ -719,7 +716,7 @@ int ShellCrossSection::Check(const Properties& rMaterialProperties,
     KRATOS_ERROR_IF(this->mStack.size() < 1)
         << "The Ply Stack of a ShellCrossSection cannot be empty" << std::endl;
 
-    KRATOS_ERROR_IF(this->GetThickness() <= 0.0)
+    KRATOS_ERROR_IF(this->GetThickness(rMaterialProperties) <= 0.0)
         << "The Thickness of a ShellCrossSection should be a "
         << "positive real number" << std::endl;
 
@@ -729,15 +726,10 @@ int ShellCrossSection::Check(const Properties& rMaterialProperties,
             << "The number of integration points "
             << "in a Ply is not set properly" << std::endl;
 
-        KRATOS_ERROR_IF(r_ply.GetPropertiesPointer() == nullptr)
-            << "The Properties of a Ply cannot be nullptr" << std::endl;
-
-        const Properties& r_ply_props = r_ply.GetProperties();
-
-        KRATOS_ERROR_IF_NOT(r_ply_props.Has(DENSITY))
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DENSITY))
             << "DENSITY not provided for a Ply object" << std::endl;
 
-        for (const auto& r_int_point : r_ply.GetIntegrationPoints())
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rMaterialProperties))
         {
             KRATOS_ERROR_IF(r_int_point.GetWeight() <= 0.0)
                 << "The Weight of a ShellCrossSection.IntegrationPoint "
@@ -771,7 +763,7 @@ int ShellCrossSection::Check(const Properties& rMaterialProperties,
             //		"The Constitutive law of a ShellCrossSection.IntegrationPoint is incompatible with the strain measure required by this cross section ",
             //		"Required strain measure: StrainMeasure_Infinitesimal" );
 
-            iPointLaw->Check(r_ply_props, rElementGeometry, rCurrentProcessInfo);
+            iPointLaw->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
         }
     }
 
@@ -780,26 +772,26 @@ int ShellCrossSection::Check(const Properties& rMaterialProperties,
     KRATOS_CATCH("")
 }
 
-void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties::Pointer & pProps)
+void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties& rProps)
 {
     // ascertain how many plies there are and begin stacking them
-    const SizeType num_plies = pProps->GetValue(SHELL_ORTHOTROPIC_LAYERS).size1();
+    const SizeType num_plies = rProps.GetValue(SHELL_ORTHOTROPIC_LAYERS).size1();
     this->BeginStack();
 
     // add ply for each orthotropic layer defined
     for (IndexType ply_idx = 0; ply_idx < num_plies; ++ply_idx)
-        this->AddPly(ply_idx, 5, pProps);
+        this->AddPly(ply_idx, 5, rProps);
 
     this->EndStack();
 }
 
-void ShellCrossSection::GetLaminaeOrientation(Vector& rOrientation_Vector)
+void ShellCrossSection::GetLaminaeOrientation(const Properties& rProps, Vector& rOrientation_Vector)
 {
     const SizeType num_plies = mStack.size();
     if(rOrientation_Vector.size() != num_plies) rOrientation_Vector.resize(num_plies, false);
 
     for (IndexType i_ply=0; i_ply<num_plies; ++i_ply)
-        rOrientation_Vector[i_ply] = mStack[i_ply].GetOrientationAngle() / 180.0 * Globals::Pi;
+        rOrientation_Vector[i_ply] = mStack[i_ply].GetOrientationAngle(rProps) / 180.0 * Globals::Pi;
 }
 
 void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Strengths, const Properties& rProps)
@@ -891,6 +883,7 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
 
     rMaterialValues.SetProcessInfo( rValues.GetProcessInfo() );
     rMaterialValues.SetElementGeometry( rValues.GetElementGeometry() );
+    rMaterialValues.SetMaterialProperties( rValues.GetMaterialProperties() );
 
     // initialize the general variables container
 
@@ -1370,7 +1363,7 @@ void ShellCrossSection::PrivateCopy(const ShellCrossSection & other)
         mOOP_CondensedStrains_converged = other.mOOP_CondensedStrains_converged;
     }
 }
-void ShellCrossSection::Ply::RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps)
+void ShellCrossSection::Ply::RecoverOrthotropicProperties(const IndexType IdxCurrentPly, Properties& laminaProps)
 {
     // Composite mechanical properties material definition
     // Copying current ply properties
@@ -1378,8 +1371,8 @@ void ShellCrossSection::Ply::RecoverOrthotropicProperties(const unsigned int cur
 
     Matrix current_ply_properties = ZeroMatrix(1,7);
 
-    for (SizeType i=0; i<7; ++i)
-        current_ply_properties(0,i) = (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, i+2);
+    for (IndexType i=0; i<7; ++i)
+        current_ply_properties(0,i) = laminaProps[SHELL_ORTHOTROPIC_LAYERS](IdxCurrentPly, i+2);
 
     laminaProps[SHELL_ORTHOTROPIC_LAYERS] = current_ply_properties;
 }

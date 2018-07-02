@@ -417,33 +417,29 @@ public:
 
         int mPlyIndex;
         IntegrationPointCollection mIntegrationPoints;
-        Properties::Pointer mpProperties;
 
     public:
 
         Ply()
             : mPlyIndex(0)
             , mIntegrationPoints()
-            , mpProperties(Properties::Pointer())
         {}
 
-        Ply(const int PlyIndex, int NumIntegrationPoints, const Properties::Pointer & pProperties)
+        Ply(const int PlyIndex, int NumIntegrationPoints, const Properties& rProps)
             : mPlyIndex(PlyIndex)
             , mIntegrationPoints()
-            , mpProperties(pProperties)
         {
             // make sure the number is greater than 0 and odd
             KRATOS_ERROR_IF(NumIntegrationPoints < 1) << "Number of Integration points must be larger than 0!" << std::endl;
             if(NumIntegrationPoints < 0) NumIntegrationPoints = -NumIntegrationPoints;
             if(NumIntegrationPoints == 0) NumIntegrationPoints = 5;
             if(NumIntegrationPoints % 2 == 0) NumIntegrationPoints += 1;
-            InitializeIntegrationPoints(NumIntegrationPoints);
+            InitializeIntegrationPoints(rProps, NumIntegrationPoints);
         }
 
         Ply(const Ply& other)
             : mPlyIndex(other.mPlyIndex)
             , mIntegrationPoints(other.mIntegrationPoints)
-            , mpProperties(other.mpProperties)
         {}
 
         Ply & operator = (const Ply & other)
@@ -452,68 +448,57 @@ public:
             {
                 mPlyIndex = other.mPlyIndex;
                 mIntegrationPoints = other.mIntegrationPoints;
-                mpProperties = other.mpProperties;
             }
             return *this;
         }
 
     public:
 
-        inline double GetThickness()const
+        inline double GetThickness(const Properties& rProps) const
         {
-            return ShellUtilities::GetThickness(*mpProperties, mPlyIndex);
+            return ShellUtilities::GetThickness(rProps, mPlyIndex);
         }
 
-        inline double GetLocation()const
+        inline double GetLocation(const Properties& rProps) const
         {
             double my_location(0.0);
 
-            double current_location = ShellUtilities::GetThickness(*mpProperties) * 0.5;
-            const double offset = GetOffset();
+            double current_location = ShellUtilities::GetThickness(rProps) * 0.5;
+            const double offset = GetOffset(rProps);
 
             for (int i=0; i<mPlyIndex+1; ++i)
             {
-                double ply_thickness = GetThickness();
+                double ply_thickness = GetThickness(rProps);
                 my_location = current_location - ply_thickness*0.5 - offset;
                 current_location -= ply_thickness;
             }
             return my_location;
         }
 
-        inline double GetOrientationAngle()const
+        inline double GetOrientationAngle(const Properties& rProps) const
         {
-            return ShellUtilities::GetOrientationAngle(*mpProperties, mPlyIndex);
+            return ShellUtilities::GetOrientationAngle(rProps, mPlyIndex);
         }
 
-        inline double GetOffset()const
+        inline double GetOffset(const Properties& rProps) const
         {
-            return ShellUtilities::GetOffset(*mpProperties);
+            return ShellUtilities::GetOffset(rProps);
         }
 
-		void RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps);
+		void RecoverOrthotropicProperties(const IndexType currentPly, Properties& laminaProps);
 
-        inline IntegrationPointCollection& GetIntegrationPoints()
+        inline IntegrationPointCollection& GetIntegrationPoints(const Properties& rProps)
         {
-            UpdateIntegrationPoints();
+            UpdateIntegrationPoints(rProps);
             return mIntegrationPoints;
         }
 
-        inline const Properties::Pointer & GetPropertiesPointer()const
+        inline double CalculateMassPerUnitArea(const Properties& rProps) const
         {
-            return mpProperties;
+            return ShellUtilities::GetDensity(rProps, mPlyIndex) * GetThickness(rProps);
         }
 
-        inline const Properties & GetProperties()const
-        {
-            return *mpProperties;
-        }
-
-        inline double CalculateMassPerUnitArea()const
-        {
-            return ShellUtilities::GetDensity(*mpProperties, mPlyIndex) * GetThickness();
-        }
-
-        inline IntegrationPointCollection::size_type NumberOfIntegrationPoints()const
+        inline IntegrationPointCollection::size_type NumberOfIntegrationPoints() const
         {
             return mIntegrationPoints.size();
         }
@@ -526,13 +511,13 @@ public:
 
     private:
 
-        void InitializeIntegrationPoints(const int NumIntegrationPoints)
+        void InitializeIntegrationPoints(const Properties& rProps, const int NumIntegrationPoints)
         {
             KRATOS_TRY
 
-            const ConstitutiveLaw::Pointer& pMaterial = GetProperties()[CONSTITUTIVE_LAW];
+            const ConstitutiveLaw::Pointer& pMaterial = rProps[CONSTITUTIVE_LAW];
             KRATOS_ERROR_IF(pMaterial == nullptr) << "A Ply needs a constitutive law to be set. "
-                << "Missing constitutive law in property: " <<  GetProperties().Id() << std::endl;;
+                << "Missing constitutive law in property: " <<  rProps.Id() << std::endl;;
 
             // generate the integration points
             mIntegrationPoints.clear();
@@ -542,7 +527,7 @@ public:
 
             KRATOS_CATCH("")
         }
-        void UpdateIntegrationPoints()
+        void UpdateIntegrationPoints(const Properties& rProps)
         {
             KRATOS_TRY
 
@@ -561,13 +546,13 @@ public:
             }
 
             // generate locations (direction: top(+thickness/2) to bottom(-thickness/2)
-            const double location = GetLocation();
+            const double location = GetLocation(rProps);
 
             Vector ip_loc(num_int_points, 0.0);
             if(num_int_points >= 3)
             {
-                double loc_start = location + 0.5 * GetThickness();
-                double loc_incr = GetThickness() / double(num_int_points-1);
+                double loc_start = location + 0.5 * GetThickness(rProps);
+                double loc_incr = GetThickness(rProps) / double(num_int_points-1);
                 for(IndexType i=0; i<num_int_points; ++i)
                 {
                     ip_loc(i) = loc_start;
@@ -578,7 +563,7 @@ public:
             for(IndexType i=0; i < num_int_points; ++i)
             {
                 IntegrationPoint& intp = mIntegrationPoints[i];
-                intp.SetWeight(ip_w(i) * GetThickness());
+                intp.SetWeight(ip_w(i) * GetThickness(rProps));
                 intp.SetLocation(ip_loc(i));
             }
 
@@ -593,14 +578,12 @@ public:
         {
             rSerializer.save("idx", mPlyIndex);
             rSerializer.save("IntP", mIntegrationPoints);
-            rSerializer.save("Prop", mpProperties);
         }
 
         virtual void load(Serializer& rSerializer)
         {
             rSerializer.load("idx", mPlyIndex);
             rSerializer.load("IntP", mIntegrationPoints);
-            rSerializer.load("Prop", mpProperties);
         }
 
     };
@@ -689,7 +672,7 @@ public:
     				   For numPoints = odd number > 3, the composite Simpson rule is used.
     * @param pProperties the pointer to the properties assigned to the new ply.
     */
-    void AddPly(const IndexType PlyIndex, int numPoints, const Properties::Pointer & pProperties);
+    void AddPly(const IndexType PlyIndex, int numPoints, const Properties& rProps);
 
     /**
     * Finalizes the editing of the Composite Layup.
@@ -751,7 +734,7 @@ public:
     * @param rValue a reference to the returned value
     * @param rValue output: the value of the specified variable
     */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue);
+    virtual double& GetValue(const Variable<double>& rThisVariable, const Properties& rProps, double& rValue);
 
     /**
     * returns the value of a specified variable
@@ -1093,11 +1076,11 @@ public:
     * Returns the total thickness of this cross section
     * @return the thickness
     */
-    inline double GetThickness()const
+    inline double GetThickness(const Properties& rProps) const
     {
         double thickness = 0.0;
     	for (const auto& r_ply : mStack)
-    		thickness += r_ply.GetThickness();
+    		thickness += r_ply.GetThickness(rProps);
         return thickness;
     }
 
@@ -1108,20 +1091,20 @@ public:
     * The default value is Zero (i.e. the center of the cross section coincides with the shell mid-surface).
     * @return the offset
     */
-    inline double GetOffset()const
+    inline double GetOffset(const Properties& rProps) const
     {
         KRATOS_DEBUG_ERROR_IF(mStack.size() == 0) << "no plies available!" << std::endl;
-        return mStack[0].GetOffset();
+        return mStack[0].GetOffset(rProps);
     }
 
     /**
     * Stores the thicknesses of plies of this cross section.
     */
-    void GetPlyThicknesses(Vector& rPlyThicknesses)
+    void GetPlyThicknesses(const Properties& rProps, Vector& rPlyThicknesses)
     {
         KRATOS_DEBUG_ERROR_IF_NOT(mStack.size() == rPlyThicknesses.size()) << "Size mismatch!" << std::endl;
         for (IndexType i_ply=0; i_ply<mStack.size(); ++i_ply)
-    		rPlyThicknesses[i_ply] = mStack[i_ply].GetThickness();
+    		rPlyThicknesses[i_ply] = mStack[i_ply].GetThickness(rProps);
     }
 
     /**
@@ -1167,7 +1150,7 @@ public:
     * @param PlyIndex the 0-based index of the target ply
     * @return the number of integration points
     */
-    inline SizeType NumberOfIntegrationPointsAt(const IndexType PlyIndex)const
+    inline SizeType NumberOfIntegrationPointsAt(const IndexType PlyIndex) const
     {
         if(PlyIndex < mStack.size())
             return mStack[PlyIndex].NumberOfIntegrationPoints();
@@ -1189,11 +1172,11 @@ public:
     * Calculates the mass per unit area of this cross section.
     * @return the mass per unit area
     */
-    inline double CalculateMassPerUnitArea()const
+    inline double CalculateMassPerUnitArea(const Properties& rProps) const
     {
         double vol(0.0);
         for (const auto& r_ply : mStack)
-            vol += r_ply.CalculateMassPerUnitArea();
+            vol += r_ply.CalculateMassPerUnitArea(rProps);
         return vol;
     }
 
@@ -1201,9 +1184,9 @@ public:
     * Calculates the avarage mass density of this cross section.
     * @return the avarage mass density
     */
-    inline double CalculateAvarageDensity()const
+    inline double CalculateAvarageDensity(const Properties& rProps) const
     {
-        return CalculateMassPerUnitArea() / GetThickness();
+        return CalculateMassPerUnitArea(rProps) / GetThickness(rProps);
     }
 
     /**
@@ -1211,7 +1194,7 @@ public:
     * with respect to the parent element.
     * @return the orientation angle in radians
     */
-    inline double GetOrientationAngle()const
+    inline double GetOrientationAngle() const
     {
         return mOrientation;
     }
@@ -1221,16 +1204,16 @@ public:
     * with respect to the parent element.
     * @param radians the orientation angle in radians
     */
-    inline void SetOrientationAngle(double radians)
+    inline void SetOrientationAngle(const double Radians)
     {
-        mOrientation = radians;
+        mOrientation = Radians;
     }
 
     /**
     * Returns the behavior of this cross section (thin/thick)
     * @return the section behavior
     */
-    inline SectionBehaviorType GetSectionBehavior()const
+    inline SectionBehaviorType GetSectionBehavior() const
     {
         return mBehavior;
     }
@@ -1268,7 +1251,7 @@ public:
      * Returns the stiffness value to be used for the drilling part of the shell formulation
      * @return the drilling stiffness
      */
-    inline double GetDrillingStiffness()const
+    inline double GetDrillingStiffness() const
     {
         return mDrillingPenalty;
     }
@@ -1276,12 +1259,12 @@ public:
     /**
     * Parses the shell orthotropic material data from properties
     */
-    void ParseOrthotropicPropertyMatrix(const Properties::Pointer & pProps);
+    void ParseOrthotropicPropertyMatrix(const Properties& pProps);
 
     /**
     * Get orientation of laminae
     */
-    void GetLaminaeOrientation(Vector& rOrientation_Vector);
+    void GetLaminaeOrientation(const Properties& pProps, Vector& rOrientation_Vector);
 
     /**
     * Get strengths of laminae
@@ -1402,7 +1385,7 @@ inline std::istream & operator >> (std::istream & rIStream, ShellCrossSection & 
 
 inline std::ostream & operator << (std::ostream & rOStream, ShellCrossSection & rThis)
 {
-    return rOStream << rThis.GetInfo();
+    return rOStream; // << rThis.GetInfo();
 }
 
 ///@}
