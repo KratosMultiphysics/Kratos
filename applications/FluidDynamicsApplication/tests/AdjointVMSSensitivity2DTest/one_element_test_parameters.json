@@ -125,11 +125,10 @@
             }
         }
     },{
-        "python_module" : "compute_drag_process",
+        "python_module" : "compute_body_fitted_drag_process",
             "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "ComputeDragProcess",
+            "process_name"  : "ComputeBodyFittedDragProcess",
             "Parameters" : {
-                "mesh_id"                   : 0,
                 "model_part_name"           : "Structure",
                 "interval"                  : [0.0, 1e30],
                 "write_drag_output_file"    : true,

@@ -81,7 +81,7 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             _data = line.strip().split()
             if not found_headers:
                 if len(line)>4:
-                    if line[:4]=="Time":
+                    if line[:6]=="# Time":
                         found_headers = True
                         continue
 
@@ -178,11 +178,11 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'Structure.drag')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1],step_size,'./AdjointVMSSensitivity2DTest/one_element_test',[1.0,0.0,0.0],'Structure_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 4)
             self._removeH5Files("MainModelPart")
-            self._removeFile("Structure.drag")
+            self._removeFile("Structure_drag.dat")
             self._removeFile("./AdjointVMSSensitivity2DTest/one_element_test.time")
             self._removeFile("./one_element.post.bin")
             self._removeFile("./tests.post.lst")
@@ -200,11 +200,11 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             step_size = 0.00000001
-            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/cylinder_test',[1.0,0.0,0.0],'NoSlip2D_Cylinder.drag')
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/cylinder_test',[1.0,0.0,0.0],'NoSlip2D_Cylinder_drag.dat')
             self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 5)
             self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 5)
             self._removeH5Files("MainModelPart")
-            self._removeFile("NoSlip2D_Cylinder.drag")
+            self._removeFile("NoSlip2D_Cylinder_drag.dat")
             self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test.time")
             self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test_probe1.dat")
             self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test_probe2.dat")
