@@ -135,10 +135,48 @@ void MmgProcess<TDim>::Execute()
 {       
     KRATOS_TRY;
     
-    const bool safe_to_file = mThisParameters["save_external_files"].GetBool();
+    // We execute all the necessary steps
+    ExecuteInitialize();
+    ExecuteInitializeSolutionStep();
+    ExecuteFinalize();
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteInitialize()
+{       
+    KRATOS_TRY;
     
     /* We restart the MMG mesh and solution */       
     InitMesh();
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteBeforeSolutionLoop()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteInitializeSolutionStep()
+{       
+    KRATOS_TRY;
+    
+    const bool safe_to_file = mThisParameters["save_external_files"].GetBool();
     
     /* We print the original model part */
     KRATOS_INFO_IF("", mEchoLevel > 0) <<
@@ -173,7 +211,54 @@ void MmgProcess<TDim>::Execute()
     
     KRATOS_CATCH("");
 }
-
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteFinalizeSolutionStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteBeforeOutputStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteAfterOutputStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteFinalize()
+{       
+    KRATOS_TRY;
+    
+    // We release the memory
+    FreeMemory();
+    
+    KRATOS_CATCH("");
+}
+    
 /************************************* OPERATOR() **********************************/
 /***********************************************************************************/
 
@@ -467,26 +552,25 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);  
     
     // Create a new model part // TODO: Use a different kind of element for each submodelpart (in order to be able of remeshing more than one kind o element or condition)
-    std::unordered_map<int, IndexVectorType> color_nodes, color_cond_0, color_cond_1, color_elem_0, color_elem_1;
+    std::unordered_map<IndexType, IndexVectorType> color_nodes, color_cond_0, color_cond_1, color_elem_0, color_elem_1;
     
     // The tempotal store of 
     ConditionsArrayType created_conditions_vector;
     ElementsArrayType created_elements_vector;
     
+    // Auxiliar values
+    int ref, is_required;
+
     /* NODES */ // TODO: ADD OMP
     for (IndexType i_node = 1; i_node <= n_nodes; ++i_node) {
-        int ref, is_required;
         NodeType::Pointer p_node = CreateNode(i_node, ref, is_required);
         
         // Set the DOFs in the nodes 
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
             p_node->pAddDof(*it_dof);
         
-        if (ref != 0) color_nodes[ref].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
+        if (ref != 0) color_nodes[static_cast<IndexType>(ref)].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
     }
-    
-    // Auxiliar values
-    int prop_id, is_required;
     
     /* CONDITIONS */ // TODO: ADD OMP
     if (mpRefCondition.size() > 0) {
@@ -502,12 +586,12 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                     counter_cond_0 += 1;
                 }
             }
-            ConditionType::Pointer p_condition = CreateCondition0(cond_id, prop_id, is_required, skip_creation);
+            ConditionType::Pointer p_condition = CreateCondition0(cond_id, ref, is_required, skip_creation);
             
             if (p_condition != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
-                if (prop_id != 0) color_cond_0[prop_id].push_back(cond_id);// NOTE: prop_id == 0 is the MainModelPart
+                if (ref != 0) color_cond_0[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
                 cond_id += 1;
             }
         }
@@ -523,12 +607,12 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                     counter_cond_1 += 1;
                 }
             }
-            ConditionType::Pointer p_condition = CreateCondition1(cond_id, prop_id, is_required, skip_creation);
+            ConditionType::Pointer p_condition = CreateCondition1(cond_id, ref, is_required, skip_creation);
             
             if (p_condition != nullptr) {
                 created_conditions_vector.push_back(p_condition);
 //                 mrThisModelPart.AddCondition(p_condition);
-                if (prop_id != 0) color_cond_1[prop_id].push_back(cond_id);// NOTE: prop_id == 0 is the MainModelPart
+                if (ref != 0) color_cond_1[static_cast<IndexType>(ref)].push_back(cond_id);// NOTE: ref == 0 is the MainModelPart
                 cond_id += 1;
             }
         }
@@ -549,12 +633,12 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 }
             }
             
-            ElementType::Pointer p_element = CreateElement0(elem_id, prop_id, is_required, skip_creation);
+            ElementType::Pointer p_element = CreateElement0(elem_id, ref, is_required, skip_creation);
             
             if (p_element != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
-                if (prop_id != 0) color_elem_0[prop_id].push_back(elem_id);// NOTE: prop_id == 0 is the MainModelPart
+                if (ref != 0) color_elem_0[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
                 elem_id += 1;
             }
         }
@@ -570,12 +654,12 @@ void MmgProcess<TDim>::ExecuteRemeshing()
                 }
             }
             
-            ElementType::Pointer p_element = CreateElement1(elem_id, prop_id, is_required,skip_creation);
+            ElementType::Pointer p_element = CreateElement1(elem_id, ref, is_required,skip_creation);
             
             if (p_element != nullptr) {
                 created_elements_vector.push_back(p_element);
 //                 mrThisModelPart.AddElement(p_element);
-                if (prop_id != 0) color_elem_1[prop_id].push_back(elem_id);// NOTE: prop_id == 0 is the MainModelPart
+                if (ref != 0) color_elem_1[static_cast<IndexType>(ref)].push_back(elem_id);// NOTE: ref == 0 is the MainModelPart
                 elem_id += 1;
             }
         }
@@ -641,8 +725,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* Save to file */
     if (save_to_file == true) SaveSolutionToFile(true);
 
-    /* Free memory */
-    FreeMemory();
+    ///* Free memory */
+    //FreeMemory();
     
     /* After that we reorder nodes, conditions and elements: */
     ReorderAllIds();

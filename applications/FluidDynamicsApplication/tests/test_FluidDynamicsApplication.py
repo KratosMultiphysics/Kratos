@@ -88,14 +88,14 @@ def AssambleTestSuites():
     nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
+    nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
+    nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
 
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
     validationSuite.addTest(VolumeSourceTest('validationEulerian'))
-    validationSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
-    validationSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))
 
 
     # Create a test suite that contains all the tests:

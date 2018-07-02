@@ -18,8 +18,8 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type" : "adjoint_vmsmonolithic_solver",
-            "model_part_name": "AdjointFluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "scheme_settings" : {
                 "scheme_type" : "bossak"
             },

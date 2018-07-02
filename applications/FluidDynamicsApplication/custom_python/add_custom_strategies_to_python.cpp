@@ -88,8 +88,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             (m,"ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
             .def(init<double,double,unsigned int,Process::Pointer >() )
             .def(init<double,double,unsigned int >())// constructor without a turbulence model
-            .def(init<double,double,unsigned int,const Kratos::Variable<int>&>())// constructor without a turbulence model for periodic boundary conditions
-            .def(init<double,double,unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
+            .def(init<double,unsigned int,const Kratos::Variable<int>&>())// constructor without a turbulence model for periodic boundary conditions
             ;
 
     typedef ResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType > ResidualBasedSimpleSteadySchemeType;

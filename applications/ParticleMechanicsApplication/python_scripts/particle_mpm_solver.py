@@ -202,13 +202,13 @@ class ParticleMPMSolver(object):
                 if (self.pressure_dofs):
                     raise Exception("Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented.")
                 else:
-                    raise Exception("Element in 3D for Hexahedral Element is not yet implemented. Please use Tetrahedral instead.")
+                    self.new_element = KratosParticle.CreateUpdatedLagragian3D8N()
 
         # Initialize solver
         if(self.domain_size==2):
-            self.solver = KratosParticle.MPM2D(self.model_part1, self.model_part2, self.model_part3, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element, self.number_particle, self.block_builder)
+            self.solver = KratosParticle.MPM2D(self.model_part1, self.model_part2, self.model_part3, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element, self.number_particle, self.block_builder, self.pressure_dofs)
         else:
-            self.solver = KratosParticle.MPM3D(self.model_part1, self.model_part2, self.model_part3, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element,  self.number_particle, self.block_builder)
+            self.solver = KratosParticle.MPM3D(self.model_part1, self.model_part2, self.model_part3, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element,  self.number_particle, self.block_builder, self.pressure_dofs)
       
         # Set echo level
         self._set_echo_level()

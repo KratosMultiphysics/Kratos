@@ -954,6 +954,142 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
+    def test_multiple_point_output_process(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name_1 = GetFilePath("point_output_process_ref_files/node_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("point_output_process_ref_files/node_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("point_output_process_ref_files/node_output_3_ref.dat")
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "multiple_points_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "MultiplePointsOutputProcess",
+                        "Parameters"            : {
+                            "positions"         : [[0.5,  0.0, 0.0],
+                                                   [0.25, 0.5, 0.0],
+                                                   [1.0,  0.0, 0.0]],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "node_output",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "node"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "node_output_1.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ,{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "node_output_2.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ,{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "node_output_3.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[TIME] = 0.0
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
+    def test_line_output_process(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name_1 = GetFilePath("point_output_process_ref_files/line_output_1_ref.dat")
+        reference_file_name_2 = GetFilePath("point_output_process_ref_files/line_output_2_ref.dat")
+        reference_file_name_3 = GetFilePath("point_output_process_ref_files/line_output_3_ref.dat")
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "line_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "LineOutputProcess",
+                        "Parameters"            : {
+                            "start_point"       : [0.0,  0.1, 0.0],
+                            "end_point"         : [0.9,  0.5, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_name" : "line_output",
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"]
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "line_output_1.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ,{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "line_output_2.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    }, {
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "line_output_3.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    }]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name_1)
+        settings["process_list"][2]["Parameters"]["reference_file_name"].SetString(reference_file_name_2)
+        settings["process_list"][3]["Parameters"]["reference_file_name"].SetString(reference_file_name_3)
+
+        model_part.ProcessInfo[DOMAIN_SIZE] = 3
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[TIME] = 0.0
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[TIME]
