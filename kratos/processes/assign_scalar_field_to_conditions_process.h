@@ -203,6 +203,18 @@ private:
     void CallFunction(
         const Condition::Pointer& pCondition, 
         const double Time,
+        Vector& rValue
+        );
+    
+    /**
+     * @brief It calls the function for components
+     * @param pCondition The pointer to the condition where set the function
+     * @param Time The current time
+     * @param rValue The value to set
+     */
+    void CallFunctionComponents(
+        const Condition::Pointer& pCondition, 
+        const double Time,
         double& rValue
         );
 
@@ -214,6 +226,18 @@ private:
      */
     void CallFunctionLocalSystem(
         const Condition::Pointer& pCondition,
+        const double Time,
+        Vector& rValue
+        );
+
+    /**
+     * @brief It calls the function (local system) for components
+     * @param pCondition The pointer to the condition where set the function
+     * @param Time The current time
+     * @param rValue The value to set
+     */
+    void CallFunctionLocalSystemComponents(
+        const Condition::Pointer& pCondition, 
         const double Time,
         double& rValue
         );
@@ -233,12 +257,58 @@ private:
         );
 
     /**
-     * @brief This is the methods that set the values globally (tries all the possible options) for components
+     * @brief This is the methods that set the values globally (tries all the possible options)
      * @param rVar The variable to set
      * @param Time The current time
      */
     template< class TVarType >
     void InternalAssignValue(
+        TVarType& rVar, 
+        const double Time
+        )
+    {
+        const SizeType nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
+
+        Vector Value;
+
+        if(nconditions != 0) {
+            auto it_begin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();
+
+            if(mpFunction->DependsOnSpace()) {
+                if(mpFunction->UseLocalSystem()) {
+                    // WARNING: do not parallelize with openmp. python GIL prevents it
+                    for(IndexType i = 0; i<nconditions; ++i) {
+                        auto it_cond = it_begin + i;
+                        this->CallFunctionLocalSystem(*(it_cond.base()), Time, Value);
+                        it_cond->SetValue(rVar, Value);
+                    }
+                } else {
+                    // WARNING: do not parallelize with openmp. python GIL prevents it
+                    for(IndexType i = 0; i<nconditions; ++i) {
+                        auto it_cond = it_begin + i;
+                        this->CallFunction(*(it_cond.base()), Time, Value);
+                        it_cond->SetValue(rVar, Value);
+                    }
+                }
+            } else { // only varies in time
+                const double TimeValue = mpFunction->CallFunction(0.0, 0.0, 0.0,  Time);
+                // WARNING: do not parallelize with openmp. python GIL prevents it
+                for(IndexType i = 0; i<nconditions; ++i) {
+                    auto it_cond = it_begin + i;
+                    this->AssignTimeDependentValue(*(it_cond.base()), Time, Value,  TimeValue);
+                    it_cond->SetValue(rVar, Value);
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief This is the methods that set the values globally (tries all the possible options) for components
+     * @param rVar The variable to set
+     * @param Time The current time
+     */
+    template< class TVarType >
+    void InternalAssignValueComponents(
         TVarType& rVar, 
         const double Time
         )
@@ -255,14 +325,14 @@ private:
                     // WARNING: do not parallelize with openmp. python GIL prevents it
                     for(IndexType i = 0; i<nconditions; ++i) {
                         auto it_cond = it_begin + i;
-                        this->CallFunctionLocalSystem(*(it_cond.base()), Time, Value);
+                        this->CallFunctionLocalSystemComponents(*(it_cond.base()), Time, Value);
                         it_cond->SetValue(rVar, Value);
                     }
                 } else {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
                     for(IndexType i = 0; i<nconditions; ++i) {
                         auto it_cond = it_begin + i;
-                        this->CallFunction(*(it_cond.base()), Time, Value);
+                        this->CallFunctionComponents(*(it_cond.base()), Time, Value);
                         it_cond->SetValue(rVar, Value);
                     }
                 }
