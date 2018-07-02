@@ -15,6 +15,9 @@ namespace Kratos
 typedef array_1d<double, 3> Vector3;
 typedef std::size_t IndexType;
 
+// General pourpose
+KRATOS_CREATE_VARIABLE(int, INTEGRATION_ORDER); // The integration order considered on the element
+
 // Generalized eigenvalue problem
 KRATOS_CREATE_VARIABLE(int, BUILD_LEVEL)
 KRATOS_CREATE_VARIABLE(Vector, EIGENVALUE_VECTOR)

@@ -197,7 +197,7 @@ void  AddSchemes(pybind11::module& m)
         (m,"TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent")
         .def(init<double, double, unsigned int, Process::Pointer >())
         .def(init<double,double,unsigned int >())
-        .def(init<double,double,unsigned int, const Variable<int>&>())
+        .def(init<double,unsigned int, const Variable<int>&>())
         ;
 
     class_ <

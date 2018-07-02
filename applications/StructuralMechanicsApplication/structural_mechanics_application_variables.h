@@ -52,6 +52,8 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
+    // General pourpose
+    KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, int, INTEGRATION_ORDER); // The integration order considered on the element
 
     // Generalized eigenvalue problem
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, int, BUILD_LEVEL )
