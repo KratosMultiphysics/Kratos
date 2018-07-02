@@ -273,7 +273,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
       if (rConstantVector.size() != 0)
       {
-    	rTransformationMatrix.resize(0, false);
+    	rConstantVector.resize(0, false);
       }
     }
 
