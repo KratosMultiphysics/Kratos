@@ -102,8 +102,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
         super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
 
-        self.element_name = "VMS"
-        self.condition_name = "MonolithicWallCondition"
+        self.stabilization = navier_stokes_solver_vmsmonolithic.StabilizedFormulation(self.settings["stabilization"])
+        self.element_name = self.stabilization.element_name
+        self.condition_name = self.stabilization.condition_name
         self.min_buffer_size = 2
 
         self._is_printing_rank = (KratosMPI.mpi.rank == 0)
@@ -215,11 +216,10 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
+        self.stabilization.SetProcessInfo(self.computing_model_part)
+
         (self.solver).Initialize()
         (self.solver).Check()
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
