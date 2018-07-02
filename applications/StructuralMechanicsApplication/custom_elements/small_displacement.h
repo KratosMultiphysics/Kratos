@@ -65,6 +65,15 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
+    /// The base element type
+    typedef BaseSolidElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
     /// Counted pointer of SmallDisplacement
     KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacement);
 
@@ -75,6 +84,11 @@ public:
     /// Default constructor.
     SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry);
     SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    // Copy constructor
+    SmallDisplacement(SmallDisplacement const& rOther)
+        :BaseType(rOther)
+    {};
 
     /// Destructor.
     ~SmallDisplacement() override;
@@ -190,7 +204,7 @@ protected:
      */ 
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
         
@@ -207,7 +221,7 @@ protected:
         KinematicVariables& rThisKinematicVariables, 
         ConstitutiveVariables& rThisConstitutiveVariables, 
         ConstitutiveLaw::Parameters& rValues,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
         ) override;
@@ -223,7 +237,7 @@ protected:
         Matrix& rB,
         const Matrix& rDN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const IndexType PointNumber
         );
 
     /**

@@ -623,7 +623,7 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char* pFileName, /*const*/ TOtherMatrixType& rM, const bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
     {
         // the argument "Symmetric" does not have an effect for Trilinos => needed for compatibility with other Spaces
         KRATOS_TRY;

@@ -14,21 +14,21 @@ def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
-    return ComputeEmbeddedDragProcess(model, settings["Parameters"])
+    return ComputeBodyFittedDragProcess(model, settings["Parameters"])
 
-class ComputeEmbeddedDragProcess(ComputeDragProcess):
+class ComputeBodyFittedDragProcess(ComputeDragProcess):
     """
-    The specific implementation for the output of embedded drag forces
+    The specific implementation for the output of body fitted drag forces
     over obstacles in fluid dynamics problems.
     """
     def _GetFileHeader(self):
-        header  = '# Embedded drag for model part ' + self.params["model_part_name"].GetString() + '\n'
+        header  = '# Body fitted drag for model part ' + self.params["model_part_name"].GetString() + '\n'
         header += '# Time Fx Fy Fz \n'
         return header
 
     def _PrintToScreen(self, result_msg):
-        KratosMultiphysics.Logger.PrintInfo("ComputeEmbeddedDragProcess","EMBEDDED DRAG RESULTS:")
-        KratosMultiphysics.Logger.PrintInfo("ComputeEmbeddedDragProcess","Current time: " + result_msg)
+        KratosMultiphysics.Logger.PrintInfo("ComputeBodyFittedDragProcess","BODY FITTED DRAG RESULTS:")
+        KratosMultiphysics.Logger.PrintInfo("ComputeBodyFittedDragProcess","Current time: " + result_msg)
 
     def _GetCorrespondingDragForce(self):
-        return KratosCFD.DragUtilities().CalculateEmbeddedDrag(self.model_part)
+        return KratosCFD.DragUtilities().CalculateBodyFittedDrag(self.model_part)

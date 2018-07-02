@@ -140,7 +140,6 @@ namespace Kratos {
          */
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
             double NewAlphaBossak,
-            double MoveMeshStrategy,
             unsigned int DomainSize,
             const Variable<int>& rPeriodicIdVar)
         :
@@ -152,7 +151,7 @@ namespace Kratos {
             mAlphaBossak = NewAlphaBossak;
             mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
             mGammaNewmark = 0.5 - mAlphaBossak;
-            mMeshVelocity = MoveMeshStrategy;
+            mMeshVelocity = 0.0;
 
 
             //Allocate auxiliary memory

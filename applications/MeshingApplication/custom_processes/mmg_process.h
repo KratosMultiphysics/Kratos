@@ -169,7 +169,6 @@ public:
      * @param rThisModelPart The model part
      * @param ThisParameters The parameters
      */
-    
     MmgProcess(
         ModelPart& rThisModelPart, 
         Parameters ThisParameters = Parameters(R"({})")
@@ -205,10 +204,44 @@ public:
     ///@{
     
     /**
-     * @brief Instead of using an files already created we read an existing model part
+     * @brief Execute method is used to execute the Process algorithms.
      */
-    
     void Execute() override;
+
+    /**
+     * @brief This function is designed for being execute once before the solution loop but after all of the solvers where built
+     */
+    void ExecuteInitialize() override;
+
+    /**
+     * @brief This function is designed for being execute once before the solution loop but after all of the solvers where built
+     */
+    void ExecuteBeforeSolutionLoop() override;
+
+    /**
+     * @brief This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override;
+
+    /**
+     * @brief This function will be executed at every time step AFTER performing the solve phase
+     */
+    void ExecuteFinalizeSolutionStep() override;
+    
+    /**
+     * @brief This function will be executed at every time step BEFORE  writing the output
+     */
+    void ExecuteBeforeOutputStep() override;
+
+    /**
+     * @brief This function will be executed at every time step AFTER writing the output
+     */
+    void ExecuteAfterOutputStep() override;
+
+    /**
+     * @brief This function is designed for being called at the end of the computations right after reading the model and the groups
+     */
+    void ExecuteFinalize() override;
 
     ///@}
     ///@name Access
