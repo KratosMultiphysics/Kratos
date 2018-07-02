@@ -11,11 +11,11 @@
 //
 //
 
-#if !defined(CONSTRAINT_H)
-#define CONSTRAINT_H
+#if !defined(MASTER_SLAVE_CONSTRAINT_H)
+#define MASTER_SLAVE_CONSTRAINT_H
 // System includes
 
-// project inclu
+// project includes
 #include "includes/define.h"
 #include "includes/dof.h"
 #include "includes/node.h"
@@ -29,7 +29,7 @@
 #include "includes/process_info.h"
 namespace Kratos
 {
-/** \brief Constraint * @class MasterSlaveRelation
+/** \brief Constraint * @class MasterSlaveConstraint
     * @ingroup KratosCore
     * @brief
 	* A class that implements the interface for different master-slave constraints to be applied on a system.
@@ -60,7 +60,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 {
 
   public:
-    /// Pointer definition of DataValueContainer
+    /// Pointer definition of MasterSlaveConstraint
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveConstraint);
     typedef IndexedObject BaseType;
     typedef std::size_t IndexType;
@@ -78,9 +78,8 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     ///@name Life Cycle
     ///@{
 
-   /*
-    * Empty Constructor
-    */
+
+    /// Empty Constructor
     MasterSlaveConstraint(IndexType Id = 0):IndexedObject(Id), Flags()
     {
     }
@@ -108,10 +107,12 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     /**
      * creates a new constraint pointer
-     * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
-     * @param pProperties the properties assigned to the new element
-     * @return a Pointer to the new element
+     * @param Id the ID of the new constraint
+     * @param MasterDofsVector the vector of master degree of freedoms.
+     * @param SlaveDofsVector the vector of slave degree of freedoms.
+     * @param RelationMatrix The matrix of weights relating the master DOFs and Slave DOFs
+     * @param ConstantVector The vector of the constants, one entry for each of the slave.
+     * @return a Pointer to the new constraint
      */
     virtual MasterSlaveConstraint::Pointer Create(IndexType Id,
                                                 DofPointerVectorType& MasterDofsVector,
@@ -126,6 +127,17 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         KRATOS_CATCH("");
     }
 
+    /**
+     * creates a new constraint pointer
+     * @param Id the ID of the new constraint
+     * @param rMasterNode Node which is the master of for this constraint.
+     * @param rMasterVariable the scalar variable which is on the master node. (DOF)
+     * @param rSlaveNode Node which is the slave of for this constraint.
+     * @param rSlaveVariable the scalar variable which is on the slave node. (DOF)
+     * @param Weight The weight with which the master and slave are related s = w*m + c
+     * @param Constant The constant in the master slave relation
+     * @return a Pointer to the new constraint
+     */
     virtual MasterSlaveConstraint::Pointer Create(IndexType Id, NodeType& rMasterNode,
                                         const VariableType& rMasterVariable,
                                         NodeType& rSlaveNode,
@@ -140,6 +152,17 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         KRATOS_CATCH("");
     }
 
+    /**
+     * creates a new constraint pointer
+     * @param Id the ID of the new constraint
+     * @param rMasterNode Node which is the master of for this constraint.
+     * @param rMasterVariable the component of vector variable which is on the master node. (DOF)
+     * @param rSlaveNode Node which is the slave of for this constraint.
+     * @param rSlaveVariable the component of vector variable which is on the slave node. (DOF)
+     * @param Weight The weight with which the master and slave are related s = w*m + c
+     * @param Constant The constant in the master slave relation
+     * @return a Pointer to the new constraint
+     */
     virtual MasterSlaveConstraint::Pointer Create(IndexType Id, NodeType& rMasterNode,
                                         const VariableComponentType& rMasterVariable,
                                         NodeType& rSlaveNode,
@@ -163,7 +186,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     /**
 	* Clears the maps contents
 	*/
-    void Clear()
+    virtual void Clear()
     {
     }
 
@@ -173,6 +196,15 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      */
     virtual void Initialize()
     {
+    }
+
+    /**
+     * is called to finalize the constraint
+     * if the constraint needs to perform any operation before any calculation is done
+     */
+    virtual void Finalize()
+    {
+        this->Clear();
     }
 
     /**
@@ -341,4 +373,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 } // namespace Kratos
 
-#endif // CONSTRAINT_H_INCLUDED
+#endif // MASTER_SLAVE_CONSTRAINT_H
