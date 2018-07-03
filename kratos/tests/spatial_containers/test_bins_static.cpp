@@ -35,8 +35,9 @@ typedef std::vector<double>::iterator               DistanceIterator;
 
 typedef Bins<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator> StaticBins;
 
-typedef StaticBins::CoordinateType                 CoordinateType;
-typedef StaticBins::PointerType                    PointerType;
+typedef StaticBins::CoordinateType                  CoordinateType;
+typedef StaticBins::PointerType                     PointerType;
+typedef StaticBins::SearchStructureType             SearchStructureType;
 
 /**
  * @brief Test that the bins is constructed correctly
@@ -321,6 +322,31 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointWithDistance, KratosCoreFastSuit
     KRATOS_CHECK_EQUAL(nearestPoint->Id(), 4);
     KRATOS_CHECK_EQUAL(squaredDistance, 0.1875);
 }
+
+/**
+ * @brief Searches the nearest point (including the input) with distance (threadsafe)
+ * 
+ */
+KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointWithDistanceThreadsafe, KratosCoreFastSuite)
+{
+    PointVector points;
+
+    for(std::size_t i = 0; i < 10; i++) {
+        points.push_back(PointTypePointer(new PointType(i, i, i, i)));
+    }
+
+    PointerType pointToSearch = PointerType(new PointType(10, 4.25, 4.25, 4.25));
+    
+    StaticBins testBins(points.begin(), points.end());
+    SearchStructureType searchBox;
+
+    double squaredDistance = 0.0;
+    PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch, squaredDistance, searchBox);
+ 
+    KRATOS_CHECK_EQUAL(nearestPoint->Id(), 4);
+    KRATOS_CHECK_EQUAL(squaredDistance, 0.1875);
+}
+
     
 } // namespace Testesing
 } // namespace Kratos
