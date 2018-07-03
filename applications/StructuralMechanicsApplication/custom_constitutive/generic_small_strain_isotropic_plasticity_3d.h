@@ -205,6 +205,7 @@ public:
 
 			if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
 				noalias(TangentTensor) = C;
+                this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
 			}
 
         } else { // Plastic case
@@ -224,10 +225,8 @@ public:
 			if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
 				this->CalculateTangentTensor(rValues); // this modifies the C
 				noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
+                this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
 			}
-        }
-        if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
-            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
         }
         
     } // End CalculateMaterialResponseCauchy

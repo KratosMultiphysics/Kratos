@@ -173,11 +173,11 @@ namespace Testing
         SJ::GetInitialUniaxialThreshold(rMaterialProperties, TestSJ);
 
         // Check the results!
-        KRATOS_CHECK_NEAR(MCres, TestMC, 100.0);
-        KRATOS_CHECK_NEAR(VMres, TestVM, 100.0);
-        KRATOS_CHECK_NEAR(DPres, TestDP, 100.0);
-        KRATOS_CHECK_NEAR(Rres, TestR, 100.0);
-        KRATOS_CHECK_NEAR(Tres, TestT, 100.0);
+        KRATOS_CHECK_NEAR(MCres, TestMC, 1.0e-3);
+        KRATOS_CHECK_NEAR(VMres, TestVM, 1.0e-3);
+        KRATOS_CHECK_NEAR(DPres, TestDP, 1.0e-3);
+        KRATOS_CHECK_NEAR(Rres, TestR, 1.0e-3);
+        KRATOS_CHECK_NEAR(Tres, TestT, 1.0e-3);
         KRATOS_CHECK_NEAR(SJres, TestSJ, 1.0e-3);
     }
 

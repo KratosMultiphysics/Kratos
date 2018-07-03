@@ -91,8 +91,6 @@ public:
 	GenericSmallStrainViscoplasticity3D(const GenericSmallStrainViscoplasticity3D& rOther)
     : ConstitutiveLaw(rOther)
     {
-		// ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw = TPlasticityConstitutiveLaw().Clone();
-		// ConstitutiveLaw::Pointer mpViscousConstitutiveLaw    = TViscousConstitutiveLaw().Clone();
     }
     /**
     * Destructor.
