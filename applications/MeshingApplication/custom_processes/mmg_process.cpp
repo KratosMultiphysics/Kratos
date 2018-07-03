@@ -96,14 +96,12 @@ MmgProcess<TDim>::MmgProcess(
         },
         "advanced_parameters"                  :
         {
-            "force_hausdorff_value"               : false,
             "hausdorff_value"                     : 0.0001,
             "no_move_mesh"                        : false,
             "no_surf_mesh"                        : false,
             "no_insert_mesh"                      : false,
             "no_swap_mesh"                        : false,
             "deactivate_detect_angle"             : false,
-            "force_gradation_value"               : false,
             "gradation_value"                     : 1.3
         },
         "save_external_files"                  : false,
@@ -137,10 +135,48 @@ void MmgProcess<TDim>::Execute()
 {       
     KRATOS_TRY;
     
-    const bool safe_to_file = mThisParameters["save_external_files"].GetBool();
+    // We execute all the necessary steps
+    ExecuteInitialize();
+    ExecuteInitializeSolutionStep();
+    ExecuteFinalize();
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteInitialize()
+{       
+    KRATOS_TRY;
     
     /* We restart the MMG mesh and solution */       
     InitMesh();
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteBeforeSolutionLoop()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteInitializeSolutionStep()
+{       
+    KRATOS_TRY;
+    
+    const bool safe_to_file = mThisParameters["save_external_files"].GetBool();
     
     /* We print the original model part */
     KRATOS_INFO_IF("", mEchoLevel > 0) <<
@@ -175,7 +211,54 @@ void MmgProcess<TDim>::Execute()
     
     KRATOS_CATCH("");
 }
-
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteFinalizeSolutionStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteBeforeOutputStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteAfterOutputStep()
+{       
+    KRATOS_TRY;
+    
+    KRATOS_CATCH("");
+}
+    
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template< SizeType TDim>
+void MmgProcess<TDim>::ExecuteFinalize()
+{       
+    KRATOS_TRY;
+    
+    // We release the memory
+    FreeMemory();
+    
+    KRATOS_CATCH("");
+}
+    
 /************************************* OPERATOR() **********************************/
 /***********************************************************************************/
 
@@ -642,8 +725,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     /* Save to file */
     if (save_to_file == true) SaveSolutionToFile(true);
 
-    /* Free memory */
-    FreeMemory();
+    ///* Free memory */
+    //FreeMemory();
     
     /* After that we reorder nodes, conditions and elements: */
     ReorderAllIds();
@@ -1477,7 +1560,8 @@ void MmgProcess<3>::SetSolSizeScalar(const SizeType NumNodes)
 template<>  
 void MmgProcess<2>::SetSolSizeVector(const SizeType NumNodes)
 {
-    KRATOS_ERROR << "WARNING:: Vector metric not avalaible in 2D" << std::endl;
+    if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
+        exit(EXIT_FAILURE);
 }
 
 /***********************************************************************************/
@@ -1651,48 +1735,44 @@ void MmgProcess<2>::MMGLibCall()
     
     /* Advanced configurations */
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
-    if (mThisParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
-        if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
-            KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
-    }
-
-    // Avoid/allow point relocation
-    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 )
+    if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 ) 
+        KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    
+    // Avoid/allow point relocation 
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
-
+    
     // Avoid/allow surface modifications
-    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 )
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 ) 
         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
-
+    
     // Don't insert nodes on mesh
-    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 )
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 ) 
         KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
-
+    
     // Don't swap mesh
-    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 )
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 ) 
         KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
-
+    
     // Set the angle detection
     const bool deactivate_detect_angle = mThisParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
-    if ( deactivate_detect_angle) {
-        if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 )
+    if ( deactivate_detect_angle == true) {
+        if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 ) 
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
-
+    
     // Set the gradation
-    if (mThisParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
-        if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
-            KRATOS_ERROR << "Unable to set gradation" << std::endl;
-    }
-
+    if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 ) 
+        KRATOS_ERROR << "Unable to set gradation" << std::endl;
+    
     // Minimal edge size
-    if (mThisParameters["force_sizes"]["force_min"].GetBool()) {
-        if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
+    if (mThisParameters["force_sizes"]["force_min"].GetBool() == true) {
+        if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 ) 
             KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
     }
-
+    
     // Minimal edge size
-    if (mThisParameters["force_sizes"]["force_max"].GetBool()) {
+    if (mThisParameters["force_sizes"]["force_max"].GetBool() == true) {
         if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hmax, mThisParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
             KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
         }
@@ -1701,9 +1781,9 @@ void MmgProcess<2>::MMGLibCall()
     const int ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE ) 
-        KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
     else if ( ier == MMG5_LOWFAILURE )
-        KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB. ier: " << ier << std::endl;
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLIB. ier: " << ier << std::endl;
     
     KRATOS_CATCH("");
 }
@@ -1718,59 +1798,55 @@ void MmgProcess<3>::MMGLibCall()
     
     /* Advanced configurations */
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
-    if (mThisParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
-        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
-            KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
-    }
-
-    // Avoid/allow point relocation
-    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 )
+    if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 ) 
+        KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    
+    // Avoid/allow point relocation 
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
-
+    
     // Avoid/allow surface modifications
-    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 )
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nosurf, static_cast<int>(mThisParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 ) 
         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
-
+    
     // Don't insert nodes on mesh
-    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 )
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 ) 
         KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
-
+    
     // Don't swap mesh
-    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 )
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 ) 
         KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
-
+    
     // Set the angle detection
     const bool deactivate_detect_angle = mThisParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
-    if ( deactivate_detect_angle) {
-        if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 )
+    if ( deactivate_detect_angle == true) {
+        if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 ) 
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
-
+    
     // Set the gradation
-    if (mThisParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
-        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
-            KRATOS_ERROR << "Unable to set gradation" << std::endl;
-    }
-
+    if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 ) 
+        KRATOS_ERROR << "Unable to set gradation" << std::endl;
+    
     // Minimal edge size
-    if (mThisParameters["force_sizes"]["force_min"].GetBool()) {
-        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
+    if (mThisParameters["force_sizes"]["force_min"].GetBool() == true) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 ) 
             KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
     }
-
+    
     // Minimal edge size
-    if (mThisParameters["force_sizes"]["force_max"].GetBool()) {
+    if (mThisParameters["force_sizes"]["force_max"].GetBool() == true) {
         if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmax, mThisParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
             KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
         }
     }
-
+    
     const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE ) 
-        KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
     else if ( ier == MMG5_LOWFAILURE )
-        KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB. ier: " << ier << std::endl;
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB. ier: " << ier << std::endl;
     
     KRATOS_CATCH("");
 }
@@ -1836,7 +1912,7 @@ void MmgProcess<2>::SetConditions(
     )
 {
     if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point2D) // Point
-        KRATOS_ERROR << "WARNING:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
+        KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
     else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) { // Line
         const IndexType id_1 = Geom[0].Id(); // First node id
         const IndexType id_2 = Geom[1].Id(); // Second node id
@@ -1857,7 +1933,7 @@ void MmgProcess<2>::SetConditions(
                 exit(EXIT_FAILURE);
     } else {
         const IndexType size_geometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
     }
 }
 
@@ -1872,7 +1948,7 @@ void MmgProcess<3>::SetConditions(
     )
 {
     if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point3D) // Point
-        KRATOS_ERROR << "WARNING:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
+        KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
     else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Line
         KRATOS_ERROR << "Kratos_Line3D2 remeshing pending to be implemented" << std::endl;
 //         const IndexType id1 = Geom[0].Id(); // First node id
@@ -1924,7 +2000,7 @@ void MmgProcess<3>::SetConditions(
             exit(EXIT_FAILURE); 
     } else {
         const SizeType size_geometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
     }
 }
 
@@ -1977,10 +2053,10 @@ void MmgProcess<3>::SetElements(
 //         const IndexType id_6 = Geom[8].Id(); // 8th node Id
         
         const SizeType size_geometry = Geom.size();
-        KRATOS_ERROR << "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geometry << std::endl;
+        KRATOS_ERROR << "ERROR: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geometry << std::endl;
     } else {
         const SizeType size_geometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << std::endl;
     }
 }
 
@@ -2015,11 +2091,12 @@ void MmgProcess<3>::SetMetricScalar(
 
 template<>  
 void MmgProcess<2>::SetMetricVector(
-    const array_1d<double, 3>& Metric,
+    const array_1d<double, 2>& Metric,
     const IndexType NodeId 
     )
 {
-    KRATOS_ERROR << "WARNING:: Vector metric not avalaible in 2D" << std::endl;
+    if ( MMG2D_Set_vectorSol(mmgSol, Metric[0], Metric[1], NodeId) != 1 )
+        exit(EXIT_FAILURE);
 }
 
 /***********************************************************************************/
