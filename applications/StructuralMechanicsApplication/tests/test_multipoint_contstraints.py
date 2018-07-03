@@ -87,7 +87,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         #define a minimal newton raphson solver
         self.linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         #self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        self.builder_and_solver = KratosMultiphysics.StructuralMechanicsApplication.ResidualBasedBlockBuilderAndSolverWithMpc(
+        self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(
             self.linear_solver)
         self.scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(
             -0.01)
@@ -198,34 +198,18 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         mp.CreateNewElement("SmallDisplacementElement2D4N", 8, [8, 9, 7, 4],
                             mp.GetProperties()[1])
 
-    def _apply_mpc_constraints(self, mp, cm):
-        cm.ExecuteAfterOutputStep()
-        cm.AddMasterSlaveRelation(
-            mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6],
-            KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
-        cm.AddMasterSlaveRelation(
-            mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[6],
-            KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+    def _apply_mpc_constraints(self, mp):
 
-        cm.AddMasterSlaveRelation(
-            mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7],
-            KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        cm.AddMasterSlaveRelation(
-            mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7],
-            KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        cm.AddMasterSlaveRelation(
-            mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7],
-            KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
-        cm.AddMasterSlaveRelation(
-            mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7],
-            KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 2, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
 
-        cm.AddMasterSlaveRelation(
-            mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[9],
-            KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
-        cm.AddMasterSlaveRelation(
-            mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9],
-            KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 3, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 4, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 7, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 8, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
     def _set_and_fill_buffer(self, mp, buffer_size, delta_time):
         # Set buffer size
@@ -261,10 +245,8 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         # Applying boundary conditions
         self._apply_BCs(mp)
         # Applying constraints
-        cm = KratosMultiphysics.StructuralMechanicsApplication.ApplyMultipointConstraintsProcess(
-            mp)
-        self._apply_mpc_constraints(mp, cm)
-        # Solving the system of equations        
+        self._apply_mpc_constraints(mp)
+        # Solving the system of equations
         self._setup_solver(mp)
 
         while (time <= end_time):
