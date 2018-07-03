@@ -262,7 +262,7 @@ private:
      * @param Time The current time
      */
     template< class TVarType >
-    void InternalAssignValue(
+    void InternalAssignValueVector(
         TVarType& rVar, 
         const double Time
         )
@@ -308,7 +308,7 @@ private:
      * @param Time The current time
      */
     template< class TVarType >
-    void InternalAssignValueComponents(
+    void InternalAssignValueScalar(
         TVarType& rVar, 
         const double Time
         )

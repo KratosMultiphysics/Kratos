@@ -61,10 +61,12 @@ void AssignScalarFieldToConditionsProcess::Execute()
 
     const double rCurrentTime = rCurrentProcessInfo[TIME];
 
-    if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
-        InternalAssignValue<>(KratosComponents< Variable<Vector> >::Get(mVariableName), rCurrentTime);
+    if( KratosComponents< Variable<double> >::Has( mVariableName ) ) { //case of scalar variable
+        InternalAssignValueScalar<>(KratosComponents< Variable<double> >::Get(mVariableName), rCurrentTime);
     } else if( KratosComponents< array_1d_component_type >::Has( mVariableName ) ) { //case of component variable
-        InternalAssignValueComponents<>(KratosComponents< array_1d_component_type >::Get(mVariableName), rCurrentTime);
+        InternalAssignValueScalar<>(KratosComponents< array_1d_component_type >::Get(mVariableName), rCurrentTime);
+    } else if( KratosComponents< Variable<Vector> >::Has( mVariableName ) ) { //case of vector variable
+        InternalAssignValueVector<>(KratosComponents< Variable<Vector> >::Get(mVariableName), rCurrentTime);
     } else {
         KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mVariableName << std::endl;
     }
