@@ -64,12 +64,14 @@ class MmgProcess(KratosMultiphysics.Process):
             "maximal_size"                     : 10.0,
             "advanced_parameters"                  :
             {
+                "force_hausdorff_value"               : false,
                 "hausdorff_value"                     : 0.0001,
                 "no_move_mesh"                        : false,
                 "no_surf_mesh"                        : false,
                 "no_insert_mesh"                      : false,
                 "no_swap_mesh"                        : false,
                 "deactivate_detect_angle"             : false,
+                "force_gradation_value"               : false,
                 "gradation_value"                     : 1.3
             },
             "anisotropy_remeshing"             : true,
