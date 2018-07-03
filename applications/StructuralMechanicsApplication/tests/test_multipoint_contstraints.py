@@ -200,6 +200,8 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
 
     def _apply_mpc_constraints(self, mp):
 
+        c2 = mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0.0)
+
         mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
         mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 2, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
 
