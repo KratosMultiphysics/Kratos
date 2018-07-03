@@ -1560,7 +1560,8 @@ void MmgProcess<3>::SetSolSizeScalar(const SizeType NumNodes)
 template<>  
 void MmgProcess<2>::SetSolSizeVector(const SizeType NumNodes)
 {
-    KRATOS_ERROR << "WARNING:: Vector metric not avalaible in 2D" << std::endl;
+    if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
+        exit(EXIT_FAILURE);
 }
 
 /***********************************************************************************/
@@ -1780,9 +1781,9 @@ void MmgProcess<2>::MMGLibCall()
     const int ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE ) 
-        KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
     else if ( ier == MMG5_LOWFAILURE )
-        KRATOS_ERROR << "WARNING: BAD ENDING OF MMG2DLIB. ier: " << ier << std::endl;
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLIB. ier: " << ier << std::endl;
     
     KRATOS_CATCH("");
 }
@@ -1843,9 +1844,9 @@ void MmgProcess<3>::MMGLibCall()
     const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE ) 
-        KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
     else if ( ier == MMG5_LOWFAILURE )
-        KRATOS_ERROR << "WARNING: BAD ENDING OF MMG3DLIB. ier: " << ier << std::endl;
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB. ier: " << ier << std::endl;
     
     KRATOS_CATCH("");
 }
@@ -1911,7 +1912,7 @@ void MmgProcess<2>::SetConditions(
     )
 {
     if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point2D) // Point
-        KRATOS_ERROR << "WARNING:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
+        KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
     else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) { // Line
         const IndexType id_1 = Geom[0].Id(); // First node id
         const IndexType id_2 = Geom[1].Id(); // Second node id
@@ -1932,7 +1933,7 @@ void MmgProcess<2>::SetConditions(
                 exit(EXIT_FAILURE);
     } else {
         const IndexType size_geometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
     }
 }
 
@@ -1947,7 +1948,7 @@ void MmgProcess<3>::SetConditions(
     )
 {
     if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point3D) // Point
-        KRATOS_ERROR << "WARNING:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
+        KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
     else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Line
         KRATOS_ERROR << "Kratos_Line3D2 remeshing pending to be implemented" << std::endl;
 //         const IndexType id1 = Geom[0].Id(); // First node id
@@ -1999,7 +2000,7 @@ void MmgProcess<3>::SetConditions(
             exit(EXIT_FAILURE); 
     } else {
         const SizeType size_geometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
     }
 }
 
@@ -2052,10 +2053,10 @@ void MmgProcess<3>::SetElements(
 //         const IndexType id_6 = Geom[8].Id(); // 8th node Id
         
         const SizeType size_geometry = Geom.size();
-        KRATOS_ERROR << "WARNING: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geometry << std::endl;
+        KRATOS_ERROR << "ERROR: HEXAEDRON NON IMPLEMENTED IN THE LIBRARY " << size_geometry << std::endl;
     } else {
         const SizeType size_geometry = Geom.size();
-        KRATOS_ERROR << "WARNING: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << std::endl;
     }
 }
 
@@ -2090,11 +2091,12 @@ void MmgProcess<3>::SetMetricScalar(
 
 template<>  
 void MmgProcess<2>::SetMetricVector(
-    const array_1d<double, 3>& Metric,
+    const array_1d<double, 2>& Metric,
     const IndexType NodeId 
     )
 {
-    KRATOS_ERROR << "WARNING:: Vector metric not avalaible in 2D" << std::endl;
+    if ( MMG2D_Set_vectorSol(mmgSol, Metric[0], Metric[1], NodeId) != 1 )
+        exit(EXIT_FAILURE);
 }
 
 /***********************************************************************************/
