@@ -200,6 +200,18 @@ public:
         KRATOS_CATCH("");
     }
 
+    MasterSlaveConstraint::Pointer Create(IndexType Id, NodeType& rMasterNode,
+                                        const VariableComponentType& rMasterVariable,
+                                        NodeType& rSlaveNode,
+                                        const VariableComponentType& rSlaveVariable,
+                                        const double Weight,
+                                        const double Constant) const
+    {
+        KRATOS_TRY
+        return Kratos::make_shared<UserProvidedLinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
+        KRATOS_CATCH("");
+    }
+
 
     ///@}
 
