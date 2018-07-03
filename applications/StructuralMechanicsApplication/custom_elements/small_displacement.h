@@ -219,6 +219,14 @@ protected:
      * @param IntegrationPoints The array containing the integration points
      * @param PointNumber The integration point considered
      */
+    void CalculateB_DSG(
+        Matrix& rB,
+        Matrix J,
+        const Matrix& rDN_DX,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        const unsigned int PointNumber
+        );
+
     virtual void CalculateB(
         Matrix& rB,
         const Matrix& rDN_DX,

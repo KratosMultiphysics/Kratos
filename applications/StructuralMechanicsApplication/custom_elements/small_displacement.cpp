@@ -172,8 +172,9 @@ void SmallDisplacement::CalculateKinematicVariables(
     KRATOS_ERROR_IF(rThisKinematicVariables.detJ0 < 0.0) << "WARNING:: ELEMENT ID: " << this->Id() << " INVERTED. DETJ0: " << rThisKinematicVariables.detJ0 << std::endl;
     
     // Compute B
-    CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, r_integration_points, PointNumber );
-    
+    //CalculateB( rThisKinematicVariables.B,/* rThisKinematicVariables.J0,*/ rThisKinematicVariables.DN_DX, r_integration_points, PointNumber );
+    CalculateB_DSG( rThisKinematicVariables.B, rThisKinematicVariables.J0, rThisKinematicVariables.DN_DX, r_integration_points, PointNumber );
+
     // Compute equivalent F
     Vector displacements;
     GetValuesVector(displacements);
@@ -215,6 +216,169 @@ void SmallDisplacement::CalculateConstitutiveVariables(
 
 /***********************************************************************************/
 /***********************************************************************************/
+Vector getTLine( const Matrix& J_con, int a, int b )
+{
+    Vector Line;
+    Line = ZeroVector( 6 );
+    Line(0) = J_con(0,a)*J_con(0,b);
+    Line(1) = J_con(1,a)*J_con(1,b);
+    Line(2) = J_con(2,a) * J_con(2,b);
+    Line(3) = J_con(1,b) * J_con(2,a) + J_con(1,a) * J_con(2,b);
+    Line(4) = J_con(0,b) * J_con(2,a) + J_con(0,a) * J_con(2,b);
+    Line(5) = J_con(0,b) * J_con(1,a) + J_con(0,a) * J_con(1,b);
+
+    return Line;
+
+}
+
+void SmallDisplacement::CalculateB_DSG(
+    Matrix& rB,
+    Matrix J,
+    const Matrix& rDN_DX,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const unsigned int PointNumber
+    )
+{
+    KRATOS_TRY;
+    
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rB.clear();
+    
+    //Gcov
+    Matrix G_cov;
+    Vector a;
+    Vector b;
+    a = ZeroVector( dimension );
+    b = ZeroVector( dimension );
+    G_cov = ZeroMatrix( dimension, dimension );
+
+    for( int i = 0; i < 3; i++ )
+    {
+        for( int j = 0; j < 3; j++ )
+        {
+            a(0) = J(i,0);
+            a(1) = J(i,1);
+            a(2) = J(i,2);
+
+            b(0) = J(j,0);
+            b(1) = J(j,1);
+            b(2) = J(j,2);
+
+            G_cov(i,j) = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
+        }
+    }
+    //Gcon
+    Matrix G_con;
+    G_con = ZeroMatrix( dimension, dimension );
+    double detG_cov = MathUtils<double>::Det( G_cov );
+    MathUtils<double>::InvertMatrix( G_cov, G_con, detG_cov );
+
+    //Jcon
+    Matrix J_con;
+    J_con = ZeroMatrix( dimension, dimension );
+    for( int i = 0; i < 3; i++ )
+    {
+        for( int j = 0; j < 3; j++ )
+        {
+            J_con( i, 0 ) += G_con( i, j ) * J( j, 0 );
+            J_con( i, 1 ) += G_con( i, j ) * J( j, 1 );
+            J_con( i, 2 ) += G_con( i, j ) * J( j, 2 );
+        }
+    }
+
+    //getT
+    Matrix T;
+    T = ZeroMatrix( 6 , 6 );
+    // 1. Line
+    Vector TLine = getTLine( J_con, 0, 0 );
+    for( int i = 0; i < 6; i++ )
+    {
+        T(0,i) = TLine(i);
+    }
+    // 2.Line
+    TLine = getTLine( J_con, 1, 1 );
+    for( int i = 0; i < 6; i++ )
+    {
+        T(1,i) = TLine(i);
+    }
+    //3. Line
+    TLine = getTLine( J_con, 2, 2 );
+    for( int i = 0; i < 6; i++ )
+    {
+        T(2,i) = TLine(i);
+    }
+    // 4. Line
+    TLine = getTLine( J_con, 0, 1 );
+    for( int i = 0; i < 6; i++ )
+    {
+        T(3,i) = TLine(i);
+    }
+    // 5. Line
+    TLine = getTLine( J_con, 1, 2 );
+    for( int i = 0; i < 6; i++ )
+    {
+        T(4,i) = TLine(i);
+    }
+    // 6. Line
+    TLine = getTLine( J_con, 2, 0 );
+    for( int i = 0; i < 6; i++ )
+    {
+        T(5,i) = TLine(i);
+    }
+
+    if(dimension == 2) {
+        for ( unsigned int i = 0; i < number_of_nodes; ++i ) {
+            rB( 0, i*2     ) = rDN_DX( i, 0 );
+            rB( 1, i*2 + 1 ) = rDN_DX( i, 1 );
+            rB( 2, i*2     ) = rDN_DX( i, 1 );
+            rB( 2, i*2 + 1 ) = rDN_DX( i, 0 );
+        }
+    } else if(dimension == 3) {
+
+        rB( 0, 0 ) = -1.0;
+        rB( 0, 3 ) =  1.0;
+
+        rB( 1, 1 ) = -1.0;
+        rB( 1, 7 ) =  1.0;
+
+        rB( 2, 2 ) = -1.0;
+        rB( 2, 11 ) = 1.0;
+
+        rB( 4, 1 ) = -0.5;
+        rB( 4, 2 ) = -0.5;
+        rB( 4, 8 ) = 0.5;
+        rB( 4, 10 ) = 0.5;
+
+        rB( 5, 0 ) = -0.5;
+        rB( 5, 2 ) = -0.5;
+        rB( 5, 5 ) = 0.5;
+        rB( 5, 9 ) = 0.5;
+
+        rB( 3, 0 ) = -0.5;
+        rB( 3, 1 ) = -0.5;
+        rB( 3, 4 ) = 0.5;
+        rB( 3, 6 ) = 0.5;
+            
+        rB = prod( T, rB );
+
+        /* All others are zero
+        for ( unsigned int i = 0; i < number_of_nodes; ++i ) {
+            rB( 0, i*3     ) = rDN_DX( i, 0 );
+            rB( 1, i*3 + 1 ) = rDN_DX( i, 1 );
+            rB( 2, i*3 + 2 ) = rDN_DX( i, 2 );
+            rB( 3, i*3     ) = rDN_DX( i, 1 );
+            rB( 3, i*3 + 1 ) = rDN_DX( i, 0 );
+            rB( 4, i*3 + 1 ) = rDN_DX( i, 2 );
+            rB( 4, i*3 + 2 ) = rDN_DX( i, 1 );
+            rB( 5, i*3     ) = rDN_DX( i, 2 );
+            rB( 5, i*3 + 2 ) = rDN_DX( i, 0 );
+        }*/
+    }
+
+    KRATOS_CATCH( "" )
+}
 
 void SmallDisplacement::CalculateB(
     Matrix& rB,
@@ -238,16 +402,17 @@ void SmallDisplacement::CalculateB(
             rB( 2, i*2 + 1 ) = rDN_DX( i, 0 );
         }
     } else if(dimension == 3) {
-        for ( unsigned int i = 0; i < number_of_nodes; ++i ) {
-            rB( 0, i*3     ) = rDN_DX( i, 0 );
-            rB( 1, i*3 + 1 ) = rDN_DX( i, 1 );
-            rB( 2, i*3 + 2 ) = rDN_DX( i, 2 );
-            rB( 3, i*3     ) = rDN_DX( i, 1 );
-            rB( 3, i*3 + 1 ) = rDN_DX( i, 0 );
-            rB( 4, i*3 + 1 ) = rDN_DX( i, 2 );
-            rB( 4, i*3 + 2 ) = rDN_DX( i, 1 );
-            rB( 5, i*3     ) = rDN_DX( i, 2 );
-            rB( 5, i*3 + 2 ) = rDN_DX( i, 0 );
+
+         for ( unsigned int i = 0; i < number_of_nodes; ++i ) {
+            rB( 0, i*3     ) = rDN_DX( i, 0 )*10.0;
+            rB( 1, i*3 + 1 ) = rDN_DX( i, 1 )*10.0;
+            rB( 2, i*3 + 2 ) = rDN_DX( i, 2 )*10.0;
+            rB( 3, i*3     ) = rDN_DX( i, 1 )*10.0;
+            rB( 3, i*3 + 1 ) = rDN_DX( i, 0 )*10.0;
+            rB( 4, i*3 + 1 ) = rDN_DX( i, 2 )*10.0;
+            rB( 4, i*3 + 2 ) = rDN_DX( i, 1 )*10.0;
+            rB( 5, i*3     ) = rDN_DX( i, 2 )*10.0;
+            rB( 5, i*3 + 2 ) = rDN_DX( i, 0 )*10.0;
         }
     }
 

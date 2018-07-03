@@ -235,7 +235,7 @@ public:
      * @param Step The step to be computed
      */
     void GetSecondDerivativesVector(
-        Vector& rValues,
+        Vector& rValues, 
         int Step = 0 
         ) override;
 
