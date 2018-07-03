@@ -1722,9 +1722,9 @@ const double crhs_ee16 =             1.0*crhs_ee13*(DN(0,2)*p[0] + DN(1,2)*p[1] 
     noalias(rRHS_ee) += rData.Weight * rhs_ee;
 }
 
-template <>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeSplitting(
-	TwoFluidNavierStokesData<3, 4>& rData,
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
+	TElementData& rData,
 	MatrixType& rShapeFunctionsPos,
     MatrixType& rShapeFunctionsNeg,
     MatrixType& rEnrichedShapeFunctionsPos,
@@ -1747,7 +1747,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeSplitting(
     // Construct the modified shape fucntions utility
     GeometryType::Pointer p_geom = this->pGetGeometry();
     ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-    p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, rData.Distance);
+    if (Dim == 2)
+        p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, rData.Distance);
+    else
+        p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geom, rData.Distance);        
+
     p_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
         rShapeFunctionsPos,
         rShapeDerivativesPos,
@@ -1776,63 +1780,9 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeSplitting(
     rData.NumberOfDivisions = p_modified_sh_func->pGetSplittingUtil()->mDivisionsNumber;
 }
 
-template <>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeSplitting(
-	TwoFluidNavierStokesData<2, 3>& rData,
-	MatrixType& rShapeFunctionsPos,
-    MatrixType& rShapeFunctionsNeg,
-    MatrixType& rEnrichedShapeFunctionsPos,
-    MatrixType& rEnrichedShapeFunctionsNeg,
-	GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesPos,
-	GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
-    GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
-	GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg)
-{
-        Matrix Enr_Neg_Interp = ZeroMatrix(NumNodes,NumNodes);
-    Matrix Enr_Pos_Interp = ZeroMatrix(NumNodes,NumNodes);
-	for (unsigned int i = 0; i < NumNodes; i++)
-	{
-        if (rData.Distance[i] > 0.0)
-            Enr_Neg_Interp(i,i) = 1.0;
-        else {
-            Enr_Pos_Interp(i,i) = 1.0;
-        }
-	}
-    // Construct the modified shape fucntions utility
-    GeometryType::Pointer p_geom = this->pGetGeometry();
-    ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-    p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_geom, rData.Distance);
-    p_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        rShapeFunctionsPos,
-        rShapeDerivativesPos,
-        rData.w_gauss_pos_side,
-        GeometryData::GI_GAUSS_2);
-
-    // Call the negative side modified shape functions calculator
-    p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
-        rShapeFunctionsNeg,
-        rShapeDerivativesNeg,
-        rData.w_gauss_neg_side,
-        GeometryData::GI_GAUSS_2);
-        
-    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, Enr_Pos_Interp);
-    rEnrichedShapeFunctionsNeg = prod(rShapeFunctionsNeg, Enr_Neg_Interp);
-    rEnrichedShapeDerivativesPos = rShapeDerivativesPos;
-    rEnrichedShapeDerivativesNeg = rShapeDerivativesNeg;
-
-    for (unsigned int i = 0; i < rShapeDerivativesPos.size(); i++) {
-        rEnrichedShapeDerivativesPos[i] = prod(Enr_Pos_Interp, rShapeDerivativesPos[i]);
-    }
-    for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); i++) {
-        rEnrichedShapeDerivativesNeg[i] = prod(Enr_Neg_Interp, rShapeDerivativesNeg[i]);
-    }
-
-    rData.NumberOfDivisions = p_modified_sh_func->pGetSplittingUtil()->mDivisionsNumber;
-}
-
-template<>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::CondenseEnrichment(
-	TwoFluidNavierStokesData<2, 3>& rData,
+template< class TElementData >
+void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
+	TElementData& rData,
 	Matrix& rLeftHandSideMatrix,
 	VectorType& rRightHandSideVector,
     MatrixType& Htot,
@@ -1915,108 +1865,13 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::CondenseEnrichment(
     double det;
     MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag, det);
 
-	BoundedMatrix<double, 4, 16> tmp = prod(inverse_diag, Htot);
+	const Matrix tmp = prod(inverse_diag, Htot);
 	noalias(rLeftHandSideMatrix) -= prod(Vtot, tmp);
 
-	const array_1d<double, 4> tmp2 = prod(inverse_diag, rhs_ee_tot);
+	const Vector tmp2 = prod(inverse_diag, rhs_ee_tot);
 	noalias(rRightHandSideVector) -= prod(Vtot, tmp2);
 
 }
-
-template<>
-void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::CondenseEnrichment(
-	TwoFluidNavierStokesData<3, 4>& rData,
-	Matrix& rLeftHandSideMatrix,
-	VectorType& rRightHandSideVector,
-	MatrixType& Htot,
-	MatrixType& Vtot,
-	MatrixType& Kee_tot,
-	VectorType& rhs_ee_tot)
-{
-	const double min_area_ratio = -1e-6;
-
-	double positive_volume = 0.0;
-	double negative_volume = 0.0;
-	for (unsigned int igauss_pos = 0; igauss_pos < rData.w_gauss_pos_side.size(); igauss_pos++)
-	{
-        positive_volume += rData.w_gauss_pos_side[igauss_pos];
-	}
-
-    for (unsigned int igauss_neg = 0; igauss_neg < rData.w_gauss_neg_side.size(); igauss_neg++)
-	{
-        negative_volume += rData.w_gauss_neg_side[igauss_neg];
-	}
-	const double Vol = positive_volume + negative_volume;
-
-
-
-	double max_diag = 0.0;
-	for (unsigned int k = 0; k<Dim + 1; k++)
-		if (fabs(Kee_tot(k, k)) > max_diag) max_diag = fabs(Kee_tot(k, k));
-	if (max_diag == 0) max_diag = 1.0;
-
-
-
-	if (positive_volume / Vol < min_area_ratio)
-	{
-		for (unsigned int i = 0; i<Dim + 1; i++)
-		{
-			if (rData.Distance[i] >= 0.0)
-			{
-				Kee_tot(i, i) += 1000.0*max_diag;
-			}
-		}
-	}
-	if (negative_volume / Vol < min_area_ratio)
-	{
-		for (unsigned int i = 0; i<Dim + 1; i++)
-		{
-			if (rData.Distance[i] < 0.0)
-			{
-				Kee_tot(i, i) += 1000.0*max_diag;
-			}
-		}
-	}
-
-	//"weakly" impose continuity
-	for (unsigned int i = 0; i<Dim; i++)
-	{
-		const double di = fabs(rData.Distance[i]);
-
-		for (unsigned int j = i + 1; j<Dim + 1; j++)
-		{
-			const double dj = fabs(rData.Distance[j]);
-
-			if (rData.Distance[i] * rData.Distance[j] < 0.0) //cut edge
-			{
-				double sum_d = di + dj;
-				double Ni = dj / sum_d;
-				double Nj = di / sum_d;
-
-				double penalty_coeff = max_diag*0.001; // h/BDFVector[0];
-				Kee_tot(i, i) += penalty_coeff * Ni*Ni;
-				Kee_tot(i, j) -= penalty_coeff * Ni*Nj;
-				Kee_tot(j, i) -= penalty_coeff * Nj*Ni;
-				Kee_tot(j, j) += penalty_coeff * Nj*Nj;
-
-			}
-		}
-	}
-	//add to LHS enrichment contributions
-	MatrixType inverse_diag;
-	inverse_diag.resize(NumNodes, NumNodes, false);
-    double det;
-    MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag, det);
-
-	BoundedMatrix<double, 4, 16> tmp = prod(inverse_diag, Htot);
-	noalias(rLeftHandSideMatrix) -= prod(Vtot, tmp);
-
-	const array_1d<double, 4> tmp2 = prod(inverse_diag, rhs_ee_tot);
-	noalias(rRightHandSideVector) -= prod(Vtot, tmp2);
-
-}
-
-
 
 template< class TElementData >
 void TwoFluidNavierStokes<TElementData>::save(Serializer& rSerializer) const
