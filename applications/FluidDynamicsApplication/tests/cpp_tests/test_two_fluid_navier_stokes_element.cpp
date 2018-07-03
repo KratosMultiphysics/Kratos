@@ -113,18 +113,17 @@ namespace Kratos {
 			pElement->Initialize(); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, modelPart.GetProcessInfo());
 
-
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution, 
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-			KRATOS_CHECK_NEAR(RHS(0), -42.71302228, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(1), 29.74815627, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(2), -0.20107385, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(3), 90.07549156, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(4), 94.94699954, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(5), 0.06718134, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(6), 75.76253072, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(7), 146.55484418, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(8), -0.01610749, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(0), -42.7102445, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(1), 29.7509341, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(2), -0.2010738, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(3), 90.0727138, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(4), 94.9469995, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(5), 0.0671813, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(6), 75.7625307, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(7), 146.5520664, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(8), -0.0161075, 1e-7);
 
 	    }
 
