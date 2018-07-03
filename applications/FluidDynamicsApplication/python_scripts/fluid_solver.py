@@ -113,7 +113,7 @@ class FluidSolver(PythonSolver):
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
             if not is_converged and self._IsPrintingRank():
-                msg  = "Fluid solver did not converge for iteration " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+                msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
                 KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
 
