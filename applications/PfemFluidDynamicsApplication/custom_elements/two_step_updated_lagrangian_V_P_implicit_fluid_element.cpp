@@ -104,7 +104,7 @@ namespace Kratos {
       // 	DeviatoricCoeff=this->ComputeJopMuIrheologyViscosity(rElementalVariables);
       // }
     }else{
-      // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
+      std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
       this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
     }
 
@@ -701,7 +701,7 @@ namespace Kratos {
 
     meanValueStiff*=1.0/countStiff;
     meanValueMass*=1.0/countMass;
-    
+    std::cout<<" meanStiff "<< meanValueStiff<< " meanValueMass "<<meanValueMass<<std::endl;
     if(meanValueMass!=0 && meanValueStiff!=0){
       bulkCoefficient=meanValueMass*4/(timeStep*meanValueStiff);
     }else{
@@ -1249,6 +1249,9 @@ namespace Kratos {
     if(MeanVelocity==0){
       Tau=0;
     }
+
+    std::cout<<" Tau: "<<Tau<<"(ElemSize:"<<ElemSize<<" Viscosity:"<<Viscosity<<")"<<std::endl;
+
   }
 
   template< unsigned int TDim >
@@ -1602,6 +1605,7 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
 
+    std::cout<<" ELEMENT["<<this->Id()<<"]"<<std::endl;
 
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -1642,7 +1646,7 @@ namespace Kratos {
 
     double Tau=0;
     this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
-
+    
     double totalVolume=0;
     bool computeElement=false;
     // Loop on integration points
@@ -1667,6 +1671,8 @@ namespace Kratos {
 
 	  this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
 
+          std::cout<<" BoundFactor: "<< BoundLHSCoeff <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
+          
 	  double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
 
 	  double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
@@ -1680,7 +1686,7 @@ namespace Kratos {
 
 	  double StabLaplacianWeight=Tau*GaussWeight;
 	  this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
-
+          std::cout<<" StabFactor: "<<StabLaplacianWeight<<" Kpp "<<rLeftHandSideMatrix<<std::endl;
 	  for (SizeType i = 0; i < NumNodes; ++i)
 	    {         
 	      // RHS contribution
@@ -1708,6 +1714,7 @@ namespace Kratos {
       double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
       double lumpedBulkStabCoeff=lumpedBulkCoeff*Tau*Density/TimeStep;
 
+      std::cout<<" BulkFactor: "<<lumpedBulkStabCoeff<<" Kpp "<<rLeftHandSideMatrix<<std::endl;
       this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
       // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkCoeff);
       noalias(rLeftHandSideMatrix)+=BulkMatrix;

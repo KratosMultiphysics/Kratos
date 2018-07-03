@@ -19,7 +19,7 @@
         "processes_parts_list"  : ["VELOCITY_Velocity"]
     },
     "problem_data"        : {
-	"echo_level"      : 0,
+	"echo_level"      : 1,
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
@@ -64,6 +64,7 @@
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"                 : false,
+			"compute_reactions"           : true,
 			"max_iteration"               : 15
 		    },
 		    "convergence_criterion_settings" : {

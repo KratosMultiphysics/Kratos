@@ -590,8 +590,8 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
 
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber )
     {
         //compute element kinematic variables B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);

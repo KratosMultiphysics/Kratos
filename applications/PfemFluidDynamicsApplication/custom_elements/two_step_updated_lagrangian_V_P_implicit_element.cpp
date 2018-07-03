@@ -67,6 +67,8 @@ namespace Kratos {
   {
     KRATOS_TRY; 
 
+    std::cout<<"V ELEMENT["<<this->Id()<<"]"<<std::endl;
+    
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = TDim * NumNodes;
@@ -164,6 +166,7 @@ namespace Kratos {
 	  // }
 	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
 	  // DeviatoricCoeff=deviatoricCoeffTemp;
+          std::cout<<" Stress "<<rElementalVariables.UpdatedTotalCauchyStress<<" LameMu "<<DeviatoricCoeff<<" BulkModulus "<<VolumetricCoeff<<" DN_DX "<<rDN_DX<<" Kv "<<StiffnessMatrix<<std::endl;
 	}
       }
 
@@ -177,7 +180,7 @@ namespace Kratos {
       // VolumetricCoeff*=BulkReductionCoefficient;
       VolumetricCoeff*=MeanValueMass*2.0/(TimeStep*MeanValueStiffness);
       StiffnessMatrix= ZeroMatrix(LocalSize,LocalSize);
-
+      std::cout<<" Volumetric "<<VolumetricCoeff<<std::endl;
       for (unsigned int g = 0; g < NumGauss; g++)
     	{
     	  const double GaussWeight = GaussWeights[g];
@@ -186,6 +189,7 @@ namespace Kratos {
     	}
     }
 
+    std::cout<<" Kv "<<StiffnessMatrix<<std::endl;
 
     // Add residual of previous iteration to RHS
     VectorType VelocityValues = ZeroVector(LocalSize);
@@ -234,7 +238,7 @@ namespace Kratos {
     // noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
     // noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix;
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
-
+        
     KRATOS_CATCH( "" );
  
   }
@@ -268,6 +272,9 @@ namespace Kratos {
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
 
+    std::cout<<" Constitutive "<< (FourThirds * secondLame) <<" " << (nTwoThirds* secondLame) <<std::endl;
+    std::cout<<" Constitutive "<< (FourThirds * secondLame + bulkModulus) <<" " << (nTwoThirds* secondLame + bulkModulus) <<std::endl;
+    
     SizeType FirstRow=0;
     SizeType FirstCol=0;
 
