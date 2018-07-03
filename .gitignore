@@ -80,3 +80,6 @@ applications/ULFapplication/test_examples/bottle_blowing/convergence_info\.txt
 applications/ULFapplication/test_examples/bottle_blowing/distance_to_wall\.out
 
 applications/fluid_rve_lagrange_multipliers_application/test_examples/simple_square_domain/caso_email_2905_visc0625_den1_grad40_with_reytensor_noanti\.post\.bin
+
+/home/pavel/Kratos/applications/fluid_rve_lagrange_multipliers_application
+/home/pavel/Kratos/applications/fluid_rve_lagrange_multipliers_application/*.*
