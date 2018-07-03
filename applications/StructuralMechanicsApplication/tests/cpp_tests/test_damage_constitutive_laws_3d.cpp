@@ -97,13 +97,20 @@ namespace Testing
         Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(Node1,Node2,Node3,Node4);
 
         rStressVector = ZeroVector(6);
+		rStressVector[0] = 5.40984e+06;
+		rStressVector[1] = 5.40984e+06;
+		rStressVector[2] = 1.91803e+07;
+		rStressVector[3] = 0.0;
+		rStressVector[4] = 0.0;
+		rStressVector[5] = 1.45804e-10;
+
         rStrainVector = ZeroVector(6);
         rStrainVector[0] = 0.0;
         rStrainVector[1] = 0.0;
-        rStrainVector[2] = -8.0e-5;
+        rStrainVector[2] = 8.0e-5;
         rStrainVector[3] = 0.0;
         rStrainVector[4] = 0.0;
-        rStrainVector[5] = -1.6941e-21;
+        rStrainVector[5] = 1.6941e-21;
 
         rMaterialProperties.SetValue(YOUNG_MODULUS, 210e9);
         rMaterialProperties.SetValue(POISSON_RATIO, 0.22);
@@ -128,10 +135,12 @@ namespace Testing
         SJ SimoJuCL = SJ();
 
         std::vector<double> MCres, VMres, DPres, Tres, Rres, SJres;
-        MCres = { -9.07262e+06, -9.07262e+06, -1.18548e+07, 0.0, 0.0, -2.94576e-11 };
-        VMres = { -9.09508e+06, -9.09508e+06, -1.18098e+07, 0.0, 0.0, -2.87441e-11 };
-        DPres = { -5.40984e+06, -5.40984e+06, -1.91803e+07, 0.0, 0.0, -1.45804e-10 };
-        Tres  = { -9.09508e+06, -9.09508e+06, -1.18098e+07, 0.0, 0.0, -2.87441e-11 };
+        MCres = { 1.07429e+06,1.07429e+06,3.80884e+06,0,0,2.89538e-11 };
+        VMres = { 1.07429e+06,1.07429e+06,3.80884e+06,0,0,2.89538e-11 };
+        DPres = { 758653,758653,2.68977e+06,0,0,2.04469e-11 };
+        Tres  = { 1.07429e+06,1.07429e+06,3.80884e+06,0,0,2.89538e-11 };
+        Rres  = { 733679,733679,2.60123e+06,0,0,1.97738e-11 };
+        //SJres  = { -9.09508e+06, -9.09508e+06, -1.18098e+07, 0.0, 0.0, -2.87441e-11 };
 
         Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
         MohrCoulombCL.CalculateMaterialResponseCauchy(rValues);
@@ -149,8 +158,8 @@ namespace Testing
 		RankineCL.CalculateMaterialResponseCauchy(rValues);
         TestR = rValues.GetStressVector();
 
-		SimoJuCL.CalculateMaterialResponseCauchy(rValues);
-        TestSJ = rValues.GetStressVector();
+		// SimoJuCL.CalculateMaterialResponseCauchy(rValues);
+        // TestSJ = rValues.GetStressVector();
 
         //Check the results
         for (int comp = 0; comp < 6; comp++) {
@@ -158,6 +167,7 @@ namespace Testing
             KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
             KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
             KRATOS_CHECK_NEAR(Tres[comp],  TestT[comp],  1.0e-3);
+            KRATOS_CHECK_NEAR(Rres[comp],  TestR[comp],  1.0e-3);
         }
     }
 }

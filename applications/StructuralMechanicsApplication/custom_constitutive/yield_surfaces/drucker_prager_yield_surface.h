@@ -164,6 +164,7 @@ public:
         } else { // linear
             AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf*n*n / CharacteristicLength);
         }
+        KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
     }
 
     /**
