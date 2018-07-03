@@ -310,19 +310,19 @@ void SmallDisplacement::CalculateB_DSG(
         T(2,i) = TLine(i);
     }
     // 4. Line
-    TLine = getTLine( J_con, 0, 1 );
+    TLine = getTLine( J_con, 1, 2 );
     for( int i = 0; i < 6; i++ )
     {
         T(3,i) = TLine(i);
     }
     // 5. Line
-    TLine = getTLine( J_con, 1, 2 );
+    TLine = getTLine( J_con, 2, 0 );
     for( int i = 0; i < 6; i++ )
     {
         T(4,i) = TLine(i);
     }
     // 6. Line
-    TLine = getTLine( J_con, 2, 0 );
+    TLine = getTLine( J_con, 0, 1 );
     for( int i = 0; i < 6; i++ )
     {
         T(5,i) = TLine(i);
@@ -346,20 +346,20 @@ void SmallDisplacement::CalculateB_DSG(
         rB( 2, 2 ) = -1.0;
         rB( 2, 11 ) = 1.0;
 
-        rB( 4, 1 ) = -0.5;
+        rB( 3, 1 ) = -0.5;
+        rB( 3, 2 ) = -0.5;
+        rB( 3, 8 ) = 0.5;
+        rB( 3, 10 ) = 0.5;
+
+        rB( 4, 0 ) = -0.5;
         rB( 4, 2 ) = -0.5;
-        rB( 4, 8 ) = 0.5;
-        rB( 4, 10 ) = 0.5;
+        rB( 4, 5 ) = 0.5;
+        rB( 4, 9 ) = 0.5;
 
         rB( 5, 0 ) = -0.5;
-        rB( 5, 2 ) = -0.5;
-        rB( 5, 5 ) = 0.5;
-        rB( 5, 9 ) = 0.5;
-
-        rB( 3, 0 ) = -0.5;
-        rB( 3, 1 ) = -0.5;
-        rB( 3, 4 ) = 0.5;
-        rB( 3, 6 ) = 0.5;
+        rB( 5, 1 ) = -0.5;
+        rB( 5, 4 ) = 0.5;
+        rB( 5, 6 ) = 0.5;
             
         rB = prod( T, rB );
 
