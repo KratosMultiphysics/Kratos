@@ -30,9 +30,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "entity_type"       : "element",
             "position"          : [],
             "output_variables"  : [],
-            "output_file_name"  : "",
-            "write_buffer_size" : -1,
-            "print_format"      : ""
+            "print_format"      : "",
+            "output_file_settings": {}
         }''')
 
         self.model = model
@@ -123,15 +122,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
         writing_rank = self.model_part.GetCommunicator().MaxAll(my_rank) # The partition with the larger rank writes
 
         if my_rank == writing_rank:
-            # setting up the output_file
-            output_file_name = self.params["output_file_name"].GetString()
-            if not output_file_name.endswith(".dat"):
-                output_file_name += ".dat"
 
-            file_handler_params = KratosMultiphysics.Parameters('''{ "output_file_name" : "" }''')
-            file_handler_params["output_file_name"].SetString(output_file_name)
-            file_handler_params.AddValue("write_buffer_size", self.params["write_buffer_size"])
-
+            file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
             file_header = GetFileHeader(entity_type, found_id, point, self.output_variables[0])
             self.output_file.append(TimeBasedAsciiFileWriterUtility(
                 self.model_part, file_handler_params, file_header).file)
