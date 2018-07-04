@@ -483,7 +483,7 @@ class TestProcesses(KratosUnittest.TestCase):
             for node in cond.GetNodes():
                 self.assertEqual(v[i],node.X+node.Y*t+node.Z)
                 i=i+1
-                
+
     def test_assign_scalar_field_scalar_variable_to_conditions(self):
         model_part = ModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
