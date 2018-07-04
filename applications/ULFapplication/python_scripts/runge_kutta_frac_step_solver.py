@@ -1,11 +1,9 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
+#CURRENT IMPLEMENTATION IS JUST FOR 2D
 from KratosMultiphysics import *
 
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ULFApplication import *
-from KratosMultiphysics.MeshingApplication import *
-
 
 CheckForPreviousImport()
 
@@ -53,12 +51,10 @@ class RungeKuttaFracStepSolver:
         number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
 
-
         # self.move_mesh_strategy = 2
         pDiagPrecond = DiagonalPreconditioner()
-
         # definition of the solvers
-        pILUPrecond = ILU0Preconditioner()
+        #pILUPrecond = ILU0Preconditioner()
         self.linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
         print("LIN SOLVER", self.linear_solver)
 
@@ -88,14 +84,11 @@ class RungeKuttaFracStepSolver:
 
         if(domain_size == 2):
             self.Mesher = TriGenPFEMModeler()
-            
             self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
             self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
-            self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 2, 10)	
-            
+            self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 2, 10)            
      
         self.mark_fluid_process = MarkFluidProcess(model_part);
-
         self.UlfUtils = UlfUtils()
 
     #
@@ -120,13 +113,10 @@ class RungeKuttaFracStepSolver:
                 self.ReformDofSetAtEachStep, self.CalculateNormDxFlag)
 
         (self.solver).SetEchoLevel(self.echo_level)
-
+        
         (self.neigh_finder).Execute()
-
         (self.fluid_neigh_finder).Execute();
-
-        (self.ulf_apply_bc_process).Execute(); 
-
+        (self.ulf_apply_bc_process).Execute();
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
 
@@ -164,16 +154,14 @@ class RungeKuttaFracStepSolver:
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
-    def RemeshAux(self):
-	
+    def RemeshAux(self):	
 
         alpha_shape=1.4;
-
         h_factor=0.2
 
-        if(self.domain_size == 2):
-            for node in (self.model_part).Nodes: 
-                node.SetSolutionStepValue(NODAL_H,0,0.002) 
+        #if(self.domain_size == 2):
+        #    for node in (self.model_part).Nodes: 
+        #        node.SetSolutionStepValue(NODAL_H,0,0.002) 
 
 
         self.node_erase_process = NodeEraseProcess(self.model_part);
@@ -198,11 +186,8 @@ class RungeKuttaFracStepSolver:
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
 
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
-
         self.UlfUtils.MarkNodesCloseToWall(self.model_part, self.domain_size, 2.5000)
-
-        self.UlfUtils.MarkExcessivelyCloseNodes(self.model_part.Nodes, 0.2)	 
-
+        self.UlfUtils.MarkExcessivelyCloseNodes(self.model_part.Nodes, 0.2)
         self.node_erase_process.Execute()
 
         ((self.model_part).Elements).clear();
