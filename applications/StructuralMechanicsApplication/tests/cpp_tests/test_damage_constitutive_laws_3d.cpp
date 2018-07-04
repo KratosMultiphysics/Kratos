@@ -81,7 +81,7 @@ namespace Testing
     /** 
     * Check the correct calculation of the integrated stress with the CL's
     */
-    KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamage, KratosStructuralMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
     {
         ConstitutiveLaw::Parameters rValues;
 		Properties rMaterialProperties;
@@ -140,7 +140,7 @@ namespace Testing
         DPres = { 758653,758653,2.68977e+06,0,0,2.04469e-11 };
         Tres  = { 1.07429e+06,1.07429e+06,3.80884e+06,0,0,2.89538e-11 };
         Rres  = { 733679,733679,2.60123e+06,0,0,1.97738e-11 };
-        //SJres  = { -9.09508e+06, -9.09508e+06, -1.18098e+07, 0.0, 0.0, -2.87441e-11 };
+        SJres  = { 5.40984e+06,5.40984e+06,1.91803e+07,0,0,1.45804e-10 };
 
         Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
         MohrCoulombCL.CalculateMaterialResponseCauchy(rValues);
@@ -158,8 +158,10 @@ namespace Testing
 		RankineCL.CalculateMaterialResponseCauchy(rValues);
         TestR = rValues.GetStressVector();
 
-		// SimoJuCL.CalculateMaterialResponseCauchy(rValues);
-        // TestSJ = rValues.GetStressVector();
+        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1.0e5);
+        rValues.SetMaterialProperties(rMaterialProperties);
+		SimoJuCL.CalculateMaterialResponseCauchy(rValues);
+        TestSJ = rValues.GetStressVector();
 
         //Check the results
         for (int comp = 0; comp < 6; comp++) {
@@ -168,6 +170,100 @@ namespace Testing
             KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
             KRATOS_CHECK_NEAR(Tres[comp],  TestT[comp],  1.0e-3);
             KRATOS_CHECK_NEAR(Rres[comp],  TestR[comp],  1.0e-3);
+            KRATOS_CHECK_NEAR(SJres[comp], TestSJ[comp], 1.0e-3);
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, KratosStructuralMechanicsFastSuite)
+    {
+        ConstitutiveLaw::Parameters rValues;
+		Properties rMaterialProperties;
+        Vector rStressVector, rStrainVector;
+
+        ModelPart& TestMdpa = ModelPart();
+
+        NodeType::Pointer Node1 = TestMdpa.CreateNewNode(1, 0.0, 0.0, 0.0);
+        NodeType::Pointer Node2 = TestMdpa.CreateNewNode(2, 1.0, 0.0, 0.0);
+        NodeType::Pointer Node3 = TestMdpa.CreateNewNode(3, 0.0, 1.0, 0.0);
+        NodeType::Pointer Node4 = TestMdpa.CreateNewNode(4, 0.0, 0.0, 1.0);
+
+        Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(Node1,Node2,Node3,Node4);
+
+        rStressVector = ZeroVector(6);
+		rStressVector[0] = 5.40984e+06;
+		rStressVector[1] = 5.40984e+06;
+		rStressVector[2] = 1.91803e+07;
+		rStressVector[3] = 0.0;
+		rStressVector[4] = 0.0;
+		rStressVector[5] = 1.45804e-10;
+
+        rStrainVector = ZeroVector(6);
+        rStrainVector[0] = 0.0;
+        rStrainVector[1] = 0.0;
+        rStrainVector[2] = 8.0e-5;
+        rStrainVector[3] = 0.0;
+        rStrainVector[4] = 0.0;
+        rStrainVector[5] = 1.6941e-21;
+
+        rMaterialProperties.SetValue(YOUNG_MODULUS, 210e9);
+        rMaterialProperties.SetValue(POISSON_RATIO, 0.22);
+        rMaterialProperties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
+        rMaterialProperties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
+        rMaterialProperties.SetValue(FRICTION_ANGLE, 32.0);
+        rMaterialProperties.SetValue(DILATANCY_ANGLE, 16.0);
+        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1.0e5);
+        rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
+
+        rValues.SetElementGeometry(Geom);
+        rValues.SetMaterialProperties(rMaterialProperties);
+        rValues.SetStrainVector(rStrainVector);
+        rValues.SetStressVector(rStressVector);
+
+		// Create the CL's
+		MC MohrCoulombCL = MC();
+		VM VonMisesCL = VM();
+		DP DruckerPragerCL = DP();
+		T TrescaCL = T();
+        R RankineCL = R();
+        SJ SimoJuCL = SJ();
+
+        std::vector<double> MCres, VMres, DPres, Tres, Rres, SJres;
+        MCres = { 1.17654e+06,1.17654e+06,4.17136e+06,0,0,3.17095e-11 };
+        VMres = { 1.17654e+06,1.17654e+06,4.17136e+06,0,0,3.17095e-11 };
+        DPres = { 868346,868346,3.07868e+06,0,0,2.34033e-11 };
+        Tres  = { 1.17654e+06,1.17654e+06,4.17136e+06,0,0,3.17095e-11 };
+        Rres  = { 843961,843961,2.99222e+06,0,0,2.27461e-11 };
+        SJres = { 859503,859503,3.04733e+06,0,0,2.3165e-11 };
+
+        Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
+        MohrCoulombCL.CalculateMaterialResponseCauchy(rValues);
+        TestMC = rValues.GetStressVector();
+
+		VonMisesCL.CalculateMaterialResponseCauchy(rValues);
+        TestVM = rValues.GetStressVector();
+
+		DruckerPragerCL.CalculateMaterialResponseCauchy(rValues);
+        TestDP = rValues.GetStressVector();
+
+		TrescaCL.CalculateMaterialResponseCauchy(rValues);
+        TestT = rValues.GetStressVector();
+
+		RankineCL.CalculateMaterialResponseCauchy(rValues);
+        TestR = rValues.GetStressVector();
+
+        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1.0e15);
+        rValues.SetMaterialProperties(rMaterialProperties);
+		SimoJuCL.CalculateMaterialResponseCauchy(rValues);
+        TestSJ = rValues.GetStressVector();
+
+        //Check the results
+        for (int comp = 0; comp < 6; comp++) {
+            KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 1.0e-3);
+            KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 1.0e-3);
+            KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 1.0e-3);
+            KRATOS_CHECK_NEAR(Tres[comp],  TestT[comp],  1.0e-3);
+            KRATOS_CHECK_NEAR(Rres[comp],  TestR[comp],  1.0e-3);
+            KRATOS_CHECK_NEAR(SJres[comp], TestSJ[comp], 1.0e-3);
         }
     }
 }
