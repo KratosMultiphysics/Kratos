@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_conditions/boundary_condition.hpp"
-
+#include "includes/variables.h"
 namespace Kratos
 {
 ///@name Kratos Globals
