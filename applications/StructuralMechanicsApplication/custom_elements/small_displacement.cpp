@@ -70,6 +70,8 @@ bool SmallDisplacement::UseElementProvidedStrain()
     return true;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 void SmallDisplacement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,

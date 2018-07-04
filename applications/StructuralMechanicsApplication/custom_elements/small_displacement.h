@@ -147,6 +147,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
     /// Turn back information as a string.
     //      virtual String Info() const;
 

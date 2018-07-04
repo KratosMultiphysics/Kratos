@@ -548,7 +548,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
             // Compute material reponse
-            //CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
             double StrainEnergy = 0.0;
 
@@ -580,7 +580,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
             // Compute material reponse
-            //CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
             const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
 
@@ -703,9 +703,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             rOutput[point_number] = this_constitutive_variables.StressVector;
         }
-        // for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
-        //     rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
-
     } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR ) {
         // Create and initialize element variables:
         const SizeType number_of_nodes = GetGeometry().size();
@@ -739,9 +736,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             rOutput[point_number] = this_constitutive_variables.StrainVector;
         }
-        // for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
-        //     rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
-
     } else {
         for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
@@ -765,7 +759,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
     if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR ) {
         std::vector<Vector> stress_vector;
-		//Vector stress_vector;
 
         if( rVariable == CAUCHY_STRESS_TENSOR )
             this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, stress_vector, rCurrentProcessInfo );
@@ -778,13 +771,10 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 rOutput[point_number].resize( dimension, dimension, false );
 
             rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
-			// stress_vector = mConstitutiveLawVector[point_number]->GetValue(CAUCHY_STRESS_VECTOR, stress_vector);
-            // rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector);
         }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
         std::vector<Vector> strain_vector;
-		//Vector strain_vector;
         if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
             CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector, rCurrentProcessInfo );
         else
@@ -796,9 +786,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 rOutput[point_number].resize( dimension, dimension, false );
 
             rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
-			// strain_vector = mConstitutiveLawVector[point_number]->GetValue(GREEN_LAGRANGE_STRAIN_VECTOR, strain_vector);
-			// rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector);
-
         }
     } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
         // Create and initialize element variables:
