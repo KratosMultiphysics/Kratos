@@ -270,41 +270,6 @@ void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Vector >& r
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
-                                                const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    // TODO catch ON_NODE and return, else call base class
-    if(rVariable == STRESS_DISP_DERIV_ON_GP)
-    {
-       this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
-    }
-    else if(rVariable == STRESS_DESIGN_DERIVATIVE_ON_GP)
-    {
-        std::string design_variable_name = this->GetValue( DESIGN_VARIABLE_NAME );
-
-        if (KratosComponents<Variable<double>>::Has(design_variable_name) == true)
-        {
-            const Variable<double>& r_variable =
-                KratosComponents<Variable<double>>::Get(design_variable_name);
-            this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
-        }
-        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_variable_name) == true)
-        {
-            const Variable<array_1d<double, 3>>& r_variable =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(design_variable_name);
-            this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
-        }
-    }
-    else
-    {
-        rOutput.clear();
-    }
-
-    KRATOS_CATCH("")
-}
-
 int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

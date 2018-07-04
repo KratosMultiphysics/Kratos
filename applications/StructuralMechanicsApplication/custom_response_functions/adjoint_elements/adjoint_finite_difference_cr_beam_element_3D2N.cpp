@@ -197,62 +197,6 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Matrix >& rVariable,
-                        Matrix& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    if(rVariable == STRESS_DISP_DERIV_ON_GP)
-    {
-            this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
-    }
-    else if(rVariable == STRESS_DISP_DERIV_ON_NODE)
-    {
-        this->CalculateStressDisplacementDerivative(STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
-    }
-    else if(rVariable == STRESS_DESIGN_DERIVATIVE_ON_GP)
-    {
-        const std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );
-
-        if (KratosComponents<Variable<double>>::Has(design_varible_name) == true)
-        {
-            const Variable<double>& r_variable =
-                KratosComponents<Variable<double>>::Get(design_varible_name);
-            this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
-        }
-        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_varible_name) == true)
-        {
-            const Variable<array_1d<double, 3>>& r_variable =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(design_varible_name);
-            this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
-        }
-    }
-    else if(rVariable == STRESS_DESIGN_DERIVATIVE_ON_NODE)
-    {
-        std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );
-
-        if (KratosComponents<Variable<double>>::Has(design_varible_name) == true)
-        {
-            const Variable<double>& r_variable =
-                KratosComponents<Variable<double>>::Get(design_varible_name);
-            this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
-        }
-        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_varible_name) == true)
-        {
-            const Variable<array_1d<double, 3>>& r_variable =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(design_varible_name);
-            this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
-        }
-    }
-        else
-    {
-        rOutput.clear();
-    }
-
-    KRATOS_CATCH("")
-}
-
 int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
