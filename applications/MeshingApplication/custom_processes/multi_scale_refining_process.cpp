@@ -75,6 +75,23 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 }
 
 
+void MultiScaleRefiningProcess::ExecuteRefinement()
+{
+    IndexType node_id;
+    IndexType elem_id;
+    IndexType cond_id;
+
+    GetLastId(node_id, elem_id, cond_id);
+
+    MarkElementsFromNodalCondition();
+    MarkElementsFromNodalCondition();
+
+    CloneNodesToRefine(node_id);
+    CreateElementsToRefine(elem_id);
+    CreateConditionsToRefine(elem_id);
+    
+}
+
 MultiScaleRefiningProcess::StringVectorType MultiScaleRefiningProcess::RecursiveGetSubModelPartNames(
     ModelPart& rThisModelPart,
     std::string Prefix
@@ -386,15 +403,75 @@ void MultiScaleRefiningProcess::MarkConditionsFromNodalCondition()
 }
 
 
-void MultiScaleRefiningProcess::CloneNodesToRefine()
+void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
+{
+    ModelPart& coarse_model_part = *mpOwnModelPart.get();
+    ModelPart& refined_model_part = *mpRefinedModelPart.get();
+
+    const int nnodes = static_cast<int>(coarse_model_part.Nodes().size());
+    ModelPart::NodesContainerType::iterator nodes_begin = coarse_model_part.NodesBegin();
+
+    // Adding the nodes to the refined model part
+    for (int i = 0; i < nnodes; i++)
+    {
+        auto coarse_node = nodes_begin + i;
+        if (coarse_node->Is(TO_REFINE))
+        {
+            auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
+            if (search == mCoarseToRefinedNodesMap.end())
+            {
+                NodeType::Pointer new_node = refined_model_part.CreateNewNode(++rNodeId, *coarse_node);
+                mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
+                mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
+                coarse_node->Set(NEW_ENTITY, true);
+            }
+        }
+        else
+        {
+            /**
+             * What happens if I need to remove a node?
+             * and how do I remove all the divided nodes?
+             * I should implement a TransferDataToRefinedNodes
+             * Remove from the maps
+             * Remove from the maps inside the utility
+             * I think that the utility should remove the entities
+             */
+        }
+    }
+
+    // Adding the nodes to the refined sub model parts
+    StringVectorType sub_model_part_names = coarse_model_part.GetSubModelPartNames();
+    for (auto name : sub_model_part_names)
+    {
+        ModelPart& coarse_sub_model_part = coarse_model_part.GetSubModelPart(name);
+        ModelPart& refined_sub_model_part = refined_model_part.GetSubModelPart(name);
+
+        const int nnodes = static_cast<int>(coarse_sub_model_part.Nodes().size());
+        ModelPart::NodesContainerType::iterator nodes_begin = coarse_sub_model_part.NodesBegin();
+
+        for (int i = 0; i < nnodes; i++)
+        {
+            auto coarse_node = nodes_begin + i;
+            if (coarse_node->Is(NEW_ENTITY))
+                refined_sub_model_part.AddNode(mCoarseToRefinedNodesMap[coarse_node->Id()]);
+        }
+    }
+
+    // Resetting the flag
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; i++)
+    {
+        auto node = nodes_begin + i;
+        node->Set(NEW_ENTITY, false);
+    }
+}
+
+
+void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId)
 {}
 
 
-void MultiScaleRefiningProcess::CreateElementsToRefine()
-{}
-
-
-void MultiScaleRefiningProcess::CreateConditionsToRefine()
+void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId)
 {}
 
 
@@ -466,6 +543,54 @@ void MultiScaleRefiningProcess::IdentifyRefiningInterface()
      *              if (all nodes are INTERFACE and are not OLD_ENTITY)
      *                  Create condition
      **/
+}
+
+
+void MultiScaleRefiningProcess::GetLastId(
+    IndexType& rNodesId,
+    IndexType& rElemsId,
+    IndexType& rCondsId)
+{
+    // Initialize the output
+    rNodesId = 0;
+    rElemsId = 0;
+    rCondsId = 0;
+
+    // Get the root model part
+    ModelPart& root_model_part = mpOwnModelPart->GetRootModelPart();
+
+    // // Get the last node id
+    // const IndexType nnodes = root_model_part.Nodes().size();
+    // ModelPart::NodesContainerType::iterator nodes_begin = root_model_part.NodesBegin();
+    // for (IndexType i = 0; i < nnodes; i++)
+    // {
+    //     auto inode = nodes_begin + i;
+    //     if (rNodesId < inode->Id())
+    //         rNodesId = inode->Id();
+    // }
+
+    // Get the last node id
+    const int nnodes = static_cast<int>(root_model_part.Nodes().size());
+    ModelPart::NodesContainerType::iterator nodes_begin = root_model_part.NodesBegin();
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<IndexType> nodes_id(num_threads);
+    #pragma omp parallel
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+
+        #pragma omp for
+        for (int i = 0; i < nnodes; i++)
+        {
+            auto inode = nodes_begin + i;
+            if (nodes_id[thread_id] < inode->Id())
+                nodes_id[thread_id] = inode->Id();
+        }
+
+        #pragma omp single
+        {
+            rNodesId = *std::max_element(nodes_id.begin(), nodes_id.end());
+        }
+    }
 }
 
 

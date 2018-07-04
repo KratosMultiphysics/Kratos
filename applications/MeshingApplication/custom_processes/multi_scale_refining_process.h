@@ -126,6 +126,8 @@ public:
 
     void Execute() override {}
 
+    void ExecuteRefinement();
+
     ///@}
     ///@name Access
     ///@{
@@ -257,13 +259,15 @@ public:
 
     void MarkConditionsFromNodalCondition();
 
-    void CloneNodesToRefine();
+    void CloneNodesToRefine(IndexType& rNodeId);
 
-    void CreateElementsToRefine();
+    void CreateElementsToRefine(IndexType& rElemId);
 
-    void CreateConditionsToRefine();
+    void CreateConditionsToRefine(IndexType& rCondId);
 
     void IdentifyRefiningInterface();
+
+    void GetLastId(IndexType& rNodesId, IndexType& rElemsId, IndexType& rCondsId);
 
     ///@}
     ///@name Private Operations

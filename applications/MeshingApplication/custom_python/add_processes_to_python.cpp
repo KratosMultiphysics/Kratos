@@ -137,6 +137,7 @@ void  AddProcessesToPython(pybind11::module& m)
         class_<MultiScaleRefiningProcess, MultiScaleRefiningProcess::Pointer, Process>(m, "MultiScaleRefiningProcess")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
+        .def("ExecuteRefinement", &MultiScaleRefiningProcess::ExecuteRefinement)
         ;
 
         /* MMG PROCESS */
