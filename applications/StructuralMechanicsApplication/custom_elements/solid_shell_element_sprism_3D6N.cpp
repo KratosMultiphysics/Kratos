@@ -536,37 +536,19 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
 
     WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
-    const double density = GetProperties()[DENSITY]; // TODO: Take into account the volume variation
-
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
     const SizeType mat_size = number_of_nodes * 3;
 
-    if (rMassMatrix.size1() != mat_size)
+    if (rMassMatrix.size1() != mat_size) {
         rMassMatrix.resize(mat_size, mat_size, false);
+    }
 
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    double total_mass = GetGeometry().Volume() * density;
-
-    const bool compute_lumped_mass_matrix =  rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ? rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] : false;
-
-    // LUMPED MASS MATRIX, this one is easy because each node receives the same proportion of mass
-    if (compute_lumped_mass_matrix == true) {
-        Vector LumpFact;
-        GetGeometry().LumpingFactors(LumpFact);
-        for (IndexType i = 0; i < 3; ++i) {
-            double temp = LumpFact[i] * total_mass;
-            for (IndexType j = 0; j < 6; ++j) {
-                IndexType index = i * 6 + j;
-                rMassMatrix(index, index) = temp;
-            }
-        }
-    } else { // CONSISTENT MASS
-        Matrix aux_matrix;
-        const SizeType aux_mat_size = GetGeometry().size() * 3;
-        BaseType::CalculateMassMatrix(aux_matrix, rCurrentProcessInfo);
-        noalias(subrange(rMassMatrix, 0, aux_mat_size, 0, aux_mat_size)) = aux_matrix;
-    }
+    Matrix aux_matrix;
+    const SizeType aux_mat_size = GetGeometry().size() * 3;
+    BaseType::CalculateMassMatrix(aux_matrix, rCurrentProcessInfo);
+    noalias(subrange(rMassMatrix, 0, aux_mat_size, 0, aux_mat_size)) = aux_matrix;
 
     KRATOS_CATCH("");
 }
