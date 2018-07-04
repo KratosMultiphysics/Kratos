@@ -276,7 +276,7 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
             KRATOS_ERROR_IF(std::abs(fract_part-0.1) > 1e-12)
                 << "Buffer contains a double (" << r_rank_buffer[j*4]
                 << ") that was not casted from an int, i.e. it contains a "
-                << "fractional part of " << std::abs(fract_part-0.1) << " !" << std::endl;
+                << "fractional part of " << std::abs(fract_part-0.1) << "!" << std::endl;
 #endif
             // retrive data from buffer
             const int local_sys_idx = static_cast<IndexType>(r_rank_buffer[j*4]+0.1);
@@ -313,7 +313,7 @@ void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerTyp
             const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
             const std::string& stream_str = p_serializer_buffer->str();
 
-            const SizeType send_size = sizeof(char) * (stream_str.size()+1);
+            const SizeType send_size = sizeof(char) * (stream_str.size()+1); // +1 fof Null-terminated string
 
             rSendSizes[i_rank] = send_size;
 
