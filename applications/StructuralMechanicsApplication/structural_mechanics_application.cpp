@@ -186,6 +186,9 @@ void KratosStructuralMechanicsApplication::Register() {
                     << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl
                     << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
 
+    // General pourpose
+    KRATOS_REGISTER_VARIABLE(INTEGRATION_ORDER); // The integration order considered on the element
+
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
@@ -224,6 +227,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE(STENBERG_SHEAR_STABILIZATION_SUITABLE)
+    KRATOS_REGISTER_VARIABLE(SHELL_OFFSET)
     KRATOS_REGISTER_VARIABLE(SHELL_STRAIN)
     KRATOS_REGISTER_VARIABLE(SHELL_FORCE)
     KRATOS_REGISTER_VARIABLE(SHELL_STRAIN_GLOBAL)
