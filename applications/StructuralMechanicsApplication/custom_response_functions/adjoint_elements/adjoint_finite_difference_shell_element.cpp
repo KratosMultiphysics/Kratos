@@ -36,7 +36,7 @@ Element::Pointer AdjointFiniteDifferencingShellElement::Create(Element::Pointer 
 void AdjointFiniteDifferencingShellElement::EquationIdVector(EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType num_dofs = mpPrimalShellElement->GetNumberOfDofs();
+    const SizeType num_dofs = 6 * GetGeometry().PointsNumber();
     if(rResult.size() != num_dofs)
         rResult.resize(num_dofs, false);
 
@@ -61,7 +61,7 @@ void AdjointFiniteDifferencingShellElement::EquationIdVector(EquationIdVectorTyp
 void AdjointFiniteDifferencingShellElement::GetDofList(DofsVectorType& rElementalDofList,
     ProcessInfo& rCurrentProcessInfo) {
 
-    const SizeType num_dofs = mpPrimalShellElement->GetNumberOfDofs();
+    const SizeType num_dofs = 6 * GetGeometry().PointsNumber();
     rElementalDofList.resize(0);
     rElementalDofList.reserve(num_dofs);
 
@@ -84,7 +84,7 @@ void AdjointFiniteDifferencingShellElement::GetDofList(DofsVectorType& rElementa
 void AdjointFiniteDifferencingShellElement::GetValuesVector(Vector& rValues, int Step)
 {
     KRATOS_TRY
-    const SizeType num_dofs = mpPrimalShellElement->GetNumberOfDofs();
+    const SizeType num_dofs = 6 * GetGeometry().PointsNumber();
     if(rValues.size() != num_dofs)
         rValues.resize(num_dofs, false);
 
@@ -115,7 +115,7 @@ void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Vector >& r
 {
     KRATOS_TRY;
 
-    const SizeType num_gps = mpPrimalShellElement->GetNumberOfGPs();
+    const SizeType num_gps = GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
 
     if(rVariable == STRESS_ON_GP)
     {
