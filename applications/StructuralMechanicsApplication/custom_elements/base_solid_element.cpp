@@ -486,7 +486,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
     for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
-        rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+        bool solution;
+        solution = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, solution);
+        rOutput[ii] = solution;
     }
 }
 
