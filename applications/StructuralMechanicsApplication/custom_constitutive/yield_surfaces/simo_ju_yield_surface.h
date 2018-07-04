@@ -121,17 +121,12 @@ public:
         ere0 = SumB / SumA;
         ere1 = SumC / SumA;
 
-        // Check SimoJu criterion
-        // if (std::abs(StrainVector[0]) < tolerance && std::abs(StrainVector[1]) < tolerance) {
-        //     rEqStress = 0.0;
-        // } else {
-            double auxf = 0.0;
-            for (std::size_t cont = 0; cont < 6; cont++) {
-                auxf += StrainVector[cont] * StressVector[cont];  // E*S
-            }
-            rEqStress = std::sqrt(auxf);
-            rEqStress *= (ere0*n + ere1);
-        //}
+        double auxf = 0.0;
+        for (std::size_t cont = 0; cont < 6; cont++) {
+            auxf += StrainVector[cont] * StressVector[cont];  // E:S
+        }
+        rEqStress = std::sqrt(auxf);
+        rEqStress *= (ere0*n + ere1);
     }
 
     /**
@@ -164,10 +159,11 @@ public:
 
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf*n*n / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             AParameter = - std::pow(sigma_c, 2) / (2.0*Gf*n*n / CharacteristicLength);
         }
-		KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+		
     }
 
     /**

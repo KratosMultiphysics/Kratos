@@ -144,10 +144,10 @@ public:
 
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf*n*n*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
+            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf*n*n / CharacteristicLength);
         }
-        KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
     }
 
     /**
