@@ -123,8 +123,6 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
     {
         TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
 
-        KRATOS_WATCH(this->GetValue(TRACED_STRESS_TYPE))
-
         std::vector< array_1d<double, 3 > > stress_vector;
         int direction_1 = 0;
         bool stress_is_moment = true;
