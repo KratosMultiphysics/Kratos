@@ -1078,7 +1078,9 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
 
     if (mConstitutiveLawVector[0]->Has( rVariable)) {
         for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
-            mConstitutiveLawVector[point_number]->GetValue( rVariable,rValues[point_number]);
+            bool value;
+            mConstitutiveLawVector[point_number]->GetValue( rVariable, value);
+            rValues[point_number] = value;
         }
     } else {
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
