@@ -340,7 +340,7 @@ public:
         const Variable<bool>& rVariable,
         std::vector<bool>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;ç
+        ) override;
 
     /**
      * @brief Calculate a integer Variable on the Element Constitutive Law
