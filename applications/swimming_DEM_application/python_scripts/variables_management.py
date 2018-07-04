@@ -376,6 +376,9 @@ def ConstructListsOfVariablesForCoupling(pp):
     if pp.viscosity_modification_type:
         pp.coupling_fluid_vars += [VISCOSITY]
 
+    if pp.CFD_DEM["embedded_option"].GetBool():
+        pp.coupling_fluid_vars += [DISTANCE]
+
     # dem coupling variables
     pp.coupling_dem_vars = []
 
