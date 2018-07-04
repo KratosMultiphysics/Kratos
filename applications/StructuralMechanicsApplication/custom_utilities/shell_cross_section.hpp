@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Massimo Petracca
+//                   Philipp Bucher
 //
 
 #if !defined(SHELL_CROSS_SECTION_H_INCLUDED)
@@ -683,7 +684,7 @@ public:
     * Returns the string containing a detailed description of this object.
     * @return the string with informations
     */
-    virtual std::string GetInfo();
+    virtual std::string GetInfo(const Properties& rProps);
 
     /**
     * Clone function

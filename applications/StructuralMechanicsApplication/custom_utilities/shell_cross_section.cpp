@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Massimo Petracca
+//                   Philipp Bucher
 //
 #include "includes/element.h"
 #include "shell_cross_section.hpp"
@@ -62,46 +63,46 @@ void ShellCrossSection::EndStack()
     if(mEditingStack) mEditingStack = false;
 }
 
-std::string ShellCrossSection::GetInfo()
+std::string ShellCrossSection::GetInfo(const Properties& rProps)
 {
     std::stringstream ss;
-    // ss << std::fixed;
+    ss << std::fixed;
 
-    // ss << std::endl;
-    // ss << "===============================================================" << std::endl;
-    // ss << "                      SellCrossSection Info:" << std::endl;
-    // ss << "===============================================================" << std::endl;
-    // ss << "Total Thickness: " << GetThickness() << std::endl;
-    // ss << "Offset from the midplane: " << GetOffset() << std::endl;
-    // ss << "Number of Plies: " << mStack.size() << std::endl;
-    // ss << "===============================================================" << std::endl;
-    // ss << "=======================       STACK      ======================" << std::endl;
-    // ss << "===============================================================" << std::endl;
-    // if(mStack.size() < 1)
-    // {
-    //     ss << " EMPTY STACK" << std::endl;
-    //     ss << "===============================================================" << std::endl;
-    // }
-    // else
-    // {
-    //     for (auto& r_ply : mStack)
-    //     {
-    //         ss << " - Thickness :" << r_ply.GetThickness() << std::endl;
-    //         ss << " - Location :" << r_ply.GetLocation() << std::endl;
-    //         ss << " - Orientation Angle: " << r_ply.GetOrientationAngle() << " (degrees)" << std::endl;
-    //         const auto& r_integration_points = r_ply.GetIntegrationPoints();
-    //         ss << " - Through-The-Thickness Integration Points (" << r_integration_points.size() << "):" << std::endl;
-    //         for(IndexType i = 0; i < r_integration_points.size(); ++i)
-    //         {
-    //             const IntegrationPoint& iPoint = r_integration_points[i];
-    //             ss << " - - [" << i << "] "
-    //                << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
-    //                << std::endl;
-    //         }
-    //         ss << "===============================================================" << std::endl;
-    //     }
-    // }
-    // ss << std::endl;
+    ss << std::endl;
+    ss << "===============================================================" << std::endl;
+    ss << "                      SellCrossSection Info:" << std::endl;
+    ss << "===============================================================" << std::endl;
+    ss << "Total Thickness: " << GetThickness(rProps) << std::endl;
+    ss << "Offset from the midplane: " << GetOffset(rProps) << std::endl;
+    ss << "Number of Plies: " << mStack.size() << std::endl;
+    ss << "===============================================================" << std::endl;
+    ss << "=======================       STACK      ======================" << std::endl;
+    ss << "===============================================================" << std::endl;
+    if(mStack.size() < 1)
+    {
+        ss << " EMPTY STACK" << std::endl;
+        ss << "===============================================================" << std::endl;
+    }
+    else
+    {
+        for (auto& r_ply : mStack)
+        {
+            ss << " - Thickness :" << r_ply.GetThickness(rProps) << std::endl;
+            ss << " - Location :" << r_ply.GetLocation(rProps) << std::endl;
+            ss << " - Orientation Angle: " << r_ply.GetOrientationAngle(rProps) << " (degrees)" << std::endl;
+            const auto& r_integration_points = r_ply.GetIntegrationPoints(rProps);
+            ss << " - Through-The-Thickness Integration Points (" << r_integration_points.size() << "):" << std::endl;
+            for(IndexType i = 0; i < r_integration_points.size(); ++i)
+            {
+                const IntegrationPoint& iPoint = r_integration_points[i];
+                ss << " - - [" << i << "] "
+                   << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]"
+                   << std::endl;
+            }
+            ss << "===============================================================" << std::endl;
+        }
+    }
+    ss << std::endl;
     return ss.str();
 }
 
