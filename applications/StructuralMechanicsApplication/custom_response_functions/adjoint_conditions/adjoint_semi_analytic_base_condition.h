@@ -286,36 +286,28 @@ public:
 			   double& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->Calculate(rVariable,
-			   Output,
-			   rCurrentProcessInfo);
+        KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
     void Calculate(const Variable< array_1d<double,3> >& rVariable,
 			   array_1d<double,3>& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->Calculate(rVariable,
-			   Output,
-			   rCurrentProcessInfo);
+        KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
     void Calculate(const Variable<Vector >& rVariable,
 			   Vector& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->Calculate(rVariable,
-			   Output,
-			   rCurrentProcessInfo);
+        KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
     void Calculate(const Variable<Matrix >& rVariable,
 			   Matrix& Output,
 			   const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->Calculate(rVariable,
-			   Output,
-			   rCurrentProcessInfo);
+        KRATOS_ERROR << "Calculate of the adjoint base condition is called!" << std::endl;
     }
 
 
@@ -323,36 +315,28 @@ public:
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateOnIntegrationPoints(rVariable,
-					      rOutput,
-					      rCurrentProcessInfo);
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateOnIntegrationPoints(rVariable,
-					      Output,
-					      rCurrentProcessInfo);
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
 					      std::vector< Vector >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateOnIntegrationPoints(rVariable,
-					      Output,
-					      rCurrentProcessInfo);
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
 					      std::vector< Matrix >& Output,
 					      const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalCondition->CalculateOnIntegrationPoints(rVariable,
-					      Output,
-					      rCurrentProcessInfo);
+        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
     }
 
     int Check( const ProcessInfo& rCurrentProcessInfo ) override

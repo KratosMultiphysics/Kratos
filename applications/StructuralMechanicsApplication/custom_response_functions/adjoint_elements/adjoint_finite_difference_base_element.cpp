@@ -110,17 +110,6 @@ void AdjointFiniteDifferencingBaseElement::GetValuesVector(Vector& rValues, int 
     }
 }
 
-void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Vector >& rVariable,
-                           Vector& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR << "Calculate NOT_IMPLEMENTED" << std::endl;
-
-    KRATOS_CATCH("")
-}
-
 void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
 {
