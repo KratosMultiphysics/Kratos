@@ -136,13 +136,6 @@ private:
 
     double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
-    void AfterPerturbation(const Variable<double>& rDesignVariable,
-                            const ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalShellElement->ResetSections();
-        mpPrimalElement->Initialize();
-    }
-
     ///@}
     ///@}
 
@@ -152,11 +145,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    /**
-     * pointer to the primal element
-     */
-    ShellThinElement3D3N::Pointer mpPrimalShellElement;
 
     ///@}
 

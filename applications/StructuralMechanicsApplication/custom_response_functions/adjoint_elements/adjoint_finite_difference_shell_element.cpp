@@ -24,11 +24,7 @@ namespace Kratos
 {
 
 AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(Element::Pointer pPrimalElement)
-                    : AdjointFiniteDifferencingBaseElement(pPrimalElement) {
-
-    mpPrimalShellElement = dynamic_pointer_cast<ShellThinElement3D3N>(pPrimalElement);
-    KRATOS_ERROR_IF(mpPrimalShellElement == nullptr) << "AdjointFiniteDifferencingShellElement can only be created with a ShellThinElement3D3N element!" << std::endl;
-}
+                    : AdjointFiniteDifferencingBaseElement(pPrimalElement) {}
 
 AdjointFiniteDifferencingShellElement::~AdjointFiniteDifferencingShellElement() {}
 
@@ -351,7 +347,7 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 
         ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
         dummySection->BeginStack();
-        dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
+        dummySection->AddPly(0.0, 5, props);
         dummySection->EndStack();
         dummySection->SetSectionBehavior(ShellCrossSection::Thin);
         dummySection->Check(props, r_geom, rCurrentProcessInfo);
