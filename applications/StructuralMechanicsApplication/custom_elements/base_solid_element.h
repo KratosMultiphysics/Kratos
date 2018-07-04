@@ -474,8 +474,20 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-     /**
+    /**
       * @brief Set a Constitutive Law Value on the Element
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
+      */
+     void SetValueOnIntegrationPoints(
+         const Variable<ConstitutiveLaw::Pointer>& rVariable,
+         std::vector<ConstitutiveLaw::Pointer>& rValues,
+         const ProcessInfo& rCurrentProcessInfo
+         ) override;
+
+     /**
+      * @brief Set a array of 3 compoenents Value on the Element
       * @param rVariable The variable we want to set
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
@@ -487,7 +499,7 @@ public:
          ) override;
 
      /**
-      * @brief Set a Constitutive Law Value on the Element
+      * @brief Set a array of 6 compoenents Value on the Element
       * @param rVariable The variable we want to set
       * @param rValues The values to set in the integration points
       * @param rCurrentProcessInfo the current process info instance
