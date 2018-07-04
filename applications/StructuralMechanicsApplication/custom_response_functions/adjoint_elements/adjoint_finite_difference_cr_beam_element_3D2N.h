@@ -14,7 +14,6 @@
 #define  ADJOINT_FINITE_DIFFERENCE_CR_BEAM_ELEMENT_H_INCLUDED
 
 #include "adjoint_finite_difference_base_element.h"
-#include "custom_elements/cr_beam_element_3D2N.hpp"
 
 namespace Kratos
 {
@@ -70,11 +69,6 @@ protected:
 
 private:
     double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
-
-    /**
-     * pointer to the primal element
-     */
-    CrBeamElement3D2N::Pointer mpPrimalBeamElement;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

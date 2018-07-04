@@ -22,7 +22,6 @@ namespace Kratos
 AdjointFiniteDifferenceCrBeamElement::AdjointFiniteDifferenceCrBeamElement(Element::Pointer pPrimalElement)
     : AdjointFiniteDifferencingBaseElement(pPrimalElement)
 {
-    mpPrimalBeamElement = dynamic_pointer_cast<CrBeamElement3D2N>(pPrimalElement);
 }
 
 AdjointFiniteDifferenceCrBeamElement::~AdjointFiniteDifferenceCrBeamElement()
