@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "add_response_functions_to_python.h"
-#include "solving_strategies/response_functions/adjoint_response_function.h"
+#include "response_functions/adjoint_response_function.h"
 
 namespace Kratos
 {
