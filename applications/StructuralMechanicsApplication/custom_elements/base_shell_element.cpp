@@ -533,11 +533,6 @@ void BaseShellElement::CheckSpecificProperties()
     }
 }
 
-void BaseShellElement::ResetSections()
-{
-    mSections.clear();
-
-}
 void BaseShellElement::save(Serializer& rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
   rSerializer.save("Sections", mSections);
