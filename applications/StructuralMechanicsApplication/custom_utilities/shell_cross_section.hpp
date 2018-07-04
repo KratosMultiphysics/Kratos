@@ -536,9 +536,9 @@ public:
 
             // generate the weights (composite simpson rule)
             Vector ip_w(num_int_points, 1.0);
-            if(num_int_points >= 3)
+            if (num_int_points >= 3)
             {
-                for(IndexType i=1; i<num_int_points-1; ++i)
+                for (IndexType i=1; i<num_int_points-1; ++i)
                 {
                     double iw = (i % 2 == 0) ? 2.0 : 4.0;
                     ip_w(i) = iw;
@@ -548,24 +548,25 @@ public:
 
             // generate locations (direction: top(+thickness/2) to bottom(-thickness/2)
             const double location = GetLocation(rProps);
+            const double thickness = GetThickness(rProps);
 
             Vector ip_loc(num_int_points, 0.0);
-            if(num_int_points >= 3)
+            if (num_int_points >= 3)
             {
-                double loc_start = location + 0.5 * GetThickness(rProps);
-                double loc_incr = GetThickness(rProps) / double(num_int_points-1);
-                for(IndexType i=0; i<num_int_points; ++i)
+                double loc_start = location + 0.5 * thickness;
+                double loc_incr = thickness / double(num_int_points-1);
+                for (IndexType i=0; i<num_int_points; ++i)
                 {
                     ip_loc(i) = loc_start;
                     loc_start -= loc_incr;
                 }
             }
 
-            for(IndexType i=0; i < num_int_points; ++i)
+            for (IndexType i=0; i<num_int_points; ++i)
             {
-                IntegrationPoint& intp = mIntegrationPoints[i];
-                intp.SetWeight(ip_w(i) * GetThickness(rProps));
-                intp.SetLocation(ip_loc(i));
+                IntegrationPoint& r_int_point = mIntegrationPoints[i];
+                r_int_point.SetWeight(ip_w(i) * thickness);
+                r_int_point.SetLocation(ip_loc(i));
             }
 
             KRATOS_CATCH("")
