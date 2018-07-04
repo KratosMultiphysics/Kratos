@@ -34,7 +34,6 @@ namespace Kratos
 ///@}
 
 class ShellT3_CoordinateTransformation;
-class AdjointFiniteDifferencingShellElement;
 
 ///@name  Enum's
 ///@{
@@ -59,9 +58,6 @@ class AdjointFiniteDifferencingShellElement;
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement
 {
-
-friend class AdjointFiniteDifferencingShellElement;
-
 public:
 
     ///@name Type Definitions
@@ -205,13 +201,6 @@ protected:
     ShellThinElement3D3N() : BaseShellElement()
     {
     }
-
-    ///@}
-
-    ///@name Member Variables
-    ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     ///@}
 
@@ -374,6 +363,8 @@ private:
 
     ///@name Member Variables
     ///@{
+
+    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     SizeType mStrainSize = 6;
 
