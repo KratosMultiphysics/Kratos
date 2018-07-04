@@ -46,37 +46,37 @@ namespace Kratos
 namespace Testing
 {
     // We test the associated damage Constitutive laws...
-        typedef Node < 3 > NodeType;
-        
-        typedef GenericSmallStrainIsotropicDamage3D
-			<GenericConstitutiveLawIntegratorDamage
-				<ModifiedMohrCoulombYieldSurface
-					<ModifiedMohrCoulombPlasticPotential>>> MC;
+    typedef Node < 3 > NodeType;
+    
+    typedef GenericSmallStrainIsotropicDamage3D
+        <GenericConstitutiveLawIntegratorDamage
+            <ModifiedMohrCoulombYieldSurface
+                <ModifiedMohrCoulombPlasticPotential>>> MC;
 
-		typedef GenericSmallStrainIsotropicDamage3D
-			<GenericConstitutiveLawIntegratorDamage
-				<VonMisesYieldSurface
-					<ModifiedMohrCoulombPlasticPotential>>> VM;
+    typedef GenericSmallStrainIsotropicDamage3D
+        <GenericConstitutiveLawIntegratorDamage
+            <VonMisesYieldSurface
+                <ModifiedMohrCoulombPlasticPotential>>> VM;
 
-		typedef GenericSmallStrainIsotropicDamage3D
-			<GenericConstitutiveLawIntegratorDamage
-				<DruckerPragerYieldSurface
-					<ModifiedMohrCoulombPlasticPotential>>> DP;
+    typedef GenericSmallStrainIsotropicDamage3D
+        <GenericConstitutiveLawIntegratorDamage
+            <DruckerPragerYieldSurface
+                <ModifiedMohrCoulombPlasticPotential>>> DP;
 
-		typedef GenericSmallStrainIsotropicDamage3D
-			<GenericConstitutiveLawIntegratorDamage
-				<TrescaYieldSurface
-					<ModifiedMohrCoulombPlasticPotential>>> T;
+    typedef GenericSmallStrainIsotropicDamage3D
+        <GenericConstitutiveLawIntegratorDamage
+            <TrescaYieldSurface
+                <ModifiedMohrCoulombPlasticPotential>>> T;
 
-		typedef GenericSmallStrainIsotropicDamage3D
-			<GenericConstitutiveLawIntegratorDamage
-				<SimoJuYieldSurface
-					<ModifiedMohrCoulombPlasticPotential>>> SJ;
+    typedef GenericSmallStrainIsotropicDamage3D
+        <GenericConstitutiveLawIntegratorDamage
+            <SimoJuYieldSurface
+                <ModifiedMohrCoulombPlasticPotential>>> SJ;
 
-		typedef GenericSmallStrainIsotropicDamage3D
-			<GenericConstitutiveLawIntegratorDamage
-				<RankineYieldSurface
-					<ModifiedMohrCoulombPlasticPotential>>> R;
+    typedef GenericSmallStrainIsotropicDamage3D
+        <GenericConstitutiveLawIntegratorDamage
+            <RankineYieldSurface
+                <ModifiedMohrCoulombPlasticPotential>>> R;
 
     /** 
     * Check the correct calculation of the integrated stress with the CL's

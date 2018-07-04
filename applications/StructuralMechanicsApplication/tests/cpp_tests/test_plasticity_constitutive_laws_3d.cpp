@@ -46,27 +46,27 @@ namespace Kratos
 namespace Testing
 {
     // We test the associated plasticity Constitutive laws...
-        typedef Node < 3 > NodeType;
-        
-        typedef GenericSmallStrainIsotropicPlasticity3D
-			<GenericConstitutiveLawIntegratorPlasticity
-				<ModifiedMohrCoulombYieldSurface
-					<ModifiedMohrCoulombPlasticPotential>>> MC;
+    typedef Node < 3 > NodeType;
+    
+    typedef GenericSmallStrainIsotropicPlasticity3D
+        <GenericConstitutiveLawIntegratorPlasticity
+            <ModifiedMohrCoulombYieldSurface
+                <ModifiedMohrCoulombPlasticPotential>>> MC;
 
-		typedef GenericSmallStrainIsotropicPlasticity3D
-			<GenericConstitutiveLawIntegratorPlasticity
-				<VonMisesYieldSurface
-					<VonMisesPlasticPotential>>> VM;
+    typedef GenericSmallStrainIsotropicPlasticity3D
+        <GenericConstitutiveLawIntegratorPlasticity
+            <VonMisesYieldSurface
+                <VonMisesPlasticPotential>>> VM;
 
-		typedef GenericSmallStrainIsotropicPlasticity3D
-			<GenericConstitutiveLawIntegratorPlasticity
-				<DruckerPragerYieldSurface
-					<DruckerPragerPlasticPotential>>> DP;
+    typedef GenericSmallStrainIsotropicPlasticity3D
+        <GenericConstitutiveLawIntegratorPlasticity
+            <DruckerPragerYieldSurface
+                <DruckerPragerPlasticPotential>>> DP;
 
-		typedef GenericSmallStrainIsotropicPlasticity3D
-			<GenericConstitutiveLawIntegratorPlasticity
-				<TrescaYieldSurface
-					<TrescaPlasticPotential>>> T;
+    typedef GenericSmallStrainIsotropicPlasticity3D
+        <GenericConstitutiveLawIntegratorPlasticity
+            <TrescaYieldSurface
+                <TrescaPlasticPotential>>> T;
 
     /** 
     * Check the correct calculation of the integrated stress with the CL's
