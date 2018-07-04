@@ -817,7 +817,7 @@ void ShellThinAdjointElement3D3N::CalculateOnIntegrationPoints(const Variable<do
         std::vector<Matrix> adjoint_strain; 
         std::vector<Matrix> pseudo_forces; 
         
-        this->TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(SHELL_CURVATURE_GLOBAL, adjoint_strain, rCurrentProcessInfo);
+        this->TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(SHELL_STRAIN_GLOBAL, adjoint_strain, rCurrentProcessInfo);
         this->GetValueOnIntegrationPoints(SHELL_PSEUDO_STRESSES, pseudo_forces, rCurrentProcessInfo);
 
         const SizeType num_gps = GetNumberOfGPs();
@@ -873,7 +873,7 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Mat
         std::vector<Matrix> stress_vector_dist;
 
         // Compute stress on GP before disturbance
-        ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector_undist, rCurrentProcessInfo);
+        ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector_undist, rCurrentProcessInfo);
 
         // Get disturbance measure
         double delta= this->GetValue(DISTURBANCE_MEASURE); 	
@@ -901,7 +901,7 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Mat
             ShellThinElement3D3N::Initialize();
 
             // Compute stress on GP after disturbance
-            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_MOMENT_GLOBAL, stress_vector_dist, rCurrentProcessInfo);
+            ShellThinElement3D3N::GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector_dist, rCurrentProcessInfo);
 
             // Compute derivative of stress w.r.t. design variable with finite differences
             for(size_t j = 0; j < num_gps; j++)
@@ -923,9 +923,12 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<Mat
             ShellThinElement3D3N::Initialize();    
         }
     }
-    else if(rVariable == SHELL_CURVATURE_GLOBAL || rVariable == SHELL_STRAIN_GLOBAL )
+    else if(rVariable == SHELL_CURVATURE_GLOBAL || rVariable == SHELL_STRAIN_GLOBAL)// this will give the strains and curvatures of the influence function
+    {
         this->TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo);
- 
+    }
+
+        
     KRATOS_CATCH("")
 }
 
