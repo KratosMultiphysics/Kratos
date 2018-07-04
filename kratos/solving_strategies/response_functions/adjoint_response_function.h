@@ -102,7 +102,7 @@ public:
      * @param[in]     rProcessInfo       the current process info.
      */
     virtual void CalculateGradient(const Condition& rAdjointCondition,
-                                   const Matrix& rConditionResidualGradient,
+                                   const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo)
     {
@@ -150,7 +150,7 @@ public:
      * @param[in]     rProcessInfo       the current process info.
      */
     virtual void CalculateSecondDerivativesGradient(const Element& rAdjointElement,
-                                                    const Matrix& rElementResidualGradient,
+                                                    const Matrix& rResidualGradient,
                                                     Vector& rResponseGradient,
                                                     ProcessInfo& rProcessInfo)
     {
@@ -166,7 +166,7 @@ public:
      * @param[in]     rProcessInfo       the current process info.
      */
     virtual void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
-                                                    const Matrix& rConditionResidualGradient,
+                                                    const Matrix& rResidualGradient,
                                                     Vector& rResponseGradient,
                                                     ProcessInfo& rProcessInfo)
     {
