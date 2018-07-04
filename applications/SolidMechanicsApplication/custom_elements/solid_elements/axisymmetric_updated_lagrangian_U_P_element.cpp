@@ -806,7 +806,8 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
 
     int size = number_of_nodes * dimension;
 
-    Matrix Kuu = zero_matrix<double>(size,size);
+    Matrix Kuu(size,size);
+    noalias(Kuu) = ZeroMatrix(size,size);
 
     // axisymmetric geometric matrix
 

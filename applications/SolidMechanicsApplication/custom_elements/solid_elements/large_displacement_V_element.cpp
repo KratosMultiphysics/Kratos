@@ -285,7 +285,7 @@ void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
-    rH = zero_matrix<double> ( dimension );
+    noalias(rH) = ZeroMatrix(dimension,dimension);
 
     if( dimension == 2 )
     {

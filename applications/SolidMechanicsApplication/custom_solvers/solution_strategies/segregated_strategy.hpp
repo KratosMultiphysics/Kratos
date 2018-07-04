@@ -217,7 +217,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     this->Set(LocalFlagType::CONVERGED, this->SolveIteration());
 
     //iteration cycle... performed only for NonLinearProblems
-    while( this->IsNot(LocalFlagType::CONVERGED) && iteration_number++ < MaxIterationNumber)
+    while( this->IsNot(LocalFlagType::CONVERGED) && ++iteration_number < MaxIterationNumber)
     {
       //setting the iteration number
       this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -228,7 +228,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     //plots a warning if the maximum number of iterations is exceeded
     if(iteration_number >= MaxIterationNumber)
     {
-      KRATOS_WARNING("Max Iterations Exceeded") << " **** Maximum iterations Exceeded [" << iteration_number << "] ****\n";
+      KRATOS_WARNING("Max Iterations Exceeded") << " **** [The iterative loop interrupted : " << iteration_number << " iterations performed] ****\n";
     }
 
     return (this->Is(LocalFlagType::CONVERGED));
@@ -257,7 +257,12 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
       ++counter;
     }
 
-    return (std::all_of(convergences.begin(), convergences.end(), [](bool const n){return n == true;}));
+    bool convergence = std::all_of(convergences.begin(), convergences.end(), [](bool const n){return n == true;});
+    if(convergence == true){
+      KRATOS_WARNING("Convergence Achieved") << " **** [" << this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << " iterations performed] ****\n";
+    }
+    
+    return (convergence);
 
     KRATOS_CATCH("")
   }

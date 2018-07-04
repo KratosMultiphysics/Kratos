@@ -129,6 +129,12 @@ class SolutionScheme : public Flags
   SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods) : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {}
 
   /// Constructor.
+  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+
+  /// Constructor.
+  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods) : Flags(), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+  
+  /// Constructor.
   SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
                  Flags& rOptions)
@@ -647,6 +653,7 @@ class SolutionScheme : public Flags
                                           Element::EquationIdVectorType& rEquationId,
                                           ProcessInfo& rCurrentProcessInfo)
   {
+    std::cout<< " it is C_LHS "<<std::endl;
     pCurrentElement->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
     pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
   }

@@ -104,7 +104,7 @@ namespace Kratos {
       // 	DeviatoricCoeff=this->ComputeJopMuIrheologyViscosity(rElementalVariables);
       // }
     }else{
-      std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
+      //std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
       this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
     }
 
@@ -701,7 +701,7 @@ namespace Kratos {
 
     meanValueStiff*=1.0/countStiff;
     meanValueMass*=1.0/countMass;
-    std::cout<<" meanStiff "<< meanValueStiff<< " meanValueMass "<<meanValueMass<<std::endl;
+    //std::cout<<" meanStiff "<< meanValueStiff<< " meanValueMass "<<meanValueMass<<std::endl;
     if(meanValueMass!=0 && meanValueStiff!=0){
       bulkCoefficient=meanValueMass*4/(timeStep*meanValueStiff);
     }else{
@@ -1074,6 +1074,9 @@ namespace Kratos {
       noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
       const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+      std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
+      std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
+
       if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
 	BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev);
       if(rGeom[1].IsNot(INLET))
@@ -1084,6 +1087,9 @@ namespace Kratos {
       noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
       const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+
+      std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
+      std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
       if(rGeom[0].IsNot(INLET))
 	BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev);
       if(rGeom[2].IsNot(INLET))   
@@ -1094,6 +1100,9 @@ namespace Kratos {
       noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
       const array_1d<double, 3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
+      std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
+      std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
+
       if(rGeom[1].IsNot(INLET))
 	BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev);
       if(rGeom[2].IsNot(INLET))
@@ -1250,7 +1259,7 @@ namespace Kratos {
       Tau=0;
     }
 
-    std::cout<<" Tau: "<<Tau<<"(ElemSize:"<<ElemSize<<" Viscosity:"<<Viscosity<<")"<<std::endl;
+    //std::cout<<" Tau: "<<Tau<<"(ElemSize:"<<ElemSize<<" Viscosity:"<<Viscosity<<")"<<std::endl;
 
   }
 
@@ -1454,11 +1463,15 @@ namespace Kratos {
     double DefY=rElementalVariables.SpatialDefRate[1];
     double DefXY=rElementalVariables.SpatialDefRate[2];
 
+    std::cout<<" SpatialDefRate "<<rElementalVariables.SpatialDefRate<<std::endl;
+
     double DefVol=rElementalVariables.VolumetricDefRate;
     double sigmaDev_xx= 2*CurrSecondLame*(DefX - DefVol/3.0);
     double sigmaDev_yy= 2*CurrSecondLame*(DefY - DefVol/3.0);
     double sigmaDev_xy= 2*CurrSecondLame*DefXY;
 
+    std::cout<<" DefVol "<<DefVol<<std::endl;
+        
     // double sigmaTot_xx= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefX;
     // double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
     // double sigmaTot_xy= 2.0*CurrSecondLame*DefXY;
@@ -1483,6 +1496,9 @@ namespace Kratos {
     rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
     rElementalVariables.UpdatedDeviatoricCauchyStress[2]=sigmaDev_xy;
 
+    std::cout<<" DefStress "<<rElementalVariables.UpdatedDeviatoricCauchyStress<<std::endl;
+    std::cout<<" MeanPressure "<<rElementalVariables.MeanPressure<<std::endl;
+    
     rElementalVariables.UpdatedTotalCauchyStress[0]=sigmaTot_xx;
     rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
     rElementalVariables.UpdatedTotalCauchyStress[2]=sigmaTot_xy;
@@ -1605,7 +1621,7 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
 
-    std::cout<<" ELEMENT["<<this->Id()<<"]"<<std::endl;
+    //std::cout<<" ELEMENT["<<this->Id()<<"]"<<std::endl;
 
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -1672,21 +1688,29 @@ namespace Kratos {
 	  this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
 
           std::cout<<" BoundFactor: "<< BoundLHSCoeff <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
+
+          std::cout<<" DefRate "<<rElementalVariables.SpatialDefRate<<std::endl;
           
 	  double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
 
 	  double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
 	  double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
+
+          std::cout<<" NprojSpatial "<<NProjSpatialDefRate<<" BoundRHSAcc "<<BoundRHSCoeffAcc<<std::endl;
+          
 	  // if(TDim==3){
 	  //   BoundRHSCoeffAcc=Tau*GaussWeight*Density/(0.81649658*ElemSize);
 	  //   BoundRHSCoeffDev=Tau*GaussWeight*4.0*NProjSpatialDefRate*DeviatoricCoeff/(0.81649658*ElemSize*ElemSize);
 	  // }
 
 	  this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
+          std::cout<<" BoundRHSCoeffDev: "<<BoundRHSCoeffDev<<" RHS "<<rRightHandSideVector<<std::endl;
 
+
+          
 	  double StabLaplacianWeight=Tau*GaussWeight;
 	  this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
-          std::cout<<" StabFactor: "<<StabLaplacianWeight<<" Kpp "<<rLeftHandSideMatrix<<std::endl;
+
 	  for (SizeType i = 0; i < NumNodes; ++i)
 	    {         
 	      // RHS contribution
@@ -1694,6 +1718,8 @@ namespace Kratos {
 	      rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
 	      this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,GaussWeight,rDN_DX,i);
 	    }
+
+          std::cout<<" Stab RHS "<<rRightHandSideVector<<" DefRate "<<rElementalVariables.VolumetricDefRate<<std::endl;
 	}
 
       }   
@@ -1714,13 +1740,13 @@ namespace Kratos {
       double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
       double lumpedBulkStabCoeff=lumpedBulkCoeff*Tau*Density/TimeStep;
 
-      std::cout<<" BulkFactor: "<<lumpedBulkStabCoeff<<" Kpp "<<rLeftHandSideMatrix<<std::endl;
       this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
       // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkCoeff);
       noalias(rLeftHandSideMatrix)+=BulkMatrix;
       // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix,PressureValuesForRHS);
       // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
+      std::cout<<" MassFactor: "<<lumpedBulkCoeff<<" RHS "<<rRightHandSideVector<<std::endl;
 
       this->GetPressureVelocityValues(PressureValues,0);
       noalias(PressureValuesForRHS)+=-PressureValues*TimeStep;
@@ -1731,7 +1757,8 @@ namespace Kratos {
       // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix,PressureValuesForRHS);
       // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
-
+      std::cout<<" BulkFactor: "<<lumpedBulkStabCoeff<<" RHS "<<rRightHandSideVector<<std::endl;
+      
     }else{
       double lumpedBulkCoeff =totalVolume*Tau*Density/(TimeStep*VolumetricCoeff);
       MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
@@ -1744,8 +1771,9 @@ namespace Kratos {
       noalias(PressureValuesForRHS)+=-PressureValues;
       noalias(rRightHandSideVector) -= prod(BulkVelMatrixLump,PressureValuesForRHS);
     }
- 
 
+    std::cout<<" pressure LHS "<<rLeftHandSideMatrix<< "(" << this->Id() << ")" <<std::endl;
+    std::cout<<" pressure RHS "<<rRightHandSideVector<< "(" << this->Id() << ")" <<std::endl;
 
   }
   

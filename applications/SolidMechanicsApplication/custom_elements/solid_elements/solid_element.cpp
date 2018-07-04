@@ -118,6 +118,11 @@ Element::Pointer SolidElement::Clone( IndexType NewId, NodesArrayType const& rTh
 
       }
 
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+      {
+	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+      }
+    
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
     
@@ -1467,8 +1472,8 @@ void SolidElement::CalculateVelocityGradient(const Matrix& rDN_DX, Matrix& rDF )
 
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-
-    rDF=zero_matrix<double> ( dimension );
+    rDF.resize(dimension,dimension);
+    noalias(rDF) = ZeroMatrix(dimension,dimension);
 
     for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
@@ -1498,8 +1503,9 @@ Matrix& SolidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+    
+    rDeltaPosition.resize(number_of_nodes,dimension,false);
+    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
 
     for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
@@ -1527,7 +1533,8 @@ Matrix& SolidElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+    rDeltaPosition.resize(number_of_nodes,dimension,false);
+    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
 
     for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
@@ -1943,21 +1950,8 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
 
     noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
-
-    //1.-Calculate StiffnessMatrix:
-
-    MatrixType StiffnessMatrix  = Matrix();
-
-    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
-
-    //2.-Calculate MassMatrix:
-
-    MatrixType MassMatrix  = Matrix();
-
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-
-
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    
+    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) ){
       alpha = GetProperties()[RAYLEIGH_ALPHA];
@@ -1974,12 +1968,27 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
       beta = rCurrentProcessInfo[RAYLEIGH_BETA];
     }
 
-    //4.-Compose the Damping Matrix:
+    if( alpha != 0 || beta != 0){
+      
+      //1.-Calculate StiffnessMatrix:
 
-    //Rayleigh Damping Matrix: alpha*M + beta*K
-    rDampingMatrix  = alpha * MassMatrix;
-    rDampingMatrix += beta  * StiffnessMatrix;
+      MatrixType StiffnessMatrix  = Matrix();
 
+      this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+
+      //2.-Calculate MassMatrix:
+
+      MatrixType MassMatrix  = Matrix();
+
+      this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+
+      //3.-Compose the Damping Matrix:
+
+      //Rayleigh Damping Matrix: alpha*M + beta*K
+      rDampingMatrix  = alpha * MassMatrix;
+      rDampingMatrix += beta  * StiffnessMatrix;
+      
+    }
 
     KRATOS_CATCH( "" )
 }

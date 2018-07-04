@@ -271,21 +271,6 @@ namespace Kratos
     ///@name Access
     ///@{
 
-    // get parameters
-    double& GetFirstDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = mBDF[0];
-      return rParameter;
-    }
-
-    double& GetSecondDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = mBDF[0]*mBDF[0];
-      return rParameter;
-    }
-
-
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -561,6 +546,19 @@ namespace Kratos
     ///@}
     ///@name Protected  Access
     ///@{
+    
+    // get parameters
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = mBDF[0];
+      return rParameter;
+    }
+
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = mBDF[0]*mBDF[0];
+      return rParameter;
+    }
 
     ///@}
     ///@name Protected Inquiry

@@ -652,6 +652,8 @@ namespace Kratos {
     this->GetVelocityValues(VelocityValues,1);
     RHSVelocities+=VelocityValues*(1.0-theta);
 
+    std::cout<<" RHSVelocities "<<RHSVelocities<<" theta "<<std::endl;
+    
     rElementalVariables.Fgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.FgradVel=ZeroMatrix(dimension,dimension);
     for (SizeType i = 0; i < dimension; i++)
@@ -666,6 +668,12 @@ namespace Kratos {
 	  }
       }
 
+    for (SizeType k = 0; k < NumNodes; k++)
+    {
+      std::cout<<" Velocity["<<k<<"] "<<GetGeometry()[k].FastGetSolutionStepValue(VELOCITY)<<std::endl;
+    }
+    std::cout<<" FgradVel "<<rElementalVariables.FgradVel<<" DN_DX "<<rDN_DX<<std::endl;
+    
     //Inverse
     rElementalVariables.InvFgrad=ZeroMatrix(dimension,dimension);
     rElementalVariables.DetFgrad=1;
@@ -689,7 +697,8 @@ namespace Kratos {
       {
 	rElementalVariables.VolumetricDefRate+=rElementalVariables.SpatialVelocityGrad(i,i);
       }
-  
+
+    std::cout<<" VolumetricDefRate "<<rElementalVariables.VolumetricDefRate<<std::endl;
     // //it checks whether tr(l) == div(v)
     // CheckStrain1(rElementalVariables.VolumetricDefRate,rElementalVariables.SpatialVelocityGrad);
     // CheckStrain2(rElementalVariables.SpatialVelocityGrad,rElementalVariables.Fgrad,ElementalVariables.FgradVel);
@@ -1365,6 +1374,8 @@ namespace Kratos {
 
       }
 
+    std::cout<<" Normal "<<NormalMean<<std::endl;
+    std::cout<<" DefRate "<<SpatialDefRate<<std::endl;
     // if(rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE)){
     //   NormalMean = (rGeom[0].FastGetSolutionStepValue(NORMAL) + rGeom[1].FastGetSolutionStepValue(NORMAL))*0.5;
     // }else if(rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE)){

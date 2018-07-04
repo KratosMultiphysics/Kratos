@@ -216,6 +216,22 @@ protected:
   ///@{
 
   /**
+   * Sets process information to set member variables like mStepVariable
+   */
+  void SetProcessInformation(const ProcessInfo& rCurrentProcessInfo) override;
+
+  /**
+   * Initialize Element General Variables
+   */
+  void InitializeElementData(ElementDataType & rVariables, 
+                             const ProcessInfo& rCurrentProcessInfo) override;
+
+  /**
+   * Calculate Integration Step Alpha
+   */
+  void GetStepAlpha(double& rAlpha);
+  
+  /**
    * Calculate Element Kinematics
    */
   void CalculateKinematics(ElementDataType& rVariables,
@@ -256,18 +272,23 @@ protected:
    */
   unsigned int GetDofsSize() override;
 
+  /**
+   * Calculation of the Geometric Stiffness Matrix. Kvvm = BT * C * B
+   */
+  void CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
+                           ElementDataType& rVariables) override;
 
   /**
    * Calculation of the Geometric Stiffness Matrix. Kvvg = BT * S
    */
   void CalculateAndAddKvvg(MatrixType& rLeftHandSideMatrix,
                            ElementDataType& rVariables) override;
-
+  
   /**
-   * Calculation of the Bulk Matrix.
+   * Calculation of the Regularized Material Stiffness Matrix.
    */
-  void CalculateAndAddKbulk(MatrixType& rLeftHandSideMatrix,
-                            ElementDataType& rVariables);
+  void CalculateRegularizedKvvm(MatrixType& rLeftHandSideMatrix,
+                                ElementDataType& rVariables);
 
   /**
    * Calculation of the Pressure Stiffness Matrix. Kpp
@@ -275,6 +296,43 @@ protected:
   void CalculateAndAddKpp(MatrixType& rLeftHandSideMatrix,
                           ElementDataType& rVariables);
 
+  /**
+   * Calculation of the Internal Forces Vector. Fi = B * sigma
+   */
+  void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+                                     ElementDataType & rVariables) override;
+
+  /**
+   * Add volumetric part to Stress Vector
+   */  
+  void AddVolumetricPart(Vector& rStressVector, double& rMeanPressure);
+
+  /**
+   * Remove volumetric part from Stress Vector
+   */  
+  void RemoveVolumetricPart(Vector& rStressVector, double& rMeanPressure);
+  
+  /**
+   * Add volumetric part to Constitutive Matrix
+   */  
+  void AddVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor);
+
+  /**
+   * Remove volumetric part from Constitutive Matrix
+   */  
+  void RemoveVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor);
+  
+  /**
+   * Calculation of the Mean value considering a Dense Matrix.
+   */
+  void CalculateDenseMatrixMeanValue(MatrixType& rMatrix, double& rMeanValue);
+
+  /**
+   * Calculation of the Mean value considering a Lumped Matrix.
+   */
+  void CalculateLumpedMatrixMeanValue(MatrixType& rMatrix, double& rMeanValue);
+
+  
   /**
    * Calculation of the Pressure Vector.
    */
@@ -293,14 +351,14 @@ protected:
    */
   void CalculateVelocityGradient(Matrix& rH,
                                  const Matrix& rDN_DX,
-                                 unsigned int step = 0);
+                                 double Alpha = 1.0);
 
   /**
    * Calculation of the velocity gradient
    */
   void CalculateVelocityGradientVector(Vector& rH,
                                        const Matrix& rDN_DX,
-                                       unsigned int step = 0);
+                                       double Alpha = 1.0);
   
   
   /**

@@ -374,7 +374,8 @@ namespace Kratos
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+    rDeltaPosition.resize(number_of_nodes,dimension,false);
+    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {

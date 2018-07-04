@@ -241,20 +241,6 @@ namespace Kratos
     }     
 
     
-    // get parameters
-    double& GetFirstDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = mNewmark.c1;
-      return rParameter;
-    }
-
-    double& GetSecondDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = mNewmark.c0;
-      return rParameter;
-    }
-
-
     /**
      * @brief This function is designed to be called once to perform all the checks needed
      * @return 0 all ok
@@ -559,10 +545,7 @@ namespace Kratos
     
       KRATOS_CATCH( "" )              
     }
-    
-
-
-    
+        
     ///@}
     ///@name Protected Operations
     ///@{
@@ -570,7 +553,20 @@ namespace Kratos
     ///@}
     ///@name Protected  Access
     ///@{
+    
+    // get parameters
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = mNewmark.c1;
+      return rParameter;
+    }
 
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = mNewmark.c0;
+      return rParameter;
+    }
+    
     ///@}
     ///@name Protected Inquiry
     ///@{

@@ -79,7 +79,7 @@ FluidElement&  FluidElement::operator=(FluidElement const& rOther)
 
     for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
     {
-        mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
+      mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
     }
 
     return *this;
@@ -118,6 +118,11 @@ Element::Pointer FluidElement::Clone( IndexType NewId, NodesArrayType const& rTh
 
       }
 
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+    {
+      NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+    }
+    
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
@@ -159,6 +164,16 @@ void FluidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& r
     KRATOS_ERROR << " calling the default method GetDofList for a fluid element " << std::endl;
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void FluidElement::SetProcessInformation(const ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+      
+  KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -895,6 +910,9 @@ void FluidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, Pro
     //create local system components
     LocalSystemComponents LocalSystem;
 
+    //process information
+    this->SetProcessInformation(rCurrentProcessInfo);
+    
     //calculation flags
     LocalSystem.CalculationFlags.Set(FluidElement::COMPUTE_RHS_VECTOR);
 
@@ -924,6 +942,9 @@ void FluidElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Proce
 
     //create local system components
     LocalSystemComponents LocalSystem;
+    
+    //process information
+    this->SetProcessInformation(rCurrentProcessInfo);
 
     //calculation flags
     LocalSystem.CalculationFlags.Set(FluidElement::COMPUTE_LHS_MATRIX);
@@ -953,6 +974,9 @@ void FluidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, Vector
 
     //create local system components
     LocalSystemComponents LocalSystem;
+    
+    //process information
+    this->SetProcessInformation(rCurrentProcessInfo);
 
     //calculation flags
     LocalSystem.CalculationFlags.Set(FluidElement::COMPUTE_LHS_MATRIX);
@@ -1067,18 +1091,18 @@ void FluidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     KRATOS_TRY
 
     InitializeExplicitContributions();
-
+    
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-        mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                GetGeometry(),
-                row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                rCurrentProcessInfo );
-
-
+    {
+      mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
+                                                         GetGeometry(),
+                                                         row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
+                                                         rCurrentProcessInfo );
+    }
+    
     this->Set(FluidElement::FINALIZED_STEP,false);
     
     KRATOS_CATCH( "" )
-
 }
 
 
@@ -1351,7 +1375,8 @@ void FluidElement::CalculateVelocityGradient(Matrix& rL,
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    rL = zero_matrix<double> ( dimension );
+    rL.resize(dimension,dimension,false);
+    noalias(rL) = ZeroMatrix(dimension,dimension);
 
     if( dimension == 2 )
     {
@@ -1597,7 +1622,8 @@ Matrix& FluidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+    rDeltaPosition.resize(number_of_nodes,dimension,false);
+    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -1625,7 +1651,8 @@ Matrix& FluidElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+    rDeltaPosition.resize(number_of_nodes,dimension,false);
+    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes,dimension);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -1994,10 +2021,10 @@ void FluidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int MatSize = this->GetDofsSize();
     if ( rMassMatrix.size1() != MatSize )
-      rMassMatrix.resize( MatSize, MatSize, false );
-
+      rMassMatrix.resize( MatSize, MatSize, false );   
+    
     noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
-
+    
     double TotalMass = 0;
     TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
  
@@ -2019,6 +2046,8 @@ void FluidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
 
   }
 
+  //std::cout<<" MassMatrix "<<rMassMatrix<<std::endl;
+  
   KRATOS_CATCH( "" )
 }
 
@@ -2030,7 +2059,7 @@ void FluidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
   KRATOS_TRY
 
   //0.-Initialize the DampingMatrix:
-
+      
   //resizing as needed the LHS
   const unsigned int MatSize = this->GetDofsSize();
 
@@ -2040,20 +2069,7 @@ void FluidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
   noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
 
-  //1.-Calculate StiffnessMatrix:
-
-  MatrixType StiffnessMatrix  = Matrix();
-
-  this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
-
-  //2.-Calculate MassMatrix:
-
-  MatrixType MassMatrix  = Matrix();
-
-  this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-
-
-  //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+  //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
   double alpha = 0;
   if( GetProperties().Has(RAYLEIGH_ALPHA) ){
     alpha = GetProperties()[RAYLEIGH_ALPHA];
@@ -2070,12 +2086,24 @@ void FluidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
     beta = rCurrentProcessInfo[RAYLEIGH_BETA];
   }
 
-  //4.-Compose the Damping Matrix:
+  if( alpha != 0 || beta != 0){
 
-  //Rayleigh Damping Matrix: alpha*M + beta*K
-  rDampingMatrix  = alpha * MassMatrix;
-  rDampingMatrix += beta  * StiffnessMatrix;
+    //1.-Calculate StiffnessMatrix:
+    MatrixType StiffnessMatrix  = Matrix();
 
+    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+
+    //2.-Calculate MassMatrix:
+    MatrixType MassMatrix  = Matrix();
+
+    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+
+    //4.-Compose the Damping Matrix:
+
+    //Rayleigh Damping Matrix: alpha*M + beta*K
+    rDampingMatrix  = alpha * MassMatrix;
+    rDampingMatrix += beta  * StiffnessMatrix;
+  }
   
   KRATOS_CATCH( "" )
 }

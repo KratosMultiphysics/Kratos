@@ -6,7 +6,7 @@
         "time_step"       : 0.01,
         "start_time"      : 0.0,
         "end_time"        : 0.1,
-        "echo_level"      : 0,
+        "echo_level"      : 1,
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },

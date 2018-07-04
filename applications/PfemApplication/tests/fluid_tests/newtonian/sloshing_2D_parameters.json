@@ -32,18 +32,16 @@
 		    "time_integration_settings" : {
 			"solution_type"          : "Dynamic",
 			"time_integration"       : "Implicit",
-			"integration_method"     : "Bdf",
-			"time_integration_order" :  2
+			"integration_method"     : "Newmark"
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"                 : false,
-			"max_iteration"               : 15,
+			"max_iteration"               : 20,
 			"bossak_factor"               : 0.0
 		    },
 		    "convergence_criterion_settings" : {
-			"convergence_criterion"       : "Residual_criterion",
-			"residual_relative_tolerance" : 0.00001,
-			"residual_absolute_tolerance" : 1e-9
+			"convergence_criterion"       : "Variable_criterion",
+			"variable_relative_tolerance" : 0.00001
 		    },
 		    "linear_solver_settings"    : {
 		    "solver_type"         : "BICGSTABSolver",
@@ -55,22 +53,21 @@
 		    "dofs" : ["VELOCITY"]
 		}
             },{
-		"solver_type" : "solid_mechanics_static_solver",
+		"solver_type" : "solid_mechanics_implicit_dynamic_solver",
 		"Parameters"  : {
 		    "time_integration_settings" : {
-			"solution_type"      : "Static",
-			"analysis_type"      : "Non-linear",
-			"integration_method" : "Static"
+			"solution_type"          : "Dynamic",
+			"time_integration"       : "Implicit",
+			"integration_method"     : "Newmark"
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"                 : false,
-			"compute_reactions"           : true,
+			"compute_reactions"           : false,
 			"max_iteration"               : 15
 		    },
 		    "convergence_criterion_settings" : {
-			"convergence_criterion"       : "Residual_criterion",
-			"residual_relative_tolerance" : 0.00001,
-			"residual_absolute_tolerance" : 1e-9
+			"convergence_criterion"       : "Variable_criterion",
+			"variable_relative_tolerance" : 0.00001
 		    },
 		    "linear_solver_settings"    : {
 			"solver_type"         : "BICGSTABSolver",
@@ -240,7 +237,7 @@
     }],
     "loads_process_list"       : [],
     "output_process_list"      : [],
-    "check_process_list" : [
+    "_check_process_list" : [
         {
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
@@ -265,5 +262,21 @@
             "time_frequency"       : 0.05
         }
     }
-    ]
+    ],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteElementsOnly",
+                "MultiFileFlag"         : "MultipleFiles"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "node_output"         : true,
+            "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE"],
+            "gauss_point_results" : ["CAUCHY_STRESS_TENSOR"]
+        }
+    }
 }

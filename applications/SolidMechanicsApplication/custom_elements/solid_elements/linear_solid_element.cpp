@@ -702,8 +702,10 @@ void LinearSolidElement::CalculateInfinitesimalStrain( Vector& rStrainVector, co
     const SizeType number_of_nodes  = GetGeometry().PointsNumber();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
-    Matrix H = zero_matrix<double> ( dimension ); //[dU/dx_n]
-
+    //[dU/dx_n]
+    Matrix H(dimension,dimension); 
+    noalias(H) = ZeroMatrix(dimension,dimension);
+        
     if( dimension == 2 )
     {
 
