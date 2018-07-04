@@ -36,7 +36,7 @@ namespace Kratos
 		#pragma omp critical
 		{
             GetDefaultOutputInstance().WriteMessage(mCurrentMessage);
-			for (auto i_output = outputs.begin(); i_output != outputs.end(); i_output++)
+			for (auto i_output = outputs.begin(); i_output != outputs.end(); ++i_output)
 				(*i_output)->WriteMessage(mCurrentMessage);
 		}
 	}
@@ -46,6 +46,14 @@ namespace Kratos
 		#pragma omp critical
 		{
 		  GetOutputsInstance().push_back(pTheOutput);
+		}
+	}
+
+	void Logger::Flush() {
+		auto outputs = GetOutputsInstance();
+		GetDefaultOutputInstance().Flush();
+		for (auto i_output = outputs.begin(); i_output != outputs.end(); ++i_output) {
+			(*i_output)->Flush();
 		}
 	}
 

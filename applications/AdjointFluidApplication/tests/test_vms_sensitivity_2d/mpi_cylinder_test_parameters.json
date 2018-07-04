@@ -147,7 +147,10 @@
         "Parameters" : {
             "position"         : [0.015717, 0.0043484, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "test_vms_sensitivity_2d/mpi_cylinder_test_probe1.dat",
+            "output_file_settings": {
+                "file_name"  : "mpi_cylinder_test_probe1.dat",
+                "folder_name": "test_vms_sensitivity_2d"
+            },
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -161,7 +164,10 @@
         "Parameters" : {
             "position"         : [0.02601,-0.0018744, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "test_vms_sensitivity_2d/mpi_cylinder_test_probe2.dat",
+            "output_file_settings": {
+                "file_name"  : "mpi_cylinder_test_probe2.dat",
+                "folder_name": "test_vms_sensitivity_2d"
+            },
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
