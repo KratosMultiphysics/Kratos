@@ -182,11 +182,11 @@ public:
      * @param[out]    rSensitivityGradient  the gradient of the response function.
      * @param[in]     rProcessInfo          the current process info.
      */
-    virtual void CalculateSensitivityGradient(Element& rAdjointElement,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rSensitivityMatrix,
-                                              Vector& rSensitivityGradient,
-                                              ProcessInfo& rProcessInfo)
+    virtual void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -200,11 +200,11 @@ public:
      * @param[out]    rSensitivityGradient  the gradient of the response function.
      * @param[in]     rProcessInfo          the current process info.
      */
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rSensitivityMatrix,
-                                              Vector& rSensitivityGradient,
-                                              ProcessInfo& rProcessInfo)
+    virtual void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -218,11 +218,11 @@ public:
      * @param[out]    rSensitivityGradient  the gradient of the response function.
      * @param[in]     rProcessInfo          the current process info.
      */
-    virtual void CalculateSensitivityGradient(Element& rAdjointElement,
-                                              const Variable<array_1d<double, 3>>& rVariable,
-                                              const Matrix& rSensitivityMatrix,
-                                              Vector& rSensitivityGradient,
-                                              ProcessInfo& rProcessInfo)
+    virtual void CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
@@ -236,11 +236,11 @@ public:
      * @param[out]    rSensitivityGradient  the gradient of the response function.
      * @param[in]     rProcessInfo          the current process info.
      */
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<array_1d<double, 3>>& rVariable,
-                                              const Matrix& rSensitivityMatrix,
-                                              Vector& rSensitivityGradient,
-                                              ProcessInfo& rProcessInfo)
+    virtual void CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "Calling base class response function method.\n";
     }
