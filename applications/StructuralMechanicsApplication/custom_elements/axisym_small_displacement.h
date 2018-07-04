@@ -52,10 +52,18 @@ public:
     ///@{
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
+
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /// Counted pointer of AxisymSmallDisplacement
     KRATOS_CLASS_POINTER_DEFINITION(AxisymSmallDisplacement);
@@ -183,7 +191,7 @@ private:
         Matrix& rB,
         const Matrix& DN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const IndexType PointNumber
         ) override;
     
     /**
@@ -201,7 +209,7 @@ private:
      */
     double GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const double detJ
         ) override;
 

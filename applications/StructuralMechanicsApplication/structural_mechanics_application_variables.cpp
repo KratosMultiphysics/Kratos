@@ -14,6 +14,9 @@ namespace Kratos
 {
 typedef array_1d<double, 3> Vector3;
 
+// General pourpose
+KRATOS_CREATE_VARIABLE(int, INTEGRATION_ORDER); // The integration order considered on the element
+
 // Generalized eigenvalue problem
 KRATOS_CREATE_VARIABLE(int, BUILD_LEVEL)
 KRATOS_CREATE_VARIABLE(Vector, EIGENVALUE_VECTOR)
@@ -52,6 +55,7 @@ KRATOS_CREATE_VARIABLE(double, I33)
 
 // Shell generalized variables
 KRATOS_CREATE_VARIABLE(bool, STENBERG_SHEAR_STABILIZATION_SUITABLE)
+KRATOS_CREATE_VARIABLE(double, SHELL_OFFSET)
 KRATOS_CREATE_VARIABLE(Matrix, SHELL_STRAIN)
 KRATOS_CREATE_VARIABLE(Matrix, SHELL_STRAIN_GLOBAL)
 KRATOS_CREATE_VARIABLE(Matrix, SHELL_CURVATURE)

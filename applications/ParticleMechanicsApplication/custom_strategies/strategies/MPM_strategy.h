@@ -759,12 +759,29 @@ public:
 			
 			auto elemItr = grid_model_part.Elements().begin() + i;
 			elemItr -> Reset(ACTIVE);
-            elemItr ->GetGeometry()[0].Reset(ACTIVE);
-            elemItr ->GetGeometry()[1].Reset(ACTIVE);
-            elemItr ->GetGeometry()[2].Reset(ACTIVE);
-            if (TDim ==3)
-            {
+            if (m_GeometryElement == "Triangle"){
+                elemItr ->GetGeometry()[0].Reset(ACTIVE);
+                elemItr ->GetGeometry()[1].Reset(ACTIVE);
+                elemItr ->GetGeometry()[2].Reset(ACTIVE);
+
+                if (TDim ==3)
+                {
+                    elemItr ->GetGeometry()[3].Reset(ACTIVE);
+                }
+            }
+            else if (m_GeometryElement == "Quadrilateral"){
+                elemItr ->GetGeometry()[0].Reset(ACTIVE);
+                elemItr ->GetGeometry()[1].Reset(ACTIVE);
+                elemItr ->GetGeometry()[2].Reset(ACTIVE);
                 elemItr ->GetGeometry()[3].Reset(ACTIVE);
+
+                if (TDim ==3)
+                {
+                    elemItr->GetGeometry()[4].Reset(ACTIVE);
+                    elemItr->GetGeometry()[5].Reset(ACTIVE);
+                    elemItr->GetGeometry()[6].Reset(ACTIVE);
+                    elemItr->GetGeometry()[7].Reset(ACTIVE);
+                }
             }
 		}
 
@@ -818,7 +835,7 @@ public:
                 }
 		    }
         }
-
+        
         //******************SEARCH FOR QUADRILATERALS************************
         else if(m_GeometryElement == "Quadrilateral")
         {

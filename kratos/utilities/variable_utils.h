@@ -231,7 +231,7 @@ public:
      * @param rNodes reference to the objective node set
      */
     template< class TVarType >
-    void SetNonHistoricalScalarVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable") void SetNonHistoricalScalarVar(
         TVarType& rVariable,
         const double Value,
         NodesContainerType& rNodes
@@ -254,7 +254,7 @@ public:
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
      */
-    void SetNonHistoricalVectorVar(
+    KRATOS_DEPRECATED_MESSAGE("Method deprecated, please use SetNonHistoricalVariable") void SetNonHistoricalVectorVar(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes

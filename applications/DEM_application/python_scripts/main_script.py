@@ -454,7 +454,6 @@ class Solution(object):
 
             self.PrintResults()
 
-
             self.FinalizeTimeStep(self.time)
 
     def RunAnalytics(self, time, is_time_to_print=True):
@@ -494,8 +493,6 @@ class Solution(object):
     def BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
-                #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
-                #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
                 self.FillAnalyticSubModelPartsWithNewParticles()
 
     def BeforePrintingOperations(self, time):
@@ -517,9 +514,7 @@ class Solution(object):
     def Finalize(self):
 
         self.KRATOSprint("Finalizing execution...")
-
         self.GraphicalOutputFinalize()
-
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
