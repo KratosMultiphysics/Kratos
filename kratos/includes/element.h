@@ -750,6 +750,12 @@ public:
     {
     }
 
+    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+					      std::vector<int>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
