@@ -96,12 +96,14 @@ MmgProcess<TDim>::MmgProcess(
         },
         "advanced_parameters"                  :
         {
+            "force_hausdorff_value"               : false,
             "hausdorff_value"                     : 0.0001,
             "no_move_mesh"                        : false,
             "no_surf_mesh"                        : false,
             "no_insert_mesh"                      : false,
             "no_swap_mesh"                        : false,
             "deactivate_detect_angle"             : false,
+            "force_gradation_value"               : false,
             "gradation_value"                     : 1.3
         },
         "save_external_files"                  : false,
@@ -1735,8 +1737,10 @@ void MmgProcess<2>::MMGLibCall()
     
     /* Advanced configurations */
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
-    if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 ) 
-        KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    if (mThisParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
+        if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    }
     
     // Avoid/allow point relocation 
     if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
@@ -1756,23 +1760,25 @@ void MmgProcess<2>::MMGLibCall()
     
     // Set the angle detection
     const bool deactivate_detect_angle = mThisParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
-    if ( deactivate_detect_angle == true) {
+    if ( deactivate_detect_angle) {
         if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 ) 
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
     
     // Set the gradation
-    if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 ) 
-        KRATOS_ERROR << "Unable to set gradation" << std::endl;
+    if (mThisParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
+        if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set gradation" << std::endl;
+    }
     
     // Minimal edge size
-    if (mThisParameters["force_sizes"]["force_min"].GetBool() == true) {
+    if (mThisParameters["force_sizes"]["force_min"].GetBool()) {
         if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 ) 
             KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
     }
     
     // Minimal edge size
-    if (mThisParameters["force_sizes"]["force_max"].GetBool() == true) {
+    if (mThisParameters["force_sizes"]["force_max"].GetBool()) {
         if ( MMG2D_Set_dparameter(mmgMesh,mmgSol,MMG2D_DPARAM_hmax, mThisParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
             KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
         }
@@ -1798,8 +1804,10 @@ void MmgProcess<3>::MMGLibCall()
     
     /* Advanced configurations */
     // Global hausdorff value (default value = 0.01) applied on the whole boundary
-    if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 ) 
-        KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    if (mThisParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    }
     
     // Avoid/allow point relocation 
     if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 ) 
@@ -1819,23 +1827,25 @@ void MmgProcess<3>::MMGLibCall()
     
     // Set the angle detection
     const bool deactivate_detect_angle = mThisParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
-    if ( deactivate_detect_angle == true) {
+    if ( deactivate_detect_angle) {
         if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 ) 
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
     
     // Set the gradation
-    if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 ) 
-        KRATOS_ERROR << "Unable to set gradation" << std::endl;
+    if (mThisParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set gradation" << std::endl;
+    }
     
     // Minimal edge size
-    if (mThisParameters["force_sizes"]["force_min"].GetBool() == true) {
+    if (mThisParameters["force_sizes"]["force_min"].GetBool()) {
         if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 ) 
             KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
     }
     
     // Minimal edge size
-    if (mThisParameters["force_sizes"]["force_max"].GetBool() == true) {
+    if (mThisParameters["force_sizes"]["force_max"].GetBool()) {
         if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmax, mThisParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
             KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
         }
