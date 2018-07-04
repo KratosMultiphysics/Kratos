@@ -86,10 +86,10 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                     self._GetSolver().Initialize()
                     # WE RECOMPUTE THE PROCESSES AGAIN
                     ## Processes initialization
-                    for process in self._GetListOfProcesses():
+                    for process in self._list_of_processes:
                         process.ExecuteInitialize()
                     ## Processes before the loop
-                    for process in self._GetListOfProcesses():
+                    for process in self._list_of_processes:
                         process.ExecuteBeforeSolutionLoop()
                 self.InitializeSolutionStep()
                 self._GetSolver().Predict()
@@ -108,18 +108,15 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                 non_linear_iteration = 1
                 while non_linear_iteration <= self.non_linear_iterations:
                     if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
-                        # Set again all  GiD  I/O
-                        if self.project_parameters.Has("output_configuration"):
-                            self._GetListOfProcesses()[-1] = self._SetUpGiDOutput()
                         # WE RECOMPUTE THE PROCESSES AGAIN
                         # Processes initialization
-                        for process in self._GetListOfProcesses():
+                        for process in self._list_of_processes:
                             process.ExecuteInitialize()
                         ## Processes before the loop
-                        for process in self._GetListOfProcesses():
+                        for process in self._list_of_processes:
                             process.ExecuteBeforeSolutionLoop()
                         ## Processes of initialize the solution step
-                        for process in self._GetListOfProcesses():
+                        for process in self._list_of_processes:
                             process.ExecuteInitializeSolutionStep()
                     if (non_linear_iteration == 1 or computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
                         self.InitializeSolutionStep()
@@ -167,7 +164,7 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                KratosMultiphysics.Logger.PrintInfo("AdaptativeStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -178,10 +175,7 @@ class AdaptativeStructuralMechanicsAnalysis(BaseClass):
                     if (self.project_parameters.Has(process_name) is True):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
-            if self.project_parameters.Has("output_configuration"):
-                #KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
-                gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
+            pass # Already added
         else:
             raise NameError("wrong parameter name")
 
