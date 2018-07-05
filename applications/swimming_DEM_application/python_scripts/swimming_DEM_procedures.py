@@ -11,6 +11,10 @@ import shutil
 import os
 import weakref
 
+def Say(*args):
+    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.Flush()
+
 def AddExtraDofs(project_parameters, fluid_model_part, spheres_model_part, cluster_model_part, DEM_inlet_model_part):
 
     if VELOCITY_LAPLACIAN in project_parameters.fluid_vars:
@@ -152,6 +156,7 @@ class FluidFractionFieldUtility:
         Logger.PrintInfo()
         Logger.PrintInfo("DEM-FLUID",'Adding Imposed Fluid Fraction Fields...')
         Logger.PrintInfo()
+        Logger.Flush()
 
         count = 0
 
@@ -164,6 +169,7 @@ class FluidFractionFieldUtility:
             Logger.PrintInfo()
 
         Logger.PrintInfo("DEM-FLUID",'******************************************************************')
+        Logger.Flush()
 
         for field in self.field_list:
 
@@ -262,9 +268,9 @@ class IOTools:
         if incremental_time > self.param.ControlTime:
             percentage = 100.0 * (float(step) / total_steps_expected)
 
-            Logger.PrintInfo("DEM-FLUID",'Real time calculation: ' + str(incremental_time))
-            Logger.PrintInfo("DEM-FLUID",'Percentage Completed: ' + str(percentage) + ' %')
-            Logger.PrintInfo("DEM-FLUID","TIME STEP = " + str(step) + '\n')
+            Say('Real time calculation: ' + str(incremental_time))
+            Say('Percentage Completed: ' + str(percentage) + ' %')
+            Say("TIME STEP = " + str(step) + '\n')
 
             prev_time = (incremental_time)
 
@@ -320,6 +326,7 @@ class ProjectionDebugUtils:
         Logger.PrintInfo("DEM-FLUID",GetWordWithSpaces("mean_proj_balls_on_fluid_total_force", tot_len) + '=', self.mean_proj_balls_on_fluid_total_force)
         Logger.PrintInfo("DEM-FLUID",tot_len * "**")
         Logger.PrintInfo("DEM-FLUID",)
+        Logger.Flush()
 
 # This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle,
 # the step at which the cycle starts and weather it is active or not (Tick() returns False in this case).
@@ -650,5 +657,6 @@ class StationarityAssessmentTool:
             Logger.PrintInfo("DEM-FLUID","The model has reached a stationary state. The fluid calculation is suspended.")
             Logger.PrintInfo()
             Logger.PrintInfo("DEM-FLUID","**************************************************************************************************")
+            Logger.Flush()
 
         return stationarity
