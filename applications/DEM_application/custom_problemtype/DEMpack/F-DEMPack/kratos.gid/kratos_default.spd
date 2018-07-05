@@ -83,7 +83,7 @@
           <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
           <Item id="GiDWriteConditionsFlag" pid="Write conditions" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
           <Item id="GiDWriteParticlesFlag" pid="Write particles" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
-          <Item id="GiDMultiFileFlag" pid="Result file" dv="Multiples" ivalues="Multiples,Single" values="Multiple files,Single file" help="Write one GiD result file or multiple files"/>
+          <Item id="GiDMultiFileFlag" pid="Result file" dv="Multiples" ivalues="Multiples,Single" state="hidden" values="Multiple files,Single file" help="Write one GiD result file or multiple files"/>
         </Container>
         <Container id="ResultsToPrint" pid="Nodal values to be printed for post-process" help="Corresponding memory may need to be allocated, thus harming performance in some cases">
             <Container id="DEMResults" pid="Particle's results" help="These are data stored for each DEM particle">
