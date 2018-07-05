@@ -1,22 +1,22 @@
- 
+
 ## Adjoint Sensitivity Analysis
 
 ### General remarks:
 
 This feature provides the framework to compute sensitivities of structural responses (e.g. displacements, strain energy or stresses) with respect to different types of design variables (e.g. nodal coordinates, material or cross-sectional properties or load intensity) with the adjoint approach. Therefore for each response function an adjoint problem has to be solved. The sensitivies are than computed in a post-processing step. The implemented sensitivity analysis uses a so called semi-analytic approach which means that the derivatives at element level are then computed by finite differences.
 
-*Please note:* 
+*Please note:*
 - This feature currently only works for linear problems
 - This feature makes use of the HDF5Application
 
-### Features:  
+### Features:
 
 - Response utilities (response functions):
     * Base class of structural response functions
     * Strain energy
-    * Displacement or rotation of a node 
+    * Displacement or rotation of a node
     * Stress resultant of a single element
-  
+
 - Schemes:
 	* Scheme to solve the adjoint problem
 
@@ -25,20 +25,20 @@ This feature provides the framework to compute sensitivities of structural respo
 
 - Adjoint *Neumann* conditions:
     * Point load (wraps the PointLoadCondition)
-   
+
 - Structural adjoint elements:
     * Uni-dimensional elements:
        	* Linear 3D beam element (wraps the CrBeamElementLinear3D2N)
     * Two-dimensional elements:
         * Thin triangular shell (wraps the ShellThinElement3D3N)
 
-*Please note:* 
+*Please note:*
 The adjoint elements and conditions wrap elements/conditions of the Structural Mechanics Application and can call its public functions.  The main task of the adjoint elements/conditions is to derive different quantities (e.g. the right hand side or post-processing results like stresses) with respect to the design variable or state.
 
-### Usage: 
-In order to perform a sensitivity analysis for one response function, the solutions of two linear static problems are necessary: The primal and the adjoint problem. 
+### Usage:
+In order to perform a sensitivity analysis for one response function, the solutions of two linear static problems are necessary: The primal and the adjoint problem.
 
-*Please note:* 
+*Please note:*
 For the solution of the two problems different kind of variables are used in order to store the results. For the primal problem the usual variables ```DISPLACEMENT``` and ```ROTATION``` and for the adjoint problem ```ADJOINT_DISPLACEMENT``` and ```ADJOINT_ROTATION``` are used.
 
 #### Definition of the Primal Problem
@@ -62,7 +62,7 @@ The primal problem can be defind by the regular input files which are needed for
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
-    } 
+    }
 ```
 
 #### Definition of the Adjoint Problem
@@ -134,15 +134,12 @@ and the ```list_other_processes``` like:
 If all necessary input files are defined the analysis can be performed with a simple python script by calling the primal and afterwards the adjoint analysis. The sensitivities are computed in a post-processing of the adjoint problem.
 
 A possible python code can look like this:
-```python 
-    # Solve the primal problem     
+```python
+    # Solve the primal problem
         with open("beam_test_parameters.json",'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read())
 
-        problem_name_primal = ProjectParametersPrimal["problem_data"]["problem_name"].GetString()
-        primal_model_part = ModelPart(problem_name_primal)
         model_primal = Model()
-        model_primal.AddModelPart(self.primal_model_part)
 
         primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
 
@@ -151,10 +148,7 @@ A possible python code can look like this:
         with open("beam_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-        problem_name_adjoint = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
-        adjoint_model_part = ModelPart(problem_name_adjoint)
         model_adjoint = Model()
-        model_adjoint.AddModelPart(adjoint_model_part)
 
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
 
@@ -166,7 +160,7 @@ A possible python code can look like this:
 Independet from the chosen response function the following definitions are always necessary:
 
 - ```gradient_mode```: Currently there is only ```semi_analytic``` available.
-- ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic apporach. 
+- ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic apporach.
 - ```sensitivity_model_part_name```: Add here the name of the model part for which components sensitivities has to be computed (e.g. if the chosen design parameter is ```THICKNESS``` then for each element in this model part the sensitivity w.r.t. this variable is calculated).
 - ```nodal_sensitivity_variables```: Currently only ```SHAPE``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
 - ```element_sensitivity_variables```: Here sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
@@ -201,7 +195,7 @@ Examples:
             "traced_node_id"       : 6,
             "traced_dof"        : "DISPLACEMENT_Z"
         }
-```   
+```
 
 ```python
     "response_function_settings" : {
@@ -213,7 +207,7 @@ Examples:
             "condition_sensitivity_variables"  : ["POINT_LOAD"],
             "step_size"         : 1e-6
         }
-```   
+```
 
 ```python
     "response_function_settings" : {
@@ -238,7 +232,7 @@ The results of the sensitivity analysis are accessible in the post-processing as
 ```python
     "nodal_results"       : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
     "gauss_point_results" : ["THICKNESS_SENSITIVITY"]
-```    
+```
 
 
 
@@ -246,9 +240,9 @@ The results of the sensitivity analysis are accessible in the post-processing as
 
 
 
-        
-                
-         
+
+
+
 
 
 
