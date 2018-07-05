@@ -35,8 +35,12 @@ namespace Kratos
 /**
  * @class AssignScalarFieldToConditionsProcess
  * @ingroup KratosCore
- * @brief The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
- * @details This function assigns a value to a variable belonging to all of the nodes in a given mesh
+ * @brief This process is used in order to assign a function to a condition
+ * @details This function assigns a value depending on a function to a variable in all of the conditions in a given mesh.
+ * The behaviour is the following:
+ * - Option 1 - Variable<double>: It is evaluated in the center of the condition
+ * - Option 2 - array_1d_component_type: The same as Variable evaluated in the center of the element
+ * - Option 3 - Variable< Vector > : The vector has to have a size equal to the number of nodes, and its values are computed per each entry of the vector using the coordinates of the nodes which occupies the same position in the geometry
  * @author Riccardo Rossi
  * @author Josep Maria Carbonell
  * @author Vicente Mataix Ferrandiz
