@@ -40,7 +40,7 @@
 #include "custom_constitutive/small_strain_isotropic_damage_factory_3d.h"
 #include "custom_constitutive/viscous_generalized_maxwell_3d.h"
 #include "custom_constitutive/viscous_generalized_kelvin_3d.h"
-//#include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
 
@@ -343,9 +343,9 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ConstitutiveLaw >
     (m,"SmallStrainIsotropicDamage3DSimoJuTresca").def( init<>());
 
-    //class_< GenericSmallStrainViscoplasticity3D, typename GenericSmallStrainViscoplasticity3D::Pointer,  ConstitutiveLaw  >
-    //(m,"GenericSmallStrainViscoplasticity3D").def( init<>())
-    //;
+    class_< GenericSmallStrainViscoplasticity3D, typename GenericSmallStrainViscoplasticity3D::Pointer,  ConstitutiveLaw  >
+    (m,"GenericSmallStrainViscoplasticity3D").def( init<>())
+    ;
 }
 
 }  // namespace Python.

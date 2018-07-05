@@ -118,42 +118,42 @@ public:
 
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
-        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
-        const double SinDil    = std::sin(Dilatancy);
-        const double CosDil    = std::cos(Dilatancy);
-        const double SinTheta  = std::sin(LodeAngle);
-        const double CosTheta  = std::cos(LodeAngle);
-        const double Cos3Theta = std::cos(3.0*LodeAngle);
-        const double TanTheta  = std::tan(LodeAngle);
-        const double Tan3Theta = std::tan(3.0*LodeAngle);
+        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+        const double sin_dil    = std::sin(dilatancy);
+        const double cos_dil    = std::cos(dilatancy);
+        const double sin_theta  = std::sin(LodeAngle);
+        const double cos_theta  = std::cos(LodeAngle);
+        const double cos_3theta = std::cos(3.0*LodeAngle);
+        const double tan_theta  = std::tan(LodeAngle);
+        const double tan_3theta = std::tan(3.0*LodeAngle);
         const double Root3     = std::sqrt(3.0);
 
-        const double ComprYield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double TensiYield = rMaterialProperties[YIELD_STRESS_TENSION];
-        const double n = ComprYield / TensiYield;
+        const double compr_yield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double tensi_yield = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double n = compr_yield / tensi_yield;
 
-        const double AnglePhi = (Globals::Pi * 0.25) + Dilatancy * 0.5;
+        const double AnglePhi = (Globals::Pi * 0.25) + dilatancy * 0.5;
         const double alpha = n / (std::tan(AnglePhi) * std::tan(AnglePhi));
 
-        const double CFL = 2.0 * std::tan(AnglePhi) / CosDil;
+        const double CFL = 2.0 * std::tan(AnglePhi) / cos_dil;
 
-        const double K1 = 0.5*(1 + alpha) - 0.5*(1 - alpha)*SinDil;
-        const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / SinDil;
-        const double K3 = 0.5*(1 + alpha)*SinDil - 0.5*(1 - alpha);
+        const double K1 = 0.5*(1 + alpha) - 0.5*(1 - alpha)*sin_dil;
+        const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / sin_dil;
+        const double K3 = 0.5*(1 + alpha)*sin_dil - 0.5*(1 - alpha);
 
 		double c1, c2, c3;
-        if (SinDil != 0.0) c1 = CFL * K3 / 3.0;
+        if (sin_dil != 0.0) c1 = CFL * K3 / 3.0;
         else const double c1 = 0.0; // check
 
 
         if (Checker < 29.0) {
-            c2 = CosTheta * CFL * (K1*(1+TanTheta*Tan3Theta) + K2*SinDil*(Tan3Theta-TanTheta) / Root3);
-            c3 = CFL*(K1*Root3*SinTheta + K2*SinDil*CosTheta) / (2.0*J2*Cos3Theta);
+            c2 = cos_theta * CFL * (K1*(1 + tan_theta*tan_3theta) + K2*sin_dil*(tan_3theta - tan_theta) / Root3);
+            c3 = CFL*(K1*Root3*sin_theta + K2*sin_dil*cos_theta) / (2.0*J2*cos_3theta);
         } else {
             c3 = 0.0;
             double Aux = 1.0;
             if (LodeAngle > 0.0) Aux = -1.0;
-            c2 = 0.5*CFL*(K1*Root3 + Aux*K2*SinDil/Root3);
+            c2 = 0.5*CFL*(K1*Root3 + Aux*K2*sin_dil/Root3);
         }
 
         noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;

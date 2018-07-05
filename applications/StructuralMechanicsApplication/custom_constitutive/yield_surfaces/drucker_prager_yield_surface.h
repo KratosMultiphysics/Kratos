@@ -214,8 +214,8 @@ public:
         double c1, c2, c3;
         c3 = 0.0;
 
-        const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE];
-        const double sin_phi    = std::sin(FrictionAngle);
+        const double friction_angle = rMaterialProperties[FRICTION_ANGLE];
+        const double sin_phi    = std::sin(friction_angle);
         const double Root3     = std::sqrt(3.0);
 
         const double CFL = -Root3*(3.0-sin_phi) / (3.0*sin_phi-3.0);

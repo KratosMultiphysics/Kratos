@@ -97,6 +97,7 @@
 #include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_factory_3d.h"
 #include "custom_constitutive/viscous_generalized_kelvin_3d.h"
+#include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/viscous_generalized_maxwell_3d.h"
 
 
@@ -410,6 +411,7 @@ private:
     const SmallStrainIsotropicDamageFactory3D mSmallStrainIsotropicDamageFactory3D;
     const ViscousGeneralizedKelvin3D mViscousGeneralizedKelvin3D;
     const ViscousGeneralizedMaxwell3D mViscousGeneralizedMaxwell3D;
+    const GenericSmallStrainViscoplasticity3D mGenericSmallStrainViscoplasticity3D;
 
 	const GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>> mSmallStrainIsotropicPlasticity3DVonMisesVonMises;
     const GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>> mSmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb;

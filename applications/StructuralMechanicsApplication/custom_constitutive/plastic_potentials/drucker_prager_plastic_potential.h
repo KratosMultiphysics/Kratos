@@ -113,12 +113,12 @@ public:
 
         const double c3 = 0.0;
 
-        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
-        const double SinDil    = std::sin(Dilatancy);
+        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+        const double sin_dil    = std::sin(dilatancy);
         const double Root3     = std::sqrt(3.0);
 
-        const double CFL = -Root3*(3.0-SinDil) / (3.0*SinDil-3.0);
-        const double c1 = CFL*2.0*SinDil / (Root3*(3.0-SinDil));
+        const double CFL = -Root3*(3.0-sin_dil) / (3.0*sin_dil-3.0);
+        const double c1 = CFL*2.0*sin_dil / (Root3*(3.0-sin_dil));
         const double c2 = CFL;
 
         noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;

@@ -24,6 +24,8 @@
 
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
+#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
 
 
 
@@ -75,6 +77,16 @@ public:
     {
     }
 
+    /**
+    * Constructor.
+    */
+    GenericSmallStrainViscoplasticity3D(
+        ConstitutiveLaw::Pointer pPlasticityLaw,
+        ConstitutiveLaw::Pointer pViscousLaw)
+    {
+        mpPlasticityConstitutiveLaw = pPlasticityLaw;
+	    mpViscousConstitutiveLaw = pViscousLaw;
+    }
     /**
     * Clone.
     */
@@ -139,14 +151,30 @@ public:
         this->CalculateMaterialResponseCauchy(rValues);
     }
 
+    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
+    {   
+        ConstitutiveLaw::Pointer PlasticityCL = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
+        ConstitutiveLaw::Pointer ViscousCL    = ViscousGeneralizedMaxwell3D().Create(NewParameters);
+
+        return GenericSmallStrainViscoplasticity3D(PlasticityCL, ViscousCL).Clone();
+    }
+
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
     {
-        Vector& IntegratedStressVector = rValues.GetStressVector();
+        //Vector& IntegratedStressVector = rValues.GetStressVector();
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
-		Vector PlasticStrain = ZeroVector(6);
-		mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, PlasticStrain);
 
-        //Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
+		Vector PlasticStrain = ZeroVector(6);
+        mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, PlasticStrain);
+        Vector& StrainVector = rValues.GetStrainVector();
+        const Vector strain_for_visco = StrainVector - PlasticStrain;
+        const Vector initial_strain_vector = StrainVector;
+		
+        StrainVector = strain_for_visco;
+        mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // modifies S for plasticity
+
+        StrainVector = initial_strain_vector;
+        mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
 
     } // End CalculateMaterialResponseCauchy
 
@@ -160,6 +188,7 @@ public:
         // Update the int vars of each SubConstitutiveLaw
         mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
                                     rShapeFunctionsValues,rCurrentProcessInfo);
+                                    
         mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
                             rShapeFunctionsValues,rCurrentProcessInfo);
     }
