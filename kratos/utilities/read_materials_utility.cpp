@@ -67,7 +67,7 @@ ReadMaterialsUtility::ReadMaterialsUtility(
 void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
 {
     KRATOS_INFO("Read materials") << "Started" << std::endl;
-    for (auto i = 0; i < Materials["properties"].size(); ++i) {
+    for (IndexType i = 0; i < Materials["properties"].size(); ++i) {
         Parameters material = Materials["properties"].GetArrayItem(i);
         AssignPropertyBlock(material);
     }
@@ -131,10 +131,12 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
     //Set the CONSTITUTIVE_LAW for the current p_properties.
     if (Data["Material"].Has("constitutive_law")) {
-        std::string constitutive_law_name = Data["Material"]["constitutive_law"]["name"].GetString();
+        Parameters cl_parameters = Data["Material"]["constitutive_law"];
+        std::string constitutive_law_name = cl_parameters["name"].GetString();
         TrimComponentName(constitutive_law_name);
+        cl_parameters["name"].SetString(constitutive_law_name);
 
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Clone();
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Create(cl_parameters);
         p_prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
     } else {
         KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << property_id << std::endl;
@@ -202,7 +204,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
         const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
         const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
-        for (auto i = 0; i < table_param["data"].size(); ++i) {
+        for (IndexType i = 0; i < table_param["data"].size(); ++i) {
             table.insert(table_param["data"][i][0].GetDouble(),
                          table_param["data"][i][1].GetDouble());
         }
