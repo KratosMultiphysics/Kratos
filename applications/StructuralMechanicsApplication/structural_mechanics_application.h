@@ -42,8 +42,6 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
-#include "custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
-#include "custom_response_functions/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -80,7 +78,6 @@
 #include "custom_conditions/point_moment_condition_3d.h"
 
 /* Adding the adjoint conditions */
-#include "custom_response_functions/adjoint_conditions/point_load_adjoint_condition.h"
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
 /* CONSTITUTIVE LAWS */
@@ -369,8 +366,6 @@ private:
     const AdjointFiniteDifferencingBaseElement mAdjointFiniteDifferencingBaseElement;
     const AdjointFiniteDifferencingShellElement mAdjointFiniteDifferencingShellElement;
     const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
-    const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
-    const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
     /* CONDITIONS*/
     // Point load
@@ -399,8 +394,6 @@ private:
     const PointMomentCondition3D mPointMomentCondition3D1N;
 
     // Adjoint Conditions
-    const PointLoadAdjointCondition mPointLoadAdjointCondition2D1N;
-    const PointLoadAdjointCondition mPointLoadAdjointCondition3D1N;
     const AdjointSemiAnalyticPointLoadCondition mAdjointSemiAnalyticPointLoadCondition2D1N;
     const AdjointSemiAnalyticPointLoadCondition mAdjointSemiAnalyticPointLoadCondition3D1N;
 
