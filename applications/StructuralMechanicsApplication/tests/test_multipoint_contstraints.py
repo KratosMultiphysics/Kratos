@@ -93,9 +93,9 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             -0.01)
         self.convergence_criterion = KratosMultiphysics.ResidualCriteria(
             1e-10, 1e-12)
-        self.convergence_criterion.SetEchoLevel(0)
+        self.convergence_criterion.SetEchoLevel(1)
 
-        max_iters = 1000
+        max_iters = 100
         compute_reactions = False
         reform_step_dofs = True
         move_mesh_flag = False
@@ -119,44 +119,45 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self.strategy.Solve()
 
     def _check_results(self, mp):
-        disp1 = mp.Nodes[16].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_X, 0)
-        disp2 = mp.Nodes[6].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_X, 0)
+        disp1 = mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        disp2 = mp.Nodes[6].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        print("TEST 1")
+        print(disp1, "    ", disp2)
+        #self.assertAlmostEqual(disp1, disp2, 5)
+
+
+        disp1 = mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        disp2 = mp.Nodes[6].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        print("TEST 2")
+        print(disp1, "    ", disp2)
         self.assertAlmostEqual(disp1, disp2, 5)
 
-        disp1 = mp.Nodes[16].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_Y, 0)
-        disp2 = mp.Nodes[6].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_Y, 0)
+        disp1 = 0.5 * ( mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+                        + mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0))
+
+        disp2 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        print("TEST 3")
+        print(disp1, "    ", disp2)
+        #self.assertAlmostEqual(disp1, disp2, 5)
+
+
+        disp1 = 0.5 * (mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+                        + mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0))
+        disp2 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        print("TEST 4")
+        print(disp1, "    ", disp2)
+        #self.assertAlmostEqual(disp1, disp2, 5)
+
+        disp1 = mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        disp2 = mp.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
+        print("TEST 5")
+        print(disp1, "    ", disp2)
         self.assertAlmostEqual(disp1, disp2, 5)
 
-        disp1 = 0.5 * (
-            mp.Nodes[16].GetSolutionStepValue(
-                KratosMultiphysics.DISPLACEMENT_X, 0) + mp.Nodes[18]
-            .GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0))
-        disp2 = mp.Nodes[7].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_X, 0)
-        self.assertAlmostEqual(disp1, disp2, 5)
-
-        disp1 = 0.5 * (
-            mp.Nodes[16].GetSolutionStepValue(
-                KratosMultiphysics.DISPLACEMENT_Y, 0) + mp.Nodes[18]
-            .GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0))
-        disp2 = mp.Nodes[7].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_Y, 0)
-        self.assertAlmostEqual(disp1, disp2, 5)
-
-        disp1 = mp.Nodes[18].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_X, 0)
-        disp2 = mp.Nodes[9].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_X, 0)
-        self.assertAlmostEqual(disp1, disp2, 5)
-
-        disp1 = mp.Nodes[18].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_Y, 0)
-        disp2 = mp.Nodes[9].GetSolutionStepValue(
-            KratosMultiphysics.DISPLACEMENT_Y, 0)
+        disp1 = mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        disp2 = mp.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
+        print("TEST 6")
+        print(disp1, "    ", disp2)
         self.assertAlmostEqual(disp1, disp2, 5)
 
     def _setup_model_part(self, mp):
@@ -179,10 +180,10 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
 
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("FixedEdgeNodes")
-        bcs.AddNodes([1, 2, 5, 13, 15])
+        bcs.AddNodes([1, 2, 5])
 
         bcmn = mp.CreateSubModelPart("MovingNodes")
-        bcmn.AddNodes([10, 12])
+        bcmn.AddNodes([13, 15])
 
         #create Element
         mp.CreateNewElement("SmallDisplacementElement2D4N", 2,
@@ -200,15 +201,14 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
 
     def _apply_mpc_constraints(self, mp):
 
-        c2 = mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0.0)
-
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
         mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 2, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 3, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 4, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+
+        #mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 3, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
+        #mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 4, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+        #mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
+        #mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
 
         mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 7, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
         mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 8, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
@@ -238,9 +238,9 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self._apply_material_properties(mp, dim)
 
         #time integration parameters
-        dt = 0.005
+        dt = 0.05
         time = 0.0
-        end_time = 0.025
+        end_time = 0.01
         step = 0
 
         self._set_and_fill_buffer(mp, 2, dt)
@@ -252,11 +252,11 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self._setup_solver(mp)
 
         while (time <= end_time):
+            print("step :: ", step)
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
-            if (step > 3):
-                self._solve()
+            self._solve()
         # Checking the results
         self._check_results(mp)
         self._reset()
