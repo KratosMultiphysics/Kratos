@@ -102,23 +102,23 @@ void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
 }
 
 
-/// Execute the refinement until the final refinement level is reached
+/// Execute the refinement until the final number of divisions level is reached
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::Refine()
 {
     // Get the lowest refinement level
-    int minimum_refinement_level = 1e6;
+    int minimum_divisions_level = 1e6;
     const IndexType n_elements = mrModelPart.Elements().size();
     for (IndexType i = 0; i < n_elements; i++)
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
-        if (ielement->GetValue(REFINEMENT_LEVEL) < minimum_refinement_level)
-            minimum_refinement_level = ielement->GetValue(REFINEMENT_LEVEL);
+        if (ielement->GetValue(NUMBER_OF_DIVISIONS) < minimum_divisions_level)
+            minimum_divisions_level = ielement->GetValue(NUMBER_OF_DIVISIONS);
     }
 
-    for (int level = minimum_refinement_level; level < mFinalRefinementLevel; level++)
+    for (int divisions = minimum_divisions_level; divisions < mFinalRefinementLevel; divisions++)
     {
-        RefineLevel(level);
+        RefineLevel(divisions);
     }
 }
 
@@ -137,9 +137,9 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
 
-        // Check the refinement level of the origin elements
-        int step_refine_level = ielement->GetValue(REFINEMENT_LEVEL);
-        if (step_refine_level == rThisLevel)
+        // Check the divisions level of the origin elements
+        int step_divisions_level = ielement->GetValue(NUMBER_OF_DIVISIONS);
+        if (step_divisions_level == rThisLevel)
             elements_id.push_back(ielement->Id());
     }
 
@@ -150,8 +150,8 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
 
         // Check the refinement level of the origin conditions
-        int step_refine_level = icondition->GetValue(REFINEMENT_LEVEL);
-        if (step_refine_level == rThisLevel)
+        int step_divisions_level = icondition->GetValue(NUMBER_OF_DIVISIONS);
+        if (step_divisions_level == rThisLevel)
             conditions_id.push_back(icondition->Id());
     }
 
@@ -162,17 +162,17 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         Element::Pointer p_element = mrModelPart.Elements()(id);
 
         // Get the refinement level of the origin element
-        int step_refine_level = rThisLevel + 1;
+        int step_divisions_level = rThisLevel + 1;
 
         // Get the geometry
         Geometry<NodeType>& geom = p_element->GetGeometry();
 
         // Loop the edges of the father element and get the nodes
         for (auto edge : geom.Edges())
-            NodeType::Pointer new_node = CreateNodeInEdge(edge, step_refine_level);
+            NodeType::Pointer new_node = CreateNodeInEdge(edge, step_divisions_level);
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-            NodeType::Pointer new_node = CreateNodeInFace( geom, step_refine_level );
+            NodeType::Pointer new_node = CreateNodeInFace( geom, step_divisions_level );
     }
 
     // TODO: add OMP
@@ -183,7 +183,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         Element::Pointer p_element = mrModelPart.Elements()(id);
 
         // Get the refinement level of the origin element
-        int step_refine_level = rThisLevel + 1;
+        int step_divisions_level = rThisLevel + 1;
 
         // Get the geometry
         Geometry<NodeType>& geom = p_element->GetGeometry();
@@ -202,7 +202,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
             for (int position = 0; position < 4; position++)
             {
                 sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
-                CreateElement(p_element, sub_element_nodes, step_refine_level);
+                CreateElement(p_element, sub_element_nodes, step_divisions_level);
             }
         }
         else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
@@ -220,7 +220,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
             for (int position = 0; position < 4; position++)
             {
                 sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
-                CreateElement(p_element, sub_element_nodes, step_refine_level);
+                CreateElement(p_element, sub_element_nodes, step_divisions_level);
             }
         }
         else
@@ -241,7 +241,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         Condition::Pointer p_condition = mrModelPart.Conditions()(id);
 
         // Get the refinement level of the origin condition
-        int step_refine_level = rThisLevel + 1;
+        int step_divisions_level = rThisLevel + 1;
 
         // Get the geometry
         Geometry<NodeType>& geom = p_condition->GetGeometry();
@@ -256,7 +256,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
             for (int position = 0; position < 2; position++)
             {
                 sub_condition_nodes = GetSubLineNodes(position, geom, middle_node);
-                CreateCondition(p_condition, sub_condition_nodes, step_refine_level);
+                CreateCondition(p_condition, sub_condition_nodes, step_divisions_level);
             }
         }
         else
@@ -277,7 +277,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 template <unsigned int TDim>
 typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInEdge(
     const EdgeType& rEdge,
-    const int& rRefinementLevel
+    const int& rNumberOfDivisions
     )
 {
     // Initialize the output
@@ -303,9 +303,9 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInEdge(
         // interpolate the variables
         CalculateNodalStepData(middle_node, rEdge(0), rEdge(1));
 
-        // Set the refinement level
-        int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
-        this_node_level = rRefinementLevel;
+        // Set the number of divisions level
+        int& this_node_level = middle_node->GetValue(NUMBER_OF_DIVISIONS);
+        this_node_level = rNumberOfDivisions;
 
         // Set the DoF's
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
@@ -349,7 +349,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(const EdgeT
 template< unsigned int TDim>
 typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInFace(
     const FaceType& rFace,
-    const int& rRefinementLevel
+    const int& rNumberOfDivisions
     )
 {
     // Initialize the output
@@ -376,8 +376,8 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInFace(
         CalculateNodalStepData(middle_node, rFace(0), rFace(1), rFace(2), rFace(3));
 
         // Set the refinement level
-        int& this_node_level = middle_node->GetValue(REFINEMENT_LEVEL);
-        this_node_level = rRefinementLevel;
+        int& this_node_level = middle_node->GetValue(NUMBER_OF_DIVISIONS);
+        this_node_level = rNumberOfDivisions;
 
         // Set the DoF's
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
@@ -469,7 +469,7 @@ template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateElement(
     Element::Pointer pOriginElement,
     std::vector<NodeType::Pointer>& rThisNodes,
-    const int& rRefinementLevel
+    const int& rNumberOfDivisions
     )
 {
     Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, rThisNodes, pOriginElement->pGetProperties());
@@ -480,8 +480,8 @@ void UniformRefineUtility<TDim>::CreateElement(
         mrModelPart.AddElement(sub_element);
 
         // Set the refinement level
-        int& this_elem_level = sub_element->GetValue(REFINEMENT_LEVEL);
-        this_elem_level = rRefinementLevel;
+        int& this_elem_level = sub_element->GetValue(NUMBER_OF_DIVISIONS);
+        this_elem_level = rNumberOfDivisions;
 
         // Add the element to the sub model parts
         IndexType key = mElemColorMap[pOriginElement->Id()];
@@ -504,7 +504,7 @@ template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateCondition(
     Condition::Pointer pOriginCondition,
     std::vector<NodeType::Pointer>& rThisNodes,
-    const int& rRefinementLevel
+    const int& rNumberOfDivisions
     )
 {
     Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, rThisNodes, pOriginCondition->pGetProperties());
@@ -515,8 +515,8 @@ void UniformRefineUtility<TDim>::CreateCondition(
         mrModelPart.AddCondition(sub_condition);
 
         // Set the refinement level
-        int& this_cond_level = sub_condition->GetValue(REFINEMENT_LEVEL);
-        this_cond_level = rRefinementLevel;
+        int& this_cond_level = sub_condition->GetValue(NUMBER_OF_DIVISIONS);
+        this_cond_level = rNumberOfDivisions;
 
         // Add the element to the sub model parts
         IndexType key = mCondColorMap[pOriginCondition->Id()];

@@ -31,9 +31,8 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
-#include "geometries/line_3d_2.h"
-#include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "meshing_application.h"
 
 
 namespace Kratos
@@ -243,7 +242,7 @@ private:
      * If the middle node is created before, do nothing
      * If the middle node does not exist, create a new one and set the nodal values
      */
-    typename NodeType::Pointer  CreateNodeInEdge(const EdgeType& rEdge, const int& rRefinementLevel);
+    typename NodeType::Pointer  CreateNodeInEdge(const EdgeType& rEdge, const int& rNumberOfDivisions);
 
     /**
      * Get the middle node on an edge and return a pointer to it
@@ -256,7 +255,7 @@ private:
      * If the middle node is created before, do nothing
      * If the middle node does not exist, create a new one
      */
-    typename NodeType::Pointer  CreateNodeInFace(const FaceType& rFace, const int& rRefinementLevel);
+    typename NodeType::Pointer  CreateNodeInFace(const FaceType& rFace, const int& rNumberOfDivisions);
 
     /**
      * Get the node inside a face
@@ -294,24 +293,24 @@ private:
      * Create an element from an origin element
      * @param pOriginElement pointer to the father element
      * @ThisNodes vector containing the sub element nodes
-     * @param rRefinementLevel To assign to REFINEMENT_LEVEL flag
+     * @param rNumberOfDivisions To assign to NUMBER_OF_DIVISIONS flag
      */
     void CreateElement(
         Element::Pointer pOriginElement,
         std::vector<NodeType::Pointer>& rThisNodes,
-        const int& rRefinementLevel
+        const int& rNumberOfDivisions
         );
 
     /**
      * Create condition inside from an origin condition
      * @param pOriginCondition pointer to the father condition
      * @ThisNodes vector containing the sub condition nodes
-     * @param rRefinementLevel To assign to REFINEMENT_LEVEL flag
+     * @param rNumberOfDivisions To assign to NUMBER_OF_DIVISIONS flag
      */
     void CreateCondition(
         Condition::Pointer pOriginCondition,
         std::vector<NodeType::Pointer>& rThisNodes,
-        const int& rRefinementLevel
+        const int& rNumberOfDivisions
         );
 
     /**

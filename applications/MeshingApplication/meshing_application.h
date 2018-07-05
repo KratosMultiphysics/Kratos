@@ -47,6 +47,7 @@ KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);     // The anisotropic aspect
 KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);    // An auxiliar gradient needed to compute the metric
 KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);     // An auxiliar hessian needed to compute the metric
 KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);           // The condensed metric used to remesh with MMG utility
+KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_DIVISIONS);      // The number of divisions for the multi scale refining
 ///@}
 ///@name Type Definitions
 ///@{
