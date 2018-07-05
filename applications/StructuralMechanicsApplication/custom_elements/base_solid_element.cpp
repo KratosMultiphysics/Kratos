@@ -369,41 +369,58 @@ void BaseSolidElement::CalculateMassMatrix(
 
     const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();
-    unsigned int dimension = r_geom.WorkingSpaceDimension();
-    unsigned int number_of_nodes = r_geom.size();
-    unsigned int mat_size = dimension * number_of_nodes;
+    SizeType dimension = r_geom.WorkingSpaceDimension();
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size = dimension * number_of_nodes;
 
     rMassMatrix = ZeroMatrix( mat_size, mat_size );
 
-    Matrix J0(dimension,dimension);
-
-    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
-    const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-
-    KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY ))
-        << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY )) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
-    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-        GeometryUtils::JacobianOnInitialConfiguration(
-            r_geom, integration_points[point_number], J0);
-        const double detJ0 = MathUtils<double>::DetMat(J0);
-        const double integration_weight =
-            GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
-        const Vector& rN = row(Ncontainer,point_number);
+    const bool compute_lumped_mass_matrix =  rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ? rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] : false;
+
+    // LUMPED MASS MATRIX
+    if (compute_lumped_mass_matrix == true) {
+        const double total_mass = GetGeometry().Volume() * density * thickness;
+
+        Vector lumping_factors;
+        lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
 
         for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-            const SizeType index_i = i * dimension;
+            const double temp = lumping_factors[i] * total_mass;
+            for ( IndexType j = 0; j < dimension; ++j ) {
+                IndexType index = i * dimension + j;
+                rMassMatrix( index, index ) = temp;
+            }
+        }
+    } else { // CONSISTENT MASS
+        Matrix J0(dimension, dimension);
 
-            for ( IndexType j = 0; j < number_of_nodes; ++j ) {
-                const SizeType index_j = j * dimension;
-                const double NiNj_weight = rN[i] * rN[j] * integration_weight * density;
+        IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+        const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
+        const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 
-                for ( IndexType k = 0; k < dimension; ++k )
-                    rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+            GeometryUtils::JacobianOnInitialConfiguration(
+                r_geom, integration_points[point_number], J0);
+            const double detJ0 = MathUtils<double>::DetMat(J0);
+            const double integration_weight =
+                GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
+            const Vector& rN = row(Ncontainer,point_number);
+
+            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                const SizeType index_i = i * dimension;
+
+                for ( IndexType j = 0; j < number_of_nodes; ++j ) {
+                    const SizeType index_j = j * dimension;
+                    const double NiNj_weight = rN[i] * rN[j] * integration_weight * density;
+
+                    for ( IndexType k = 0; k < dimension; ++k )
+                        rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
+                }
             }
         }
     }
