@@ -52,7 +52,7 @@
         <Item id="Cz" pid="Direction Z" dv="-1.0" nDim="3D" help="Z-component of a vector parallel to the gravity"/>
         </Container>
         <Container id="CouplingParameters" pid="Coupling parameters" class="Tab" help="Parameters concerning the inter-component coupling" open="0">
-            <Item id="CouplingLevel" pid="Coupling level" class="CouplingLevel" dv="1" ivalues="0,1,2,3" values="No interactions,One-way,Soft two-way,Full two-way" help="No interactions, Only fluid to DEM, unmodified fluid equations, averaged Navier-Stokes"/>
+            <Item id="CouplingLevel" pid="Coupling level" class="CouplingLevel" dv="1" ivalues="1,2,3" values="One-way,Soft two-way,Full two-way" help="Only fluid to DEM, unmodified fluid equations, averaged Navier-Stokes"/>
             <Item id="TimeAveragingType" pid="Time averaging mode" dv="0" ivalues="0,1" values="Take newest values, Take uniform average over DEM substeps" help="Take the present value of the hydrodynamic forces from DEM for the fluid integration, average values of the hydrodynamic force over all substeps within one fluid step"/>
             <Item id="InteractionStartTime" pid="Interaction start time" dv="0.05" help="Set the time to start the interaction between DEM and fluid"/>
             <Container id="HydrodynamicForceModel" pid="Hydrodynamic Force Model" class="Tab" help="Determine the model for the hydrodynamic forces" open="0">
