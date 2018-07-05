@@ -243,7 +243,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofPointerVectorType& rSlaveDofList,
-                            DofPointerVectorType& rMasterDofList
+                            DofPointerVectorType& rMasterDofList,
                             ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_ERROR << "Create not implemented in MasterSlaveConstraintBaseClass" << std::endl;

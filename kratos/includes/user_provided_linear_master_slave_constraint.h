@@ -207,7 +207,7 @@ public:
     ///@{
 
     virtual void GetDofList(DofPointerVectorType& rSlaveDofsVector,
-                            DofPointerVectorType& rMasterDofsVector
+                            DofPointerVectorType& rMasterDofsVector,
                             ProcessInfo& rCurrentProcessInfo) override
     {
         rSlaveDofsVector = mSlaveDofVector;
