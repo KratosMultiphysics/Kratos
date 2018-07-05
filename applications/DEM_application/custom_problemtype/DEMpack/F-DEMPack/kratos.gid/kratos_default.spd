@@ -57,7 +57,7 @@
             <Item id="InteractionStartTime" pid="Interaction start time" dv="0.05" help="Set the time to start the interaction between DEM and fluid"/>
             <Container id="HydrodynamicForceModel" pid="Hydrodynamic Force Model" class="Tab" help="Determine the model for the hydrodynamic forces" open="0">
                 <Item id="PickIndividualForces" pid="Pick each individual force" class="PickForces" dv="0" ivalues="0,1" values="No,Yes" help="Pick specific expressions for the usual terms, one at a time (compatibility not guaranteed)"/>
-                <Item id="BuoyancyForceType" pid="Buoyancy force type" PickForces="0" class="Tab" dv="2" ivalues="0,2" values="Null,Active" help="Pick the buoyancy force model"/>
+                <Item id="BuoyancyForceType" pid="Buoyancy force type" PickForces="1" class="Tab" dv="2" ivalues="0,2" values="Null,Active" help="Pick the buoyancy force model"/>
                 <Item id="DragForceType" pid="Drag Force type" PickForces="1" class="Tab" dv="1" ivalues="0,1,2,3,4,5,6,7,8,9" values="Null,Stokes,Default,Ganser,Ishii,Haider-Newtonian regime,Schiller,Haider-all regimes,Beetstra,Coin-Shaped-Colloid" help="Pick the Drag force model"/>
                 <Item id="VirtualMassForceType" pid="Virtual mass force type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="Null,Zuber,Odar" help="Pick the virtual mass force model"/>
                 <Item id="SaffmanLiftForceType" pid="Saffman lift Force type" PickForces="1" class="Tab" dv="0" ivalues="0,1" values="Null,Saffman" help="Pick the shear-induced lift force model"/>
