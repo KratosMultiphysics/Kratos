@@ -783,13 +783,13 @@
        <Template id="Fluid2DElement" icon="groupsTree.gif" help="Fluid 2D Element">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
-                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+                <Item id="Property" pid="Property" dv="Property1" GCV="Properties" help="Property"/>
             </Container>
         </Template>
          <Template id="Fluid3DElement" icon="groupsTree.gif" help="Fluid 3D Element">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Tetrahedra" ivalues="Tetrahedra" values="Tetrahedra" help="Element Type"/>
-                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+                <Item id="Property" pid="Property" dv="Property1" GCV="Properties" help="Property"/>
             </Container>
         </Template>
         <Template id="Displacements" icon="groupsTree.gif" help="Activation">
