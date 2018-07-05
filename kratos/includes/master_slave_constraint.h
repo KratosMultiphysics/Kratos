@@ -236,6 +236,18 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     {
     }
 
+    /**
+     * determines the constrant's slvae and master list of DOFs
+     * @param rSlaveDofList the list of slave DOFs
+     * @param rMasterDofList the list of slave DOFs
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void GetDofList(DofPointerVectorType& rSlaveDofList,
+                            DofPointerVectorType& rMasterDofList
+                            ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR << "Create not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+    }
 
     /**
      * this determines the master equation IDs connected to this constraint

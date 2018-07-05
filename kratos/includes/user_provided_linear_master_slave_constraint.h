@@ -215,6 +215,14 @@ public:
     ///@name Access
     ///@{
 
+    virtual void GetDofList(DofPointerVectorType& rSlaveDofsVector,
+                            DofPointerVectorType& rMasterDofsVector
+                            ProcessInfo& rCurrentProcessInfo) override
+    {
+        rSlaveDofsVector = mSlaveDofVector;
+        rMasterDofsVector = mMasterDofsVector;
+    }
+
     /**
      * this determines the master equation IDs connected to this constraint
      * @param rResult the elemental equation ID vector
