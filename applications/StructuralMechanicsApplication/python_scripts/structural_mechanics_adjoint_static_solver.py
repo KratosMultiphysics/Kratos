@@ -48,8 +48,9 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
     def PrepareModelPart(self):
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
             raise Exception("there are currently only 3D adjoint elements available")
-        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part).Execute()
         super(StructuralMechanicsAdjointStaticSolver, self).PrepareModelPart()
+        # TODO Why does replacement need to happen after reading materials?
+        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part).Execute()
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):

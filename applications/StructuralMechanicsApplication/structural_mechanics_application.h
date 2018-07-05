@@ -39,6 +39,9 @@
 #include "custom_elements/cr_beam_element_linear_2D2N.hpp"
 
 /* Adding the adjoint elements */
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
 #include "custom_response_functions/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 
@@ -78,6 +81,7 @@
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/point_load_adjoint_condition.h"
+#include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
@@ -362,6 +366,9 @@ private:
     const SpringDamperElement3D2N mSpringDamperElement3D2N;
 
     // Adding adjoint elements
+    const AdjointFiniteDifferencingBaseElement mAdjointFiniteDifferencingBaseElement;
+    const AdjointFiniteDifferencingShellElement mAdjointFiniteDifferencingShellElement;
+    const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
     const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
     const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
 
@@ -394,6 +401,8 @@ private:
     // Adjoint Conditions
     const PointLoadAdjointCondition mPointLoadAdjointCondition2D1N;
     const PointLoadAdjointCondition mPointLoadAdjointCondition3D1N;
+    const AdjointSemiAnalyticPointLoadCondition mAdjointSemiAnalyticPointLoadCondition2D1N;
+    const AdjointSemiAnalyticPointLoadCondition mAdjointSemiAnalyticPointLoadCondition3D1N;
 
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
