@@ -128,7 +128,7 @@ namespace Kratos {
 
 	this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
         
-        std::cout<<" L "<<rElementalVariables.SpatialVelocityGrad<<" StressVector "<<rElementalVariables.UpdatedDeviatoricCauchyStress<<std::endl;
+        //std::cout<<" L "<<rElementalVariables.SpatialVelocityGrad<<" StressVector "<<rElementalVariables.UpdatedDeviatoricCauchyStress<<std::endl;
         
 	// std::vector<double> rOutput;
 	// this->GetElementalValueForOutput(YIELDED,rOutput);
@@ -201,7 +201,10 @@ namespace Kratos {
     // AccelerationValues += -VelocityValues/TimeStep; 
     // noalias( rRightHandSideVector ) += -prod(MassMatrix,AccelerationValues);
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
-
+    
+    // std::cout<<" velocity LHS "<<StiffnessMatrix<< "(" << this->Id() << ")" <<std::endl;
+    // std::cout<<" velocity RHS "<<rRightHandSideVector<< "(" << this->Id() << ")" <<std::endl;
+    
     //2nd order 
     this->GetAccelerationValues(AccelerationValues,0);
     this->GetVelocityValues(VelocityValues,0);
@@ -241,9 +244,9 @@ namespace Kratos {
     // noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix;
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
 
-    std::cout<<" velocity LHS "<<StiffnessMatrix<< "(" << this->Id() << ")" <<std::endl;
-    std::cout<<" velocity DLHS "<<rLeftHandSideMatrix<< "(" << this->Id() << ")" <<std::endl;
-    std::cout<<" velocity RHS "<<rRightHandSideVector<< "(" << this->Id() << ")" <<std::endl;
+
+    // std::cout<<" velocity DLHS "<<rLeftHandSideMatrix<< "(" << this->Id() << ")" <<std::endl;
+
     
     KRATOS_CATCH( "" );
  

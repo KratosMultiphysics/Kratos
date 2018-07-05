@@ -290,6 +290,36 @@ protected:
   void CalculateRegularizedKvvm(MatrixType& rLeftHandSideMatrix,
                                 ElementDataType& rVariables);
 
+
+
+  /**
+   * Calculation of the Pressure Stiffness Matrix. Kpp
+   */
+  void CalculateAndAddKpp2(MatrixType& rLeftHandSideMatrix,
+                          ElementDataType& rVariables);
+
+
+
+  void ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
+                             const Vector& rN,
+                             const double Weight);
+
+
+
+  void CalculateAndAddPressureForces2(VectorType& rRightHandSideVector,
+                                     ElementDataType & rVariables);
+
+
+  void ComputeBoundRHSVector(VectorType& BoundRHSVector,
+                             const Vector& rN,
+                             const double TimeStep,
+                             const double BoundRHSCoeffAcc,
+                             const double BoundRHSCoeffDev);
+
+
+  double CalcNormalProjectionDefRate(Vector &SpatialDefRate);
+
+  double ElementSize();
   /**
    * Calculation of the Pressure Stiffness Matrix. Kpp
    */
@@ -364,14 +394,14 @@ protected:
   /**
    * Calculation of the symmetric velocity gradient Vector
    */
-  void CalculateSymmetricVelocityGradient(const Matrix& rH,
-                                          Vector& rStrainVector);
+  void CalculateSymmetricVelocityGradientVector(const Matrix& rH,
+                                                Vector& rStrainVector);
   
   /**
    * Calculation of the skew symmetric velocity gradient Vector
    */
-  void CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
-                                              Vector& rStrainVector);
+  void CalculateSkewSymmetricVelocityGradientVector(const Matrix& rH,
+                                                    Vector& rStrainVector);
   
   
   /**
@@ -392,9 +422,20 @@ protected:
   void GetFreeSurfaceFaces(std::vector<std::vector<SizeType> >& Faces);
 
   /**
-   * Get Historical variables
+   * Get Face normal
    */
-  void GetHistoricalVariables(ElementDataType& rVariables, const double& rPointNumber);
+  void GetFaceNormal(const std::vector<SizeType>& rFace, const ElementDataType & rVariables, Vector& rNormal);
+
+  /**
+   * Get Face weight
+   */
+  void GetFaceWeight(const std::vector<SizeType>& rFace, const ElementDataType & rVariables, double& rWeight, double& rNormalSize);
+
+  
+  /**
+   * Get Face normal
+   */
+  void GetFaceNormal(const std::vector<SizeType>& rFace, Vector& rNormal);
 
   /**
    * this is called during the assembling process in order

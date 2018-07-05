@@ -1074,8 +1074,8 @@ namespace Kratos {
       noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
       const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
-      std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
+      //std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
+      // std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
 
       if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
 	BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev);
@@ -1088,8 +1088,8 @@ namespace Kratos {
       const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
 
-      std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
-      std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
+      //std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
+      //std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
       if(rGeom[0].IsNot(INLET))
 	BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev);
       if(rGeom[2].IsNot(INLET))   
@@ -1100,8 +1100,8 @@ namespace Kratos {
       noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
       const array_1d<double, 3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
-      std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
-      std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
+      //std::cout<<" NormalA "<<NormalA<<" NormalB "<<NormalB<<std::endl;
+      //std::cout<<" AccA "<<AccA<<" AccB "<<AccB<<std::endl;
 
       if(rGeom[1].IsNot(INLET))
 	BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev);
@@ -1463,14 +1463,14 @@ namespace Kratos {
     double DefY=rElementalVariables.SpatialDefRate[1];
     double DefXY=rElementalVariables.SpatialDefRate[2];
 
-    std::cout<<" SpatialDefRate "<<rElementalVariables.SpatialDefRate<<std::endl;
+    //std::cout<<" SpatialDefRate "<<rElementalVariables.SpatialDefRate<<std::endl;
 
     double DefVol=rElementalVariables.VolumetricDefRate;
     double sigmaDev_xx= 2*CurrSecondLame*(DefX - DefVol/3.0);
     double sigmaDev_yy= 2*CurrSecondLame*(DefY - DefVol/3.0);
     double sigmaDev_xy= 2*CurrSecondLame*DefXY;
 
-    std::cout<<" DefVol "<<DefVol<<std::endl;
+    //std::cout<<" DefVol "<<DefVol<<std::endl;
         
     // double sigmaTot_xx= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefX;
     // double sigmaTot_yy= CurrFirstLame*DefVol + 2.0*CurrSecondLame*DefY;
@@ -1496,8 +1496,8 @@ namespace Kratos {
     rElementalVariables.UpdatedDeviatoricCauchyStress[1]=sigmaDev_yy;
     rElementalVariables.UpdatedDeviatoricCauchyStress[2]=sigmaDev_xy;
 
-    std::cout<<" DefStress "<<rElementalVariables.UpdatedDeviatoricCauchyStress<<std::endl;
-    std::cout<<" MeanPressure "<<rElementalVariables.MeanPressure<<std::endl;
+    //std::cout<<" DefStress "<<rElementalVariables.UpdatedDeviatoricCauchyStress<<std::endl;
+    //std::cout<<" MeanPressure "<<rElementalVariables.MeanPressure<<std::endl;
     
     rElementalVariables.UpdatedTotalCauchyStress[0]=sigmaTot_xx;
     rElementalVariables.UpdatedTotalCauchyStress[1]=sigmaTot_yy;
@@ -1687,16 +1687,16 @@ namespace Kratos {
 
 	  this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
 
-          std::cout<<" BoundFactor: "<< BoundLHSCoeff <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
+          //std::cout<<" BoundFactor: "<< BoundLHSCoeff <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
 
-          std::cout<<" DefRate "<<rElementalVariables.SpatialDefRate<<std::endl;
+          //std::cout<<" DefRate "<<rElementalVariables.SpatialDefRate<<std::endl;
           
 	  double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
 
 	  double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
 	  double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
 
-          std::cout<<" NprojSpatial "<<NProjSpatialDefRate<<" BoundRHSAcc "<<BoundRHSCoeffAcc<<std::endl;
+          //std::cout<<" NprojSpatial "<<NProjSpatialDefRate<<" BoundRHSAcc "<<BoundRHSCoeffAcc<<std::endl;
           
 	  // if(TDim==3){
 	  //   BoundRHSCoeffAcc=Tau*GaussWeight*Density/(0.81649658*ElemSize);
@@ -1704,13 +1704,15 @@ namespace Kratos {
 	  // }
 
 	  this->ComputeBoundRHSVector(rRightHandSideVector,N,TimeStep,BoundRHSCoeffAcc,BoundRHSCoeffDev);
-          std::cout<<" BoundRHSCoeffDev: "<<BoundRHSCoeffDev<<" RHS "<<rRightHandSideVector<<std::endl;
+          //std::cout<<" BoundRHSCoeffDev: "<<BoundRHSCoeffDev<<" RHS "<<rRightHandSideVector<<std::endl;
 
 
           
 	  double StabLaplacianWeight=Tau*GaussWeight;
 	  this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix,rDN_DX,StabLaplacianWeight);
 
+
+          //std::cout<<" StabFactor: "<< StabLaplacianWeight <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
 	  for (SizeType i = 0; i < NumNodes; ++i)
 	    {         
 	      // RHS contribution
@@ -1719,7 +1721,7 @@ namespace Kratos {
 	      this->AddStabilizationNodalTermsRHS(rRightHandSideVector,Tau,Density,GaussWeight,rDN_DX,i);
 	    }
 
-          std::cout<<" Stab RHS "<<rRightHandSideVector<<" DefRate "<<rElementalVariables.VolumetricDefRate<<std::endl;
+          //std::cout<<" Stab RHS "<<rRightHandSideVector<<" DefRate "<<rElementalVariables.VolumetricDefRate<<std::endl;
 	}
 
       }   
@@ -1743,10 +1745,11 @@ namespace Kratos {
       this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkCoeff);
       // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkCoeff);
       noalias(rLeftHandSideMatrix)+=BulkMatrix;
+      //std::cout<<" MassFactor: "<<lumpedBulkCoeff<<" RHS "<<rLeftHandSideMatrix<<std::endl;
       // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix,PressureValuesForRHS);
       // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
-      std::cout<<" MassFactor: "<<lumpedBulkCoeff<<" RHS "<<rRightHandSideVector<<std::endl;
+      //std::cout<<" MassFactor: "<<lumpedBulkCoeff<<" RHS "<<rRightHandSideVector<<std::endl;
 
       this->GetPressureVelocityValues(PressureValues,0);
       noalias(PressureValuesForRHS)+=-PressureValues*TimeStep;
@@ -1754,10 +1757,11 @@ namespace Kratos {
       this->ComputeBulkMatrixLump(BulkMatrix,lumpedBulkStabCoeff);
       // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkStabCoeff);
       noalias(rLeftHandSideMatrix)+=BulkMatrix;
+      //std::cout<<" BulkFactor: "<<lumpedBulkStabCoeff<<" RHS "<<rLeftHandSideMatrix<<std::endl;
       // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix,PressureValuesForRHS);
       // noalias(rRightHandSideVector) -=prod(BulkMatrixConsistent,PressureValuesForRHS);
-      std::cout<<" BulkFactor: "<<lumpedBulkStabCoeff<<" RHS "<<rRightHandSideVector<<std::endl;
+      //std::cout<<" BulkFactor: "<<lumpedBulkStabCoeff<<" RHS "<<rRightHandSideVector<<std::endl;
       
     }else{
       double lumpedBulkCoeff =totalVolume*Tau*Density/(TimeStep*VolumetricCoeff);
@@ -1772,8 +1776,8 @@ namespace Kratos {
       noalias(rRightHandSideVector) -= prod(BulkVelMatrixLump,PressureValuesForRHS);
     }
 
-    std::cout<<" pressure LHS "<<rLeftHandSideMatrix<< "(" << this->Id() << ")" <<std::endl;
-    std::cout<<" pressure RHS "<<rRightHandSideVector<< "(" << this->Id() << ")" <<std::endl;
+    // std::cout<<" pressure LHS "<<rLeftHandSideMatrix<< "(" << this->Id() << ")" <<std::endl;
+    // std::cout<<" pressure RHS "<<rRightHandSideVector<< "(" << this->Id() << ")" <<std::endl;
 
   }
   

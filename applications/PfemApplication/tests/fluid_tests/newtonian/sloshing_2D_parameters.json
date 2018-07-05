@@ -57,13 +57,14 @@
 		"Parameters"  : {
 		    "time_integration_settings" : {
 			"solution_type"          : "Dynamic",
-			"time_integration"       : "Implicit",
-			"integration_method"     : "Newmark"
+			"analysis_type"          : "Implicit",
+			"integration_method"     : "Bdf",
+			"integration_order"      : 1
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"                 : false,
 			"compute_reactions"           : false,
-			"max_iteration"               : 15
+			"max_iteration"               : 20
 		    },
 		    "convergence_criterion_settings" : {
 			"convergence_criterion"       : "Variable_criterion",
