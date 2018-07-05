@@ -163,15 +163,6 @@ public:
         this->mConstantVector = rOther.mConstantVector;
     }
 
-
-
-    /**
-     * creates a new constraint pointer
-     * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
-     * @param pProperties the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     MasterSlaveConstraint::Pointer Create(IndexType Id,
                                                 DofPointerVectorType& MasterDofsVector,
                                                 DofPointerVectorType& SlaveDofsVector,
@@ -223,11 +214,6 @@ public:
         rMasterDofsVector = mMasterDofsVector;
     }
 
-    /**
-     * this determines the master equation IDs connected to this constraint
-     * @param rResult the elemental equation ID vector
-     * @param rCurrentProcessInfo the curent process info instance
-     */
     void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
                                   EquationIdVectorType& rMasterEquationIds,
                                   ProcessInfo& rCurrentProcessInfo) override
@@ -245,14 +231,6 @@ public:
             rMasterEquationIds[i] = mMasterDofsVector[i]->EquationId();
     }
 
-    /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
-     * @param rTransformationMatrix the elemental left hand side matrix
-     * @param rConstant the elemental right hand side
-     * @param rCurrentProcessInfo the current process info instance
-     */
     void CalculateLocalSystem(MatrixType& rTransformationMatrix,
                                       VectorType& rConstantVector,
                                       ProcessInfo& rCurrentProcessInfo) override
@@ -261,11 +239,6 @@ public:
       rConstantVector = mConstantVector;
     }
 
-
-    /**
-	* Returns the string containing a detailed description of this object.
-	* @return the string with informations
-	*/
     std::string GetInfo() const override
     {
         return "Linear User Provded Master Slave Constraint class !";
