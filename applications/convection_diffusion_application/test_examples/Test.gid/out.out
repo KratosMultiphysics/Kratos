@@ -1,0 +1,530 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 6.0.0-4f3a0fc
+Importing    KratosFluidDynamicsApplication 
+Initializing KratosFluidDynamicsApplication... 
+Importing    KratosConvectionDiffusionApplication 
+ KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+       / __/ _ || || | | / /__|   |_ _| __| __|
+      | (_| (_) | .` || V /___| |) | || _|| _| 
+       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication... 
+parameters
+{
+    "problem_data": {
+        "problem_name": "Test",
+        "model_part_name": "MainModelPart",
+        "domain_size": 3,
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 1
+    },
+    "output_configuration": {
+        "result_file_configuration": {
+            "gidpost_flags": {
+                "GiDPostMode": "GiD_PostBinary",
+                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteConditionsFlag": "WriteConditions",
+                "MultiFileFlag": "SingleFile"
+            },
+            "file_label": "time",
+            "output_control_type": "time",
+            "output_frequency": 0.1,
+            "body_output": true,
+            "node_output": false,
+            "skin_output": false,
+            "plane_output": [],
+            "nodal_results": [
+                "VELOCITY",
+                "PRESSURE"
+            ],
+            "gauss_point_results": []
+        },
+        "point_data_configuration": []
+    },
+    "restart_options": {
+        "SaveRestart": "False",
+        "RestartFrequency": 0,
+        "LoadRestart": "False",
+        "Restart_Step": 0
+    },
+    "solver_settings": {
+        "solver_type": "Monolithic",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "Test"
+        },
+        "echo_level": 0,
+        "compute_reactions": false,
+        "dynamic_tau": 0.0,
+        "oss_switch": 0,
+        "maximum_iterations": 10,
+        "relative_velocity_tolerance": 0.001,
+        "absolute_velocity_tolerance": 0.00001,
+        "relative_pressure_tolerance": 0.001,
+        "absolute_pressure_tolerance": 0.00001,
+        "volume_model_part_name": "Parts_Parts_Auto1",
+        "skin_parts": [
+            "Outlet3D_Outlet_pressure_Auto1",
+            "NoSlip3D_No_Slip_Auto1"
+        ],
+        "no_skin_parts": [],
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 0.01
+        }
+    },
+    "initial_conditions_process_list": [],
+    "boundary_conditions_process_list": [
+        {
+            "python_module": "apply_outlet_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters": {
+                "model_part_name": "Outlet3D_Outlet_pressure_Auto1",
+                "variable_name": "PRESSURE",
+                "constrained": true,
+                "value": 0.0,
+                "hydrostatic_outlet": false,
+                "h_top": 0.0
+            }
+        },
+        {
+            "python_module": "apply_noslip_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters": {
+                "model_part_name": "NoSlip3D_No_Slip_Auto1"
+            }
+        }
+    ],
+    "gravity": [
+        {
+            "python_module": "assign_vector_by_direction_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorByDirectionProcess",
+            "Parameters": {
+                "model_part_name": "Parts_Parts_Auto1",
+                "variable_name": "BODY_FORCE",
+                "modulus": -10.0,
+                "constrained": false,
+                "direction": [
+                    0.0,
+                    -10.0,
+                    0.0
+                ]
+            }
+        }
+    ],
+    "auxiliar_process_list": []
+}
+model
+
+
+{
+    "solver_type": "Monolithic",
+    "model_import_settings": {
+        "input_type": "mdpa",
+        "input_filename": "Test"
+    },
+    "echo_level": 0,
+    "compute_reactions": false,
+    "dynamic_tau": 0.0,
+    "oss_switch": 0,
+    "maximum_iterations": 10,
+    "relative_velocity_tolerance": 0.001,
+    "absolute_velocity_tolerance": 0.00001,
+    "relative_pressure_tolerance": 0.001,
+    "absolute_pressure_tolerance": 0.00001,
+    "volume_model_part_name": "Parts_Parts_Auto1",
+    "skin_parts": [
+        "Outlet3D_Outlet_pressure_Auto1",
+        "NoSlip3D_No_Slip_Auto1"
+    ],
+    "no_skin_parts": [],
+    "time_stepping": {
+        "automatic_time_step": false,
+        "time_step": 0.01
+    }
+}
+CUATRRRRRRRRRRRRRRRRRRO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{
+    "problem_data": {
+        "problem_name": "Test",
+        "model_part_name": "MainModelPart",
+        "domain_size": 3,
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 1
+    },
+    "output_configuration": {
+        "result_file_configuration": {
+            "gidpost_flags": {
+                "GiDPostMode": "GiD_PostBinary",
+                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteConditionsFlag": "WriteConditions",
+                "MultiFileFlag": "SingleFile"
+            },
+            "file_label": "time",
+            "output_control_type": "time",
+            "output_frequency": 0.1,
+            "body_output": true,
+            "node_output": false,
+            "skin_output": false,
+            "plane_output": [],
+            "nodal_results": [
+                "VELOCITY",
+                "PRESSURE"
+            ],
+            "gauss_point_results": []
+        },
+        "point_data_configuration": []
+    },
+    "restart_options": {
+        "SaveRestart": "False",
+        "RestartFrequency": 0,
+        "LoadRestart": "False",
+        "Restart_Step": 0
+    },
+    "solver_settings": {
+        "solver_type": "Monolithic",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "Test"
+        },
+        "echo_level": 0,
+        "compute_reactions": false,
+        "dynamic_tau": 0.0,
+        "oss_switch": 0,
+        "maximum_iterations": 10,
+        "relative_velocity_tolerance": 0.001,
+        "absolute_velocity_tolerance": 0.00001,
+        "relative_pressure_tolerance": 0.001,
+        "absolute_pressure_tolerance": 0.00001,
+        "volume_model_part_name": "Parts_Parts_Auto1",
+        "skin_parts": [
+            "Outlet3D_Outlet_pressure_Auto1",
+            "NoSlip3D_No_Slip_Auto1"
+        ],
+        "no_skin_parts": [],
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 0.01
+        },
+        "domain_size": 3,
+        "model_part_name": "MainModelPart"
+    },
+    "initial_conditions_process_list": [],
+    "boundary_conditions_process_list": [
+        {
+            "python_module": "apply_outlet_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters": {
+                "model_part_name": "Outlet3D_Outlet_pressure_Auto1",
+                "variable_name": "PRESSURE",
+                "constrained": true,
+                "value": 0.0,
+                "hydrostatic_outlet": false,
+                "h_top": 0.0
+            }
+        },
+        {
+            "python_module": "apply_noslip_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters": {
+                "model_part_name": "NoSlip3D_No_Slip_Auto1"
+            }
+        }
+    ],
+    "gravity": [
+        {
+            "python_module": "assign_vector_by_direction_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorByDirectionProcess",
+            "Parameters": {
+                "model_part_name": "Parts_Parts_Auto1",
+                "variable_name": "BODY_FORCE",
+                "modulus": -10.0,
+                "constrained": false,
+                "direction": [
+                    0.0,
+                    -10.0,
+                    0.0
+                ]
+            }
+        }
+    ],
+    "auxiliar_process_list": []
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+OpenMP
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+parallelism
+OpenMP
+solver_type
+Monolithic
+THIRDDDDDDDDDDDDDDDD
+2222222222222222
+tttttttttttttttttttttttttttttt
+wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+self.fluid_solver
+<navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic object at 0x7f78f1a0bcf8>
+
+
+
+
+"Transient"
+<navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic object at 0x7f78f1a0bcf8>
+khksfjhfkdjhkjhgkjshdfkjhdkfhfdkhgksdhgkhk
+
+
+IS_RESTARTED variable #2196756480
+{
+    "problem_data": {
+        "problem_name": "Test",
+        "model_part_name": "MainModelPart",
+        "domain_size": 3,
+        "parallel_type": "OpenMP",
+        "echo_level": 0,
+        "start_time": 0.0,
+        "end_time": 1
+    },
+    "output_configuration": {
+        "result_file_configuration": {
+            "gidpost_flags": {
+                "GiDPostMode": "GiD_PostBinary",
+                "WriteDeformedMeshFlag": "WriteDeformed",
+                "WriteConditionsFlag": "WriteConditions",
+                "MultiFileFlag": "SingleFile"
+            },
+            "file_label": "time",
+            "output_control_type": "time",
+            "output_frequency": 0.1,
+            "body_output": true,
+            "node_output": false,
+            "skin_output": false,
+            "plane_output": [],
+            "nodal_results": [
+                "VELOCITY",
+                "PRESSURE"
+            ],
+            "gauss_point_results": [],
+            "nodal_nonhistorical_results": [],
+            "nodal_flags_results": [],
+            "additional_list_files": []
+        },
+        "point_data_configuration": []
+    },
+    "restart_options": {
+        "SaveRestart": "False",
+        "RestartFrequency": 0,
+        "LoadRestart": "False",
+        "Restart_Step": 0
+    },
+    "solver_settings": {
+        "solver_type": "Monolithic",
+        "model_import_settings": {
+            "input_type": "mdpa",
+            "input_filename": "Test"
+        },
+        "echo_level": 0,
+        "compute_reactions": false,
+        "model_part_name": "MainModelPart",
+        "stabilization": {
+            "formulation": "vms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau": 0.0
+        },
+        "maximum_iterations": 10,
+        "relative_velocity_tolerance": 0.001,
+        "absolute_velocity_tolerance": 0.00001,
+        "relative_pressure_tolerance": 0.001,
+        "absolute_pressure_tolerance": 0.00001,
+        "volume_model_part_name": "Parts_Parts_Auto1",
+        "skin_parts": [
+            "Outlet3D_Outlet_pressure_Auto1",
+            "NoSlip3D_No_Slip_Auto1"
+        ],
+        "no_skin_parts": [],
+        "time_stepping": {
+            "automatic_time_step": false,
+            "time_step": 0.01
+        },
+        "domain_size": 3,
+        "consider_periodic_conditions": false,
+        "reform_dofs_at_each_step": true,
+        "linear_solver_settings": {
+            "solver_type": "AMGCL",
+            "smoother_type": "ilu0",
+            "krylov_type": "gmres",
+            "coarsening_type": "aggregation",
+            "max_iteration": 100,
+            "provide_coordinates": false,
+            "gmres_krylov_space_dimension": 100,
+            "verbosity": 1,
+            "tolerance": 0.000001,
+            "scaling": false,
+            "block_size": 1,
+            "use_block_matrices_if_possible": true,
+            "coarse_enough": 5000
+        },
+        "time_scheme": "bossak",
+        "alpha": -0.3,
+        "velocity_relaxation": 0.9,
+        "pressure_relaxation": 0.9,
+        "move_mesh_strategy": 0,
+        "periodic": "periodic",
+        "move_mesh_flag": false,
+        "turbulence_model": "None",
+        "reorder": false,
+        "element_replace_settings": {
+            "element_name": "VMS3D4N",
+            "condition_name": "MonolithicWallCondition3D3N"
+        }
+    },
+    "initial_conditions_process_list": [],
+    "boundary_conditions_process_list": [
+        {
+            "python_module": "apply_outlet_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters": {
+                "model_part_name": "Outlet3D_Outlet_pressure_Auto1",
+                "variable_name": "PRESSURE",
+                "constrained": true,
+                "value": 0.0,
+                "hydrostatic_outlet": false,
+                "h_top": 0.0,
+                "mesh_id": 0,
+                "interval": [
+                    0.0,
+                    "End"
+                ]
+            }
+        },
+        {
+            "python_module": "apply_noslip_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters": {
+                "model_part_name": "NoSlip3D_No_Slip_Auto1",
+                "mesh_id": 0,
+                "variable_name": "VELOCITY",
+                "interval": [
+                    0.0,
+                    1e30
+                ],
+                "value": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "constrained": [
+                    true,
+                    true,
+                    true
+                ],
+                "local_axes": {}
+            }
+        }
+    ],
+    "gravity": [
+        {
+            "python_module": "assign_vector_by_direction_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "AssignVectorByDirectionProcess",
+            "Parameters": {
+                "model_part_name": "Parts_Parts_Auto1",
+                "variable_name": "BODY_FORCE",
+                "modulus": -10.0,
+                "constrained": false,
+                "direction": [
+                    0.0,
+                    -10.0,
+                    0.0
+                ],
+                "mesh_id": 0,
+                "interval": [
+                    0.0,
+                    1e30
+                ],
+                "local_axes": {}
+            }
+        }
+    ],
+    "auxiliar_process_list": []
+}
+FluidDynamicsAnalysis: Using the old way to pass the domain_size, this will be removed! 
+FluidDynamicsAnalysis: Using the old way to pass the model_part_name, this will be removed! 
+NavierStokesVMSMonolithicSolver: Input JSON data contains deprecated setting 'oss_switch' (int).
+Please define 'stabilization/formulation' (set it to 'vms')
+and set 'stabilization/use_orthogonal_subscales' (bool) instead. 
+NavierStokesVMSMonolithicSolver: Input JSON data contains deprecated setting 'dynamic_tau' (float).
+Please define 'stabilization/formulation' (set it to 'vms') and 
+set 'stabilization/dynamic_tau' (float) instead. 
+NavierStokesSolverMonolithic: Construction of NavierStokesSolverMonolithic finished. 
+NavierStokesSolverMonolithic: Fluid solver variables added correctly. 
+::[PythonSolver]:: Reading model part.: 
+::[PythonSolver]:: Reading model part from file: /home/julio/Kratos/applications/convection_diffusion_application/test_examples/Test.gid/Test.mdpa: 
+ModelPartIO:   [Reading Nodes    : 2000 nodes read]
+ModelPartIO:   [Reading Elements : 9780 elements read] [Type: Element3D4N]
+ModelPartIO:   [Reading Conditions : 208 conditions read] [Type: WallCondition3D3N]
+ModelPartIO:   [Reading Conditions : 1040 conditions read] [Type: WallCondition3D3N]
+ModelPartIO:   [Total Lines Read : 26772]
+::[PythonSolver]:: Finished reading model part from mdpa file.: 
+ModelPart -MainModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 3
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+
+    Mesh 0 : 
+        Number of Nodes      : 2000
+        Number of Properties : 2
+        Number of Elements   : 9780
+        Number of Conditions : 1248
+
+    -NoSlip3D_No_Slip_Auto1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 541
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 1040
+    -Outlet3D_Outlet_pressure_Auto1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 125
+            Number of Properties : 0
+            Number of Elements   : 0
+            Number of Conditions : 208
+    -Parts_Parts_Auto1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 : 
+            Number of Nodes      : 2000
+            Number of Properties : 0
+            Number of Elements   : 9780
+            Number of Conditions : 0
+: 
+::[PythonSolver]::  Finished reading model part.: 
+No inverted elements found
+Mesh orientation check found 624 inverted conditions.
+FluidSolver: Model reading finished. 
+FluidSolver: Fluid solver DOFs added correctly. 
+FluidDynamicsAnalysis: Using the old way to create the processes, this will be removed! 
+NavierStokesSolverMonolithic: Solver initialization finished. 
+Fluid Dynamics Analysis: Analysis -START-  

@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 def CreateSolver(model, custom_settings):
-
+    #print("SECONNNNNNNNNNNNNNNNNNNNNNNNNNNNNND")
     if (type(model) != KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
 
@@ -12,12 +12,17 @@ def CreateSolver(model, custom_settings):
 
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
     solver_type = custom_settings["solver_settings"]["solver_type"].GetString()
-
+    print ("parallelism")
+    print (parallelism)
+    print ("solver_type")
+    print (solver_type)
+    
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "Monolithic"):
             solver_module_name = "navier_stokes_solver_vmsmonolithic"
-
+        #elif (solver_type == "CoupledProblem"):
+        #    solver_module_name = "coupled_fluid_thermal_solver"
         elif (solver_type == "FractionalStep"):
             solver_module_name = "navier_stokes_solver_fractionalstep"
 
@@ -51,8 +56,8 @@ def CreateSolver(model, custom_settings):
             raise Exception("the requested solver type is not in the python solvers wrapper")
     else:
         raise Exception("parallelism is neither OpenMP nor MPI")
-
+    
     solver_module = __import__(solver_module_name)
     solver = solver_module.CreateSolver(model, custom_settings["solver_settings"])
-
+    
     return solver

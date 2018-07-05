@@ -7,6 +7,7 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part, config=None):
+    
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
@@ -27,7 +28,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
-
+    
     if config is not None:
         if hasattr(config, "TurbulenceModel"):
             if config.TurbulenceModel == "Spalart-Allmaras":
@@ -46,7 +47,7 @@ def AddDofs(model_part, config=None):
         node.AddDof(VELOCITY_Y, REACTION_Y)
         node.AddDof(VELOCITY_Z, REACTION_Z)
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)       
-
+        ssssssssssss
     if config is not None:
         if hasattr(config, "TurbulenceModel"):
             if config.TurbulenceModel == "Spalart-Allmaras":
@@ -112,7 +113,7 @@ class MonolithicSolver:
         self.divergence_clearance_steps = 0
 
         print("Construction monolithic solver finished")
-
+        
     #
     def Initialize(self):
         # check if slip conditions are defined
@@ -248,6 +249,7 @@ class MonolithicSolver:
                 self.neighbour_search.Execute()
 
         (self.solver).Solve()
+         
 
     #
     def SetEchoLevel(self, level):

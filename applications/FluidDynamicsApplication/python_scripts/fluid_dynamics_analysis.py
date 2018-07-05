@@ -6,15 +6,20 @@ try:
     import KratosMultiphysics.ExternalSolversApplication
 except ImportError:
     pass
+    
 
 from analysis_stage import AnalysisStage
 
 class FluidDynamicsAnalysis(AnalysisStage):
+          
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
-
+    
     def __init__(self,model,parameters):
+        
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
+        print (solver_settings)
+        
         if not solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
@@ -24,18 +29,29 @@ class FluidDynamicsAnalysis(AnalysisStage):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
-
+        
         # Import parallel modules if needed
         # has to be done before the base-class constuctor is called (in which the solver is constructed)
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-
+        
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
-
+        
     def _CreateSolver(self):
+        
+        #ñppppppppppppppppppppp
         import python_solvers_wrapper_fluid
-        return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
+        ##print("FIRSTTTTTTTTTTTTTTTTTTTTTTTTTT")
+        #ññññññññññññññññññññññññññññ
+        import coupled_fluid_thermal_solver
+        ##print("###################################") 
+        ##print(self.model) 
+        
+        return coupled_fluid_thermal_solver.CreateSolver(self.model, self.project_parameters)
+        
+        #return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
+        
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -43,7 +59,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         It will be removed in the future
         """
         list_of_processes = super(FluidDynamicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
-
+        
         # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
@@ -71,6 +87,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         return list_of_processes
 
     def _GetOrderOfProcessesInitialization(self):
+        
         return ["gravity",
                 "initial_conditions_process_list",
                 "boundary_conditions_process_list",
@@ -96,7 +113,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
 if __name__ == '__main__':
     from sys import argv
-
+    
     if len(argv) > 2:
         err_msg =  'Too many input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
@@ -115,5 +132,7 @@ if __name__ == '__main__':
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()
+    
     simulation = FluidDynamicsAnalysis(model,parameters)
+    
     simulation.Run()

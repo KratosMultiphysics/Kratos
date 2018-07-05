@@ -1,0 +1,234 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 6.0.0-d386b0f
+Importing    KratosFluidDynamicsApplication 
+Initializing KratosFluidDynamicsApplication... 
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication... 
+adding nodes and elements to fluid_computational_model_part
+-fluid_computational_model_part- model part
+    Number of tables : 0
+    Number of sub model parts : 0
+
+    Mesh 0 : 
+        Number of Nodes      : 2000
+        Number of Properties : 0
+        Number of Elements   : 9780
+        Number of Conditions : 1248
+
+
+NavierStokesSolverMonolithic: Construction of NavierStokesSolverMonolithic finished. 
+NavierStokesSolverMonolithic: Fluid solver variables added correctly. 
+ModelPartIO:   [Reading Nodes    : 2000 nodes read]
+ModelPartIO:   [Reading Elements : 9780 elements read] [Type: Element3D4N]
+ModelPartIO:   [Reading Conditions : 208 conditions read] [Type: WallCondition3D3N]
+ModelPartIO:   [Reading Conditions : 1040 conditions read] [Type: WallCondition3D3N]
+ModelPartIO:   [Total Lines Read : 26772]
+No inverted elements found
+Mesh orientation check found 624 inverted conditions.
+NavierStokesBaseSolver: Model reading finished. 
+NavierStokesBaseSolver: Fluid solver DOFs added correctly. 
+NavierStokesSolverMonolithic: Solver initialization finished. 
+Fluid Dynamics Analysis: STEP =  1 
+Fluid Dynamics Analysis: TIME =  0.01 
+Fluid Dynamics Analysis: STEP =  2 
+Fluid Dynamics Analysis: TIME =  0.02 
+Fluid Dynamics Analysis: STEP =  3 
+Fluid Dynamics Analysis: TIME =  0.03 
+Fluid Dynamics Analysis: STEP =  4 
+Fluid Dynamics Analysis: TIME =  0.04 
+Fluid Dynamics Analysis: STEP =  5 
+Fluid Dynamics Analysis: TIME =  0.05 
+Fluid Dynamics Analysis: STEP =  6 
+Fluid Dynamics Analysis: TIME =  0.060000000000000005 
+Fluid Dynamics Analysis: STEP =  7 
+Fluid Dynamics Analysis: TIME =  0.07 
+Fluid Dynamics Analysis: STEP =  8 
+Fluid Dynamics Analysis: TIME =  0.08 
+Fluid Dynamics Analysis: STEP =  9 
+Fluid Dynamics Analysis: TIME =  0.09 
+Fluid Dynamics Analysis: STEP =  10 
+Fluid Dynamics Analysis: TIME =  0.09999999999999999 
+Fluid Dynamics Analysis: STEP =  11 
+Fluid Dynamics Analysis: TIME =  0.10999999999999999 
+Fluid Dynamics Analysis: STEP =  12 
+Fluid Dynamics Analysis: TIME =  0.11999999999999998 
+Fluid Dynamics Analysis: STEP =  13 
+Fluid Dynamics Analysis: TIME =  0.12999999999999998 
+Fluid Dynamics Analysis: STEP =  14 
+Fluid Dynamics Analysis: TIME =  0.13999999999999999 
+Fluid Dynamics Analysis: STEP =  15 
+Fluid Dynamics Analysis: TIME =  0.15 
+Fluid Dynamics Analysis: STEP =  16 
+Fluid Dynamics Analysis: TIME =  0.16 
+Fluid Dynamics Analysis: STEP =  17 
+Fluid Dynamics Analysis: TIME =  0.17 
+Fluid Dynamics Analysis: STEP =  18 
+Fluid Dynamics Analysis: TIME =  0.18000000000000002 
+Fluid Dynamics Analysis: STEP =  19 
+Fluid Dynamics Analysis: TIME =  0.19000000000000003 
+Fluid Dynamics Analysis: STEP =  20 
+Fluid Dynamics Analysis: TIME =  0.20000000000000004 
+Fluid Dynamics Analysis: STEP =  21 
+Fluid Dynamics Analysis: TIME =  0.21000000000000005 
+Fluid Dynamics Analysis: STEP =  22 
+Fluid Dynamics Analysis: TIME =  0.22000000000000006 
+Fluid Dynamics Analysis: STEP =  23 
+Fluid Dynamics Analysis: TIME =  0.23000000000000007 
+Fluid Dynamics Analysis: STEP =  24 
+Fluid Dynamics Analysis: TIME =  0.24000000000000007 
+Fluid Dynamics Analysis: STEP =  25 
+Fluid Dynamics Analysis: TIME =  0.25000000000000006 
+Fluid Dynamics Analysis: STEP =  26 
+Fluid Dynamics Analysis: TIME =  0.26000000000000006 
+Fluid Dynamics Analysis: STEP =  27 
+Fluid Dynamics Analysis: TIME =  0.2700000000000001 
+Fluid Dynamics Analysis: STEP =  28 
+Fluid Dynamics Analysis: TIME =  0.2800000000000001 
+Fluid Dynamics Analysis: STEP =  29 
+Fluid Dynamics Analysis: TIME =  0.2900000000000001 
+Fluid Dynamics Analysis: STEP =  30 
+Fluid Dynamics Analysis: TIME =  0.3000000000000001 
+Fluid Dynamics Analysis: STEP =  31 
+Fluid Dynamics Analysis: TIME =  0.3100000000000001 
+Fluid Dynamics Analysis: STEP =  32 
+Fluid Dynamics Analysis: TIME =  0.3200000000000001 
+Fluid Dynamics Analysis: STEP =  33 
+Fluid Dynamics Analysis: TIME =  0.3300000000000001 
+Fluid Dynamics Analysis: STEP =  34 
+Fluid Dynamics Analysis: TIME =  0.34000000000000014 
+Fluid Dynamics Analysis: STEP =  35 
+Fluid Dynamics Analysis: TIME =  0.35000000000000014 
+Fluid Dynamics Analysis: STEP =  36 
+Fluid Dynamics Analysis: TIME =  0.36000000000000015 
+Fluid Dynamics Analysis: STEP =  37 
+Fluid Dynamics Analysis: TIME =  0.37000000000000016 
+Fluid Dynamics Analysis: STEP =  38 
+Fluid Dynamics Analysis: TIME =  0.38000000000000017 
+Fluid Dynamics Analysis: STEP =  39 
+Fluid Dynamics Analysis: TIME =  0.3900000000000002 
+Fluid Dynamics Analysis: STEP =  40 
+Fluid Dynamics Analysis: TIME =  0.4000000000000002 
+Fluid Dynamics Analysis: STEP =  41 
+Fluid Dynamics Analysis: TIME =  0.4100000000000002 
+Fluid Dynamics Analysis: STEP =  42 
+Fluid Dynamics Analysis: TIME =  0.4200000000000002 
+Fluid Dynamics Analysis: STEP =  43 
+Fluid Dynamics Analysis: TIME =  0.4300000000000002 
+Fluid Dynamics Analysis: STEP =  44 
+Fluid Dynamics Analysis: TIME =  0.4400000000000002 
+Fluid Dynamics Analysis: STEP =  45 
+Fluid Dynamics Analysis: TIME =  0.45000000000000023 
+Fluid Dynamics Analysis: STEP =  46 
+Fluid Dynamics Analysis: TIME =  0.46000000000000024 
+Fluid Dynamics Analysis: STEP =  47 
+Fluid Dynamics Analysis: TIME =  0.47000000000000025 
+Fluid Dynamics Analysis: STEP =  48 
+Fluid Dynamics Analysis: TIME =  0.48000000000000026 
+Fluid Dynamics Analysis: STEP =  49 
+Fluid Dynamics Analysis: TIME =  0.49000000000000027 
+Fluid Dynamics Analysis: STEP =  50 
+Fluid Dynamics Analysis: TIME =  0.5000000000000002 
+Fluid Dynamics Analysis: STEP =  51 
+Fluid Dynamics Analysis: TIME =  0.5100000000000002 
+Fluid Dynamics Analysis: STEP =  52 
+Fluid Dynamics Analysis: TIME =  0.5200000000000002 
+Fluid Dynamics Analysis: STEP =  53 
+Fluid Dynamics Analysis: TIME =  0.5300000000000002 
+Fluid Dynamics Analysis: STEP =  54 
+Fluid Dynamics Analysis: TIME =  0.5400000000000003 
+Fluid Dynamics Analysis: STEP =  55 
+Fluid Dynamics Analysis: TIME =  0.5500000000000003 
+Fluid Dynamics Analysis: STEP =  56 
+Fluid Dynamics Analysis: TIME =  0.5600000000000003 
+Fluid Dynamics Analysis: STEP =  57 
+Fluid Dynamics Analysis: TIME =  0.5700000000000003 
+Fluid Dynamics Analysis: STEP =  58 
+Fluid Dynamics Analysis: TIME =  0.5800000000000003 
+Fluid Dynamics Analysis: STEP =  59 
+Fluid Dynamics Analysis: TIME =  0.5900000000000003 
+Fluid Dynamics Analysis: STEP =  60 
+Fluid Dynamics Analysis: TIME =  0.6000000000000003 
+Fluid Dynamics Analysis: STEP =  61 
+Fluid Dynamics Analysis: TIME =  0.6100000000000003 
+Fluid Dynamics Analysis: STEP =  62 
+Fluid Dynamics Analysis: TIME =  0.6200000000000003 
+Fluid Dynamics Analysis: STEP =  63 
+Fluid Dynamics Analysis: TIME =  0.6300000000000003 
+Fluid Dynamics Analysis: STEP =  64 
+Fluid Dynamics Analysis: TIME =  0.6400000000000003 
+Fluid Dynamics Analysis: STEP =  65 
+Fluid Dynamics Analysis: TIME =  0.6500000000000004 
+Fluid Dynamics Analysis: STEP =  66 
+Fluid Dynamics Analysis: TIME =  0.6600000000000004 
+Fluid Dynamics Analysis: STEP =  67 
+Fluid Dynamics Analysis: TIME =  0.6700000000000004 
+Fluid Dynamics Analysis: STEP =  68 
+Fluid Dynamics Analysis: TIME =  0.6800000000000004 
+Fluid Dynamics Analysis: STEP =  69 
+Fluid Dynamics Analysis: TIME =  0.6900000000000004 
+Fluid Dynamics Analysis: STEP =  70 
+Fluid Dynamics Analysis: TIME =  0.7000000000000004 
+Fluid Dynamics Analysis: STEP =  71 
+Fluid Dynamics Analysis: TIME =  0.7100000000000004 
+Fluid Dynamics Analysis: STEP =  72 
+Fluid Dynamics Analysis: TIME =  0.7200000000000004 
+Fluid Dynamics Analysis: STEP =  73 
+Fluid Dynamics Analysis: TIME =  0.7300000000000004 
+Fluid Dynamics Analysis: STEP =  74 
+Fluid Dynamics Analysis: TIME =  0.7400000000000004 
+Fluid Dynamics Analysis: STEP =  75 
+Fluid Dynamics Analysis: TIME =  0.7500000000000004 
+Fluid Dynamics Analysis: STEP =  76 
+Fluid Dynamics Analysis: TIME =  0.7600000000000005 
+Fluid Dynamics Analysis: STEP =  77 
+Fluid Dynamics Analysis: TIME =  0.7700000000000005 
+Fluid Dynamics Analysis: STEP =  78 
+Fluid Dynamics Analysis: TIME =  0.7800000000000005 
+Fluid Dynamics Analysis: STEP =  79 
+Fluid Dynamics Analysis: TIME =  0.7900000000000005 
+Fluid Dynamics Analysis: STEP =  80 
+Fluid Dynamics Analysis: TIME =  0.8000000000000005 
+Fluid Dynamics Analysis: STEP =  81 
+Fluid Dynamics Analysis: TIME =  0.8100000000000005 
+Fluid Dynamics Analysis: STEP =  82 
+Fluid Dynamics Analysis: TIME =  0.8200000000000005 
+Fluid Dynamics Analysis: STEP =  83 
+Fluid Dynamics Analysis: TIME =  0.8300000000000005 
+Fluid Dynamics Analysis: STEP =  84 
+Fluid Dynamics Analysis: TIME =  0.8400000000000005 
+Fluid Dynamics Analysis: STEP =  85 
+Fluid Dynamics Analysis: TIME =  0.8500000000000005 
+Fluid Dynamics Analysis: STEP =  86 
+Fluid Dynamics Analysis: TIME =  0.8600000000000005 
+Fluid Dynamics Analysis: STEP =  87 
+Fluid Dynamics Analysis: TIME =  0.8700000000000006 
+Fluid Dynamics Analysis: STEP =  88 
+Fluid Dynamics Analysis: TIME =  0.8800000000000006 
+Fluid Dynamics Analysis: STEP =  89 
+Fluid Dynamics Analysis: TIME =  0.8900000000000006 
+Fluid Dynamics Analysis: STEP =  90 
+Fluid Dynamics Analysis: TIME =  0.9000000000000006 
+Fluid Dynamics Analysis: STEP =  91 
+Fluid Dynamics Analysis: TIME =  0.9100000000000006 
+Fluid Dynamics Analysis: STEP =  92 
+Fluid Dynamics Analysis: TIME =  0.9200000000000006 
+Fluid Dynamics Analysis: STEP =  93 
+Fluid Dynamics Analysis: TIME =  0.9300000000000006 
+Fluid Dynamics Analysis: STEP =  94 
+Fluid Dynamics Analysis: TIME =  0.9400000000000006 
+Fluid Dynamics Analysis: STEP =  95 
+Fluid Dynamics Analysis: TIME =  0.9500000000000006 
+Fluid Dynamics Analysis: STEP =  96 
+Fluid Dynamics Analysis: TIME =  0.9600000000000006 
+Fluid Dynamics Analysis: STEP =  97 
+Fluid Dynamics Analysis: TIME =  0.9700000000000006 
+Fluid Dynamics Analysis: STEP =  98 
+Fluid Dynamics Analysis: TIME =  0.9800000000000006 
+Fluid Dynamics Analysis: STEP =  99 
+Fluid Dynamics Analysis: TIME =  0.9900000000000007 
+Fluid Dynamics Analysis: STEP =  100 
+Fluid Dynamics Analysis: TIME =  1.0000000000000007 
+KRATOS TERMINATED CORRECTLY

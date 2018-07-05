@@ -29,7 +29,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
-
+    hhhhhhhhhhh
     if config is not None:
         if hasattr(config, "TurbulenceModel"):
             if config.TurbulenceModel == "Spalart-Allmaras":

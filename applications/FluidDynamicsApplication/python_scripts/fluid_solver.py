@@ -18,7 +18,7 @@ class FluidSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
         settings = self._ValidateSettings(custom_settings)
-
+        
         super(FluidSolver,self).__init__(model, settings)
 
         # There is only a single rank in OpenMP, we always print
@@ -46,11 +46,14 @@ class FluidSolver(PythonSolver):
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
+        #print(self.main_model_part)
+        
     def AddVariables(self):
+        
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
     def AddDofs(self):
+        
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
@@ -61,9 +64,13 @@ class FluidSolver(PythonSolver):
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
+        print("AQUUUUUUUUUUUUUUUUUUUUUUUITAMBIENNNNNNNNNNNNNNNNNNNNNN") 
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
-
+        SSSSSSSSSSSS
+        #print(self.main_model_part)
+        
     def PrepareModelPart(self):
+        
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
@@ -102,6 +109,7 @@ class FluidSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
+        
         if self._TimeBufferIsInitialized():
             self.solver.InitializeSolutionStep()
 
@@ -141,7 +149,7 @@ class FluidSolver(PythonSolver):
         self.Predict()
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
-
+        
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
             raise Exception("The ComputingModelPart was not created yet!")
