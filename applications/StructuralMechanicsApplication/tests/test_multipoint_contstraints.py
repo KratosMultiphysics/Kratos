@@ -93,7 +93,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             -0.01)
         self.convergence_criterion = KratosMultiphysics.ResidualCriteria(
             1e-10, 1e-12)
-        self.convergence_criterion.SetEchoLevel(1)
+        self.convergence_criterion.SetEchoLevel(0)
 
         max_iters = 100
         compute_reactions = False
@@ -138,7 +138,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         disp2 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         print("TEST 3")
         print(disp1, "    ", disp2)
-        #self.assertAlmostEqual(disp1, disp2, 5)
+        self.assertAlmostEqual(disp1, disp2, 5)
 
 
         disp1 = 0.5 * (mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
@@ -146,7 +146,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         disp2 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
         print("TEST 4")
         print(disp1, "    ", disp2)
-        #self.assertAlmostEqual(disp1, disp2, 5)
+        self.assertAlmostEqual(disp1, disp2, 5)
 
         disp1 = mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         disp2 = mp.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
@@ -205,10 +205,10 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
 
-        #mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 3, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        #mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 4, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
-        #mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        #mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 3, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 4, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
 
         mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 7, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
         mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 8, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
