@@ -38,12 +38,12 @@ namespace Kratos
  *
  *   This stores the condensed form of the MasterSlaveConstraint objects into one object. if only one relation for a slave is added as
  *   MasterSlaveConstraint then there will only be one entry for master for its corresponding MasterSlaveRelation.
- *   Currently this class is designed to hold only one equation.
+ *   Currently this class is designed to hold only one equation. There is only one unique object of this class for each slave. 
  *
  *   Future plan is to also make it possible to work with matrices (T) and vectors (for slave and master equation ids and constants)
  *
  *
- *  IMPORTANT : This is not seen by the user. This is a helper data structure which is created in the builder and solver and destroyed there.
+ *  IMPORTANT : This is not seen by the user. This is a helper data structure which is exists only in the builder and solver. 
  *
  * @author Aditya Ghantasala
  */
@@ -59,23 +59,46 @@ class MasterSlaveRelation : public IndexedObject
     // empty constructor and methods to add master and slave independently.
     MasterSlaveRelation() : IndexedObject(0)
     {
-        SetConstant(0.0);
-        //SetConstantUpdate(0.0);
+        mConstant = 0.0;
     }
 
 
     MasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId)
     {
-        SetConstant(0.0);
-        //SetConstantUpdate(0.0);
+        mConstant = 0.0;
     }
 
-    void SetConstant(double Constant) { mConstant = Constant; }
-    //void SetConstantUpdate(double ConstantUpdate) { mConstantUpdate = ConstantUpdate; }
-    double Constant() const { return mConstant; }
-    //double ConstantUpdate() const { return mConstantUpdate; }
+    /**
+     * these functions Sets and gets the constant value in the constraint equation.
+     * @param Constant the value of the constant to be assigned.
+     */
+    //void SetConstant(double Constant) { mConstant = Constant; }
+    //double Constant() const { return mConstant; }
+
+    /**
+     * Function to get the slave equation Id corresponding to this constraint.
+     * @param Constant the value of the constant to be assigned.
+     */
     IndexType SlaveEquationId() const { return this->Id(); }
 
+    /**
+     * Function to set the lefthand side of the constraint (the slave dof value)
+     * @param LhsValue the value of the lhs (the slave dof value)
+     */
+    void SetLHSValue(double const & LhsValue)
+    {
+        mLhsValue = LhsValue;
+    }
+
+    /**
+     * Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
+     * @param RhsValue the value of the lhs (the slave dof value)
+     */
+    void SetRhsValue(double const & RhsValue){ mRhsValue = RhsValue;}
+    void UpdateRhsValue(double const & RhsValueUpdate)
+    {
+        mRhsValue += RhsValueUpdate;
+    }    
 
 
     // Get number of masters for this slave
@@ -133,10 +156,11 @@ class MasterSlaveRelation : public IndexedObject
         for (IndexType i=0; i<this->GetNumberOfMasters(); i++)
             rTransformationMatrix(0,i) = (*(master_it++)).second;
 
-      rConstantVector(0) = Constant();
+      mConstant = mRhsValue - mLhsValue;
+      rConstantVector(0) = mConstant;
     }
 
-    void PrintInfo(std::ostream& rOutput) const override
+/*     void PrintInfo(std::ostream& rOutput) const override
     {
         rOutput << "##############################" << std::endl;
         rOutput << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
@@ -149,13 +173,13 @@ class MasterSlaveRelation : public IndexedObject
             index++;
         }
         rOutput << "##############################" << std::endl;
-    }
+    } */
 
     void PrintInfo() const
     {
         std::cout << "##############################" << std::endl;
         std::cout << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
-        std::cout << "Constant :: " << Constant() << std::endl;
+        std::cout << "Constant :: " << mConstant << std::endl;
         int index = 0;
         std::cout << "############################## :: Masters" << std::endl;
         for (auto &master : mMasterDataSet)
@@ -203,6 +227,8 @@ class MasterSlaveRelation : public IndexedObject
 
 
     std::unordered_map<IndexType, double> mMasterDataSet;
+    double mLhsValue;
+    double mRhsValue;
 
     double mConstant;
     //double mConstantUpdate;
