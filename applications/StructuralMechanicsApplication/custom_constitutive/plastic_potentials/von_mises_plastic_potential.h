@@ -87,7 +87,7 @@ public:
     ///@{
 
     /**
-     * @brief This  script  calculates  the derivatives  of the plastic potential
+    * @brief This  script  calculates  the derivatives  of the plastic potential
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
@@ -111,10 +111,9 @@ public:
         ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
         ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
 
-        double c1, c2, c3;
-        c1 = 0.0;
-        c2 = std::sqrt(3.0);
-        c3 = 0.0;
+        const double c1 = 0.0;
+        const double c2 = std::sqrt(3.0);
+        const double c3 = 0.0;
 
         noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }

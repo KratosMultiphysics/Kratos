@@ -167,7 +167,7 @@ public:
         Matrix C, InvC;
         double detC = 0.0;
         this->CalculateElasticMatrix(C, rMaterialProperties);
-        MathUtils<double>::InvertMatrix( C, InvC, detC ); 
+        MathUtils<double>::InvertMatrix(C, InvC, detC); 
 
         Vector InelasticStrainVector  = this->GetPreviousInelasticStrainVector();
         const Vector& PreviousStress  = this->GetPreviousStressVector();
@@ -181,7 +181,7 @@ public:
 
         Vector ElasticStrain;
         for (int i = 0; i < NumberOfSubIncrements; i++) {
-			Aux = std::exp(-dt/DelayTime) * prod(InvC, AuxStressVector) / DelayTime;
+			Aux = (std::exp(-dt/DelayTime) * prod(InvC, AuxStressVector)) / DelayTime;
             InelasticStrainVector = std::exp(-dt/DelayTime)*InelasticStrainVector + Aux;
             ElasticStrain = StrainVector - InelasticStrainVector;
             noalias(AuxStressVector) = prod(C, ElasticStrain);

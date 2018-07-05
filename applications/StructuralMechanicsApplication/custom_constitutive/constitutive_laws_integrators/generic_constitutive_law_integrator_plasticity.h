@@ -59,6 +59,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 public:
     ///@name Type Definitions
     ///@{
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// The type of yield surface
     typedef TYieldSurfaceType YieldSurfaceType;
@@ -126,7 +127,7 @@ public:
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void IntegrateStressVector(
-        Vector& PredictiveStressVector,
+        Vector& rPredictiveStressVector,
         Vector& StrainVector, 
         double& UniaxialStress, 
         double& Threshold, 
@@ -156,9 +157,9 @@ public:
             noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; 
             noalias(PlasticStrain) += PlasticStrainIncrement; 
             noalias(DS) = prod(C, PlasticStrainIncrement); 
-			noalias(PredictiveStressVector) -= DS;
+			noalias(rPredictiveStressVector) -= DS;
 
-            CalculatePlasticParameters(PredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
+            CalculatePlasticParameters(rPredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, rMaterialProperties, CharacteristicLength); 
 
@@ -275,22 +276,22 @@ public:
         double& r1
         )
     {
-        Vector PrincipalStresses = ZeroVector(3);
-        ConstitutiveLawUtilities::CalculatePrincipalStresses(PrincipalStresses, StressVector);
+        Vector principal_stresses = ZeroVector(3);
+        ConstitutiveLawUtilities::CalculatePrincipalStresses(principal_stresses, StressVector);
 
         double suma = 0.0, sumb = 0.0, sumc = 0.0;
         Vector SA = ZeroVector(3) , SB = ZeroVector(3), SC = ZeroVector(3);
 
         for (int i = 0; i < 3; i++) {
-            SA[i] = std::abs(PrincipalStresses[i]);
-            SB[i] = 0.5*(PrincipalStresses[i]  + SA[i]);
-            SC[i] = 0.5*(-PrincipalStresses[i] + SA[i]);
+            SA[i] = std::abs(principal_stresses[i]);
+            SB[i] = 0.5*(principal_stresses[i]  + SA[i]);
+            SC[i] = 0.5*(-principal_stresses[i] + SA[i]);
 
             suma += SA[i];
             sumb += SB[i];
             sumc += SC[i];
         }
-        if (suma != 0.0) {
+        if (suma != tolerance) {
             r0 = sumb/suma;
             r1 = sumc/suma;
         } else {
@@ -322,19 +323,19 @@ public:
     )
     {
         const double Young = rMaterialProperties[YOUNG_MODULUS];
-        const double YieldCompression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double YieldTension     = rMaterialProperties[YIELD_STRESS_TENSION];
-        const double n = YieldCompression / YieldTension;
+        const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension     = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double n = yield_compression / yield_tension;
         const double Gf = rMaterialProperties[FRACTURE_ENERGY]; // Frac energy in tension
         const double Gfc = rMaterialProperties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
 
         const double gf  = Gf / CharacteristicLength;
         const double gfc = Gfc / CharacteristicLength;
 
-        const double hlim = 2.0*Young*gfc / (std::pow(YieldCompression, 2));
+        const double hlim = 2.0*Young*gfc / (std::pow(yield_compression, 2));
         KRATOS_ERROR_IF(CharacteristicLength > hlim) << "The Fracture Energy is to low: " << gfc << std::endl;
 
-        double Const0 = 0.0, Const1 = 0.0, DPlasticdissipation = 0.0;
+        double Const0 = 0.0, Const1 = 0.0, dplastic_dissipation = 0.0;
         if (gf > 0.000001) {
             Const0 = r0 / gf;
             Const1 = r1 / gfc;
@@ -343,12 +344,12 @@ public:
 
         for (int i = 0; i < 6; i++) {
             rHCapa[i] = Const*StressVector[i];
-            DPlasticdissipation += rHCapa[i]*PlasticStrainInc[i];
+            dplastic_dissipation += rHCapa[i]*PlasticStrainInc[i];
         }
 
-        if (DPlasticdissipation < 0.0 | DPlasticdissipation > 1.0) DPlasticdissipation = 0.0;
+        if (dplastic_dissipation < 0.0 | dplastic_dissipation > 1.0) dplastic_dissipation = 0.0;
 
-        rPlasticDissipation += DPlasticdissipation;
+        rPlasticDissipation += dplastic_dissipation;
         if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999; // warning vicente
     }
 
@@ -370,10 +371,10 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const int CurveType = rMaterialProperties[HARDENING_CURVE];
-        const double YieldCompr   = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
-        const double n = YieldCompr / YieldTension;
+        const int    curve_type = rMaterialProperties[HARDENING_CURVE];
+        const double yield_comp   = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double n = yield_comp / yield_tension;
 
         BoundedVector<double,2> Gf, Slopes, EqThrsholds;
 
@@ -382,7 +383,7 @@ public:
 
         for (int i = 0; i < 2; i++) // i:0 Tension ; i:1 compression
         {
-            switch(CurveType)
+            switch(curve_type)
             {
                 case HardeningCurveType::LinearSoftening:
                     CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1,
@@ -402,7 +403,7 @@ public:
                 // Add more cases...
 
                 default:
-                    KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not set or wrong..."<< CurveType << std::endl;     
+                    KRATOS_ERROR << " The HARDENING_CURVE of plasticity is not set or wrong..."<< curve_type << std::endl;     
                     break;
             }
         }

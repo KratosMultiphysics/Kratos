@@ -117,8 +117,8 @@ public:
 
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
-        double c1, c2, c3;
-        c1 = 0.0;
+        const double c1 = 0.0;
+		double c2, c3;
 
         if (Checker < 29.0) {
             c2 = 2.0*(std::cos(LodeAngle) + std::sin(LodeAngle)*std::tan(3.0*LodeAngle));

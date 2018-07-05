@@ -18,7 +18,6 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "includes/model_part.h"
 #include "structural_mechanics_application_variables.h"
-#include "includes/constitutive_law.h"
 
 //Processes
 #include "custom_processes/prism_neighbours_process.h"

@@ -106,7 +106,7 @@ public:
     )
     {   
         double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
-        const double SinPhi = std::sin(friction_angle);
+        const double sin_phi = std::sin(friction_angle);
         const double Root3 = std::sqrt(3.0);
 
         // Check input variables
@@ -122,8 +122,8 @@ public:
 
         if (I1 == 0.0) { rEqStress = 0; }
         else {
-            const double CFL = -Root3*(3.0 - SinPhi) / (3.0 * SinPhi - 3.0);
-            const double TEN0 = 2.0 * I1 * SinPhi / (Root3*(3.0 - SinPhi)) + std::sqrt(J2);
+            const double CFL = -Root3*(3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
+            const double TEN0 = 2.0 * I1 * sin_phi / (Root3*(3.0 - sin_phi)) + std::sqrt(J2);
             rEqStress = std::abs(CFL*TEN0);
         }
     }
@@ -135,10 +135,10 @@ public:
      */
     static void GetInitialUniaxialThreshold(const Properties& rMaterialProperties, double& rThreshold)
     {
-        const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
-        const double SinPhi = std::sin(friction_angle);
-        rThreshold = std::abs(YieldTension*(3.0 + SinPhi) / (3.0*SinPhi - 3.0));
+        const double sin_phi = std::sin(friction_angle);
+        rThreshold = std::abs(yield_tension*(3.0 + sin_phi) / (3.0*sin_phi - 3.0));
     }
 
     /**
@@ -215,11 +215,11 @@ public:
         c3 = 0.0;
 
         const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE];
-        const double SinPhi    = std::sin(FrictionAngle);
+        const double sin_phi    = std::sin(FrictionAngle);
         const double Root3     = std::sqrt(3.0);
 
-        const double CFL = -Root3*(3.0-SinPhi) / (3.0*SinPhi-3.0);
-        c1 = CFL*2.0*SinPhi / (Root3*(3.0-SinPhi));
+        const double CFL = -Root3*(3.0-sin_phi) / (3.0*sin_phi-3.0);
+        c1 = CFL*2.0*sin_phi / (Root3*(3.0-sin_phi));
         c2 = CFL;
 
         noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;

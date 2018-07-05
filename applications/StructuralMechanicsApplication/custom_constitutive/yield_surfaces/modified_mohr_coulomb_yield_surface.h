@@ -104,23 +104,23 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const double YieldCompression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double YieldTension = rMaterialProperties[YIELD_STRESS_TENSION];
-        double FrictionAngle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
+        const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+        double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
 		
         // Check input variables
-        if (FrictionAngle < tolerance) {
-            FrictionAngle = 32.0 * Globals::Pi / 180.0;
+        if (friction_angle < tolerance) {
+            friction_angle = 32.0 * Globals::Pi / 180.0;
             KRATOS_WARNING("ModifiedMohrCoulombYieldSurface") << "Friction Angle not defined, assumed equal to 32 deg " << std::endl;
         }
-        KRATOS_ERROR_IF(YieldCompression < tolerance) << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_COMPRESSION in .mdpa ";
-        KRATOS_ERROR_IF(YieldTension < tolerance) << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_TENSION in .mdpa ";
+        KRATOS_ERROR_IF(yield_compression < tolerance) << " ERROR: Yield stress in compression not defined, include YIELD_STRESS_COMPRESSION in .mdpa ";
+        KRATOS_ERROR_IF(yield_tension < tolerance) << " ERROR: Yield stress in tension not defined, include YIELD_STRESS_TENSION in .mdpa ";
 
         double K1, K2, K3, Rmorh, R, alpha_r, theta;
-        R = std::abs(YieldCompression / YieldTension);
-        Rmorh = std::pow(std::tan((Globals::Pi / 4.0) + FrictionAngle / 2.0), 2);
+        R = std::abs(yield_compression / yield_tension);
+        Rmorh = std::pow(std::tan((Globals::Pi / 4.0) + friction_angle / 2.0), 2);
         alpha_r = R / Rmorh;
-        double sinphi = std::sin(FrictionAngle);
+        double sin_phi = std::sin(friction_angle);
 		
         double I1, J2, J3; 
         ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
@@ -128,17 +128,17 @@ public:
         ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, Deviator, J2);
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
 
-        K1 = 0.5*(1.0 + alpha_r) - 0.5*(1.0 - alpha_r)*sinphi;
-        K2 = 0.5*(1.0 + alpha_r) - 0.5*(1.0 - alpha_r) / sinphi;
-        K3 = 0.5*(1.0 + alpha_r)*sinphi - 0.5*(1.0 - alpha_r);
+        K1 = 0.5*(1.0 + alpha_r) - 0.5*(1.0 - alpha_r)*sin_phi;
+        K2 = 0.5*(1.0 + alpha_r) - 0.5*(1.0 - alpha_r) / sin_phi;
+        K3 = 0.5*(1.0 + alpha_r)*sin_phi - 0.5*(1.0 - alpha_r);
 
         // Check Modified Mohr-Coulomb criterion
         if (I1 == 0.0) {
             rEqStress = 0.0;
         } else {
             ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, theta);
-            rEqStress = (2.0*std::tan(Globals::Pi*0.25 + FrictionAngle*0.5) / std::cos(FrictionAngle))*((I1*K3 / 3.0) +
-                        std::sqrt(J2)*(K1*std::cos(theta) - K2*std::sin(theta)*sinphi / std::sqrt(3.0)));
+            rEqStress = (2.0*std::tan(Globals::Pi*0.25 + friction_angle*0.5) / std::cos(friction_angle))*((I1*K3 / 3.0) +
+                        std::sqrt(J2)*(K1*std::cos(theta) - K2*std::sin(theta)*sin_phi / std::sqrt(3.0)));
         }
     }
 
@@ -230,41 +230,41 @@ public:
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
         double c1, c2, c3;
-        const double FrictionAngle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0;
-        const double SinPhi    = std::sin(FrictionAngle);
-        const double CosPhi    = std::cos(FrictionAngle);
-        const double SinTheta  = std::sin(LodeAngle);
-        const double CosTheta  = std::cos(LodeAngle);
-        const double Cos3Theta = std::cos(3.0*LodeAngle);
-        const double TanTheta  = std::tan(LodeAngle);
-        const double Tan3Theta = std::tan(3.0*LodeAngle);
+        const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0;
+        const double sin_phi    = std::sin(friction_angle);
+        const double cons_phi    = std::cos(friction_angle);
+        const double sin_theta  = std::sin(LodeAngle);
+        const double cos_theta  = std::cos(LodeAngle);
+        const double cos_3theta = std::cos(3.0*LodeAngle);
+        const double tan_theta  = std::tan(LodeAngle);
+        const double tan_3theta = std::tan(3.0*LodeAngle);
         const double Root3     = std::sqrt(3.0);
 
-        const double ComprYield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double TensiYield = rMaterialProperties[YIELD_STRESS_TENSION];
-        const double n = ComprYield / TensiYield;
+        const double compr_yield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double tens_yield = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double n = compr_yield / tens_yield;
 
-        const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;;
-        const double AnglePhi = (Globals::Pi * 0.25) + Dilatancy * 0.5;
-        const double alpha = n / (std::tan(AnglePhi) * std::tan(AnglePhi));
+        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;;
+        const double angle_phi = (Globals::Pi * 0.25) + dilatancy * 0.5;
+        const double alpha = n / (std::tan(angle_phi) * std::tan(angle_phi));
 
-        const double CFL = 2.0 * std::tan(AnglePhi) / CosPhi;
+        const double CFL = 2.0 * std::tan(angle_phi) / cons_phi;
 
-        const double K1 = 0.5*(1.0 + alpha) - 0.5*(1.0 - alpha)*SinPhi;
-        const double K2 = 0.5*(1.0 + alpha) - 0.5*(1.0 - alpha) / SinPhi;
-        const double K3 = 0.5*(1.0 + alpha)*SinPhi - 0.5*(1.0 - alpha);
+        const double K1 = 0.5*(1.0 + alpha) - 0.5*(1.0 - alpha)*sin_phi;
+        const double K2 = 0.5*(1.0 + alpha) - 0.5*(1.0 - alpha) / sin_phi;
+        const double K3 = 0.5*(1.0 + alpha)*sin_phi - 0.5*(1.0 - alpha);
 
-        if (SinPhi != 0.0) c1 = CFL * K3 / 3.0;
+        if (sin_phi != 0.0) c1 = CFL * K3 / 3.0;
         else c1 = 0.0; // check
 
         if (Checker < 29.0) {
-            c2 = CosTheta * CFL * (K1*(1+TanTheta*Tan3Theta) + K2*SinPhi*(Tan3Theta-TanTheta) / Root3);
-            c3 = CFL*(K1*Root3*SinTheta + K2*SinPhi*CosTheta) / (2.0*J2*Cos3Theta);
+            c2 = cos_theta * CFL * (K1*(1+tan_theta*tan_3theta) + K2*sin_phi*(tan_3theta-tan_theta) / Root3);
+            c3 = CFL*(K1*Root3*sin_theta + K2*sin_phi*cos_theta) / (2.0*J2*cos_3theta);
         } else {
             c3 = 0.0;
             double Aux = 1.0;
             if (LodeAngle > 0.0) Aux = -1.0;
-            c2 = 0.5*CFL*(K1*Root3 + Aux*K2*SinPhi/Root3);
+            c2 = 0.5*CFL*(K1*Root3 + Aux*K2*sin_phi/Root3);
         }
         noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }

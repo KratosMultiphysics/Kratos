@@ -118,7 +118,6 @@ public:
 
         const double Checker = std::abs(LodeAngle*57.29577951308);
 
-        double c1, c2, c3;
         const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double SinDil    = std::sin(Dilatancy);
         const double CosDil    = std::cos(Dilatancy);
@@ -142,8 +141,10 @@ public:
         const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / SinDil;
         const double K3 = 0.5*(1 + alpha)*SinDil - 0.5*(1 - alpha);
 
+		double c1, c2, c3;
         if (SinDil != 0.0) c1 = CFL * K3 / 3.0;
-        else c1 = 0.0; // check
+        else const double c1 = 0.0; // check
+
 
         if (Checker < 29.0) {
             c2 = CosTheta * CFL * (K1*(1+TanTheta*Tan3Theta) + K2*SinDil*(Tan3Theta-TanTheta) / Root3);

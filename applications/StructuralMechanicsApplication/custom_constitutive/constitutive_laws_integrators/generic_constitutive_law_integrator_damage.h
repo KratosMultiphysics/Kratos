@@ -47,8 +47,8 @@ namespace Kratos
 /**
  * @class GenericConstitutiveLawIntegratorDamage
  * @ingroup StructuralMechanicsApplication
- * @brief: This object integrates the predictive stress using the damage theory by means of 
- * linear/exponential softening
+ * @brief: This object integrates the predictive stress using the isotropic damage theory by means of 
+ * linear/exponential softening.
  * @details
  * @tparam TYieldSurfaceType
  * @author Alejandro Cornejo & Lucia Barbu
@@ -110,7 +110,7 @@ public:
      */
     static void IntegrateStressVector(
         Vector& rPredictiveStressVector,
-        const double& UniaxialStress,
+        const double UniaxialStress,
         double& rDamage,
         double& rThreshold,
         const Properties& rMaterialProperties,
@@ -154,9 +154,9 @@ public:
         double& Damage
     )
     {
-        double InitialThreshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
-        Damage = 1.0 - (InitialThreshold / UniaxialStress)*std::exp(DamageParameter*(1.0 - UniaxialStress / InitialThreshold));
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+        Damage = 1.0 - (initial_threshold / UniaxialStress)*std::exp(DamageParameter*(1.0 - UniaxialStress / initial_threshold));
     }
 
     /**
@@ -176,9 +176,9 @@ public:
         double& Damage
     )
     {
-        double InitialThreshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
-        Damage = (1.0 - InitialThreshold / UniaxialStress) / (1.0 + DamageParameter);
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+        Damage = (1.0 - initial_threshold / UniaxialStress) / (1.0 + DamageParameter);
     }
 
     ///@}

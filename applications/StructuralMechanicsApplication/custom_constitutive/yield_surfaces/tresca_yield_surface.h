@@ -103,15 +103,15 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        double I1, J2, J3, LodeAngle;
+        double I1, J2, J3, lode_angle;
         Vector Deviator = ZeroVector(6);
 
         ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
         ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, Deviator, J2);
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, LodeAngle);
+        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        rEqStress = 2.0*std::cos(LodeAngle)*std::sqrt(J2);
+        rEqStress = 2.0*std::cos(lode_angle)*std::sqrt(J2);
     }
 
     /**
@@ -194,18 +194,18 @@ public:
         ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
         ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
 
-        double J3, LodeAngle;
+        double J3, lode_angle;
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, LodeAngle);
+        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double Checker = std::abs(LodeAngle*57.29577951308);
+        const double checker = std::abs(lode_angle*57.29577951308);
 
         double c1, c2, c3;
         c1 = 0.0;
 
-        if (Checker < 29.0) {
-            c2 = 2.0*(std::cos(LodeAngle) + std::sin(LodeAngle)*std::tan(3.0*LodeAngle));
-            c3 = std::sqrt(3.0)*std::sin(LodeAngle) / (J2*std::cos(3.0*LodeAngle));
+        if (checker < 29.0) {
+            c2 = 2.0*(std::cos(lode_angle) + std::sin(lode_angle)*std::tan(3.0*lode_angle));
+            c3 = std::sqrt(3.0)*std::sin(lode_angle) / (J2*std::cos(3.0*lode_angle));
         } else {
             c2 = std::sqrt(3.0);
             c3 = 0.0;

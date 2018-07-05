@@ -111,16 +111,15 @@ public:
         ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
         ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
 
-        double c1, c2, c3;
-        c3 = 0.0;
+        const double c3 = 0.0;
 
         const double Dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double SinDil    = std::sin(Dilatancy);
         const double Root3     = std::sqrt(3.0);
 
         const double CFL = -Root3*(3.0-SinDil) / (3.0*SinDil-3.0);
-        c1 = CFL*2.0*SinDil / (Root3*(3.0-SinDil));
-        c2 = CFL;
+        const double c1 = CFL*2.0*SinDil / (Root3*(3.0-SinDil));
+        const double c2 = CFL;
 
         noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }

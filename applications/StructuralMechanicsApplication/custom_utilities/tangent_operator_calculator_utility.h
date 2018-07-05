@@ -78,9 +78,9 @@ public:
         Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
         TangentTensor.clear();
 
-        const int NumComp = StrainVectorGP.size();
+        const std::size_t NumComp = StrainVectorGP.size();
         // Loop over components of the strain
-        for (int Component = 0; Component < NumComp; Component++) {
+        for (std::size_t Component = 0; Component < NumComp; Component++) {
             Vector& PerturbedStrain = rValues.GetStrainVector();
 			
             double Perturbation;
