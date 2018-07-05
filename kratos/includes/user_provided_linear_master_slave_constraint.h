@@ -193,7 +193,7 @@ public:
                                         NodeType& rSlaveNode,
                                         const VariableComponentType& rSlaveVariable,
                                         const double Weight,
-                                        const double Constant) const
+                                        const double Constant) const override
     {
         KRATOS_TRY
         return Kratos::make_shared<UserProvidedLinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
