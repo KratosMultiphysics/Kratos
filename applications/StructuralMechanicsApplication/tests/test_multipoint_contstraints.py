@@ -93,7 +93,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             -0.01)
         self.convergence_criterion = KratosMultiphysics.ResidualCriteria(
             1e-10, 1e-12)
-        self.convergence_criterion.SetEchoLevel(0)
+        self.convergence_criterion.SetEchoLevel(1)
 
         max_iters = 100
         compute_reactions = False
@@ -121,43 +121,31 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
     def _check_results(self, mp):
         disp1 = mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         disp2 = mp.Nodes[6].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
-        print("TEST 1")
-        print(disp1, "    ", disp2)
-        #self.assertAlmostEqual(disp1, disp2, 5)
+        self.assertAlmostEqual(disp1, disp2, 5)
 
 
         disp1 = mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
         disp2 = mp.Nodes[6].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
-        print("TEST 2")
-        print(disp1, "    ", disp2)
         self.assertAlmostEqual(disp1, disp2, 5)
 
         disp1 = 0.5 * ( mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
                         + mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0))
 
         disp2 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
-        print("TEST 3")
-        print(disp1, "    ", disp2)
         self.assertAlmostEqual(disp1, disp2, 5)
 
 
         disp1 = 0.5 * (mp.Nodes[16].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
                         + mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0))
         disp2 = mp.Nodes[7].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
-        print("TEST 4")
-        print(disp1, "    ", disp2)
         self.assertAlmostEqual(disp1, disp2, 5)
 
         disp1 = mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
         disp2 = mp.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0)
-        print("TEST 5")
-        print(disp1, "    ", disp2)
         self.assertAlmostEqual(disp1, disp2, 5)
 
         disp1 = mp.Nodes[18].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
         disp2 = mp.Nodes[9].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0)
-        print("TEST 6")
-        print(disp1, "    ", disp2)
         self.assertAlmostEqual(disp1, disp2, 5)
 
     def _setup_model_part(self, mp):
@@ -238,7 +226,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self._apply_material_properties(mp, dim)
 
         #time integration parameters
-        dt = 0.05
+        dt = 0.06
         time = 0.0
         end_time = 0.01
         step = 0
