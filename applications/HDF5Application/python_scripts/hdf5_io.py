@@ -25,7 +25,7 @@ class HDF5SerialFileFactory(FileFactory):
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "file_access_mode" : "truncate",
+                "file_access_mode" : "exclusive",
                 "file_driver" : "sec2",
                 "echo_level" : 0
             }
@@ -44,7 +44,7 @@ class HDF5ParallelFileFactory(FileFactory):
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "file_access_mode" : "truncate",
+                "file_access_mode" : "exclusive",
                 "file_driver" : "mpio",
                 "echo_level" : 0
             }
