@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Miguel Maso Sotomayor
 //
@@ -36,9 +36,11 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
         "model_part_name"              : "MainModelPart",
         "own_model_part_name"          : "own",
         "refined_model_part_name"      : "refined",
+        "element_name"                 : "Element2D3N",
+        "condition_name"               : "Condition2D3N",      
         "echo_level"                   : 0,
         "number_of_divisions_at_level" : 2,
-        "refining_interface_model_part": "refining_interface",
+        "refining_interface_model_part": "refining_interface",      
         "refining_boundary_condition"  : "Condition2D3N"
     }
     )");
@@ -47,16 +49,18 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 
     mEchoLevel = mParameters["echo_level"].GetInt();
     mDivisions = mParameters["number_of_divisions_at_level"].GetInt();
-    mConditionName = mParameters["refining_boundary_condition"].GetString();
 
     mOwnName = mParameters["own_model_part_name"].GetString();
     mRefinedName = mParameters["refined_model_part_name"].GetString();
+
+    mElementName = mParameters["element_name"].GetString();
+    mConditionName = mParameters["condition_name"].GetString();
 
     std::string own_name = mParameters["own_model_part_name"].GetString();
     std::string refined_name = mParameters["refined_model_part_name"].GetString();
 
     mInterfaceName = mParameters["refining_interface_model_part"].GetString();
-    mConditionName = mParameters["refining_boundary_condition"].GetString();
+    mInterfaceConditionName = mParameters["refining_boundary_condition"].GetString();
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
@@ -66,6 +70,10 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     else
         sub_model_parts_names = mrRootModelPart.GetSubModelPartNames();
         // sub_model_parts_names = RecursiveGetSubModelPartNames(mrRootModelPart);
+
+
+    KRATOS_CHECK(KratosComponents<Condition>::Has(mElementName));
+    KRATOS_CHECK(KratosComponents<Condition>::Has(mConditionName));
 
     // Clone the model part at the own level
     InitializeOwnModelPart(sub_model_parts_names);
@@ -83,8 +91,8 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
     GetLastId(node_id, elem_id, cond_id);
 
-    MarkElementsFromNodalCondition();
-    MarkElementsFromNodalCondition();
+    MarkElementsFromNodalFlag();
+    MarkElementsFromNodalFlag();
 
     CloneNodesToRefine(node_id);
     CreateElementsToRefine(elem_id);
@@ -357,11 +365,12 @@ void MultiScaleRefiningProcess::AddAllConditionsToModelPart(ModelPart& rOriginMo
 }
 
 
-void MultiScaleRefiningProcess::MarkElementsFromNodalCondition()
+void MultiScaleRefiningProcess::MarkElementsFromNodalFlag()
 {
     const int nelems = static_cast<int>(mpOwnModelPart->Elements().size());
     ModelPart::ElementsContainerType::iterator elem_begin = mpOwnModelPart->ElementsBegin();
 
+    // We assume all the elements have the same number of nodes
     const IndexType number_of_nodes = elem_begin->GetGeometry().size();
 
     // We will refine the elements which all the nodes are to refine
@@ -370,17 +379,21 @@ void MultiScaleRefiningProcess::MarkElementsFromNodalCondition()
     {
         auto elem = elem_begin + i;
         bool to_refine = true;
+        bool new_entity = false;
         for (IndexType node = 0; node < number_of_nodes; node++)
         {
             if (elem->GetGeometry()[node].IsNot(TO_REFINE))
                 to_refine = false;
+            
+            if (elem->GetGeometry()[node].Is(NEW_ENTITY))
+                new_entity = true;
         }
-        elem->Set(TO_REFINE, to_refine);
+        elem->Set(TO_REFINE, (to_refine && new_entity));
     }
 }
 
 
-void MultiScaleRefiningProcess::MarkConditionsFromNodalCondition()
+void MultiScaleRefiningProcess::MarkConditionsFromNodalFlag()
 {
     const int nconds = static_cast<int>(mpOwnModelPart->Conditions().size());
     ModelPart::ConditionsContainerType::iterator cond_begin = mpOwnModelPart->ConditionsBegin();
@@ -393,12 +406,16 @@ void MultiScaleRefiningProcess::MarkConditionsFromNodalCondition()
     {
         auto cond = cond_begin + i;
         bool to_refine = true;
+        bool new_entity = false;
         for (IndexType node = 0; node < number_of_nodes; node++)
         {
             if (cond->GetGeometry()[node].IsNot(TO_REFINE))
                 to_refine = false;
+            
+            if (cond->GetGeometry()[node].Is(NEW_ENTITY))
+                new_entity = true;
         }
-        cond->Set(TO_REFINE, to_refine);
+        cond->Set(TO_REFINE, (to_refine && new_entity));
     }
 }
 
@@ -415,19 +432,19 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
     for (int i = 0; i < nnodes; i++)
     {
         auto coarse_node = nodes_begin + i;
-        if (coarse_node->Is(TO_REFINE))
+        auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
+        if ((coarse_node->Is(TO_REFINE)) && (search == mCoarseToRefinedNodesMap.end()))
         {
-            auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
-            if (search == mCoarseToRefinedNodesMap.end())
-            {
-                NodeType::Pointer new_node = refined_model_part.CreateNewNode(++rNodeId, *coarse_node);
-                mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
-                mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
-                coarse_node->Set(NEW_ENTITY, true);
-            }
+            NodeType::Pointer new_node = refined_model_part.CreateNewNode(++rNodeId, *coarse_node);
+            mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
+            mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
+            coarse_node->Set(NEW_ENTITY, true);
         }
-        else
+        else if (!(coarse_node->Is(TO_REFINE)) && (search != mCoarseToRefinedNodesMap.end()))
         {
+            coarse_node->Set(TO_ERASE, false);
+            mCoarseToRefinedNodesMap.erase(search);
+            mRefinedToCoarseNodesMap.erase(search->second->Id());
             /**
              * What happens if I need to remove a node?
              * and how do I remove all the divided nodes?
@@ -457,18 +474,49 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
         }
     }
 
-    // Resetting the flag
-    #pragma omp parallel for
-    for (int i = 0; i < nnodes; i++)
-    {
-        auto node = nodes_begin + i;
-        node->Set(NEW_ENTITY, false);
-    }
+    // // Resetting the flag
+    // #pragma omp parallel for
+    // for (int i = 0; i < nnodes; i++)
+    // {
+    //     auto node = nodes_begin + i;
+    //     node->Set(NEW_ENTITY, false);
+    // }
 }
 
 
 void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId)
-{}
+{
+    ModelPart& coarse_model_part = *mpOwnModelPart.get();
+    ModelPart& refined_model_part = *mpRefinedModelPart.get();
+
+    const int nelems = static_cast<int>(coarse_model_part.Elements().size());
+    ModelPart::ElementsContainerType::iterator elements_begin = coarse_model_part.ElementsBegin();
+
+    // We assume all the elements have the same number of nodes
+    const IndexType number_of_nodes = elements_begin->GetGeometry().size();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nelems; i++)
+    {
+        auto elem = elements_begin + i;
+        if (elem->Is(TO_REFINE))
+        {
+            Geometry<NodeType>::PointsArrayType p_elem_nodes;
+            for (IndexType node_id; node_id < number_of_nodes; node_id++)
+                p_elem_nodes.push_back(mCoarseToRefinedNodesMap[elem->Id()]);
+
+            Element::Pointer aux_elem = refined_model_part.CreateNewElement(
+                mElementName,
+                ++rElemId,
+                p_elem_nodes,
+                elem->pGetProperties());
+            
+            aux_elem->SetValue(FATHER_ELEMENT, *elem.base());
+        }
+    }
+
+    // Loop the sub model parts and add the new elements to it
+}
 
 
 void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId)

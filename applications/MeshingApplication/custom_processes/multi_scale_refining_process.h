@@ -208,6 +208,8 @@ public:
 
     std::string mOwnName;     /// The coarse sub model part
     std::string mRefinedName; /// Where the refinement is performed
+    std::string mElementName;
+    std::string mConditionName;
 
     unsigned int mEchoLevel;
     unsigned int mDivisions;
@@ -221,7 +223,7 @@ public:
     IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to own
 
     std::string mInterfaceName;
-    std::string mConditionName;
+    std::string mInterfaceConditionName;
 
     ///@}
     ///@name Private Operators
@@ -255,14 +257,37 @@ public:
 
     void AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
-    void MarkElementsFromNodalCondition();
+    /**
+     * @brief This function sets the elements TO_REFINE depending on the nodal flags
+     * @detail An element is TO_REFINE if all the nodes are TO_REFINE and, at least one node is NEW_ENTITY
+     * @see CloneNodesToRefine
+     */
+    void MarkElementsFromNodalFlag();
 
-    void MarkConditionsFromNodalCondition();
+    /**
+     * @brief This function sets the conditions TO_REFINE depending on the nodal flags
+     * @detail An condition is TO_REFINE if all the nodes are TO_REFINE and, at least one node is NEW_ENTITY
+     * @see CloneNodesToRefine
+     */
+    void MarkConditionsFromNodalFlag();
 
+    /**
+     * @brief This function creates a copy of the nodes on the refined sub model part
+     * @detail Only are copied (NEW_ENTITY) the nodes which are not already present in the refined sub model part
+     * @param rNodeId the node Id will be ++rNodeId
+     */
     void CloneNodesToRefine(IndexType& rNodeId);
 
+    /**
+     * @brief Create the auxiliary nodes in the refined sub model part
+     * @param rElemId the element Id will be ++rElemId
+     */
     void CreateElementsToRefine(IndexType& rElemId);
 
+    /**
+     * @brief Create the auxiliary conditions in the refined sub model part
+     * @param rCondId the condition Id will be ++rCondId
+     */
     void CreateConditionsToRefine(IndexType& rCondId);
 
     void IdentifyRefiningInterface();

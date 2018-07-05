@@ -39,6 +39,8 @@ KRATOS_CREATE_VARIABLE(Vector3, AUXILIAR_GRADIENT);  // An auxiliar gradient nee
 KRATOS_CREATE_VARIABLE(Vector, AUXILIAR_HESSIAN);  // An auxiliar hessian needed to compute the metric
 KRATOS_CREATE_VARIABLE(Vector, MMG_METRIC);  // The condensed metric used to remesh with MMG utility
 KRATOS_CREATE_VARIABLE(int, NUMBER_OF_DIVISIONS);  // The number of divisions for the multi scale refining
+KRATOS_CREATE_VARIABLE(Element::Pointer, FATHER_ELEMENT)
+KRATOS_CREATE_VARIABLE(Condition::Pointer, FATHER_CONDITION)
 
 KratosMeshingApplication::KratosMeshingApplication()
     : KratosApplication("MeshingApplication"),
@@ -61,6 +63,8 @@ void KratosMeshingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(AUXILIAR_HESSIAN);  // An auxiliar hessian needed to compute the metric
     KRATOS_REGISTER_VARIABLE(MMG_METRIC);  // The condensed metric used to remesh with MMG utility
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_DIVISIONS);  // The number of divisions for the multi scale refining
+    KRATOS_REGISTER_VARIABLE(FATHER_ELEMENT)
+    KRATOS_REGISTER_VARIABLE(FATHER_CONDITION)
 
     KRATOS_REGISTER_ELEMENT("TestElement2D", mTestElement2D);
     KRATOS_REGISTER_ELEMENT("TestElement3D", mTestElement3D);

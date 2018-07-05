@@ -483,6 +483,9 @@ void UniformRefineUtility<TDim>::CreateElement(
         int& this_elem_level = sub_element->GetValue(NUMBER_OF_DIVISIONS);
         this_elem_level = rNumberOfDivisions;
 
+        // Store the father element pointer
+        sub_element->SetValue(FATHER_ELEMENT, pOriginElement->GetValue(FATHER_ELEMENT));
+
         // Add the element to the sub model parts
         IndexType key = mElemColorMap[pOriginElement->Id()];
         if (key != 0)  // NOTE: key==0 is the main model part
