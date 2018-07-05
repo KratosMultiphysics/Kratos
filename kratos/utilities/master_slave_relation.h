@@ -79,11 +79,10 @@ class MasterSlaveRelation : public IndexedObject
 
 
     // Get number of masters for this slave
-    std::size_t GetNumberOfMasters() const
+    IndexType GetNumberOfMasters() const
     {
         return mMasterDataSet.size();
     }
-
 
     /**
      * this determines the master equation IDs connected to this constraint
@@ -94,17 +93,18 @@ class MasterSlaveRelation : public IndexedObject
                                   EquationIdVectorType& rMasterEquationIds,
                                   ProcessInfo& rCurrentProcessInfo)
     {
-        if (rSlaveEquationIds.size() != 0)
-            rSlaveEquationIds.resize(1);
+        if (rSlaveEquationIds.size() != 0 || rSlaveEquationIds.size() == 0)
+            rSlaveEquationIds.resize(1, false);
 
-        if (rMasterEquationIds.size() != 0)
-            rMasterEquationIds.resize(this->GetNumberOfMasters());
+        if (rMasterEquationIds.size() != 0 || rMasterEquationIds.size() == 0)
+            rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
 
         rSlaveEquationIds[0] = this->SlaveEquationId();
 
         auto master_it = mMasterDataSet.begin();
-        for (IndexType i=0; i<this->GetNumberOfMasters(); i++)
-            rMasterEquationIds[i] = (*(++master_it)).first;
+        for (IndexType i=0; i<this->GetNumberOfMasters(); i++){
+            rMasterEquationIds[i] = (*(master_it++)).first;
+        }
     }
 
     /**
@@ -119,19 +119,19 @@ class MasterSlaveRelation : public IndexedObject
                                       VectorType& rConstantVector,
                                       ProcessInfo& rCurrentProcessInfo)
     {
-      if (rTransformationMatrix.size1() != 0)
+      if (rTransformationMatrix.size1() != 0 || rTransformationMatrix.size1() == 0)
       {
     	rTransformationMatrix.resize(1, this->GetNumberOfMasters(), false);
       }
 
-      if (rConstantVector.size() != 0)
+      if (rConstantVector.size() != 0 || rConstantVector.size() == 0)
       {
     	rConstantVector.resize(1, false);
       }
 
         auto master_it = mMasterDataSet.begin();
         for (IndexType i=0; i<this->GetNumberOfMasters(); i++)
-            rTransformationMatrix(0,i) = (*(++master_it)).second;
+            rTransformationMatrix(0,i) = (*(master_it++)).second;
 
       rConstantVector(0) = Constant();
     }
@@ -149,6 +149,21 @@ class MasterSlaveRelation : public IndexedObject
             index++;
         }
         rOutput << "##############################" << std::endl;
+    }
+
+    void PrintInfo() const
+    {
+        std::cout << "##############################" << std::endl;
+        std::cout << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
+        std::cout << "Constant :: " << Constant() << std::endl;
+        int index = 0;
+        std::cout << "############################## :: Masters" << std::endl;
+        for (auto &master : mMasterDataSet)
+        {
+            std::cout << index << " Master  equation id :: " << master.first << ", weight :: " << master.second << std::endl;
+            index++;
+        }
+        std::cout << "##############################" << std::endl;
     }
 
     void Clear()
