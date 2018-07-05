@@ -169,8 +169,8 @@ Independet from the chosen response function the following definitions are alway
 - ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic apporach. 
 - ```sensitivity_model_part_name```: Add here the name of the model part for which components sensitivities has to be computed (e.g. if the chosen design parameter is ```THICKNESS``` then for each element in this model part the sensitivity w.r.t. this variable is calculated).
 - ```nodal_sensitivity_variables```: Currently only ```SHAPE``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
-- ```element_sensitivity_variables```: Here are sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
-- ```condition_sensitivity_variables```: Here are sensitivities with respect to the properties of the conditions are computed. Currenty there is only ```POINT_LOAD``` available.
+- ```element_sensitivity_variables```: Here sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
+- ```condition_sensitivity_variables```: Here sensitivities with respect to the properties of the conditions are computed. Currenty there is only ```POINT_LOAD``` available.
 
 **Important, please note:**
 In order to use an element or condition design variable one has to ensure that a corresponding Kratos-Variable for the sensitivity is defined (e.g. for the design variable ```THICKNESS``` a corresponding variable called ```THICKNESS_SENSITIVITY``` is necessary). This additional variable is necessary to store the results of the sensitivity analysis.
