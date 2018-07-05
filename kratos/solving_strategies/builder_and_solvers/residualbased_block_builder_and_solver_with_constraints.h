@@ -301,6 +301,7 @@ public:
         KRATOS_TRY
 
         Timer::Start("Build");
+        this->UpdateConstraintsForBuilding(rModelPart);
 
         Build(pScheme, rModelPart, A, b);
 
@@ -555,6 +556,8 @@ private:
     void FormulateGlobalMasterSlaveRelations(ModelPart& rModelPart)
     {
 
+        // First delete the existing ones 
+        mGlobalMasterSlaveRelations.clear();
         // Getting the array of the conditions
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         // Getting the beginning iterator
@@ -603,16 +606,74 @@ private:
                     slave_count++;
                 }
 
+            }
+        }
+    }
+
+    void ResetConstraintRelations(ModelPart& rModelPart)
+    {
+        const int number_of_constraints = static_cast<int>(mGlobalMasterSlaveRelations.size());
+        // Getting the beginning iterator
+
+        MasterSlaveRelationContainerType::iterator constraints_begin = mGlobalMasterSlaveRelations.begin();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        //contributions to the system
+        LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
+        EquationIdVectorType  slave_equation_ids = EquationIdVectorType(0);
+        EquationIdVectorType  master_equation_ids = EquationIdVectorType(0);
+
+        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+        {
+            MasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
+            (*it).SetLHSValue(0.0);
+            (*it).SetRhsValue(0.0);
+        }
+
+    }
+
+    void UpdateConstraintsForBuilding(ModelPart& rModelPart)
+    {
+        // Reset the constraint equations 
+        ResetConstraintRelations(rModelPart);
+        // Getting the array of the conditions
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        // Getting the beginning iterator
+        ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        //contributions to the system
+        LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
+        EquationIdVectorType  slave_equation_ids = EquationIdVectorType(0);
+        EquationIdVectorType  master_equation_ids = EquationIdVectorType(0);
+
+        for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
+        {
+            ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin + i_constraints;
+
+            //detect if the element is active or not. If the user did not make any choice the element
+            //is active by default
+            bool constraint_is_active = true;
+            if ((it)->IsDefined(ACTIVE))
+                constraint_is_active = (it)->Is(ACTIVE);
+
+            if (constraint_is_active)
+            {
+                //get the equation Ids of the constraint
+                (*it).EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                //calculate constraint's T and b matrices
+                (*it).CalculateLocalSystem(relation_matrix,constant_vector,r_current_process_info);
+
                 // For calculating the constant
                 MasterSlaveConstraintType::DofPointerVectorType slave_dofs_vector;
                 MasterSlaveConstraintType::DofPointerVectorType master_dofs_vector;
                 (*it).GetDofList(slave_dofs_vector, master_dofs_vector, r_current_process_info);
                 double slave_value = 0.0;
-                double slave_value_calc = 0.0;
 
                 int slave_index = 0;
                 for (auto& slave_dof : slave_dofs_vector)
                 {
+                    double slave_value_calc = 0.0;
                     int master_index = 0;
                     for(auto& master_dof : master_dofs_vector){
                         slave_value_calc += slave_dof->GetSolutionStepValue() * relation_matrix(slave_index, master_index);
@@ -620,11 +681,11 @@ private:
                     }
                     slave_value_calc += constant_vector[slave_index];
                     slave_value = slave_dof->GetSolutionStepValue();
-                    double residual_constant = slave_value_calc - slave_value;
                     auto global_constraint = mGlobalMasterSlaveRelations.find(slave_dof->EquationId());
-
-                    global_constraint->SetConstant(residual_constant);
+                    global_constraint->SetLHSValue(slave_value);
+                    global_constraint->UpdateRhsValue(slave_value_calc);
                     slave_index++;
+                    global_constraint->PrintInfo();
                 }
             }
         }
@@ -739,11 +800,13 @@ private:
         const SizeType lhs_size_1 = initial_sys_size + total_number_of_masters;
         const SizeType lhs_size_2 = initial_sys_size + total_number_of_masters;
         transformation_matrix_local.resize(lhs_size_1, lhs_size_2, false); //true for Preserving the data and resizing the matrix
+        constant_vector.resize(lhs_size_1, false);
         // Making the transformation matrix zero
         for (IndexType m = 0; m < lhs_size_1; m++) {
             for (IndexType n = 0; n < lhs_size_1; n++) {
                 transformation_matrix_local(m, n) = 0.0;
             }
+            constant_vector(m) = 0.0;
         }
 
         lhs_contribution.resize(lhs_size_1, lhs_size_2, true); //true for Preserving the data and resizing the matrix
@@ -760,6 +823,7 @@ private:
         typename TContainerType::EquationIdVectorType slave_equation_ids;
         typename TContainerType::EquationIdVectorType master_equation_ids;
         MatrixType slave_transformation_matrix;
+        VectorType slave_constant_vector;
         int i_masters_total = 0;
 
         for(auto& slave_index : local_slave_index_vector)
@@ -768,7 +832,7 @@ private:
             if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
             {
                 global_master_slave_constraint->EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
-                global_master_slave_constraint->CalculateLocalSystem(slave_transformation_matrix, constant_vector, rCurrentProcessInfo);
+                global_master_slave_constraint->CalculateLocalSystem(slave_transformation_matrix, slave_constant_vector, rCurrentProcessInfo);
                 int i_master = 0;
                 for(auto& master_id : master_equation_ids)
                 {
@@ -776,6 +840,7 @@ private:
                     i_masters_total++;
                     i_master ++;
                 }
+                constant_vector(slave_index) = slave_constant_vector(0);
             }
             else
             {
@@ -793,11 +858,14 @@ private:
             transformation_matrix_local(internal_index, internal_index) = 1.0;
         }
 
+        // Here order is important as lhs_contribution should be unodified for usin in calculation 
+        // of RHS constribution. Later on lhs_contribution is modified to apply the constraint.
+        VectorType temp_vec1 = rhs_contribution - prod(lhs_contribution, constant_vector);
+        VectorType temp_vec = prod(trans(transformation_matrix_local), temp_vec1);
+        rhs_contribution = temp_vec;
+
         MatrixType temp_matrix = prod(lhs_contribution , transformation_matrix_local);
         lhs_contribution = prod( trans(transformation_matrix_local), temp_matrix);
-
-        VectorType temp_vec = prod(transformation_matrix_local, rhs_contribution);
-        rhs_contribution = temp_vec;
 
         for(auto& slave_index : local_slave_index_vector)
         {
@@ -821,6 +889,10 @@ private:
                 lhs_contribution(slave_index, internal_index) = 0.0;
                 lhs_contribution(internal_index, slave_index) = 0.0;
             }
+        }
+        for(auto& slave_index : local_slave_index_vector)
+        {
+            rhs_contribution(slave_index) = 0.0;
         }
 
         rLHSContribution = lhs_contribution;
@@ -853,7 +925,7 @@ private:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         //contributions to the system
         LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType constraint_vector = LocalSystemVectorType(0);
+        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
         EquationIdVectorType  slave_equation_ids = EquationIdVectorType(0);
         EquationIdVectorType  master_equation_ids = EquationIdVectorType(0);
 
@@ -865,14 +937,14 @@ private:
             //get the equation Ids of the constraint
             (*it).EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
             //calculate constraint's T and b matrices
-            (*it).CalculateLocalSystem(relation_matrix, constraint_vector,r_current_process_info);
+            (*it).CalculateLocalSystem(relation_matrix, constant_vector,r_current_process_info);
             int master_index = 0;
             for(auto& master_equation_id : master_equation_ids)
             {
-                slave_dx_value = slave_dx_value + TSparseSpace::GetValue(rDx, master_equation_id) * relation_matrix(0,master_index);
+                slave_dx_value += TSparseSpace::GetValue(rDx, master_equation_id) * relation_matrix(0,master_index);
                 master_index++;
             }
-            slave_dx_value += constraint_vector[0];
+            slave_dx_value += constant_vector[0];
 
             rDx[slave_equation_ids[0]] = slave_dx_value;
         }
