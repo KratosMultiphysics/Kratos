@@ -223,7 +223,7 @@ public:
             this->SetNonConvThreshold(Threshold);
 
 			if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
-				this->CalculateTangentTensor(rValues); // this modifies the C
+				this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
 				noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
                 this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
 			}
@@ -248,6 +248,66 @@ public:
         this->SetThreshold(this->GetNonConvThreshold());
         this->SetPlasticStrain(this->GetNonConvPlasticStrain());
     }
+
+    void FinalizeMaterialResponse(
+        Parameters& rValues,
+        const StressMeasure& rStressMeasure)
+    {
+        // Integrate Stress plasticity
+        // const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        // const int VoigtSize = this->GetVoigtSize();
+        // Vector& IntegratedStressVector = rValues.GetStressVector();
+        // Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+        // const double CharacteristicLength = rValues.GetElementGeometry().Length();
+        // const Flags& ConstitutiveLawOptions = rValues.GetOptions();
+
+        // // Elastic Matrix
+        // Matrix C;
+        // this->CalculateElasticMatrix(C, rMaterialProperties);
+
+        // double Threshold, PlasticDissipation;
+        // Vector PlasticStrain = ZeroVector(this->GetVoigtSize());
+
+        // Threshold = this->GetThreshold();
+        // PlasticDissipation = this->GetPlasticDissipation();
+        // PlasticStrain = this->GetPlasticStrain();
+
+        // // S0 = C:(E-Ep)
+        // Vector PredictiveStressVector = prod(C, rValues.GetStrainVector() - PlasticStrain);
+
+        // // Initialize Plastic Parameters
+        // double UniaxialStress = 0.0, PlasticDenominator = 0.0;
+        // Vector Fflux = ZeroVector(VoigtSize), Gflux = ZeroVector(VoigtSize); // DF/DS & DG/DS
+        // Vector PlasticStrainIncrement = ZeroVector(VoigtSize);
+
+        // ConstLawIntegratorType::CalculatePlasticParameters(PredictiveStressVector, rValues.GetStrainVector(),
+        //     UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation,
+        //     PlasticStrainIncrement, C, rMaterialProperties, CharacteristicLength);
+
+        // const double F = UniaxialStress - Threshold; 
+
+        // if (F <= std::abs(1.0e-8 * Threshold)) {   // Elastic case
+
+        //     noalias(IntegratedStressVector) = PredictiveStressVector;
+
+        // } else { // Plastic case
+
+        //     // while loop backward euler 
+        //     /* Inside "IntegrateStressVector" the PredictiveStressVector
+        //        is updated to verify the yield criterion */
+        //     ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, rValues.GetStrainVector(), 
+        //         UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
+        //         C, PlasticStrain, rMaterialProperties, CharacteristicLength);
+
+		// 	noalias(IntegratedStressVector) = PredictiveStressVector;
+        // }
+
+        // // Save Internal variables
+        // this->SetPlasticDissipation(PlasticDissipation);
+        // this->SetThreshold(Threshold);
+        // this->SetPlasticStrain(PlasticStrain);
+
+    } // FinalizeMaterialResponse
 
     void CalculateElasticMatrix(
         Matrix &rElasticityTensor,

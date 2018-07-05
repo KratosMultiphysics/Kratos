@@ -52,7 +52,7 @@ using namespace pybind11;
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-	
+
     class_< TrussConstitutiveLaw, typename TrussConstitutiveLaw::Pointer, ConstitutiveLaw >
     (m, "TrussConstitutiveLaw").def(init<>() )
     ;
