@@ -20,28 +20,29 @@ proc InitGIDProject {dir} {
 
 	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Elements"] 2 PRE "GidOpenConditions \"Elements\"" "" ""
 	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Mixed U-P Elements"] 3 PRE "GidOpenConditions \"Mixed U-P Elements\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Small Displacement Elements"] 4 PRE "GidOpenConditions \"Small Displacement Elements\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 4 PRE "" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 5 PRE "" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Constraints"] 5 PRE "GidOpenConditions \"Constraints\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Constraints"] 6 PRE "GidOpenConditions \"Constraints\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Loads"] 6 PRE "GidOpenConditions \"Loads\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Loads"] 7 PRE "GidOpenConditions \"Loads\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Materials"] 7 PRE "GidOpenMaterials \"Materials\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Materials"] 8 PRE "GidOpenMaterials \"Materials\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Nodal Markers"] 8 PRE "GidOpenConditions \"Nodal Markers\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Nodal Markers"] 9 PRE "GidOpenConditions \"Nodal Markers\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 9 PRE "" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 10 PRE "" "" ""
 	
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Problem Parameters"] 10 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Problem Parameters"] 11 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
 
 	# GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Data Units"] 11 PRE "GidOpenProblemData \"Data Units\"" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 11 PRE "" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 12 PRE "" "" ""
 
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Model Status"] 12 PRE "cond_report" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Model Status"] 13 PRE "cond_report" "" ""
 	if { [string match "unix" $::tcl_platform(platform)] } {
-		GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Change Kratos Path"] 13 PRE "GetKratosPath" "" ""
+		GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Change Kratos Path"] 14 PRE "GetKratosPath" "" ""
 	}
 	GiDMenu::UpdateMenus
 	# Custom Menu

@@ -146,6 +146,48 @@ End Properties
 
 *endif
 *end materials
+*loop materials
+*if(strcmp(MatProp(Type),"FabricModel")==0)
+*format "%i"
+Begin Properties *MatNum
+*format "%10.5e"
+ DENSITY *MatProp(THICKNESS,real)
+*format "%10.5e"
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+*format "%10.5e"
+ POISSON_RATIO *MatProp(POISSON_RATIO,real)
+*format "%10.5e"
+ ALPHA *MatProp(ALPHA,real)
+*format "%10.5e"
+ BETA *MatProp(BETA,real)
+*format "%10.5e"
+ MF *MatProp(MF,real)
+*format "%10.5e"
+ CC *MatProp(CC,real)
+*format "%10.5e"
+ MM *MatProp(MM,real)
+*format "%10.5e"
+ RHOS *MatProp(RHOS,real)
+*format "%10.5e"
+ KSIS *MatProp(KSIS,real)
+*format "%10.5e"
+ RHOM *MatProp(RHOM,real)
+*format "%10.5e"
+ KSIM *MatProp(KSIM,real)
+*format "%10.5e"
+ PC0 *MatProp(PC0,real)
+*format "%10.5e"
+ VOID_RATIO *MatProp(VOID_RATIO,real)
+*format "%10.5e"
+ PS *MatProp(PS,real)
+*format "%10.5e"
+ PM *MatProp(PM,real)
+*format "%10.5e"
+ PLASTIC_MULTIPLIER *MatProp(PLASTIC_MULTIPLIER,real)
+End Properties
+
+*endif
+*end materials
 
 
 *# Mesh0 block
@@ -490,6 +532,60 @@ End Elements
 *set cond volume_UpdatedLagrangianUJwPElement3D4N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUJwPElement3D4N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*Set cond surface_SmallDisplacementElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements SmallDisplacementElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*Set cond surface_AxisymSmallDisplacementElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements AxisymSmallDisplacementElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*Set cond volume_SmallDisplacementElement3D4N *elems
+*if(CondNumEntities > 0)
+Begin Elements SmallDisplacementElement3D4N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)

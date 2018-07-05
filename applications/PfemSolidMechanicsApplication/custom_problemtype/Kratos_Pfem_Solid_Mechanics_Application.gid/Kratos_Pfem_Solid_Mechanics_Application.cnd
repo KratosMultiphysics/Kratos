@@ -573,6 +573,34 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
+BOOK: Small Displacement Elements
+
+CONDITION: surface_SmallDisplacementElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymSmallDisplacementElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: volume_SmallDisplacementElement3D4N
+CONDTYPE: over volumes
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+
+
 BOOK: Mixed U-P Elements
 
 CONDITION: surface_UpdatedLagrangianUPElement2D3N
