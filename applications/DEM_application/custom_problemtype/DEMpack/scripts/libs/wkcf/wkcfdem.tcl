@@ -1962,6 +1962,8 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
 	    set magnus_force_type 0
 	    set hydro_torque_type 0
 	    set drag_modifier_type $MR_drag_modifier_type
+
+		set buoyancy_force_type 2
 	}
 
 	puts $fileid ""

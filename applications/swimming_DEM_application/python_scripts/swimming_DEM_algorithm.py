@@ -20,7 +20,7 @@ import variables_management as vars_man
 
 def Say(*args):
     Logger.PrintInfo("DEM-FLUID", *args)
-    #Logger.Flush()
+    Logger.Flush()
 
 
 try:
@@ -324,7 +324,7 @@ class Algorithm(object):
 
         self.swimming_DEM_gid_io = \
         swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-            self.pp.problem_name,
+            self.pp.CFD_DEM["problem_name"].GetString(),
             self.pp.VolumeOutput,
             self.pp.GiDPostMode,
             self.pp.GiDMultiFileFlag,
@@ -928,7 +928,8 @@ class Algorithm(object):
             self.custom_functions_tool)
 
     def GetRunCode(self):
-        return SDP.CreateRunCode(self.pp)
+        return ""
+        #return SDP.CreateRunCode(self.pp)
 
     def FillHistoryForcePrecalculatedVectors(self):
         # Warning: this estimation is based on a constant time step for DEM.
