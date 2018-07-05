@@ -210,7 +210,7 @@ public:
                             DofPointerVectorType& rMasterDofsVector,
                             ProcessInfo& rCurrentProcessInfo) override
     {
-        rSlaveDofsVector = mSlaveDofVector;
+        rSlaveDofsVector = mSlaveDofsVector;
         rMasterDofsVector = mMasterDofsVector;
     }
 
