@@ -228,7 +228,7 @@ public:
 
                     //assemble the elemental contribution
     #ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
     #else
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
     #endif
@@ -259,7 +259,7 @@ public:
 
                     //assemble the elemental contribution
     #ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
     #else
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
     #endif
@@ -314,6 +314,8 @@ public:
         Timer::Start("Solve");
 
         this->SystemSolveWithPhysics(A, Dx, b, rModelPart);
+
+        ReconstructSlaveSolutionAfterSolve(rModelPart, A, Dx, b);
 
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
@@ -394,9 +396,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-#ifdef _OPENMP
-    std::vector< omp_lock_t > mlock_array;
-#endif
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -444,13 +444,13 @@ protected:
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&mlock_array[ids[i]]);
+                omp_set_lock(&BaseType::mlock_array[ids[i]]);
 #endif
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 
 #ifdef _OPENMP
-                omp_unset_lock(&mlock_array[ids[i]]);
+                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
 #endif
             }
 
@@ -466,12 +466,12 @@ protected:
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&mlock_array[ids[i]]);
+                omp_set_lock(&BaseType::mlock_array[ids[i]]);
 #endif
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 #ifdef _OPENMP
-                omp_unset_lock(&mlock_array[ids[i]]);
+                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
 #endif
             }
         }
@@ -563,7 +563,7 @@ private:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         //contributions to the system
         LocalSystemMatrixType relation_matrix = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType constraint_vector = LocalSystemVectorType(0);
+        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
         EquationIdVectorType  slave_equation_ids = EquationIdVectorType(0);
         EquationIdVectorType  master_equation_ids = EquationIdVectorType(0);
 
@@ -582,7 +582,7 @@ private:
                 //get the equation Ids of the constraint
                 (*it).EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
                 //calculate constraint's T and b matrices
-                (*it).CalculateLocalSystem(relation_matrix,constraint_vector,r_current_process_info);
+                (*it).CalculateLocalSystem(relation_matrix,constant_vector,r_current_process_info);
 
                 //assemble the Constraint contribution
                 int slave_count = 0;
@@ -601,6 +601,30 @@ private:
                         master_count++;
                     }
                     slave_count++;
+                }
+
+                // For calculating the constant
+                MasterSlaveConstraintType::DofPointerVectorType slave_dofs_vector;
+                MasterSlaveConstraintType::DofPointerVectorType master_dofs_vector;
+                (*it).GetDofList(slave_dofs_vector, master_dofs_vector, r_current_process_info);
+                double slave_value = 0.0;
+                double slave_value_calc = 0.0;
+
+                int slave_index = 0;
+                for (auto& slave_dof : slave_dofs_vector)
+                {
+                    int master_index = 0;
+                    for(auto& master_dof : master_dofs_vector){
+                        slave_value_calc += slave_dof->GetSolutionStepValue() * relation_matrix(slave_index, master_index);
+                        master_index ++;
+                    }
+                    slave_value_calc += constant_vector[slave_index];
+                    slave_value = slave_dof->GetSolutionStepValue();
+                    double residual_constant = slave_value_calc - slave_value;
+                    auto global_constraint = mGlobalMasterSlaveRelations.find(slave_dof->EquationId());
+
+                    global_constraint->SetConstant(residual_constant);
+                    slave_index++;
                 }
             }
         }
@@ -674,6 +698,10 @@ private:
             return;
         }
         // TODO: make shure that the order of the masters is same in the loops, in that case, the order of all the vectors should be same
+        MatrixType lhs_contribution = rLHSContribution;
+        VectorType rhs_contribution = rRHSContribution;
+        MatrixType transformation_matrix_local;
+        VectorType constant_vector;
 
         // Saving th original system size
         const SizeType initial_sys_size = rLHSContribution.size1();
@@ -710,97 +738,94 @@ private:
         // We resize the LHS and RHS contribution with the master sizes
         const SizeType lhs_size_1 = initial_sys_size + total_number_of_masters;
         const SizeType lhs_size_2 = initial_sys_size + total_number_of_masters;
-        rLHSContribution.resize(lhs_size_1, lhs_size_2, true); //true for Preserving the data and resizing the matrix
-        rRHSContribution.resize(lhs_size_1, true);
-        // Making the extra part of matrx
+        transformation_matrix_local.resize(lhs_size_1, lhs_size_2, false); //true for Preserving the data and resizing the matrix
+        // Making the transformation matrix zero
+        for (IndexType m = 0; m < lhs_size_1; m++) {
+            for (IndexType n = 0; n < lhs_size_1; n++) {
+                transformation_matrix_local(m, n) = 0.0;
+            }
+        }
+
+        lhs_contribution.resize(lhs_size_1, lhs_size_2, true); //true for Preserving the data and resizing the matrix
+        rhs_contribution.resize(lhs_size_1, true);
+        // Making the extra part of matrix zero
         for (IndexType m = initial_sys_size; m < lhs_size_1; m++) {
             for (IndexType n = 0; n < lhs_size_1; n++) {
-                rLHSContribution(m, n) = 0.0;
-                rLHSContribution(n, m) = 0.0;
+                lhs_contribution(m, n) = 0.0;
+                lhs_contribution(n, m) = 0.0;
             }
-            rRHSContribution(m) = 0.0;
+            rhs_contribution(m) = 0.0;
         }
 
+        typename TContainerType::EquationIdVectorType slave_equation_ids;
+        typename TContainerType::EquationIdVectorType master_equation_ids;
+        MatrixType slave_transformation_matrix;
+        int i_masters_total = 0;
 
-        int slave_count = 0;
-        int local_master_index = initial_sys_size;
-        MatrixType transformation_matrix;
-        VectorType constant_vector;
-        std::vector<double> weights_corresponding_to_master;
-        std::vector<IndexType> slaves_corresponding_to_masters;
-
-        for (auto& local_slave_index : local_slave_index_vector) { // Loop over all the slaves for this container
-
-            // Get the golobal equation for this constraint
-            auto& global_master_slave_constraint = mGlobalMasterSlaveRelations(rEquationIds[local_slave_index]);
-            // Get the tranformation matrix and constant_vector from the current slave
-            global_master_slave_constraint->CalculateLocalSystem(transformation_matrix, constant_vector, rCurrentProcessInfo);
-
-            typename TContainerType::EquationIdVectorType slave_equation_ids;
-            typename TContainerType::EquationIdVectorType master_equation_ids;
-            global_master_slave_constraint->EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
-
-            KRATOS_ERROR_IF( master_equation_ids.size() != transformation_matrix.size2() )<< " dimensions does not match "<<std::endl;
-            KRATOS_ERROR_IF( slave_equation_ids.size() != 1 )<< " slave equation id dimensions does not match to 1 "<<std::endl;
-
-            int slave_master_index = 0;
-            for (auto& master_eq_id : master_equation_ids) { // Loop over all the masters the slave has
-
-                const double weight = transformation_matrix(0,slave_master_index);
-                const double constant = constant_vector(0);
-                for (auto local_internal_index : local_internal_index_vector) {
-                    rRHSContribution(local_internal_index) += -rLHSContribution(local_internal_index, local_slave_index) * constant;
-                }
-
-                // For K(m,u) and K(u,m)
-                for (auto local_internal_index : local_internal_index_vector) { // Loop over all the local equation ids
-                    rLHSContribution(local_internal_index, local_master_index) += rLHSContribution(local_internal_index, local_slave_index) * weight;
-                    rLHSContribution(local_master_index, local_internal_index) += rLHSContribution(local_slave_index, local_internal_index) * weight;
-                } // Loop over all the local equation ids
-
-                // For RHS(m) += A'*LHS(s,s)*B
-                for (auto local_slave_index_vector_other : local_slave_index_vector) {
-                    MatrixType transformation_matrix_other;
-                    VectorType constant_vector_other;
-                    auto& global_master_slave_constraint_other = mGlobalMasterSlaveRelations(rEquationIds[local_slave_index_vector_other]);
-                    global_master_slave_constraint_other->CalculateLocalSystem(transformation_matrix_other, constant_vector_other, rCurrentProcessInfo);
-
-                    double constant_other = constant_vector_other(0);
-                    rRHSContribution(local_master_index) += rLHSContribution(local_slave_index, local_slave_index_vector_other) * weight * constant_other;
-                }
-
-                // Changing the RHS side of the equation
-                rRHSContribution(local_master_index) += weight * rRHSContribution(local_slave_index);
-
-                weights_corresponding_to_master.push_back(weight);
-                slaves_corresponding_to_masters.push_back(local_slave_index);
-                local_master_index ++ ;
-                slave_master_index++;
-            } // Loop over all the masters the slave has
-
-            rRHSContribution(local_slave_index) = 0.0;
-
-            //Adding contribution from slave to Kmm
-            for (IndexType local_master_index = initial_sys_size; local_master_index < rEquationIds.size(); local_master_index++) {
-                for (IndexType local_master_index_other = initial_sys_size; local_master_index_other < rEquationIds.size(); local_master_index_other++) {
-
-
-                    rLHSContribution(local_master_index, local_master_index_other) += weights_corresponding_to_master[local_master_index-initial_sys_size] *
-                                                                                        rLHSContribution(slaves_corresponding_to_masters[local_master_index], slaves_corresponding_to_masters[local_master_index_other]) * weights_corresponding_to_master[local_master_index-initial_sys_size];
-
+        for(auto& slave_index : local_slave_index_vector)
+        {
+            auto global_master_slave_constraint = mGlobalMasterSlaveRelations.find(rEquationIds[slave_index]);
+            if (global_master_slave_constraint != mGlobalMasterSlaveRelations.end())
+            {
+                global_master_slave_constraint->EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
+                global_master_slave_constraint->CalculateLocalSystem(slave_transformation_matrix, constant_vector, rCurrentProcessInfo);
+                int i_master = 0;
+                for(auto& master_id : master_equation_ids)
+                {
+                    transformation_matrix_local(slave_index, i_masters_total) = slave_transformation_matrix(0, i_master);
+                    i_masters_total++;
+                    i_master ++;
                 }
             }
-
-            slave_count ++ ;
-        } // Loop over all the slaves for this node
-
-        // For K(u,s) and K(s,u)
-        for (auto local_slave_index : local_slave_index_vector) { // Loop over all the slaves for this node
-            for (auto local_internal_index : local_internal_index_vector) { // Loop over all the local equation ids
-                rLHSContribution(local_slave_index, local_internal_index) = 0.0;
-                rLHSContribution(local_internal_index, local_slave_index) = 0.0;
+            else
+            {
+                KRATOS_ERROR <<"No master slave constraint equation found for atleast one of the dofs .. !"<<std::endl;
             }
         }
+
+        for(auto& master_index : local_master_index_vector)
+        {
+            transformation_matrix_local(master_index, master_index) = 1.0;
+        }
+
+        for(auto& internal_index : local_internal_index_vector)
+        {
+            transformation_matrix_local(internal_index, internal_index) = 1.0;
+        }
+
+        MatrixType temp_matrix = prod(lhs_contribution , transformation_matrix_local);
+        lhs_contribution = prod( trans(transformation_matrix_local), temp_matrix);
+
+        VectorType temp_vec = prod(transformation_matrix_local, rhs_contribution);
+        rhs_contribution = temp_vec;
+
+        for(auto& slave_index : local_slave_index_vector)
+        {
+            for(auto& slave_index_other : local_slave_index_vector)
+                lhs_contribution(slave_index, slave_index_other) = rLHSContribution(slave_index, slave_index_other);
+        }
+
+        for(auto& slave_index : local_slave_index_vector)
+        {
+            for(auto& master_index : local_master_index_vector)
+            {
+                lhs_contribution(slave_index, master_index) = 0.0;
+                lhs_contribution(master_index, slave_index) = 0.0;
+            }
+        }
+
+        for(auto& slave_index : local_slave_index_vector)
+        {
+            for(auto& internal_index : local_internal_index_vector)
+            {
+                lhs_contribution(slave_index, internal_index) = 0.0;
+                lhs_contribution(internal_index, slave_index) = 0.0;
+            }
+        }
+
+        rLHSContribution = lhs_contribution;
+        rRHSContribution = rhs_contribution;
+
 
         KRATOS_CATCH("Applying Multipoint constraints failed ..");
 
@@ -840,13 +865,14 @@ private:
             //get the equation Ids of the constraint
             (*it).EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
             //calculate constraint's T and b matrices
-            (*it).CalculateLocalSystem(relation_matrix,constraint_vector,r_current_process_info);
+            (*it).CalculateLocalSystem(relation_matrix, constraint_vector,r_current_process_info);
             int master_index = 0;
             for(auto& master_equation_id : master_equation_ids)
             {
                 slave_dx_value = slave_dx_value + TSparseSpace::GetValue(rDx, master_equation_id) * relation_matrix(0,master_index);
                 master_index++;
             }
+            slave_dx_value += constraint_vector[0];
 
             rDx[slave_equation_ids[0]] = slave_dx_value;
         }

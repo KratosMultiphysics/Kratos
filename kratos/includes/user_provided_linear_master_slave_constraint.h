@@ -193,19 +193,7 @@ public:
                                         NodeType& rSlaveNode,
                                         const VariableComponentType& rSlaveVariable,
                                         const double Weight,
-                                        const double Constant) const
-    {
-        KRATOS_TRY
-        return Kratos::make_shared<UserProvidedLinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
-        KRATOS_CATCH("");
-    }
-
-    MasterSlaveConstraint::Pointer Create(IndexType Id, NodeType& rMasterNode,
-                                        const VariableComponentType& rMasterVariable,
-                                        NodeType& rSlaveNode,
-                                        const VariableComponentType& rSlaveVariable,
-                                        const double Weight,
-                                        const double Constant) const
+                                        const double Constant) const override
     {
         KRATOS_TRY
         return Kratos::make_shared<UserProvidedLinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
@@ -219,10 +207,10 @@ public:
     ///@{
 
     virtual void GetDofList(DofPointerVectorType& rSlaveDofsVector,
-                            DofPointerVectorType& rMasterDofsVector
+                            DofPointerVectorType& rMasterDofsVector,
                             ProcessInfo& rCurrentProcessInfo) override
     {
-        rSlaveDofsVector = mSlaveDofVector;
+        rSlaveDofsVector = mSlaveDofsVector;
         rMasterDofsVector = mMasterDofsVector;
     }
 
