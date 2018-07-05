@@ -227,20 +227,17 @@ void NodalValuesInterpolationProcess<TDim>::CalculateStepData(
 {
     // The nodal data (historical)
     double* step_data = pNode->SolutionStepData().Data(Step);
+    for (IndexType j = 0; j < mStepDataSize; ++j)
+        step_data[j] = 0;
 
     // The nodal data (historical) of each node of the original mesh
     GeometryType& geom = pElement->GetGeometry();
     const SizeType number_of_nodes = geom.size();
-    std::vector<double*> node_data(number_of_nodes);
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        node_data[i] = geom[i].SolutionStepData().Data(Step);
-    }
-
-    // Now we interpolate the values of each node
-    for (IndexType j = 0; j < mStepDataSize; ++j) {
-        step_data[j] = 0;
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            step_data[j] += rShapeFunctions[i] * *node_data[i];
+        const double* nodal_data = geom[i].SolutionStepData().Data(Step);
+        // Now we interpolate the values of each node
+        for (IndexType j = 0; j < mStepDataSize; ++j) {
+            step_data[j] += rShapeFunctions[i] * nodal_data[j];
         }
     }
 }
