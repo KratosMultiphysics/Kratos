@@ -58,7 +58,7 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
   this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
   Vector nodal_deformation = ZeroVector(msElementSize);
-  CrBeamElement3D2N::GetValuesVector(nodal_deformation); 
+  this->GetValuesVector(nodal_deformation);
   rRightHandSideVector = ZeroVector(msElementSize);
   rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
 
@@ -76,7 +76,7 @@ void CrBeamElementLinear3D2N::CalculateRightHandSide(
   Matrix left_hand_side_matrix = ZeroMatrix(msElementSize, msElementSize);
   this->CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
   Vector nodal_deformation = ZeroVector(msElementSize);
-  CrBeamElement3D2N::GetValuesVector(nodal_deformation); 
+  this->GetValuesVector(nodal_deformation);
   rRightHandSideVector = ZeroVector(msElementSize);
   noalias(rRightHandSideVector) -=
       prod(left_hand_side_matrix, nodal_deformation);
@@ -200,7 +200,7 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
   Matrix left_hand_side_matrix = CreateElementStiffnessMatrix_Material();
 
   Vector nodal_deformation = ZeroVector(msElementSize);
-  CrBeamElement3D2N::GetValuesVector(nodal_deformation); 
+  this->GetValuesVector(nodal_deformation);
 
   BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
       this->CalculateInitialLocalCS();

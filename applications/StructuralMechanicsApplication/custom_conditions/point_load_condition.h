@@ -96,7 +96,7 @@ public:
         IndexType NewId, 
         NodesArrayType const& ThisNodes,  
         PropertiesType::Pointer pProperties 
-        ) const override;  
+        ) const override;
 
     /**
      * Check if Rotational Dof existant

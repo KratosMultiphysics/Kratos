@@ -1137,7 +1137,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // in global and local coordinate systems
 
     data.globalDisplacements.resize(18, false);
-    ShellThinElement3D3N::GetValuesVector( data.globalDisplacements );
+    GetValuesVector( data.globalDisplacements );
 
     data.localDisplacements =
         mpCoordinateTransformation->CalculateLocalDisplacements(

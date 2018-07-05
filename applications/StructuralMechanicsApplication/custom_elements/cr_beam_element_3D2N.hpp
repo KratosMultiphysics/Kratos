@@ -43,10 +43,6 @@ namespace Kratos
         static constexpr unsigned int msLocalSize = msNumberOfNodes * msDimension;
         static constexpr unsigned int msElementSize = msLocalSize * 2;
 
-        void CheckVariables();
-        void CheckDofs();
-        void CheckProperties();
-
     public:
         KRATOS_CLASS_POINTER_DEFINITION(CrBeamElement3D2N);
 
