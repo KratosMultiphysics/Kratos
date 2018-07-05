@@ -78,16 +78,6 @@ namespace Kratos
     AdjointNodalDisplacementResponseFunction::~AdjointNodalDisplacementResponseFunction(){}
 
     // ==============================================================================
-    void AdjointNodalDisplacementResponseFunction::Initialize() 
-    {
-        KRATOS_TRY;
-
-        BaseType::Initialize();
-
-        KRATOS_CATCH("");
-    }
-
-    // ==============================================================================
     void AdjointNodalDisplacementResponseFunction::GetNeighboringElementPointer()
     {
         KRATOS_TRY;
