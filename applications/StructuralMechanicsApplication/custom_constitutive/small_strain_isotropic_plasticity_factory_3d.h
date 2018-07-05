@@ -127,7 +127,7 @@ public:
         KRATOS_ERROR_IF(yield == "SimoJu")  << "SimoJu yield surface not available in plasticity "  << yield << std::endl;
         KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity " << yield << std::endl;
 
-        const std::string& name = "SmallStrainIsotropicDamage3D" + yield + potential;
+        const std::string& name = "SmallStrainIsotropicPlasticity3D" + yield + potential;
         return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
     }
 
