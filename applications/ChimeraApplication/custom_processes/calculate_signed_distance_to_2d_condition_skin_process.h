@@ -2150,9 +2150,36 @@ class CalculateSignedDistanceTo2DConditionSkinProcess
             {
                 // considering the very near points as the same points
                 if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
-                    *(++i_intersection) = *i_begin;
+                    {
+
+                            *(++i_intersection) = *i_begin;
+                    }
+
+                //Not yet tested , this can occus in some rare cases (depending on mesh):  once it happens we need to test this code
+ /*                else
+                {
+                    double Line1 = (fabs(i_begin->first - i_begin->second->Points()[0][direction]) > fabs(i_begin->first - i_begin->second->Points()[1][direction])) ? i_begin->first - i_begin->second->Points()[0][direction] : i_begin->first - i_begin->second->Points()[1][direction];
+                    double Line2 = (fabs(i_intersection->first - i_intersection->second->Points()[0][direction]) > fabs(i_intersection->first - i_intersection->second->Points()[1][direction])) ? i_intersection->first - i_intersection->second->Points()[0][direction] : i_intersection->first - i_intersection->second->Points()[1][direction];
+
+                    std::cout<<"Rishith##########################################################################"<<Line1<<std::endl;
+                    std::cout<<"Rishith##########################################################################"<<Line2<<std::endl;
+                    if( (Line1>0 && Line2>0) || (Line1<0 && Line2<0) )
+                    {
+                        std::cout<<"Rishith : encountered a corner case beacause of this particular mesh, this part of the code taes care of it. But the code isnt tested yet"<<std::endl;
+                        std::cout<<i_begin->first<<"######"<<std::endl;
+                        std::cout<<i_begin->second->Points()[0][direction]<<std::endl;
+                        std::cout<<i_begin->second->Points()[1][direction]<<std::endl;
+                        *i_intersection=*(i_begin+1);
+                        *i_begin = *(i_begin+1);
+                        i_begin--;
+                        std::exit(-1);
+
+                    }
+
+                } */
             }
             intersections.resize((++i_intersection) - intersections.begin());
+
         }
     }
 
