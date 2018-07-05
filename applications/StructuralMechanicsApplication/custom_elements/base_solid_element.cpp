@@ -482,10 +482,36 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
     if (rOutput.size() != number_of_integration_points)
         rOutput.resize(number_of_integration_points);
 
-    for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number){
-        bool flag = false;
-        mConstitutiveLawVector[point_number]->GetValue(rVariable, flag );
-        rOutput[point_number] = flag;
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
+        bool solution;
+        solution = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, solution);
+        rOutput[ii] = solution;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateOnIntegrationPoints(
+    const Variable<int>& rVariable,
+    std::vector<int>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    const SizeType number_of_integration_points = integration_points.size();
+    if (rOutput.size() != number_of_integration_points)
+        rOutput.resize(number_of_integration_points);
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
+        rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
     }
 }
 
@@ -604,8 +630,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 rOutput[point_number] = std::sqrt(sigma_equivalent);
         }
     } else {
-        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number )
-            rOutput[point_number] = mConstitutiveLawVector[point_number]->GetValue( rVariable, rOutput[point_number] );
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
+            rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+        }
     }
 }
 
@@ -637,6 +667,36 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             rOutput[point_number] = global_point.Coordinates();
         }
+    } else {
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
+            rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 6>>& rVariable,
+    std::vector<array_1d<double, 6>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    const SizeType number_of_integration_points = integration_points.size();
+    if (rOutput.size() != number_of_integration_points)
+        rOutput.resize(number_of_integration_points);
+
+    // Create constitutive law parameters:
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
+        rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
     }
 }
 
@@ -737,8 +797,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             rOutput[point_number] = this_constitutive_variables.StrainVector;
         }
     } else {
-        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
+            rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+        }
     }
 }
 
@@ -844,10 +908,50 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             rOutput[point_number] = this_kinematic_variables.F;
         }
     } else {
-        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii )
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
+        // Create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        for ( IndexType ii = 0; ii < mConstitutiveLawVector.size(); ++ii ) {
+            rOutput[ii] = mConstitutiveLawVector[ii]->CalculateValue( Values, rVariable, rOutput[ii] );
+        }
     }
 
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::SetValueOnIntegrationPoints(
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::SetValueOnIntegrationPoints(
+    const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -859,13 +963,13 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    for ( IndexType point_number = 0; point_number < GetGeometry().IntegrationPoints( this->GetIntegrationMethod() ).size(); ++point_number ) {
-        mConstitutiveLawVector[point_number]->SetValue( rVariable,
-                                                        rValues[point_number],
-                                                        rCurrentProcessInfo
-                                                        );
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
     }
-
 }
 
 /***********************************************************************************/
@@ -877,12 +981,12 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-
-    for ( IndexType point_number = 0; point_number < GetGeometry().IntegrationPoints( this->GetIntegrationMethod() ).size(); ++point_number ) {
-        mConstitutiveLawVector[point_number]->SetValue( rVariable,
-                                                        rValues[point_number],
-                                                        rCurrentProcessInfo
-                                                        );
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
     }
 }
 
@@ -896,12 +1000,47 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
     )
 {
     if (rVariable == CONSTITUTIVE_LAW) {
-        const std::size_t integration_points_number = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() ).size();
-        for ( std::size_t i_gp = 0; i_gp < integration_points_number; ++i_gp ) {
-            mConstitutiveLawVector[i_gp] = rValues[i_gp];
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        for ( IndexType point_number = 0; point_number < integration_points_number; ++point_number ) {
+            mConstitutiveLawVector[point_number] = rValues[point_number];
         }
     }
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::SetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::SetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 6 > >& rVariable,
+    std::vector<array_1d<double, 6 > > rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
+    }
 }
 
 /***********************************************************************************/
@@ -913,25 +1052,63 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    for ( IndexType point_number = 0; point_number < GetGeometry().IntegrationPoints( this->GetIntegrationMethod() ).size(); ++point_number ) {
-        mConstitutiveLawVector[point_number]->SetValue( rVariable,
-                                                        rValues[point_number],
-                                                        rCurrentProcessInfo
-                                                        );
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+            mConstitutiveLawVector[point_number]->SetValue( rVariable,rValues[point_number], rCurrentProcessInfo);
+        }
+    } else {
+        KRATOS_WARNING("BaseSolidElement") << "The variable " << rVariable << " is not implemented in the current ConstitutiveLaw" << std::endl;
     }
-
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void BaseSolidElement::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rValues,
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    const SizeType number_of_integration_points = mConstitutiveLawVector.size();
+
+    if ( rValues.size() != number_of_integration_points ) {
+        rValues.resize( number_of_integration_points );
+    }
+
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
+            bool value;
+            mConstitutiveLawVector[point_number]->GetValue( rVariable, value);
+            rValues[point_number] = value;
+        }
+    } else {
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::GetValueOnIntegrationPoints(
+    const Variable<int>& rVariable,
+    std::vector<int>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const SizeType number_of_integration_points = mConstitutiveLawVector.size();
+
+    if ( rValues.size() != number_of_integration_points ) {
+        rValues.resize( number_of_integration_points );
+    }
+
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
+            mConstitutiveLawVector[point_number]->GetValue( rVariable,rValues[point_number]);
+        }
+    } else {
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    }
 }
 
 /***********************************************************************************/
@@ -943,7 +1120,67 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    const SizeType number_of_integration_points = mConstitutiveLawVector.size();
+
+    if ( rValues.size() != number_of_integration_points ) {
+        rValues.resize( number_of_integration_points );
+    }
+
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
+            mConstitutiveLawVector[point_number]->GetValue( rVariable,rValues[point_number]);
+        }
+    } else {
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const SizeType number_of_integration_points = mConstitutiveLawVector.size();
+
+    if ( rValues.size() != number_of_integration_points ) {
+        rValues.resize( number_of_integration_points );
+    }
+
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
+            mConstitutiveLawVector[point_number]->GetValue( rVariable,rValues[point_number]);
+        }
+    } else {
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 6>>& rVariable,
+    std::vector<array_1d<double, 6>>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const SizeType number_of_integration_points = mConstitutiveLawVector.size();
+
+    if ( rValues.size() != number_of_integration_points ) {
+        rValues.resize( number_of_integration_points );
+    }
+
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
+            mConstitutiveLawVector[point_number]->GetValue( rVariable,rValues[point_number]);
+        }
+    } else {
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    }
 }
 
 /***********************************************************************************/
@@ -955,23 +1192,16 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    const SizeType number_of_integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() ).size();
+    const SizeType number_of_integration_points = mConstitutiveLawVector.size();
 
-    if ( rValues.size() != number_of_integration_points )
+    if ( rValues.size() != number_of_integration_points ) {
         rValues.resize( number_of_integration_points );
+    }
 
-    if ( rVariable == STRESSES ) {
-        for ( IndexType i = 0; i < mConstitutiveLawVector.size(); ++i ) {
-            if ( rValues[i].size() != 6 )
-                rValues[i].resize( 6, false );
-            noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( STRESSES, rValues[i] );
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
+            mConstitutiveLawVector[point_number]->GetValue( rVariable,rValues[point_number]);
         }
-    } else if ( rVariable == MATERIAL_PARAMETERS ) {
-        for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number )
-            rValues[point_number] = mConstitutiveLawVector[point_number]->GetValue( MATERIAL_PARAMETERS, rValues[point_number] );
-    } else if ( rVariable == INTERNAL_VARIABLES ) {
-        for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number )
-            rValues[point_number] = mConstitutiveLawVector[point_number]->GetValue( INTERNAL_VARIABLES, rValues[point_number] );
     } else {
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
@@ -986,7 +1216,19 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    const SizeType number_of_integration_points = mConstitutiveLawVector.size();
+
+    if ( rValues.size() != number_of_integration_points ) {
+        rValues.resize( number_of_integration_points );
+    }
+
+    if (mConstitutiveLawVector[0]->Has( rVariable)) {
+        for ( IndexType point_number = 0; point_number <number_of_integration_points; ++point_number ) {
+            mConstitutiveLawVector[point_number]->GetValue( rVariable,rValues[point_number]);
+        }
+    } else {
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    }
 }
 
 /***********************************************************************************/
@@ -999,11 +1241,13 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
         )
 {
     if (rVariable == CONSTITUTIVE_LAW) {
-        const std::size_t integration_points_number = mConstitutiveLawVector.size();
-        if (rValues.size() != mConstitutiveLawVector.size())
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
             rValues.resize(integration_points_number);
-        for (std::size_t i_gp = 0; i_gp < integration_points_number; ++i_gp)
-            rValues[i_gp] = mConstitutiveLawVector[i_gp];
+        }
+        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
     }
 }
 
@@ -1379,5 +1623,3 @@ void BaseSolidElement::load( Serializer& rSerializer )
     rSerializer.load("mConstitutiveLawVector", mConstitutiveLawVector);
 }
 } // Namespace Kratos
-
-
