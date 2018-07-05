@@ -56,7 +56,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef AdjointStructuralResponseFunction BaseType;
     typedef Element::DofsVectorType DofsVectorType;
     typedef Node<3>::Pointer PointTypePointer;
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
@@ -82,9 +81,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void Initialize() override;
-
 
     void GetNeighboringElementPointer();
 

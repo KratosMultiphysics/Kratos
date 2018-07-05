@@ -246,9 +246,12 @@ namespace Kratos
                                                    ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
+
         if (rResponseGradient.size() != rAdjointMatrix.size1())
             rResponseGradient.resize(rAdjointMatrix.size1(), false);
+
         rResponseGradient.clear();
+        
         KRATOS_CATCH("");
     }
 
@@ -281,9 +284,12 @@ namespace Kratos
                                                     ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
+
         if (rResponseGradient.size() != rAdjointMatrix.size1())
             rResponseGradient.resize(rAdjointMatrix.size1(), false);
+
         rResponseGradient.clear();
+
         KRATOS_CATCH("");
     }
 

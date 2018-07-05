@@ -95,15 +95,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStrainEnergyResponseFunction::UpdateSensitivities()
-    {
-        KRATOS_TRY;
-
-        BaseType::UpdateSensitivities();
-
-        KRATOS_CATCH("");
-    }
-
     /// Turn back information as a string.
     std::string AdjointStrainEnergyResponseFunction::Info() const
     {

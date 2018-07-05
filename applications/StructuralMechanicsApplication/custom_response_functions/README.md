@@ -24,17 +24,16 @@ This feature provides the framework to compute sensitivities of structural respo
     * replacement process (replaces all elements and conditions of a model with its adjoint equivalents and vice versa)
 
 - Adjoint *Neumann* conditions:
-    * Point load (derived from PointLoadCondition)
-    * Surface load (derived from SurfaceLoadCondition3D)
+    * Point load (wraps the PointLoadCondition)
    
 - Structural adjoint elements:
     * Uni-dimensional elements:
-       	* Linear 3D beam element (derived from CrBeamElementLinear3D2N)
+       	* Linear 3D beam element (wraps the CrBeamElementLinear3D2N)
     * Two-dimensional elements:
-        * Thin triangular shell (derived from ShellThinElement3D3N)
+        * Thin triangular shell (wraps the ShellThinElement3D3N)
 
 *Please note:* 
-The adjoint elements and conditions are derived from elements/conditions of the Structural Mechanics Application and can not be seen independently from them. Rather they have to be traced as additions of their parents in the context of adjoint sensitivity analysis. So basic tasks like the computation of the stiffness matrix are not overwritten. The main task of the adjoint elements/conditions is to derive different quantities with respect to the design variable or state (e.g. the right hand side or post-processing results like stresses).
+The adjoint elements and conditions wrap elements/conditions of the Structural Mechanics Application and can call its public functions.  The main task of the adjoint elements/conditions is to derive different quantities (e.g. the right hand side or post-processing results like stresses) with respect to the design variable or state.
 
 ### Usage: 
 In order to perform a sensitivity analysis for one response function, the solutions of two linear static problems are necessary: The primal and the adjoint problem. 
@@ -137,15 +136,29 @@ If all necessary input files are defined the analysis can be performed with a si
 A possible python code can look like this:
 ```python 
     # Solve the primal problem     
-    with open("concrete_building_parameters.json",'r') as parameter_file:
-        ProjectParametersPrimal = Parameters( parameter_file.read())
-    primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal)
-    primal_analysis.Run()
+        with open("beam_test_parameters.json",'r') as parameter_file:
+            ProjectParametersPrimal = Parameters( parameter_file.read())
+
+        problem_name_primal = ProjectParametersPrimal["problem_data"]["problem_name"].GetString()
+        primal_model_part = ModelPart(problem_name_primal)
+        model_primal = Model()
+        model_primal.AddModelPart(self.primal_model_part)
+
+        primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
+
+        primal_analysis.Run()
     # Solve adjoint problem and compute sensitivities
-    with open("concrete_building_adjoint_parameters.json",'r') as parameter_file:
-        ProjectParametersAdjoint = Parameters( parameter_file.read())
-    adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
-    adjoint_analysis.Run()
+        with open("beam_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
+            ProjectParametersAdjoint = Parameters( parameter_file.read())
+
+        problem_name_adjoint = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
+        adjoint_model_part = ModelPart(problem_name_adjoint)
+        model_adjoint = Model()
+        model_adjoint.AddModelPart(adjoint_model_part)
+
+        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
+
+        adjoint_analysis.Run()
 ```
 
 #### Possible ```response_function_settings```:
@@ -156,8 +169,8 @@ Independet from the chosen response function the following definitions are alway
 - ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic apporach. 
 - ```sensitivity_model_part_name```: Add here the name of the model part for which components sensitivities has to be computed (e.g. if the chosen design parameter is ```THICKNESS``` then for each element in this model part the sensitivity w.r.t. this variable is calculated).
 - ```nodal_sensitivity_variables```: Currently only ```SHAPE``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
-- ```element_sensitivity_variables```: Here are sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
-- ```condition_sensitivity_variables```: Here are sensitivities with respect to the properties of the conditions are computed. Currenty there is only ```POINT_LOAD``` available.
+- ```element_sensitivity_variables```: Here sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
+- ```condition_sensitivity_variables```: Here sensitivities with respect to the properties of the conditions are computed. Currenty there is only ```POINT_LOAD``` available.
 
 **Important, please note:**
 In order to use an element or condition design variable one has to ensure that a corresponding Kratos-Variable for the sensitivity is defined (e.g. for the design variable ```THICKNESS``` a corresponding variable called ```THICKNESS_SENSITIVITY``` is necessary). This additional variable is necessary to store the results of the sensitivity analysis.
@@ -223,7 +236,7 @@ Examples:
 
 The results of the sensitivity analysis are accessible in the post-processing as ```nodal_results``` (currently only ```SHAPE_SENSITIVITY``` and ```POINT_LOAD_SENSITIVITY```) and ```gauss_point_results``` (sensitivities for elemental design variables like ```THICKNESS_SENSITIVITY``` or ```I22_SENSITIVITY```).
 ```python
-    "nodal_results"       : ["DISPLACEMENT","ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
+    "nodal_results"       : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
     "gauss_point_results" : ["THICKNESS_SENSITIVITY"]
 ```    
 

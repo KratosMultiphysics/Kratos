@@ -56,7 +56,6 @@ public:
     ///@{
 
     typedef AdjointStructuralResponseFunction BaseType;
-    typedef array_1d<double, 3> array_3d;
 
     /// Pointer definition of AdjointStrainEnergyResponseFunction
     KRATOS_CLASS_POINTER_DEFINITION(AdjointStrainEnergyResponseFunction);
@@ -82,8 +81,6 @@ public:
     void Initialize() override;
 
     double CalculateValue(ModelPart& rModelPart) override;
-
-    void UpdateSensitivities() override;
 
     ///@}
     ///@name Access

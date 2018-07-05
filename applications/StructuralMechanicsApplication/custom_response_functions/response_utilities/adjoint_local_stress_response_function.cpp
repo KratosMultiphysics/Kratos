@@ -57,15 +57,6 @@ namespace Kratos
     /// Destructor.
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
 
-    void AdjointLocalStressResponseFunction::Initialize()
-    {
-        KRATOS_TRY;
-
-        BaseType::Initialize();
-
-        KRATOS_CATCH("");
-    }
-
     // ==============================================================================
     double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
     {

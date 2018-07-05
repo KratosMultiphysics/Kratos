@@ -56,9 +56,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef AdjointStructuralResponseFunction BaseType;
-    typedef array_1d<double, 3> array_3d;
-
     /// Pointer definition of AdjointLocalStressResponseFunction
     KRATOS_CLASS_POINTER_DEFINITION(AdjointLocalStressResponseFunction);
 
@@ -79,8 +76,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void Initialize() override;
 
     double CalculateValue(ModelPart& rModelPart) override;
 
