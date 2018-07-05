@@ -23,10 +23,7 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_parameters.json",'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read())
 
-        problem_name = ProjectParametersPrimal["problem_data"]["problem_name"].GetString()
-        self.primal_model_part = ModelPart(problem_name)
         model_primal = Model()
-        model_primal.AddModelPart(self.primal_model_part)
 
         primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
 
@@ -39,11 +36,8 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
         model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
-        adjoint_model_part = ModelPart(problem_name)
         model_adjoint = Model()
-        model_adjoint.AddModelPart(adjoint_model_part)
 
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
         adjoint_analysis.Run()
@@ -64,11 +58,8 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_nodal_disp_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
         model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
-        adjoint_model_part = ModelPart(problem_name)
         model_adjoint = Model()
-        model_adjoint.AddModelPart(adjoint_model_part)
 
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
 
@@ -89,12 +80,9 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
         # Create the adjoint solver
         with open("./adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/beam_test_strain_energy_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
-        
-        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
+
         model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
-        adjoint_model_part = ModelPart(problem_name)
         model_adjoint = Model()
-        model_adjoint.AddModelPart(adjoint_model_part)
 
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
 

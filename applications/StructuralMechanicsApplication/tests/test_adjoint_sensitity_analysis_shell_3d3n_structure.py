@@ -23,10 +23,7 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_parameters.json",'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read())
 
-        problem_name = ProjectParametersPrimal["problem_data"]["problem_name"].GetString()
-        self.primal_model_part = ModelPart(problem_name)
         model_primal = Model()
-        model_primal.AddModelPart(self.primal_model_part)
 
         primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
 
@@ -40,7 +37,6 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
         model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
         model_adjoint = Model()
 
@@ -63,11 +59,8 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_nodal_disp_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
         model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
-        adjoint_model_part = ModelPart(problem_name)
         model_adjoint = Model()
-        model_adjoint.AddModelPart(adjoint_model_part)
 
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
         adjoint_analysis.Run()
@@ -88,11 +81,8 @@ class TestAdjointSensitivityAnalysisShell3D3NStructure(KratosUnittest.TestCase):
         with open("./adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/linear_shell_test_strain_energy_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-        problem_name = ProjectParametersAdjoint["problem_data"]["problem_name"].GetString()
         model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
-        adjoint_model_part = ModelPart(problem_name)
         model_adjoint = Model()
-        model_adjoint.AddModelPart(adjoint_model_part)
 
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
         adjoint_analysis.Run()
