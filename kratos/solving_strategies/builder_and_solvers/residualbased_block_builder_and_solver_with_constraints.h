@@ -35,7 +35,7 @@
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_flags.h"
 #include "includes/master_slave_constraint.h"
-#include "utilities/master_slave_relation.h"
+#include "utilities/auxilary_global_master_slave_relation.h"
 
 #include "containers/variable.h"
 #include "containers/variable_component.h"
@@ -122,9 +122,9 @@ public:
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
     typedef typename MasterSlaveConstraint::Pointer MasterSlaveConstraintPointerType;
 
-    typedef MasterSlaveRelation MasterSlaveRelationType;
+    typedef AuxilaryGlobalMasterSlaveRelation AuxilaryGlobalMasterSlaveRelationType;
 
-    typedef PointerVectorSet<MasterSlaveRelationType, IndexedObject> MasterSlaveRelationContainerType;
+    typedef PointerVectorSet<AuxilaryGlobalMasterSlaveRelationType, IndexedObject> MasterSlaveRelationContainerType;
     typedef std::size_t SizeType;
     typedef std::vector<SizeType> EquationIdVectorType;
     typedef std::vector<SizeType> VectorIndexType;
@@ -595,7 +595,7 @@ private:
                     auto global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
                     if(global_constraint == mGlobalMasterSlaveRelations.end())
                     {
-                        mGlobalMasterSlaveRelations.insert(mGlobalMasterSlaveRelations.begin(), Kratos::make_shared<MasterSlaveRelationType>(slave_equation_id));
+                        mGlobalMasterSlaveRelations.insert(mGlobalMasterSlaveRelations.begin(), Kratos::make_shared<AuxilaryGlobalMasterSlaveRelationType>(slave_equation_id));
                         global_constraint = mGlobalMasterSlaveRelations.find(slave_equation_id);
                     }
                     for(auto& master_equation_id : master_equation_ids)

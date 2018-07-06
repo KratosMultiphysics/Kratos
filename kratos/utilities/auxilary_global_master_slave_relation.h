@@ -10,8 +10,8 @@
 //
 //
 
-#if !defined(CONSTRAINT_EQUATION_H)
-#define CONSTRAINT_EQUATION_H
+#if !defined(AUXILARY_GLOBAL_MASTER_SLAVE_RELATION)
+#define AUXILARY_GLOBAL_MASTER_SLAVE_RELATION
 // System includes
 #include <vector>
 #include <unordered_set>
@@ -28,15 +28,15 @@ namespace Kratos
 {
 
 /**
- * @class MasterSlaveRelation
+ * @class AuxilaryGlobalMasterSlaveRelation
  * @ingroup KratosCore
- * @brief This class stores the information regarding the MasterSlaveRelation equation.
+ * @brief This class stores the information regarding the AuxilaryGlobalMasterSlaveRelation equation.
  *         Naming convenction is defined like this. (each object of this class will store one equation in the given form
  *
  *   SlaveEquationId = w_1*MasterEquationId_1 + w_2*MasterEquationId_2 + ..... + w_n*MasterEquationId_n
  *
  *   This stores the condensed form of the MasterSlaveConstraint objects into one object. if only one relation for a slave is added as
- *   MasterSlaveConstraint then there will only be one entry for master for its corresponding MasterSlaveRelation.
+ *   MasterSlaveConstraint then there will only be one entry for master for its corresponding AuxilaryGlobalMasterSlaveRelation.
  *   Currently this class is designed to hold only one equation. There is only one unique object of this class for each slave. 
  *
  *   Future plan is to also make it possible to work with matrices (T) and vectors (for slave and master equation ids and constants)
@@ -46,22 +46,22 @@ namespace Kratos
  *
  * @author Aditya Ghantasala
  */
-class MasterSlaveRelation : public IndexedObject
+class AuxilaryGlobalMasterSlaveRelation : public IndexedObject
 {
   public:
     typedef std::size_t IndexType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
     typedef std::vector<IndexType> EquationIdVectorType;
-    KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveRelation);
+    KRATOS_CLASS_POINTER_DEFINITION(AuxilaryGlobalMasterSlaveRelation);
 
     // empty constructor and methods to add master and slave independently.
-    MasterSlaveRelation() : IndexedObject(0)
+    AuxilaryGlobalMasterSlaveRelation() : IndexedObject(0)
     {
         mConstant = 0.0;
     }
 
-    MasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId)
+    AuxilaryGlobalMasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId)
     {
         mConstant = 0.0;
     }
