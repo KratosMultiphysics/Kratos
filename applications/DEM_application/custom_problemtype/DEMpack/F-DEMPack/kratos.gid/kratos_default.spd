@@ -65,8 +65,8 @@
                 <Item id="HydrodynamicTorqueType" pid="Hydrodynamic torque type" PickForces="1" class="Tab" dv="0" ivalues="0,1" values="Null,Dennis" help="Pick the hydrodynamic torque (rotational drag) model"/>
                 <Item id="DragModifier" pid="Drag Modifier type" PickForces="1" class="Tab" dv="0" ivalues="0,2,3" values="None,Hayder,Chien" help="Pick the drag-modifying coefficient due to non-sphericity"/>
                 <Item id="ViscosityModificationType" pid="Viscosity modification type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="None,Einstein,Liu" help="Pick the law by which the viscosity is modified by the particles"/>
-                <Container id="MaxeyRileyEquations" pid="Maxey Riley Equations" PickForces="0" class="Tab" help="Use the Maxey-Riley equations (valid for small Re)" open="0">
-                    <Item id="MRDragModifier" pid="Drag Modifier type" class="Tab" dv="0" ivalues="0,1,2" values="One,Another,YetAnother" help="Pick the drag-modifying coefficient"/>
+                <Container id="MaxeyRileyEquations" pid="Using Maxey Riley Equations" state="hiddenAll" PickForces="0" class="Tab" help="Use the Maxey-Riley equations (valid for small Re)" open="0">
+                    <Item id="MRDragModifier" pid="Drag Modifier type" class="Tab" dv="0" ivalues="0,1,2" state="hidden" values="One,Another,YetAnother" help="Pick the drag-modifying coefficient"/>
                 </Container>
                 <Item id="IncludeFaxenTerms0" pid="Include Faxen Terms" LaplacianMode="0" state="disabled" dv="0" ivalues="0" values="No" help="They require the calculation of the local laplacian and its derivative"/>
                 <Item id="IncludeFaxenTerms1" pid="Include Faxen Terms" dv="0" LaplacianMode="1" ivalues="0,1" values="No,Yes" help="They require the calculation of the local laplacian and its derivative, which involves a certain overhead"/>
