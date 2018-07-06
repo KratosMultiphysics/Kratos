@@ -92,7 +92,7 @@ namespace Testing
         SJres =  774.919;
 
         // Solutions to test...
-        double TestMC, TestVM, TestDP, TestR, TestT, TestSJ;
+        double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT = 0.0, TestSJ = 0.0;
         MC::CalculateEquivalentStress(Stress, Strain, TestMC, rMaterialProperties);
         VM::CalculateEquivalentStress(Stress, Strain, TestVM, rMaterialProperties);
         DP::CalculateEquivalentStress(Stress, Strain, TestDP, rMaterialProperties);
@@ -164,7 +164,7 @@ namespace Testing
         Tres  = 3.0e6;
         SJres = 65.4654;
 
-        double TestMC, TestVM, TestDP, TestR, TestT, TestSJ;
+        double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT, TestSJ = 0.0;
         MC::GetInitialUniaxialThreshold(rMaterialProperties, TestMC);
         VM::GetInitialUniaxialThreshold(rMaterialProperties, TestVM);
         DP::GetInitialUniaxialThreshold(rMaterialProperties, TestDP);
@@ -189,7 +189,7 @@ namespace Testing
         Properties rMaterialProperties;
         Vector Strain, Stress;
         GenerateTestVariables(Stress, Strain, rMaterialProperties);
-        double Lchar = 0.1;
+        double characteristic_length = 0.1;
 
         // Analytical solutions damage parameter Linear Softening
         double MCres, VMres, DPres, Rres, Tres, SJres;
@@ -200,13 +200,13 @@ namespace Testing
         Tres  = -0.00214286;
         SJres = -4.5e+08;
 
-        double TestMC, TestVM, TestDP, TestR, TestT, TestSJ;
-        MC::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        VM::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        DP::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        R::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        T::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        SJ::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        double TestMC = 0.0, TestVM = 0.0, TestDP = 0.0, TestR = 0.0, TestT = 0.0, TestSJ = 0.0;
+        MC::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        VM::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        DP::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        R::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        T::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        SJ::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
 
         // Check the results!
         KRATOS_CHECK_NEAR(MCres, TestMC, 1.0e-4);
@@ -225,12 +225,12 @@ namespace Testing
         Tres  = 0.00429492;
         SJres = -2.0;
 
-        MC::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        VM::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        DP::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        R::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        T::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
-        SJ::CalculateDamageParameter(rMaterialProperties, TestMC, Lchar);
+        MC::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        VM::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        DP::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        R::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        T::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
+        SJ::CalculateDamageParameter(rMaterialProperties, TestMC, characteristic_length);
 
         // Check the results!
         KRATOS_CHECK_NEAR(MCres, TestMC, 1.0e-4);
