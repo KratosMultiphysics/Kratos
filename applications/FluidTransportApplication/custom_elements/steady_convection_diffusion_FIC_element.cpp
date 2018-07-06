@@ -260,7 +260,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
     noalias(Variables.VelInter) = ZeroVector(TDim);
     noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
 
-    // std::cout << "Element number " << this->Id() << std::endl;
+    Variables.IterationNumber = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -334,8 +334,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRHS( VectorTy
     noalias(Variables.VelInter) = ZeroVector(TDim);
     noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
 
-    // std::cout << "Element number " << this->Id() << std::endl;
-
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -405,7 +403,8 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
     rVariables.rho_dot_c = FluidDensity*specific_heat;
 
     // Tolerance
-    rVariables.tolerance = 0.00001;
+    rVariables.LowTolerance = 1e-8;
+    rVariables.HighTolerance = 1e-4;
 
     // Compute DifMatrixK
     noalias(rVariables.DifMatrixK) = ZeroMatrix( TDim, TDim );
@@ -460,7 +459,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     rVariables.NormGradPhi = norm_2(rVariables.GradPhi);
 
     // Unitary velocity vector
-    if (NormVel < rVariables.tolerance)
+    if (NormVel < rVariables.HighTolerance)
     {
         for (unsigned int i = 0; i < TDim; i++)
         {
@@ -494,7 +493,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
         rVariables.lsc = rVariables.lv;
     }
 
-    if (NormVel > rVariables.tolerance)
+    if (NormVel > rVariables.HighTolerance)
     {
         array_1d <double, 3> Velocity3;
         ElementUtilities::FillArray1dOutput (Velocity3, rVariables.VelInterHat);
@@ -503,25 +502,20 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
         rVariables.lv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(rGeom,Velocity3);
     }
 
-    //this->CalculateBoundaryLv(rVariables);
+    this->CalculateBoundaryLv(rVariables);
 
-    if (NormVel < rVariables.tolerance)
+    if (NormVel < rVariables.HighTolerance)
     {
 
         // TODO: S'ha de posar OmegaV = 0 si v = 0??
         rVariables.OmegaV = rVariables.absorption * rVariables.lv * rVariables.lv / conductivity;
 
-        if (rVariables.Peclet == 0)
-        {
-            rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.tolerance);
-        }
-
-        rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
+        rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
 
     }
     else
     {
-        if (conductivity < 0.01)
+        if (conductivity < rVariables.HighTolerance)
         {
             rVariables.Peclet = 1.0;
         }
@@ -541,29 +535,28 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
     rVariables.XiV = (cosh(rVariables.LambdaV) / cosh(rVariables.Peclet));
 
-    if (rVariables.Peclet < rVariables.tolerance)
+    if(rVariables.SigmaV < 0.00024414) // 2^-12
     {
-        rVariables.AlphaV = 0.0;
-    }
-    else if (conductivity < rVariables.tolerance)
-    {
-        rVariables.AlphaV = 1.0;
+        rVariables.AlphaV = rVariables.SigmaV / 3.0 + rVariables.AlphaVBar * (1.0 - rVariables.SigmaV / rVariables.Peclet);
     }
     else
     {
-        if(rVariables.SigmaV < 0.00024414) // 2^-12
-        {
-            rVariables.AlphaV = rVariables.SigmaV / 3.0 + rVariables.AlphaVBar * (1.0 - rVariables.SigmaV / rVariables.Peclet);
-        }
-        else
-        {
-            rVariables.AlphaV = 2.0 / rVariables.SigmaV * (1.0 - (rVariables.SigmaV * tanh (rVariables.Peclet)) / (rVariables.XiV - 1.0));
-        }
+        rVariables.AlphaV = 2.0 / rVariables.SigmaV * (1.0 - (rVariables.SigmaV * tanh (rVariables.Peclet)) / (rVariables.XiV - 1.0));
     }
 
-    if (rVariables.absorption < rVariables.tolerance)
+    if (rVariables.absorption < rVariables.HighTolerance)
     {
         rVariables.AlphaV = 1.0 / tanh(rVariables.Peclet) - 1.0 / rVariables.Peclet;
+    }
+
+    if (rVariables.Peclet < rVariables.LowTolerance)
+    {
+        rVariables.AlphaV = 0.0;
+    }
+
+    if (conductivity < rVariables.HighTolerance)
+    {
+        rVariables.AlphaV = 1.0;
     }
 
     //TODO: Can be calculated before Gauss point loop
@@ -599,34 +592,32 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
 
     // phi = 2 in 2D and 3D
 
-    if (rVariables.absorption < rVariables.tolerance)
+    rVariables.AlphaR = rVariables.Peclet * (0.5 * rVariables.SigmaV * ((rVariables.XiV + 1.0) / (rVariables.XiV - 1.0)) - rVariables.AlphaV)
+                        - 1.0 - (1.0 / rVariables.AuxDiffusion) * inner_prod(rVariables.VelInterHat, prod(rVariables.DifMatrixS, rVariables.VelInterHat));
+
+    if (rVariables.absorption < rVariables.HighTolerance)
     {
         rVariables.AlphaR = 0.0;
     }
     else
     {
-        if (std::abs(rVariables.Peclet) < rVariables.tolerance)
+        if (rVariables.Peclet < rVariables.LowTolerance)
         {
             rVariables.AlphaR = rVariables.OmegaV / (4.0 * sinh(sqrt(rVariables.OmegaV) / 2.0) * sinh(sqrt(rVariables.OmegaV) / 2.0)) +
                                 rVariables.OmegaV / 6.0 - 1.0;
 
-            if (std::abs(rVariables.OmegaV) < rVariables.tolerance)
+            if (rVariables.OmegaV < rVariables.LowTolerance)
             {
                 rVariables.AlphaR = 1.0 / 6.0;
             }
         }
-        else if (std::abs(conductivity) < 0.1)
+        else if (conductivity < rVariables.HighTolerance)
         {
             rVariables.AlphaR = rVariables.absorption * rVariables.lv * rVariables.lv / 6.0;
         }
-        else
-        {
-            rVariables.AlphaR = rVariables.Peclet * (0.5 * rVariables.SigmaV * ((rVariables.XiV + 1.0) / (rVariables.XiV - 1.0)) - rVariables.AlphaV)
-                                    - 1.0 - (1.0 / conductivity) * inner_prod(rVariables.VelInterHat, prod(rVariables.DifMatrixS, rVariables.VelInterHat));
-        }
     }
 
-    noalias(rVariables.DifMatrixR) = rVariables.AlphaR * conductivity * outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
+    noalias(rVariables.DifMatrixR) = rVariables.AlphaR * rVariables.AuxDiffusion * outer_prod(rVariables.VelInterHat , rVariables.VelInterHat);
 
     //////////////////////////////////////////////////////
     // Calculate Dsc
@@ -679,24 +670,30 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     rVariables.DifSC = (0.5 * rVariables.lsc * std::abs (rVariables.Residual) / rVariables.NormGradPhi
                                         - DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
 
-    if (rVariables.NormGradPhi < 1e-12)
+    if (rVariables.NormGradPhi < rVariables.LowTolerance)
     {
-        rVariables.DifSC = (0.5 * rVariables.lsc * std::abs (rVariables.Residual) / 1e-12
+        rVariables.DifSC = (0.5 * rVariables.lsc * std::abs (rVariables.Residual) / rVariables.LowTolerance
                                         - DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
     }
 
+    // On the first iteration, SC can't be used
+    if (rVariables.IterationNumber == 1)
+    {
+        rVariables.DifSC = 0.0;
+    }
     noalias(rVariables.DifMatrixSC) = rVariables.DifSC * rVariables.IdentityMatrix;
 
+
+    //Calculate Dv and new lsc term for Dv
     this->CalculateNormalsAngle(rVariables);
 
-    if (std::abs(rVariables.Beta - 1.0) > rVariables.tolerance)
+    if (std::abs(std::abs(rVariables.Beta) - 1.0) > rVariables.LowTolerance)
     {
         rVariables.CosinusNormals = 1.0;
     }
 
-
     // TODO: Calculate properly
-    if (std::abs(rVariables.GradPhi[0]) < rVariables.tolerance || std::abs(rVariables.GradPhi[1]) < rVariables.tolerance)
+    if (std::abs(rVariables.GradPhi[0]) < rVariables.LowTolerance || std::abs(rVariables.GradPhi[1]) < rVariables.LowTolerance)
     {
         rVariables.CosinusGradPhi = 1.0;
     }
@@ -705,14 +702,15 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
         rVariables.CosinusGradPhi = 0.0;
     }
 
+    // On the first iteration, SC can't be used
+    if (rVariables.IterationNumber == 1)
+    {
+        rVariables.CosinusGradPhi = 1.0;
+        rVariables.CosinusNormals = 1.0;
+    }
+
     noalias(rVariables.DifMatrixV) = 0.5 * (rVariables.lv + rVariables.lsc * (1.0 - rVariables.CosinusGradPhi) * (1.0 - rVariables.CosinusNormals * rVariables.CosinusNormals))
                                                  * rVariables.AlphaV * outer_prod(rVariables.VelInterHat , rVariables.VelInter);
-
-
-    KRATOS_WATCH (this->Id())
-    KRATOS_WATCH (rVariables.AlphaV)
-    KRATOS_WATCH (rVariables.lv)
-    KRATOS_WATCH ("_________________________")
 
 }
 
@@ -734,7 +732,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateNormalsAngle(
         unsigned int k = 0;
         double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
 
-        if (NormAuxNodeNormal > 1e-7)
+        if (NormAuxNodeNormal > rVariables.LowTolerance)
         {
             j += 1;
             k = j - 1;
@@ -748,12 +746,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateNormalsAngle(
         double InnerProdNormal = inner_prod(NodeNormal[0], NodeNormal[1]);
         rVariables.CosinusNormals = InnerProdNormal / (NormNodeNormal1 * NormNodeNormal2);
 
-
-        // KRATOS_WATCH (rVariables.CosinusNormals)
-        // if (rVariables.CosinusNormals >= sqrt(2.0)*0.5)
-        // {
-        //     rVariables.CosinusNormals = 1.0;
-        // }
     }
 }
 
@@ -781,18 +773,15 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateBoundaryLv(El
             noalias(SumNormals) += AuxNodeNormal;
         }
     }
-    if (j > 0 && j < 3)
+    if (j > 1 && j < 3)
     {
         double AuxLv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(Geom,SumNormals);
         array_1d <double, 3> AuxVector = SumNormals / norm_2 (SumNormals) * AuxLv;
 
         double AuxLv2 = inner_prod (AuxVector, rVariables.VelInterHat);
-        KRATOS_WATCH (AuxVector)
-        KRATOS_WATCH (rVariables.VelInterHat)
-        KRATOS_WATCH (AuxLv2)
 
 
-        if(std::abs(AuxLv2) <= rVariables.lv && std::abs(AuxLv2) > rVariables.tolerance)
+        if(std::abs(AuxLv2) <= rVariables.lv && std::abs(AuxLv2) > rVariables.LowTolerance)
         {
             rVariables.lv = std::abs(AuxLv2);
         }
@@ -829,7 +818,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(Elemen
         rVariables.lv = pow( (6.0*Domain/Globals::Pi) , (1.0/3.0) );
     }
 
-    if (NormVel > rVariables.tolerance)
+    if (NormVel > rVariables.HighTolerance)
     {
         array_1d <double, 3> Velocity3;
         ElementUtilities::FillArray1dOutput (Velocity3, rVariables.VelInterHat);
@@ -838,9 +827,9 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculatePeclet(Elemen
         rVariables.lv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(rGeom,Velocity3);
     }
 
-    if (conductivity < rVariables.tolerance)
+    if (conductivity < rVariables.HighTolerance)
     {
-        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / rVariables.tolerance;
+        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / rVariables.HighTolerance;
     }
     else
     {
@@ -869,13 +858,13 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateFICBeta(Eleme
         // fall within the domain for inverse cosine, which
         // is -1 <= x <= 1. This will prevent runtime
         // "domain error" math exceptions.
-        dot = ( dot < -1.0 ? -1.0 : ( dot > 1.0 ? 1.0 : dot ) );
-        double angle = acos( dot );
+        //dot = ( dot < -1.0 ? -1.0 : ( dot > 1.0 ? 1.0 : dot ) );
+        double angle = acos( dot ) * 180.0 / Globals::Pi;
 
         // if( reflex_angle )
         //     *reflex_angle = (ON_PI * 2) - angle;
 
-        if (angle < (20.0 * Globals::Pi / 180.0))
+        if (std::abs(angle) < 20.0 || std::abs(angle) > 160.0 )
         {
             rVariables.Beta = 1.0;
         }
@@ -883,6 +872,12 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateFICBeta(Eleme
         {
             rVariables.Beta = inner_prod(rVariables.VelInterHat, rVariables.GradPhi / rVariables.NormGradPhi);
         }
+    }
+
+    // On the first iteration, SC can't be used
+    if (rVariables.IterationNumber == 1)
+    {
+        rVariables.Beta = 1.0;
     }
 }
 
@@ -912,7 +907,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
     BoundedMatrix<double,TDim,TDim> AuxMatrix3;
     BoundedMatrix<double,TDim,TDim> AuxMatrix4;
 
-    if (std::abs(rVariables.Residual) < rVariables.tolerance)
+    if (std::abs(rVariables.Residual) < rVariables.LowTolerance)
     {
         for (unsigned int i = 0 ; i < TDim ; i++ )
         {
@@ -925,10 +920,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
                         + rVariables.AlphaR * rVariables.AuxDiffusion * outer_prod(rVariables.VelInterHat, rVariables.VelInterHat));
 
         rVariables.HrVector = prod(AuxMatrix3, rVariables.GradPhi);
+
     }
 
     // Compute HscVector
-    if (std::abs(rVariables.NormGradPhi) < rVariables.tolerance)
+    if (std::abs(rVariables.NormGradPhi) < rVariables.LowTolerance)
     {
         for (unsigned int i = 0 ; i < TDim ; i++ )
         {
@@ -960,7 +956,13 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
         double AuxScalar = (rVariables.lsc * (rVariables.Residual / std::abs(rVariables.Residual)) - 2.0 * rVariables.NormGradPhi / rVariables.Residual
                             * DoubleDotScalar) * (1.0 - rVariables.Beta * rVariables.Beta);
 
-        if (std::abs(rVariables.Residual) < rVariables.tolerance)
+        if (std::abs(rVariables.Residual) < rVariables.LowTolerance)
+        {
+            AuxScalar = 0.0;
+        }
+
+        // On the first iteration, SC can't be used
+        if (rVariables.IterationNumber == 1)
         {
             AuxScalar = 0.0;
         }
@@ -1080,7 +1082,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
             Variables.NormGradPhi = norm_2(Variables.GradPhi);
 
             // Unitary velocity vector
-            if (NormVel < 1e-12)
+            if (NormVel < Variables.LowTolerance)
             {
                 for (unsigned int i = 0; i < TDim; i++)
                 {
@@ -1138,7 +1140,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
             Variables.NormGradPhi = norm_2(Variables.GradPhi);
 
             // Unitary velocity vector
-            if (NormVel < 1e-12)
+            if (NormVel < Variables.LowTolerance)
             {
                 for (unsigned int i = 0; i < TDim; i++)
                 {

@@ -119,7 +119,10 @@ protected:
         double AuxDiffusion;
         double CosinusNormals;
         double CosinusGradPhi;
-        double tolerance;
+        double LowTolerance;
+        double HighTolerance;
+
+        int IterationNumber;
 
         array_1d<double,TDim> HVector;
         array_1d<double,TDim> HvVector;
