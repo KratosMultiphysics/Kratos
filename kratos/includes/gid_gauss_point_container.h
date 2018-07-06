@@ -113,7 +113,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -135,7 +135,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -171,7 +171,7 @@ public:
                     {
 
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -193,7 +193,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -229,7 +229,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -253,7 +253,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -289,7 +289,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -314,7 +314,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -354,7 +354,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -381,7 +381,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -421,7 +421,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
@@ -478,7 +478,7 @@ public:
                     if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) )
                     {
                         #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-                        it->GetValuesOnIntegrationPoints(rVariable, ValuesOnIntPoint,
+                        it->CalculateOnIntegrationPoints(rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         #else
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
