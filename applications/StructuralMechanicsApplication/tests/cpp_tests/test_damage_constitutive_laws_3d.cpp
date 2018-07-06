@@ -46,43 +46,25 @@ namespace Kratos
 namespace Testing
 {
     // We test the associated damage Constitutive laws...
-    typedef Node < 3 > NodeType;
-    
-    typedef GenericSmallStrainIsotropicDamage3D
-        <GenericConstitutiveLawIntegratorDamage
-            <ModifiedMohrCoulombYieldSurface
-                <ModifiedMohrCoulombPlasticPotential>>> MC;
-
-    typedef GenericSmallStrainIsotropicDamage3D
-        <GenericConstitutiveLawIntegratorDamage
-            <VonMisesYieldSurface
-                <ModifiedMohrCoulombPlasticPotential>>> VM;
-
-    typedef GenericSmallStrainIsotropicDamage3D
-        <GenericConstitutiveLawIntegratorDamage
-            <DruckerPragerYieldSurface
-                <ModifiedMohrCoulombPlasticPotential>>> DP;
-
-    typedef GenericSmallStrainIsotropicDamage3D
-        <GenericConstitutiveLawIntegratorDamage
-            <TrescaYieldSurface
-                <ModifiedMohrCoulombPlasticPotential>>> T;
-
-    typedef GenericSmallStrainIsotropicDamage3D
-        <GenericConstitutiveLawIntegratorDamage
-            <SimoJuYieldSurface
-                <ModifiedMohrCoulombPlasticPotential>>> SJ;
-
-    typedef GenericSmallStrainIsotropicDamage3D
-        <GenericConstitutiveLawIntegratorDamage
-            <RankineYieldSurface
-                <ModifiedMohrCoulombPlasticPotential>>> R;
+    typedef Node <3> NodeType;
 
     /** 
     * Check the correct calculation of the integrated stress with the CL's
     */
     KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
     {
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <ModifiedMohrCoulombYieldSurface <ModifiedMohrCoulombPlasticPotential>>> MC;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage  <VonMisesYieldSurface <ModifiedMohrCoulombPlasticPotential>>> VM;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <DruckerPragerYieldSurface <ModifiedMohrCoulombPlasticPotential>>> DP;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <TrescaYieldSurface <ModifiedMohrCoulombPlasticPotential>>> T;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <SimoJuYieldSurface <ModifiedMohrCoulombPlasticPotential>>> SJ;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <RankineYieldSurface <ModifiedMohrCoulombPlasticPotential>>> R;
+
         ConstitutiveLaw::Parameters cl_parameters;
         Properties material_properties;
         Vector stress_vector, strain_vector;
@@ -176,6 +158,18 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, KratosStructuralMechanicsFastSuite)
     {
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <ModifiedMohrCoulombYieldSurface <ModifiedMohrCoulombPlasticPotential>>> MC;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage  <VonMisesYieldSurface <ModifiedMohrCoulombPlasticPotential>>> VM;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <DruckerPragerYieldSurface <ModifiedMohrCoulombPlasticPotential>>> DP;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <TrescaYieldSurface <ModifiedMohrCoulombPlasticPotential>>> T;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <SimoJuYieldSurface <ModifiedMohrCoulombPlasticPotential>>> SJ;
+
+        typedef GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage <RankineYieldSurface <ModifiedMohrCoulombPlasticPotential>>> R;
+
         ConstitutiveLaw::Parameters cl_parameters;
         Properties material_properties;
         Vector stress_vector, strain_vector;
