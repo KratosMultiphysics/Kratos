@@ -27,7 +27,6 @@
 namespace Kratos
 {
 
-
 /**
  * @class MasterSlaveRelation
  * @ingroup KratosCore
@@ -62,18 +61,10 @@ class MasterSlaveRelation : public IndexedObject
         mConstant = 0.0;
     }
 
-
     MasterSlaveRelation(IndexType const &rSlaveEquationId) : IndexedObject(rSlaveEquationId)
     {
         mConstant = 0.0;
     }
-
-    /**
-     * these functions Sets and gets the constant value in the constraint equation.
-     * @param Constant the value of the constant to be assigned.
-     */
-    //void SetConstant(double Constant) { mConstant = Constant; }
-    //double Constant() const { return mConstant; }
 
     /**
      * Function to get the slave equation Id corresponding to this constraint.
@@ -85,7 +76,7 @@ class MasterSlaveRelation : public IndexedObject
      * Function to set the lefthand side of the constraint (the slave dof value)
      * @param LhsValue the value of the lhs (the slave dof value)
      */
-    void SetLHSValue(double const & LhsValue)
+    void SetLHSValue(double const &LhsValue)
     {
         mLhsValue = LhsValue;
     }
@@ -94,17 +85,16 @@ class MasterSlaveRelation : public IndexedObject
      * Function to update the righthand side of the constraint (the combination of all the master dof values and constants)
      * @param RhsValue the value of the lhs (the slave dof value)
      */
-    void SetRhsValue(double const & RhsValue){ mRhsValue = RhsValue;}
-    void UpdateRhsValue(double const & RhsValueUpdate)
+    void SetRhsValue(double const &RhsValue) { mRhsValue = RhsValue; }
+    void UpdateRhsValue(double const &RhsValueUpdate)
     {
         mRhsValue += RhsValueUpdate;
-    }    
-
+    }
 
     // Get number of masters for this slave
     IndexType GetNumberOfMasters() const
     {
-        return mMasterDataSet.size();
+        return mMasterEquationIdVector.size();
     }
 
     /**
@@ -112,21 +102,18 @@ class MasterSlaveRelation : public IndexedObject
      * @param rResult the elemental equation ID vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
-                                  EquationIdVectorType& rMasterEquationIds,
-                                  ProcessInfo& rCurrentProcessInfo)
+    virtual void EquationIdVector(IndexType &rSlaveEquationId,
+                                  EquationIdVectorType &rMasterEquationIds,
+                                  ProcessInfo &rCurrentProcessInfo)
     {
-        if (rSlaveEquationIds.size() != 0 || rSlaveEquationIds.size() == 0)
-            rSlaveEquationIds.resize(1, false);
-
         if (rMasterEquationIds.size() != 0 || rMasterEquationIds.size() == 0)
             rMasterEquationIds.resize(this->GetNumberOfMasters(), false);
 
-        rSlaveEquationIds[0] = this->SlaveEquationId();
+        rSlaveEquationId = this->SlaveEquationId();
 
-        auto master_it = mMasterDataSet.begin();
-        for (IndexType i=0; i<this->GetNumberOfMasters(); i++){
-            rMasterEquationIds[i] = (*(master_it++)).first;
+        for (IndexType i = 0; i < this->GetNumberOfMasters(); i++)
+        {
+            rMasterEquationIds[i] = mMasterEquationIdVector[i];
         }
     }
 
@@ -134,77 +121,56 @@ class MasterSlaveRelation : public IndexedObject
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
-     * @param rTransformationMatrix the elemental left hand side matrix
+     * @param rMasterWeightsVector the elemental left hand side matrix
      * @param rConstant the elemental right hand side
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalSystem(MatrixType& rTransformationMatrix,
-                                      VectorType& rConstantVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateLocalSystem(VectorType &rMasterWeightsVector,
+                                      double &rConstant,
+                                      ProcessInfo &rCurrentProcessInfo)
     {
-      if (rTransformationMatrix.size1() != 0 || rTransformationMatrix.size1() == 0)
-      {
-    	rTransformationMatrix.resize(1, this->GetNumberOfMasters(), false);
-      }
-
-      if (rConstantVector.size() != 0 || rConstantVector.size() == 0)
-      {
-    	rConstantVector.resize(1, false);
-      }
-
-        auto master_it = mMasterDataSet.begin();
-        for (IndexType i=0; i<this->GetNumberOfMasters(); i++)
-            rTransformationMatrix(0,i) = (*(master_it++)).second;
-
-      mConstant = mRhsValue - mLhsValue;
-      rConstantVector(0) = mConstant;
-    }
-
-/*     void PrintInfo(std::ostream& rOutput) const override
-    {
-        rOutput << "##############################" << std::endl;
-        rOutput << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
-        rOutput << "Constant :: " << Constant() << std::endl;
-        int index = 0;
-        rOutput << "############################## :: Masters" << std::endl;
-        for (auto &master : mMasterDataSet)
+        if (rMasterWeightsVector.size() != 0 || rMasterWeightsVector.size() == 0)
         {
-            rOutput << index << " Master  equation id :: " << master.first << ", weight :: " << master.second << std::endl;
-            index++;
+            rMasterWeightsVector.resize(this->GetNumberOfMasters(), false);
         }
-        rOutput << "##############################" << std::endl;
-    } */
+
+        for (IndexType i = 0; i < this->GetNumberOfMasters(); i++)
+            rMasterWeightsVector(i) = mMasterWeightsVector[i];
+
+
+        mConstant = mRhsValue - mLhsValue;
+        rConstant = mConstant;
+    }
 
     void PrintInfo() const
     {
-        std::cout << "##############################" << std::endl;
+        std::cout << "------------------------------" << std::endl;
         std::cout << "SlaveEquationId :: " << SlaveEquationId() << std::endl;
         std::cout << "Constant :: " << mConstant << std::endl;
-        int index = 0;
-        std::cout << "############################## :: Masters" << std::endl;
-        for (auto &master : mMasterDataSet)
+        std::cout << "------------------------------ :: Masters = " << mMasterEquationIdVector.size()<< std::endl;
+        for (IndexType i = 0; i< mMasterEquationIdVector.size(); i++)
         {
-            std::cout << index << " Master  equation id :: " << master.first << ", weight :: " << master.second << std::endl;
-            index++;
+            std::cout << i << " Master  equation id :: " <<mMasterEquationIdVector[i] << ", weight :: " << mMasterWeightsVector[i] << std::endl;
         }
-        std::cout << "##############################" << std::endl;
+        std::cout << "------------------------------" << std::endl;
     }
 
     void Clear()
     {
-        mMasterDataSet.clear();
+        mMasterEquationIdVector.clear();
+        mMasterWeightsVector.clear();
     }
 
-    void AddMaster(std::size_t MasterEquationId, double Weight)
+    void AddMaster(IndexType MasterEquationId, double Weight)
     {
-        auto res = mMasterDataSet.find(MasterEquationId);
-        if (res != mMasterDataSet.end())
+        int index = MasterEquationIdExists(MasterEquationId);
+        if (index > 0)
         {
-            (*res).second += Weight;
-        }
-        else
+            mMasterWeightsVector[index] += Weight;
+        } else
         {
-            mMasterDataSet[MasterEquationId] = Weight;
+            mMasterEquationIdVector.push_back(MasterEquationId);
+            mMasterWeightsVector.push_back(Weight);
         }
     }
 
@@ -215,26 +181,31 @@ class MasterSlaveRelation : public IndexedObject
 
     virtual void save(Serializer &rSerializer) const override
     {
-
     }
 
     virtual void load(Serializer &rSerializer) override
     {
+    }
 
+    int MasterEquationIdExists(IndexType MasterEquationId)
+    {
+        auto it = find(mMasterEquationIdVector.begin(), mMasterEquationIdVector.end(), MasterEquationId);
+        if (it != mMasterEquationIdVector.end())
+            return it - mMasterEquationIdVector.begin();
+        else
+            return -1;
     }
 
     ///@}
-
-
-    std::unordered_map<IndexType, double> mMasterDataSet;
     double mLhsValue;
     double mRhsValue;
 
+    std::vector<IndexType> mMasterEquationIdVector;
+    std::vector<double> mMasterWeightsVector;
+
     double mConstant;
-    //double mConstantUpdate;
 
 }; // End of ConstraintEquation class
-
 
 } // namespace Kratos
 
