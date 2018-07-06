@@ -166,186 +166,189 @@ public:
           streams[i] = Kratos::shared_ptr<std::iostream>(new std::iostream(&stringbufs[i]));
         }
 
-        // Calculate the partitions and write the result into temporal streams
+        // Main process calculates the partitions and writes the result into temporal streams
         if(mpi_rank == 0) {
-          // Read nodal graph from input
+            // Read nodal graph from input
 
-        IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
+            IO::ConnectivitiesContainerType KratosFormatNodeConnectivities;
 
-        SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
+            SizeType NumNodes = BaseType::mrIO.ReadNodalGraph(KratosFormatNodeConnectivities);
 
-          // Write connectivity data in CSR format
-        idxtype* NodeIndices = 0;
-        idxtype* NodeConnectivities = 0;
+            // Write connectivity data in CSR format
+            idxtype* NodeIndices = 0;
+            idxtype* NodeConnectivities = 0;
 
-        ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
+            ConvertKratosToCSRFormat(KratosFormatNodeConnectivities, &NodeIndices, &NodeConnectivities);
 
-        std::vector<idxtype> NodePartition;
-        PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
+            std::vector<idxtype> NodePartition;
+            PartitionNodes(NumNodes,NodeIndices,NodeConnectivities,NodePartition);
 
-        // Free some memory we no longer need
-        delete [] NodeIndices;
-        delete [] NodeConnectivities;
+            // Free some memory we no longer need
+            delete [] NodeIndices;
+            delete [] NodeConnectivities;
 
-        // Partition elements
-        IO::ConnectivitiesContainerType ElementConnectivities;
-        SizeType NumElements =  BaseType::mrIO.ReadElementsConnectivities(ElementConnectivities);
-        if (NumElements != ElementConnectivities.size())
-        {
-            std::stringstream Msg;
-            Msg << std::endl;
-            Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
-            Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
-            Msg << "Elements are most likely not correlatively numbered." << std::endl;
-
-            KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
-        }
-
-        std::vector<idxtype> ElementPartition;
-
-        if (mSynchronizeConditions)
-            PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
-        else
-            PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
-
-        // Partition conditions
-        IO::ConnectivitiesContainerType ConditionConnectivities;
-        SizeType NumConditions = BaseType::mrIO.ReadConditionsConnectivities(ConditionConnectivities);
-        if (NumConditions != ConditionConnectivities.size())
-        {
-            std::stringstream Msg;
-            Msg << std::endl;
-            Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
-            Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
-            Msg << "Conditions are most likely not correlatively numbered." << std::endl;
-
-            KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
-        }
-
-        std::vector<idxtype> ConditionPartition;
-
-        if (mSynchronizeConditions)
-            PartitionConditionsSynchronous(NodePartition,ElementPartition,ConditionConnectivities,ElementConnectivities,ConditionPartition);
-        else
-            PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
-
-        // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
-        // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
-        RedistributeHangingNodes(NodePartition,ElementPartition,ElementConnectivities,ConditionPartition,ConditionConnectivities);
-
-        // Coloring
-        GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
-        CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
-        CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
-
-        int NumColors;
-        GraphType ColoredDomainGraph;
-        GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
-
-        if (mVerbosity > 0)
-        {
-            KRATOS_WATCH(NumColors);
-        }
-
-              if (mVerbosity > 2)
-              {
-            KRATOS_WATCH(ColoredDomainGraph);
-        }
-
-        // Write partition info into separate input files
-        IO::PartitionIndicesContainerType nodes_all_partitions;
-        IO::PartitionIndicesContainerType elements_all_partitions;
-        IO::PartitionIndicesContainerType conditions_all_partitions;
-
-        // Create lists containing all nodes/elements/conditions known to each partition
-        DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
-        DividingElements(elements_all_partitions, ElementPartition);
-        DividingConditions(conditions_all_partitions, ConditionPartition);
-
-        if (mVerbosity > 1)
-        {
-            std::cout << "Final list of nodes known by each partition" << std::endl;
-            for(SizeType i = 0 ; i < NumNodes ; i++)
+            // Partition elements
+            IO::ConnectivitiesContainerType ElementConnectivities;
+            SizeType NumElements =  BaseType::mrIO.ReadElementsConnectivities(ElementConnectivities);
+            if (NumElements != ElementConnectivities.size())
             {
-                std::cout << "Node #" << i+1 << "->";
-                for(std::vector<std::size_t>::iterator j = nodes_all_partitions[i].begin() ; j != nodes_all_partitions[i].end() ; j++)
-                    std::cout << *j << ",";
-                std::cout << std::endl;
+                std::stringstream Msg;
+                Msg << std::endl;
+                Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
+                Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
+                Msg << "Elements are most likely not correlatively numbered." << std::endl;
+
+                KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
+            }
+
+            std::vector<idxtype> ElementPartition;
+
+            if (mSynchronizeConditions)
+                PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
+            else
+                PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
+
+            // Partition conditions
+            IO::ConnectivitiesContainerType ConditionConnectivities;
+            SizeType NumConditions = BaseType::mrIO.ReadConditionsConnectivities(ConditionConnectivities);
+            if (NumConditions != ConditionConnectivities.size())
+            {
+                std::stringstream Msg;
+                Msg << std::endl;
+                Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
+                Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
+                Msg << "Conditions are most likely not correlatively numbered." << std::endl;
+
+                KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
+            }
+
+            std::vector<idxtype> ConditionPartition;
+
+            if (mSynchronizeConditions)
+                PartitionConditionsSynchronous(NodePartition,ElementPartition,ConditionConnectivities,ElementConnectivities,ConditionPartition);
+            else
+                PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
+
+            // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
+            // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
+            RedistributeHangingNodes(NodePartition,ElementPartition,ElementConnectivities,ConditionPartition,ConditionConnectivities);
+
+            // Coloring
+            GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
+            CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
+            CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
+
+            int NumColors;
+            GraphType ColoredDomainGraph;
+            GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
+
+            if (mVerbosity > 0)
+            {
+                KRATOS_WATCH(NumColors);
+            }
+
+            if (mVerbosity > 2)
+            {
+                KRATOS_WATCH(ColoredDomainGraph);
+            }
+
+            // Write partition info into separate input files
+            IO::PartitionIndicesContainerType nodes_all_partitions;
+            IO::PartitionIndicesContainerType elements_all_partitions;
+            IO::PartitionIndicesContainerType conditions_all_partitions;
+
+            // Create lists containing all nodes/elements/conditions known to each partition
+            DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
+            DividingElements(elements_all_partitions, ElementPartition);
+            DividingConditions(conditions_all_partitions, ConditionPartition);
+
+            if (mVerbosity > 1)
+            {
+                std::cout << "Final list of nodes known by each partition" << std::endl;
+                for(SizeType i = 0 ; i < NumNodes ; i++)
+                {
+                    std::cout << "Node #" << i+1 << "->";
+                    for(std::vector<std::size_t>::iterator j = nodes_all_partitions[i].begin() ; j != nodes_all_partitions[i].end() ; j++)
+                        std::cout << *j << ",";
+                    std::cout << std::endl;
+                }
+            }
+
+            IO::PartitionIndicesType io_nodes_partitions(NodePartition.begin(), NodePartition.end());
+            IO::PartitionIndicesType io_elements_partitions(ElementPartition.begin(), ElementPartition.end());
+            IO::PartitionIndicesType io_conditions_partitions(ConditionPartition.begin(), ConditionPartition.end());
+
+            // Write files
+            mrIO.DivideInputToPartitions(
+            streams, mNumberOfPartitions, ColoredDomainGraph,
+            io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
+            nodes_all_partitions, elements_all_partitions, conditions_all_partitions
+            );
+        }
+
+        // Calculate the message and prepare the buffers
+        if(mpi_rank == 0) {
+            for(auto i = 0; i < mpi_size; i++) {
+                str[i] = stringbufs[i].str();
+                msgSendSize[i] = str[i].size();
+                mpi_send_buffer[i] = str[i].c_str();
             }
         }
 
-        IO::PartitionIndicesType io_nodes_partitions(NodePartition.begin(), NodePartition.end());
-        IO::PartitionIndicesType io_elements_partitions(ElementPartition.begin(), ElementPartition.end());
-        IO::PartitionIndicesType io_conditions_partitions(ConditionPartition.begin(), ConditionPartition.end());
+        // Send the message size to all processes
+        MPI_Scatter(msgSendSize,1,MPI_INT,&msgRecvSize[mpi_rank],1,MPI_INT,0,MPI_COMM_WORLD);
 
-        // Write files
-        mrIO.DivideInputToPartitions(
-          streams, mNumberOfPartitions, ColoredDomainGraph,
-          io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-          nodes_all_partitions, elements_all_partitions, conditions_all_partitions
-        );
-      }
+        // Calculate the number of events:
+        auto NumberOfCommunicationEvents = 1 + mpi_size * !mpi_rank;
+        auto NumberOfCommunicationEventsIndex = 0;
 
-      // Calculate the message and prepare the buffers
-      if(mpi_rank == 0) {
-        for(auto i = 0; i < mpi_size; i++) {
-          str[i] = stringbufs[i].str();
-          msgSendSize[i] = str[i].size();
-          mpi_send_buffer[i] = str[i].c_str();
+        // Prepare the communication events
+        MPI_Request * reqs = new MPI_Request[NumberOfCommunicationEvents];
+        MPI_Status * stats = new MPI_Status[NumberOfCommunicationEvents];
+
+        // Set up all receive and send events
+        if( mpi_rank == 0) {
+            for(auto i = 0; i < mpi_size; i++) {
+                char* aux_char = const_cast<char*>(mpi_send_buffer[i]);
+                MPI_Isend(aux_char,msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
         }
-      }
 
-      // Send the message size to all processes
-      MPI_Scatter(msgSendSize,1,MPI_INT,&msgRecvSize[mpi_rank],1,MPI_INT,0,MPI_COMM_WORLD);
+        // Recieve the buffers
+        mpi_recv_buffer[mpi_rank] = (char *)malloc(sizeof(char) * msgRecvSize[mpi_rank]);
+        MPI_Irecv(mpi_recv_buffer[mpi_rank],msgRecvSize[mpi_rank],MPI_CHAR,0,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
 
-      // Calculate the number of events:
-      auto NumberOfCommunicationEvents = 1 + mpi_size * !mpi_rank;
-      auto NumberOfCommunicationEventsIndex = 0;
+        // Wait untill all communications finish
+        if( MPI_Waitall(NumberOfCommunicationEvents, reqs, stats) != MPI_SUCCESS )
+            KRATOS_THROW_ERROR(std::runtime_error,"Error in metis_partition_mem","")
 
-      // Prepare the communication events
-      MPI_Request * reqs = new MPI_Request[NumberOfCommunicationEvents];
-      MPI_Status * stats = new MPI_Status[NumberOfCommunicationEvents];
+        MPI_Barrier(MPI_COMM_WORLD);
 
-      // Set up all receive and send events
-      if( mpi_rank == 0) {
-        for(auto i = 0; i < mpi_size; i++) {
-            char* aux_char = const_cast<char*>(mpi_send_buffer[i]);
-            MPI_Isend(aux_char,msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+        if(mpi_rank != 0) {
+            streams[mpi_rank]->write(mpi_recv_buffer[mpi_rank], msgRecvSize[mpi_rank]);
         }
-      }
 
-      // Recieve the buffers
-      mpi_recv_buffer[mpi_rank] = (char *)malloc(sizeof(char) * msgRecvSize[mpi_rank]);
-      MPI_Irecv(mpi_recv_buffer[mpi_rank],msgRecvSize[mpi_rank],MPI_CHAR,0,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+#ifdef KRATOS_DEBUG
+        // Print the partitions in debug mode
+        std::ofstream* p_ofstream = new std::ofstream("debug_modelpart_"+std::to_string(mpi_rank)+".mpda");
+        (*p_ofstream) << stringbufs[mpi_rank].str() << std::endl;
+#endif
 
-      // Wait untill all communications finish
-      if( MPI_Waitall(NumberOfCommunicationEvents, reqs, stats) != MPI_SUCCESS )
-          KRATOS_THROW_ERROR(std::runtime_error,"Error in metis_partition_mem","")
+        // TODO: Try to come up with a better way to change the buffer.
+        ((ModelPartIO&)mrIO).SwapStreamSource(streams[mpi_rank]);
 
-      MPI_Barrier(MPI_COMM_WORLD);
+        // Free buffers
+        free(mpi_recv_buffer[mpi_rank]);
 
-      if(mpi_rank != 0) {
-        streams[mpi_rank]->write(mpi_recv_buffer[mpi_rank], msgRecvSize[mpi_rank]);
-      }
+        delete [] reqs;
+        delete [] stats;
 
-      std::ofstream* p_ofstream = new std::ofstream("debug_modelpart_"+std::to_string(mpi_rank));
-      (*p_ofstream) << stringbufs[mpi_rank].str() << std::endl;
+        delete [] mpi_recv_buffer;
+        delete [] mpi_send_buffer;
+        delete [] str;
 
-      // TODO: Try to come up with a better way to change the buffer.
-      ((ModelPartIO&)mrIO).SwapStreamSource(streams[mpi_rank]);
-
-      // Free buffers
-      free(mpi_recv_buffer[mpi_rank]);
-
-      delete [] reqs;
-      delete [] stats;
-
-      delete [] mpi_recv_buffer;
-      delete [] mpi_send_buffer;
-      delete [] str;
-
-      delete [] msgSendSize;
-      delete [] msgRecvSize;
+        delete [] msgSendSize;
+        delete [] msgRecvSize;
     }
 
     ///@}
