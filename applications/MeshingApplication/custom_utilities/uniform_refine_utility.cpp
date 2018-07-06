@@ -123,6 +123,19 @@ void UniformRefineUtility<TDim>::Refine()
 }
 
 
+/// Execute the refinement until the final number of divisions is reached
+template<unsigned int TDim>
+void UniformRefineUtility<TDim>::Refine(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
+{
+    // Set the id
+    mLastNodeId = rNodeId;
+    mLastElemId = rElemId;
+    mLastCondId = rCondId;
+
+    Refine();
+}
+
+
 /// Execute the refinement once
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)

@@ -115,7 +115,7 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     int divisions = refined_model_part.GetValue(REFINEMENT_LEVEL) * mDivisionsAtLevel;
     auto uniform_refining = UniformRefineUtility<2>(refined_model_part, divisions);
 
-    // uniform_refining.Refine();  /* TODO: get the Id's as a parameter */
+    uniform_refining.Refine(node_id, elem_id, cond_id);
 }
 
 
@@ -261,8 +261,8 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     ModelPart::Pointer refined_model_part = mrRootModelPart.CreateSubModelPart(mRefinedName);
     mpRefinedModelPart = refined_model_part->CreateSubModelPart(mOwnName);
 
-    // Set the refinement level
-    mpRefinedModelPart->SetValue(REFINEMENT_LEVEL, mpOwnModelPart->GetValue(REFINEMENT_LEVEL));
+    // Increase the refinement level
+    mpRefinedModelPart->SetValue(REFINEMENT_LEVEL, mpOwnModelPart->GetValue(REFINEMENT_LEVEL)+1);
 
     // Copy all the tables and properties
     AddAllTablesToModelPart(mrRootModelPart, mpRefinedModelPart);
@@ -528,8 +528,11 @@ void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId)
         if (elem->Is(TO_REFINE))
         {
             Geometry<NodeType>::PointsArrayType p_elem_nodes;
-            for (IndexType node_id; node_id < number_of_nodes; node_id++)
-                p_elem_nodes.push_back(mCoarseToRefinedNodesMap[elem->Id()]);
+            for (IndexType node = 0; node < number_of_nodes; node++)
+            {
+                IndexType node_id = elem->GetGeometry()[node].Id();
+                p_elem_nodes.push_back(mCoarseToRefinedNodesMap[node_id]);
+            }
 
             Element::Pointer aux_elem = refined_model_part.CreateNewElement(
                 mElementName,
@@ -630,41 +633,85 @@ void MultiScaleRefiningProcess::GetLastId(
     rElemsId = 0;
     rCondsId = 0;
 
-    // Get the root model part
+    // Get the absolute root model part
     ModelPart& root_model_part = mpOwnModelPart->GetRootModelPart();
 
-    // // Get the last node id
-    // const IndexType nnodes = root_model_part.Nodes().size();
+    // Get the maximum node id
+    const IndexType nnodes = root_model_part.Nodes().size();
+    ModelPart::NodesContainerType::iterator nodes_begin = root_model_part.NodesBegin();
+    for (IndexType i = 0; i < nnodes; i++)
+    {
+        auto inode = nodes_begin + i;
+        if (rNodesId < inode->Id())
+            rNodesId = inode->Id();
+    }
+
+    // Get the maximum element id
+    const IndexType nelems = root_model_part.Elements().size();
+    ModelPart::ElementsContainerType::iterator elements_begin = root_model_part.ElementsBegin();
+    for (IndexType i = 0; i < nelems; i++)
+    {
+        auto elem = elements_begin + i;
+        if (rElemsId < elem->Id())
+            rElemsId = elem->Id();
+    }
+
+    // Get the maximum condition id
+    const IndexType nconds = root_model_part.Conditions().size();
+    ModelPart::ConditionsContainerType::iterator conditions_begin = root_model_part.ConditionsBegin();
+    for (IndexType i = 0; i < nconds; i++)
+    {
+        auto cond = conditions_begin + i;
+        if (rCondsId < cond->Id())
+            rCondsId = cond->Id();
+    }
+
+    // // Get the number of threads
+    // const int num_threads = OpenMPUtils::GetNumThreads();
+
+    // // Get the maximum node id
+    // const int nnodes = static_cast<int>(root_model_part.Nodes().size());
     // ModelPart::NodesContainerType::iterator nodes_begin = root_model_part.NodesBegin();
-    // for (IndexType i = 0; i < nnodes; i++)
+    // std::vector<IndexType> nodes_id(num_threads);
+    // #pragma omp parallel
     // {
-    //     auto inode = nodes_begin + i;
-    //     if (rNodesId < inode->Id())
-    //         rNodesId = inode->Id();
+    //     const int thread_id = OpenMPUtils::ThisThread();
+
+    //     #pragma omp for
+    //     for (int i = 0; i < nnodes; i++)
+    //     {
+    //         auto node = nodes_begin + i;
+    //         if (nodes_id[thread_id] < node->Id())
+    //             nodes_id[thread_id] = node->Id();
+    //     }
+
+    //     #pragma omp single
+    //     {
+    //         rNodesId = *std::max_element(nodes_id.begin(), nodes_id.end());
+    //     }
     // }
 
-    // Get the last node id
-    const int nnodes = static_cast<int>(root_model_part.Nodes().size());
-    ModelPart::NodesContainerType::iterator nodes_begin = root_model_part.NodesBegin();
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<IndexType> nodes_id(num_threads);
-    #pragma omp parallel
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
+    // // Get the maximum element id
+    // const int nelems = static_cast<int>(root_model_part.Nodes().size());
+    // ModelPart::ElementsContainerType::iterator elements_begin = root_model_part.ElementsBegin();
+    // std::vector<IndexType> elems_id(num_threads);
+    // #pragma omp parallel
+    // {
+    //     const int thread_id = OpenMPUtils::ThisThread();
 
-        #pragma omp for
-        for (int i = 0; i < nnodes; i++)
-        {
-            auto inode = nodes_begin + i;
-            if (nodes_id[thread_id] < inode->Id())
-                nodes_id[thread_id] = inode->Id();
-        }
+    //     #pragma omp for
+    //     for (int i = 0; i < nelems; i++)
+    //     {   /* WARNING: HERE IS SOME SEGMENTATION FAULT */
+    //         auto elem = elements_begin + i;
+    //         if (elems_id[thread_id] < elem->Id())
+    //             elems_id[thread_id] = elem->Id();
+    //     }
 
-        #pragma omp single
-        {
-            rNodesId = *std::max_element(nodes_id.begin(), nodes_id.end());
-        }
-    }
+    //     #pragma omp single
+    //     {
+    //         rElemsId = *(std::max_element(elems_id.begin(), elems_id.end()));
+    //     }
+    // }
 }
 
 
