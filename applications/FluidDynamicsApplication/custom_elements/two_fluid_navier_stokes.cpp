@@ -1903,4 +1903,4 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer& rSerializer)
 template class TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> >;
 template class TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> >;
 
-}
+} // namespace Kratos
