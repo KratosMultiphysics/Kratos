@@ -18,6 +18,8 @@
 // Project includes
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
+// DEBUG
+#include "includes/gid_io.h"
 
 namespace Kratos {
 template <>
@@ -641,8 +643,11 @@ bool ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::GetExactAreaIntegr
 {
     ConditionArrayListType conditions_points_slave;
     const bool is_inside = GetExactIntegration(OriginalSlaveGeometry, SlaveNormal, OriginalMasterGeometry, MasterNormal, conditions_points_slave);
-    if (is_inside)
+    if (is_inside) {
         GetTotalArea(OriginalSlaveGeometry, conditions_points_slave, rArea);
+//         // Debugging
+//         MathematicaDebug(0, OriginalSlaveGeometry, 0, OriginalMasterGeometry, conditions_points_slave);
+    }
 
     return is_inside;
 }
@@ -737,6 +742,76 @@ double ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGetExactArea
     }
 
     return area;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TBelong>
+void ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong>::TestGiDDebug(ModelPart& rMainModelPart)
+{
+    if (TDim == 3) {
+        ModelPart aux_model_part;
+
+        IndexType node_counter = 1;
+        IndexType cond_counter = 1;
+
+        for (auto& cond : rMainModelPart.Conditions()) {
+            if (cond.Is(SLAVE)) {
+                auto& slave_geometry = cond.GetGeometry();
+
+                if ( cond.Has( INDEX_MAP )) {
+                    IndexMap::Pointer indexes_map = cond.GetValue( INDEX_MAP );
+
+                    for (auto it_pair = indexes_map->begin(); it_pair != indexes_map->end(); ++it_pair ) {
+                        Condition::Pointer p_master_cond = rMainModelPart.pGetCondition(it_pair->first);
+                        ConditionArrayListType conditions_points_slave;
+                        const bool is_inside = GetExactIntegration(slave_geometry, cond.GetValue(NORMAL), p_master_cond->GetGeometry(), p_master_cond->GetValue(NORMAL), conditions_points_slave);
+                        if (is_inside) {
+                            for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+                                std::vector<NodeType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                                for (IndexType i_node = 0; i_node < TDim; ++i_node) {
+                                    PointType global_point;
+                                    slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                                    points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
+                                    node_counter++;
+                                }
+                                aux_model_part.CreateNewCondition("Condition3D", cond_counter, points_array, cond.pGetProperties());
+                                cond_counter++;
+                            }
+                        }
+                    }
+                } else {
+                    IndexSet::Pointer indexes_set = cond.GetValue( INDEX_SET );
+
+                    for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
+                        Condition::Pointer p_master_cond = rMainModelPart.pGetCondition(*it_pair);
+                        ConditionArrayListType conditions_points_slave;
+                        const bool is_inside = GetExactIntegration(slave_geometry, cond.GetValue(NORMAL), p_master_cond->GetGeometry(), p_master_cond->GetValue(NORMAL), conditions_points_slave);
+                        if (is_inside) {
+                            for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
+                                std::vector<NodeType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                                for (IndexType i_node = 0; i_node < TDim; ++i_node) {
+                                    PointType global_point;
+                                    slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
+                                    points_array[i_node] = aux_model_part.CreateNewNode(node_counter, global_point.X(), global_point.Y(), global_point.Z());
+                                    node_counter++;
+                                }
+                                aux_model_part.CreateNewCondition("Condition3D", cond_counter, points_array, cond.pGetProperties());
+                                cond_counter++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        auto pgidio = Kratos::make_shared<GidIO<>>("ExactMortarIntegrationUtilityDEBUG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
+        pgidio->InitializeMesh(0);
+        pgidio->WriteMesh(aux_model_part.GetMesh());
+        pgidio->FinalizeMesh();
+        pgidio->CloseResultFile();
+    }
 }
 
 /***********************************************************************************/

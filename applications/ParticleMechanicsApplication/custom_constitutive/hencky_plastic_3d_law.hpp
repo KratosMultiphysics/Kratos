@@ -233,7 +233,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    double mPlasticRegion;
+    unsigned int mPlasticRegion;
     Matrix mPlasticDeformationGradient;
     Matrix mElasticLeftCauchyGreen;
 

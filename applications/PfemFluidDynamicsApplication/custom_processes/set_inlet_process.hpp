@@ -16,7 +16,7 @@
 
 // System includes
 
-// Project includes 
+// Project includes
 #include "containers/variables_list_data_value_container.h"
 #include "spatial_containers/spatial_containers.h"
 
@@ -25,12 +25,12 @@
 #include "custom_utilities/modeler_utilities.hpp"
 
 ///VARIABLES used:
-//Data:      
+//Data:
 //StepData: CONTACT_FORCE, DISPLACEMENT
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -65,12 +65,12 @@ public:
 
     /// Default constructor.
     SetInletProcess(ModelPart& rModelPart,
-				int EchoLevel) 
+				int EchoLevel)
       : mrModelPart(rModelPart)
     {
-      std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
+        KRATOS_INFO("SetInletProcess") << " inlet_management CONSTRUCTOR ";
 
-      mEchoLevel = EchoLevel;
+        mEchoLevel = EchoLevel;
     }
 
 
@@ -168,8 +168,8 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
-    ModelerUtilities mModelerUtilities;  
+
+    ModelerUtilities mModelerUtilities;
 
     int mEchoLevel;
 
@@ -184,7 +184,7 @@ private:
 
 
 
- 
+
 
     ///@}
     ///@name Private  Access
@@ -246,6 +246,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SET_INLET_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_SET_INLET_PROCESS_H_INCLUDED  defined
 
 

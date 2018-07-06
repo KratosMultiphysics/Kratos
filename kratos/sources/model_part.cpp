@@ -551,17 +551,17 @@ void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties,
         mpParentModelPart->AddProperties(pNewProperties, ThisIndex);
     }
 
-    auto pprop_it = GetMesh(0).Properties().find(ThisIndex);
-    if( pprop_it != GetMesh(0).Properties().end() )
+    auto existing_prop_it = GetMesh(ThisIndex).Properties().find(pNewProperties->Id());
+    if( existing_prop_it != GetMesh(ThisIndex).Properties().end() )
     {
-        if( &(*(pprop_it.base())) != &pNewProperties )
+        if( &(*existing_prop_it) != pNewProperties.get() )
         {
-            KRATOS_ERROR << "trying to add a property with existing Id within the model part : " << Name() << " Property Id is :" << ThisIndex;
+            KRATOS_ERROR << "trying to add a property with existing Id within the model part : " << Name() << ", property Id is :" << pNewProperties->Id();
         }
     }
     else
     {
-        GetMesh(0).AddProperties(pNewProperties);
+        GetMesh(ThisIndex).AddProperties(pNewProperties);
     }
 }
 

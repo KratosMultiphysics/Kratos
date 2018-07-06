@@ -15,6 +15,7 @@
 #include "testing/testing.h"
 #include "includes/properties.h"
 #include "includes/checks.h"
+#include "includes/variables.h"
 
 namespace Kratos {
 	namespace Testing {

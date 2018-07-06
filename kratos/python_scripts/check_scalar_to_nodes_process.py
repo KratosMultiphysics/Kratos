@@ -32,6 +32,7 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
                 "interval"        : [0.0, 1e30], 
                 "value"           : 0.0, 
                 "tolerance_rank"  : 3, 
+                "reference_conf"  : false,
                 "local_axes"      : {} 
             } 
             """ 
@@ -83,7 +84,8 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
         self.interval[0] = settings["interval"][0].GetDouble() 
         self.interval[1] = settings["interval"][1].GetDouble() 
  
-        self.value_is_numeric = False 
+        self.reference_configuration = settings["reference_conf"].GetBool()
+        self.value_is_numeric = False
         self.is_time_function = False 
         if settings["value"].IsNumber(): 
             self.value_is_numeric = True 
@@ -124,10 +126,13 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
                         value = node.GetSolutionStepValue(self.variable, 0) 
                         self.assertAlmostEqual(self.value, value, self.tol) 
                 else: #most general case - space varying function (possibly also time varying) 
-                    if self.non_trivial_local_system == False: 
+                    if self.non_trivial_local_system is False:
                         for node in self.model_part.Nodes: 
                             value = node.GetSolutionStepValue(self.variable, 0) 
-                            self.assertAlmostEqual(self.aux_function.f(node.X,node.Y,node.Z,current_time), value, self.tol) 
+                            if (self.reference_configuration is False):
+                                self.assertAlmostEqual(self.aux_function.f(node.X,node.Y,node.Z,current_time), value, self.tol)
+                            else:
+                                self.assertAlmostEqual(self.aux_function.f(node.X0,node.Y0,node.Z0,current_time), value, self.tol)
                     else: #TODO: OPTIMIZE!! 
                         for node in self.model_part.Nodes: 
                             dx = node - self.x0 

@@ -173,6 +173,9 @@ void KratosStructuralMechanicsApplication::Register() {
                     << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl
                     << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
 
+    // General pourpose
+    KRATOS_REGISTER_VARIABLE(INTEGRATION_ORDER); // The integration order considered on the element
+
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
@@ -211,6 +214,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE(STENBERG_SHEAR_STABILIZATION_SUITABLE)
+    KRATOS_REGISTER_VARIABLE(SHELL_OFFSET)
     KRATOS_REGISTER_VARIABLE(SHELL_STRAIN)
     KRATOS_REGISTER_VARIABLE(SHELL_FORCE)
     KRATOS_REGISTER_VARIABLE(SHELL_STRAIN_GLOBAL)
@@ -258,7 +262,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(IS_FORMFINDING)
     KRATOS_REGISTER_VARIABLE(BASE_REF_1)
     KRATOS_REGISTER_VARIABLE(BASE_REF_2)
-    
+
 
 
     // Cross section
@@ -282,17 +286,14 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Adding the SPRISM EAS variables
     KRATOS_REGISTER_VARIABLE(ALPHA_EAS);
-    KRATOS_REGISTER_VARIABLE(EAS_IMP);
-    KRATOS_REGISTER_VARIABLE(SPRISM_TL_UL);
+    KRATOS_REGISTER_VARIABLE(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT);
+    KRATOS_REGISTER_VARIABLE(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT);
 
     // Adding the SPRISM additional variables
     KRATOS_REGISTER_VARIABLE(ANG_ROT);
 
-    // Adding the SPRISM number of transversal integration points
-    KRATOS_REGISTER_VARIABLE(NINT_TRANS);
-
     // Adding the SPRISM variable to deactivate the quadratic interpolation
-    KRATOS_REGISTER_VARIABLE(QUAD_ON);
+    KRATOS_REGISTER_VARIABLE(CONSIDER_QUADRATIC_SPRISM_ELEMENT);
 
     // Strain measures
     KRATOS_REGISTER_VARIABLE(HENCKY_STRAIN_VECTOR);
