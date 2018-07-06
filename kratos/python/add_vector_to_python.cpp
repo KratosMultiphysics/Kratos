@@ -69,7 +69,7 @@ namespace Python
 
         //access using slices
         binder.def("__setitem__", [](TVectorType &self, pybind11::slice this_slice, const TVectorType &value) {
-            size_t start, stop, step, slicelength;
+            std::size_t start, stop, step, slicelength;
             if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
                 throw pybind11::error_already_set();
             if (slicelength != value.size())
@@ -79,7 +79,7 @@ namespace Python
             }
         });
         binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType> {
-            size_t start, stop, step, slicelength;
+            std::size_t start, stop, step, slicelength;
             if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
                 throw pybind11::error_already_set();
             boost::numeric::ublas::slice ublas_slice(start, step, slicelength );
@@ -114,7 +114,7 @@ namespace Python
         .def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::value_type value){self[i] = value;} )
         .def("__getitem__", [](const VectorSlice& self, const unsigned int i){return self[i];} )
         .def("__setitem__", [](VectorSlice &self, pybind11::slice this_slice, const VectorSlice &value) {
-            size_t start, stop, step, slicelength;
+            std::size_t start, stop, step, slicelength;
             if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
                 throw pybind11::error_already_set();
             if (slicelength != value.size())
@@ -124,7 +124,7 @@ namespace Python
             }
         })
         .def("__setitem__", [](VectorSlice &self, pybind11::slice this_slice, const Vector &value) {
-            size_t start, stop, step, slicelength;
+            std::size_t start, stop, step, slicelength;
             if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
                 throw pybind11::error_already_set();
             if (slicelength != value.size())

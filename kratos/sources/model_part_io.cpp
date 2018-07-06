@@ -480,7 +480,7 @@ namespace Kratos
         Timer::Start("Writing Output");
 
         // Setting the buffer size
-//         size_t size_buffer = 4096; // Look to modify this
+//         std::size_t size_buffer = 4096; // Look to modify this
 //         char Buffer[size_buffer];
 //         mpStream->rdbuf()->pubsetbuf(Buffer, size_buffer);
 

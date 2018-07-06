@@ -1303,12 +1303,12 @@ private:
         std::size_t* index1_vector = A.index1_data().begin();
         std::size_t* index2_vector = A.index2_data().begin();
 
-        size_t left_limit = index1_vector[i];
-//    size_t right_limit = index1_vector[i+1];
+        std::size_t left_limit = index1_vector[i];
+//      std::size_t right_limit = index1_vector[i+1];
 
         //find the first entry
-        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
-        size_t last_found = EquationId[0];
+        std::size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
+        std::size_t last_found = EquationId[0];
 
 #ifndef USE_LOCKS_IN_ASSEMBLY
         double& r_a = values_vector[last_pos];
@@ -1321,7 +1321,7 @@ private:
 
 
         //now find all of the other entries
-        size_t pos = 0;
+        std::size_t pos = 0;
         for(unsigned int j=1; j<EquationId.size(); j++)
         {
             unsigned int id_to_find = EquationId[j];
