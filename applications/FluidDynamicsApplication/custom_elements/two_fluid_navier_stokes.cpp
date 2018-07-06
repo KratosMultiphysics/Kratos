@@ -198,7 +198,6 @@ void TwoFluidNavierStokes<TElementData>::CalculateRightHandSide(
 template <class TElementData>
 int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 {
-
     KRATOS_TRY;
     int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
@@ -227,7 +226,7 @@ void TwoFluidNavierStokes<TElementData>::PrintInfo(
 {
     rOStream << this->Info() << std::endl;
 
-    if (this->GetConstitutiveLaw() != nullptr) {
+    if (this->GetConstitutiveLaw() != nullptr){
         rOStream << "with constitutive law " << std::endl;
         this->GetConstitutiveLaw()->PrintInfo(rOStream);
     }
@@ -1802,13 +1801,13 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
 
 template< class TElementData >
 void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
-	TElementData& rData,
+	const TElementData& rData,
 	Matrix& rLeftHandSideMatrix,
 	VectorType& rRightHandSideVector,
-    MatrixType& rHtot,
-	MatrixType& rVtot,
+    const MatrixType& rHtot,
+	const MatrixType& rVtot,
 	MatrixType& rKeeTot,
-	VectorType& rRHSeeTot)
+	const VectorType& rRHSeeTot)
 {
     const double min_area_ratio = -1e-6;
 
@@ -1855,9 +1854,9 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
 
 	// "weakly" impose continuity
 	for (unsigned int i = 0; i < Dim; ++i){
-		const double di = fabs(rData.Distance[i]);
+		const double di = std::abs(rData.Distance[i]);
 		for (unsigned int j = i + 1; j < NumNodes; j++){
-			const double dj = fabs(rData.Distance[j]);
+			const double dj = std::abs(rData.Distance[j]);
             // Check if the edge is cut, if it is, set the penalty constraint
 			if (rData.Distance[i] * rData.Distance[j] < 0.0){
 				double sum_d = di + dj;

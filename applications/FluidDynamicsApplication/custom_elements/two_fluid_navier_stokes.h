@@ -387,13 +387,13 @@ private:
      * @param rRHSeeTot Right Hand Side vector associated to the pressure enrichment DOFs
      */
 	void CondenseEnrichment(
-		TElementData& rData,
+		const TElementData& rData,
 		Matrix& rLeftHandSideMatrix,
 		VectorType& rRightHandSideVector,
-		MatrixType& rVTot,
-		MatrixType& rHTot,
+		const MatrixType& rVTot,
+		const MatrixType& rHTot,
 		MatrixType& rKeeTot,
-		VectorType& rRHSeeTot);
+		const VectorType& rRHSeeTot);
 
     ///@}
     ///@name Private  Access
