@@ -29,7 +29,7 @@
 #include "includes/process_info.h"
 namespace Kratos
 {
-/** \brief Constraint * @class MasterSlaveConstraint
+/** * @class MasterSlaveConstraint
     * @ingroup KratosCore
     * @brief
 	* A class that implements the interface for different master-slave constraints to be applied on a system.
@@ -89,21 +89,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     {
 
     }
-
-    /// Copy Constructor
-    MasterSlaveConstraint(const MasterSlaveConstraint& rOther)
-    {
-        this->SetId(rOther.Id());
-        // this->Flags = rOther.Flags;
-    }
-
-    // template <typename ...Params>
-    // virtual MasterSlaveConstraint::Pointer Create(Params&&... params)
-    // {
-    //     KRATOS_TRY
-    //     return Kratos::make_shared<TConstraintType>(std::forward<Params>(params)...);
-    //     KRATOS_CATCH("");
-    // }
 
     /**
      * creates a new constraint pointer

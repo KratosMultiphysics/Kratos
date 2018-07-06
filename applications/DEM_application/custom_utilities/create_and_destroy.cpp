@@ -199,12 +199,12 @@ namespace Kratos {
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
 
-        pnew_node->AddDof(VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
-        pnew_node->AddDof(ANGULAR_VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
+        pnew_node->AddDof(VELOCITY_X);
+        pnew_node->AddDof(VELOCITY_Y);
+        pnew_node->AddDof(VELOCITY_Z);
+        pnew_node->AddDof(ANGULAR_VELOCITY_X);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Y);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Z);
 
         if (initial) {
             pnew_node->pGetDof(VELOCITY_X)->FixDof();
@@ -276,12 +276,12 @@ namespace Kratos {
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
 
 
-        pnew_node->AddDof(VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
-        pnew_node->AddDof(ANGULAR_VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
+        pnew_node->AddDof(VELOCITY_X);
+        pnew_node->AddDof(VELOCITY_Y);
+        pnew_node->AddDof(VELOCITY_Z);
+        pnew_node->AddDof(ANGULAR_VELOCITY_X);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Y);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Z);
 
         pnew_node->pGetDof(VELOCITY_X)->FixDof();
         pnew_node->pGetDof(VELOCITY_Y)->FixDof();
@@ -316,15 +316,14 @@ namespace Kratos {
         Node<3>::Pointer pnew_node;
 
         double radius = r_sub_model_part_with_parameters[RADIUS];
-        double max_radius = 1.5 * radius;
-        std::string distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
+        const double& max_radius = r_sub_model_part_with_parameters[MAXIMUM_RADIUS];
+        const std::string& distribution_type = r_sub_model_part_with_parameters[PROBABILITY_DISTRIBUTION];
 
         if (initial) {
             radius = max_radius;
         } else {
-            double std_deviation = r_sub_model_part_with_parameters[STANDARD_DEVIATION];
-            //double min_radius = r_sub_model_part_with_parameters[MIN_RADIUS];
-            double min_radius = 0.5 * radius;
+            const double& std_deviation = r_sub_model_part_with_parameters[STANDARD_DEVIATION];
+            const double& min_radius = r_sub_model_part_with_parameters[MINIMUM_RADIUS];
 
             if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
             else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
@@ -347,6 +346,11 @@ namespace Kratos {
         else {
             array_1d<double, 3 > zero_vector(3, 0.0);
             SphericParticle* injector_spheric_particle = dynamic_cast<SphericParticle*> (injector_element.get());
+            if (r_sub_model_part_with_parameters[DENSE_INLET]){
+                p_particle->Set(DEMFlags::CUMULATIVE_ZONE, true);
+                pnew_node->Set(DEMFlags::CUMULATIVE_ZONE, true);
+            }
+
 
             if (mDoSearchNeighbourElements) { // there is no risk of contact so there is no need to track overlap
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
@@ -409,12 +413,12 @@ namespace Kratos {
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
 
-        pnew_node->AddDof(VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
-        pnew_node->AddDof(ANGULAR_VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
+        pnew_node->AddDof(VELOCITY_X);
+        pnew_node->AddDof(VELOCITY_Y);
+        pnew_node->AddDof(VELOCITY_Z);
+        pnew_node->AddDof(ANGULAR_VELOCITY_X);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Y);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Z);
 
         pnew_node->pGetDof(VELOCITY_X)->FixDof();
         pnew_node->pGetDof(VELOCITY_Y)->FixDof();
@@ -453,12 +457,12 @@ namespace Kratos {
         pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
 
-        pnew_node->AddDof(VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
-        pnew_node->AddDof(ANGULAR_VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
+        pnew_node->AddDof(VELOCITY_X);
+        pnew_node->AddDof(VELOCITY_Y);
+        pnew_node->AddDof(VELOCITY_Z);
+        pnew_node->AddDof(ANGULAR_VELOCITY_X);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Y);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Z);
 
         pnew_node->pGetDof(VELOCITY_X)->FixDof();
         pnew_node->pGetDof(VELOCITY_Y)->FixDof();
@@ -712,12 +716,12 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
 
-        pnew_node->AddDof(VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
-        pnew_node->AddDof(ANGULAR_VELOCITY_X, REACTION_X);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
-        pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
+        pnew_node->AddDof(VELOCITY_X);
+        pnew_node->AddDof(VELOCITY_Y);
+        pnew_node->AddDof(VELOCITY_Z);
+        pnew_node->AddDof(ANGULAR_VELOCITY_X);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Y);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Z);
 
         SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (p_particle.get());
 

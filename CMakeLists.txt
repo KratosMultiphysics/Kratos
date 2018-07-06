@@ -107,10 +107,10 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 17.0)
-      # pybind requires min. version 17:
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+      # pybind requires min. version 17, but we need at least 18:
       message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
-      message( FATAL_ERROR "Please use Version 17 or greater")
+      message( FATAL_ERROR "Please use Version 18 or greater")
     endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -lpthread -wd654 -wd10010  ")
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  ")

@@ -285,7 +285,7 @@ private:
       pProperties->SetValue(LOCAL_AXES_MATRIX, LocalAxesMatrix);
 
       //add properties to model part
-      rMainModelPart.AddProperties(pProperties,NumberOfProperties);
+      rMainModelPart.AddProperties(pProperties);
 
       // create node for the rigid body center of gravity:
       unsigned int LastNodeId  = rMainModelPart.Nodes().back().Id() + 1;

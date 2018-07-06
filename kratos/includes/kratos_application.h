@@ -26,7 +26,7 @@
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
 #include "includes/master_slave_constraint.h"
-#include "includes/user_provided_linear_master_slave_constraint.h"
+#include "includes/linear_master_slave_constraint.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -334,7 +334,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;
-    const UserProvidedLinearMasterSlaveConstraint mUserProvidedLinearMasterSlaveConstraint;
+    const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
 
     // Deprecated conditions start
     const Condition mCondition;

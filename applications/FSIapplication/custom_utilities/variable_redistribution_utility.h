@@ -165,44 +165,6 @@ namespace Kratos
 
 
       ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
-
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
-      ///@}
-
     private:
       ///@name Static Member Variables
       ///@{
@@ -211,22 +173,38 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-
       ///@}
       ///@name Private Operators
       ///@{
-
 
       ///@}
       ///@name Private Operations
       ///@{
 
+    /**
+     * @brief Specialization of ConvertDistributeValuesToPoint according to the variable value type
+     * 
+     * @tparam TValueType variables value type (double or array_1<double,3>)
+     * @param rModelPart model part in where the point values accumulation is done
+     * @param rDistributedVariable origin distributed variable
+     * @param rPointVariable destination point variable
+     */
       template< class TValueType >
       static void CallSpecializedConvertDistributedValuesToPoint(
           ModelPart& rModelPart,
           const Variable< TValueType >& rDistributedVariable,
           const Variable< TValueType >& rPointVariable);
 
+    /**
+     * @brief Specialization of DistributePointValues according to the variable value type
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the distribution is done
+     * @param rPointVariable origin point variable
+     * @param rDistributedVariable destination distributed variable
+     * @param Tolerance maximum allowed difference (in L2 norm) between origin and destination values.
+     * @param MaximumIterations maximum number of iterations for the procedure.
+     */
       template< class TValueType >
       static void CallSpecializedDistributePointValues(
           ModelPart& rModelPart,
@@ -235,12 +213,51 @@ namespace Kratos
           double Tolerance,
           unsigned int MaximumIterations);
 
+    /**
+     * @brief ConvertDistributedValuesToPoint specialization according to geometry family, points number and value type
+     * 
+     * @tparam TFamily geometry family in the model part in where the accumulation is done
+     * @tparam TPointNumber points number in the geometries in where the accumulation is done
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the point values accumulation is done
+     * @param rDistributedVariable origin distributed variable
+     * @param rPointVariable destination point variable
+     */
       template< GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
       static void SpecializedConvertDistributedValuesToPoint(
           ModelPart& rModelPart,
           const Variable< TValueType >& rDistributedVariable,
           const Variable< TValueType >& rPointVariable);
 
+    /**
+     * @brief DummyConvertDistributedValuesToPoint
+     * This class does nothing, it is only used in case there is no conditions in the current 
+     * partition to perform the communication operations that are done in the "standard" case.
+     * Otherwise, the MPI synchronism is broken
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the point values accumulation is done
+     * @param rDistributedVariable origin distributed variable
+     * @param rPointVariable destination point variable
+     */
+      template< class TValueType >
+      static void DummySpecializedConvertDistributedValuesToPoint(
+          ModelPart& rModelPart,
+          const Variable< TValueType >& rDistributedVariable,
+          const Variable< TValueType >& rPointVariable);
+
+    /**
+     * @brief DistributePointValues specialization according to geometry family, points number and value type
+     * 
+     * @tparam TFamily geometry family in the model part in where the distribution is done
+     * @tparam TPointNumber points number in the geometries in where the distribution is done
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the distribution is done
+     * @param rPointVariable origin point variable
+     * @param rDistributedVariable destination distributed variable
+     * @param Tolerance maximum allowed difference (in L2 norm) between origin and destination values.
+     * @param MaximumIterations maximum number of iterations for the procedure.
+     */
       template< GeometryData::KratosGeometryFamily TFamily, unsigned int TPointNumber, class TValueType >
       static void SpecializedDistributePointValues(
           ModelPart& rModelPart,
@@ -249,29 +266,115 @@ namespace Kratos
           double Tolerance,
           unsigned int MaximumIterations);
 
+    /**
+     * @brief Dummy SpecializedDistributePointValues.
+     * This class does nothing, it is only used in case there is no conditions in the current 
+     * partition to perform the communication operations that are done in the "standard" case.
+     * Otherwise, the MPI synchronism is broken
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the distribution is done
+     * @param rDistributedVariable destination distributed variable
+     * @param Tolerance maximum allowed difference (in L2 norm) between origin and destination values.
+     * @param MaximumIterations maximum number of iterations for the procedure.
+     */
+      template< class TValueType >
+      static void DummySpecializedDistributePointValues(
+          ModelPart& rModelPart,
+          const Variable< TValueType >& rDistributedVariable,
+          double Tolerance,
+          unsigned int MaximumIterations);
+
+    /**
+     * @brief This function computes the NODAL_MAUX values
+     * 
+     * @param rModelPart model part in where the NODAL_MAUX is computed
+     */
       static void ComputeNodalSizes(ModelPart& rModelPart);
 
+    /**
+     * @brief Fills the given matrix with the consistent mass matrix values
+     * 
+     * @tparam TFamily geometry family in the model part in where the operation is done
+     * @tparam TNumNodes nodes number of the geometries in where the operation is done
+     * @param rMassMatrix computed consistent mass matrix that is to be filled
+     */
       template< GeometryData::KratosGeometryFamily TFamily, unsigned int TNumNodes >
-      static void ConsistentMassMatrix(boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix);
+      static void ConsistentMassMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rMassMatrix);
 
+    /**
+     * @brief Computes the RHS of the distribution problem
+     * 
+     * @tparam TNumNodes nodes number of the geometries in where the operation is done
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the distribution is done
+     * @param rPointVariable origin point variable
+     * @param rDistributedVariable destination distributed variable
+     * @param rMassMatrix mass matrix that is filled
+     */
       template< unsigned int TNumNodes, class TValueType >
       static void UpdateDistributionRHS(
           ModelPart& rModelPart,
           const Variable< TValueType >& rPointVariable,
           const Variable< TValueType >& rDistributedVariable,
-          boost::numeric::ublas::bounded_matrix<double, TNumNodes, TNumNodes>& rMassMatrix);
+          BoundedMatrix<double, TNumNodes, TNumNodes>& rMassMatrix);
 
+    /**
+     * @brief Dummy computation of the RHS of the distribution problem
+     * This class does nothing, it is only used in case there is no conditions in the current 
+     * partition to perform the communication operations that are done in the "standard" case
+     * Otherwise, the MPI synchronism is broken
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the distribution is done
+     * @param rDistributedVariable destination distributed variable
+     */
+      template< class TValueType >
+      static void DummyUpdateDistributionRHS(
+          ModelPart& rModelPart,
+          const Variable< TValueType >& rDistributedVariable);
+
+    /**
+     * @brief Function that solves the distribution problem. It is called at each iteration.
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the distribution is done
+     * @param rDistributedVariable destination distributed variable
+     * @return double accurmulated error norm of the distribution
+     */
       template< class TValueType >
       static double SolveDistributionIteration(
           ModelPart& rModelPart,
           const Variable< TValueType >& rDistributedVariable);
 
+    /**
+     * @brief Auxiliar method to retrieve the variable used in the RHS of the distribution problem
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rVariable reference to the RHS variable of the distribution problem
+     * @return const Variable< TValueType >& reference to the RHS variable of the distribution problem
+     */
       template< class TValueType >
       static const Variable< TValueType >& GetRHSVariable(const Variable<TValueType>& rVariable);
 
+    /**
+     * @brief Auxiliar function to compute the error norm according to the variable value type 
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param NodalValue nodal value 
+     * @param NodalSize area associated to the current node
+     * @return double product of the nodal value norm times the nodal size
+     */
       template< class TValueType >
       static double AddToNorm(TValueType NodalValue, double NodalSize);
 
+    /**
+     * @brief Auxiliar function to perform a threadsafe addition
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rLHS left hand side of the summation (accumulated value)
+     * @param rRHS right hand side of the summation (value to be accumulated in the LHS)
+     */
       template< class TValueType >
       static void ThreadsafeAdd(TValueType& rLHS, const TValueType& rRHS);
             
@@ -279,11 +382,9 @@ namespace Kratos
       ///@name Private  Access
       ///@{
 
-
       ///@}
       ///@name Private Inquiry
       ///@{
-
 
       ///@}
       ///@name Un accessible methods
@@ -298,7 +399,6 @@ namespace Kratos
       /// Copy constructor.
       VariableRedistributionUtility(VariableRedistributionUtility const& rOther);
 
-
       ///@}
 
     }; // Class VariableRedistributionUtility
@@ -308,11 +408,9 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
 
-
   ///@}
   ///@name Input and output
   ///@{
-
 
   ///@}
 

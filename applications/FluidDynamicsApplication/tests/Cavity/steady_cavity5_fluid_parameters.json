@@ -25,14 +25,14 @@
         "maximum_iterations"          : 1000,
         "dynamic_tau"                 : 0.0,
         "oss_switch"                  : 0,
-        "relative_velocity_tolerance" : 0.001,
-        "absolute_velocity_tolerance" : 1e-5,
-        "relative_pressure_tolerance" : 0.001,
-        "absolute_pressure_tolerance" : 1e-5,
+        "relative_velocity_tolerance" : 1e-6,
+        "absolute_velocity_tolerance" : 1e-6,
+        "relative_pressure_tolerance" : 1e-6,
+        "absolute_pressure_tolerance" : 1e-6,
         "linear_solver_settings"      : {
             "solver_type"         : "AMGCL",
             "max_iteration"       : 200,
-            "tolerance"           : 1e-7,
+            "tolerance"           : 1e-9,
             "provide_coordinates" : false,
             "smoother_type"       : "ilu0",
             "krylov_type"         : "gmres",
@@ -120,7 +120,9 @@
         "Parameters" : {
             "position"         : [0.6, 0.6, 0.0],
             "model_part_name"  : "Cavity",
-            "output_file_name" : "steady_cavity5_probe_1.dat",
+            "output_file_settings": {
+                "file_name"  : "steady_cavity5_probe_1.dat"
+            },
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -134,7 +136,9 @@
         "Parameters" : {
             "position"         : [0.6, 0.4, 0.0],
             "model_part_name"  : "Cavity",
-            "output_file_name" : "steady_cavity5_probe_2.dat",
+            "output_file_settings": {
+                "file_name"  : "steady_cavity5_probe_2.dat"
+            },
             "output_variables" : [
                 "VELOCITY_X",
                 "VELOCITY_Y",
@@ -150,7 +154,7 @@
             "reference_file_name" : "steady_cavity5_probe_ref_1.dat",
             "comparison_type"     : "dat_file",
             "remove_output_file"    : true,
-            "decimal_places"      : 7
+            "decimal_places"      : 5
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -162,7 +166,7 @@
             "reference_file_name" : "steady_cavity5_probe_ref_2.dat",
             "comparison_type"     : "dat_file",
             "remove_output_file"    : true,
-            "decimal_places"      : 7
+            "decimal_places"      : 5
         }
     }]
 }
