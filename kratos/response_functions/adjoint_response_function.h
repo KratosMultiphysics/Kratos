@@ -35,7 +35,7 @@ namespace Kratos
 ///@{
 
 /// A base class for adjoint response functions.
-class KRATOS_API(KRATOS_CORE) AdjointResponseFunction
+class AdjointResponseFunction
 {
 public:
     ///@name Type Definitions
