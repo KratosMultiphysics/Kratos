@@ -298,6 +298,18 @@ void UpdatedLagrangianQuadrilateral::SetGeneralVariables(GeneralVariables& rVari
     rValues.SetShapeFunctionsValues(rVariables.N);
 
 }
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianQuadrilateral::UpdateGeneralVariables(GeneralVariables& rVariables,
+        ConstitutiveLaw::Parameters& rValues)
+{
+    // Update the total determinant of deformation gradient after return mapping
+    // This is necessary for non-isochoric return mapping
+    rVariables.detFT = rValues.GetDeterminantF();
+}
+
 //************************************************************************************
 //*****************check size of LHS and RHS matrices*********************************
 
@@ -371,9 +383,8 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
         this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
     }
 
-    // Update the total determinant of deformation gradient after return mapping
-    // This is necessary for non-isochoric return mapping
-    Variables.detFT = Values.GetDeterminantF();
+    // Update general variables after material response is calculated - this will update necessary information
+    this->UpdateGeneralVariables(Variables,Values);
 
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
