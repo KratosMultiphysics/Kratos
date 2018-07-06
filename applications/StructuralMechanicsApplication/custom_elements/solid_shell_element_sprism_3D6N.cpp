@@ -3752,7 +3752,15 @@ void SolidShellElementSprism3D6N::SetGeneralVariables(
 
     // Adding the standard prism shape functions
     rValues.SetShapeFunctionsValues(rVariables.N);
-    rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
+
+    // Computing gradient
+    Matrix DN_DX;
+    const Matrix& DN_De = GetGeometry().ShapeFunctionLocalGradient(rPointNumber, this->GetIntegrationMethod());
+    double detJ;
+    Matrix inv_j;
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], inv_j, detJ );
+    noalias(DN_DX) = prod(DN_De, inv_j);
+    rValues.SetShapeFunctionsDerivatives(DN_DX);
 }
 
 /***********************************************************************************/
@@ -3834,11 +3842,8 @@ void SolidShellElementSprism3D6N::CalculateKinematics(
 
     this->CbartoFbar(rVariables, rPointNumber);
 
-    // Get the shape functions for the order of the integration method [N]
-    const Matrix& N_container = rVariables.GetShapeFunctions();
-
     // Set Shape Functions Values for this integration point
-    rVariables.N = row( N_container, rPointNumber);
+    rVariables.N = GetGeometry().ShapeFunctionsValues(rVariables.N, rIntegrationPoints[rPointNumber].Coordinates());
 
     KRATOS_CATCH( "" );
 }
@@ -3996,11 +4001,7 @@ void SolidShellElementSprism3D6N::InitializeGeneralVariables(GeneralVariables& r
     rVariables.FT = IdentityMatrix(3);
     rVariables.B  = ZeroMatrix(6, 36);
 
-    rVariables.DN_DX = ZeroMatrix(6, 3);
     rVariables.ConstitutiveMatrix = ZeroMatrix(6, 6);
-
-    // Reading shape functions
-    rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( this->GetIntegrationMethod() ));
 
     // Jacobians
     rVariables.J.resize(1, false);
@@ -4011,24 +4012,12 @@ void SolidShellElementSprism3D6N::InitializeGeneralVariables(GeneralVariables& r
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, this->GetIntegrationMethod() );
 
-    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN) == false ) {
+    if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) {
         //Calculate Delta Position
         Matrix delta_position( 6 , 3);
         this->CalculateDeltaPosition(delta_position);
         rVariables.J = GetGeometry().Jacobian( rVariables.J, this->GetIntegrationMethod(), delta_position);
     }
-
-    // Computing gradient
-    const IndexType integration_point_number = GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
-    GeometryType::ShapeFunctionsGradientsType DN_DX(integration_point_number, ZeroMatrix(6, 3));
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
-    double detJ;
-    Matrix inv_j;
-    for (IndexType i_point = 0; i_point < integration_point_number; ++i_point) {
-        MathUtils<double>::InvertMatrix( rVariables.j[i_point], inv_j, detJ );
-        noalias(DN_DX[i_point]) = prod(DN_De[i_point], inv_j);
-    }
-    rVariables.SetShapeFunctionsGradients(DN_DX);
 }
 
 /***********************************************************************************/
@@ -4039,7 +4028,7 @@ void SolidShellElementSprism3D6N::FinalizeStepVariables(
     const IndexType rPointNumber
     )
 {
-    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN) == false ) {
+    if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) {
         // Update internal (historical) variables
         mAuxContainer[rPointNumber] = prod(rVariables.F, rVariables.F0);
     }

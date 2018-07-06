@@ -717,11 +717,6 @@ protected:
     /* Parameters to be used in the Element as they are. Direct interface to Parameters Struct */
     struct GeneralVariables
     {
-    private:
-        // Variables including all integration points
-        const Matrix* pNcontainer;
-        const GeometryType::ShapeFunctionsGradientsType* pDN_De;
-
     public:
         // General variables for large displacement use
         Matrix ConstitutiveMatrix; /// Constitutive matrix
@@ -739,37 +734,10 @@ protected:
 
         // Standard prism shape functions
         Vector  N;
-        Matrix  DN_DX;
 
         // Variables including all integration points
         GeometryType::JacobiansType J;
         GeometryType::JacobiansType j;
-
-        /**
-        * Sets the value of a specified pointer variable
-        */
-        void SetShapeFunctions(const Matrix& rNcontainer)
-        {
-            pNcontainer=&rNcontainer;
-        }
-
-        void SetShapeFunctionsGradients(const GeometryType::ShapeFunctionsGradientsType &rDN_De)
-        {
-            pDN_De=&rDN_De;
-        }
-
-        /**
-        * Returns the value of a specified pointer variable
-        */
-        const Matrix& GetShapeFunctions()
-        {
-            return *pNcontainer;
-        }
-
-        const GeometryType::ShapeFunctionsGradientsType& GetShapeFunctionsGradients()
-        {
-            return *pDN_De;
-        }
     };
 
     /**
