@@ -705,6 +705,11 @@ protected:
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues);
 
+    /**
+     * Update Variables of the Element to the Parameters of the Constitutive Law if needed
+     */
+    virtual void UpdateGeneralVariables(GeneralVariables& rVariables,
+                                     ConstitutiveLaw::Parameters& rValues);
 
 
     /**
