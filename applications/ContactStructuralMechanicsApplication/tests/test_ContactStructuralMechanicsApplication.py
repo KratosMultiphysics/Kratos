@@ -98,6 +98,7 @@ from ValidationTests import ALMIroningTestContact    as TALMIroningTestContact
 from ValidationTests import ALMIroningDieTestContact as TALMIroningDieTestContact
 from ValidationTests import ALMLargeDisplacementPatchTestTetra as TALMLargeDisplacementPatchTestTetra
 from ValidationTests import ALMLargeDisplacementPatchTestHexa as TALMLargeDisplacementPatchTestHexa
+from ValidationTests import ALMMultiLayerContactTest as TALMMultiLayerContactTest
 
 # Components ALM frictionless tests
 from ValidationTests import ComponentsALMTaylorPatchDynamicTestContact as TComponentsALMTaylorPatchDynamicTestContact
@@ -105,6 +106,7 @@ from ValidationTests import ComponentsALMMeshMovingMatchingTestContact    as TCo
 from ValidationTests import ComponentsALMMeshMovingNotMatchingTestContact as TComponentsALMMeshMovingNotMatchingTestContact
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestTetra as TComponentsALMLargeDisplacementPatchTestTetra
 from ValidationTests import ComponentsALMLargeDisplacementPatchTestHexa as TComponentsALMLargeDisplacementPatchTestHexa
+from ValidationTests import ComponentsALMMultiLayerContactTest as TComponentsALMMultiLayerContactTest
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -225,6 +227,7 @@ def AssambleTestSuites():
     #validationSuite.addTest(TALMIroningDieTestContact('test_execution'))
     validationSuite.addTest(TALMLargeDisplacementPatchTestTetra('test_execution'))
     validationSuite.addTest(TALMLargeDisplacementPatchTestHexa('test_execution'))
+    validationSuite.addTest(TALMMultiLayerContactTest('test_execution'))
     
     # Components ALM frictionless tests
     validationSuite.addTest(TComponentsALMTaylorPatchDynamicTestContact('test_execution'))
@@ -232,6 +235,7 @@ def AssambleTestSuites():
     validationSuite.addTest(TComponentsALMMeshMovingNotMatchingTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestTetra('test_execution'))
     validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestHexa('test_execution'))
+    validationSuite.addTest(TComponentsALMMultiLayerContactTest('test_execution'))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
@@ -299,11 +303,13 @@ def AssambleTestSuites():
             TLargeDisplacementPatchTestHexa,
             TALMLargeDisplacementPatchTestTetra,
             TALMLargeDisplacementPatchTestHexa,
+            TALMMultiLayerContactTest,
             TComponentsALMTaylorPatchDynamicTestContact,
             TComponentsALMMeshMovingMatchingTestContact,
             TComponentsALMMeshMovingNotMatchingTestContact,
             TComponentsALMLargeDisplacementPatchTestTetra,
             TComponentsALMLargeDisplacementPatchTestHexa,
+            TComponentsALMMultiLayerContactTest,
         ])
     )
 
