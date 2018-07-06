@@ -55,6 +55,8 @@ public:
     /// Counted pointer of ModifiedMohrCoulombPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedMohrCoulombPlasticPotential);
 
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -88,10 +90,8 @@ public:
     ///@{
 
     /**
-     * @brief This  script  calculates  the derivatives  of the plastic potential
-    according   to   NAYAK-ZIENKIEWICZ   paper International
-    journal for numerical methods in engineering vol 113-135 1972.
-     As:            DF/DS = c1*V1 + c2*V2 + c3*V3
+     * @brief This  script  calculates  the derivatives  of the plastic potential according   to   NAYAK-ZIENKIEWICZ  paper International journal for numerical methods in engineering vol 113-135 1972.
+     * @details As:            DF/DS = c1*V1 + c2*V2 + c3*V3
      * @param StressVector The stress vector 
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator 
@@ -104,47 +104,46 @@ public:
         const double J2, 
         Vector& rGFlux,
         const Properties& rMaterialProperties
-    )
+        )
     {
-        Vector FirstVector, SecondVector, ThirdVector;
+        Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
-        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
-        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, second_vector);
+        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, third_vector);
 
-        double J3, LodeAngle;
+        double J3, lode_angle;
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, LodeAngle);
+        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double Checker = std::abs(LodeAngle*57.29577951308);
+        const double Checker = std::abs(lode_angle * 180.0/Globals::Pi);
 
-        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi/180.0;
         const double sin_dil    = std::sin(dilatancy);
         const double cos_dil    = std::cos(dilatancy);
-        const double sin_theta  = std::sin(LodeAngle);
-        const double cos_theta  = std::cos(LodeAngle);
-        const double cos_3theta = std::cos(3.0*LodeAngle);
-        const double tan_theta  = std::tan(LodeAngle);
-        const double tan_3theta = std::tan(3.0*LodeAngle);
+        const double sin_theta  = std::sin(lode_angle);
+        const double cos_theta  = std::cos(lode_angle);
+        const double cos_3theta = std::cos(3.0*lode_angle);
+        const double tan_theta  = std::tan(lode_angle);
+        const double tan_3theta = std::tan(3.0*lode_angle);
         const double Root3     = std::sqrt(3.0);
 
         const double compr_yield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double tensi_yield = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = compr_yield / tensi_yield;
 
-        const double AnglePhi = (Globals::Pi * 0.25) + dilatancy * 0.5;
-        const double alpha = n / (std::tan(AnglePhi) * std::tan(AnglePhi));
+        const double angle_phi = (Globals::Pi * 0.25) + dilatancy * 0.5;
+        const double alpha = n / (std::tan(angle_phi) * std::tan(angle_phi));
 
-        const double CFL = 2.0 * std::tan(AnglePhi) / cos_dil;
+        const double CFL = 2.0 * std::tan(angle_phi) / cos_dil;
 
         const double K1 = 0.5*(1 + alpha) - 0.5*(1 - alpha)*sin_dil;
         const double K2 = 0.5*(1 + alpha) - 0.5*(1 - alpha) / sin_dil;
         const double K3 = 0.5*(1 + alpha)*sin_dil - 0.5*(1 - alpha);
 
-		double c1, c2, c3;
-        if (sin_dil != 0.0) c1 = CFL * K3 / 3.0;
-        else const double c1 = 0.0; // check
-
+        double c1, c2, c3;
+        if (std::abs(sin_dil) > tolerance) c1 = CFL * K3 / 3.0;
+        else c1 = 0.0; // check
 
         if (Checker < 29.0) {
             c2 = cos_theta * CFL * (K1*(1 + tan_theta*tan_3theta) + K2*sin_dil*(tan_3theta - tan_theta) / Root3);
@@ -152,11 +151,11 @@ public:
         } else {
             c3 = 0.0;
             double Aux = 1.0;
-            if (LodeAngle > 0.0) Aux = -1.0;
+            if (std::abs(lode_angle) > tolerance) Aux = -1.0;
             c2 = 0.5*CFL*(K1*Root3 + Aux*K2*sin_dil/Root3);
         }
 
-        noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     ///@}

@@ -197,13 +197,13 @@ public:
             noalias(IntegratedStressVector) = (1.0 - Damage)*PredictiveStressVector;
 
             if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
-				noalias(TangentTensor) = (1.0 - Damage)*C;
+                noalias(TangentTensor) = (1.0 - Damage)*C;
 
                 ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVector, 
                     rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
 
                 this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-			}
+            }
 
         } else { // Damage case
             const double CharacteristicLength = rValues.GetElementGeometry().Length();
@@ -217,21 +217,21 @@ public:
             this->SetNonConvThreshold(UniaxialStress);
 
             if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
-				this->CalculateTangentTensor(rValues); 
+                this->CalculateTangentTensor(rValues);
                 noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
 
                 ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVector, 
                     rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
                     
                 this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-			}
+            }
         }
     } // End CalculateMaterialResponseCauchy
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
     {
         // Calculates the Tangent Constitutive Tensor by perturbation
-		TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
     }
 
     void FinalizeSolutionStep(
@@ -274,16 +274,16 @@ public:
         rElasticityTensor(5, 5) = mu;
     }
 
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
     {
     }
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
     {
     }
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
     {
     }
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
     {
     }
 

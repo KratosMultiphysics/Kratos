@@ -157,13 +157,13 @@ public:
             noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; 
             noalias(PlasticStrain) += PlasticStrainIncrement; 
             noalias(DS) = prod(C, PlasticStrainIncrement); 
-			noalias(rPredictiveStressVector) -= DS;
+            noalias(rPredictiveStressVector) -= DS;
 
             CalculatePlasticParameters(rPredictiveStressVector, StrainVector, UniaxialStress, Threshold, 
                 PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, rMaterialProperties, CharacteristicLength); 
 
-			F = UniaxialStress - Threshold;
+            F = UniaxialStress - Threshold;
 
             if (F < std::abs(1.0e-8 * Threshold)) { // Has converged
                 is_converged = true; 
@@ -206,7 +206,7 @@ public:
     )
     {
         Vector Deviator = ZeroVector(6); 
-		Vector HCapa    = ZeroVector(6);
+        Vector HCapa    = ZeroVector(6);
         double J2, r0, r1, Slope, HardParam;
 
         YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, StrainVector,
@@ -291,7 +291,7 @@ public:
             sumb += SB[i];
             sumc += SC[i];
         }
-        if (suma != tolerance) {
+        if (std::abs(suma) > tolerance) {
             r0 = sumb/suma;
             r1 = sumc/suma;
         } else {
@@ -371,8 +371,8 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        const int    curve_type = rMaterialProperties[HARDENING_CURVE];
-        const double yield_comp   = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const int    curve_type    = rMaterialProperties[HARDENING_CURVE];
+        const double yield_comp    = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = yield_comp / yield_tension;
 
@@ -381,9 +381,8 @@ public:
         Gf[0] = rMaterialProperties[FRACTURE_ENERGY];
         Gf[1] = std::pow(n, 2)*Gf[0];
 
-        for (int i = 0; i < 2; i++) // i:0 Tension ; i:1 compression
-        {
-            switch(curve_type)
+        for (int i = 0; i < 2; i++) { // i:0 Tension ; i:1 compression
+            switch(static_cast<HardeningCurveType>(curve_type))
             {
                 case HardeningCurveType::LinearSoftening:
                     CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1,
@@ -482,13 +481,13 @@ public:
     )
     {
         //const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];  // sikma
-        double InitialThreshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
         const double UltimateStress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
         const double MaxStressPosition = rMaterialProperties[MAXIMUM_STRESS_POSITION];  // cappi
         
         if (PlasticDissipation < 1.0) {
-            const double Ro = std::sqrt(1.0 - InitialThreshold / UltimateStress);
+            const double Ro = std::sqrt(1.0 - initial_threshold / UltimateStress);
             double Alpha = std::log((1.0 - (1.0 - Ro)*(1.0 - Ro)) / ((3.0 - Ro)*(1.0 + Ro)*MaxStressPosition));
             Alpha = std::exp(Alpha / (1.0 - MaxStressPosition));
             const double Phi = std::pow((1.0 - Ro), 2) + ((3.0 - Ro)*(1.0 + Ro)*PlasticDissipation*(std::pow(Alpha, (1.0 - PlasticDissipation))));
@@ -515,9 +514,9 @@ public:
         rHardParameter = -SlopeThreshold;
         double aux = 0.0;
 
-		for (int i = 0; i < 6; i++) {
-			aux += HCapa[i] * GFlux[i];
-		}
+        for (int i = 0; i < 6; i++) {
+            aux += HCapa[i] * GFlux[i];
+        }
         if (aux != 0.0) rHardParameter *= aux;
     }
 
@@ -539,12 +538,12 @@ public:
     )
     {
         //const Vector DVect = prod(C, GFlux);
-		const Vector DVect = prod(GFlux, C);
+        const Vector DVect = prod(GFlux, C);
         double A1 = 0.0;
 
-		for (int i = 0; i < 6; i++) {
-			A1 += FFlux[i] * DVect[i];
-		}
+        for (int i = 0; i < 6; i++) {
+            A1 += FFlux[i] * DVect[i];
+        }
 
         const double A2 = 0.0; // Only for isotropic hard
         const double A3 = rHardParameter;

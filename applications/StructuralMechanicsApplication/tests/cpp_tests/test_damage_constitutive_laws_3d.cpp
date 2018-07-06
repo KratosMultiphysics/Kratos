@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //
@@ -83,54 +83,54 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStructuralMechanicsFastSuite)
     {
-        ConstitutiveLaw::Parameters rValues;
-		Properties rMaterialProperties;
-        Vector rStressVector, rStrainVector;
+        ConstitutiveLaw::Parameters cl_parameters;
+        Properties material_properties;
+        Vector stress_vector, strain_vector;
 
-        ModelPart& TestMdpa = ModelPart();
+        ModelPart test_model_part("Main");
 
-        NodeType::Pointer Node1 = TestMdpa.CreateNewNode(1, 0.0, 0.0, 0.0);
-        NodeType::Pointer Node2 = TestMdpa.CreateNewNode(2, 1.0, 0.0, 0.0);
-        NodeType::Pointer Node3 = TestMdpa.CreateNewNode(3, 0.0, 1.0, 0.0);
-        NodeType::Pointer Node4 = TestMdpa.CreateNewNode(4, 0.0, 0.0, 1.0);
+        NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-        Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(Node1,Node2,Node3,Node4);
+        Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1,p_node_2,p_node_3,p_node_4);
 
-        rStressVector = ZeroVector(6);
-		rStressVector[0] = 5.40984e+06;
-		rStressVector[1] = 5.40984e+06;
-		rStressVector[2] = 1.91803e+07;
-		rStressVector[3] = 0.0;
-		rStressVector[4] = 0.0;
-		rStressVector[5] = 1.45804e-10;
+        stress_vector = ZeroVector(6);
+        stress_vector[0] = 5.40984e+06;
+        stress_vector[1] = 5.40984e+06;
+        stress_vector[2] = 1.91803e+07;
+        stress_vector[3] = 0.0;
+        stress_vector[4] = 0.0;
+        stress_vector[5] = 1.45804e-10;
 
-        rStrainVector = ZeroVector(6);
-        rStrainVector[0] = 0.0;
-        rStrainVector[1] = 0.0;
-        rStrainVector[2] = 8.0e-5;
-        rStrainVector[3] = 0.0;
-        rStrainVector[4] = 0.0;
-        rStrainVector[5] = 1.6941e-21;
+        strain_vector = ZeroVector(6);
+        strain_vector[0] = 0.0;
+        strain_vector[1] = 0.0;
+        strain_vector[2] = 8.0e-5;
+        strain_vector[3] = 0.0;
+        strain_vector[4] = 0.0;
+        strain_vector[5] = 1.6941e-21;
 
-        rMaterialProperties.SetValue(YOUNG_MODULUS, 210e9);
-        rMaterialProperties.SetValue(POISSON_RATIO, 0.22);
-        rMaterialProperties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
-        rMaterialProperties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
-        rMaterialProperties.SetValue(FRICTION_ANGLE, 32.0);
-        rMaterialProperties.SetValue(DILATANCY_ANGLE, 16.0);
-        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1000.0);
-        rMaterialProperties.SetValue(SOFTENING_TYPE, 0);
+        material_properties.SetValue(YOUNG_MODULUS, 210e9);
+        material_properties.SetValue(POISSON_RATIO, 0.22);
+        material_properties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
+        material_properties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
+        material_properties.SetValue(FRICTION_ANGLE, 32.0);
+        material_properties.SetValue(DILATANCY_ANGLE, 16.0);
+        material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
+        material_properties.SetValue(SOFTENING_TYPE, 0);
 
-        rValues.SetElementGeometry(Geom);
-        rValues.SetMaterialProperties(rMaterialProperties);
-        rValues.SetStrainVector(rStrainVector);
-        rValues.SetStressVector(rStressVector);
+        cl_parameters.SetElementGeometry(Geom);
+        cl_parameters.SetMaterialProperties(material_properties);
+        cl_parameters.SetStrainVector(strain_vector);
+        cl_parameters.SetStressVector(stress_vector);
         
-		// Create the CL's
-		MC MohrCoulombCL = MC();
-		VM VonMisesCL = VM();
-		DP DruckerPragerCL = DP();
-		T TrescaCL = T();
+        // Create the CL's
+        MC MohrCoulombCL = MC();
+        VM VonMisesCL = VM();
+        DP DruckerPragerCL = DP();
+        T TrescaCL = T();
         R RankineCL = R();
         SJ SimoJuCL = SJ();
 
@@ -143,25 +143,25 @@ namespace Testing
         SJres  = { 5.40984e+06,5.40984e+06,1.91803e+07,0,0,1.45804e-10 };
 
         Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
-        MohrCoulombCL.CalculateMaterialResponseCauchy(rValues);
-        TestMC = rValues.GetStressVector();
+        MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestMC = cl_parameters.GetStressVector();
 
-		VonMisesCL.CalculateMaterialResponseCauchy(rValues);
-        TestVM = rValues.GetStressVector();
+        VonMisesCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestVM = cl_parameters.GetStressVector();
 
-		DruckerPragerCL.CalculateMaterialResponseCauchy(rValues);
-        TestDP = rValues.GetStressVector();
+        DruckerPragerCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestDP = cl_parameters.GetStressVector();
 
-		TrescaCL.CalculateMaterialResponseCauchy(rValues);
-        TestT = rValues.GetStressVector();
+        TrescaCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestT = cl_parameters.GetStressVector();
 
-		RankineCL.CalculateMaterialResponseCauchy(rValues);
-        TestR = rValues.GetStressVector();
+        RankineCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestR = cl_parameters.GetStressVector();
 
-        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1.0e5);
-        rValues.SetMaterialProperties(rMaterialProperties);
-		SimoJuCL.CalculateMaterialResponseCauchy(rValues);
-        TestSJ = rValues.GetStressVector();
+        material_properties.SetValue(FRACTURE_ENERGY, 1.0e5);
+        cl_parameters.SetMaterialProperties(material_properties);
+        SimoJuCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestSJ = cl_parameters.GetStressVector();
 
         //Check the results
         for (int comp = 0; comp < 6; comp++) {
@@ -176,54 +176,54 @@ namespace Testing
 
     KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, KratosStructuralMechanicsFastSuite)
     {
-        ConstitutiveLaw::Parameters rValues;
-		Properties rMaterialProperties;
-        Vector rStressVector, rStrainVector;
+        ConstitutiveLaw::Parameters cl_parameters;
+        Properties material_properties;
+        Vector stress_vector, strain_vector;
 
-        ModelPart& TestMdpa = ModelPart();
+        ModelPart test_model_part("Main");
 
-        NodeType::Pointer Node1 = TestMdpa.CreateNewNode(1, 0.0, 0.0, 0.0);
-        NodeType::Pointer Node2 = TestMdpa.CreateNewNode(2, 1.0, 0.0, 0.0);
-        NodeType::Pointer Node3 = TestMdpa.CreateNewNode(3, 0.0, 1.0, 0.0);
-        NodeType::Pointer Node4 = TestMdpa.CreateNewNode(4, 0.0, 0.0, 1.0);
+        NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
 
-        Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(Node1,Node2,Node3,Node4);
+        Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1,p_node_2,p_node_3,p_node_4);
 
-        rStressVector = ZeroVector(6);
-		rStressVector[0] = 5.40984e+06;
-		rStressVector[1] = 5.40984e+06;
-		rStressVector[2] = 1.91803e+07;
-		rStressVector[3] = 0.0;
-		rStressVector[4] = 0.0;
-		rStressVector[5] = 1.45804e-10;
+        stress_vector = ZeroVector(6);
+        stress_vector[0] = 5.40984e+06;
+        stress_vector[1] = 5.40984e+06;
+        stress_vector[2] = 1.91803e+07;
+        stress_vector[3] = 0.0;
+        stress_vector[4] = 0.0;
+        stress_vector[5] = 1.45804e-10;
 
-        rStrainVector = ZeroVector(6);
-        rStrainVector[0] = 0.0;
-        rStrainVector[1] = 0.0;
-        rStrainVector[2] = 8.0e-5;
-        rStrainVector[3] = 0.0;
-        rStrainVector[4] = 0.0;
-        rStrainVector[5] = 1.6941e-21;
+        strain_vector = ZeroVector(6);
+        strain_vector[0] = 0.0;
+        strain_vector[1] = 0.0;
+        strain_vector[2] = 8.0e-5;
+        strain_vector[3] = 0.0;
+        strain_vector[4] = 0.0;
+        strain_vector[5] = 1.6941e-21;
 
-        rMaterialProperties.SetValue(YOUNG_MODULUS, 210e9);
-        rMaterialProperties.SetValue(POISSON_RATIO, 0.22);
-        rMaterialProperties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
-        rMaterialProperties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
-        rMaterialProperties.SetValue(FRICTION_ANGLE, 32.0);
-        rMaterialProperties.SetValue(DILATANCY_ANGLE, 16.0);
-        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1.0e5);
-        rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
+        material_properties.SetValue(YOUNG_MODULUS, 210e9);
+        material_properties.SetValue(POISSON_RATIO, 0.22);
+        material_properties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
+        material_properties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
+        material_properties.SetValue(FRICTION_ANGLE, 32.0);
+        material_properties.SetValue(DILATANCY_ANGLE, 16.0);
+        material_properties.SetValue(FRACTURE_ENERGY, 1.0e5);
+        material_properties.SetValue(SOFTENING_TYPE, 1);
 
-        rValues.SetElementGeometry(Geom);
-        rValues.SetMaterialProperties(rMaterialProperties);
-        rValues.SetStrainVector(rStrainVector);
-        rValues.SetStressVector(rStressVector);
+        cl_parameters.SetElementGeometry(Geom);
+        cl_parameters.SetMaterialProperties(material_properties);
+        cl_parameters.SetStrainVector(strain_vector);
+        cl_parameters.SetStressVector(stress_vector);
 
-		// Create the CL's
-		MC MohrCoulombCL = MC();
-		VM VonMisesCL = VM();
-		DP DruckerPragerCL = DP();
-		T TrescaCL = T();
+        // Create the CL's
+        MC MohrCoulombCL = MC();
+        VM VonMisesCL = VM();
+        DP DruckerPragerCL = DP();
+        T TrescaCL = T();
         R RankineCL = R();
         SJ SimoJuCL = SJ();
 
@@ -236,25 +236,25 @@ namespace Testing
         SJres = { 859503,859503,3.04733e+06,0,0,2.3165e-11 };
 
         Vector TestMC, TestVM, TestDP, TestT, TestR, TestSJ;
-        MohrCoulombCL.CalculateMaterialResponseCauchy(rValues);
-        TestMC = rValues.GetStressVector();
+        MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestMC = cl_parameters.GetStressVector();
 
-		VonMisesCL.CalculateMaterialResponseCauchy(rValues);
-        TestVM = rValues.GetStressVector();
+        VonMisesCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestVM = cl_parameters.GetStressVector();
 
-		DruckerPragerCL.CalculateMaterialResponseCauchy(rValues);
-        TestDP = rValues.GetStressVector();
+        DruckerPragerCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestDP = cl_parameters.GetStressVector();
 
-		TrescaCL.CalculateMaterialResponseCauchy(rValues);
-        TestT = rValues.GetStressVector();
+        TrescaCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestT = cl_parameters.GetStressVector();
 
-		RankineCL.CalculateMaterialResponseCauchy(rValues);
-        TestR = rValues.GetStressVector();
+        RankineCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestR = cl_parameters.GetStressVector();
 
-        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1.0e15);
-        rValues.SetMaterialProperties(rMaterialProperties);
-		SimoJuCL.CalculateMaterialResponseCauchy(rValues);
-        TestSJ = rValues.GetStressVector();
+        material_properties.SetValue(FRACTURE_ENERGY, 1.0e15);
+        cl_parameters.SetMaterialProperties(material_properties);
+        SimoJuCL.CalculateMaterialResponseCauchy(cl_parameters);
+        TestSJ = cl_parameters.GetStressVector();
 
         //Check the results
         for (int comp = 0; comp < 6; comp++) {

@@ -107,7 +107,7 @@ public:
         const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0; // In radians!
-		
+
         // Check input variables
         if (friction_angle < tolerance) {
             friction_angle = 32.0 * Globals::Pi / 180.0;
@@ -121,7 +121,7 @@ public:
         Rmorh = std::pow(std::tan((Globals::Pi / 4.0) + friction_angle / 2.0), 2);
         alpha_r = R / Rmorh;
         double sin_phi = std::sin(friction_angle);
-		
+
         double I1, J2, J3; 
         ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
         Vector Deviator = ZeroVector(6);
@@ -188,10 +188,10 @@ public:
         const double sigma_c = rMaterialProperties[YIELD_STRESS_COMPRESSION];
         const double sigma_t = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = sigma_c / sigma_t;
-		
+
         if (rMaterialProperties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             AParameter = 1.00 / (Gf*n*n*E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-			KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             AParameter = - std::pow(sigma_c, 2) / (2.0*E*Gf*n*n / CharacteristicLength);
         }
@@ -223,21 +223,21 @@ public:
         ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
         ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
 
-        double J3, LodeAngle;
+        double J3, lode_angle;
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, LodeAngle);
+        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double Checker = std::abs(LodeAngle*57.29577951308);
+        const double Checker = std::abs(lode_angle * 180.0/Globals::Pi);
 
         double c1, c2, c3;
         const double friction_angle = rMaterialProperties[FRICTION_ANGLE] * Globals::Pi / 180.0;
         const double sin_phi    = std::sin(friction_angle);
-        const double cons_phi    = std::cos(friction_angle);
-        const double sin_theta  = std::sin(LodeAngle);
-        const double cos_theta  = std::cos(LodeAngle);
-        const double cos_3theta = std::cos(3.0*LodeAngle);
-        const double tan_theta  = std::tan(LodeAngle);
-        const double tan_3theta = std::tan(3.0*LodeAngle);
+        const double cons_phi   = std::cos(friction_angle);
+        const double sin_theta  = std::sin(lode_angle);
+        const double cos_theta  = std::cos(lode_angle);
+        const double cos_3theta = std::cos(3.0*lode_angle);
+        const double tan_theta  = std::tan(lode_angle);
+        const double tan_3theta = std::tan(3.0*lode_angle);
         const double Root3     = std::sqrt(3.0);
 
         const double compr_yield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
@@ -254,7 +254,7 @@ public:
         const double K2 = 0.5*(1.0 + alpha) - 0.5*(1.0 - alpha) / sin_phi;
         const double K3 = 0.5*(1.0 + alpha)*sin_phi - 0.5*(1.0 - alpha);
 
-        if (sin_phi != 0.0) c1 = CFL * K3 / 3.0;
+        if (std::abs(sin_phi) > tolerance) c1 = CFL * K3 / 3.0;
         else c1 = 0.0; // check
 
         if (Checker < 29.0) {
@@ -262,9 +262,9 @@ public:
             c3 = CFL*(K1*Root3*sin_theta + K2*sin_phi*cos_theta) / (2.0*J2*cos_3theta);
         } else {
             c3 = 0.0;
-            double Aux = 1.0;
-            if (LodeAngle > 0.0) Aux = -1.0;
-            c2 = 0.5*CFL*(K1*Root3 + Aux*K2*sin_phi/Root3);
+            double aux = 1.0;
+            if (lode_angle > tolerance) aux = -1.0;
+            c2 = 0.5*CFL*(K1*Root3 + aux*K2*sin_phi/Root3);
         }
         noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
     }

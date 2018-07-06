@@ -103,32 +103,32 @@ public:
         const double J2, 
         Vector& rGFlux,
         const Properties& rMaterialProperties
-    )
+        )
     {
-        Vector FirstVector, SecondVector, ThirdVector;
+        Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
-        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
-        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, second_vector);
+        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, third_vector);
 
-        double J3, LodeAngle;
+        double J3, lode_angle;
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, LodeAngle);
+        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double Checker = std::abs(LodeAngle*57.29577951308);
+        const double checker = std::abs(lode_angle*180.0/Globals::Pi);
 
         const double c1 = 0.0;
-		double c2, c3;
+        double c2, c3;
 
-        if (Checker < 29.0) {
-            c2 = 2.0*(std::cos(LodeAngle) + std::sin(LodeAngle)*std::tan(3.0*LodeAngle));
-            c3 = std::sqrt(3.0)*std::sin(LodeAngle) / (J2*std::cos(3.0*LodeAngle));
+        if (checker < 29.0) {
+            c2 = 2.0*(std::cos(lode_angle) + std::sin(lode_angle)*std::tan(3.0*lode_angle));
+            c3 = std::sqrt(3.0)*std::sin(lode_angle) / (J2*std::cos(3.0*lode_angle));
         } else {
             c2 = std::sqrt(3.0);
             c3 = 0.0;
         }
 
-        noalias(rGFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+        noalias(rGFlux) = c1*first_vector + c2*second_vector + c3*third_vector;
     }
 
     ///@}

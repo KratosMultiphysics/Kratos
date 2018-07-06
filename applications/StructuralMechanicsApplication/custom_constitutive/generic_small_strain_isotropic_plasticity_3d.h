@@ -148,15 +148,15 @@ public:
     };
     
 
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
@@ -203,10 +203,10 @@ public:
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
 
-			if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
-				noalias(TangentTensor) = C;
+            if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
+                noalias(TangentTensor) = C;
                 this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-			}
+            }
 
         } else { // Plastic case
 
@@ -217,16 +217,16 @@ public:
                 UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
                 C, PlasticStrain, rMaterialProperties, CharacteristicLength);
 
-			noalias(IntegratedStressVector) = PredictiveStressVector;
+            noalias(IntegratedStressVector) = PredictiveStressVector;
             this->SetNonConvPlasticDissipation(PlasticDissipation);
             this->SetNonConvPlasticStrain(PlasticStrain);
             this->SetNonConvThreshold(Threshold);
 
-			if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
-				this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
-				noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
+            if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
+                this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
                 this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-			}
+            }
         }
         
     } // End CalculateMaterialResponseCauchy
@@ -299,7 +299,7 @@ public:
         //         UniaxialStress, Threshold, PlasticDenominator, Fflux, Gflux, PlasticDissipation, PlasticStrainIncrement, 
         //         C, PlasticStrain, rMaterialProperties, CharacteristicLength);
 
-		// 	noalias(IntegratedStressVector) = PredictiveStressVector;
+        //     noalias(IntegratedStressVector) = PredictiveStressVector;
         // }
 
         // // Save Internal variables
@@ -338,58 +338,141 @@ public:
         rElasticityTensor(5, 5) = mu;
     }
     
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-    {
-    }
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-    {
-    }
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-    {
-    }
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    /**
+     * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
     {
     }
 
+    /**
+     * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
+    {
+    }
+
+    /**
+     * Finalize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
+    {
+    }
+
+    /**
+     * Finalize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
+    {
+    }
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<double>& rThisVariable) override
+    {
+        if (rThisVariable == UNIAXIAL_STRESS) {
+            return true;
+        } else if (rThisVariable == PLASTIC_DISSIPATION) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Vector)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<Vector>& rThisVariable) override
+    {
+        if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
     void SetValue(
         const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo
-    )
+        ) override
     {
-        if(rThisVariable == UNIAXIAL_STRESS) {
+        if (rThisVariable == UNIAXIAL_STRESS) {
             mUniaxialStress = rValue;
-
         } else if (rThisVariable == PLASTIC_DISSIPATION) {
             mPlasticDissipation = rValue;
         }
     }
 
+    /**
+     * @brief Sets the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    virtual void SetValue(
+        const Variable<Vector>& rThisVariable,
+        const Vector& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        if(rThisVariable == PLASTIC_STRAIN_VECTOR) {
+            mPlasticStrain = rValue;
+        }
+    }
+
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     double& GetValue(
         const Variable<double>& rThisVariable,
         double& rValue
-    )
+        ) override
     {
         if(rThisVariable == UNIAXIAL_STRESS) {
             rValue = mUniaxialStress;
-
         } else if (rThisVariable == PLASTIC_DISSIPATION) {
             rValue = mPlasticDissipation;
         }
+
         return rValue;
     }
 
+    /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     Vector& GetValue(
         const Variable<Vector>& rThisVariable,
         Vector& rValue
-    )
+        ) override
     {
         if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
             rValue = mPlasticStrain;
         }
+
         return rValue;
     }
-
 
     ///@}
     ///@name Access

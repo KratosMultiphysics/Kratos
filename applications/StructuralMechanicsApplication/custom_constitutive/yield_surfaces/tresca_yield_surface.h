@@ -104,11 +104,11 @@ public:
     )
     {
         double I1, J2, J3, lode_angle;
-        Vector Deviator = ZeroVector(6);
+        Vector deviator = ZeroVector(6);
 
         ConstitutiveLawUtilities::CalculateI1Invariant(StressVector, I1);
-        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, Deviator, J2);
-        ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
+        ConstitutiveLawUtilities::CalculateJ2Invariant(StressVector, I1, deviator, J2);
+        ConstitutiveLawUtilities::CalculateJ3Invariant(deviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
         rEqStress = 2.0*std::cos(lode_angle)*std::sqrt(J2);
@@ -188,17 +188,17 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        Vector FirstVector, SecondVector, ThirdVector;
+        Vector first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
-        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, SecondVector);
-        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, ThirdVector);
+        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities::CalculateSecondVector(Deviator, J2, second_vector);
+        ConstitutiveLawUtilities::CalculateThirdVector(Deviator, J2, third_vector);
 
         double J3, lode_angle;
         ConstitutiveLawUtilities::CalculateJ3Invariant(Deviator, J3);
         ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double checker = std::abs(lode_angle*57.29577951308);
+        const double checker = std::abs(lode_angle*180/Globals::Pi);
 
         double c1, c2, c3;
         c1 = 0.0;
@@ -211,7 +211,7 @@ public:
             c3 = 0.0;
         }
 
-        noalias(rFFlux) = c1*FirstVector + c2*SecondVector + c3*ThirdVector;
+        noalias(rFFlux) = c1*first_vector + c2*second_vector + c3*third_vector;
     }
 
     ///@}
