@@ -48,7 +48,7 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     mParameters.ValidateAndAssignDefaults(DefaultParameters);
 
     mEchoLevel = mParameters["echo_level"].GetInt();
-    mDivisions = mParameters["number_of_divisions_at_level"].GetInt();
+    mDivisionsAtLevel = mParameters["number_of_divisions_at_level"].GetInt();
 
     mOwnName = mParameters["own_model_part_name"].GetString();
     mRefinedName = mParameters["refined_model_part_name"].GetString();
@@ -71,9 +71,7 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
         sub_model_parts_names = mrRootModelPart.GetSubModelPartNames();
         // sub_model_parts_names = RecursiveGetSubModelPartNames(mrRootModelPart);
 
-
-    KRATOS_CHECK(KratosComponents<Condition>::Has(mElementName));
-    KRATOS_CHECK(KratosComponents<Condition>::Has(mConditionName));
+    Check();
 
     // Clone the model part at the own level
     InitializeOwnModelPart(sub_model_parts_names);
@@ -83,22 +81,47 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 }
 
 
+void MultiScaleRefiningProcess::Check()
+{
+    KRATOS_TRY
+
+    KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
+    KRATOS_CHECK(KratosComponents<Condition>::Has(mConditionName));
+
+    KRATOS_CHECK_NOT_EQUAL(mDivisionsAtLevel, 0);
+
+    KRATOS_CATCH("")
+}
+
+
 void MultiScaleRefiningProcess::ExecuteRefinement()
 {
+    ModelPart& refined_model_part = *mpRefinedModelPart.get();
+
     IndexType node_id;
     IndexType elem_id;
     IndexType cond_id;
 
     GetLastId(node_id, elem_id, cond_id);
 
+    CloneNodesToRefine(node_id);
+
     MarkElementsFromNodalFlag();
     MarkElementsFromNodalFlag();
 
-    CloneNodesToRefine(node_id);
     CreateElementsToRefine(elem_id);
     CreateConditionsToRefine(elem_id);
     
+    int divisions = refined_model_part.GetValue(REFINEMENT_LEVEL) * mDivisionsAtLevel;
+    auto uniform_refining = UniformRefineUtility<2>(refined_model_part, divisions);
+
+    // uniform_refining.Refine();  /* TODO: get the Id's as a parameter */
 }
+
+
+void MultiScaleRefiningProcess::ExecuteCoarsening()
+{}
+
 
 MultiScaleRefiningProcess::StringVectorType MultiScaleRefiningProcess::RecursiveGetSubModelPartNames(
     ModelPart& rThisModelPart,
@@ -237,6 +260,9 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     KRATOS_ERROR_IF(mrRootModelPart.HasSubModelPart(mRefinedName)) << "MultiScaleRefiningProcess: a refined model part with name : " << mRefinedName << " is already present in the model part : " << mrRootModelPart.Name() << std::endl;
     ModelPart::Pointer refined_model_part = mrRootModelPart.CreateSubModelPart(mRefinedName);
     mpRefinedModelPart = refined_model_part->CreateSubModelPart(mOwnName);
+
+    // Set the refinement level
+    mpRefinedModelPart->SetValue(REFINEMENT_LEVEL, mpOwnModelPart->GetValue(REFINEMENT_LEVEL));
 
     // Copy all the tables and properties
     AddAllTablesToModelPart(mrRootModelPart, mpRefinedModelPart);

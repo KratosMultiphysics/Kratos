@@ -128,6 +128,8 @@ public:
 
     void ExecuteRefinement();
 
+    void ExecuteCoarsening();
+
     ///@}
     ///@name Access
     ///@{
@@ -212,7 +214,7 @@ public:
     std::string mConditionName;
 
     unsigned int mEchoLevel;
-    unsigned int mDivisions;
+    unsigned int mDivisionsAtLevel;
 
     ModelPart::Pointer mpOwnModelPart;     /// The coarse sub model part
     ModelPart::Pointer mpRefinedModelPart; /// Where the refinement is performed
@@ -228,6 +230,8 @@ public:
     ///@}
     ///@name Private Operators
     ///@{
+
+    void Check();
 
     void InterpolateLevelBoundaryValuesAtSubStep(const int& rSubStep, const int& rSubSteps);
 
