@@ -423,7 +423,7 @@ namespace Kratos
       void GetPressureAccelerationValues(Vector& rValues,
 					 const int Step);
 
-      double GetThetaMomentum () override{return 1.0;};
+      double GetThetaMomentum () override{return 0.5;};
 
       double GetThetaContinuity () override{return 1.0;};
       

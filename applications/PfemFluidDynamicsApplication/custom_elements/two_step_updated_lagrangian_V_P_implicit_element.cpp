@@ -208,8 +208,10 @@ namespace Kratos {
     //2nd order 
     this->GetAccelerationValues(AccelerationValues,0);
     this->GetVelocityValues(VelocityValues,0);
+    std::cout<<" Velocities "<<VelocityValues<<std::endl;
     noalias(AccelerationValues)+=-2.0*VelocityValues/TimeStep;
     this->GetVelocityValues(VelocityValues,1);
+    std::cout<<" Pre Velocities "<<VelocityValues<<std::endl;
     noalias(AccelerationValues)+=2.0*VelocityValues/TimeStep;//these are negative accelerations
     noalias( rRightHandSideVector )+= prod(MassMatrix,AccelerationValues);
     noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix + MassMatrix*2/TimeStep;

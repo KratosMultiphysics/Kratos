@@ -1686,8 +1686,9 @@ namespace Kratos {
 	  // }
 
 	  this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,N,BoundLHSCoeff);
-
-          //std::cout<<" BoundFactor: "<< BoundLHSCoeff <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
+          
+          // std::cout<<" Tau "<<Tau<<" element_size "<<ElemSize<<std::endl;
+          // std::cout<<" BoundFactor: "<< BoundLHSCoeff <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
 
           //std::cout<<" DefRate "<<rElementalVariables.SpatialDefRate<<std::endl;
           
@@ -1725,7 +1726,10 @@ namespace Kratos {
 	}
 
       }   
-   
+
+    // VectorType VelocityValues;
+    // this->GetVelocityValues(VelocityValues,0);
+    // std::cout<<" Velocities "<<VelocityValues<<std::endl;
 
     if(computeElement==true){
 
@@ -1734,8 +1738,11 @@ namespace Kratos {
       this->GetPressureValues(PressureValuesForRHS,0);
       //the LHS matrix up to now just contains the laplacian term and the bound term
       noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,PressureValuesForRHS);
-
+      //std::cout<<" LHS "<<rLeftHandSideMatrix<<std::endl;
+      //std::cout<<" PressureValues "<<PressureValuesForRHS<<std::endl;
+      
       this->GetPressureValues(PressureValues,1);
+      //std::cout<<" PressureValues Pre "<<PressureValues<<std::endl;
       noalias(PressureValuesForRHS)+=-PressureValues;
       MatrixType BulkMatrix = ZeroMatrix(NumNodes,NumNodes);
       MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes,NumNodes);
@@ -1776,8 +1783,8 @@ namespace Kratos {
       noalias(rRightHandSideVector) -= prod(BulkVelMatrixLump,PressureValuesForRHS);
     }
 
-    // std::cout<<" pressure LHS "<<rLeftHandSideMatrix<< "(" << this->Id() << ")" <<std::endl;
-    // std::cout<<" pressure RHS "<<rRightHandSideVector<< "(" << this->Id() << ")" <<std::endl;
+    std::cout<<" pressure LHS "<<rLeftHandSideMatrix<< "(" << this->Id() << ")" <<std::endl;
+    std::cout<<" pressure RHS "<<rRightHandSideVector<< "(" << this->Id() << ")" <<std::endl;
 
   }
   

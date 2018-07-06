@@ -837,9 +837,9 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddLHS(LocalSystemComp
         this->CalculateStabilizationTau(rVariables);
 
         // operation performed: add Kpp to the rLefsHandSideMatrix
-        this->CalculateAndAddKpp( rLeftHandSideMatrix, rVariables );
+        this->CalculateAndAddKpp2( rLeftHandSideMatrix, rVariables );
 
-        //std::cout<< " pressure LHS "<<  rLeftHandSideMatrix << "(" << this->Id() << ")" <<std::endl;
+        std::cout<< " pressure LHS "<<  rLeftHandSideMatrix << "(" << this->Id() << ")" <<std::endl;
 
         break;
       }
@@ -873,7 +873,16 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddRHS(LocalSystemComp
         this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables );
 
         //std::cout<< " velocity RHS "<<  rRightHandSideVector << "(" << this->Id() << ")" <<std::endl;
+        // VectorType Velocities = ZeroVector();
+        // this->GetFirstDerivativesVector(Velocities,0);
+        
+        // std::cout<<" Velocities "<<Velocities<<std::endl;
 
+        // this->GetFirstDerivativesVector(Velocities,1);
+        
+        // std::cout<<" Velocities Pre "<<Velocities<<std::endl;
+             
+        
         break;
       }
     case PRESSURE_STEP:
@@ -882,9 +891,15 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddRHS(LocalSystemComp
         this->CalculateStabilizationTau(rVariables);
 
         // operation performed: add PressureForces to the rRightHandSideVector
-        this->CalculateAndAddPressureForces( rRightHandSideVector, rVariables );
+        this->CalculateAndAddPressureForces2( rRightHandSideVector, rVariables );
 
-        //std::cout<< " pressure RHS "<<  rRightHandSideVector << "(" << this->Id() << ")" <<std::endl;
+        // mStepVariable = VELOCITY_STEP;
+        // VectorType Velocities = ZeroVector();
+        // this->GetFirstDerivativesVector(Velocities,0);
+        // std::cout<<" Velocities "<<Velocities<<std::endl;
+        // mStepVariable = PRESSURE_STEP;
+            
+        std::cout<< " pressure RHS "<<  rRightHandSideVector << "(" << this->Id() << ")" <<std::endl;
 
         break;
       }
@@ -1280,13 +1295,15 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp2(MatrixType& rL
   GeometryType& rGeometry = GetGeometry();
   const SizeType dimension = GetGeometry().WorkingSpaceDimension();
   const SizeType number_of_nodes = rGeometry.PointsNumber();
+  
   double element_size = this->ElementSize();
 
   double BoundFactor = rVariables.Tau * 4.0 * rVariables.IntegrationWeight / (element_size * element_size);
   
   this->ComputeBoundLHSMatrix(rLeftHandSideMatrix,rVariables.N,BoundFactor);
 
-  //std::cout<<" BoundFactor: "<< BoundFactor <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
+  // std::cout<<" Tau "<<rVariables.Tau<<" element_size "<<element_size<<std::endl;
+  // std::cout<<" BoundFactor: "<< BoundFactor <<" Kpp "<<rLeftHandSideMatrix<<std::endl;
 
   // Add Stabilized Laplacian Matrix
   double StabilizationFactor = rVariables.Tau * rVariables.IntegrationWeight;
@@ -1308,9 +1325,10 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp2(MatrixType& rL
   const double& Density     = GetProperties()[DENSITY];
 
   // (LUMPED)
-  double coefficient = rGeometry.IntegrationPointsNumber(); //integration points independent
+  double coefficient = rGeometry.IntegrationPointsNumber() * ( 1 + dimension ); //integration points independent
 
-  double MassFactor = GetGeometry().DomainSize() / (BulkModulus * rVariables.TimeStep);
+  //double MassFactor = GetGeometry().DomainSize() / (BulkModulus * rVariables.TimeStep);
+  double MassFactor = rVariables.IntegrationWeight / (BulkModulus * rVariables.TimeStep);
   double BulkFactor = MassFactor * Density * rVariables.Tau / (rVariables.TimeStep);
   MassFactor /= coefficient;
 
@@ -1320,13 +1338,14 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp2(MatrixType& rL
   }
 
   //std::cout<<" MassFactor: "<<MassFactor<<" RHS "<<rLeftHandSideMatrix<<std::endl;
-  
+
+  BulkFactor /= coefficient;
   for( SizeType i=0; i<number_of_nodes; ++i)
   {
     rLeftHandSideMatrix(i,i) += BulkFactor;
   }
 
-  //std::cout<<" MassFactor: "<<BulkFactor<<" RHS "<<rLeftHandSideMatrix<<std::endl;
+  //std::cout<<" BulkFactor: "<<BulkFactor<<" RHS "<<rLeftHandSideMatrix<<std::endl;
   
   // (REDUCED INTEGRATION)
   // double MassFactor = rVariables.IntegrationWeight / (BulkModulus*rVariables.TimeStep);
@@ -1352,7 +1371,7 @@ void UpdatedLagrangianSegregatedFluidElement::ComputeBoundLHSMatrix(Matrix& Boun
                                                                     const double Weight)
 {
   GeometryType& rGeom = this->GetGeometry();
-
+  
   if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE)){
     if(rGeom[0].IsNot(INLET))
       BoundLHSMatrix(0,0) +=  Weight / 3.0;
@@ -1489,7 +1508,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces2(Vec
   // Add Dynamic Bulk Vector
 
   // (LUMPED)
-  double coefficient = rGeometry.IntegrationPointsNumber(); //integration points independent
+  double coefficient = rGeometry.IntegrationPointsNumber() * ( 1 + dimension ); //integration points independent
 
   double MassFactor = GetGeometry().DomainSize() / (BulkModulus*rVariables.TimeStep);
   MassFactor /= coefficient;
@@ -1527,9 +1546,16 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces2(Vec
 
   VectorType PressureValues = ZeroVector(number_of_nodes);
   this->GetValuesVector(PressureValues,0);
+
+  // std::cout<<" Pressures "<<PressureValues<<std::endl;
   
-  noalias(rRightHandSideVector) -= prod(LeftHandSideMatrix,PressureValues);
-  
+   noalias(rRightHandSideVector) -= prod(LeftHandSideMatrix,PressureValues);
+
+
+  // this->GetValuesVector(PressureValues,1);
+
+  // std::cout<<" Pressures "<<PressureValues<<std::endl;
+
   //std::cout<<" End RHS "<<rRightHandSideVector<<std::endl;
   KRATOS_CATCH( "" )
 }
@@ -1654,7 +1680,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp(MatrixType& rLe
   const double& Density     = GetProperties()[DENSITY];
 
   // (LUMPED)
-  // double coefficient = rGeometry.IntegrationPointsNumber(); //integration points independent
+  // double coefficient = rGeometry.IntegrationPointsNumber() * (1 + dimension); //integration points independent
 
   // double MassFactor = GetGeometry().DomainSize() / (BulkModulus*rVariables.TimeStep);
   // double BulkFactor = MassFactor * Density * rVariables.Tau / (rVariables.TimeStep);
@@ -1805,7 +1831,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
   const double& Density     = GetProperties()[DENSITY];
 
   // (LUMPED)
-  // double coefficient = rGeometry.IntegrationPointsNumber(); //integration points independent
+  // double coefficient = rGeometry.IntegrationPointsNumber() * (1 + dimension); //integration points independent
 
   // double MassFactor = GetGeometry().DomainSize() / (BulkModulus*rVariables.TimeStep);
   // MassFactor /= coefficient;
