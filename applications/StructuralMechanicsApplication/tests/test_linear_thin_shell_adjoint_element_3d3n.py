@@ -11,18 +11,21 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         # create test model part
         dim=3
         self.model_part = KratosMultiphysics.ModelPart("test")
-        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim) 
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim)
         self._add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 3.0, 0.0, 0.0)
         self.model_part.CreateNewNode(3, 0.0, 4.0, 0.0)
         self._apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
-        self.model_part.CreateNewElement("ShellThinElement3D3N", 1, [1, 2, 3], prop)
-        self.model_part.CreateNewElement("ShellThinAdjointElement3D3N", 2, [1, 2, 3], prop)
 
-        self.shell_element = self.model_part.GetElement(1)
-        self.adjoint_shell_element = self.model_part.GetElement(2)
+        self.model_part.CreateNewElement("ShellThinElement3D3N", 1, [1, 2, 3], prop)
+        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
+            self.model_part).Execute()
+        self.adjoint_shell_element = self.model_part.GetElement(1)
+
+        self.model_part.CreateNewElement("ShellThinElement3D3N", 2, [1, 2, 3], prop)
+        self.shell_element = self.model_part.GetElement(2)
 
         self._assign_solution_step_data(self.model_part, 0)
 
@@ -172,7 +175,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         dz = self.model_part.Nodes[2].Z - self.model_part.Nodes[3].Z
         l += math.sqrt(dx*dx + dy*dy + dz*dz)
         l = l/3
-        return l    
+        return l
 
     def _assert_matrix_almost_equal(self, matrix1, matrix2, prec=4):
         self.assertEqual(matrix1.Size1(), matrix2.Size1())
@@ -192,7 +195,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         h = 0.000001
         corr_factor = self._shape_disturbance_correction_factor()
         alpha = corr_factor * h
-    
+
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(9,18)
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
         RHSDisturbed = self._zero_vector(18)

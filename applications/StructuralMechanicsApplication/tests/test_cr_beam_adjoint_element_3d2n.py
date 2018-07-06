@@ -12,17 +12,20 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         # create test model part
         dim=3
         self.model_part = KratosMultiphysics.ModelPart("test")
-        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim) 
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,dim)
         self._add_variables(self.model_part)
         self.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(2, 1.0, 0.1, 0.3)
         self._apply_material_properties(self.model_part,dim)
         prop = self.model_part.GetProperties()[0]
-        self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
-        self.model_part.CreateNewElement("CrLinearBeamAdjointElement3D2N", 2, [1, 2], prop)
 
-        self.beam_element = self.model_part.GetElement(1)
-        self.adjoint_beam_element = self.model_part.GetElement(2)
+        self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
+        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
+            self.model_part).Execute()
+        self.adjoint_beam_element = self.model_part.GetElement(1)
+
+        self.model_part.CreateNewElement("CrLinearBeamElement3D2N", 2, [1, 2], prop)
+        self.beam_element = self.model_part.GetElement(2)
 
         self._assign_solution_step_data(0)
 
@@ -144,7 +147,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec)
-         
+
     def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
         LHSUndisturbed = KratosMultiphysics.Matrix(12,12)
