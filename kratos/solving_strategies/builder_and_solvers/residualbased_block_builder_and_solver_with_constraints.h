@@ -685,7 +685,6 @@ private:
                     global_constraint->SetLHSValue(slave_value);
                     global_constraint->UpdateRhsValue(slave_value_calc);
                     slave_index++;
-                    global_constraint->PrintInfo();
                 }
             }
         }
