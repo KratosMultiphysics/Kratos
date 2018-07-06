@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-/** \brief Constraint * @class LinearMasterSlaveConstraint
+  /** @class LinearMasterSlaveConstraint
     * @ingroup KratosCore
     * @brief
     *
