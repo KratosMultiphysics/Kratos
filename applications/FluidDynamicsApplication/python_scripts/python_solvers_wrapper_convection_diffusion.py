@@ -2,63 +2,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
-def CreateSolver(model, custom_settings):
-
-#    if (type(model) != KratosMultiphysics.Model):
-#        raise Exception("input is expected to be provided as a Kratos Model object")
-
-#    if (type(custom_settings) != KratosMultiphysics.Parameters):
-#        raise Exception("input is expected to be provided as a Kratos Parameters object")
-
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@") 
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@") 
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@") 
-    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@") 
-    print(custom_settings) 
-    
-     
-    parallelism = "OpenMP"
-    solver_type = "Transient"
-    default_settings = KratosMultiphysics.Parameters("""
-            {
-                "solver_type" : "ThermallyCoupled",
-                "fluid_solver_settings": {
-                        "solver_type": "navier_stokes_solver_vmsmonolithic",
-                        "model_import_settings": {
-                                "input_type": "mdpa",
-                                "input_filename": "unknown_name"
-                        }
-                },
-                "thermal_solver_settings": {
-                        "solver_type": "Transient",
-                        "analysis_type": "linear",
-                        "model_import_settings": {
-                                "input_type": "use_input_model_part",
-                                "input_filename": "unknown_name"
-                        },
-                        "computing_model_part_name": "Thermal",
-                        "material_import_settings": {
-                                "materials_filename": "ThermicMaterials.json"
-                        },
-                        "convection_diffusion_variables": {
-                                "density_variable": "DENSITY",
-                                "diffusion_variable": "CONDUCTIVITY",
-                                "unknown_variable": "TEMPERATURE",
-                                "volume_source_variable": "HEAT_FLUX",
-                                "surface_source_variable": "FACE_HEAT_FLUX",
-                                "projection_variable": "PROJECTED_SCALAR1",
-                                "convection_variable": "CONVECTION_VELOCITY",
-                                "mesh_velocity_variable": "MESH_VELOCITY",
-                                "transfer_coefficient_variable": "",
-                                "velocity_variable": "VELOCITY",
-                                "specific_heat_variable": "SPECIFIC_HEAT",
-                                "reaction_variable": "REACTION_FLUX"
-                        }
-                }
-            }
-            """)
-    print(parallelism) 
-    print(solver_type) 
+def CreateSolverByParameters(main_model_part, solver_settings, parallelism):
+    solver_type = solver_settings["solver_type"].GetString()
     
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
@@ -90,11 +35,22 @@ def CreateSolver(model, custom_settings):
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
-    # Remove settings that are not needed any more
-    #custom_settings["solver_settings"].RemoveValue("solver_type")
-    #custom_settings["solver_settings"].RemoveValue("time_integration_method") # does not throw even if the value is not existing
-    
+
     solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, default_settings["thermal_solver_settings"])
+    solver = solver_module.CreateSolver(main_model_part, solver_settings)
 
     return solver
+
+
+def CreateSolver(main_model_part, custom_settings):
+    if (type(main_model_part) != KratosMultiphysics.ModelPart):
+        raise Exception("input is expected to be provided as a Kratos ModelPart object")
+
+    if (type(custom_settings) != KratosMultiphysics.Parameters):
+        raise Exception("input is expected to be provided as a Kratos Parameters object")
+
+    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
+    solver_settings = custom_settings["solver_settings"]  
+    
+    return CreateSolverByParameters(main_model_part, solver_settings, parallelism)
+

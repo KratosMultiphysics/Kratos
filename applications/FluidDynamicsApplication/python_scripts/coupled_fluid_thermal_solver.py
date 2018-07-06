@@ -154,15 +154,15 @@ class CoupledFluidThermalSolver(object):
         #self.tmp = self.thermal_solver.main_model_part
         #self.thermal_solver.main_model_part = self.fluid_solver.main_model_part
         
-        self.thermal_solver.AddVariables(self.fluid_solver.main_model_part)
+        self.thermal_solver.AddVariables() #self.fluid_solver.main_model_part)
 
-        print(self.thermal_solver.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS))
+        # print(self.thermal_solver.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS))
          
 
-        #this is a HACK: TODO: cleanup so that this is not needed in the future 
-        #self.thermal_solver.main_model_part = self.tmp
-        conv_settings = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
-        self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, conv_settings)
+        # #this is a HACK: TODO: cleanup so that this is not needed in the future 
+        # #self.thermal_solver.main_model_part = self.tmp
+        # conv_settings = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
+        # self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, conv_settings)
         
      
 
@@ -251,7 +251,7 @@ class CoupledFluidThermalSolver(object):
           
         self.fluid_solver.PrepareModelPart()
         
-        self.thermal_solver.PrepareModelPart()
+        # self.thermal_solver.PrepareModelPart()
 
     def InitializeSolutionStep(self):
         self.fluid_solver.InitializeSolutionStep()
