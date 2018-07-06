@@ -668,11 +668,13 @@ class TestModelPart(KratosUnittest.TestCase):
         VariableUtils().AddDof(PRESSURE,model_part)
 
         c1 = MasterSlaveConstraint(10)
-        c2 = model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
+        model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
 
         model_part.AddMasterSlaveConstraint(c1)
 
         consts = model_part.GetMasterSlaveConstraints()
+
+        self.assertTrue(len(consts) == 2)
 
         self.assertTrue( c1.Id in model_part.MasterSlaveConstraints )
 
