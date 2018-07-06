@@ -723,8 +723,6 @@ protected:
         const GeometryType::ShapeFunctionsGradientsType* pDN_De;
 
     public:
-        StressMeasureType StressMeasure;
-
         // General variables for large displacement use
         Matrix ConstitutiveMatrix; /// Constitutive matrix
         Vector StrainVector;       /// Strain tensor
@@ -871,6 +869,11 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Gives the StressMeasure used
+     */
+    ConstitutiveLaw::StressMeasure GetStressMeasure() const override;
 
     /**
      * @brief Check if the node has a neighbour:

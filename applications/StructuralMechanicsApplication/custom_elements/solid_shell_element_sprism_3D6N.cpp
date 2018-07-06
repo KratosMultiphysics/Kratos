@@ -932,11 +932,9 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 
             // Call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR)
-                general_variables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+                mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
             else
-                general_variables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
-
-            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, general_variables.StressMeasure);
+                mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
             if (rOutput[point_number].size() != general_variables.StressVector.size())
                 rOutput[point_number].resize( general_variables.StressVector.size(), false);
@@ -1367,6 +1365,72 @@ void SolidShellElementSprism3D6N::InitializeSolutionStep(ProcessInfo& rCurrentPr
     BaseType::InitializeSolutionStep(rCurrentProcessInfo);
 
     mFinalizedStep = false;
+
+//     if (rCurrentProcessInfo[STEP] == 1) {
+//         /* Create and initialize element variables: */
+//         GeneralVariables general_variables;
+//         this->InitializeGeneralVariables(general_variables);
+//
+//         /* Create constitutive law parameters: */
+//         ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+//
+//         /* Set constitutive law flags: */
+//         Flags &ConstitutiveLawOptions=values.GetOptions();
+//
+//         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+//         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+//         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+//
+//         /* Reading integration points */
+//         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+//
+//         /* Getting the alpha parameter of the EAS improvement */
+//         double& alpha_eas = this->GetValue(ALPHA_EAS);
+//
+//         /* Calculate the cartesian derivatives */
+//         CartesianDerivatives this_cartesian_derivatives;
+//         this->CalculateCartesianDerivatives(this_cartesian_derivatives);
+//
+//         /* Calculate common components (B, C) */
+//         CommonComponents common_components;
+//         common_components.clear();
+//         this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
+//
+//         /* Reset the EAS integrated components */
+//         EASComponents EAS;
+//         EAS.clear();
+//
+//         // Reading integration points
+//         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+//             const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
+//
+//             /* Assemble B */
+//             this->CalculateDeformationMatrix(general_variables.B, common_components, zeta_gauss, alpha_eas);
+//
+//             // Compute element kinematics C, F ...
+//             this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
+//
+//             // Set general variables to constitutivelaw parameters
+//             this->SetGeneralVariables(general_variables, values, point_number);
+//
+//             // Compute stresses and constitutive parameters
+//             mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, this->GetStressMeasure());
+//
+//             // Calculating weights for integration on the "reference configuration"
+//             const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
+//
+//             /* Integrate in Zeta */
+//             // EAS components
+//             IntegrateEASInZeta(general_variables, EAS, zeta_gauss, integration_weight);
+//         }
+//
+//         /* Getting the increase of displacements */
+//         const BoundedMatrix<double, 36, 1 > delta_disp = GetVectorCurrentPosition();
+//
+//         /* Update alpha EAS */
+//         if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) // Avoid division by zero
+//             alpha_eas -= (EAS.mRHSAlpha + prod(EAS.mHEAS, delta_disp)(0, 0)) / EAS.mStiffAlpha;
+//     }
 }
 
 /***********************************************************************************/
@@ -1413,7 +1477,7 @@ void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProc
         this->SetGeneralVariables(general_variables,Values,point_number);
 
         // Call the constitutive law to update material variables
-        mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, general_variables.StressMeasure);
+        mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, this->GetStressMeasure());
 
         // Call the constitutive law to finalize the solution step
         mConstitutiveLawVector[point_number]->FinalizeSolutionStep( GetProperties(),
@@ -1435,71 +1499,74 @@ void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProc
 
 void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
-        /* Create and initialize element variables: */
-        GeneralVariables general_variables;
-        this->InitializeGeneralVariables(general_variables);
-
-        /* Create constitutive law parameters: */
-        ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-
-        /* Set constitutive law flags: */
-        Flags &ConstitutiveLawOptions=values.GetOptions();
-
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-        /* Reading integration points */
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
-
-        /* Getting the alpha parameter of the EAS improvement */
-        double& alpha_eas = this->GetValue(ALPHA_EAS);
-
-        /* Calculate the cartesian derivatives */
-        CartesianDerivatives this_cartesian_derivatives;
-        this->CalculateCartesianDerivatives(this_cartesian_derivatives);
-
-        /* Calculate common components (B, C) */
-        CommonComponents common_components;
-        common_components.clear();
-        this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
-
-        /* Reset the EAS integrated components */
-        EASComponents EAS;
-        EAS.clear();
-
-        // Reading integration points
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
-
-            /* Assemble B */
-            this->CalculateDeformationMatrix(general_variables.B, common_components, zeta_gauss, alpha_eas);
-
-            // Compute element kinematics C, F ...
-            this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
-
-            // Set general variables to constitutivelaw parameters
-            this->SetGeneralVariables(general_variables, values, point_number);
-
-            // Compute stresses and constitutive parameters
-            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, general_variables.StressMeasure);
-
-            // Calculating weights for integration on the "reference configuration"
-            const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
-
-            /* Integrate in Zeta */
-            // EAS components
-            IntegrateEASInZeta(general_variables, EAS, zeta_gauss, integration_weight);
-        }
-
-        /* Getting the increase of displacements */
-        const BoundedMatrix<double, 36, 1 > delta_disp = (rCurrentProcessInfo[STEP] == 1) ? GetVectorCurrentPosition() : GetVectorCurrentPosition() - GetVectorPreviousPosition();
-
-        /* Update alpha EAS */
-        if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) // Avoid division by zero
-            alpha_eas -= (EAS.mRHSAlpha + prod(EAS.mHEAS, delta_disp)(0, 0)) / EAS.mStiffAlpha;
-    }
+//     if ( mELementalFlags.Is(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
+//         /* Create and initialize element variables: */
+//         GeneralVariables general_variables;
+//         this->InitializeGeneralVariables(general_variables);
+//
+//         /* Create constitutive law parameters: */
+//         ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+//
+//         /* Set constitutive law flags: */
+//         Flags &ConstitutiveLawOptions=values.GetOptions();
+//
+//         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+//         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+//         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+//
+//         /* Reading integration points */
+//         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+//
+//         /* Getting the alpha parameter of the EAS improvement */
+//         double& alpha_eas = this->GetValue(ALPHA_EAS);
+//
+//         /* Calculate the cartesian derivatives */
+//         CartesianDerivatives this_cartesian_derivatives;
+//         this->CalculateCartesianDerivatives(this_cartesian_derivatives);
+//
+//         /* Calculate common components (B, C) */
+//         CommonComponents common_components;
+//         common_components.clear();
+//         this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
+//
+//         /* Reset the EAS integrated components */
+//         EASComponents EAS;
+//         EAS.clear();
+//
+//         // Reading integration points
+//         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+//             const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
+//
+//             /* Assemble B */
+//             this->CalculateDeformationMatrix(general_variables.B, common_components, zeta_gauss, alpha_eas);
+//
+//             // Compute element kinematics C, F ...
+//             this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
+//
+//             // Set general variables to constitutivelaw parameters
+//             this->SetGeneralVariables(general_variables, values, point_number);
+//
+//             // Compute stresses and constitutive parameters
+//             mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, this->GetStressMeasure());
+//
+//             // Calculating weights for integration on the "reference configuration"
+//             const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
+//
+//             /* Integrate in Zeta */
+//             // EAS components
+//             IntegrateEASInZeta(general_variables, EAS, zeta_gauss, integration_weight);
+//         }
+//
+// //         /* Getting the increase of displacements */
+// //         const BoundedMatrix<double, 36, 1 > delta_disp = (rCurrentProcessInfo[STEP] == 1) ? GetVectorCurrentPosition() : GetVectorCurrentPosition() - GetVectorPreviousPosition();
+//
+//         /* Getting the increase of displacements */
+//         const BoundedMatrix<double, 36, 1 > delta_disp = GetVectorCurrentPosition() - GetVectorPreviousPosition(); // Calculates the increase of displacements
+//
+//         /* Update alpha EAS */
+//         if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) // Avoid division by zero
+//             alpha_eas -= (EAS.mRHSAlpha + prod(EAS.mHEAS, delta_disp)(0, 0)) / EAS.mStiffAlpha;
+//     }
 }
 
 /***********************************************************************************/
@@ -1507,7 +1574,7 @@ void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCu
 
 void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
+//     if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
         /* Create and initialize element variables: */
         GeneralVariables general_variables;
         this->InitializeGeneralVariables(general_variables);
@@ -1555,7 +1622,7 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurr
             this->SetGeneralVariables(general_variables, values, point_number);
 
             // Compute stresses and constitutive parameters
-            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, general_variables.StressMeasure);
+            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, this->GetStressMeasure());
 
             // Calculating weights for integration on the "reference configuration"
             const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
@@ -1566,14 +1633,20 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurr
         }
 
         /* Getting the increase of displacements */
-        BoundedMatrix<double, 36, 1 > delta_disp;
+        const BoundedMatrix<double, 36, 1 > delta_disp = GetVectorCurrentPosition() - GetVectorPreviousPosition();
 
-        delta_disp = GetVectorCurrentPosition() - GetVectorPreviousPosition(); // Calculates the increase of displacements
+//         /* Getting the increase of displacements */
+//         const BoundedMatrix<double, 36, 1 > delta_disp = (rCurrentProcessInfo[STEP] == 1) ? GetVectorCurrentPosition() : GetVectorCurrentPosition() - GetVectorPreviousPosition();
 
         /* Update alpha EAS */
-        if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) // Avoid division by zero
-            alpha_eas -= prod(EAS.mHEAS, delta_disp)(0, 0) / EAS.mStiffAlpha;
-    }
+        if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) { // Avoid division by zero
+//             if ( mELementalFlags.Is(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
+//                 alpha_eas -= (EAS.mRHSAlpha + prod(EAS.mHEAS, delta_disp)(0, 0)) / EAS.mStiffAlpha;
+//             } else {
+                alpha_eas -= prod(EAS.mHEAS, delta_disp)(0, 0) / EAS.mStiffAlpha;
+//             }
+        }
+//     }
 }
 
 /***********************************************************************************/
@@ -1729,7 +1802,7 @@ void SolidShellElementSprism3D6N::CalculateElementalSystem(
         this->SetGeneralVariables(general_variables, values, point_number);
 
         // Compute stresses and constitutive parameters
-        mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, general_variables.StressMeasure);
+        mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, this->GetStressMeasure());
 
         // Calculating weights for integration on the "reference configuration"
         const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
@@ -1829,6 +1902,25 @@ void SolidShellElementSprism3D6N::PrintElementCalculation(
     KRATOS_INFO("SolidShellElementSprism3D6N") << " f " << rLocalSystem.GetRightHandSideVector() << std::endl;
 
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ConstitutiveLaw::StressMeasure SolidShellElementSprism3D6N::GetStressMeasure() const
+{
+    // StressMeasure_PK1             //stress related to reference configuration non-symmetric
+    // StressMeasure_PK2             //stress related to reference configuration
+    // StressMeasure_Kirchhoff       //stress related to current   configuration
+    // StressMeasure_Cauchy          //stress related to current   configuration
+
+    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) {
+        // PK2 stress measure
+        return ConstitutiveLaw::StressMeasure_PK2;
+    } else {
+        // Cauchy stress measure
+        return ConstitutiveLaw::StressMeasure_Cauchy;
+    }
 }
 
 /***********************************************************************************/
@@ -3244,7 +3336,7 @@ void SolidShellElementSprism3D6N::IntegrateEASInZeta(
     rEAS.mRHSAlpha += IntegrationWeight * ZetaGauss * rVariables.StressVector[2] * rVariables.C[2];
 
     // Calculate EAS stiffness
-    rEAS.mStiffAlpha += IntegrationWeight * ZetaGauss * ZetaGauss * rVariables.C[2] * (rVariables.ConstitutiveMatrix(2, 2) * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
+    rEAS.mStiffAlpha += IntegrationWeight * std::pow(ZetaGauss, 2) * rVariables.C[2] * (rVariables.ConstitutiveMatrix(2, 2) * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
 
     BoundedMatrix<double, 1, 36 > B3;
     BoundedMatrix<double, 1,  6 > D3;
@@ -3301,7 +3393,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddLHS(
                     this->SetGeneralVariables(rVariables, rValues, point_number);
 
                     // Compute stresses and constitutive parameters
-                    mConstitutiveLawVector[point_number]->CalculateMaterialResponse(rValues, rVariables.StressMeasure);
+                    mConstitutiveLawVector[point_number]->CalculateMaterialResponse(rValues, this->GetStressMeasure());
 
                     // Calculating weights for integration on the "reference configuration"
                     const double integration_weight = integration_points[point_number].Weight() * rVariables.detJ;
@@ -3344,7 +3436,7 @@ void SolidShellElementSprism3D6N::CalculateAndAddLHS(
             this->SetGeneralVariables(rVariables, rValues, point_number);
 
             // Compute stresses and constitutive parameters
-            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(rValues, rVariables.StressMeasure);
+            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(rValues, this->GetStressMeasure());
 
             // Calculating weights for integration on the "reference configuration"
             const double integration_weight = integration_points[point_number].Weight() * rVariables.detJ;
@@ -3546,9 +3638,9 @@ void SolidShellElementSprism3D6N::ApplyEASRHS(
     noalias(rRHSFull) -= trans(rEAS.mHEAS) * rEAS.mRHSAlpha / rEAS.mStiffAlpha;
 
     /* Update ALPHA_EAS */
-    if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
+//     if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
         AlphaEAS -= rEAS.mRHSAlpha / rEAS.mStiffAlpha;
-    }
+//     }
 
     KRATOS_CATCH( "" );
 }
@@ -3730,17 +3822,11 @@ void SolidShellElementSprism3D6N::CalculateKinematics(
     rVariables.detF = std::sqrt(rVariables.detF);
 
     if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) {
-        // PK2 stress measure
-        rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
-
         // Jacobian Determinant for the isoparametric and numerical integration
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(GetGeometry(), rIntegrationPoints[rPointNumber], J0);
         rVariables.detJ = MathUtils<double>::DetMat(J0);
     } else {
-        // Cauchy stress measure
-        rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-
         //Determinant of the Deformation Gradient F0
         rVariables.detF0 = MathUtils<double>::Det3(mAuxContainer[rPointNumber]);
         rVariables.F0    = mAuxContainer[rPointNumber];
@@ -3892,17 +3978,6 @@ void SolidShellElementSprism3D6N::CalculateDeformationMatrix(
 
 void SolidShellElementSprism3D6N::InitializeGeneralVariables(GeneralVariables& rVariables)
 {
-    // StressMeasure_PK1             //stress related to reference configuration non-symmetric
-    // StressMeasure_PK2             //stress related to reference configuration
-    // StressMeasure_Kirchhoff       //stress related to current   configuration
-    // StressMeasure_Cauchy          //stress related to current   configuration
-
-    // StressMeasure
-    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN))
-        rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
-    else
-        rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-
     // Doubles
     rVariables.detF  = 1.0;
     rVariables.detF0 = 1.0;
