@@ -15,7 +15,11 @@ def AssignMaterial(Properties):
     prop = Properties[prop_id]
 *if(strcmp(MatProp(Type),"FabricModel")==0)
     model = FabricSmallStrainUmatModel()
+*if(strcmp(MatProp(CONSTITUTIVE_LAW_NAME),"FabricModelAxisym2DLaw")==0)
     mat = SmallStrainAxisymmetric2DLaw(model)
+*else
+    mat = SmallStrainPlaneStrain2DLaw(model)
+*endif
 *else
     mat = *MatProp(CONSTITUTIVE_LAW_NAME)()
 *endif
