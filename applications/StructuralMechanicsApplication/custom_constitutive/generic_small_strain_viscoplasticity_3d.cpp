@@ -25,10 +25,10 @@ namespace Kratos
 {
 ConstitutiveLaw::Pointer GenericSmallStrainViscoplasticity3D::Create(Kratos::Parameters NewParameters) const
 {
-    ConstitutiveLaw::Pointer PlasticityCL = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
-    ConstitutiveLaw::Pointer ViscousCL    = ViscousGeneralizedMaxwell3D().Create(NewParameters);
+    ConstitutiveLaw::Pointer pPlasticityCL = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
+    ConstitutiveLaw::Pointer pViscousCL    = ViscousGeneralizedMaxwell3D().Create(NewParameters);
 
-    return GenericSmallStrainViscoplasticity3D(PlasticityCL, ViscousCL).Clone();
+    return GenericSmallStrainViscoplasticity3D(pPlasticityCL, pViscousCL).Clone();
 }
 
 /***********************************************************************************/
@@ -61,9 +61,6 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseKirchhoff(Con
 
 void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    //Vector& IntegratedStressVector = rValues.GetStressVector();
-    Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
-
     Vector PlasticStrain = ZeroVector(6);
     mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, PlasticStrain);
     Vector& StrainVector = rValues.GetStrainVector();
@@ -71,10 +68,10 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(Consti
     const Vector initial_strain_vector = StrainVector;
 
     StrainVector = strain_for_visco;
-    mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // modifies S for plasticity
+    mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Relaxes the Stress...
 
     StrainVector = initial_strain_vector;
-    mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
+    mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Plastification occurs...
 
 } // End CalculateMaterialResponseCauchy
 
