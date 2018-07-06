@@ -45,10 +45,8 @@ public:
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofPointerVectorType;
     typedef Node<3> NodeType;
-    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef double ConstantType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
     typedef Kratos::Variable<double> VariableType;
@@ -66,12 +64,11 @@ public:
     * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
     */
     LinearMasterSlaveConstraint(IndexType Id,
-                                        DofPointerVectorType& rMasterDofsVector,
-                                        DofPointerVectorType& rSlaveDofsVector,
-                                        const MatrixType& rRelationMatrix,
-                                        const VectorType& rConstantVector)
-                                        :
-                                        MasterSlaveConstraint(Id)
+                                DofPointerVectorType& rMasterDofsVector,
+                                DofPointerVectorType& rSlaveDofsVector,
+                                const MatrixType& rRelationMatrix,
+                                const VectorType& rConstantVector)
+        : MasterSlaveConstraint(Id)
     {
         mSlaveDofsVector = rSlaveDofsVector;
         mMasterDofsVector = rMasterDofsVector;
@@ -83,12 +80,13 @@ public:
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
     LinearMasterSlaveConstraint(IndexType Id,
-                                        NodeType& rMasterNode,
-                                        const VariableType& rMasterVariable,
-                                        NodeType& rSlaveNode,
-                                        const VariableType& rSlaveVariable,
-                                        const double Weight,
-                                        const double Constant):MasterSlaveConstraint(Id)
+                                NodeType& rMasterNode,
+                                const VariableType& rMasterVariable,
+                                NodeType& rSlaveNode,
+                                const VariableType& rSlaveVariable,
+                                const double Weight,
+                                const double Constant)
+        : MasterSlaveConstraint(Id)
     {
         // Resizing the memeber variables
         mRelationMatrix.resize(1,1,false);
@@ -109,12 +107,13 @@ public:
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
     LinearMasterSlaveConstraint(IndexType Id,
-                                        NodeType& rMasterNode,
-                                        const VariableComponentType& rMasterVariable,
-                                        NodeType& rSlaveNode,
-                                        const VariableComponentType& rSlaveVariable,
-                                        const double Weight,
-                                        const double Constant):MasterSlaveConstraint(Id)
+                                NodeType& rMasterNode,
+                                const VariableComponentType& rMasterVariable,
+                                NodeType& rSlaveNode,
+                                const VariableComponentType& rSlaveVariable,
+                                const double Weight,
+                                const double Constant)
+        : MasterSlaveConstraint(Id)
     {
         // Resizing the memeber variables
         mRelationMatrix.resize(1,1,false);
@@ -149,10 +148,10 @@ public:
     }
 
     MasterSlaveConstraint::Pointer Create(IndexType Id,
-                                                DofPointerVectorType& MasterDofsVector,
-                                                DofPointerVectorType& SlaveDofsVector,
-                                                const MatrixType& RelationMatrix,
-                                                const VectorType& ConstantVector) const override
+                                          DofPointerVectorType& MasterDofsVector,
+                                          DofPointerVectorType& SlaveDofsVector,
+                                          const MatrixType& RelationMatrix,
+                                          const VectorType& ConstantVector) const override
     {
         KRATOS_TRY
         auto new_pointer = Kratos::make_shared<LinearMasterSlaveConstraint>(Id, MasterDofsVector, SlaveDofsVector, RelationMatrix, ConstantVector);
@@ -161,24 +160,25 @@ public:
     }
 
     MasterSlaveConstraint::Pointer Create(IndexType Id,
-                                        NodeType& rMasterNode,
-                                        const VariableType& rMasterVariable,
-                                        NodeType& rSlaveNode,
-                                        const VariableType& rSlaveVariable,
-                                        const double Weight,
-                                        const double Constant) const override
+                                          NodeType& rMasterNode,
+                                          const VariableType& rMasterVariable,
+                                          NodeType& rSlaveNode,
+                                          const VariableType& rSlaveVariable,
+                                          const double Weight,
+                                          const double Constant) const override
     {
         KRATOS_TRY
         return Kratos::make_shared<LinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
         KRATOS_CATCH("");
     }
 
-    MasterSlaveConstraint::Pointer Create(IndexType Id, NodeType& rMasterNode,
-                                        const VariableComponentType& rMasterVariable,
-                                        NodeType& rSlaveNode,
-                                        const VariableComponentType& rSlaveVariable,
-                                        const double Weight,
-                                        const double Constant) const override
+    MasterSlaveConstraint::Pointer Create(IndexType Id,
+                                          NodeType& rMasterNode,
+                                          const VariableComponentType& rMasterVariable,
+                                          NodeType& rSlaveNode,
+                                          const VariableComponentType& rSlaveVariable,
+                                          const double Weight,
+                                          const double Constant) const override
     {
         KRATOS_TRY
         return Kratos::make_shared<LinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
@@ -200,8 +200,8 @@ public:
     }
 
     void EquationIdVector(EquationIdVectorType& rSlaveEquationIds,
-                                  EquationIdVectorType& rMasterEquationIds,
-                                  ProcessInfo& rCurrentProcessInfo) override
+                          EquationIdVectorType& rMasterEquationIds,
+                          ProcessInfo& rCurrentProcessInfo) override
     {
         if (rSlaveEquationIds.size() != mSlaveDofsVector.size())
             rSlaveEquationIds.resize(mSlaveDofsVector.size());
@@ -217,8 +217,8 @@ public:
     }
 
     void CalculateLocalSystem(MatrixType& rTransformationMatrix,
-                                      VectorType& rConstantVector,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                              VectorType& rConstantVector,
+                              ProcessInfo& rCurrentProcessInfo) override
     {
       rTransformationMatrix = mRelationMatrix;
       rConstantVector = mConstantVector;
@@ -238,9 +238,9 @@ public:
     ///@}
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << " LinearMasterSlaveConstraint Id  : " <<this->Id()<<std::endl;
-        rOStream << " Number of Slaves          : " <<this->mSlaveDofsVector.size()<<std::endl;
-        rOStream << " Number of Masters         : " <<this->mMasterDofsVector.size()<<std::endl;
+        rOStream << " LinearMasterSlaveConstraint Id  : " << this->Id() << std::endl;
+        rOStream << " Number of Slaves          : " << this->mSlaveDofsVector.size() << std::endl;
+        rOStream << " Number of Masters         : " << this->mMasterDofsVector.size() << std::endl;
     }
 
 
@@ -279,11 +279,10 @@ private:
 ///@{
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                LinearMasterSlaveConstraint& rThis);
+inline std::istream& operator>>(std::istream& rIStream, LinearMasterSlaveConstraint& rThis);
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
+inline std::ostream& operator<<(std::ostream& rOStream,
                                 const LinearMasterSlaveConstraint& rThis)
 {
     rThis.PrintInfo(rOStream);
