@@ -55,7 +55,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
                                                                  Variable<array_1d<double, 3> >& vector_rate_container,
                                                                  Variable<array_1d<double, 3> >& material_derivative_container)
 {
-    std::cout << "Constructing the material derivative by derivating nodal averages...\n";
+    KRATOS_INFO("DEM-FLUID") << "Constructing the material derivative by derivating nodal averages..." << std::endl;
     std::map <std::size_t, unsigned int> id_to_position;
     unsigned int entry = 0;
 
@@ -143,7 +143,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
 
     AddTimeDerivative(r_model_part, material_derivative_container);
 
-    std::cout << "Finished constructing the material derivative by derivating nodal averages...\n";
+    KRATOS_INFO("DEM-FLUID") << "Finished constructing the material derivative by derivating nodal averages..." << std::endl;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -198,10 +198,10 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model
     mCalculatingTheGradient = true;
 
     if (mFirstGradientRecovery){
-        std::cout << "Constructing first-step neighbour clouds for material derivative...\n";
+        KRATOS_INFO("DEM-FLUID") << "Constructing first-step neighbour clouds for material derivative..." << std::endl;
         SetNeighboursAndWeights(r_model_part);
         mFirstGradientRecovery = false;
-        std::cout << "Finished constructing neighbour clouds for material derivative.\n";
+        KRATOS_INFO("DEM-FLUID") << "Finished constructing neighbour clouds for material derivative." << std::endl;
     }
 
     if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
@@ -396,10 +396,10 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
     mCalculatingTheGradient = true;
 
     if (mFirstGradientRecovery){
-        std::cout << "Constructing first-step neighbour clouds for gradient recovery...\n";
+        KRATOS_INFO("DEM-FLUID") << "Constructing first-step neighbour clouds for gradient recovery..." << std::endl;
         SetNeighboursAndWeights(r_model_part);
         mFirstGradientRecovery = false;
-        std::cout << "Finished constructing neighbour clouds for gradient recovery.\n";
+        KRATOS_INFO("DEM-FLUID") << "Finished constructing neighbour clouds for gradient recovery." << std::endl;
     }
 
     if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
@@ -482,10 +482,10 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
     mCalculatingTheLaplacian = true;
 
     if (mFirstLaplacianRecovery){
-        std::cout << "Constructing first-step neighbour clouds for laplacian recovery...\n";
+        KRATOS_INFO("DEM-FLUID") << "Constructing first-step neighbour clouds for laplacian recovery..." << std::endl;
         SetNeighboursAndWeights(r_model_part);
         mFirstLaplacianRecovery = false;
-        std::cout << "Finished constructing neighbour clouds for laplacian recovery.\n";
+        KRATOS_INFO("DEM-FLUID") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
     }
 
     if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
@@ -541,10 +541,10 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradie
     mCalculatingTheGradient = true;
 
     if (mFirstLaplacianRecovery){
-        std::cout << "Constructing first-step neighbour clouds for laplacian recovery...\n";
+        KRATOS_INFO("DEM-FLUID") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
         SetNeighboursAndWeights(r_model_part);
         mFirstLaplacianRecovery = false;
-        std::cout << "Finished constructing neighbour clouds for laplacian recovery.\n";
+        KRATOS_INFO("DEM-FLUID") << "Finished constructing neighbour clouds for laplacian recovery." << std::endl;
     }
 
     if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
@@ -601,10 +601,10 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
     mCalculatingGradientAndLaplacian = true;
 
     if (mFirstLaplacianRecovery){
-        std::cout << "Constructing first-step neighbour clouds for material derivative and laplacian recovery...\n";
+        KRATOS_INFO("DEM-FLUID") << "Constructing first-step neighbour clouds for material derivative and laplacian recovery..." << std::endl;
         SetNeighboursAndWeights(r_model_part);
         mFirstLaplacianRecovery = false;
-        std::cout << "Finished constructing neighbour clouds for material derivative and laplacian recovery.\n";
+        KRATOS_INFO("DEM-FLUID") << "Finished constructing neighbour clouds for material derivative and laplacian recovery." << std::endl;
     }
 
     if (mSomeCloudsDontWork){ // a default value is necessary in the cases where recovery is not possible
@@ -663,7 +663,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
 template <std::size_t TDim>
 void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container)
 {
-    std::cout << "Constructing the Laplacian by derivating nodal averages...\n";
+    KRATOS_INFO("DEM-FLUID") << "Constructing the Laplacian by derivating nodal averages..." << std::endl;
     std::map <std::size_t, unsigned int> id_to_position;
     unsigned int entry = 0;
 
@@ -763,7 +763,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
         noalias(laplacian) = stored_laplacian / inode->FastGetSolutionStepValue(NODAL_AREA);
     }
 
-    std::cout << "Finished constructing the Laplacian by derivating nodal averages...\n";
+    KRATOS_INFO("DEM-FLUID") << "Finished constructing the Laplacian by derivating nodal averages..." << std::endl;
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -818,8 +818,8 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
             mSomeCloudsDontWork = true;
             neigh_nodes.clear();
             inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
-            std::cout << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours\n";
-            std::cout << "for the gradient recovery. A lower accuracy method has been employed for this node.";
+            KRATOS_WARNING("DEM-FLUID") << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours" << std::endl;
+            KRATOS_WARNING("DEM-FLUID") << "for the gradient recovery. A lower accuracy method has been employed for this node." << std::endl;
         }
 
         ++i;
@@ -850,8 +850,8 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
             mSomeCloudsDontWork = true;
             neigh_nodes.clear();
             inode->FastGetSolutionStepValue(NODAL_WEIGHTS).clear();
-            std::cout << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours\n";
-            std::cout << "for the gradient recovery. A lower accuracy method has been employed for this node.";
+            KRATOS_WARNING("DEM-FLUID") << "Warning!, for the node with id " << inode->Id() << " it has not been possible to form an adequate cloud of neighbours" << std::endl;
+            KRATOS_WARNING("DEM-FLUID") << "for the gradient recovery. A lower accuracy method has been employed for this node." << std::endl;
         }
 
         ++i;

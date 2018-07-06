@@ -34,7 +34,7 @@ class FluidSolver(PythonSolver):
         model_part_name = self.settings["model_part_name"].GetString()
 
         if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
+            raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
@@ -42,6 +42,9 @@ class FluidSolver(PythonSolver):
             self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
+        if domain_size == -1:
+            raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
     def AddVariables(self):
@@ -110,7 +113,7 @@ class FluidSolver(PythonSolver):
         if self._TimeBufferIsInitialized():
             is_converged = self.solver.SolveSolutionStep()
             if not is_converged and self._IsPrintingRank():
-                msg  = "Fluid solver did not converge for iteration " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+                msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
                 msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
                 KratosMultiphysics.Logger.PrintWarning("FluidSolver",msg)
 

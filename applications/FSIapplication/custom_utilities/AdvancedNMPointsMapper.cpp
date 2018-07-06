@@ -327,7 +327,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
     // Try to use a nearby node as reference for points that couldn't be projected to a condition
     if (ProjectionlessGP.size() != 0)
     {
-        std::cout << "AdvancedNMPointsMapper: " << ProjectionlessGP.size()
+        KRATOS_WARNING("AdvancedNMPointsMapper") << ProjectionlessGP.size()
                   << " Gauss points could not be projected to a condition.\n"
                   << "    Attempring to get a reasonable value for them from a node..." << std::endl;
 
@@ -365,7 +365,7 @@ void AdvancedNMPointsMapper::FindNeighbours(double SearchRadiusFactor)
             }
         }
 
-        std::cout << "   ... " << counter << " Gauss Points without a reference value remain." << std::endl;
+        KRATOS_WARNING("AdvancedNMPointsMapper") << counter << " Gauss Points without a reference value remain." << std::endl;
     }
 }
 
@@ -702,12 +702,12 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         }
     }
@@ -824,12 +824,12 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "ScalarToNormalVectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "ScalarToNormalVectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
     }
@@ -1028,12 +1028,12 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         }
     }
@@ -1183,12 +1183,12 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "NormalVectorToScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "NormalVectorToScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
     }
@@ -1341,12 +1341,12 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
-                std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ( (k + 1) == MaxIter)
             {
-                std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
     }
@@ -1456,12 +1456,12 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * std::pow(TolIter, 2.00)) || (RelativeError < std::pow(TolIter, 2.00)) )
             {
-                std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "ScalarMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ((k + 1) == MaxIter)
             {
-                std::cout << "WARNING: ScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "ScalarMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         } // End of Iteration
     }
@@ -1635,12 +1635,12 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
-                std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ( (k + 1) == MaxIter)
             {
-                std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         }
         // End of Iteration
@@ -1772,12 +1772,12 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             const double RelativeError = (ValNorm > 10e-15) ? dValNorm / ValNorm : 0.0;
             if( (ValNorm/NodeNum < 0.00001 * TolIter * TolIter) || RelativeError < TolIter * TolIter)
             {
-                std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
+                // std::cout << "VectorMap converged in " << k + 1 << " iterations." << std::endl;
                 break;
             }
             else if ( (k + 1) == MaxIter)
             {
-                std::cout << "WARNING: VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
+                KRATOS_WARNING("AdvancedNMPointsMapper") << "VectorMap did not converge in " << k + 1 << " iterations." << std::endl;
             }
         }
         // End of Iteration
@@ -1799,7 +1799,6 @@ void AdvancedNMPointsMapper::DistanceCheck()
             double dist = 0.0;
             int Status  = 0;
             mGaussPointList[GPiter + i]->GetProjStatus(Status);
-            std::cout << GPiter + i << " " << Status << std::endl;
 
             if (Status != 0)
             {

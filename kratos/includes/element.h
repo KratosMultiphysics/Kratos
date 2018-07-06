@@ -262,11 +262,11 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl; 
-        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties()); 
+	KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
+        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_elem->SetData(this->GetData());
-        p_new_elem->Set(Flags(*this)); 
-        return p_new_elem; 
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
         KRATOS_CATCH("");
     }
 
@@ -755,6 +755,13 @@ public:
     }
 
     /// This method is deprecated, use GetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+					      std::vector<int>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /// This method is deprecated, use GetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
@@ -801,6 +808,13 @@ public:
      */
 
     //SET ON INTEGRATION POINTS - METHODS
+
+    /// This method is deprecated, use SetValuesOnIntegrationPoints instead
+    KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     /// This method is deprecated, use SetValuesOnIntegrationPoints instead
     KRATOS_DEPRECATED virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
@@ -1538,4 +1552,3 @@ KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
 
 } // namespace Kratos.
 #endif // KRATOS_ELEMENT_H_INCLUDED  defined
-
