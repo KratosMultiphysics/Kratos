@@ -7,6 +7,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo & Lucia Barbu 
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined (KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED)

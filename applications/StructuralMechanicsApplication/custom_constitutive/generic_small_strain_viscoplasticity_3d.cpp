@@ -12,13 +12,29 @@
 
 // System includes
 
+// External includes
+
 // Project includes
-#include "custom_constitutive/viscous_generalized_kelvin_3d.h"
+#include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
+#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+#include "generic_small_strain_viscoplasticity_3d.h"
 
 namespace Kratos
 {
-void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+ConstitutiveLaw::Pointer GenericSmallStrainViscoplasticity3D::Create(Kratos::Parameters NewParameters) const
+{
+    ConstitutiveLaw::Pointer PlasticityCL = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
+    ConstitutiveLaw::Pointer ViscousCL    = ViscousGeneralizedMaxwell3D().Create(NewParameters);
+
+    return GenericSmallStrainViscoplasticity3D(PlasticityCL, ViscousCL).Clone();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -26,7 +42,7 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK1(ConstitutiveLaw::P
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -34,7 +50,8 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK2(ConstitutiveLaw::P
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+
+void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -42,71 +59,47 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponseKirchhoff(Constitutive
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Integrate Stress Damage
-    const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-    const int VoigtSize = this->GetStrainSize();
-    Vector& IntegratedStressVector = rValues.GetStressVector(); // To be updated
-    const Vector& StrainVector = rValues.GetStrainVector();
-    Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const ProcessInfo& ProcessInfo = rValues.GetProcessInfo();
-    const double TimeStep = ProcessInfo[DELTA_TIME];
+    //Vector& IntegratedStressVector = rValues.GetStressVector();
+    Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
 
-    const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; // C1/Cinf
-    const double DelayTime = rMaterialProperties[DELAY_TIME];
+    Vector PlasticStrain = ZeroVector(6);
+    mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, PlasticStrain);
+    Vector& StrainVector = rValues.GetStrainVector();
+    const Vector strain_for_visco = StrainVector - PlasticStrain;
+    const Vector initial_strain_vector = StrainVector;
 
-    // Elastic Matrix
-    Matrix C, InvC;
-    double detC = 0.0;
-    this->CalculateElasticMatrix(C, rMaterialProperties);
-    MathUtils<double>::InvertMatrix(C, InvC, detC);
+    StrainVector = strain_for_visco;
+    mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // modifies S for plasticity
 
-    Vector InelasticStrainVector  = this->GetPreviousInelasticStrainVector();
-    const Vector& PreviousStress  = this->GetPreviousStressVector();
-
-    const int NumberOfSubIncrements = 10;
-    const double dt = TimeStep / NumberOfSubIncrements;
-
-    Vector AuxStressVector;
-    AuxStressVector = PreviousStress;
-    Vector Aux = ZeroVector(6);
-
-    Vector ElasticStrain;
-    for (int i = 0; i < NumberOfSubIncrements; i++) {
-        Aux = (std::exp(-dt/DelayTime) * prod(InvC, AuxStressVector)) / DelayTime;
-        InelasticStrainVector = std::exp(-dt/DelayTime)*InelasticStrainVector + Aux;
-        ElasticStrain = StrainVector - InelasticStrainVector;
-        noalias(AuxStressVector) = prod(C, ElasticStrain);
-    }
-
-    noalias(IntegratedStressVector) = AuxStressVector;
-    noalias(TangentTensor) = C;
-
-    this->SetNonConvPreviousStressVector(IntegratedStressVector);
-    this->SetNonConvPreviousInelasticStrainVector(InelasticStrainVector);
+    StrainVector = initial_strain_vector;
+    mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
 
 } // End CalculateMaterialResponseCauchy
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeSolutionStep(
+void GenericSmallStrainViscoplasticity3D::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Update the required vectors
-    this->SetPreviousInelasticStrainVector(this->GetNonConvPreviousInelasticStrainVector());
-    this->SetPreviousStressVector(this->GetNonConvPreviousStressVector());
+    // Update the int vars of each SubConstitutiveLaw
+    mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
+                                rShapeFunctionsValues,rCurrentProcessInfo);
+
+    mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
+                        rShapeFunctionsValues,rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::CalculateElasticMatrix(
+void GenericSmallStrainViscoplasticity3D::CalculateElasticMatrix(
     Matrix &rElasticityTensor,
     const Properties &rMaterialProperties
     )
@@ -138,28 +131,28 @@ void ViscousGeneralizedKelvin3D::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
 

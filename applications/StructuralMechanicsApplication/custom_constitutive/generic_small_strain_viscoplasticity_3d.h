@@ -7,27 +7,18 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo & Lucia Barbu 
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined (KRATOS_GENERIC_SMALL_STRAIN_VISCOPLASTICITY_3D_H_INCLUDED)
 #define  KRATOS_GENERIC_SMALL_STRAIN_VISCOPLASTICITY_3D_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
+
+// External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
-#include "utilities/math_utils.h"
-
 #include "includes/constitutive_law.h"
-#include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
-#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
-
-
 
 namespace Kratos
 {
@@ -85,22 +76,20 @@ public:
         ConstitutiveLaw::Pointer pViscousLaw)
     {
         mpPlasticityConstitutiveLaw = pPlasticityLaw;
-	    mpViscousConstitutiveLaw = pViscousLaw;
+        mpViscousConstitutiveLaw = pViscousLaw;
     }
     /**
     * Clone.
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        GenericSmallStrainViscoplasticity3D::Pointer p_clone
-            (new GenericSmallStrainViscoplasticity3D(*this));
-        return p_clone;
+        return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(*this);
     }
 
     /**
     * Copy constructor.
     */
-	GenericSmallStrainViscoplasticity3D(const GenericSmallStrainViscoplasticity3D& rOther)
+    GenericSmallStrainViscoplasticity3D(const GenericSmallStrainViscoplasticity3D& rOther)
     : ConstitutiveLaw(rOther)
     {
     }
@@ -120,6 +109,13 @@ public:
     ///@{
 
     /**
+     * creates a new constitutive law pointer
+     * @param NewParameters The configuration parameters of the new constitutive law
+     * @return a Pointer to the new constitutive law
+     */
+    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
+
+    /**
      * @brief Dimension of the law:
      */
     SizeType WorkingSpaceDimension() override
@@ -134,106 +130,69 @@ public:
     {
         return 6;
     };
-	
 
-    int GetWorkingSpaceDimension() {return 3;}
+    /**
+     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
+    /**
+     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
-    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
-    {   
-        ConstitutiveLaw::Pointer PlasticityCL = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
-        ConstitutiveLaw::Pointer ViscousCL    = ViscousGeneralizedMaxwell3D().Create(NewParameters);
+    /**
+     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
-        return GenericSmallStrainViscoplasticity3D(PlasticityCL, ViscousCL).Clone();
-    }
+    /**
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
-    {
-        //Vector& IntegratedStressVector = rValues.GetStressVector();
-        Matrix& TangentTensor = rValues.GetConstitutiveMatrix();
-
-		Vector PlasticStrain = ZeroVector(6);
-        mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, PlasticStrain);
-        Vector& StrainVector = rValues.GetStrainVector();
-        const Vector strain_for_visco = StrainVector - PlasticStrain;
-        const Vector initial_strain_vector = StrainVector;
-		
-        StrainVector = strain_for_visco;
-        mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // modifies S for plasticity
-
-        StrainVector = initial_strain_vector;
-        mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
-
-    } // End CalculateMaterialResponseCauchy
-
+    /**
+     * to be called at the end of each solution step
+     * (e.g. from Element::FinalizeSolutionStep)
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @param the current ProcessInfo instance
+     */
     void FinalizeSolutionStep(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo
-    ) override
-    {
-        // Update the int vars of each SubConstitutiveLaw
-        mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
-                                    rShapeFunctionsValues,rCurrentProcessInfo);
-                                    
-        mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties,rElementGeometry,
-                            rShapeFunctionsValues,rCurrentProcessInfo);
-    }
+        ) override;
 
-    void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties
-    )
-    {
-        const double E = rMaterialProperties[YOUNG_MODULUS];
-        const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-        const double lambda =
-            E * poisson_ratio / ((1. + poisson_ratio) * (1.0 - 2.0 * poisson_ratio));
-        const double mu = E / (2.0 + 2.0 * poisson_ratio);
+    /**
+     * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
-        if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
-            rElasticityTensor.resize(6, 6, false);
-        rElasticityTensor.clear();
+    /**
+     * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
-        rElasticityTensor(0, 0) = lambda + 2.0 * mu;
-        rElasticityTensor(0, 1) = lambda;
-        rElasticityTensor(0, 2) = lambda;
-        rElasticityTensor(1, 0) = lambda;
-        rElasticityTensor(1, 1) = lambda + 2.0 * mu;
-        rElasticityTensor(1, 2) = lambda;
-        rElasticityTensor(2, 0) = lambda;
-        rElasticityTensor(2, 1) = lambda;
-        rElasticityTensor(2, 2) = lambda + 2.0 * mu;
-        rElasticityTensor(3, 3) = mu;
-        rElasticityTensor(4, 4) = mu;
-        rElasticityTensor(5, 5) = mu;
-    }
+    /**
+     * Finalize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-    {
-    }
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-    {
-    }
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-    {
-    }
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-    {
-    }
+    /**
+     * Finalize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     ///@}
     ///@name Access
@@ -289,8 +248,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-	ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw;
-	ConstitutiveLaw::Pointer mpViscousConstitutiveLaw;
+
+    ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw;
+    ConstitutiveLaw::Pointer mpViscousConstitutiveLaw;
 
     ///@}
     ///@name Private Operators
@@ -299,6 +259,16 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method computes the elastic tensor
+     * @param rElasticityTensor The elastic tensor
+     * @param rMaterialProperties The material properties
+     */
+    void CalculateElasticMatrix(
+        Matrix &rElasticityTensor,
+        const Properties &rMaterialProperties
+        );
 
     ///@}
     ///@name Private  Access
@@ -316,6 +286,19 @@ private:
 
     friend class Serializer;
 
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        rSerializer.save("PlasticityConstitutiveLaw", mpPlasticityConstitutiveLaw);
+        rSerializer.save("ViscousConstitutiveLaw", mpViscousConstitutiveLaw);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        rSerializer.load("PlasticityConstitutiveLaw", mpPlasticityConstitutiveLaw);
+        rSerializer.load("ViscousConstitutiveLaw", mpViscousConstitutiveLaw);
+    }
 
     ///@}
 
