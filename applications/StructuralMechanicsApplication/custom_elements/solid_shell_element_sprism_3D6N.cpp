@@ -3742,7 +3742,7 @@ void SolidShellElementSprism3D6N::SetGeneralVariables(
 
     // Compute total F: FT
     rVariables.detFT = rVariables.detF * rVariables.detF0;
-    rVariables.FT    = prod( rVariables.F, rVariables.F0 );
+    noalias(rVariables.FT) = prod( rVariables.F, rVariables.F0 );
 
     rValues.SetDeterminantF(rVariables.detFT);
     rValues.SetDeformationGradientF(rVariables.FT);
