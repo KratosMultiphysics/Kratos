@@ -7,21 +7,17 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo & Lucia Barbu 
-//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 // System includes
 
-// External includes
-
 // Project includes
-#include "utilities/math_utils.h"
+#include "custom_constitutive/viscous_generalized_kelvin_3d.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
 
 namespace Kratos
 {
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -29,7 +25,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -37,7 +33,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedKelvin3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -45,7 +41,7 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(Constitutiv
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedKelvin3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Integrate Stress Damage
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
@@ -56,33 +52,45 @@ void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLa
     const ProcessInfo& ProcessInfo = rValues.GetProcessInfo();
     const double TimeStep = ProcessInfo[DELTA_TIME];
 
-    const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; //  C1/Cinf
+    const double Kvisco    = rMaterialProperties[VISCOUS_PARAMETER]; // C1/Cinf
     const double DelayTime = rMaterialProperties[DELAY_TIME];
 
     // Elastic Matrix
-    Matrix C;
+    Matrix C, InvC;
+    double detC = 0.0;
     this->CalculateElasticMatrix(C, rMaterialProperties);
+    MathUtils<double>::InvertMatrix(C, InvC, detC);
 
-    const Vector& PreviousStrain  = this->GetPreviousStrainVector();
+    Vector InelasticStrainVector  = this->GetPreviousInelasticStrainVector();
     const Vector& PreviousStress  = this->GetPreviousStressVector();
-    const Vector& StrainIncrement = StrainVector - PreviousStrain;
 
-    const double coef = Kvisco * TimeStep / ((1.0 + Kvisco)*2.0*DelayTime);
-    const Vector& Aux = -(StrainVector - StrainIncrement)*std::exp(-TimeStep/DelayTime)*(1.0 + coef)
-                            + StrainVector*(1.0 - coef);
+    const int NumberOfSubIncrements = 10;
+    const double dt = TimeStep / NumberOfSubIncrements;
 
-    noalias(IntegratedStressVector) = PreviousStress*std::exp(-TimeStep/DelayTime) + prod(C, Aux);
+    Vector AuxStressVector;
+    AuxStressVector = PreviousStress;
+    Vector Aux = ZeroVector(6);
+
+    Vector ElasticStrain;
+    for (int i = 0; i < NumberOfSubIncrements; i++) {
+        Aux = (std::exp(-dt/DelayTime) * prod(InvC, AuxStressVector)) / DelayTime;
+        InelasticStrainVector = std::exp(-dt/DelayTime)*InelasticStrainVector + Aux;
+        ElasticStrain = StrainVector - InelasticStrainVector;
+        noalias(AuxStressVector) = prod(C, ElasticStrain);
+    }
+
+    noalias(IntegratedStressVector) = AuxStressVector;
     noalias(TangentTensor) = C;
 
     this->SetNonConvPreviousStressVector(IntegratedStressVector);
-    this->SetNonConvPreviousStrainVector(StrainVector);
+    this->SetNonConvPreviousInelasticStrainVector(InelasticStrainVector);
 
 } // End CalculateMaterialResponseCauchy
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeSolutionStep(
+void ViscousGeneralizedKelvin3D::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -90,14 +98,14 @@ void ViscousGeneralizedMaxwell3D::FinalizeSolutionStep(
     )
 {
     // Update the required vectors
-    this->SetPreviousStrainVector(this->GetNonConvPreviousStrainVector());
+    this->SetPreviousInelasticStrainVector(this->GetNonConvPreviousInelasticStrainVector());
     this->SetPreviousStressVector(this->GetNonConvPreviousStressVector());
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateElasticMatrix(
+void ViscousGeneralizedKelvin3D::CalculateElasticMatrix(
     Matrix &rElasticityTensor,
     const Properties &rMaterialProperties
     )
@@ -129,28 +137,28 @@ void ViscousGeneralizedMaxwell3D::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedKelvin3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedKelvin3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedKelvin3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void ViscousGeneralizedKelvin3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
 
