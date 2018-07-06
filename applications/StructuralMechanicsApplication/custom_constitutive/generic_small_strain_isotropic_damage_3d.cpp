@@ -287,6 +287,18 @@ double& GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <class ConstLawIntegratorType>
+double& GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<double>& rThisVariable,
+    double& rValue)
+{
+    return this->GetValue(rThisVariable, rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential>>>;
 template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
 template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>;

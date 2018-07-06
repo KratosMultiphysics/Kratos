@@ -50,7 +50,6 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponsePK2(Constitut
 /***********************************************************************************/
 /***********************************************************************************/
 
-
 void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);

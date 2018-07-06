@@ -132,7 +132,6 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateM
             this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
         }
     }
-
 } // End CalculateMaterialResponseCauchy
 
 /***********************************************************************************/
@@ -388,6 +387,18 @@ Vector& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::GetValu
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <class ConstLawIntegratorType>
+double& GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<double>& rThisVariable,
+    double& rValue)
+{
+    return this->GetValue(rThisVariable, rValue);
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
 template class GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>>;
 template class GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
 template class GenericSmallStrainIsotropicPlasticity3D <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>;
