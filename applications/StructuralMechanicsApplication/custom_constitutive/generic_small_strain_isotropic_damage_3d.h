@@ -7,24 +7,18 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined (KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_H_INCLUDED)
 #define  KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_3D_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
+
+// External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/tangent_operator_calculator_utility.h"
-
 #include "includes/constitutive_law.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -82,9 +76,7 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::Pointer p_clone
-            (new GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>(*this));
-        return p_clone;
+        return Kratos::make_shared<GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>>(*this);
     }
 
     /**
@@ -113,19 +105,6 @@ public:
     ///@name Operations
     ///@{
 
-    int GetVoigtSize() {return 6;}
-    int GetWorkingSpaceDimension() {return 3;}
-
-    double GetThreshold() {return mThreshold;}
-    double GetDamage() {return mDamage;}
-    double GetNonConvThreshold() {return mNonConvThreshold;}
-    double GetNonConvDamage() {return mNonConvDamage;}
-
-    void SetThreshold(const double& toThreshold) {mThreshold = toThreshold;}
-    void SetDamage(const double& toDamage) {mDamage = toDamage;}
-    void SetNonConvThreshold(const double& toThreshold) {mNonConvThreshold = toThreshold;}
-    void SetNonConvDamage(const double& toDamage) {mNonConvDamage = toDamage;}
-
     /**
      * @brief Dimension of the law:
      */
@@ -142,181 +121,97 @@ public:
         return 6;
     };
     
+    /**
+     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
-    { 
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
+    /**
+     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
-    {
-        // Integrate Stress Damage
-        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-        const int VoigtSize = this->GetVoigtSize();
-        Vector& IntegratedStressVector = rValues.GetStressVector();
-        Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-        const Flags& ConstitutiveLawOptions = rValues.GetOptions();
+    /**
+     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
-        // Elastic Matrix
-        Matrix C;
-        this->CalculateElasticMatrix(C, rMaterialProperties);
+    /**
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-        double Threshold, Damage;
-        // In the 1st step Threshold must be set
-        if (std::abs(this->GetThreshold()) < tolerance) {
-            ConstLawIntegratorType::YieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, Threshold);
-            this->SetThreshold(Threshold);
-        }
-
-        // Converged values
-        Threshold = this->GetThreshold();
-        Damage    = this->GetDamage();
-
-        // S0 = C:(E-Ep)
-        Vector PredictiveStressVector = prod(C, rValues.GetStrainVector());
-
-        // Initialize Plastic Parameters
-        double UniaxialStress;
-        ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector, 
-            rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
-
-        const double F = UniaxialStress - Threshold; 
-
-        if (F <= 0.0) {   // Elastic case
-        
-            this->SetNonConvDamage(Damage);
-            this->SetNonConvThreshold(Threshold);
-            noalias(IntegratedStressVector) = (1.0 - Damage)*PredictiveStressVector;
-
-            if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
-                noalias(TangentTensor) = (1.0 - Damage)*C;
-
-                ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVector, 
-                    rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
-
-                this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-            }
-
-        } else { // Damage case
-            const double CharacteristicLength = rValues.GetElementGeometry().Length();
-            // This routine updates the PredictiveStress to verify the yield surf
-            ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
-                Damage, Threshold, rMaterialProperties, CharacteristicLength);
-
-            // Updated Values
-            noalias(IntegratedStressVector) = PredictiveStressVector; 
-            this->SetNonConvDamage(Damage);
-            this->SetNonConvThreshold(UniaxialStress);
-
-            if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
-                this->CalculateTangentTensor(rValues);
-                noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
-
-                ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVector, 
-                    rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
-                    
-                this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
-            }
-        }
-    } // End CalculateMaterialResponseCauchy
-
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues) 
-    {
-        // Calculates the Tangent Constitutive Tensor by perturbation
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
-    }
-
+    /**
+     * to be called at the end of each solution step
+     * (e.g. from Element::FinalizeSolutionStep)
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @param the current ProcessInfo instance
+     */
     void FinalizeSolutionStep(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo
-    ) override
-    {
-        this->SetDamage(this->GetNonConvDamage());
-        this->SetThreshold(this->GetNonConvThreshold());
-    }
+        ) override;
 
-    void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties
-    )
-    {
-        const double E = rMaterialProperties[YOUNG_MODULUS];
-        const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-        const double lambda = E * poisson_ratio / ((1.0 + poisson_ratio) * 
-                            (1.0 - 2.0 * poisson_ratio));
-        const double mu = E / (2.0 + 2.0 * poisson_ratio);
+    /**
+     * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
-        if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
-            rElasticityTensor.resize(6, 6, false);
-        rElasticityTensor.clear();
+    /**
+     * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
-        rElasticityTensor(0, 0) = lambda + 2.0 * mu;
-        rElasticityTensor(0, 1) = lambda;
-        rElasticityTensor(0, 2) = lambda;
-        rElasticityTensor(1, 0) = lambda;
-        rElasticityTensor(1, 1) = lambda + 2.0 * mu;
-        rElasticityTensor(1, 2) = lambda;
-        rElasticityTensor(2, 0) = lambda;
-        rElasticityTensor(2, 1) = lambda;
-        rElasticityTensor(2, 2) = lambda + 2.0 * mu;
-        rElasticityTensor(3, 3) = mu;
-        rElasticityTensor(4, 4) = mu;
-        rElasticityTensor(5, 5) = mu;
-    }
+    /**
+     * Finalize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    /**
+     * Finalize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
-    {
-    }
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
-    {
-    }
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
-    {
-    }
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
-    {
-    }
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<double>& rThisVariable) override;
 
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
     void SetValue(
         const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        if(rThisVariable == DAMAGE) {
-            mDamage = rValue;
-        } else if (rThisVariable == THRESHOLD) {
-            mThreshold = rValue;
-        } else if (rThisVariable == UNIAXIAL_STRESS) {
-            mUniaxialStress = rValue;
-        }
-    }
+        ) override;
 
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
     double& GetValue(
         const Variable<double>& rThisVariable,
         double& rValue
-    )
-    {
-        if(rThisVariable == DAMAGE){
-            rValue = mDamage;
-        } else if (rThisVariable == THRESHOLD) {
-            rValue = mThreshold;
-        } else if (rThisVariable == UNIAXIAL_STRESS) {
-            rValue = mUniaxialStress;
-        }
-
-        return rValue;
-    }
+        ) override;
 
     ///@}
     ///@name Access
@@ -389,6 +284,33 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    double GetThreshold() {return mThreshold;}
+    double GetDamage() {return mDamage;}
+    double GetNonConvThreshold() {return mNonConvThreshold;}
+    double GetNonConvDamage() {return mNonConvDamage;}
+
+    void SetThreshold(const double& toThreshold) {mThreshold = toThreshold;}
+    void SetDamage(const double& toDamage) {mDamage = toDamage;}
+    void SetNonConvThreshold(const double& toThreshold) {mNonConvThreshold = toThreshold;}
+    void SetNonConvDamage(const double& toDamage) {mNonConvDamage = toDamage;}
+
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
+
+    /**
+     * @brief This method computes the elastic tensor
+     * @param rElasticityTensor The elastic tensor
+     * @param rMaterialProperties The material properties
+     */
+    void CalculateElasticMatrix(
+        Matrix &rElasticityTensor,
+        const Properties &rMaterialProperties
+        );
+
 
     ///@}
     ///@name Private  Access

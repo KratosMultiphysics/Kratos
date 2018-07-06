@@ -1,0 +1,299 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
+//
+//  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Collaborator:    Vicente Mataix Ferrandiz
+//
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "structural_mechanics_application_variables.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+
+namespace Kratos
+{
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    this->CalculateMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    this->CalculateMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    this->CalculateMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    // Integrate Stress Damage
+    const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+    const int VoigtSize = this->GetStrainSize();
+    Vector& IntegratedStressVector = rValues.GetStressVector();
+    Matrix& TangentTensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
+    const Flags& ConstitutiveLawOptions = rValues.GetOptions();
+
+    // Elastic Matrix
+    Matrix C;
+    this->CalculateElasticMatrix(C, rMaterialProperties);
+
+    double Threshold, Damage;
+    // In the 1st step Threshold must be set
+    if (std::abs(this->GetThreshold()) < tolerance) {
+        ConstLawIntegratorType::YieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, Threshold);
+        this->SetThreshold(Threshold);
+    }
+
+    // Converged values
+    Threshold = this->GetThreshold();
+    Damage    = this->GetDamage();
+
+    // S0 = C:(E-Ep)
+    Vector PredictiveStressVector = prod(C, rValues.GetStrainVector());
+
+    // Initialize Plastic Parameters
+    double UniaxialStress;
+    ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(PredictiveStressVector,
+        rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
+
+    const double F = UniaxialStress - Threshold;
+
+    if (F <= 0.0) {   // Elastic case
+
+        this->SetNonConvDamage(Damage);
+        this->SetNonConvThreshold(Threshold);
+        noalias(IntegratedStressVector) = (1.0 - Damage)*PredictiveStressVector;
+
+        if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
+            noalias(TangentTensor) = (1.0 - Damage)*C;
+
+            ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVector,
+                rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
+
+            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+        }
+
+    } else { // Damage case
+        const double CharacteristicLength = rValues.GetElementGeometry().Length();
+        // This routine updates the PredictiveStress to verify the yield surf
+        ConstLawIntegratorType::IntegrateStressVector(PredictiveStressVector, UniaxialStress,
+            Damage, Threshold, rMaterialProperties, CharacteristicLength);
+
+        // Updated Values
+        noalias(IntegratedStressVector) = PredictiveStressVector;
+        this->SetNonConvDamage(Damage);
+        this->SetNonConvThreshold(UniaxialStress);
+
+        if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR) == true) {
+            this->CalculateTangentTensor(rValues);
+            noalias(TangentTensor) = rValues.GetConstitutiveMatrix();
+
+            ConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVector,
+                rValues.GetStrainVector(), UniaxialStress, rMaterialProperties);
+
+            this->SetValue(UNIAXIAL_STRESS, UniaxialStress, rValues.GetProcessInfo());
+        }
+    }
+} // End CalculateMaterialResponseCauchy
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+{
+    // Calculates the Tangent Constitutive Tensor by perturbation
+    TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::FinalizeSolutionStep(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    this->SetDamage(this->GetNonConvDamage());
+    this->SetThreshold(this->GetNonConvThreshold());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::CalculateElasticMatrix(
+    Matrix &rElasticityTensor,
+    const Properties &rMaterialProperties
+    )
+{
+    const double E = rMaterialProperties[YOUNG_MODULUS];
+    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
+    const double lambda = E * poisson_ratio / ((1.0 + poisson_ratio) *
+                        (1.0 - 2.0 * poisson_ratio));
+    const double mu = E / (2.0 + 2.0 * poisson_ratio);
+
+    if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
+        rElasticityTensor.resize(6, 6, false);
+    rElasticityTensor.clear();
+
+    rElasticityTensor(0, 0) = lambda + 2.0 * mu;
+    rElasticityTensor(0, 1) = lambda;
+    rElasticityTensor(0, 2) = lambda;
+    rElasticityTensor(1, 0) = lambda;
+    rElasticityTensor(1, 1) = lambda + 2.0 * mu;
+    rElasticityTensor(1, 2) = lambda;
+    rElasticityTensor(2, 0) = lambda;
+    rElasticityTensor(2, 1) = lambda;
+    rElasticityTensor(2, 2) = lambda + 2.0 * mu;
+    rElasticityTensor(3, 3) = mu;
+    rElasticityTensor(4, 4) = mu;
+    rElasticityTensor(5, 5) = mu;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+bool GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
+{
+    if(rThisVariable == DAMAGE) {
+        return true;
+    } else if (rThisVariable == THRESHOLD) {
+        return true;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        return true;
+    }
+
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+void GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if(rThisVariable == DAMAGE) {
+        mDamage = rValue;
+    } else if (rThisVariable == THRESHOLD) {
+        mThreshold = rValue;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        mUniaxialStress = rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class ConstLawIntegratorType>
+double& GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
+    if(rThisVariable == DAMAGE){
+        rValue = mDamage;
+    } else if (rThisVariable == THRESHOLD) {
+        rValue = mThreshold;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        rValue = mUniaxialStress;
+    }
+
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<TrescaPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<DruckerPragerPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<TrescaPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<DruckerPragerPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<TrescaPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<DruckerPragerPlasticPotential>>>;
+template class  GenericSmallStrainIsotropicDamage3D <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<TrescaPlasticPotential>>>;
+
+} // namespace kratos

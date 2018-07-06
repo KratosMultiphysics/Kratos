@@ -7,21 +7,17 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
 #if !defined (KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED)
 #define  KRATOS_SMALL_STRAIN_ISOTROPIC_DAMAGE_FACTORY_3D_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
+
+// External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
-#include "utilities/math_utils.h"
-
 #include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -99,9 +95,7 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        SmallStrainIsotropicDamageFactory3D::Pointer p_clone
-            (new SmallStrainIsotropicDamageFactory3D(*this));
-        return p_clone;
+        return Kratos::make_shared<SmallStrainIsotropicDamageFactory3D>(*this);
     }
 
     /**
@@ -111,6 +105,7 @@ public:
     : ConstitutiveLaw(rOther)
     {
     }
+
     /**
     * Destructor.
     */
@@ -118,6 +113,11 @@ public:
     {
     }
 
+    /**
+     * creates a new constitutive law pointer
+     * @param NewParameters The configuration parameters of the new constitutive law
+     * @return a Pointer to the new constitutive law
+     */
     ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
     {
         const std::string& yield = NewParameters["yield_surface"].GetString();
@@ -135,36 +135,59 @@ public:
     ///@name Operations
     ///@{
 
-
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-    {
-        this->CalculateMaterialResponseCauchy(rValues);
-    }
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+    /**
+     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
     {
         this->CalculateMaterialResponseCauchy(rValues);
     }
 
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+    /**
+     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
+    {
+        this->CalculateMaterialResponseCauchy(rValues);
+    }
+
+    /**
+     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
+    {
+        this->CalculateMaterialResponseCauchy(rValues);
+    }
+
+    /**
+     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @see Parameters
+     */
+    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override
     {
         KRATOS_ERROR << "The base factory class has been called, define a correct constitutive law " << std::endl;
-    } 
+    }
 
-
+    /**
+     * to be called at the end of each solution step
+     * (e.g. from Element::FinalizeSolutionStep)
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @param the current ProcessInfo instance
+     */
     void FinalizeSolutionStep(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo
-    ) override
+        ) override
     {
         KRATOS_ERROR << "The base dummy class has been called, define a correct constitutive law " << std::endl;
     }
-
 
     ///@}
     ///@name Access
