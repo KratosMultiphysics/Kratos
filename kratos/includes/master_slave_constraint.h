@@ -97,14 +97,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
         // this->Flags = rOther.Flags;
     }
 
-    // template <typename ...Params>
-    // virtual MasterSlaveConstraint::Pointer Create(Params&&... params)
-    // {
-    //     KRATOS_TRY
-    //     return Kratos::make_shared<TConstraintType>(std::forward<Params>(params)...);
-    //     KRATOS_CATCH("");
-    // }
-
     /**
      * creates a new constraint pointer
      * @param Id the ID of the new constraint

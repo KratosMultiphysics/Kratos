@@ -493,7 +493,7 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
 
       // Master-Slave Constraint 
       mMasterSlaveConstraint(),
-      mUserProvidedLinearMasterSlaveConstraint(),
+      mLinearMasterSlaveConstraint(),
 
       // Deprecated conditions start
       mCondition2D( 0, Element::GeometryType::Pointer(new Geometry<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -999,7 +999,7 @@ void KratosApplication::RegisterVariables() {
 
     //master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
-    KRATOS_REGISTER_CONSTRAINT("UserProvidedLinearMasterSlaveConstraint",mUserProvidedLinearMasterSlaveConstraint);
+    KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
 
     //deprecated conditions start
     KRATOS_REGISTER_CONDITION("Condition2D", mCondition2D);

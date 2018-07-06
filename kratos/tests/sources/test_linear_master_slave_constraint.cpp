@@ -20,7 +20,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
-#include "includes/user_provided_linear_master_slave_constraint.h"
+#include "includes/linear_master_slave_constraint.h"
 
 namespace Kratos {
 namespace Testing {
@@ -34,16 +34,16 @@ KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintTests, KratosCoreFastSuite)
         n1->AddDof(PRESSURE);
         n2->AddDof(PRESSURE);
 
-        auto c1 = model_part.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, *n1, PRESSURE, *n2, PRESSURE, 1.0, 0.0);
+        auto c1 = model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *n1, PRESSURE, *n2, PRESSURE, 1.0, 0.0);
 
         ProcessInfo& process_info = model_part.GetProcessInfo();
-        UserProvidedLinearMasterSlaveConstraint::EquationIdVectorType master_vector;
-        UserProvidedLinearMasterSlaveConstraint::EquationIdVectorType slave_vector;
+        LinearMasterSlaveConstraint::EquationIdVectorType master_vector;
+        LinearMasterSlaveConstraint::EquationIdVectorType slave_vector;
 
         c1->EquationIdVector(master_vector, slave_vector, process_info);
 
-        UserProvidedLinearMasterSlaveConstraint::MatrixType transformation_matrix;
-        UserProvidedLinearMasterSlaveConstraint::VectorType constant_vector;
+        LinearMasterSlaveConstraint::MatrixType transformation_matrix;
+        LinearMasterSlaveConstraint::VectorType constant_vector;
 
         c1->CalculateLocalSystem(transformation_matrix, constant_vector, process_info);
 

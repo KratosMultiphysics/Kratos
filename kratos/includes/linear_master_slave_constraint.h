@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(USER_PROVIDED_LINEAR_MASTER_SLAVE_CONSTRAINT_H)
-#define USER_PROVIDED_LINEAR_MASTER_SLAVE_CONSTRAINT_H
+#if !defined(LINEAR_MASTER_SLAVE_CONSTRAINT_H)
+#define LINEAR_MASTER_SLAVE_CONSTRAINT_H
 // System includes
 
 // project includes
@@ -21,40 +21,25 @@
 
 namespace Kratos
 {
-/** \brief Constraint * @class MasterSlaveRelation
+/** \brief Constraint * @class LinearMasterSlaveConstraint
     * @ingroup KratosCore
     * @brief
-	* A class that implements the interface for different master-slave constraints to be applied on a system.
-    * This is the part that is seen by the user from the python level. Objects of this class are
-    * first class citizens of the modelpart.
     *
     * This class allows to add a master-slave constraint which is of the form
     *
-    * SlaveDofVector = T * MasterDofVector + ConstantVector. (Processing of this is currently not implemented.)
+    * SlaveDofVector = T * MasterDofVector + ConstantVector.
     *
     * or
     *
     * SlaveDof = weight * MasterDof + Constant
     *
-    * the data T and ConstantVector (or the equivalent scalars) are not stored in the base class, since they can be eventually evaluated on the flight
-    *
-    * This class's object will provide its slave, master details and relation matrix between them.
-    *
-    * One can add two UserProvidedLinearMasterSlaveConstraint objects with same slave but different masters and weights.
-    * Consider user adds : SlaveDof = weight1 * MasterDof1 + Constant1
-    *              and   : SlaveDof = weight2 * MasterDof2 + Constant2
-    *
-    * These are later consolidated in the builder and solver to make
-    *                    : SlaveDof = weight1 * MasterDof1 + weight2 * MasterDof2 + Constant1+Constant2
-    *       and then converted to :
-    *                    : SlaveEqID = weight1 * MasterEqId1 + weight2 * MasterEqId2 + Constant1+Constant2
-    * This unique equation is used later on to modify the equation system.
+    * the data T and ConstantVector (or the equivalent scalars) are not stored in the base class, since they can be eventually evaluated runtime.
     */
-class UserProvidedLinearMasterSlaveConstraint :  public MasterSlaveConstraint
+class LinearMasterSlaveConstraint :  public MasterSlaveConstraint
 {
 public:
     /// Pointer definition of DataValueContainer
-    KRATOS_CLASS_POINTER_DEFINITION(UserProvidedLinearMasterSlaveConstraint);
+    KRATOS_CLASS_POINTER_DEFINITION(LinearMasterSlaveConstraint);
     typedef IndexedObject BaseType;
     typedef std::size_t IndexType;
     typedef Dof<double> DofType;
@@ -71,7 +56,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    UserProvidedLinearMasterSlaveConstraint(IndexType Id = 0)
+    LinearMasterSlaveConstraint(IndexType Id = 0)
         :
         MasterSlaveConstraint(Id)
     {
@@ -80,7 +65,7 @@ public:
     /*
     * Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
     */
-    UserProvidedLinearMasterSlaveConstraint(IndexType Id,
+    LinearMasterSlaveConstraint(IndexType Id,
                                         DofPointerVectorType& rMasterDofsVector,
                                         DofPointerVectorType& rSlaveDofsVector,
                                         const MatrixType& rRelationMatrix,
@@ -97,7 +82,7 @@ public:
     /*
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
-    UserProvidedLinearMasterSlaveConstraint(IndexType Id,
+    LinearMasterSlaveConstraint(IndexType Id,
                                         NodeType& rMasterNode,
                                         const VariableType& rMasterVariable,
                                         NodeType& rSlaveNode,
@@ -123,7 +108,7 @@ public:
     /*
     * Constructor by passing a single Master and slave dofs and corresponding weight and constant for a variable component
     */
-    UserProvidedLinearMasterSlaveConstraint(IndexType Id,
+    LinearMasterSlaveConstraint(IndexType Id,
                                         NodeType& rMasterNode,
                                         const VariableComponentType& rMasterVariable,
                                         NodeType& rSlaveNode,
@@ -147,13 +132,13 @@ public:
     }
 
     /// Destructor.
-    ~UserProvidedLinearMasterSlaveConstraint() override
+    ~LinearMasterSlaveConstraint() override
     {
 
     }
 
     /// Copy Constructor
-    UserProvidedLinearMasterSlaveConstraint(const UserProvidedLinearMasterSlaveConstraint& rOther)
+    LinearMasterSlaveConstraint(const LinearMasterSlaveConstraint& rOther)
     {
         this->SetId(rOther.Id());
         // this->Flags = rOther.Flags;
@@ -170,7 +155,7 @@ public:
                                                 const VectorType& ConstantVector) const override
     {
         KRATOS_TRY
-        auto new_pointer = Kratos::make_shared<UserProvidedLinearMasterSlaveConstraint>(Id, MasterDofsVector, SlaveDofsVector, RelationMatrix, ConstantVector);
+        auto new_pointer = Kratos::make_shared<LinearMasterSlaveConstraint>(Id, MasterDofsVector, SlaveDofsVector, RelationMatrix, ConstantVector);
         return new_pointer;
         KRATOS_CATCH("");
     }
@@ -184,7 +169,7 @@ public:
                                         const double Constant) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared<UserProvidedLinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
+        return Kratos::make_shared<LinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
         KRATOS_CATCH("");
     }
 
@@ -196,7 +181,7 @@ public:
                                         const double Constant) const override
     {
         KRATOS_TRY
-        return Kratos::make_shared<UserProvidedLinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
+        return Kratos::make_shared<LinearMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
         KRATOS_CATCH("");
     }
 
@@ -253,7 +238,7 @@ public:
     ///@}
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << " UserProvidedLinearMasterSlaveConstraint Id  : " <<this->Id()<<std::endl;
+        rOStream << " LinearMasterSlaveConstraint Id  : " <<this->Id()<<std::endl;
         rOStream << " Number of Slaves          : " <<this->mSlaveDofsVector.size()<<std::endl;
         rOStream << " Number of Masters         : " <<this->mMasterDofsVector.size()<<std::endl;
     }
@@ -295,11 +280,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                UserProvidedLinearMasterSlaveConstraint& rThis);
+                                LinearMasterSlaveConstraint& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                const UserProvidedLinearMasterSlaveConstraint& rThis)
+                                const LinearMasterSlaveConstraint& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
