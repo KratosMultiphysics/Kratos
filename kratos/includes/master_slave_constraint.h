@@ -29,7 +29,7 @@
 #include "includes/process_info.h"
 namespace Kratos
 {
-/** \brief Constraint * @class MasterSlaveConstraint
+/** * @class MasterSlaveConstraint
     * @ingroup KratosCore
     * @brief
 	* A class that implements the interface for different master-slave constraints to be applied on a system.
