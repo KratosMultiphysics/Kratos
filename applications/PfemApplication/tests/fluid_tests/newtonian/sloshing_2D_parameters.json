@@ -45,7 +45,7 @@
 		    },
 		    "linear_solver_settings"    : {
 		    "solver_type"         : "BICGSTABSolver",
-			"max_iteration"       : 5000,
+			"max_iteration"       : 6000,
 			"tolerance"           : 1e-9,
 			"preconditioner_type" : "None",
 			"scaling"             : false
@@ -53,18 +53,18 @@
 		    "dofs" : ["VELOCITY"]
 		}
             },{
-		"solver_type" : "solid_mechanics_implicit_dynamic_solver",
+		"solver_type" : "solid_mechanics_static_solver",
 		"Parameters"  : {
 		    "time_integration_settings" : {
-			"solution_type"          : "Dynamic",
-			"analysis_type"          : "Implicit",
-			"integration_method"     : "Bdf",
-			"integration_order"      : 1
+			"solution_type"          : "Static",
+			"analysis_type"          : "Non-linear",
+			"time_integration"       : "Static",
+			"buffer_size"            : 3
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"                 : false,
 			"compute_reactions"           : false,
-			"max_iteration"               : 20
+			"max_iteration"               : 22
 		    },
 		    "convergence_criterion_settings" : {
 			"convergence_criterion"       : "Variable_criterion",
@@ -72,8 +72,8 @@
 		    },
 		    "linear_solver_settings"    : {
 			"solver_type"         : "BICGSTABSolver",
-			"max_iteration"       : 5000,
-			"tolerance"           : 1e-9,
+			"max_iteration"       : 6000,
+			"tolerance"           : 1e-10,
 			"preconditioner_type" : "None",
 			"scaling"             : false
 		    },

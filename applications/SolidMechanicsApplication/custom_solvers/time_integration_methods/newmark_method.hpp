@@ -411,7 +411,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      this->PredictFirstDerivative(rNode);
+      //this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
       this->PredictVariable(rNode);
 
