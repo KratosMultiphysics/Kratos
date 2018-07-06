@@ -52,12 +52,12 @@
         <Item id="Cz" pid="Direction Z" dv="-1.0" nDim="3D" help="Z-component of a vector parallel to the gravity"/>
         </Container>
         <Container id="CouplingParameters" pid="Coupling parameters" class="Tab" help="Parameters concerning the inter-component coupling" open="0">
-            <Item id="CouplingLevel" pid="Coupling level" class="CouplingLevel" dv="1" ivalues="0,1,2,3" values="No interactions,One-way,Soft two-way,Full two-way" help="No interactions, Only fluid to DEM, unmodified fluid equations, averaged Navier-Stokes"/>
+            <Item id="CouplingLevel" pid="Coupling level" class="CouplingLevel" dv="1" ivalues="1,2,3" values="One-way,Soft two-way,Full two-way" help="Only fluid to DEM, unmodified fluid equations, averaged Navier-Stokes"/>
             <Item id="TimeAveragingType" pid="Time averaging mode" dv="0" ivalues="0,1" values="Take newest values, Take uniform average over DEM substeps" help="Take the present value of the hydrodynamic forces from DEM for the fluid integration, average values of the hydrodynamic force over all substeps within one fluid step"/>
             <Item id="InteractionStartTime" pid="Interaction start time" dv="0.05" help="Set the time to start the interaction between DEM and fluid"/>
             <Container id="HydrodynamicForceModel" pid="Hydrodynamic Force Model" class="Tab" help="Determine the model for the hydrodynamic forces" open="0">
                 <Item id="PickIndividualForces" pid="Pick each individual force" class="PickForces" dv="0" ivalues="0,1" values="No,Yes" help="Pick specific expressions for the usual terms, one at a time (compatibility not guaranteed)"/>
-                <Item id="BuoyancyForceType" pid="Buoyancy force type" PickForces="0" class="Tab" dv="2" ivalues="0,2" values="Null,Active" help="Pick the buoyancy force model"/>
+                <Item id="BuoyancyForceType" pid="Buoyancy force type" PickForces="1" class="Tab" dv="2" ivalues="0,2" values="Null,Active" help="Pick the buoyancy force model"/>
                 <Item id="DragForceType" pid="Drag Force type" PickForces="1" class="Tab" dv="1" ivalues="0,1,2,3,4,5,6,7,8,9" values="Null,Stokes,Default,Ganser,Ishii,Haider-Newtonian regime,Schiller,Haider-all regimes,Beetstra,Coin-Shaped-Colloid" help="Pick the Drag force model"/>
                 <Item id="VirtualMassForceType" pid="Virtual mass force type" PickForces="1" class="Tab" dv="0" ivalues="0,1,2" values="Null,Zuber,Odar" help="Pick the virtual mass force model"/>
                 <Item id="SaffmanLiftForceType" pid="Saffman lift Force type" PickForces="1" class="Tab" dv="0" ivalues="0,1" values="Null,Saffman" help="Pick the shear-induced lift force model"/>
@@ -83,7 +83,7 @@
           <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
           <Item id="GiDWriteConditionsFlag" pid="Write conditions" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
           <Item id="GiDWriteParticlesFlag" pid="Write particles" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
-          <Item id="GiDMultiFileFlag" pid="Result file" dv="Multiples" ivalues="Multiples,Single" values="Multiple files,Single file" help="Write one GiD result file or multiple files"/>
+          <Item id="GiDMultiFileFlag" pid="Result file" dv="Multiples" ivalues="Multiples,Single" state="hidden" values="Multiple files,Single file" help="Write one GiD result file or multiple files"/>
         </Container>
         <Container id="ResultsToPrint" pid="Nodal values to be printed for post-process" help="Corresponding memory may need to be allocated, thus harming performance in some cases">
             <Container id="DEMResults" pid="Particle's results" help="These are data stored for each DEM particle">
@@ -299,7 +299,7 @@
             <Item id="FluidApproach" pid="Fluid Approach" state="hidden" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian"/>
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="1" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="Fractional step"/>
-            <Item id="SolverType" pid="Solver type" CouplingLevel="1" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
+            <Item id="SolverType" pid="Solver type" CouplingLevel="1" state="hidden" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="1" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
             <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
@@ -312,7 +312,7 @@
             <Item id="FluidApproach" pid="Fluid Approach" state="hidden" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian"/>
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" CouplingLevel="2" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="The monolithic solver is slower, but remarkably more accurate than the fraction step solver."/>
-            <Item id="SolverType" pid="Solver type" CouplingLevel="2" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
+            <Item id="SolverType" pid="Solver type" CouplingLevel="2" state="hidden" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="Monolithic" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
             <Item id="SolverTypeFreeSurf" pid="Solver type" CouplingLevel="2" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
             <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
@@ -441,13 +441,13 @@
             <Container id="InitialPressure" pid="Initial pressure" class="Groups" idTemplate="InitialPressure" icon="groupsTreeNew.gif" help="Initial Conditions" open="0"/>
         </Container>
         <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0">
-            <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidAppr="Eulerian" fluidType="Incompressible" idTemplate="InletVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
+            <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidAppr="Eulerian" fluidType="Incompressible" GiDEntity="surface" idTemplate="InletVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
             <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidAppr="Eulerian" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
-            <Container id="OutletPressure" pid="Outlet pressure" class="Groups" fluidAppr="Eulerian" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="0"/>
-            <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
+            <Container id="OutletPressure" pid="Outlet pressure" class="Groups" fluidAppr="Eulerian" idTemplate="OutletPressure" GiDEntity="surface,line,point" icon="groupsTreeNew.gif" help="Outlet pressure" open="0"/>
+            <Container id="Is-Slip" pid="Is-Slip" state="hiddenAll" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet" idTemplate="IsSlip" GiDEntity="surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
             <Container id="WallLaw" pid="Wall law" fluidAppr="Eulerian" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="0"/>
             <Container id="Distance" pid="Distance" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="LevelSetDistance" GiDEntity="line,surface,volume" icon="groupsTreeNew.gif" help="Distance variable for the free surface using level set method" open="0"/>
-            <Container id="No-Slip" pid="No-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="NoSlip" icon="groupsTreeNew.gif" help="No-Slip" open="0"/>
+            <Container id="No-Slip" pid="No-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="NoSlip" GiDEntity="surface" icon="groupsTreeNew.gif" help="No-Slip" open="0"/>
             <Container id="Flag-Variable" pid="Flag-Variable" DebugOrRel="Debug" fluidAppr="Eulerian" class="Groups" state="disabled" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties. Deactivated at this moment" open="0"/>
             <Container id="PFEMWall" pid="Wall/Object" class="Groups" fluidAppr="PFEM-Lagrangian" state="hiddenAll" idTemplate="PFEMwall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="0"/>
             <Container id="PFEMFixedWall" pid="Fixed Wall" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMFixedWall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="0"/>
@@ -783,13 +783,13 @@
        <Template id="Fluid2DElement" icon="groupsTree.gif" help="Fluid 2D Element">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
-                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+                <Item id="Property" pid="Property" dv="Property1" GCV="Properties" help="Property"/>
             </Container>
         </Template>
          <Template id="Fluid3DElement" icon="groupsTree.gif" help="Fluid 3D Element">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Tetrahedra" ivalues="Tetrahedra" values="Tetrahedra" help="Element Type"/>
-                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+                <Item id="Property" pid="Property" dv="Property1" GCV="Properties" help="Property"/>
             </Container>
         </Template>
         <Template id="Displacements" icon="groupsTree.gif" help="Activation">
