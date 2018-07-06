@@ -168,7 +168,7 @@ namespace Kratos
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
         const unsigned int mat_size = number_of_nodes * dimension;
 
-        if ((rOutput.size1() != mat_size) or (rOutput.size2() != mat_size))
+        if ((rOutput.size1() != mat_size) || (rOutput.size2() != mat_size))
 	        rOutput.resize(mat_size, mat_size, false);
 
         noalias(rOutput) = ZeroMatrix(mat_size,mat_size);

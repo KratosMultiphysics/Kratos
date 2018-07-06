@@ -35,7 +35,7 @@ namespace Kratos
         if (mr_model_part.IsSubModelPart())
             KRATOS_ERROR << "The replacement process can only be done for the root model part!" << std::endl;
 
-        if ( (!mr_model_part.GetProcessInfo().Has(IS_ADJOINT)) or (!mr_model_part.GetProcessInfo()[IS_ADJOINT]) )
+        if ( (!mr_model_part.GetProcessInfo().Has(IS_ADJOINT)) || (!mr_model_part.GetProcessInfo()[IS_ADJOINT]) )
         {
             this->ReplaceToAdjoint();
             mr_model_part.GetProcessInfo()[IS_ADJOINT] = true;
