@@ -126,8 +126,14 @@ public:
 
     void Execute() override {}
 
+    /**
+     * ExecuteRefinement transfers the entities TO_REFINE from the coarse to the refined model part and executes the refinement
+     */
     void ExecuteRefinement();
 
+    /**
+     * ExecuteCoarsening deletes the entities of the refined model part which are not TO_REFINE
+     */
     void ExecuteCoarsening();
 
     ///@}
@@ -231,6 +237,9 @@ public:
     ///@name Private Operators
     ///@{
 
+    /**
+     * @brief Perform a check with the parameters
+     */
     void Check();
 
     void InterpolateLevelBoundaryValuesAtSubStep(const int& rSubStep, const int& rSubSteps);
@@ -243,22 +252,55 @@ public:
 
     ModelPart& RecursiveGetSubModelPart(ModelPart& rThisModelPart, std::string FullName);
 
+    /**
+     * @brief InitializeOwnModelPart creates the own sub model part if does not exist. This sub model part is the coarse model par
+     * @param rNames Is the vector containing the sub model part names
+     */
     void InitializeOwnModelPart(const StringVectorType& rNames);
 
     void InitializeOwnModelPart(const std::string& rOwnName, const StringVectorType& rNames);  // TODO: remove this method
 
+    /**
+     * @brief InitializeRefinedModelPart creates the refined sub model part. Inside it creates the own model part
+     * @param rNames The vector containing the sub model part names
+     */
     void InitializeRefinedModelPart(const StringVectorType& rNames);
 
     void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames); // TODO: remove this method
 
+    /**
+     * @brief AddAllPropertiesToModelPart adds all properties from an origin model part to a destination model part
+     * @param rOriginModelPart
+     * @param pDestinationModelPart
+     */
     void AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
+    /**
+     * @brief AddAllTablesToModelPart adds all tables from an origin model part to a destination model part
+     * @param rOriginModelPart
+     * @param pDestinationModelPart
+     */
     void AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
+    /**
+     * @brief AddAllNodesToModelPart adds all nodes from an origin model part to a destination model part
+     * @param rOriginModelPart
+     * @param pDestinationModelPart
+     */
     void AddAllNodesToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
+    /**
+     * @brief AddAllElementsToModelPart adds all elements from an origin model part to a destination model part
+     * @param rOriginModelPart
+     * @param pDestinationModelPart
+     */
     void AddAllElementsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
+    /**
+     * @brief AddAllConditionsToModelPart adds all conditions from an origin model part to a destination model part
+     * @param rOriginModelPart
+     * @param pDestinationModelPart
+     */
     void AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart::Pointer pDestinationModelPart);
 
     /**
@@ -294,8 +336,15 @@ public:
      */
     void CreateConditionsToRefine(IndexType& rCondId);
 
+    /**
+     * @brief IdentifyRefiningInterface
+     * TODO: define how it works
+     */
     void IdentifyRefiningInterface();
 
+    /**
+     * @brief GetLastId gets the absolute root model part and looks for the maximum id's
+     */
     void GetLastId(IndexType& rNodesId, IndexType& rElemsId, IndexType& rCondsId);
 
     ///@}

@@ -118,14 +118,14 @@ void UniformRefineUtility<TDim>::Refine()
 
     for (int divisions = minimum_divisions_level; divisions < mFinalRefinementLevel; divisions++)
     {
-        RefineLevel(divisions);
+        ExecuteDivision(divisions);
     }
 }
 
 
 /// Execute the refinement once
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
+void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
 {
     // Initialize the entities Id lists
     std::vector<IndexType> elements_id;
@@ -139,7 +139,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 
         // Check the divisions level of the origin elements
         int step_divisions_level = ielement->GetValue(NUMBER_OF_DIVISIONS);
-        if (step_divisions_level == rThisLevel)
+        if (step_divisions_level == rDivision)
             elements_id.push_back(ielement->Id());
     }
 
@@ -151,7 +151,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
 
         // Check the refinement level of the origin conditions
         int step_divisions_level = icondition->GetValue(NUMBER_OF_DIVISIONS);
-        if (step_divisions_level == rThisLevel)
+        if (step_divisions_level == rDivision)
             conditions_id.push_back(icondition->Id());
     }
 
@@ -162,7 +162,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         Element::Pointer p_element = mrModelPart.Elements()(id);
 
         // Get the refinement level of the origin element
-        int step_divisions_level = rThisLevel + 1;
+        int step_divisions_level = rDivision + 1;
 
         // Get the geometry
         Geometry<NodeType>& geom = p_element->GetGeometry();
@@ -183,7 +183,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         Element::Pointer p_element = mrModelPart.Elements()(id);
 
         // Get the refinement level of the origin element
-        int step_divisions_level = rThisLevel + 1;
+        int step_divisions_level = rDivision + 1;
 
         // Get the geometry
         Geometry<NodeType>& geom = p_element->GetGeometry();
@@ -241,7 +241,7 @@ void UniformRefineUtility<TDim>::RefineLevel(const int& rThisLevel)
         Condition::Pointer p_condition = mrModelPart.Conditions()(id);
 
         // Get the refinement level of the origin condition
-        int step_divisions_level = rThisLevel + 1;
+        int step_divisions_level = rDivision + 1;
 
         // Get the geometry
         Geometry<NodeType>& geom = p_condition->GetGeometry();

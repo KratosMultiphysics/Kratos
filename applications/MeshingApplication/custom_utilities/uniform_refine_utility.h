@@ -122,10 +122,17 @@ public:
     ///@{
 
     /**
-     * Execute the refinement until the final refinement is reached
+     * @brief Execute the refinement until the final refinement is reached
      */
     void Refine();
 
+    /**
+     * @brief Execute the refinement until the final refinement is reached
+     * @param rNodeId
+     * @param rElemId
+     * @param rCondId
+     */
+    void Refine(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId);
 
     ///@}
     ///@name Access
@@ -232,43 +239,48 @@ private:
     ///@{
 
     /**
-     * Execute the refinement once
-     * Only the entities with level = ThisLevel are refined to ThisLevel+1
+     * @brief ExecuteDivision executes the refinement once
+     * @detail Only the entities with NUMBER_OF_DIVISIONS = rDivision are refined to rDivision+1
+     * @param rDivision The flag
      */
-    void RefineLevel(const int& ThisLevel);
+    void ExecuteDivision(const int& rDivision);
 
     /**
-     * Create a node at the middle point of an edge
-     * If the middle node is created before, do nothing
-     * If the middle node does not exist, create a new one and set the nodal values
+     * @brief CreateNodeInEdge creates a node at the middle point of an edge
+     * @detail If the middle node does not exist, creates a new one and set the nodal values. Otherwise, do nothing
+     * @param rEdge The edge containing the two father nodes
+     * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
      */
-    typename NodeType::Pointer  CreateNodeInEdge(const EdgeType& rEdge, const int& rNumberOfDivisions);
+    typename NodeType::Pointer CreateNodeInEdge(const EdgeType& rEdge, const int& rNumberOfDivisions);
 
     /**
-     * Get the middle node on an edge and return a pointer to it
-     * CreateNodeInEdge should be executed before to ensure the node existance
+     * @brief GetNodeInEdge gets the middle node on an edge and return a pointer to it
+     * @detail CreateNodeInEdge should be executed before to ensure the node existance
+     * @param rEdge The edge containing the two father nodes
      */
     typename NodeType::Pointer GetNodeInEdge(const EdgeType& rEdge);
 
     /**
-     * Create a node at the middle point of a face
-     * If the middle node is created before, do nothing
-     * If the middle node does not exist, create a new one
+     * @brief CreateNodeInFace creates a node at the middle point of a face
+     * @detail If the middle node does not exist, create a new one. Otherwise, do nothing
+     * @param rFace The face containing the father nodes
+     * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
      */
-    typename NodeType::Pointer  CreateNodeInFace(const FaceType& rFace, const int& rNumberOfDivisions);
+    typename NodeType::Pointer CreateNodeInFace(const FaceType& rFace, const int& rNumberOfDivisions);
 
     /**
-     * Get the node inside a face
-     * The four input nodes define an element face
-     * TODO: If the middle node exist, returns a pointer to the existing node
-     * If the middle node does not exist, create a new one and returns a pointer to it
+     * @brief GetNodeInFace gets the node inside a face
+     * @detail If the middle node does not exist, create a new one and returns a pointer to it
+     * @param rFace The face containing the father nodes 
      */
     typename NodeType::Pointer GetNodeInFace(const FaceType& rFace);
 
     /**
-     * Calculate the nodal data
-     * The destination node is assumed to be at the mid point between
-     * the origin nodes
+     * @brief CalculateNodalStepData calculates the nodal data as the mean of the father nodes
+     * @detail The destination node is assumed to be at the mid point between the origin nodes
+     * @param pNewNode The destination node
+     * @param pNode0 The first origin node
+     * @param pNode1 The second origin node
      */
     void CalculateNodalStepData(
         NodeType::Pointer pNewNode,
@@ -277,9 +289,13 @@ private:
         );
 
       /**
-       * Calculate the nodal data
-       * The destination node is assumed to be at the mid point among
-       * the origin nodes
+     * @brief CalculateNodalStepData calculates the nodal data as the mean of the father nodes
+     * @detail The destination node is assumed to be at the mid point among the origin nodes
+     * @param pNewNode The destination node
+     * @param pNode0 The first origin node
+     * @param pNode1 The second origin node
+     * @param pNode2 The third origin node
+     * @param pNode3 The fourth origin node
        */
       void CalculateNodalStepData(
           NodeType::Pointer pNewNode,
@@ -290,10 +306,10 @@ private:
           );
 
     /**
-     * Create an element from an origin element
+     * @brief CreateElement creates an element from an origin element
      * @param pOriginElement pointer to the father element
      * @ThisNodes vector containing the sub element nodes
-     * @param rNumberOfDivisions To assign to NUMBER_OF_DIVISIONS flag
+     * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
      */
     void CreateElement(
         Element::Pointer pOriginElement,
@@ -302,10 +318,10 @@ private:
         );
 
     /**
-     * Create condition inside from an origin condition
+     * @brief CreateCondition creates a condition from an origin condition
      * @param pOriginCondition pointer to the father condition
      * @ThisNodes vector containing the sub condition nodes
-     * @param rNumberOfDivisions To assign to NUMBER_OF_DIVISIONS flag
+     * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
      */
     void CreateCondition(
         Condition::Pointer pOriginCondition,
@@ -314,7 +330,11 @@ private:
         );
 
     /**
-     * Return the nodes defining the i-subline
+     * @brief GetSubLineNodes gets the connectivity of a sub-line inside a geometry and the new node
+     * @param Position The index which defines the sub-line
+     * @param rGeom The original geometry
+     * @param rMiddleNode The node which divides the original geometry
+     * @return The nodes defining the sub-line
      */
     std::vector<typename NodeType::Pointer> GetSubLineNodes(
         const int Position,
@@ -323,7 +343,11 @@ private:
         );
 
     /**
-     * Return the nodes defining the i-subtriangle
+     * @brief GetSubTriangleNodes gets the connectivity of a sub-triangle inside a geometry and the new nodes
+     * @param Position The index which defines the sub-triangle
+     * @param rGeom The original geometry
+     * @param rMiddleNode The nodes which divides the original geometry
+     * @return The nodes defining the sub-triangle
      */
     std::vector<typename NodeType::Pointer> GetSubTriangleNodes(
         const int Position,
@@ -332,7 +356,11 @@ private:
         );
 
     /**
-     * Return the nodes defining the i-subquadrilateral
+     * @brief GetSubQuadrilateralNodes gets the connectivity of a sub-quadrilateral inside a geometry and the new nodes
+     * @param Position The index which defines the sub-quadrilateral
+     * @param rGeom The original geometry
+     * @param rMiddleNode The node which divides the original geometry
+     * @return The nodes defining the sub-quadrilateral
      */
     std::vector<typename NodeType::Pointer> GetSubQuadrilateralNodes(
         const int Position,
@@ -341,15 +369,13 @@ private:
         );
 
     /**
-     * This method adds a node to the sub model parts  
-     * specified by a tag
+     * @brief AddNodeToSubModelParts adds a node to the sub model parts specified by a tag
      * TODO: improve this function with Model
      */
     void AddNodeToSubModelParts(NodeType::Pointer pNode, IndexType Tag);
 
     /**
-     * This method adds the nodes to the sub model parts  
-     * specified by a tag
+     * @brief AddNodeToSubModelParts adds the nodes to the sub model parts specified by a tag
      * TODO: improve this function with Model
      */
     void AddNodesToSubModelParts(std::vector<NodeType::Pointer>& rThisNodes, IndexType Tag);
