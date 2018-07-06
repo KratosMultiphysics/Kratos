@@ -96,7 +96,7 @@ public:
 
 
     /// Execute method is used to execute the Process algorithms.
-    virtual void Execute()
+    void Execute() override
     {
       KRATOS_TRY
 
@@ -277,6 +277,9 @@ public:
 
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
+		}
+		else{
+		  Alpha*=1.04;
 		}
 
 	      }else  if(dimension==3){
@@ -500,45 +503,6 @@ public:
     }
 
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
-    {
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
-    {	
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
-    {
-    }
-
-    /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
-    {
-    }
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
-    {
-    }
-
-
     ///@}
     ///@name Access
     ///@{
@@ -554,19 +518,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "SelectMeshElementsForFluidsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SelectMeshElementsForFluidsProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

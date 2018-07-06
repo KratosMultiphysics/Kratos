@@ -65,6 +65,8 @@ public:
 
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -124,6 +126,8 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
     void ResetConstitutiveLaw() override;
+
+    void Initialize() override;
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
@@ -215,9 +219,9 @@ protected:
     {
     }
 
-    std::size_t GetNumberOfDofs();
+    SizeType GetNumberOfDofs();
 
-    std::size_t GetNumberOfGPs();
+    SizeType GetNumberOfGPs();
 
     void SetBaseMembers();
 

@@ -39,6 +39,8 @@ namespace Kratos
     // Others
     KRATOS_CREATE_VARIABLE( double, NODAL_YOUNG_MODULUS )
     KRATOS_CREATE_VARIABLE( double, ADDED_MASS )
+    KRATOS_CREATE_VARIABLE( double, NODAL_REFERENCE_TEMPERATURE )  
+    
 
 
 }// namespace Kratos.

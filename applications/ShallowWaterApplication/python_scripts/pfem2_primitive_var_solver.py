@@ -30,7 +30,7 @@ class Pfem2PrimitiveVarSolver(pure_convection_solver.PureConvectionSolver,shallo
     def Solve(self):
         # Move particles
         super(Pfem2PrimitiveVarSolver,self)._ExecuteParticlesUtilityBeforeSolve()
-        # If a node and it's neighbours is dry, set ACTIVE flag to false
+        # If a node and it's neighbours are dry, set ACTIVE flag to false
         (self.ShallowVariableUtils).SetDryWetState()
         # Solve equations on mesh
         (self.solver).Solve()
