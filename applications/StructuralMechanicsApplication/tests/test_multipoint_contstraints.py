@@ -93,7 +93,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
             -0.01)
         self.convergence_criterion = KratosMultiphysics.ResidualCriteria(
             1e-10, 1e-12)
-        self.convergence_criterion.SetEchoLevel(1)
+        self.convergence_criterion.SetEchoLevel(0)
 
         max_iters = 100
         compute_reactions = False
@@ -226,7 +226,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self._apply_material_properties(mp, dim)
 
         #time integration parameters
-        dt = 0.06
+        dt = 0.005
         time = 0.0
         end_time = 0.01
         step = 0
@@ -240,7 +240,6 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         self._setup_solver(mp)
 
         while (time <= end_time):
-            print("step :: ", step)
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
