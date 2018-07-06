@@ -298,9 +298,8 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, ElasticVariables.CauchyGreenMatrix, alfa, AuxConstitutiveMatrix, ElasticVariables);
         ConstitutiveMatrix = this->SetConstitutiveMatrixToAppropiateDimension(ConstitutiveMatrix, AuxConstitutiveMatrix);
 
-        // Update Determinant of Deformation Gradient F
-        DeterminantF        = std::sqrt(MathUtils<double>::Det(mpMPMFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables)));
-        rValues.SetDeterminantF(DeterminantF);
+        // Update necessary kinematics variable after return mapping
+        this->CorrectKinematics( rValues, ReturnMappingVariables, DeterminantF);
     }
 
     if( Options.Is( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ) )
@@ -374,11 +373,25 @@ void HenckyElasticPlastic3DLaw::GetDomainPressure( double& rPressure, const Mate
         rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(PRESSURE); 
     }
 }
+//************************************************************************************
+//************************************************************************************
 
 void HenckyElasticPlastic3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables & rElasticVariables)
 {
 
 }
+
+//************************************************************************************
+//************************************************************************************
+
+void HenckyElasticPlastic3DLaw::CorrectKinematics( Parameters & rValues, MPMFlowRule::RadialReturnVariables rReturnMappingVariables, double& rDeterminantF )
+{
+    // Update Determinant of Deformation Gradient F
+    rDeterminantF        = std::sqrt(MathUtils<double>::Det(mpMPMFlowRule->GetElasticLeftCauchyGreen(rReturnMappingVariables)));
+    rValues.SetDeterminantF(rDeterminantF);
+}
+//************************************************************************************
+//************************************************************************************
 
 void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
 {

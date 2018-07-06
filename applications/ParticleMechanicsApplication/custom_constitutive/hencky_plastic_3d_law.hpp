@@ -262,6 +262,8 @@ protected:
 
     virtual void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables);
 
+    virtual void CorrectKinematics( Parameters & rValues, const MPMFlowRule::RadialReturnVariables rReturnMappingVariables, double& rDeterminantF );
+
     virtual void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
 
     //virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
