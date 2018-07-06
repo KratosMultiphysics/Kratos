@@ -1435,7 +1435,71 @@ void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProc
 
 void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    // TODO: Add something if necessary
+    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
+        /* Create and initialize element variables: */
+        GeneralVariables general_variables;
+        this->InitializeGeneralVariables(general_variables);
+
+        /* Create constitutive law parameters: */
+        ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        /* Set constitutive law flags: */
+        Flags &ConstitutiveLawOptions=values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+        /* Reading integration points */
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+        /* Getting the alpha parameter of the EAS improvement */
+        double& alpha_eas = this->GetValue(ALPHA_EAS);
+
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives this_cartesian_derivatives;
+        this->CalculateCartesianDerivatives(this_cartesian_derivatives);
+
+        /* Calculate common components (B, C) */
+        CommonComponents common_components;
+        common_components.clear();
+        this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
+
+        /* Reset the EAS integrated components */
+        EASComponents EAS;
+        EAS.clear();
+
+        // Reading integration points
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+            const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
+
+            /* Assemble B */
+            this->CalculateDeformationMatrix(general_variables.B, common_components, zeta_gauss, alpha_eas);
+
+            // Compute element kinematics C, F ...
+            this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
+
+            // Set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(general_variables, values, point_number);
+
+            // Compute stresses and constitutive parameters
+            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, general_variables.StressMeasure);
+
+            // Calculating weights for integration on the "reference configuration"
+            const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
+
+            /* Integrate in Zeta */
+            // EAS components
+            IntegrateEASInZeta(general_variables, EAS, zeta_gauss, integration_weight);
+        }
+
+        /* Getting the increase of displacements */
+        const BoundedMatrix<double, 36, 1 > delta_disp = (rCurrentProcessInfo[STEP] == 1) ? GetVectorCurrentPosition() : GetVectorCurrentPosition() - GetVectorPreviousPosition();
+
+        /* Update alpha EAS */
+        if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) // Avoid division by zero
+            alpha_eas -= (EAS.mRHSAlpha + prod(EAS.mHEAS, delta_disp)(0, 0)) / EAS.mStiffAlpha;
+    }
 }
 
 /***********************************************************************************/
@@ -1443,71 +1507,73 @@ void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCu
 
 void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    /* Create and initialize element variables: */
-    GeneralVariables general_variables;
-    this->InitializeGeneralVariables(general_variables);
+    if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
+        /* Create and initialize element variables: */
+        GeneralVariables general_variables;
+        this->InitializeGeneralVariables(general_variables);
 
-    /* Create constitutive law parameters: */
-    ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        /* Create constitutive law parameters: */
+        ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
-    /* Set constitutive law flags: */
-    Flags &ConstitutiveLawOptions=values.GetOptions();
+        /* Set constitutive law flags: */
+        Flags &ConstitutiveLawOptions=values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    /* Reading integration points */
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+        /* Reading integration points */
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
 
-    /* Getting the alpha parameter of the EAS improvement */
-    double& alpha_eas = this->GetValue(ALPHA_EAS);
+        /* Getting the alpha parameter of the EAS improvement */
+        double& alpha_eas = this->GetValue(ALPHA_EAS);
 
-    /* Calculate the cartesian derivatives */
-    CartesianDerivatives this_cartesian_derivatives;
-    this->CalculateCartesianDerivatives(this_cartesian_derivatives);
+        /* Calculate the cartesian derivatives */
+        CartesianDerivatives this_cartesian_derivatives;
+        this->CalculateCartesianDerivatives(this_cartesian_derivatives);
 
-    /* Calculate common components (B, C) */
-    CommonComponents common_components;
-    common_components.clear();
-    this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
+        /* Calculate common components (B, C) */
+        CommonComponents common_components;
+        common_components.clear();
+        this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
 
-    /* Reset the EAS integrated components */
-    EASComponents EAS;
-    EAS.clear();
+        /* Reset the EAS integrated components */
+        EASComponents EAS;
+        EAS.clear();
 
-    // Reading integration points
-    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-        const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
+        // Reading integration points
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+            const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
 
-        /* Assemble B */
-        this->CalculateDeformationMatrix(general_variables.B, common_components, zeta_gauss, alpha_eas);
+            /* Assemble B */
+            this->CalculateDeformationMatrix(general_variables.B, common_components, zeta_gauss, alpha_eas);
 
-        // Compute element kinematics C, F ...
-        this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
+            // Compute element kinematics C, F ...
+            this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
 
-        // Set general variables to constitutivelaw parameters
-        this->SetGeneralVariables(general_variables, values, point_number);
+            // Set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(general_variables, values, point_number);
 
-        // Compute stresses and constitutive parameters
-        mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, general_variables.StressMeasure);
+            // Compute stresses and constitutive parameters
+            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, general_variables.StressMeasure);
 
-        // Calculating weights for integration on the "reference configuration"
-        const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
+            // Calculating weights for integration on the "reference configuration"
+            const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
 
-        /* Integrate in Zeta */
-        // EAS components
-        IntegrateEASInZeta(general_variables, EAS, zeta_gauss, integration_weight);
+            /* Integrate in Zeta */
+            // EAS components
+            IntegrateEASInZeta(general_variables, EAS, zeta_gauss, integration_weight);
+        }
+
+        /* Getting the increase of displacements */
+        BoundedMatrix<double, 36, 1 > delta_disp;
+
+        delta_disp = GetVectorCurrentPosition() - GetVectorPreviousPosition(); // Calculates the increase of displacements
+
+        /* Update alpha EAS */
+        if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) // Avoid division by zero
+            alpha_eas -= prod(EAS.mHEAS, delta_disp)(0, 0) / EAS.mStiffAlpha;
     }
-
-    /* Getting the increase of displacements */
-    BoundedMatrix<double, 36, 1 > delta_disp;
-
-    delta_disp = GetVectorCurrentPosition() - GetVectorPreviousPosition(); // Calculates the increase of displacements
-
-    /* Update alpha EAS */
-    if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) // Avoid division by zero
-        alpha_eas -= prod(EAS.mHEAS, delta_disp)(0, 0) / EAS.mStiffAlpha;
 }
 
 /***********************************************************************************/
@@ -3253,11 +3319,8 @@ void SolidShellElementSprism3D6N::CalculateAndAddLHS(
                 calculated = true;
             }
 
-            /* Implicit or explicit EAS update*/
-            if ( mELementalFlags.Is(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
-                /* Apply EAS stabilization */
-                ApplyEASLHS(rLeftHandSideMatrices[i], rEAS);
-            }
+            /* Apply EAS stabilization */
+            ApplyEASLHS(rLeftHandSideMatrices[i], rEAS);
 
             KRATOS_ERROR_IF_NOT(calculated) << " ELEMENT can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
         }
@@ -3294,11 +3357,8 @@ void SolidShellElementSprism3D6N::CalculateAndAddLHS(
         /* Operation performed: add Kg to the LefsHandSideMatrix */
         this->CalculateAndAddKuug( LeftHandSideMatrix, rIntegratedStress, rCartesianDerivatives );
 
-        /* Implicit or explicit EAS update*/
-        if ( mELementalFlags.Is(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
-            /* Apply EAS stabilization */
-            ApplyEASLHS(LeftHandSideMatrix, rEAS);
-        }
+        /* Apply EAS stabilization */
+        ApplyEASLHS(LeftHandSideMatrix, rEAS);
     }
 }
 
@@ -3486,7 +3546,9 @@ void SolidShellElementSprism3D6N::ApplyEASRHS(
     noalias(rRHSFull) -= trans(rEAS.mHEAS) * rEAS.mRHSAlpha / rEAS.mStiffAlpha;
 
     /* Update ALPHA_EAS */
-    AlphaEAS -= rEAS.mRHSAlpha / rEAS.mStiffAlpha;
+    if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT)) {
+        AlphaEAS -= rEAS.mRHSAlpha / rEAS.mStiffAlpha;
+    }
 
     KRATOS_CATCH( "" );
 }
