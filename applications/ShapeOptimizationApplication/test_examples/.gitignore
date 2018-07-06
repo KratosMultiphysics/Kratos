@@ -1,3 +1,7 @@
 # output files of test examples
 *post.*
 *.csv
+*.h5
+
+# ignore all folders ending with "_tmpTest"
+*_tmpTest
