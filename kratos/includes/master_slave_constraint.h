@@ -90,13 +90,6 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
     }
 
-    /// Copy Constructor
-    MasterSlaveConstraint(const MasterSlaveConstraint& rOther)
-    {
-        this->SetId(rOther.Id());
-        // this->Flags = rOther.Flags;
-    }
-
     /**
      * creates a new constraint pointer
      * @param Id the ID of the new constraint
