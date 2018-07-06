@@ -22,6 +22,7 @@ class StabilizedFormulation(object):
         self.element_name = None
         self.condition_name = "MonolithicWallCondition"
         self.process_data = {}
+        
         print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         if settings.Has("formulation"):
             formulation = settings["formulation"].GetString()
@@ -48,11 +49,11 @@ class StabilizedFormulation(object):
             "use_orthogonal_subscales": false,
             "dynamic_tau": 0.01
         }""")
-
+        
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "VMS"
-
+         
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
         use_oss = settings["use_orthogonal_subscales"].GetBool()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = int(use_oss)
@@ -64,7 +65,7 @@ class StabilizedFormulation(object):
             "dynamic_tau": 0.0
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
-
+         
         self.element_name = "QSVMS"
 
         self.process_data[KratosMultiphysics.DYNAMIC_TAU] = settings["dynamic_tau"].GetDouble()
@@ -77,7 +78,7 @@ class StabilizedFormulation(object):
             "use_orthogonal_subscales": false,
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
-
+ 
         self.element_name = "DVMS"
 
         use_oss = settings["use_orthogonal_subscales"].GetBool()
@@ -100,73 +101,89 @@ class StabilizedFormulation(object):
 
         self.process_data[KratosCFD.FIC_BETA] = settings["beta"].GetDouble()
         self.process_data[KratosMultiphysics.OSS_SWITCH] = 0
-
+        
 def CreateSolver(model, custom_settings):
-    print("THIRDDDDDDDDDDDDDDDD")
-    print("2222222222222222")
+    #print("THIRDDDDDDDDDDDDDDDD")
+    #print("2222222222222222")
     
     return NavierStokesSolverMonolithic(model, custom_settings)
  
 
 class NavierStokesSolverMonolithic(FluidSolver):
-
+    
     def _ValidateSettings(self, settings):
-        print("tttttttttttttttttttttttttttttt")
+        
         ##settings string in json format
-         
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "navier_stokes_solver_vmsmonolithic",
-            "model_part_name": "",
-            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "stabilization": {
-                "formulation": "vms"
-            },
-            "maximum_iterations": 10,
             "echo_level": 0,
-            "consider_periodic_conditions": false,
             "compute_reactions": false,
-            "reform_dofs_at_each_step": true,
+            "dynamic_tau": 0.01,
+            "oss_switch": 0,
+            "maximum_iterations": 10,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
+            "consider_periodic_conditions": false,
+            "reform_dofs_at_each_step": true,
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
-                "solver_type" : "AMGCL"
+                "solver_type" : "AMGCL_NS_Solver"
+            },
+            "stabilization": {
+            "formulation": "vms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau": 0.0
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
             "time_stepping"                : {
-                "automatic_time_step" : false,
+                "automatic_time_step" : true,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01,
                 "time_step"           : 0.0
             },
+	    
+ 	    "domain_size": 3,
+    	    "model_part_name": "MainModelPart",	
             "time_scheme":"bossak",
             "alpha":-0.3,
-            "velocity_relaxation":0.9,
-            "pressure_relaxation":0.9,
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
             "turbulence_model": "None",
             "reorder": false
         }""")
-        
-        
+
+        #print("AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+        #print("AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+        #print("AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+        #print(settings) 
+        #print("DESSSSPUESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+        #print("DESSSSPUESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+        #print("DESSSSPUESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+        #print(default_settings)
+        #jhsdfjlkjflkjslkgjdfkjflgjl
         ## Backwards compatibility -- deprecation warnings
         if settings.Has("oss_switch"):
+            
             msg  = "Input JSON data contains deprecated setting \'oss_switch\' (int).\n"
             msg += "Please define \'stabilization/formulation\' (set it to \'vms\')\n"
             msg += "and set \'stabilization/use_orthogonal_subscales\' (bool) instead."
             KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
+             
             if not settings.Has("stabilization"):
+                
                 settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
             settings["stabilization"].AddEmptyValue("use_orthogonal_subscales")
             settings["stabilization"]["use_orthogonal_subscales"].SetBool(bool(settings["oss_switch"].GetInt()))
@@ -181,15 +198,21 @@ class NavierStokesSolverMonolithic(FluidSolver):
             settings["stabilization"].AddEmptyValue("dynamic_tau")
             settings["stabilization"]["dynamic_tau"].SetDouble(settings["dynamic_tau"].GetDouble())
             settings.RemoveValue("dynamic_tau")
-
+        #print("sssssssssssssssssssssssssssssssssss")
+        #print("sssssssssssssssssssssssssssssssssss")
+        #print("sssssssssssssssssssssssssssssssssss")
+        #print(settings) 
+        
         settings.ValidateAndAssignDefaults(default_settings)
+        
         return settings
 
 
     def __init__(self, model, custom_settings):
-        super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
-        print("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww")
         
+        super(NavierStokesSolverMonolithic,self).__init__(model,custom_settings)
+        #print("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww")
+        #ñlkñlkñlkñlk
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
         

@@ -31,8 +31,14 @@ class FluidSolver(PythonSolver):
         self.min_buffer_size = 3
 
         # Either retrieve the model part from the model or create a new one
-        model_part_name = self.settings["model_part_name"].GetString()
 
+        print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print ("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        print(self.settings)
+        
+        model_part_name = self.settings["model_part_name"].GetString()
+        print(model_part_name)
+        
         if model_part_name == "":
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
@@ -64,9 +70,9 @@ class FluidSolver(PythonSolver):
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
-        print("AQUUUUUUUUUUUUUUUUUUUUUUUITAMBIENNNNNNNNNNNNNNNNNNNNNN") 
+        #print("AQUUUUUUUUUUUUUUUUUUUUUUUITAMBIENNNNNNNNNNNNNNNNNNNNNN") 
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
-        SSSSSSSSSSSS
+        
         #print(self.main_model_part)
         
     def PrepareModelPart(self):

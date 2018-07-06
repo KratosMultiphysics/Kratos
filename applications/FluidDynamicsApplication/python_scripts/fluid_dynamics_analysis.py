@@ -15,7 +15,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
     
     def __init__(self,model,parameters):
-        
+
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
         print (solver_settings)
@@ -48,7 +48,7 @@ class FluidDynamicsAnalysis(AnalysisStage):
         ##print("###################################") 
         ##print(self.model) 
         
-        return coupled_fluid_thermal_solver.CreateSolver(self.model, self.project_parameters)
+        return coupled_fluid_thermal_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
         
         #return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
         
