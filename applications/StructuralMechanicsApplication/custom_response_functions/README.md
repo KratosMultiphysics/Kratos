@@ -3,7 +3,7 @@
 
 ### General remarks:
 
-This feature provides the framework to compute sensitivities of structural responses (e.g. displacements, strain energy or stresses) with respect to different types of design variables (e.g. nodal coordinates, material or cross-sectional properties or load intensity) with the adjoint approach. Therefore for each response function an adjoint problem has to be solved. The sensitivies are than computed in a post-processing step. The implemented sensitivity analysis uses a so called semi-analytic approach which means that the derivatives at element level are then computed by finite differences.
+This feature provides the framework to compute sensitivities of structural responses (e.g. displacements, strain energy or stresses) with respect to different types of design variables (e.g. nodal coordinates, material or cross-sectional properties or load intensity) with the adjoint approach. Therefore for each response function an adjoint problem has to be solved. The sensitivities are then computed in a post-processing step. The implemented sensitivity analysis uses a so called semi-analytic approach which means that the derivatives at element level are then computed by finite differences.
 
 *Please note:*
 - This feature currently only works for linear problems
@@ -27,7 +27,7 @@ This feature provides the framework to compute sensitivities of structural respo
     * Point load (wraps the PointLoadCondition)
 
 - Structural adjoint elements:
-    * Uni-dimensional elements:
+    * One-dimensional elements:
        	* Linear 3D beam element (wraps the CrBeamElementLinear3D2N)
     * Two-dimensional elements:
         * Thin triangular shell (wraps the ShellThinElement3D3N)
