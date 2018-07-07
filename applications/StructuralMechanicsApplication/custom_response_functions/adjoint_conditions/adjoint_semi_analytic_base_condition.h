@@ -44,7 +44,7 @@ namespace Kratos
 
 /** \brief AdjointSemiAnalyticBaseCondition
  *
- * This consition a wrapper for a primal condition to calculate condition derivatives using
+ * This condition is a wrapper for a primal condition to calculate condition derivatives using
  * finite differencing (adjoint semi analytic approach). It is designed to be used in adjoint
  * sensitivity analysis
  */
