@@ -19,6 +19,7 @@
 #include "includes/process_info.h"
 #include "includes/variables.h"
 #include "includes/node.h"
+#include "containers/flags.h"
 #include "custom_utilities/process_info_extensions.hpp"
 
 namespace Kratos
@@ -45,12 +46,26 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
+  /** @brief Solver local flags class definition
+   *  @details This is the base class for solver local flags
+   */
+
+  class TimeIntegrationLocalFlags
+  {
+   public:
+
+    /// Flags for the solution options:
+    KRATOS_DEFINE_LOCAL_FLAG( PREDICT_PRIMARY_VARIABLE );
+
+    /// Flags for the solution control:
+  };
+
   /// Short class definition.
   /** Detail class definition.
    * This class performs predict and update of dofs variables, their time derivatives and time integrals
    */
   template<class TVariableType, class TValueType>
-  class TimeIntegrationMethod
+  class TimeIntegrationMethod : public Flags
   {
   public:
 
@@ -79,7 +94,7 @@ namespace Kratos
 
 
     /// Default Constructor.
-    TimeIntegrationMethod()
+    TimeIntegrationMethod() : Flags()
     {
       mpVariable = nullptr;
       mpFirstDerivative = nullptr;
@@ -90,7 +105,7 @@ namespace Kratos
     }
 
     /// Constructor.
-    TimeIntegrationMethod(const TVariableType& rVariable)
+    TimeIntegrationMethod(const TVariableType& rVariable) : Flags()
     {
       mpVariable = &rVariable;
       mpFirstDerivative = nullptr;
@@ -103,7 +118,7 @@ namespace Kratos
     }
 
     /// Constructor.
-    TimeIntegrationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative)
+    TimeIntegrationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : Flags()
     {
       mpVariable = &rVariable;
       mpFirstDerivative = &rFirstDerivative;
@@ -116,7 +131,7 @@ namespace Kratos
     }
 
     /// Constructor.
-    TimeIntegrationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable)
+    TimeIntegrationMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : Flags()
     {
       mpVariable = &rVariable;
       mpFirstDerivative = &rFirstDerivative;
@@ -135,7 +150,8 @@ namespace Kratos
 
     /// Copy Constructor.
     TimeIntegrationMethod(TimeIntegrationMethod& rOther)
-      :mpVariable(rOther.mpVariable)
+      :Flags(rOther)   
+      ,mpVariable(rOther.mpVariable)
       ,mpFirstDerivative(rOther.mpFirstDerivative)
       ,mpSecondDerivative(rOther.mpSecondDerivative)
       ,mpPrimaryVariable(rOther.mpPrimaryVariable)
@@ -146,7 +162,7 @@ namespace Kratos
     /// Clone
     virtual TimeIntegrationMethodPointer Clone()
     {
-      return TimeIntegrationMethodPointer( new TimeIntegrationMethod(*this) );
+      return Kratos::make_shared<TimeIntegrationMethod>(*this);
     }
 
     /// Destructor.
@@ -346,7 +362,26 @@ namespace Kratos
       return (this->*this->mpSecondDerivativeInertialFactor)(rParameter);
       KRATOS_CATCH("")
     }
-        
+
+    ///@}
+    ///@name Flags
+    ///@{
+
+    Flags& GetFlags()
+      {
+	return *this;
+      }
+
+    Flags const& GetFlags() const
+    {
+      return *this;
+    }
+
+    void SetFlags(Flags const& rThisFlags)
+    {
+      Flags::operator=(rThisFlags);
+    }
+    
     ///@}
     ///@name Inquiry
     ///@{
@@ -393,6 +428,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
+    
     // method variables and derivatives
 
     VariablePointer mpVariable;
@@ -438,7 +474,6 @@ namespace Kratos
     // set methods from primary variable
     void SetPointerMethods()
     {
-      std::cout<<" integration method pointers "<<*this->mpVariable<<std::endl;
       if( this->mpPrimaryVariable != nullptr ){
 
         if( this->mpVariable != nullptr ){
@@ -677,6 +712,7 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
       rSerializer.save("Variable", mpVariable->Name());
       rSerializer.save("FirstDerivative", mpFirstDerivative->Name());
       rSerializer.save("SecondDerivative", mpSecondDerivative->Name());
@@ -686,6 +722,7 @@ namespace Kratos
 
     virtual void load(Serializer& rSerializer)
     {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
       std::string Name;
       rSerializer.load("Variable", Name);
       mpVariable = static_cast<VariablePointer>(KratosComponents<VariableData>::pGet(Name));
@@ -717,6 +754,10 @@ namespace Kratos
   ///@name Type Definitions
   ///@{
 
+  /**
+   * Flags for the solution options
+   */
+  KRATOS_CREATE_LOCAL_FLAG( TimeIntegrationLocalFlags, PREDICT_PRIMARY_VARIABLE,   0 );
 
   ///@}
   ///@name Input and output

@@ -390,6 +390,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
+      //if(this->Is(NOT_PREDICT_PRIMARY_VARIABLE))
       this->PredictVariable(rNode);
       this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
@@ -402,7 +403,8 @@ namespace Kratos
       KRATOS_TRY
 
       this->PredictVariable(rNode);
-      this->PredictFirstDerivative(rNode);
+      //if(this->Is(NOT_PREDICT_PRIMARY_VARIABLE))
+      //this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
 
       KRATOS_CATCH( "" )

@@ -50,16 +50,6 @@ class MonolithicSolver(object):
                 "time_integration_order": 1,
                 "buffer_size": 2
             },
-            "solving_strategy_settings":{
-                "builder_type": "block_builder",
-                "line_search": false,
-                "implex": false,
-                "compute_reactions": true,
-                "move_mesh_flag": true,
-                "clear_storage": false,
-                "reform_dofs_at_each_step": false,
-                "max_iteration": 10
-            },
             "convergence_criterion_settings":{
                 "convergence_criterion": "Residual_criterion",
                 "variable_relative_tolerance": 1.0e-4,
@@ -67,6 +57,17 @@ class MonolithicSolver(object):
                 "residual_relative_tolerance": 1.0e-4,
                 "residual_absolute_tolerance": 1.0e-9,
                 "separate_dofs": true
+            },
+            "solving_strategy_settings":{
+                "builder_type": "block_builder",
+                "line_search": false,
+                "implex": false,
+                "compute_reactions": true,
+                "move_mesh_flag": true,
+                "iterative_update": true,
+                "clear_storage": false,
+                "reform_dofs_at_each_step": false,
+                "max_iteration": 10
             },
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
@@ -92,16 +93,16 @@ class MonolithicSolver(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Validate and assign other values
-        self.settings["time_integration_settings"].ValidateAndAssignDefaults(default_settings["time_integration_settings"])
+        self.settings["time_integration_settings"].ValidateAndAssignDefaults(default_settings["time_integration_settings"]) #default values in factory
         self.settings["solving_strategy_settings"].ValidateAndAssignDefaults(default_settings["solving_strategy_settings"])
-        self.settings["convergence_criterion_settings"].ValidateAndAssignDefaults(default_settings["convergence_criterion_settings"])
+        #self.settings["convergence_criterion_settings"].ValidateAndAssignDefaults(default_settings["convergence_criterion_settings"]) #default values in factory
         self.settings["linear_solver_settings"].ValidateAndAssignDefaults(default_settings["linear_solver_settings"])
         #print("Monolithic Solver Settings",self.settings.PrettyPrintJsonString())
 
         # Echo level
         self.echo_level = 0
 
-        
+
     def GetMinimumBufferSize(self):
         buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
         time_integration_order = self.settings["time_integration_settings"]["time_integration_order"].GetInt()
@@ -206,7 +207,7 @@ class MonolithicSolver(object):
         # Process information
         self.process_info = self.main_model_part.ProcessInfo
 
-        
+
     def _set_integration_parameters(self):
         # Add dofs
         if( self._is_not_restarted() ):
@@ -217,7 +218,7 @@ class MonolithicSolver(object):
 
         # Set buffer
         if( self._is_not_restarted() ):
-            self._set_and_fill_buffer()       
+            self._set_and_fill_buffer()
 
     def _get_solution_scheme(self):
         if not hasattr(self, '_solution_scheme'):
@@ -396,7 +397,7 @@ class MonolithicSolver(object):
 
         #print(scalar_integration_methods)
         #print(component_integration_methods)
-        
+
     #
     def _class_prefix(self):
         header = "::[-Monolithic_Solver-]::"

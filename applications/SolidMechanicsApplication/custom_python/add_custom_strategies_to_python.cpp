@@ -202,7 +202,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef EmcStepRotationMethod<VariableComponentType, double>            EmcStepRotationMethodComponentType;
 
 
-  //***************************SOLVER FLAGS******************************
+  //*********************CONVERGENCE CRITERION FLAGS*********************
 
   // Convergence Criteria Local Flags
   class_<CriterionLocalFlags>(m,"CriterionLocalFlags")
@@ -231,7 +231,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def_readonly_static("IMPLEX", &SolverLocalFlags::IMPLEX)
       ;
 
+  //***********************TIME INTEGRATION FLAGS************************
 
+  // Convergence Criteria Local Flags
+  class_<TimeIntegrationLocalFlags>(m,"TimeIntegrationLocalFlags")
+      .def(init<>())
+      .def_readonly_static("PREDICT_PRIMARY_VARIABLE", &TimeIntegrationLocalFlags::PREDICT_PRIMARY_VARIABLE)
+      ;
+  
   //*************************STRATEGY CLASSES***************************
 
   // Solid Mechanics Base Solution Strategy
@@ -433,7 +440,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   //*******************TIME INTEGRATION METHODS*************************
 
   //Time integraton methods for vector variables
-  class_<TimeIntegrationMethodVectorType, TimeIntegrationMethodVectorType::Pointer>(m,"VectorTimeIntegration")
+  class_<TimeIntegrationMethodVectorType, TimeIntegrationMethodVectorType::Pointer, Flags>(m,"VectorTimeIntegration")
       .def(init<const VariableVectorType&>())
       .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
@@ -445,6 +452,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("GetPrimaryVariableName", &TimeIntegrationMethodVectorType::GetPrimaryVariableName)
       .def("CalculateParameters", &TimeIntegrationMethodVectorType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodVectorType::SetParameters)
+      .def("SetFlags", &TimeIntegrationMethodVectorType::SetFlags)
       .def("Assign", &TimeIntegrationMethodVectorType::Assign)
       .def("Predict", &TimeIntegrationMethodVectorType::Predict)
       .def("__repr__", &TimeIntegrationMethodVectorType::Info)
@@ -545,7 +553,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
   //Time integration methods for scalar variables
-  class_<TimeIntegrationMethodScalarType, TimeIntegrationMethodScalarType::Pointer>(m,"ScalarTimeIntegration")
+  class_<TimeIntegrationMethodScalarType, TimeIntegrationMethodScalarType::Pointer, Flags>(m,"ScalarTimeIntegration")
       .def(init<const VariableScalarType&>())
       .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
@@ -557,6 +565,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("GetPrimaryVariableName", &TimeIntegrationMethodScalarType::GetPrimaryVariableName)
       .def("CalculateParameters", &TimeIntegrationMethodScalarType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodScalarType::SetParameters)
+      .def("SetFlags", &TimeIntegrationMethodScalarType::SetFlags)
       .def("Assign", &TimeIntegrationMethodScalarType::Assign)
       .def("Predict", &TimeIntegrationMethodScalarType::Predict)
       .def("__repr__", &TimeIntegrationMethodScalarType::Info)
@@ -657,7 +666,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
   // Time integration methods for variable components
-  class_<TimeIntegrationMethodComponentType, typename TimeIntegrationMethodComponentType::Pointer>(m,"ComponentTimeIntegration")
+  class_<TimeIntegrationMethodComponentType, typename TimeIntegrationMethodComponentType::Pointer, Flags>(m,"ComponentTimeIntegration")
       .def(init<const VariableComponentType&>())
       .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
@@ -669,6 +678,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("GetPrimaryVariableName", &TimeIntegrationMethodComponentType::GetPrimaryVariableName)
       .def("CalculateParameters", &TimeIntegrationMethodComponentType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodComponentType::SetParameters)
+      .def("SetFlags", &TimeIntegrationMethodComponentType::SetFlags)
       .def("Assign", &TimeIntegrationMethodComponentType::Assign)
       .def("Predict", &TimeIntegrationMethodComponentType::Predict)
       .def("__repr__", &TimeIntegrationMethodComponentType::Info)

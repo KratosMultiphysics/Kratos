@@ -35,6 +35,7 @@
 			"integration_method"     : "Newmark"
 		    },
 		    "solving_strategy_settings" : {
+			"iterative_update"            : false,
 			"line_search"                 : false,
 			"max_iteration"               : 20,
 			"bossak_factor"               : 0.0
@@ -62,6 +63,7 @@
 			"buffer_size"            : 3
 		    },
 		    "solving_strategy_settings" : {
+			"iterative_update"            : false,
 			"line_search"                 : false,
 			"compute_reactions"           : false,
 			"max_iteration"               : 22
