@@ -42,7 +42,7 @@ In order to perform a sensitivity analysis for one response function, the soluti
 For the solution of the two problems different kind of variables are used in order to store the results. For the primal problem the usual variables ```DISPLACEMENT``` and ```ROTATION``` and for the adjoint problem ```ADJOINT_DISPLACEMENT``` and ```ADJOINT_ROTATION``` are used.
 
 #### Definition of the Primal Problem
-The primal problem can be defind by the regular input files which are needed for an usual linear static analysis. As only difference the output process of the HDF5Application has to be added to the ```list_other_processes``` in the project parameters:
+The primal problem can be defined by the regular input files which are needed for an usual linear static analysis. As only difference the output process of the HDF5Application has to be added to the ```list_other_processes``` in the project parameters:
 
 ```python
     "list_other_processes" :[{
@@ -66,7 +66,7 @@ The primal problem can be defind by the regular input files which are needed for
 ```
 
 #### Definition of the Adjoint Problem
-In order to define the adjoint problem an additional *.json-file for the adjoint project parameters is necessary. This input file is in principle very similar to the respective file of the primal analysis. In comparsion to a regular file for a linear static analysis three points have to be modified:
+In order to define the adjoint problem an additional \*.json-file for the adjoint project parameters is necessary. This input file is in principle very similar to the respective file of the primal analysis. In comparison to a regular file for a linear static analysis three points have to be modified:
 - ```solver_settings``` by using the ```adjoint``` as ```solver_type``` and by the definition of the ```response_function_settings```
 - The input process of the HDF5Application has to be added to the ```list_other_processes``` in order to read the primal solution
 - When defining *Dirichlet* conditions in the ```constraints_process_list``` the ```variable_name``` has to be modified to ```ADJOINT_DISPLACEMENT``` respective ```ADJOINT_ROTATION```
@@ -157,11 +157,11 @@ A possible python code can look like this:
 
 #### Possible ```response_function_settings```:
 
-Independet from the chosen response function the following definitions are always necessary:
+Independent from the chosen response function the following definitions are always necessary:
 
 - ```gradient_mode```: Currently there is only ```semi_analytic``` available.
-- ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic apporach.
-- ```sensitivity_model_part_name```: Add here the name of the model part for which components sensitivities has to be computed (e.g. if the chosen design parameter is ```THICKNESS``` then for each element in this model part the sensitivity w.r.t. this variable is calculated).
+- ```step_size``` is the perturbation measure for finite difference computations within the semi-analytic approach.
+- ```sensitivity_model_part_name```: Add here the name of the model part for which components sensitivities have to be computed (e.g. if the chosen design parameter is ```THICKNESS``` then for each element in this model part the sensitivity w.r.t. this variable is calculated).
 - ```nodal_sensitivity_variables```: Currently only ```SHAPE``` is available. Doing this the sensitivities w.r.t. to the x-, y- and z-coordinate of all nodes in the ```sensitivity_model_part_name``` are computed.
 - ```element_sensitivity_variables```: Here sensitivities with respect to the properties of the elements are computed. For that the respective name of the Kratos-Variable has to be given (e.g. ```THICKNESS```, ```I22``` or ```YOUNG_MODULUS```)
 - ```condition_sensitivity_variables```: Here sensitivities with respect to the properties of the conditions are computed. Currenty there is only ```POINT_LOAD``` available.
