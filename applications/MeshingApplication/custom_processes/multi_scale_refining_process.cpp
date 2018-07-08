@@ -37,11 +37,11 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
         "own_model_part_name"          : "own",
         "refined_model_part_name"      : "refined",
         "element_name"                 : "Element2D3N",
-        "condition_name"               : "Condition2D3N",      
+        "condition_name"               : "Condition2D2N",      
         "echo_level"                   : 0,
         "number_of_divisions_at_level" : 2,
         "refining_interface_model_part": "refining_interface",      
-        "refining_boundary_condition"  : "Condition2D3N"
+        "refining_boundary_condition"  : "Condition2D2N"
     }
     )");
 
@@ -112,7 +112,7 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     CloneNodesToRefine(node_id);
 
     MarkElementsFromNodalFlag();
-    MarkElementsFromNodalFlag();
+    MarkConditionsFromNodalFlag();
 
     CreateElementsToRefine(elem_id, elem_tag);
     CreateConditionsToRefine(elem_id, cond_tag);
@@ -572,7 +572,59 @@ void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
 
 
 void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag)
-{}
+{
+    ModelPart& coarse_model_part = *mpOwnModelPart.get();
+    ModelPart& refined_model_part = *mpRefinedModelPart.get();
+
+    const int nconds = static_cast<int>(coarse_model_part.Conditions().size());
+    ModelPart::ConditionsContainerType::iterator conditions_begin = coarse_model_part.ConditionsBegin();
+
+    // We assume all the conditions have the same number of nodes
+    const IndexType number_of_nodes = conditions_begin->GetGeometry().size();
+
+    // The map to add the conditions to the sub model parts
+    IndexVectorMapType tag_conds_map;
+
+    // #pragma omp parallel for
+    for (int i = 0; i < nconds; i++)
+    {
+        auto coarse_cond = conditions_begin + i;
+        if (coarse_cond->Is(TO_REFINE))
+        {
+            Geometry<NodeType>::PointsArrayType p_cond_nodes;
+            for (IndexType node = 0; node < number_of_nodes; node++)
+            {
+                IndexType node_id = coarse_cond->GetGeometry()[node].Id();
+                p_cond_nodes.push_back(mCoarseToRefinedNodesMap[node_id]);
+            }
+
+            Condition::Pointer aux_cond = refined_model_part.CreateNewCondition(
+                mConditionName,
+                ++rCondId,
+                p_cond_nodes,
+                coarse_cond->pGetProperties());
+            
+            aux_cond->SetValue(FATHER_CONDITION, *coarse_cond.base());
+
+            IndexType tag = rCondTag[coarse_cond->Id()];
+            tag_conds_map[tag].push_back(rCondId);
+        }
+    }
+
+    // Loop the sub model parts and add the new conditions to it
+    for (auto& collection : mCollections)
+    {
+        const auto tag = collection.first;
+        if (tag != 0)
+        {
+            for (auto name : collection.second)
+            {
+                ModelPart& sub_model_part = refined_model_part.GetSubModelPart(name);
+                sub_model_part.AddConditions(tag_conds_map[tag]);
+            }
+        }
+    }
+}
 
 
 void MultiScaleRefiningProcess::IdentifyRefiningInterface()
