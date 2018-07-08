@@ -96,7 +96,12 @@ void MultiScaleRefiningProcess::Check()
 
 void MultiScaleRefiningProcess::ExecuteRefinement()
 {
+    ModelPart& coarse_model_part = *mpOwnModelPart.get();
     ModelPart& refined_model_part = *mpRefinedModelPart.get();
+
+    IndexIndexMapType node_tag, elem_tag, cond_tag;
+    SubModelPartsListUtility model_part_collection(coarse_model_part);
+    model_part_collection.ComputeSubModelPartsList(node_tag, cond_tag, elem_tag, mCollections);
 
     IndexType node_id;
     IndexType elem_id;
@@ -109,8 +114,8 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     MarkElementsFromNodalFlag();
     MarkElementsFromNodalFlag();
 
-    CreateElementsToRefine(elem_id);
-    CreateConditionsToRefine(elem_id);
+    CreateElementsToRefine(elem_id, elem_tag);
+    CreateConditionsToRefine(elem_id, cond_tag);
     
     int divisions = refined_model_part.GetValue(REFINEMENT_LEVEL) * mDivisionsAtLevel;
     auto uniform_refining = UniformRefineUtility<2>(refined_model_part, divisions);
@@ -510,7 +515,7 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 }
 
 
-void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId)
+void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, IndexIndexMapType& rElemTag)
 {
     ModelPart& coarse_model_part = *mpOwnModelPart.get();
     ModelPart& refined_model_part = *mpRefinedModelPart.get();
@@ -521,16 +526,19 @@ void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId)
     // We assume all the elements have the same number of nodes
     const IndexType number_of_nodes = elements_begin->GetGeometry().size();
 
-    #pragma omp parallel for
+    // The map to add the elements to the sub model parts
+    IndexVectorMapType tag_elems_map;
+
+    // #pragma omp parallel for
     for (int i = 0; i < nelems; i++)
     {
-        auto elem = elements_begin + i;
-        if (elem->Is(TO_REFINE))
+        auto coarse_elem = elements_begin + i;
+        if (coarse_elem->Is(TO_REFINE))
         {
             Geometry<NodeType>::PointsArrayType p_elem_nodes;
             for (IndexType node = 0; node < number_of_nodes; node++)
             {
-                IndexType node_id = elem->GetGeometry()[node].Id();
+                IndexType node_id = coarse_elem->GetGeometry()[node].Id();
                 p_elem_nodes.push_back(mCoarseToRefinedNodesMap[node_id]);
             }
 
@@ -538,17 +546,32 @@ void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId)
                 mElementName,
                 ++rElemId,
                 p_elem_nodes,
-                elem->pGetProperties());
+                coarse_elem->pGetProperties());
             
-            aux_elem->SetValue(FATHER_ELEMENT, *elem.base());
+            aux_elem->SetValue(FATHER_ELEMENT, *coarse_elem.base());
+
+            IndexType tag = rElemTag[coarse_elem->Id()];
+            tag_elems_map[tag].push_back(rElemId);
         }
     }
 
     // Loop the sub model parts and add the new elements to it
+    for (auto& collection : mCollections)
+    {
+        const auto tag = collection.first;
+        if (tag != 0)
+        {
+            for (auto name : collection.second)
+            {
+                ModelPart& sub_model_part = refined_model_part.GetSubModelPart(name);
+                sub_model_part.AddElements(tag_elems_map[tag]);
+            }
+        }
+    }
 }
 
 
-void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId)
+void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag)
 {}
 
 

@@ -485,7 +485,7 @@ void UniformRefineUtility<TDim>::CreateElement(
     const int& rNumberOfDivisions
     )
 {
-    Element::Pointer sub_element = pOriginElement->Create(++mLastElemId, rThisNodes, pOriginElement->pGetProperties());
+    Element::Pointer sub_element = pOriginElement->Clone(++mLastElemId, rThisNodes);
 
     if (sub_element != nullptr)
     {
@@ -523,7 +523,7 @@ void UniformRefineUtility<TDim>::CreateCondition(
     const int& rNumberOfDivisions
     )
 {
-    Condition::Pointer sub_condition = pOriginCondition->Create(++mLastElemId, rThisNodes, pOriginCondition->pGetProperties());
+    Condition::Pointer sub_condition = pOriginCondition->Clone(++mLastElemId, rThisNodes);
 
     if (sub_condition != nullptr)
     {

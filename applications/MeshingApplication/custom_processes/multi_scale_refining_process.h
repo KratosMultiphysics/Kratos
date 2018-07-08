@@ -94,6 +94,13 @@ public:
      */
     typedef std::unordered_map<IndexType, NodeType::Pointer> IndexNodeMapType;
 
+    /**
+     * Maps for AssignUniqueModelPartCollectionTagUtility
+     */
+    typedef std::unordered_map<IndexType, IndexType> IndexIndexMapType;
+    typedef std::unordered_map<IndexType, std::vector<std::string>> IndexStringMapType;
+    typedef std::unordered_map<IndexType, std::vector<IndexType>> IndexVectorMapType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of MultiScaleRefiningProcess
@@ -233,6 +240,8 @@ public:
     std::string mInterfaceName;
     std::string mInterfaceConditionName;
 
+    IndexStringMapType mCollections;  /// For AssignUniqueModelCollectionTagUtility
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -242,14 +251,25 @@ public:
      */
     void Check();
 
+    /**
+     * @brief
+     */
     void InterpolateLevelBoundaryValuesAtSubStep(const int& rSubStep, const int& rSubSteps);
 
+    /**
+     * @brief
+     */
     void UpdateSubLevel();
 
+    /**
+     * @brief
+     */
     void TransferDataToCoarseLevel();
 
+    /* TODO: debug and move to AssignUniqueModelPArtCollectionTagUtility */
     StringVectorType RecursiveGetSubModelPartNames(ModelPart& rThisModelPart, std::string Prefix = "");
 
+    /* TODO: debug and move to AssignUniqueModelPArtCollectionTagUtility */
     ModelPart& RecursiveGetSubModelPart(ModelPart& rThisModelPart, std::string FullName);
 
     /**
@@ -258,7 +278,8 @@ public:
      */
     void InitializeOwnModelPart(const StringVectorType& rNames);
 
-    void InitializeOwnModelPart(const std::string& rOwnName, const StringVectorType& rNames);  // TODO: remove this method
+    /* TODO: remove this method */
+    void InitializeOwnModelPart(const std::string& rOwnName, const StringVectorType& rNames);
 
     /**
      * @brief InitializeRefinedModelPart creates the refined sub model part. Inside it creates the own model part
@@ -266,7 +287,8 @@ public:
      */
     void InitializeRefinedModelPart(const StringVectorType& rNames);
 
-    void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames); // TODO: remove this method
+    /* TODO: remove this method */
+    void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames);
 
     /**
      * @brief AddAllPropertiesToModelPart adds all properties from an origin model part to a destination model part
@@ -328,13 +350,13 @@ public:
      * @brief Create the auxiliary nodes in the refined sub model part
      * @param rElemId the element Id will be ++rElemId
      */
-    void CreateElementsToRefine(IndexType& rElemId);
+    void CreateElementsToRefine(IndexType& rElemId, IndexIndexMapType& rElemTag);
 
     /**
      * @brief Create the auxiliary conditions in the refined sub model part
      * @param rCondId the condition Id will be ++rCondId
      */
-    void CreateConditionsToRefine(IndexType& rCondId);
+    void CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag);
 
     /**
      * @brief IdentifyRefiningInterface
