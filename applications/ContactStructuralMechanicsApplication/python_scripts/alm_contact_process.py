@@ -610,6 +610,10 @@ class ALMContactProcess(KM.Process):
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
 
+                if (self.computing_model_part.Is(KM.MODIFIED)):
+                    KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
+                    partial_model_part.RemoveConditions(KM.TO_ERASE)
+
                 # We generate the conditions
                 self._interface_preprocess(partial_model_part)
 

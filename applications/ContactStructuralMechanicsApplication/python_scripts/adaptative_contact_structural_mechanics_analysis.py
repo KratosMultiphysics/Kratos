@@ -79,9 +79,9 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
         # Ensuring to have conditions on the BC before remesh
         computing_model_part = self._GetSolver().GetComputingModelPart()
         if (computing_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2):
-            detect_skin = KratosMultiphysics.SkinDetectionProcess2D(computing_model_part)
+            detect_skin = KM.SkinDetectionProcess2D(computing_model_part)
         else:
-            detect_skin = KratosMultiphysics.SkinDetectionProcess3D(computing_model_part)
+            detect_skin = KM.SkinDetectionProcess3D(computing_model_part)
         detect_skin.Execute()
         self._GetSolver().SetEchoLevel(self.echo_level)
 
@@ -93,7 +93,7 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
         if (self.process_remesh is True):
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)
-                if (self.main_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                if (self.main_model_part.Is(KM.MODIFIED) is True):
                     # WE INITIALIZE THE SOLVER
                     self._GetSolver().Initialize()
                     # WE RECOMPUTE THE PROCESSES AGAIN
@@ -120,7 +120,7 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
                 self.time = self._GetSolver().AdvanceInTime(self.time)
                 non_linear_iteration = 1
                 while non_linear_iteration <= self.non_linear_iterations:
-                    if (computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    if (computing_model_part.Is(KM.MODIFIED) is True):
                         # WE RECOMPUTE THE PROCESSES AGAIN
                         # Processes initialization
                         for process in self._list_of_processes:
@@ -131,12 +131,12 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
                         ## Processes of initialize the solution step
                         for process in self._list_of_processes:
                             process.ExecuteInitializeSolutionStep()
-                    if (non_linear_iteration == 1 or computing_model_part.Is(KratosMultiphysics.MODIFIED) is True):
+                    if (non_linear_iteration == 1 or computing_model_part.Is(KM.MODIFIED) is True):
                         self.InitializeSolutionStep()
                         self._GetSolver().Predict()
-                        computing_model_part.Set(KratosMultiphysics.MODIFIED, False)
+                        computing_model_part.Set(KM.MODIFIED, False)
                         self.is_printing_rank = False
-                    computing_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, non_linear_iteration)
+                    computing_model_part.ProcessInfo.SetValue(KM.NL_ITERATION_NUMBER, non_linear_iteration)
                     is_converged = convergence_criteria.PreCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
                     self._GetSolver().SolveSolutionStep()
                     is_converged = convergence_criteria.PostCriteria(computing_model_part, builder_and_solver.GetDofSet(), mechanical_solution_strategy.GetSystemMatrix(), mechanical_solution_strategy.GetSolutionVector(), mechanical_solution_strategy.GetSystemVector())
@@ -144,15 +144,26 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
                     self.FinalizeSolutionStep()
                     if (is_converged):
                         self.is_printing_rank = True
-                        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
+                        KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy converged in ", non_linear_iteration, "iterations" )
                         break
                     elif (non_linear_iteration == self.non_linear_iterations):
                         self.is_printing_rank = True
-                        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
+                        KM.Logger.PrintInfo(self._GetSimulationName(), "Adaptative strategy not converged after ", non_linear_iteration, "iterations" )
                         break
                     else:
+                        # Before remesh we set the flag INTERFACE to the conditions (we need edges to preserve submodelparts)
+                        KM.VariableUtils().SetFlag(KM.INTERFACE, True, computing_model_part.GetSubModelPart("Contact").Conditions)
+                        # We remove the contact model part to avoid problems (it will  be recomputed later)
+                        contact_model_part = computing_model_part.GetSubModelPart("Contact")
+                        for model_part in contact_model_part.SubModelParts:
+                            contact_model_part.RemoveSubModelPart(model_part.Name)
+                        computing_model_part.RemoveSubModelPart("ComputingContact")
+                        # Now we can remesh
                         remeshing_process.Execute()
-                        computing_model_part.Set(KratosMultiphysics.MODIFIED, True)
+                        # We remove the contact model part to avoid problems (it will  be recomputed later)
+                        computing_model_part.RemoveSubModelPart("Contact")
+                        # Now we set as modified
+                        computing_model_part.Set(KM.MODIFIED, True)
                         non_linear_iteration += 1
                 self.OutputSolutionStep()
 
@@ -178,7 +189,7 @@ class AdaptativeContactStructuralMechanicsAnalysis(BaseClass):
         if parameter_name == "processes":
             processes_block_names = ["recursive_remeshing_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("AdaptativeContactStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                KM.Logger.PrintInfo("AdaptativeContactStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
