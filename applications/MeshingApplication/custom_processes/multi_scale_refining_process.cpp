@@ -99,28 +99,35 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     ModelPart& coarse_model_part = *mpOwnModelPart.get();
     ModelPart& refined_model_part = *mpRefinedModelPart.get();
 
+    // Initialize the maps
     IndexIndexMapType node_tag, elem_tag, cond_tag;
     SubModelPartsListUtility model_part_collection(coarse_model_part);
     model_part_collection.ComputeSubModelPartsList(node_tag, cond_tag, elem_tag, mCollections);
 
+    // Get the Id's
     IndexType node_id;
     IndexType elem_id;
     IndexType cond_id;
-
     GetLastId(node_id, elem_id, cond_id);
 
+    // Clone the nodes and set the nodal flags
     CloneNodesToRefine(node_id);
 
+    // Set the elements and conditions flags
     MarkElementsFromNodalFlag();
     MarkConditionsFromNodalFlag();
 
+    // Create the auxiliary entities
     CreateElementsToRefine(elem_id, elem_tag);
     CreateConditionsToRefine(elem_id, cond_tag);
     
+    // Execute the refinement
     int divisions = refined_model_part.GetValue(REFINEMENT_LEVEL) * mDivisionsAtLevel;
     auto uniform_refining = UniformRefineUtility<2>(refined_model_part, divisions);
-
     uniform_refining.Refine(node_id, elem_id, cond_id);
+
+    // Reset the flags
+    FinalizeRefinement();
 }
 
 
@@ -504,14 +511,6 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
                 refined_sub_model_part.AddNode(mCoarseToRefinedNodesMap[coarse_node->Id()]);
         }
     }
-
-    // // Resetting the flag
-    // #pragma omp parallel for
-    // for (int i = 0; i < nnodes; i++)
-    // {
-    //     auto node = nodes_begin + i;
-    //     node->Set(NEW_ENTITY, false);
-    // }
 }
 
 
@@ -623,6 +622,22 @@ void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
                 sub_model_part.AddConditions(tag_conds_map[tag]);
             }
         }
+    }
+}
+
+
+void MultiScaleRefiningProcess::FinalizeRefinement()
+{
+    ModelPart& coarse_model_part = *mpOwnModelPart.get();
+    int nnodes = static_cast<int>(coarse_model_part.Nodes().size());
+    ModelPart::NodesContainerType::iterator nodes_begin = coarse_model_part.NodesBegin();
+
+    // Resetting the flag
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; i++)
+    {
+        auto node = nodes_begin + i;
+        node->Set(NEW_ENTITY, false);
     }
 }
 

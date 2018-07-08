@@ -359,6 +359,13 @@ public:
     void CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag);
 
     /**
+     * @brief FinalizeRefinement reset the flags on the nodes and elements
+     * @detail NEW_ENTITY is set to false
+     * @see CloneNodesToRefine
+     */
+    void FinalizeRefinement();
+
+    /**
      * @brief IdentifyRefiningInterface
      * TODO: define how it works
      */
