@@ -523,7 +523,7 @@ void UniformRefineUtility<TDim>::CreateCondition(
     const int& rNumberOfDivisions
     )
 {
-    Condition::Pointer sub_condition = pOriginCondition->Clone(++mLastElemId, rThisNodes);
+    Condition::Pointer sub_condition = pOriginCondition->Clone(++mLastCondId, rThisNodes);
 
     if (sub_condition != nullptr)
     {
