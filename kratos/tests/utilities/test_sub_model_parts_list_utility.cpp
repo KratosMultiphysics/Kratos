@@ -40,10 +40,10 @@ namespace Kratos
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
             ModelPart first_model_part("Main");
-            ModelPart* p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart* p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart* p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
-            ModelPart* p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
+            ModelPart* p_first_sub_modelpart_1 = &first_model_part.CreateSubModelPart("BSubModelPart1");
+            ModelPart* p_first_sub_modelpart_2 = &first_model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart* p_first_sub_modelpart_3 = &first_model_part.CreateSubModelPart("ZSubModelPart3");
+            ModelPart* p_first_sub_modelpart_4 = &first_model_part.CreateSubModelPart("YSubModelPart4");
 
             // Creating the Properties
             Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
@@ -174,12 +174,12 @@ namespace Kratos
         {
             // Creating the reference model part and the relative submodelparts
             ModelPart first_model_part("Main");
-            ModelPart* p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart* p_first_sub_modelpart_1a = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
-            ModelPart* p_first_sub_modelpart_1b = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
-            ModelPart* p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart* p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
-            ModelPart* p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
+            ModelPart* p_first_sub_modelpart_1 = &first_model_part.CreateSubModelPart("BSubModelPart1");
+            ModelPart* p_first_sub_modelpart_1a = &p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
+            ModelPart* p_first_sub_modelpart_1b = &p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
+            ModelPart* p_first_sub_modelpart_2 = &first_model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart* p_first_sub_modelpart_3 = &first_model_part.CreateSubModelPart("ZSubModelPart3");
+            ModelPart* p_first_sub_modelpart_4 = &first_model_part.CreateSubModelPart("YSubModelPart4");
 
             // Creating the Properties
             Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
@@ -247,7 +247,7 @@ namespace Kratos
 
             // Creating the second model part
             ModelPart second_model_part("Main");
-            ModelPart* p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
+            ModelPart* p_second_sub_modelpart_1 = &second_model_part.CreateSubModelPart("BSubModelPart1");
             p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
             second_model_part.CreateSubModelPart("ASubModelPart2");

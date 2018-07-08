@@ -1080,7 +1080,7 @@ public:
     /** Creates a new sub model part with given name.
     Does nothing if a sub model part with the same name exist.
     */
-    ModelPart* CreateSubModelPart(std::string const& NewSubModelPartName);
+    ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Add an existing model part as a sub model part.
     	All the meshes will be added to the parents.

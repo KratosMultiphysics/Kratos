@@ -1092,7 +1092,7 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags identifier_flag)
 }
 
 
-ModelPart*  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
@@ -1103,7 +1103,7 @@ ModelPart*  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
         mSubModelParts.insert(p_model_part);
-        return p_model_part.get();
+        return *p_model_part;
     }
     else
         KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
