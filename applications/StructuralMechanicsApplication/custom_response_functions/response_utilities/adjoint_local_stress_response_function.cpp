@@ -9,17 +9,11 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder 
 //   
 
-// ------------------------------------------------------------------------------
 // System includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "adjoint_local_stress_response_function.h"
 
 namespace Kratos
@@ -57,7 +51,7 @@ namespace Kratos
     /// Destructor.
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
 
-    // ==============================================================================
+    
     double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
@@ -104,7 +98,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // ==============================================================================
     void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) 
@@ -161,7 +154,6 @@ namespace Kratos
         }
     }
 
-    // ==============================================================================
     void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                       const Variable<double>& rVariable,
                                       const Matrix& rDerivativesMatrix,
@@ -231,7 +223,6 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    // ==============================================================================
     void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                      const Variable<double>& rVariable,
                                      const Matrix& rDerivativesMatrix,
@@ -247,7 +238,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // ==============================================================================
     void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
@@ -316,7 +306,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // ==============================================================================
     void AdjointLocalStressResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,

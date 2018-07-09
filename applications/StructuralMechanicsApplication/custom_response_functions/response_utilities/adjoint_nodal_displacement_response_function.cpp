@@ -9,19 +9,12 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder 
 //   
 
-// ------------------------------------------------------------------------------
 // System includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "adjoint_nodal_displacement_response_function.h"
-
 
 namespace Kratos
 {
@@ -74,10 +67,9 @@ namespace Kratos
         this->GetNeighboringElementPointer();
     }
 
-    // ==============================================================================
     AdjointNodalDisplacementResponseFunction::~AdjointNodalDisplacementResponseFunction(){}
 
-    // ==============================================================================
+    /// Find one element which is bounded by the traced node. The element is needed for assembling the adjoint load.
     void AdjointNodalDisplacementResponseFunction::GetNeighboringElementPointer()
     {
         KRATOS_TRY;
@@ -107,7 +99,6 @@ namespace Kratos
 
     }
 
-    // ==============================================================================
     double AdjointNodalDisplacementResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
@@ -122,7 +113,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // ==============================================================================
     void AdjointNodalDisplacementResponseFunction::CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo)
@@ -154,7 +144,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // ==============================================================================
     void AdjointNodalDisplacementResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                       const Variable<double>& rVariable,
                                       const Matrix& rDerivativesMatrix,
@@ -172,7 +161,6 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    // ==============================================================================
     void AdjointNodalDisplacementResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                      const Variable<double>& rVariable,
                                      const Matrix& rDerivativesMatrix,
@@ -189,7 +177,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // ==============================================================================
     void AdjointNodalDisplacementResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
@@ -206,7 +193,6 @@ namespace Kratos
           KRATOS_CATCH("")
     }
 
-    // ==============================================================================
     void AdjointNodalDisplacementResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,

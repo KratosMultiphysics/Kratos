@@ -21,7 +21,6 @@
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
 
-// Application includes
 
 namespace Kratos
 {
@@ -31,7 +30,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A base class for response functions.
+/** \brief AdjointStructuralResponseFunction
+*
+* This is the response base class for responses in structural mechanics.
+* It is designed to be used in adjoint sensitivity analysis.
+*/
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStructuralResponseFunction
 {
 public:
@@ -53,6 +56,9 @@ public:
     typedef std::size_t IndexType;
     
     typedef std::size_t SizeType;
+
+    ///@}
+    ///@name Pointer Definitions
 
     ///@}
     ///@name Life Cycle

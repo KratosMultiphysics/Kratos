@@ -12,21 +12,14 @@
 #ifndef ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
 #define ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
 
-// ------------------------------------------------------------------------------
+
 // System includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "adjoint_structural_response_function.h"
 #include "response_data.h"
-
-// ==============================================================================
 
 namespace Kratos
 {
@@ -50,12 +43,20 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/** \brief AdjointLocalStressResponseFunction
+ *
+ * This is a response function which traces one chosen type (e.g. MXX) of stress or stress-resultant 
+ * of a single element as response. 
+ * It is designed to be used in adjoint sensitivity analysis.
+ */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLocalStressResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    ///@}
+    ///@name Pointer Definitions
     /// Pointer definition of AdjointLocalStressResponseFunction
     KRATOS_CLASS_POINTER_DEFINITION(AdjointLocalStressResponseFunction);
 
@@ -207,4 +208,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
+#endif // ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H_INCLUDED

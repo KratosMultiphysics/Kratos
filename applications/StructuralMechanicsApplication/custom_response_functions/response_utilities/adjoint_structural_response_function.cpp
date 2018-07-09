@@ -10,7 +10,6 @@
 //
 
 
-
 // System includes
 
 // External includes
@@ -20,8 +19,6 @@
 #include "adjoint_structural_response_function.h"
 #include "utilities/variable_utils.h"
 
-
-// Application includes
 
 namespace Kratos
 {
@@ -422,7 +419,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // ==============================================================================
     template <typename TDataType>
     void AdjointStructuralResponseFunction::UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
     {
@@ -479,7 +475,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    // ==============================================================================
     template <typename TDataType>
     void AdjointStructuralResponseFunction::UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
     {

@@ -12,21 +12,13 @@
 #ifndef ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
 #define ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
 
-// ------------------------------------------------------------------------------
+
 // System includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "adjoint_structural_response_function.h"
-
-
-// ==============================================================================
 
 namespace Kratos
 {
@@ -50,6 +42,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/** \brief AdjointNodalDisplacementResponseFunction
+*
+* This is a response function which traces a chosen displacement or rotation of a single
+* node as response. It is designed to be used in adjoint sensitivity analysis.
+*/
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointNodalDisplacementResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
@@ -60,7 +57,8 @@ public:
     typedef Node<3>::Pointer PointTypePointer;
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
 
-
+    ///@}
+    ///@name Pointer Definitions
     /// Pointer definition of AdjointNodalDisplacementResponseFunction
     KRATOS_CLASS_POINTER_DEFINITION(AdjointNodalDisplacementResponseFunction);
 
@@ -174,6 +172,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
     double mDisplacementValue;
     int mIdOfTracedNode;
     std::string mTracedDofLabel;
@@ -217,4 +216,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
+#endif // ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H_INCLUDED
