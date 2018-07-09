@@ -52,13 +52,13 @@ namespace Kratos
         double stress_value = 0.0;
 
         // Working variables
-        ProcessInfo &r_current_precess_info = rModelPart.GetProcessInfo();
+        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
         Vector element_stress;
 
         if(mStressTreatment == StressTreatment::Mean || mStressTreatment == StressTreatment:: GaussPoint)
-            mpTracedElement->Calculate(STRESS_ON_GP, element_stress, r_current_precess_info);
+            mpTracedElement->Calculate(STRESS_ON_GP, element_stress, r_current_process_info);
         else
-            mpTracedElement->Calculate(STRESS_ON_NODE, element_stress, r_current_precess_info);
+            mpTracedElement->Calculate(STRESS_ON_NODE, element_stress, r_current_process_info);
 
         const SizeType stress_vec_size = element_stress.size();
 
