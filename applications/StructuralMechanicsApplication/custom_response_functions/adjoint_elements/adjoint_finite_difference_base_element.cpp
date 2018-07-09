@@ -323,9 +323,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         // Get perturbation size
         const double delta = this->GetPerturbationSize(rDesignVariable);
 
-        const int number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
-        const unsigned int dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-        const int local_size = number_of_nodes * dimension * 2;
+        const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+        const SizeType local_size = number_of_nodes * dimension * 2;
 
         rOutput.resize(dimension * number_of_nodes, local_size);
 

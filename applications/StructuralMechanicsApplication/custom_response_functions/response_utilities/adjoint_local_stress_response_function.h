@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 #ifndef ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
 #define ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
@@ -45,8 +45,8 @@ namespace Kratos
 
 /** \brief AdjointLocalStressResponseFunction
  *
- * This is a response function which traces one chosen type (e.g. MXX) of stress or stress-resultant 
- * of a single element as response. 
+ * This is a response function which traces one chosen type (e.g. MXX) of stress or stress-resultant
+ * of a single element as response.
  * It is designed to be used in adjoint sensitivity analysis.
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLocalStressResponseFunction : public AdjointStructuralResponseFunction
