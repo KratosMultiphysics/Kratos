@@ -48,8 +48,7 @@ namespace Kratos
         MYZ,
         MZX,
         MZY,
-        MZZ,
-        StressTypeNotAvailable
+        MZZ
     };
 
     enum class StressTreatment
@@ -95,7 +94,7 @@ public:
 
     TracedStressType ConvertStressType(const std::string& Str)
     {
-        if(Str == "FX") 
+        if(Str == "FX")
             return TracedStressType::FX;
         else if(Str == "FY")
             return TracedStressType::FY;
@@ -144,12 +143,13 @@ public:
         else if(Str == "MZZ")
             return TracedStressType::MZZ;
         else
-            return TracedStressType::StressTypeNotAvailable;	
+            KRATOS_ERROR << "Chosen stress type \n" <<Str<<"\" is not available!" << std::endl;
+
     }
 
     StressTreatment ConvertStressTreatment(const std::string& Str)
-    {	
-        if(Str == "mean") 
+    {
+        if(Str == "mean")
             return StressTreatment::Mean;
         else if(Str == "node")
             return StressTreatment::Node;
@@ -160,11 +160,11 @@ public:
     }
 
     ///@}
-    
+
 private:
 };// class ResponseData
 
-    
+
 }  // namespace Kratos.
 
 #endif // KRATOS_RESPONSE_DATA_H_INCLUDED  defined

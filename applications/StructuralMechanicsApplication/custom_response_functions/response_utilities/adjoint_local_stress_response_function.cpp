@@ -32,7 +32,6 @@ namespace Kratos
 
         // Tell traced element the stress type
         TracedStressType traced_stress_type = stress_response_data.ConvertStressType(ResponseSettings["stress_type"].GetString());
-        KRATOS_ERROR_IF(traced_stress_type == TracedStressType::StressTypeNotAvailable) << "Chosen stress type is not available!" << std::endl;
         mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );
 
         // Get info how and where to treat the stress
