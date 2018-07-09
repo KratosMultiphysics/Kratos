@@ -724,10 +724,10 @@ protected:
     struct GeneralVariables
     {
     public:
-        // General variables for large displacement use
-        Matrix ConstitutiveMatrix; /// Constitutive matrix
-        Vector StrainVector;       /// Strain tensor
-        Vector StressVector;       /// Stress tensor
+        // Constitutive variables
+        ConstitutiveVariables ConstitutiveComponents = ConstitutiveVariables(6);
+
+        // Kinematic variables for large displacement use
         Matrix B;                  /// Deformation matrix
         Matrix F;                  /// Deformation gradient (F) from the reference to the current configuration ( Delta F )
         Matrix F0;                 /// Deformation gradient (F) in the reference configuration, ( historical F )
