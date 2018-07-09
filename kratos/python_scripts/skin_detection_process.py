@@ -15,11 +15,12 @@ class SkinDetectionProcess(KratosMultiphysics.Process):
  
         default_settings = KratosMultiphysics.Parameters(""" 
         {
-            "model_part_name"          : "Main",
-            "recursive_detection"      : false,
-            "name_auxiliar_model_part" : "SkinModelPart",
-            "name_auxiliar_condition"  : "Condition",
-            "echo_level"               : 0
+            "model_part_name"                       : "Main",
+            "recursive_detection"                   : false,
+            "name_auxiliar_model_part"              : "SkinModelPart",
+            "name_auxiliar_condition"               : "Condition",
+            "list_model_parts_to_assign_conditions" : [],
+            "echo_level"                            : 0
         }
         """
         )
@@ -32,6 +33,7 @@ class SkinDetectionProcess(KratosMultiphysics.Process):
         detect_skin_parameters = KratosMultiphysics.Parameters("""{}""")
         detect_skin_parameters.AddValue("name_auxiliar_model_part", settings["name_auxiliar_model_part"])
         detect_skin_parameters.AddValue("name_auxiliar_condition", settings["name_auxiliar_condition"])
+        detect_skin_parameters.AddValue("list_model_parts_to_assign_conditions", settings["list_model_parts_to_assign_conditions"])
         detect_skin_parameters.AddValue("echo_level", settings["echo_level"])
         if (self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.detect_skin = KratosMultiphysics.SkinDetectionProcess2D(self.model_part, detect_skin_parameters)

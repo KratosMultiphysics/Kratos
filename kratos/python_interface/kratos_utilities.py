@@ -11,7 +11,7 @@ def DeleteFileIfExisting(file_name):
     """
     from os import remove
     try:
-        os.remove(file_name)
+        remove(file_name)
     except:
         pass
 
