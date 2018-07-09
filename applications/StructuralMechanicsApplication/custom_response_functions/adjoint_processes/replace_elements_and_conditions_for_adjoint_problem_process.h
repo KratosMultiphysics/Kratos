@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//                   Armin Geiser
 //
 
 
@@ -29,9 +30,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// The base class for all processes in Kratos.
-/** This function applies a constant value (and fixity) to all of the nodes in a given mesh
-*/
+/**
+ * @brief This class replaces all elements and conditions of a structural
+ * model part with their adjoint counterparts. If this process is called on a
+ * primal model part, it is transformed to an adjoint model part and vice versa.
+ * The variable "IS_ADJOINT" at the model parts process info is set accordingly.
+ */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ReplaceElementsAndConditionsForAdjointProblemProcess : public Process
 {
 public:
@@ -100,7 +104,7 @@ public:
     ///@}
 protected:
 
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
 
 private:
     ///@name Static Member Variables
