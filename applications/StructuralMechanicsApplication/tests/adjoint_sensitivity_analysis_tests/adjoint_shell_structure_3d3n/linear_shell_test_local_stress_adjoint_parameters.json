@@ -1,7 +1,4 @@
 {
-    "test_settings" : {
-        "execute_solve" : true
-    },
     "problem_data"             : {
         "problem_name"    : "rectangular_plate",
         "model_part_name" : "Structure",
