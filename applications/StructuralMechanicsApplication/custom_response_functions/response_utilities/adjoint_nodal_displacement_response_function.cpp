@@ -30,14 +30,14 @@ namespace Kratos
         KRATOS_ERROR_IF(domain_size != 3) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
 
         // Get id of node where a displacement should be traced
-        mIdOfTracedNode = ResponseSettings["traced_node_id"].GetInt();
+        const int id_traced_node = ResponseSettings["traced_node_id"].GetInt();
 
         // Get the corresponding dof to the displacement which should be traced
         // by this response function e.g. DISPLACEMENT_X, ROTATION_X,...
         mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
 
         // Get pointer to traced node
-        mpTracedNode = r_model_part.pGetNode(mIdOfTracedNode);
+        mpTracedNode = r_model_part.pGetNode(id_traced_node);
 
         // Check if variable for traced dof is valid
         if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedDofLabel)) )
@@ -82,8 +82,7 @@ namespace Kratos
             const SizeType number_of_nodes = elem_i.GetGeometry().size();
             for(IndexType i = 0; i < number_of_nodes; ++i)
             {
-                int current_node_id = elem_i.GetGeometry()[i].Id();
-                if(current_node_id == mIdOfTracedNode)
+                if(elem_i.GetGeometry()[i].Id() == mpTracedNode->Id())
                 {
                     mpNeighboringElement = r_model_part.pGetElement(elem_i.Id());
                     neighboring_element_found = true;
