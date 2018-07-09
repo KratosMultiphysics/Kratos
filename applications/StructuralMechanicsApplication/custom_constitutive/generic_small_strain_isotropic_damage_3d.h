@@ -223,7 +223,8 @@ public:
     double& CalculateValue(
         Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
-        double& rValue);
+        double& rValue
+        ) override;
         
     ///@}
     ///@name Access

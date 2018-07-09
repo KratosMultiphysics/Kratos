@@ -268,11 +268,11 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
     }
 
-    void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
     }
 
