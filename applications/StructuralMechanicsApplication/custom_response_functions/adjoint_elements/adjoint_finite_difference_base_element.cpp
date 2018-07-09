@@ -525,8 +525,6 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
 }
 
 // private
-
-
 const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<double>& rDesignVariable)
 {
     const double correction_factor = this->GetPerturbationSizeCorrectionFactor(rDesignVariable);
