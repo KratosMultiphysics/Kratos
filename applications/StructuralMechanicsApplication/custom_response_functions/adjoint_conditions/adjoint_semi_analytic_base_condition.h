@@ -55,6 +55,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  AdjointSemiAnalyticBaseCondi
 public:
     ///@name Type Definitions
     ///@{
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
 
     /// Counted pointer of AdjointSemiAnalyticBaseCondition
     KRATOS_CLASS_POINTER_DEFINITION( AdjointSemiAnalyticBaseCondition );
@@ -88,12 +90,6 @@ public:
     ///@name Informations
     ///@{
 
-    // not a virtual function in condition.h
-    // SizeType WorkingSpaceDimension() const override
-    // {
-    //      return mpPrimalCondition->WorkingSpaceDimension();
-    // }
-
     ///@}
     ///@name Operations
     ///@{
@@ -123,16 +119,6 @@ public:
     void GetValuesVector(Vector& rValues, int Step = 0 ) override
     {
         KRATOS_ERROR << "GetValuesVector of the base class called!" << std::endl;
-    }
-
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) override
-    {
-        mpPrimalCondition->GetFirstDerivativesVector(values, Step);
-    }
-
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) override
-    {
-        mpPrimalCondition->GetSecondDerivativesVector(values, Step);
     }
 
     void Initialize() override
@@ -279,8 +265,6 @@ public:
     {
         mpPrimalCondition->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
     }
-
-    // TODO explicit functions lines 668-698
 
     void Calculate(const Variable<double >& rVariable,
 			   double& Output,
@@ -462,11 +446,13 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        rSerializer.save("mpPrimalCondition", mpPrimalCondition);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        rSerializer.load("mpPrimalCondition", mpPrimalCondition);
     }
 
     ///@}

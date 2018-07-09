@@ -52,29 +52,27 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dim = GetGeometry().WorkingSpaceDimension();
         if (rResult.size() != dim * number_of_nodes)
-        {
             rResult.resize(dim*number_of_nodes,false);
-        }
 
-        const unsigned int pos = this->GetGeometry()[0].GetDofPosition(ADJOINT_DISPLACEMENT_X);
+        const IndexType pos = this->GetGeometry()[0].GetDofPosition(ADJOINT_DISPLACEMENT_X);
 
         if(dim == 2)
         {
-            for (unsigned int i = 0; i < number_of_nodes; ++i)
+            for (IndexType i = 0; i < number_of_nodes; ++i)
             {
-                const unsigned int index = i * 2;
+                const IndexType index = i * 2;
                 rResult[index    ] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
             }
         }
         else
         {
-            for (unsigned int i = 0; i < number_of_nodes; ++i)
+            for (IndexType i = 0; i < number_of_nodes; ++i)
             {
-                const unsigned int index = i * 3;
+                const IndexType index = i * 3;
                 rResult[index    ] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_X,pos    ).EquationId();
                 rResult[index + 1] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Y,pos + 1).EquationId();
                 rResult[index + 2] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z,pos + 2).EquationId();
@@ -90,26 +88,28 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
-        ElementalDofList.resize(0);
-        ElementalDofList.reserve(dim * number_of_nodes);
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dim =  GetGeometry().WorkingSpaceDimension();
+        if (ElementalDofList.size() != dim * number_of_nodes)
+            ElementalDofList.resize(dim*number_of_nodes);
 
         if(dim == 2)
         {
-            for (unsigned int i = 0; i < number_of_nodes; ++i)
+            for (IndexType i = 0; i < number_of_nodes; ++i)
             {
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y));
+                const IndexType index = i * 2;
+                ElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
+                ElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
             }
         }
         else
         {
-            for (unsigned int i = 0; i < number_of_nodes; ++i)
+            for (IndexType i = 0; i < number_of_nodes; ++i)
             {
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y));
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z));
+                const IndexType index = i * 3;
+                ElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
+                ElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
+                ElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
             }
         }
 
@@ -121,23 +121,19 @@ namespace Kratos
 
     void AdjointSemiAnalyticPointLoadCondition::GetValuesVector(Vector& rValues, int Step)
     {
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        const unsigned int mat_size = number_of_nodes * dim;
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dim = GetGeometry().WorkingSpaceDimension();
+        const SizeType mat_size = number_of_nodes * dim;
 
         if (rValues.size() != mat_size)
-        {
             rValues.resize(mat_size, false);
-        }
 
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        for (IndexType i = 0; i < number_of_nodes; ++i)
         {
             const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
-            unsigned int index = i * dim;
-            for(unsigned int k = 0; k < dim; ++k)
-            {
+            IndexType index = i * dim;
+            for(IndexType k = 0; k < dim; ++k)
                 rValues[index + k] = Displacement[k];
-            }
         }
     }
 
@@ -164,9 +160,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const unsigned int number_of_nodes = GetGeometry().size();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        const unsigned int mat_size = number_of_nodes * dimension;
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const SizeType mat_size = number_of_nodes * dimension;
 
         if ((rOutput.size1() != mat_size) || (rOutput.size2() != mat_size))
 	        rOutput.resize(mat_size, mat_size, false);
@@ -175,7 +171,7 @@ namespace Kratos
 
         if( rDesignVariable == POINT_LOAD )
         {
-            for(unsigned int i = 0; i < mat_size; ++i)
+            for(IndexType i = 0; i < mat_size; ++i)
                 rOutput(i,i) = 1.0;
         }
 
@@ -193,7 +189,7 @@ namespace Kratos
 
         // Check dofs
         GeometryType& r_geom = GetGeometry();
-        for (unsigned int i = 0; i < r_geom.size(); i++)
+        for (IndexType i = 0; i < r_geom.size(); ++i)
         {
             auto& r_node = r_geom[i];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
