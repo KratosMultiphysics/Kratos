@@ -33,86 +33,6 @@ Element::Pointer AdjointFiniteDifferenceCrBeamElement::Create(Element::Pointer p
     return Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(pPrimalElement);
 }
 
-void AdjointFiniteDifferenceCrBeamElement::EquationIdVector(EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo) {
-
-    const int number_of_nodes = this->GetGeometry().PointsNumber();
-    const int dimension = this->GetGeometry().WorkingSpaceDimension();
-    const unsigned int local_size = number_of_nodes * dimension * 2;
-
-    if (rResult.size() != local_size) rResult.resize(local_size);
-
-    GeometryType & geom = this->GetGeometry();
-
-    for (int i = 0; i < number_of_nodes; ++i)
-    {
-        int index = i * number_of_nodes * dimension;
-        rResult[index]     = geom[i].GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = geom[i].GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = geom[i].GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
-
-        rResult[index + 3] = geom[i].GetDof(ADJOINT_ROTATION_X).EquationId();
-        rResult[index + 4] = geom[i].GetDof(ADJOINT_ROTATION_Y).EquationId();
-        rResult[index + 5] = geom[i].GetDof(ADJOINT_ROTATION_Z).EquationId();
-    }
-
-}
-
-void AdjointFiniteDifferenceCrBeamElement::GetDofList(DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo) {
-
-    GeometryType & geom = this->GetGeometry();
-
-    const int number_of_nodes = geom.PointsNumber();
-    const int dimension = geom.WorkingSpaceDimension();
-    const unsigned int local_size = number_of_nodes * dimension * 2;
-
-    if (rElementalDofList.size() != local_size) {
-        rElementalDofList.resize(local_size);
-    }
-
-    for (int i = 0; i < number_of_nodes; ++i)
-    {
-        int index = i * number_of_nodes * dimension;
-        rElementalDofList[index]     = geom[i].pGetDof(ADJOINT_DISPLACEMENT_X);
-        rElementalDofList[index + 1] = geom[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
-        rElementalDofList[index + 2] = geom[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
-
-        rElementalDofList[index + 3] = geom[i].pGetDof(ADJOINT_ROTATION_X);
-        rElementalDofList[index + 4] = geom[i].pGetDof(ADJOINT_ROTATION_Y);
-        rElementalDofList[index + 5] = geom[i].pGetDof(ADJOINT_ROTATION_Z);
-    }
-}
-
-void AdjointFiniteDifferenceCrBeamElement::GetValuesVector(Vector& rValues, int Step)
-{
-    KRATOS_TRY
-    const GeometryType & geom = this->GetGeometry();
-    const int number_of_nodes = geom.PointsNumber();
-    const int dimension = geom.WorkingSpaceDimension();
-    const unsigned int num_dofs = number_of_nodes * dimension * 2;
-
-    if (rValues.size() != num_dofs)
-        rValues.resize(num_dofs, false);
-
-    for (int i = 0; i < number_of_nodes; ++i)
-    {
-        const SizeType index = i * dimension * 2;
-
-        const array_1d<double,3>& disp = geom[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
-        const array_1d<double,3>& rot = geom[i].FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
-
-        rValues[index]     = disp[0];
-        rValues[index + 1] = disp[1];
-        rValues[index + 2] = disp[2];
-
-        rValues[index + 3] = rot[0];
-        rValues[index + 4] = rot[1];
-        rValues[index + 5] = rot[2];
-    }
-    KRATOS_CATCH("")
-}
-
 void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
                         const ProcessInfo& rCurrentProcessInfo)
@@ -173,10 +93,10 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
 
         if(rVariable == STRESS_ON_GP)
         {
-            const unsigned int&  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+            const SizeType  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
 
             rOutput.resize(GP_num);
-            for(unsigned int i = 0; i < GP_num ; i++)
+            for(IndexType i = 0; i < GP_num ; i++)
             {
                 rOutput(i) = stress_vector[i][direction_1];
             }
@@ -201,6 +121,10 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+
+    //TODO: Check() of primal element should be called, but is not possible because of DOF check!
+
     KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
     << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 
@@ -214,7 +138,7 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
 
     // check dofs
     GeometryType& r_geom = GetGeometry();
-    for (unsigned int i = 0; i < r_geom.size(); i++)
+    for (IndexType i = 0; i < r_geom.size(); i++)
     {
         auto& r_node = r_geom[i];
 
@@ -254,7 +178,7 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
     KRATOS_CATCH("")
 }
 
-double AdjointFiniteDifferenceCrBeamElement::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferenceCrBeamElement::GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
 {
     KRATOS_TRY;
 

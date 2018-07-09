@@ -56,11 +56,6 @@ public:
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferencingShellElement);
-
-     typedef Element::PropertiesType PropertiesType;
-
-     typedef Element::DofsArrayType DofsArrayType;
-
     ///@}
 
     ///@name Classes
@@ -87,12 +82,6 @@ public:
     Element::Pointer Create(Element::Pointer pPrimalElement) const override;
 
     // TODO Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const override;
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
-    void GetValuesVector(Vector& values, int Step = 0) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override
@@ -131,7 +120,12 @@ private:
     ///@name Private Operations
     ///@{
 
-    double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
+    void CheckVariables();
+    void CheckDofs();
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
+    void CheckSpecificProperties();
+
+    double GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
     ///@}
     ///@}

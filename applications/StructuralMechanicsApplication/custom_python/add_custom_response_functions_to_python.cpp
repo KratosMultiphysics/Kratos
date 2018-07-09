@@ -71,22 +71,22 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     // Response Functions
     class_<AdjointStructuralResponseFunction, AdjointStructuralResponseFunction::Pointer>
       (m, "AdjointStructuralResponseFunction")
-      .def(init<ModelPart&, Parameters&>())
+      .def(init<ModelPart&, Parameters>())
       .def("Initialize", &AdjointStructuralResponseFunction::Initialize)
       .def("FinalizeSolutionStep", &AdjointStructuralResponseFunction::FinalizeSolutionStep)
       .def("CalculateValue", &AdjointStructuralResponseFunction::CalculateValue);
 
     class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointStructuralResponseFunction>
       (m, "AdjointLocalStressResponseFunction")
-      .def(init<ModelPart&, Parameters&>());
+      .def(init<ModelPart&, Parameters>());
 
     class_<AdjointNodalDisplacementResponseFunction, AdjointNodalDisplacementResponseFunction::Pointer, AdjointStructuralResponseFunction>
       (m, "AdjointNodalDisplacementResponseFunction")
-      .def(init<ModelPart&, Parameters&>());
+      .def(init<ModelPart&, Parameters>());
 
     class_<AdjointStrainEnergyResponseFunction, AdjointStrainEnergyResponseFunction::Pointer, AdjointStructuralResponseFunction>
       (m, "AdjointStrainEnergyResponseFunction")
-      .def(init<ModelPart&, Parameters&>());
+      .def(init<ModelPart&, Parameters>());
 
 }
 

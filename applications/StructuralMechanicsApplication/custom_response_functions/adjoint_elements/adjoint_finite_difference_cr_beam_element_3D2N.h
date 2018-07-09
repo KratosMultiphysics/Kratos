@@ -23,17 +23,6 @@ class AdjointFiniteDifferenceCrBeamElement : public AdjointFiniteDifferencingBas
 public:
     KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferenceCrBeamElement);
 
-    typedef Element BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::NodesArrayType NodesArrayType;
-    typedef BaseType::PropertiesType PropertiesType;
-    typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;
-    typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;
-    typedef BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef BaseType::DofsVectorType DofsVectorType;
-
     AdjointFiniteDifferenceCrBeamElement(): AdjointFiniteDifferencingBaseElement()
     {
     }
@@ -42,17 +31,7 @@ public:
 
     ~AdjointFiniteDifferenceCrBeamElement() override;
 
-    BaseType::Pointer Create(Element::Pointer pPrimalElement) const override;
-
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    Element::Pointer Create(Element::Pointer pPrimalElement) const override;
 
     void Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
@@ -64,7 +43,7 @@ protected:
 
 
 private:
-    double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
+    double GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

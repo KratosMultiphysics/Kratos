@@ -29,9 +29,9 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
 
         self._assign_solution_step_data(0)
 
-    def _create_shape_disturbed_elements(self,mp,delta):
+    def _create_shape_perturbed_elements(self,mp,delta):
         dim=3
-        self.model_part_1 = KratosMultiphysics.ModelPart("Shape_Disturbed_Elements")
+        self.model_part_1 = KratosMultiphysics.ModelPart("Shape_Perturbed_Elements")
         self._add_variables(self.model_part_1)
 
         x1 = mp.Nodes[1].X
@@ -59,9 +59,9 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 5, [1, 7], prop)
         self.model_part_1.CreateNewElement("CrLinearBeamElement3D2N", 6, [1, 8], prop)
 
-    def _create_property_disturbed_elements(self,mp,delta):
+    def _create_property_perturbed_elements(self,mp,delta):
         dim = 3
-        self.model_part_2 = KratosMultiphysics.ModelPart("Property_Disturbed_Elements")
+        self.model_part_2 = KratosMultiphysics.ModelPart("Property_Perturbed_Elements")
         self._add_variables(self.model_part_2)
         self.model_part_2.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z)
         self.model_part_2.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z)
@@ -72,7 +72,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
         prop = self.model_part_2.GetProperties()[0]
 
         self.model_part_2.CreateNewElement("CrLinearBeamElement3D2N", 1, [1, 2], prop)
-        self.property_disturbed_beam_element = self.model_part_2.GetElement(1)
+        self.property_perturbed_beam_element = self.model_part_2.GetElement(1)
 
     def _get_displacement_vector(self,mp,disp):
         index=0
@@ -134,7 +134,7 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
             v[i] = 0.0
         return v
 
-    def _shape_disturbance_correction_factor(self):
+    def _shape_perturbation_correction_factor(self):
         dx = self.model_part.Nodes[1].X - self.model_part.Nodes[2].X
         dy = self.model_part.Nodes[1].Y - self.model_part.Nodes[2].Y
         dz = self.model_part.Nodes[1].Z - self.model_part.Nodes[2].Z
@@ -150,71 +150,71 @@ class TestCrBeamAdjointElement(KratosUnittest.TestCase):
 
     def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
-        LHSUndisturbed = KratosMultiphysics.Matrix(12,12)
-        RHSUndisturbed = KratosMultiphysics.Matrix(12,12)
+        LHSUnperturbed = KratosMultiphysics.Matrix(12,12)
+        RHSUnperturbed = KratosMultiphysics.Matrix(12,12)
         dummy_RHS = self._zero_vector(12)
         PrimalDisplacement = self._zero_vector(12)
         self._get_displacement_vector(self.model_part,PrimalDisplacement)
 
-        self.beam_element.CalculateLocalSystem(LHSUndisturbed,dummy_RHS,self.model_part.ProcessInfo)
-        RHSUndisturbed = LHSUndisturbed * PrimalDisplacement
+        self.beam_element.CalculateLocalSystem(LHSUnperturbed,dummy_RHS,self.model_part.ProcessInfo)
+        RHSUnperturbed = LHSUnperturbed * PrimalDisplacement
 
         # pseudo-load by finite difference approximation
         h = 0.00001
-        corr_factor = self._shape_disturbance_correction_factor()
+        corr_factor = self._shape_perturbation_correction_factor()
         alpha = corr_factor * h
 
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(6,12)
-        LHSDisturbed = KratosMultiphysics.Matrix(12,12)
-        RHSDisturbed = KratosMultiphysics.Matrix(12,12)
+        LHSPerturbed = KratosMultiphysics.Matrix(12,12)
+        RHSPerturbed = KratosMultiphysics.Matrix(12,12)
 
-        self._create_shape_disturbed_elements(self.model_part,alpha)
+        self._create_shape_perturbed_elements(self.model_part,alpha)
 
         row_index = 0
         for element in self.model_part_1.Elements:
-            element.CalculateLocalSystem(LHSDisturbed,dummy_RHS,self.model_part_1.ProcessInfo)
-            RHSDisturbed = LHSDisturbed * PrimalDisplacement
+            element.CalculateLocalSystem(LHSPerturbed,dummy_RHS,self.model_part_1.ProcessInfo)
+            RHSPerturbed = LHSPerturbed * PrimalDisplacement
             for j in range(12):
-                FDPseudoLoadMatrix[row_index,j] = -(RHSDisturbed[j] - RHSUndisturbed[j]) / alpha
+                FDPseudoLoadMatrix[row_index,j] = -(RHSPerturbed[j] - RHSUnperturbed[j]) / alpha
             row_index = row_index + 1
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(6,12)
-        self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
+        self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_beam_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.SHAPE,PseudoLoadMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
 
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
-        LHSUndisturbed = KratosMultiphysics.Matrix(12,12)
-        RHSUndisturbed = self._zero_vector(12)
+        LHSUnperturbed = KratosMultiphysics.Matrix(12,12)
+        RHSUnperturbed = self._zero_vector(12)
         dummy_RHS = self._zero_vector(12)
 
         PrimalDisplacement = self._zero_vector(12)
         self._get_displacement_vector(self.model_part,PrimalDisplacement)
 
-        self.beam_element.CalculateLocalSystem(LHSUndisturbed, dummy_RHS, self.model_part.ProcessInfo)
-        RHSUndisturbed = LHSUndisturbed * PrimalDisplacement
+        self.beam_element.CalculateLocalSystem(LHSUnperturbed, dummy_RHS, self.model_part.ProcessInfo)
+        RHSUnperturbed = LHSUnperturbed * PrimalDisplacement
 
         # pseudo-load by finite difference approximation
         h = 0.00001
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(1,12)
-        LHSDisturbed = KratosMultiphysics.Matrix(12,12)
-        RHSDisturbed = self._zero_vector(12)
+        LHSPerturbed = KratosMultiphysics.Matrix(12,12)
+        RHSPerturbed = self._zero_vector(12)
 
         inital_property_value = self.model_part.GetProperties()[0][StructuralMechanicsApplication.I22]
         delta = h * inital_property_value
-        self._create_property_disturbed_elements(self.model_part,delta)
+        self._create_property_perturbed_elements(self.model_part,delta)
 
-        self.property_disturbed_beam_element.CalculateLocalSystem(LHSDisturbed, dummy_RHS, self.model_part_2.ProcessInfo)
-        RHSDisturbed = LHSDisturbed * PrimalDisplacement
+        self.property_perturbed_beam_element.CalculateLocalSystem(LHSPerturbed, dummy_RHS, self.model_part_2.ProcessInfo)
+        RHSPerturbed = LHSPerturbed * PrimalDisplacement
 
         for j in range(12):
-            FDPseudoLoadMatrix[0,j] = -(RHSDisturbed[j] - RHSUndisturbed[j]) / delta
+            FDPseudoLoadMatrix[0,j] = -(RHSPerturbed[j] - RHSUnperturbed[j]) / delta
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,12)
-        self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
+        self.adjoint_beam_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_beam_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.I22, PseudoLoadMatrix, self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
 

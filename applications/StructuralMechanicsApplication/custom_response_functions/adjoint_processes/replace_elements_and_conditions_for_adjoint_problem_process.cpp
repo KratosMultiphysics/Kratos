@@ -23,7 +23,7 @@ namespace Kratos
 {
 
 
-    ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part) : Process(Flags()) , mr_model_part(model_part)
+    ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceElementsAndConditionsForAdjointProblemProcess(ModelPart& model_part) : Process(Flags()) , mrModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -32,27 +32,26 @@ namespace Kratos
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::Execute()
     {
-        if (mr_model_part.IsSubModelPart())
-            KRATOS_ERROR << "The replacement process can only be done for the root model part!" << std::endl;
+        KRATOS_ERROR_IF(mrModelPart.IsSubModelPart()) << "The replacement process can only be done for the root model part!" << std::endl;
 
-        if ( (!mr_model_part.GetProcessInfo().Has(IS_ADJOINT)) || (!mr_model_part.GetProcessInfo()[IS_ADJOINT]) )
+        if ( (!mrModelPart.GetProcessInfo().Has(IS_ADJOINT)) || (!mrModelPart.GetProcessInfo()[IS_ADJOINT]) )
         {
             this->ReplaceToAdjoint();
-            mr_model_part.GetProcessInfo()[IS_ADJOINT] = true;
+            mrModelPart.GetProcessInfo()[IS_ADJOINT] = true;
         }
         else
         {
             this->ReplaceToPrimal();
-            mr_model_part.GetProcessInfo()[IS_ADJOINT] = false;
+            mrModelPart.GetProcessInfo()[IS_ADJOINT] = false;
         }
     }
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToPrimal()
     {
         #pragma omp parallel for
-        for(int i=0; i< (int)mr_model_part.Elements().size(); i++)
+        for(int i=0; i<static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
-            ModelPart::ElementsContainerType::iterator it = mr_model_part.ElementsBegin() + i;
+            const auto it = mrModelPart.ElementsBegin() + i;
 
             AdjointFiniteDifferencingBaseElement::Pointer p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement>(*it.base());
             if (p_adjoint_element != nullptr)
@@ -62,9 +61,9 @@ namespace Kratos
         }
 
         #pragma omp parallel for
-        for(int i=0; i< (int)mr_model_part.Conditions().size(); i++)
+        for(int i=0; i<static_cast<int>(mrModelPart.NumberOfConditions()); ++i)
         {
-            ModelPart::ConditionsContainerType::iterator it = mr_model_part.ConditionsBegin() + i;
+            const auto it = mrModelPart.ConditionsBegin() + i;
 
             AdjointSemiAnalyticBaseCondition::Pointer p_adjoint_condition = dynamic_pointer_cast<AdjointSemiAnalyticBaseCondition>(*it.base());
             if (p_adjoint_condition != nullptr)
@@ -74,20 +73,20 @@ namespace Kratos
         }
 
         //change the sons
-        for (ModelPart::SubModelPartIterator i_sub_model_part = mr_model_part.SubModelPartsBegin(); i_sub_model_part != mr_model_part.SubModelPartsEnd(); i_sub_model_part++)
-            UpdateSubModelPart( *i_sub_model_part, mr_model_part );
+        for (ModelPart::SubModelPartIterator i_sub_model_part = mrModelPart.SubModelPartsBegin(); i_sub_model_part != mrModelPart.SubModelPartsEnd(); i_sub_model_part++)
+            UpdateSubModelPart( *i_sub_model_part, mrModelPart );
     }
 
     void ReplaceElementsAndConditionsForAdjointProblemProcess::ReplaceToAdjoint()
     {
 
         #pragma omp parallel for
-        for(int i=0; i< (int)mr_model_part.Elements().size(); i++)
+        for(int i=0; i<static_cast<int>(mrModelPart.NumberOfElements()); ++i)
         {
-            ModelPart::ElementsContainerType::iterator it = mr_model_part.ElementsBegin() + i;
+            const auto it = mrModelPart.ElementsBegin() + i;
 
             std::string element_name;
-            bool replace_element = GetAdjointElementName(*it, element_name);
+            const bool replace_element = GetAdjointElementName(*it, element_name);
 
             if(replace_element)
             {
@@ -103,24 +102,18 @@ namespace Kratos
 
                     (*it.base()) = p_element;
                 }
-                else if (element_name == "AdjointFiniteDifferencingBaseElement")
-                {
-                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingBaseElement>(*it.base() );
-
-                    (*it.base()) = p_element;
-                }
                 else
                     KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
             }
         }
 
         #pragma omp parallel for
-        for(int i=0; i< (int)mr_model_part.Conditions().size(); i++)
+        for(int i=0; i<static_cast<int>(mrModelPart.NumberOfConditions()); ++i)
         {
-            ModelPart::ConditionsContainerType::iterator it = mr_model_part.ConditionsBegin() + i;
+            const auto it = mrModelPart.ConditionsBegin() + i;
 
             std::string condition_name;
-            bool replace_condition = GetAdjointConditionName(*it, condition_name);
+            const bool replace_condition = GetAdjointConditionName(*it, condition_name);
 
             if(replace_condition)
             {
@@ -136,8 +129,8 @@ namespace Kratos
         }
 
         //change the sons
-        for (ModelPart::SubModelPartIterator i_sub_model_part = mr_model_part.SubModelPartsBegin(); i_sub_model_part != mr_model_part.SubModelPartsEnd(); i_sub_model_part++)
-            UpdateSubModelPart( *i_sub_model_part, mr_model_part );
+        for (ModelPart::SubModelPartIterator i_sub_model_part = mrModelPart.SubModelPartsBegin(); i_sub_model_part != mrModelPart.SubModelPartsEnd(); i_sub_model_part++)
+            UpdateSubModelPart( *i_sub_model_part, mrModelPart );
     }
 
     /// Turn back information as a string.
@@ -161,7 +154,7 @@ namespace Kratos
     {
         //change the model part itself
         #pragma omp parallel for
-        for(int i=0; i< (int)r_model_part.Elements().size(); i++)
+        for(int i=0; i< (int)r_model_part.Elements().size(); ++i)
         {
             ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
 
@@ -169,7 +162,7 @@ namespace Kratos
         }
 
         #pragma omp parallel for
-        for(int i=0; i< (int)r_model_part.Conditions().size(); i++)
+        for(int i=0; i< (int)r_model_part.Conditions().size(); ++i)
         {
             ModelPart::ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
 

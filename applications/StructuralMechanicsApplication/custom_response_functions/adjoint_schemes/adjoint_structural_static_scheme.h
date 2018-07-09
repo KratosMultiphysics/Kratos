@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 #if !defined(KRATOS_ADJOINT_STRUCTURAL_STATIC_SCHEME)
 #define KRATOS_ADJOINT_STRUCTURAL_STATIC_SCHEME
@@ -68,7 +68,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralStaticScheme(Parameters& rParameters, AdjointStructuralResponseFunction::Pointer pResponseFunction)
+    AdjointStructuralStaticScheme(Parameters rParameters, AdjointStructuralResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY;
@@ -129,7 +129,7 @@ public:
 
         // initialize the variables to zero.
         #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (rModelPart.Nodes().size()); ++k) 
+        for (int k = 0; k< static_cast<int> (rModelPart.Nodes().size()); ++k)
         {
             ModelPart::NodesContainerType::iterator it_node = rModelPart.NodesBegin()+ k;
             noalias(it_node->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT)) = ADJOINT_DISPLACEMENT.Zero();
