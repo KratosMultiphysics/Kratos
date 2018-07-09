@@ -123,6 +123,8 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
 
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
+    //TODO: Check() of primal element should be called, but is not possible because of DOF check!
+
     KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
     << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 

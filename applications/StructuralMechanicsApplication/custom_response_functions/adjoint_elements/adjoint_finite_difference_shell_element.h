@@ -120,6 +120,11 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CheckVariables();
+    void CheckDofs();
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
+    void CheckSpecificProperties();
+
     double GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
     ///@}

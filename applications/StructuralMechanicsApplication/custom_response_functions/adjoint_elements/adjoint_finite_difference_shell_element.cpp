@@ -201,66 +201,13 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
-    GeometryType& r_geom = GetGeometry();
+    //TODO: Check() of primal element should be called, but is not possible because of DOF check!
+    CheckVariables();
+    CheckDofs();
+    CheckProperties(rCurrentProcessInfo);
 
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
-    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-
-    // check properties
-    KRATOS_ERROR_IF(this->pGetProperties() == nullptr) << "Properties not provided for element " << this->Id() << std::endl;
-
-    const PropertiesType & props = this->GetProperties();
-
-    if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
-    {
-        const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
-        KRATOS_ERROR_IF(section == nullptr) << "SHELL_CROSS_SECTION not provided for element " << this->Id() << std::endl;
-
-        section->Check(props, r_geom, rCurrentProcessInfo);
-    }
-    else // ... allow the automatic creation of a homogeneous section from a material and a thickness
-    {
-        KRATOS_ERROR_IF_NOT(props.Has(CONSTITUTIVE_LAW)) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-        const ConstitutiveLaw::Pointer& claw = props[CONSTITUTIVE_LAW];
-        KRATOS_ERROR_IF(claw == nullptr) << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-
-        KRATOS_ERROR_IF_NOT(props.Has(THICKNESS)) <<  "THICKNESS not provided for element " <<  this->Id() << std::endl;
-        KRATOS_ERROR_IF(props[THICKNESS] <= 0.0) << "wrong THICKNESS value provided for element " << this->Id() << std::endl;
-
-        ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
-        dummySection->BeginStack();
-        dummySection->AddPly(0.0, 5, props);
-        dummySection->EndStack();
-        dummySection->SetSectionBehavior(ShellCrossSection::Thin);
-        dummySection->Check(props, r_geom, rCurrentProcessInfo);
-    }
-
-    // Check dofs
-    for (IndexType i = 0; i < r_geom.size(); i++)
-    {
-        auto& r_node = r_geom[i];
-
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
-
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
-    }
+    KRATOS_ERROR_IF(GetGeometry().Area() < std::numeric_limits<double>::epsilon()*1000)
+        << "Element #" << Id() << " has an Area of zero!" << std::endl;
 
     return 0;
 
@@ -268,6 +215,112 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 }
 
 // private
+
+void AdjointFiniteDifferencingShellElement::CheckVariables()
+{
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
+    KRATOS_CHECK_VARIABLE_KEY(SHELL_ORTHOTROPIC_LAYERS);
+    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
+    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
+    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
+}
+
+void AdjointFiniteDifferencingShellElement::CheckDofs()
+{
+    GeometryType& r_geom = GetGeometry();
+    // verify that the dofs exist
+    for (IndexType i = 0; i < r_geom.size(); ++i)
+    {
+        auto& r_node = r_geom[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
+
+        KRATOS_ERROR_IF(r_node.GetBufferSize() < 2) << "This Element needs "
+            << "at least a buffer size = 2" << std::endl;
+    }
+}
+
+void AdjointFiniteDifferencingShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
+{
+    // check properties
+    if(pGetProperties() == nullptr)
+        KRATOS_ERROR << "Properties not provided for element " << Id() << std::endl;
+
+    const PropertiesType & props = GetProperties();
+
+    const GeometryType& geom = GetGeometry(); // TODO check if this can be const
+
+    if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
+    {
+        const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
+        if(section == nullptr)
+            KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << Id() << std::endl;
+
+        section->Check(props, geom, rCurrentProcessInfo);
+    }
+    else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
+    {
+        CheckSpecificProperties();
+
+        // perform detailed orthotropic check later in shell_cross_section
+    }
+    else // ... allow the automatic creation of a homogeneous section from a material and a thickness
+    {
+        CheckSpecificProperties();
+
+        // TODO is this needed???? => it is, the dummy is needed for "Check" => unify!
+        ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
+        dummySection->BeginStack();
+        dummySection->AddPly(0, 5, GetProperties());
+        dummySection->EndStack();
+        dummySection->SetSectionBehavior(ShellCrossSection::Thick);
+        dummySection->Check(props, geom, rCurrentProcessInfo);
+    }
+
+}
+
+void AdjointFiniteDifferencingShellElement::CheckSpecificProperties()
+{
+    const PropertiesType & r_props = GetProperties();
+
+    if (!r_props.Has(CONSTITUTIVE_LAW))
+        KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
+    const ConstitutiveLaw::Pointer& claw = r_props[CONSTITUTIVE_LAW];
+    if (claw == nullptr)
+        KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
+
+    if(!r_props.Has(THICKNESS))
+        KRATOS_ERROR << "THICKNESS not provided for element " << Id() << std::endl;
+    if(r_props[THICKNESS] <= 0.0)
+        KRATOS_ERROR << "wrong THICKNESS value provided for element " << Id() << std::endl;
+
+    if(!r_props.Has(DENSITY))
+        KRATOS_ERROR << "DENSITY not provided for element " << Id() << std::endl;
+    if(r_props[DENSITY] < 0.0)
+        KRATOS_ERROR << "wrong DENSITY value provided for element " << Id() << std::endl;
+
+    // TODO for thick shell Stenberg stabilization is not checked
+}
+
 
 double AdjointFiniteDifferencingShellElement::GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
 {
