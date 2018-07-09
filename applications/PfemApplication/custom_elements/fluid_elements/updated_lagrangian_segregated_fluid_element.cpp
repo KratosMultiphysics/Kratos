@@ -2089,6 +2089,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFaceWeight(const std::vector<Si
   
   // for triangles and tetrahedra
   Vector An(dimension);
+  noalias(An) = ZeroVector(dimension);
   for( SizeType j=0; j<rFace.size(); ++j )
   {
     for(unsigned int d=0; d<dimension; d++)
