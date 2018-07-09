@@ -97,39 +97,39 @@ namespace Python
 
             pybind11::class_<Type, Pointer>(m, "NodeCurveGeometry3D")
                 .def(pybind11::init<int, int>(),
-                    "degree"_a,
-                    "nbNodes"_a)
+                    "Degree"_a,
+                    "NbNodes"_a)
                 .def("Knot", &Type::Knot,
-                    "index"_a)
+                    "Index"_a)
                 .def("SetKnot", &Type::SetKnot,
-                    "index"_a,
-                    "value"_a)
+                    "Index"_a,
+                    "Value"_a)
                 .def("Knots", &Type::Knots)
                 .def("Node", &Type::Node,
-                    "index"_a)
+                    "Index"_a)
                 .def("SetNode", &Type::SetNode,
-                    "index"_a,
-                    "value"_a)
+                    "Index"_a,
+                    "Value"_a)
                 .def("Pole", &Type::Pole,
-                    "index"_a)
+                    "Index"_a)
                 .def("SetPole", &Type::SetPole,
-                    "index"_a,
-                    "value"_a)
+                    "Index"_a,
+                    "Value"_a)
                 .def("Weight", &Type::Weight,
-                    "index"_a)
+                    "Index"_a)
                 .def("SetWeight", &Type::SetWeight,
-                    "index"_a,
-                    "value"_a)
+                    "Index"_a,
+                    "Value"_a)
                 .def("PointAt", &Type::PointAt,
-                    "t"_a)
+                    "T"_a)
                 .def("Spans", &Type::Spans)
                 .def("ValueAt", &Type::ValueAt<double>,
-                    "variable"_a,
-                    "t"_a)
+                    "Variable"_a,
+                    "T"_a)
                 .def("ValueAt2", &Type::ValueAt2<double>,
-                    "variable"_a,
-                    "t"_a,
-                    "order"_a)
+                    "Variable"_a,
+                    "T"_a,
+                    "Order"_a)
             ;
         }
 
@@ -140,40 +140,40 @@ namespace Python
 
             pybind11::class_<Type, Pointer>(m, "NodeSurfaceGeometry3D")
                 .def(pybind11::init<int, int, int, int>(),
-                    "degreeU"_a,
-                    "degreeV"_a,
-                    "nbNodesU"_a,
-                    "nbNodesV"_a)
+                    "DegreeU"_a,
+                    "DegreeV"_a,
+                    "NbNodesU"_a,
+                    "NbNodesV"_a)
                 .def("SetKnotU", &Type::SetKnotU,
-                    "index"_a,
-                    "value"_a)
+                    "Index"_a,
+                    "Value"_a)
                 .def("SetKnotV", &Type::SetKnotV,
-                    "index"_a,
-                    "value"_a)
+                    "Index"_a,
+                    "Value"_a)
                 .def("Node", &Type::Node,
-                    "indexU"_a,
-                    "indexV"_a)
+                    "IndexU"_a,
+                    "IndexV"_a)
                 .def("SetNode", &Type::SetNode,
-                    "indexU"_a,
-                    "indexV"_a,
-                    "value"_a)
+                    "IndexU"_a,
+                    "IndexV"_a,
+                    "Value"_a)
                 .def("Pole", &Type::Pole,
-                    "indexU"_a,
-                    "indexV"_a)
+                    "IndexU"_a,
+                    "IndexV"_a)
                 .def("SetPole", &Type::SetPole,
-                    "indexU"_a,
-                    "indexV"_a,
-                    "value"_a)
+                    "IndexU"_a,
+                    "IndexV"_a,
+                    "Value"_a)
                 .def("Weight", &Type::Weight,
-                    "indexU"_a,
-                    "indexV"_a)
+                    "IndexU"_a,
+                    "IndexV"_a)
                 .def("SetWeight", &Type::SetWeight,
-                    "indexU"_a,
-                    "indexV"_a,
-                    "value"_a)
+                    "IndexU"_a,
+                    "IndexV"_a,
+                    "Value"_a)
                 .def("PointAt", &Type::PointAt,
-                    "u"_a,
-                    "v"_a)
+                    "U"_a,
+                    "V"_a)
             ;
         }
     }
