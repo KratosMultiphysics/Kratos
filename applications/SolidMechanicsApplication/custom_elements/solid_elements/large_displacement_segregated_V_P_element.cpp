@@ -199,7 +199,7 @@ void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    unsigned int   dofs_size        = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
@@ -243,7 +243,7 @@ void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rV
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    unsigned int   dofs_size        = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );

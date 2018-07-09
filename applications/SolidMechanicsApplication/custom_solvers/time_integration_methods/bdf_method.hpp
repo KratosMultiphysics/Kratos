@@ -390,7 +390,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      //if(this->Is(NOT_PREDICT_PRIMARY_VARIABLE))
+      //if(this->Is(TimeIntegrationLocalFlags::NOT_PREDICT_PRIMARY_VARIABLE))
       this->PredictVariable(rNode);
       this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
@@ -403,7 +403,7 @@ namespace Kratos
       KRATOS_TRY
 
       this->PredictVariable(rNode);
-      //if(this->Is(NOT_PREDICT_PRIMARY_VARIABLE))
+      //if(this->Is(TimeIntegrationLocalFlags::NOT_PREDICT_PRIMARY_VARIABLE))
       //this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
 

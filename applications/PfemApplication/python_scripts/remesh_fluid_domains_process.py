@@ -22,9 +22,9 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
     #
     def ExecuteInitialize(self):
 
-        self.fileTotalVolume = None
-
         remesh_domains_process.RemeshDomainsProcess.ExecuteInitialize(self)
+
+        self.fileTotalVolume = None
 
         # compute initial average parameters
         if( self.remesh_domains_active ):

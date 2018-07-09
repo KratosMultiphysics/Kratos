@@ -43,31 +43,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Solver local flags class definition
- *  @details This is the base class for solver local flags
- */
-class SolverLocalFlags
-{
- public:
-  /// Flags for the solution control:
-  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( CONVERGED );
-  KRATOS_DEFINE_LOCAL_FLAG( DOFS_INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS_INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( CONDITIONS_INITIALIZED );
-
-  /// Flags for the solution options:
-  KRATOS_DEFINE_LOCAL_FLAG( MOVE_MESH );
-  KRATOS_DEFINE_LOCAL_FLAG( UPDATE_VARIABLES );
-  KRATOS_DEFINE_LOCAL_FLAG( REFORM_DOFS );
-  KRATOS_DEFINE_LOCAL_FLAG( INCREMENTAL_SOLUTION );
-  KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_REACTIONS );
-  KRATOS_DEFINE_LOCAL_FLAG( CONSTANT_SYSTEM_MATRIX );
-  KRATOS_DEFINE_LOCAL_FLAG( RAYLEIGH_DAMPING );
-  KRATOS_DEFINE_LOCAL_FLAG( IMPLEX );
-};
-
-
 /** @brief Solution scheme base class
  *  @details This is the base class for the schemes
  */
@@ -980,26 +955,6 @@ class SolutionScheme : public Flags
 ///@name Type Definitions
 ///@{
 
-/**
- * Flags for the solution control
- */
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED,               0 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONVERGED,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, DOFS_INITIALIZED,          2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, ELEMENTS_INITIALIZED,      3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONDITIONS_INITIALIZED,    4 );
-
-/**
- * Flags for the solution options
- */
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, MOVE_MESH,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, UPDATE_VARIABLES,          1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, REFORM_DOFS,               2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INCREMENTAL_SOLUTION,      3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         4 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_MATRIX,    5 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, RAYLEIGH_DAMPING,          6 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    7 );
 
 ///@}
 ///@name Input and output

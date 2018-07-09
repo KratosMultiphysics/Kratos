@@ -54,13 +54,15 @@
 		    "dofs" : ["VELOCITY"]
 		}
             },{
-		"solver_type" : "solid_mechanics_static_solver",
+		"solver_type" : "solid_mechanics_implicit_dynamic_solver",
 		"Parameters"  : {
 		    "time_integration_settings" : {
-			"solution_type"          : "Static",
+			"solution_type"          : "Dynamic",
 			"analysis_type"          : "Non-linear",
-			"time_integration"       : "Static",
-			"buffer_size"            : 3
+			"time_integration"       : "Implicit",
+			"integration_method"     : "Bdf",
+			"integration_order"      : 1,
+			"buffer_size"            : 2
 		    },
 		    "solving_strategy_settings" : {
 			"iterative_update"            : false,

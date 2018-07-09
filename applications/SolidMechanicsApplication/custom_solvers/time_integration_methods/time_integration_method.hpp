@@ -19,7 +19,7 @@
 #include "includes/process_info.h"
 #include "includes/variables.h"
 #include "includes/node.h"
-#include "containers/flags.h"
+#include "custom_solvers/solution_local_flags.hpp"
 #include "custom_utilities/process_info_extensions.hpp"
 
 namespace Kratos
@@ -45,20 +45,6 @@ namespace Kratos
   ///@}
   ///@name Kratos Classes
   ///@{
-
-  /** @brief Solver local flags class definition
-   *  @details This is the base class for solver local flags
-   */
-
-  class TimeIntegrationLocalFlags
-  {
-   public:
-
-    /// Flags for the solution options:
-    KRATOS_DEFINE_LOCAL_FLAG( PREDICT_PRIMARY_VARIABLE );
-
-    /// Flags for the solution control:
-  };
 
   /// Short class definition.
   /** Detail class definition.
@@ -188,11 +174,11 @@ namespace Kratos
 
     }
 
+    // set parameters to process info
     virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo)
     {
 
     }
-
 
     // set input variable (constrained or dof variable)
     void SetInputVariable(const TVariableType& rVariable)
@@ -368,9 +354,9 @@ namespace Kratos
     ///@{
 
     Flags& GetFlags()
-      {
-	return *this;
-      }
+    {
+      return *this;
+    }
 
     Flags const& GetFlags() const
     {
@@ -394,15 +380,15 @@ namespace Kratos
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        std::stringstream buffer;
-        buffer << "TimeIntegrationMethod";
-        return buffer.str();
+      std::stringstream buffer;
+      buffer << "TimeIntegrationMethod";
+      return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "TimeIntegrationMethod";
+      rOStream << "TimeIntegrationMethod";
     }
 
     /// Print object's data.
@@ -753,11 +739,6 @@ namespace Kratos
 
   ///@name Type Definitions
   ///@{
-
-  /**
-   * Flags for the solution options
-   */
-  KRATOS_CREATE_LOCAL_FLAG( TimeIntegrationLocalFlags, PREDICT_PRIMARY_VARIABLE,   0 );
 
   ///@}
   ///@name Input and output

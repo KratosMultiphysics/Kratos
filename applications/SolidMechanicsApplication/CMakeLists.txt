@@ -18,6 +18,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/solid_mechanics_application_variables.cpp
 
 	# Time integration methods
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/solution_local_flags.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/static_step_rotation_method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/newmark_step_rotation_method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/simo_step_rotation_method.cpp
