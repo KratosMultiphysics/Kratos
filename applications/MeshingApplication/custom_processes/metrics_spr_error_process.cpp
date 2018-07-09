@@ -379,7 +379,7 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     BoundedMatrix<double, SigmaSize, 1> sigma;
     
     /* Computation A and b */
-    // PART 1: contributions from the neighboring elements
+    // PART 1: Contributions from the neighboring elements
     auto& neigh_elements = itPatchNode->GetValue(NEIGHBOUR_ELEMENTS);
     for( WeakElementItType it_elem = neigh_elements.begin(); it_elem != neigh_elements.end(); ++it_elem) {
         
@@ -479,8 +479,8 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 
     noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k)) * itNode->GetValue(CONTACT_PRESSURE);
 
-//     //PART 2: contributions from contact nodes: regard all nodes from the patch which are in contact
-//     //patch center node:
+//     //PART 2: Contributions from contact nodes: regard all nodes from the patch which are in contact
+//     // Patch center node:
 //     if (itPatchNode->Has(CONTACT_PRESSURE)){
 //         const array_1d<double, 3>& normal_patch_node = itPatchNode->GetValue(NORMAL);
 //         p_k(0,1)=0.0;
@@ -579,6 +579,8 @@ void SPRMetricProcess<TDim>::ComputeElementSize(ElementItType itElement)
         itElement->SetValue(ELEMENT_H, 2.0 * this_geometry.Circumradius());
     } else if(this_geometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){ // Tetrahedral elements
         itElement->SetValue(ELEMENT_H,std::pow(12.0 * this_geometry.Volume()/std::sqrt(2.0), 1.0/3.0));
+    } else { // In any othe case just considers the length of the element
+        itElement->SetValue(ELEMENT_H, this_geometry.Length());
     }
 }
 

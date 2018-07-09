@@ -80,6 +80,11 @@ namespace Kratos
  * @class SPRMetricProcess
  * @ingroup MeshingApplication
  * @brief This class is can be used to compute the metrics of the model part with a superconvergent patch recovery approach
+ * @details The formulation employed in order to compute the super patch recovery is based on the work of O. C. Zienkiewicz
+J. Z. Zhu, and extended for contact mechanics. In the papers:
+ * - The superconvergent patch recovery and a posteriori error estimates. Part 1: The recovery technique https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620330702
+ * - The superconvergent patch recovery and a posteriori error estimates. Part 2: Error estimates and adaptivity https://onlinelibrary.wiley.com/doi/abs/10.1002/nme.1620330703
+ * This is a general recovery technique is developed for determining the derivatives (stresses) of the finite element solutions at nodes. The implementation of the recovery technique is simple and cost effective.
  * @tparam TDim The dimension to be computed
  * @author Anna Rehr
  */
@@ -238,14 +243,13 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
-    /**
-     * 
-     */
-    double SuperconvergentPatchRecovery();
 
     /**
-     * 
+     * @brief Calculates the recovered stress. Checks whatever this is a contact case or a standard one
+     * @param itNode the node for which the recovered stress should be calculated
+     * @param itPatchNode the center node of the patch
+     * @param NeighbourSize Number of neighbour elements
+     * @param rSigmaRecovered The recovered stress
      */
     void CalculatePatch(
         NodeItType itNode,
@@ -254,10 +258,13 @@ private:
         Vector& rSigmaRecovered
         );
 
-    /** Calculates the recovered stress at a node in the case of a standard patch without contact BC
-    * @param itNode the node for which the recovered stress should be calculated
-    * @param itPatchNode the center node of the patch
-    */
+    /**
+     * @brief Calculates the recovered stress at a node in the case of a standard patch without contact BC
+     * @param itNode the node for which the recovered stress should be calculated
+     * @param itPatchNode the center node of the patch
+     * @param NeighbourSize Number of neighbour elements
+     * @param rSigmaRecovered The recovered stress
+     */
     void CalculatePatchStandard(
         NodeItType itNode,
         NodeItType itPatchNode,
@@ -266,9 +273,11 @@ private:
         );
 
     /**
-     * It calculates the recovered stress at a node where contact BCs are regarded
+     * @brief It calculates the recovered stress at a node where contact BCs are regarded
      * @param itNode the node for which the recovered stress should be calculated
      * @param itPatchNode the center node of the patch
+     * @param NeighbourSize Number of neighbour elements
+     * @param rSigmaRecovered The recovered stress
      */
     void CalculatePatchContact(
         NodeItType itNode,
@@ -278,7 +287,8 @@ private:
         );
 
     /**
-     * Sets the element size
+     * @brief This computes the element size depending of the geometry and it assigns to the ELEMENT_H variable
+     * @param itElement The element iterator
      */
     void ComputeElementSize(ElementItType itElement);
     

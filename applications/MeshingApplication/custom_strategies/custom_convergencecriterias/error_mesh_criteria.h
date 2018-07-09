@@ -7,8 +7,8 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
-//                   Anna Rehr
+//  Main authors:    Anna Rehr
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_ERROR_MESH_CRITERIA_H)
@@ -19,14 +19,13 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "meshing_application.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/color_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+
 // Processes
-#include "processes/find_nodal_h_process.h"
 #include "custom_processes/metric_fast_init_process.h"
 #include "custom_processes/metrics_spr_error_process.h"
 
@@ -60,8 +59,8 @@ namespace Kratos
  * @brief Custom convergence criteria for the mortar condition
  * @tparam TSparseSpace The sparse space considered
  * @tparam TDenseSpace The dense space considered
- * @author Vicente Mataix Ferrandiz
  * @author Anna Rehr
+ * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace>
 class ErrorMeshCriteria
@@ -177,7 +176,6 @@ public:
      * @param b RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -269,10 +267,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    Parameters mThisParameters;                /// The parameters
+    Parameters mThisParameters; /// The parameters
     
-    double mErrorTolerance;                    /// The error tolerance considered
-    double mConstantError;                     /// The constant considered in the remeshing process
+    double mErrorTolerance;     /// The error tolerance considered
+    double mConstantError;      /// The constant considered in the remeshing process
     
     ///@}
     ///@name Private Operators
