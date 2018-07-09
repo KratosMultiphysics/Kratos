@@ -36,7 +36,7 @@ namespace Kratos
         this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, ResponseSettings["condition_sensitivity_variables"]);
 
         // Set gradient mode
-        const std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
+        const std::string& gradient_mode = ResponseSettings["gradient_mode"].GetString();
 
         // Mode 1: semi-analytic sensitivities
         if (gradient_mode == "semi_analytic")
@@ -134,7 +134,7 @@ namespace Kratos
         for (const auto& variable_pair : mElementSensitivityScalarVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i)
+            for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
             {
                 ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
                 it->SetValue(variable_pair[1], variable_pair[1].Zero());
@@ -143,7 +143,7 @@ namespace Kratos
         for (const auto& variable_pair : mElementSensitivityVectorVariables)
         {
              #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i)
+            for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
             {
                 ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
                 it->SetValue(variable_pair[1], variable_pair[1].Zero());
@@ -153,7 +153,7 @@ namespace Kratos
         for (const auto& variable_pair : mConditionSensitivityScalarVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i)
+            for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
             {
                 ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
                 const SizeType number_of_nodes = it->GetGeometry().size();
@@ -164,7 +164,7 @@ namespace Kratos
         for (const auto& variable_pair : mConditionSensitivityVectorVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i)
+            for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
             {
                 ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
                 const SizeType number_of_nodes = it->GetGeometry().size();
@@ -433,7 +433,7 @@ namespace Kratos
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
         #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i)
+        for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
         {
             const unsigned int k = OpenMPUtils::ThisThread();
             ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
@@ -490,7 +490,7 @@ namespace Kratos
 
         //  Assemble condition contributions.
         #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i)
+        for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
         {
             const unsigned int k = OpenMPUtils::ThisThread();
             ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
