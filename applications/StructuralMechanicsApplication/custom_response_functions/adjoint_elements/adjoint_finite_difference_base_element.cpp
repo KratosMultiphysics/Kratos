@@ -24,9 +24,9 @@ namespace Kratos
 {
 
 AdjointFiniteDifferencingBaseElement::AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement)
-                    : Element(pPrimalElement->Id(), pPrimalElement->pGetGeometry(), pPrimalElement->pGetProperties()) {
-
-    mpPrimalElement = pPrimalElement;
+                    : Element(pPrimalElement->Id(), pPrimalElement->pGetGeometry(), pPrimalElement->pGetProperties()),
+                        mpPrimalElement(pPrimalElement)
+{
 }
 
 AdjointFiniteDifferencingBaseElement::~AdjointFiniteDifferencingBaseElement() {}

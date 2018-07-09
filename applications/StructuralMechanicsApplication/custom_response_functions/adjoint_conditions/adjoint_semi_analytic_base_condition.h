@@ -72,9 +72,9 @@ public:
 
     AdjointSemiAnalyticBaseCondition(
         Condition::Pointer pPrimalCondition
-        ): Condition( pPrimalCondition->Id(), pPrimalCondition->pGetGeometry() )
+        ): Condition( pPrimalCondition->Id(), pPrimalCondition->pGetGeometry() ),
+           mpPrimalCondition(pPrimalCondition)
         {
-            mpPrimalCondition = pPrimalCondition;
         }
 
     /// Destructor.
