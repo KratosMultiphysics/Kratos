@@ -99,7 +99,7 @@ namespace Kratos
         const VariableComponentType& r_traced_dof =
             KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
 
-        return rModelPart.Nodes()[(mpTracedNode->Id())].FastGetSolutionStepValue(r_traced_dof, 0);
+        return mpTracedNode->FastGetSolutionStepValue(r_traced_dof, 0);
 
         KRATOS_CATCH("");
     }
