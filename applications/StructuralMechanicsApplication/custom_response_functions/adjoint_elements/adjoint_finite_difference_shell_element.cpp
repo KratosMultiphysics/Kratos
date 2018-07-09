@@ -288,7 +288,7 @@ void AdjointFiniteDifferencingShellElement::CheckProperties(const ProcessInfo& r
         CheckSpecificProperties();
 
         // TODO is this needed???? => it is, the dummy is needed for "Check" => unify!
-        ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
+        ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>(ShellCrossSection());
         dummySection->BeginStack();
         dummySection->AddPly(0, 5, GetProperties());
         dummySection->EndStack();
