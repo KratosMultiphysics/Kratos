@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 // System includes
 
@@ -31,9 +31,9 @@ namespace Kratos
         mpTracedElement = r_model_part.pGetElement(mIdOfTracedElement);
 
         // Tell traced element the stress type
-        TracedStressType traced_stress_type = stress_response_data.ConvertStressType(ResponseSettings["stress_type"].GetString()); 
+        TracedStressType traced_stress_type = stress_response_data.ConvertStressType(ResponseSettings["stress_type"].GetString());
         KRATOS_ERROR_IF(traced_stress_type == TracedStressType::StressTypeNotAvailable) << "Chosen stress type is not available!" << std::endl;
-        mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );		
+        mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );
 
         // Get info how and where to treat the stress
         mStressTreatment = stress_response_data.ConvertStressTreatment( ResponseSettings["stress_treatment"].GetString() );
@@ -51,7 +51,7 @@ namespace Kratos
     /// Destructor.
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
 
-    
+
     double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
@@ -84,7 +84,7 @@ namespace Kratos
         }
         else if(mStressTreatment == StressTreatment::Node)
         {
-            const unsigned int num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
+            const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
             if(num_ele_nodes >= mIdOfLocation)
                 mStressValue = element_stress[mIdOfLocation - 1];
             else
@@ -100,7 +100,7 @@ namespace Kratos
 
     void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo) 
+                                   ProcessInfo& rProcessInfo)
     {
         if (rResponseGradient.size() != rAdjointMatrix.size1())
             rResponseGradient.resize(rAdjointMatrix.size1(), false);
@@ -158,7 +158,7 @@ namespace Kratos
                                       const Variable<double>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) 
+                                      ProcessInfo& rProcessInfo)
     {
           KRATOS_TRY
 
@@ -227,7 +227,7 @@ namespace Kratos
                                      const Variable<double>& rVariable,
                                      const Matrix& rDerivativesMatrix,
                                      Vector& rResponseGradient,
-                                     ProcessInfo& rProcessInfo) 
+                                     ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 

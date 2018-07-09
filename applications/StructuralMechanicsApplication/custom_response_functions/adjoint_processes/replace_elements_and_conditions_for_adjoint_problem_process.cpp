@@ -154,17 +154,17 @@ namespace Kratos
     {
         //change the model part itself
         #pragma omp parallel for
-        for(int i=0; i< (int)r_model_part.Elements().size(); ++i)
+        for(int i=0; i<static_cast<int>(r_model_part.NumberOfElements()); ++i)
         {
-            ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+            const auto it = r_model_part.ElementsBegin() + i;
 
             (*it.base()) = r_root_model_part.Elements()(it->Id());
         }
 
         #pragma omp parallel for
-        for(int i=0; i< (int)r_model_part.Conditions().size(); ++i)
+        for(int i=0; i<static_cast<int>(r_model_part.NumberOfConditions()); ++i)
         {
-            ModelPart::ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+            const auto it = r_model_part.ConditionsBegin() + i;
 
             (*it.base()) = r_root_model_part.Conditions()(it->Id());
         }

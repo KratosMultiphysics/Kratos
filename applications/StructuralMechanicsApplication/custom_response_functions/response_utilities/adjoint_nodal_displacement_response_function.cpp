@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 // System includes
 
@@ -22,11 +22,10 @@ namespace Kratos
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
         ModelPart& r_model_part = this->GetModelPart();
-        
+
         // This response function currently only works in 3D!
         ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
-        const SizeType domain_size =
-            static_cast<unsigned int>(r_current_process_info[DOMAIN_SIZE]);
+        const int domain_size = r_current_process_info[DOMAIN_SIZE];
         KRATOS_ERROR_IF(domain_size != 3) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
 
         // Get id of node where a displacement should be traced
@@ -165,7 +164,7 @@ namespace Kratos
                                      const Variable<double>& rVariable,
                                      const Matrix& rDerivativesMatrix,
                                      Vector& rResponseGradient,
-                                     ProcessInfo& rProcessInfo) 
+                                     ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
@@ -181,7 +180,7 @@ namespace Kratos
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) 
+                                      ProcessInfo& rProcessInfo)
     {
           KRATOS_TRY
 
@@ -197,7 +196,7 @@ namespace Kratos
                                       const Variable<array_1d<double,3>>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo) 
+                                      ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 

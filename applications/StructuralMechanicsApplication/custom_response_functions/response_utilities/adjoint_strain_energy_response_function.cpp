@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 // System includes
 
@@ -31,7 +31,7 @@ namespace Kratos
     {
     }
 
-    void AdjointStrainEnergyResponseFunction::Initialize() 
+    void AdjointStrainEnergyResponseFunction::Initialize()
     {
         KRATOS_TRY;
 
@@ -43,31 +43,31 @@ namespace Kratos
         #pragma omp parallel for
         for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); ++i)
         {
-            ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+            auto it = r_model_part.ElementsBegin() + i;
             it->Initialize();
         }
         #pragma omp parallel for
         for(int i=0; i< static_cast<int>(r_model_part.Conditions().size()); ++i)
         {
-            ModelPart::ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+            auto it = r_model_part.ConditionsBegin() + i;
             it->Initialize();
         }
-        
+
         KRATOS_CATCH("");
     }
 
-    double AdjointStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart) 
+    double AdjointStrainEnergyResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = rModelPart; 
+        ModelPart& r_model_part = rModelPart;
         ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
         mCurrentResponseValue = 0.0;
 
         // Check if there are at the time of calling adjoint or primal elements
         KRATOS_ERROR_IF( r_current_process_info[IS_ADJOINT] )
              << "Calculate value for strain energy response is not available when using adjoint elements" << std::endl;
-            
+
         // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
         for (auto& elem_i : r_model_part.Elements())
         {
@@ -93,7 +93,7 @@ namespace Kratos
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo) 
+                                              ProcessInfo& rProcessInfo)
     {
           KRATOS_TRY
 
@@ -110,7 +110,7 @@ namespace Kratos
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo) 
+                                              ProcessInfo& rProcessInfo)
     {
           KRATOS_TRY
 
@@ -150,7 +150,7 @@ namespace Kratos
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo) 
+                                              ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 

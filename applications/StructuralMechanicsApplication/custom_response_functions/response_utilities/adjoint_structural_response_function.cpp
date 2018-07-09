@@ -136,7 +136,7 @@ namespace Kratos
             #pragma omp parallel for
             for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
             {
-                ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+                auto it = r_model_part.ElementsBegin() + i;
                 it->SetValue(variable_pair[1], variable_pair[1].Zero());
             }
         }
@@ -145,7 +145,7 @@ namespace Kratos
              #pragma omp parallel for
             for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
             {
-                ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+                auto it = r_model_part.ElementsBegin() + i;
                 it->SetValue(variable_pair[1], variable_pair[1].Zero());
             }
         }
@@ -155,7 +155,7 @@ namespace Kratos
             #pragma omp parallel for
             for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
             {
-                ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+                auto it = r_model_part.ConditionsBegin() + i;
                 const SizeType number_of_nodes = it->GetGeometry().size();
                 for(IndexType j = 0; j < number_of_nodes; ++j)
                     it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
@@ -166,7 +166,7 @@ namespace Kratos
             #pragma omp parallel for
             for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
             {
-                ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+                auto it = r_model_part.ConditionsBegin() + i;
                 const SizeType number_of_nodes = it->GetGeometry().size();
                 for(IndexType j = 0; j < number_of_nodes; ++j)
                     it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
@@ -436,7 +436,7 @@ namespace Kratos
         for (int i = 0; i< static_cast<int> (r_model_part.NumberOfElements()); ++i)
         {
             const unsigned int k = OpenMPUtils::ThisThread();
-            ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
+            auto it = r_model_part.ElementsBegin() + i;
 
             if (it->GetValue(UPDATE_SENSITIVITIES) == true)
             {
@@ -493,7 +493,7 @@ namespace Kratos
         for (int i = 0; i< static_cast<int> (r_model_part.NumberOfConditions()); ++i)
         {
             const unsigned int k = OpenMPUtils::ThisThread();
-            ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
+            auto it = r_model_part.ConditionsBegin() + i;
 
             if (it->GetValue(UPDATE_SENSITIVITIES) == true)
             {

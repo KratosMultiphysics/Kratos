@@ -131,7 +131,7 @@ public:
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rModelPart.Nodes().size()); ++k)
         {
-            ModelPart::NodesContainerType::iterator it_node = rModelPart.NodesBegin()+ k;
+            auto it_node = rModelPart.NodesBegin() + k;
             noalias(it_node->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT)) = ADJOINT_DISPLACEMENT.Zero();
             noalias(it_node->FastGetSolutionStepValue(ADJOINT_ROTATION)) = ADJOINT_ROTATION.Zero();
         }
