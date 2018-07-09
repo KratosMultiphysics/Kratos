@@ -11,7 +11,7 @@ This feature provides the framework to compute sensitivities of structural respo
 
 ### Features:
 
-Provided is a **scheme** to solve the adjoint problem and a **replacement process** which replaces all elements and conditions of a model with its adjoint equivalents and vice versa).
+Provided is a **scheme** to solve the adjoint problem and a **replacement process** which replaces all elements and conditions of a model with its adjoint equivalents and vice versa.
 
 
 
