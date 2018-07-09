@@ -499,10 +499,12 @@ namespace Kratos {
                     const double density = mInletModelPart.GetProperties(mp[PROPERTIES_ID])[PARTICLE_DENSITY];
                     const double estimated_mass_of_a_particle = density * 4.0/3.0 * Globals::Pi * mean_radius * mean_radius * mean_radius;
                     const double maximum_time_until_release = estimated_mass_of_a_particle * mesh_size_elements / mass_flow;
-                    const double minimum_velocity = mean_radius * 3.0 / maximum_time_until_release; //The distance necessary to get out of the injector, over the time.
+                    double minimum_velocity = mean_radius * 3.0 / maximum_time_until_release; //The distance necessary to get out of the injector, over the time.
                     array_1d<double, 3> & proposed_velocity = mp[INLET_INITIAL_PARTICLES_VELOCITY];
+                    array_1d<double, 3> & limited_velocity = mp[INLET_MAX_PARTICLES_VELOCITY];
                     const double modulus_of_proposed_velocity = DEM_MODULUS_3(proposed_velocity);
                     const double factor = 2.0;
+                    if (minimum_velocity > DEM_MODULUS_3(limited_velocity)) {minimum_velocity = DEM_MODULUS_3(limited_velocity);}
                     DEM_MULTIPLY_BY_SCALAR_3(proposed_velocity, factor * minimum_velocity / modulus_of_proposed_velocity);
                 }
             }
