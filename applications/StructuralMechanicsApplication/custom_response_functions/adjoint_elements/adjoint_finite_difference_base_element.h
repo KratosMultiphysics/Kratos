@@ -56,11 +56,6 @@ public:
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(AdjointFiniteDifferencingBaseElement);
-
-     typedef Element::PropertiesType PropertiesType;
-
-     typedef Element::DofsArrayType DofsArrayType;
-
     ///@}
 
     ///@name Classes

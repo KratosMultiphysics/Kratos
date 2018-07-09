@@ -93,10 +93,10 @@ void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rV
 
         if(rVariable == STRESS_ON_GP)
         {
-            const unsigned int&  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+            const SizeType  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
 
             rOutput.resize(GP_num);
-            for(unsigned int i = 0; i < GP_num ; i++)
+            for(IndexType i = 0; i < GP_num ; i++)
             {
                 rOutput(i) = stress_vector[i][direction_1];
             }
@@ -136,7 +136,7 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
 
     // check dofs
     GeometryType& r_geom = GetGeometry();
-    for (unsigned int i = 0; i < r_geom.size(); i++)
+    for (IndexType i = 0; i < r_geom.size(); i++)
     {
         auto& r_node = r_geom[i];
 

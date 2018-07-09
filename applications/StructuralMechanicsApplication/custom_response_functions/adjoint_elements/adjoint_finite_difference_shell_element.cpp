@@ -180,7 +180,7 @@ void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Vector >& r
             mpPrimalElement->GetValueOnIntegrationPoints(SHELL_FORCE_GLOBAL, stress_vector, rCurrentProcessInfo);
 
         rOutput.resize(num_gps);
-        for(size_t i = 0; i < num_gps; i++)
+        for(IndexType i = 0; i < num_gps; i++)
         {
             rOutput(i) = stress_vector[i](direction_1, direction_2);
         }
@@ -245,7 +245,7 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
     }
 
     // Check dofs
-    for (unsigned int i = 0; i < r_geom.size(); i++)
+    for (IndexType i = 0; i < r_geom.size(); i++)
     {
         auto& r_node = r_geom[i];
 
