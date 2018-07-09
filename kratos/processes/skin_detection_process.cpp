@@ -255,7 +255,7 @@ void SkinDetectionProcess<TDim>::Execute()
                                 }
                             }
                             // We append to the vector
-                            conditions_ids_buffer.push_back(r_condition.Id());
+                            if (has_nodes) conditions_ids_buffer.push_back(r_condition.Id());
                         }
                     }
                 }
