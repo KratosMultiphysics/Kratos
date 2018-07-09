@@ -484,6 +484,45 @@ class TestProcesses(KratosUnittest.TestCase):
                 self.assertEqual(v[i],node.X+node.Y*t+node.Z)
                 i=i+1
 
+    def test_assign_scalar_field_scalar_variable_to_conditions(self):
+        model_part = ModelPart("Main")
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module"   : "assign_scalar_variable_to_conditions_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"          : "AssignScalarVariableToConditionsProcess",
+                        "Parameters"            : {
+                            "model_part_name":"Main",
+                            "variable_name": "PRESSURE",
+                            "value" : "t"
+                        }
+                    }
+                    ]
+                }
+            """
+            )
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        model_part.CloneTimeStep(5.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        t = model_part.ProcessInfo[TIME]
+        for cond in model_part.Conditions:
+            v = cond.GetValue(PRESSURE)
+            self.assertEqual(v,t)
+            
     def test_assign_scalar_field_component_to_conditions(self):
         model_part = ModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
