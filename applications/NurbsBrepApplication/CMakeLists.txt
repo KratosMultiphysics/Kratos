@@ -5,7 +5,10 @@ message("**** configuring KratosNurbBrepApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories(
+  ${CMAKE_SOURCE_DIR}/kratos
+  ${CMAKE_SOURCE_DIR}/external_libraries/ANurbs/include
+)
 
 file(GLOB KRATOS_NURBS_BREP_APPLICATION_BREP_SOURCES
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.h"
