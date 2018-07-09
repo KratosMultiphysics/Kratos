@@ -94,11 +94,17 @@ public:
     /// The definition of the index type
     typedef std::size_t IndexType;
 
-    /// The definition of the sizetype
+    /// The definition of the size type
     typedef std::size_t SizeType;
 
     // The vector containing the weak pointers to the nodes
     typedef WeakPointerVector<NodeType> WeakPointerVectorNodesType;
+
+    /// Definition of SolutionStepsDataContainerType
+    typedef VariablesListDataValueContainer SolutionStepsDataContainerType;
+
+    /// Definition of Doftype
+    typedef Dof<double> DofType;
 
     /// Counted pointer of SolidShellElementSprism3D6N
     KRATOS_CLASS_POINTER_DEFINITION(SolidShellElementSprism3D6N);
@@ -807,6 +813,9 @@ protected:
     std::vector< Matrix > mAuxContainer; /// Container for historical total Jacobians for Total Lagrangian
                                          /// Container for historical total elastic deformation measure F0 = dx/dX  for Updated Lagrangian
 
+    SolutionStepsDataContainerType mSolutionStepsDataContainer; /// An historical dababase
+    DofType::Pointer mpDofAlpha = nullptr; /// The degree of freedom of the alpha EAS
+
     /* Elemental flags */
     Flags  mELementalFlags;
 
@@ -902,8 +911,10 @@ protected:
 
     /**
      * @brief Calculate the vector of the element Ids
+     * @param rIdVector The vector containing the ids of the neighbour dofs
+     * @return The last index (used for pure implicit)
      */
-    void CalculateIdVector(array_1d<IndexType, 18 >& rIdVector);
+    IndexType CalculateIdVector(array_1d<IndexType, 18 >& rIdVector);
 
     /**
      * @brief Calculate the local derivatives of the element for a given coordinates
