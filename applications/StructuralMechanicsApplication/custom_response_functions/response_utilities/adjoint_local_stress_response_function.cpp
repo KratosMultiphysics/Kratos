@@ -27,8 +27,8 @@ namespace Kratos
         ResponseData stress_response_data;
 
         // Get traced element
-        mIdOfTracedElement = ResponseSettings["traced_element_id"].GetInt();
-        mpTracedElement = r_model_part.pGetElement(mIdOfTracedElement);
+        const int id_of_traced_element = ResponseSettings["traced_element_id"].GetInt();
+        mpTracedElement = r_model_part.pGetElement(id_of_traced_element);
 
         // Tell traced element the stress type
         TracedStressType traced_stress_type = stress_response_data.ConvertStressType(ResponseSettings["stress_type"].GetString());
@@ -107,7 +107,7 @@ namespace Kratos
 
         rResponseGradient.clear();
 
-        if(rAdjointElem.Id() == mIdOfTracedElement)
+        if(rAdjointElem.Id() == mpTracedElement->Id())
         {
             Matrix stress_displacement_derivative;
             if(mStressTreatment == StressTreatment::Mean || mStressTreatment == StressTreatment::GaussPoint)
@@ -163,7 +163,7 @@ namespace Kratos
           KRATOS_TRY
 
 
-        if(rAdjointElem.Id() == mIdOfTracedElement)
+        if(rAdjointElem.Id() == mpTracedElement->Id())
         {
             rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, rVariable.Name());
 
@@ -246,7 +246,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        if(rAdjointElem.Id() == mIdOfTracedElement)
+        if(rAdjointElem.Id() == mpTracedElement->Id())
         {
             rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, rVariable.Name());
 

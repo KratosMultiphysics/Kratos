@@ -166,8 +166,7 @@ private:
     ///@{
 
     double mStressValue;
-    SizeType mIdOfTracedElement;
-    SizeType mIdOfLocation;
+    unsigned int mIdOfLocation;
     Element::Pointer mpTracedElement;
     StressTreatment mStressTreatment;
 

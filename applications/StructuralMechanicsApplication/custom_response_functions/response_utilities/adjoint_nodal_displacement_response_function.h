@@ -174,7 +174,6 @@ private:
     ///@{
 
     double mDisplacementValue;
-    int mIdOfTracedNode;
     std::string mTracedDofLabel;
     PointTypePointer  mpTracedNode;
     Element::Pointer mpNeighboringElement;
