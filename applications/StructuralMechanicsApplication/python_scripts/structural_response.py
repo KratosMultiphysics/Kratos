@@ -396,7 +396,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
 
     def CalculateGradient(self):
         # Replace elements and conditions by its adjoint equivalents
-        self.__performReplacementProcess()
+        self.__PerformReplacementProcess()
         self.response_function_utility.Initialize()
 
         # 'Solve' the adjoint problem
@@ -411,7 +411,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.response_function_utility.FinalizeSolutionStep()
 
         # Replace elements and conditions back to its origins
-        self.__performReplacementProcess()
+        self.__PerformReplacementProcess()
 
     def GetValue(self):
         return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
@@ -422,20 +422,13 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
             gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
         return gradient
 
-    #TODO: Is it necessary to reset some variables (DISPLACEMENT, ROTATION, ADJOINT_DISPLACEMENT and ADJOINT_ROTATION)
     def Finalize(self):
         self.primal_analysis.Finalize()
 
-    def __performReplacementProcess(self):
+    def __PerformReplacementProcess(self):
         if(self.primal_model_part.ProcessInfo[DOMAIN_SIZE] != 3):
             raise Exception("there are currently only 3D adjoint elements available")
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
             self.primal_model_part).Execute()
-
-    def __initializeAfterReplacement(self, model_part):
-        for element in model_part.Elements:
-            element.Initialize()
-        for condition in model_part.Conditions:
-            condition.Initialize()
 
 

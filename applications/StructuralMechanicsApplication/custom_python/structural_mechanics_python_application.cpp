@@ -161,16 +161,13 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
 
     /* Adding the SPRISM EAS variables */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,ALPHA_EAS);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,EAS_IMP);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT);
 
     /* Adding the SPRISM additional variables */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,ANG_ROT);
 
-    /* Adding the SPRISM number of transversal integration points */
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,NINT_TRANS);
-
     /* Adding the SPRISM variable to deactivate the quadratic interpolation */
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,QUAD_ON);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONSIDER_QUADRATIC_SPRISM_ELEMENT);
 
     /* Hencky strain */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,HENCKY_STRAIN_VECTOR);
