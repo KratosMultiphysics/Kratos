@@ -12,20 +12,12 @@
 #ifndef ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
 #define ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
 
-// ------------------------------------------------------------------------------
 // System includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "adjoint_structural_response_function.h"
-
-// ==============================================================================
 
 namespace Kratos
 {
@@ -49,6 +41,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/** \brief AdjointStrainEnergyResponseFunction
+*
+* This is a response function which traces the linear strain energy as response.
+* It is designed to be used in adjoint sensitivity analysis.
+*/
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStrainEnergyResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
@@ -57,6 +54,8 @@ public:
 
     typedef AdjointStructuralResponseFunction BaseType;
 
+    ///@}
+    ///@name Pointer Definitions
     /// Pointer definition of AdjointStrainEnergyResponseFunction
     KRATOS_CLASS_POINTER_DEFINITION(AdjointStrainEnergyResponseFunction);
 
@@ -203,4 +202,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#endif // ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H_INCLUDED

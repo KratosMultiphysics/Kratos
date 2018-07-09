@@ -14,7 +14,6 @@
 #define  KRATOS_RESPONSE_DATA_H_INCLUDED
 
 
-
 // System includes
 
 // External includes
@@ -66,33 +65,32 @@ class ResponseData
 {
 public:
 
-      ///@name Type Definitions
-      ///@{
+    ///@name Type Definitions
+    ///@{
 
-      /// Pointer definition of ResponseData
-      KRATOS_CLASS_POINTER_DEFINITION(ResponseData);
+    /// Pointer definition of ResponseData
+    KRATOS_CLASS_POINTER_DEFINITION(ResponseData);
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-     /// Default constructor.
-      ResponseData()
-      {
-      }
+    // Default constructor.
+    ResponseData()
+    {
+    }
 
-      /// Destructor.
-      virtual ~ResponseData()
-      {
-      }
+    /// Destructor.
+    virtual ~ResponseData()
+    {
+    }
 
-      ///@}
-      ///@name Operators
-      ///@{
-
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
 
     TracedStressType ConvertStressType(const std::string& Str)
@@ -160,6 +158,8 @@ public:
         else
             return StressTreatment::StressTreatmentNotAvailable;
     }
+
+    ///@}
     
 private:
 };// class ResponseData
