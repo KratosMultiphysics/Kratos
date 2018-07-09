@@ -26,6 +26,7 @@ Provided is a **scheme** to solve the adjoint problem and a **replacement proces
 
 
 &nbsp;
+
 | Structural Condition | Adjoint Condition | Design Variables | Semi-analytic | Analytic | Static | Transient |
 | -------------------- | ----------------- | ------------------- |  ---------------- | -------- | ------- | ----------|
 | PointLoadCondition | PointLoadAdjointCondition¹ | POINT_LOAD |    x   |          |      x   |         |
@@ -34,12 +35,14 @@ Provided is a **scheme** to solve the adjoint problem and a **replacement proces
   
 
 &nbsp;
+
 | Structural Element | Adjoint Element | Design Variables | Semi-analytic | Analytic | Static | Transient |
 | -------------------- | ----------------- | ------------------- |  ---------------- | -------- | ------- | ----------|
 | ShellThinElement3D3N | ShellThinAdjointElement3D3N¹ | THICKNESS² |    x   |          |      x   |         |
 |                      |                             | SHAPE     |    x   |          |      x    |    
 | CrBeamElementLinear3D2N | CrBeamAdjointElementLinear3D2N¹ | I22²|    x   |          |      x   |         |
 |                      |                             | SHAPE     |    x   |          |      x   |          | 
+
 
 ¹ The adjoint elements and conditions wrap elements/conditions of the Structural Mechanics Application and can call its public functions.  The main task of the adjoint elements/conditions is to derive different quantities (e.g. the right hand side or post-processing results like stresses) with respect to the design variable or state.
 
