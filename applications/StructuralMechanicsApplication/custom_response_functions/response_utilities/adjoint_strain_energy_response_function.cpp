@@ -60,8 +60,7 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = rModelPart;
-        ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
+        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
         mCurrentResponseValue = 0.0;
 
         // Check if there are at the time of calling adjoint or primal elements
@@ -73,7 +72,7 @@ namespace Kratos
         Vector RHS;
         Vector disp;
 
-        for (auto& elem_i : r_model_part.Elements())
+        for (auto& elem_i : rModelPart.Elements())
         {
             // Get state solution relevant for energy calculation
             elem_i.GetValuesVector(disp,0);
