@@ -104,7 +104,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "element_name" : "EulerianConvDiff",
                 "condition_name" : "Condition"
             },
-            "problem_domain_sub_model_part_list": ["conv_diff_body"],
+            "problem_domain_sub_model_part_list": [],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
             "domain_size" : -1
@@ -277,7 +277,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def PrepareModelPart(self):
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
+            # self._execute_after_reading()
 
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
@@ -287,8 +287,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self._set_and_fill_buffer()
 
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
+        # if not self.model.HasModelPart(self.main_model_part.Name):
+        #     self.model.AddModelPart(self.main_model_part)
             
         if (self.settings["echo_level"].GetInt() > 0):
             self.print_on_rank_zero(self.model)
@@ -476,8 +476,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
+        # if not self.model.HasModelPart(self.main_model_part.Name):
+        #     self.model.AddModelPart(self.main_model_part)
         
         # Import constitutive laws.
         materials_imported = self.import_materials()

@@ -23,10 +23,6 @@ class CoupledFluidThermalSolver(object):
         
         self.model = model
 
-        print(custom_settings["thermal_solver_settings"]["transient_parameters"])  
-
-
-        
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "solver_type" : "ThermallyCoupled",
@@ -96,8 +92,6 @@ class CoupledFluidThermalSolver(object):
             }
             """)
 
-        
-
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         
@@ -134,7 +128,7 @@ class CoupledFluidThermalSolver(object):
         #print("modellllllllllllllllllllllllllllllllpart")
         #print(self.main_model_part)
         #ljdflkjsldkjlgjdlk
-        self.thermal_model_part =  KratosMultiphysics.ModelPart("Thermal")
+        #self.thermal_model_part =  KratosMultiphysics.ModelPart("Thermal")
         
         
         
@@ -148,21 +142,8 @@ class CoupledFluidThermalSolver(object):
 
     def AddVariables(self):
         self.fluid_solver.AddVariables()
-        
-        #this is a HACK: TODO: cleanup so that this is not needed in the future 
-        #the problem is that variables are not added to the fluid_solver.MainModelPart who is in charge of creating the nodes
-        #self.tmp = self.thermal_solver.main_model_part
-        #self.thermal_solver.main_model_part = self.fluid_solver.main_model_part
-        
         self.thermal_solver.AddVariables() #self.fluid_solver.main_model_part)
-
-        # print(self.thermal_solver.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS))
-         
-
-        # #this is a HACK: TODO: cleanup so that this is not needed in the future 
-        # #self.thermal_solver.main_model_part = self.tmp
-        # conv_settings = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
-        # self.thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, conv_settings)
+        KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part)
         
      
 
@@ -178,18 +159,19 @@ class CoupledFluidThermalSolver(object):
         
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         if(self.domain_size == 2):
-            modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, "Element2D3N", "LineCondition2D2N")
+            modeler.GenerateModelPart(self.main_model_part, self.thermal_solver.GetComputingModelPart(), "Element2D3N", "LineCondition2D2N")
         else:
-            modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, "Element3D4N", "SurfaceCondition3D3N")
+            modeler.GenerateModelPart(self.main_model_part, self.thermal_solver.GetComputingModelPart(), "Element3D4N", "SurfaceCondition3D3N")
         #sssssssssssssss
         self.thermal_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
+
+        print(self.thermal_solver.GetComputingModelPart())
 
         self.thermal_solver.ImportModelPart()
 
 
     def AddDofs(self):
         self.fluid_solver.AddDofs()
-        
         self.thermal_solver.AddDofs()
 
     def AdaptMesh(self):
@@ -251,7 +233,7 @@ class CoupledFluidThermalSolver(object):
           
         self.fluid_solver.PrepareModelPart()
         
-        # self.thermal_solver.PrepareModelPart()
+        self.thermal_solver.PrepareModelPart()
 
     def InitializeSolutionStep(self):
         self.fluid_solver.InitializeSolutionStep()

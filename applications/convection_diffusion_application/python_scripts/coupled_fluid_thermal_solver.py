@@ -72,26 +72,17 @@ class CoupledFluidThermalSolver(object):
         
         
         self.thermal_model_part =  KratosMultiphysics.ModelPart("thermal_model_part")
-        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        modeler.GenerateModelPart(self.main_model_part, self.thermal_model_part, "Element2D3N", "Condition2D2N")
         
         import python_solvers_wrapper_convection_diffusion
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.thermal_model_part,self.settings["thermal_solver_settings"],"OpenMP")
         
+        err
 
     def AddVariables(self):
         self.fluid_solver.AddVariables()
-        
-        #this is a HACK: TODO: cleanup so that this is not needed in the future 
-        #the problem is that variables are not added to the fluid_solver.MainModelPart who is in charge of creating the nodes
-        self.tmp = self.thermal_solver.main_model_part
-        self.thermal_solver.main_model_part = self.fluid_solver.main_model_part
-        
         self.thermal_solver.AddVariables()
-
-        #this is a HACK: TODO: cleanup so that this is not needed in the future 
-        self.thermal_solver.main_model_part = self.tmp
-        
+        KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part))
+        err        
 
     def ImportModelPart(self):
         self.fluid_solver.ImportModelPart()
