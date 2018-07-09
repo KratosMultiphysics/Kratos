@@ -132,7 +132,13 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
 
 void MultiScaleRefiningProcess::ExecuteCoarsening()
-{}
+{
+    IdentifyNodesToErase();
+
+    // NOTE: THIS IS TEMPORARY. THE UNIFORM REFINING UTILITY SHOULD BE
+    // A MEMBER OBJECT IN CHARGE TO EXECUTE THE REFINEMENT AND COARSENING
+    mpRefinedModelPart->RemoveElementsFromAllLevels(TO_ERASE);
+}
 
 
 MultiScaleRefiningProcess::StringVectorType MultiScaleRefiningProcess::RecursiveGetSubModelPartNames(
@@ -470,27 +476,16 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
     for (int i = 0; i < nnodes; i++)
     {
         auto coarse_node = nodes_begin + i;
-        auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
-        if ((coarse_node->Is(TO_REFINE)) && (search == mCoarseToRefinedNodesMap.end()))
+        if (coarse_node->Is(TO_REFINE))
         {
-            NodeType::Pointer new_node = refined_model_part.CreateNewNode(++rNodeId, *coarse_node);
-            mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
-            mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
-            coarse_node->Set(NEW_ENTITY, true);
-        }
-        else if (!(coarse_node->Is(TO_REFINE)) && (search != mCoarseToRefinedNodesMap.end()))
-        {
-            coarse_node->Set(TO_ERASE, false);
-            mCoarseToRefinedNodesMap.erase(search);
-            mRefinedToCoarseNodesMap.erase(search->second->Id());
-            /**
-             * What happens if I need to remove a node?
-             * and how do I remove all the divided nodes?
-             * I should implement a TransferDataToRefinedNodes
-             * Remove from the maps
-             * Remove from the maps inside the utility
-             * I think that the utility should remove the entities
-             */
+            auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
+            if (search == mCoarseToRefinedNodesMap.end())
+            {
+                NodeType::Pointer new_node = refined_model_part.CreateNewNode(++rNodeId, *coarse_node);
+                mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
+                mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
+                coarse_node->Set(NEW_ENTITY, true);
+            }
         }
     }
 
@@ -511,6 +506,64 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
                 refined_sub_model_part.AddNode(mCoarseToRefinedNodesMap[coarse_node->Id()]);
         }
     }
+}
+
+
+void MultiScaleRefiningProcess::IdentifyNodesToErase()
+{
+    ModelPart& coarse_model_part = *mpOwnModelPart.get();
+    ModelPart& refined_model_part = *mpRefinedModelPart.get();
+
+    const int nnodes = static_cast<int>(coarse_model_part.Nodes().size());
+    ModelPart::NodesContainerType::iterator nodes_begin = coarse_model_part.NodesBegin();
+
+    // Identify the nodes to remove
+    for (int i = 0; i < nnodes; i++)
+    {
+        auto coarse_node = nodes_begin + i;
+        if (coarse_node->IsNot(TO_REFINE))
+        {
+            auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
+            if (search != mCoarseToRefinedNodesMap.end())
+            {
+                coarse_node->Set(OLD_ENTITY, true);
+                mCoarseToRefinedNodesMap.erase(search);
+                mRefinedToCoarseNodesMap.erase(search->second->Id());
+            }
+        }
+    }
+
+    // Identify the parent elements to coarse
+    const int nelems_coarse = static_cast<int>(coarse_model_part.Elements().size());
+    ModelPart::ElementsContainerType::iterator coarse_elem_begin = coarse_model_part.ElementsBegin();
+
+    // The number of nodes of the elements
+    const IndexType element_nodes = coarse_elem_begin->GetGeometry().size();
+
+    for (int i = 0; i < nelems_coarse; i++)
+    {
+        auto coarse_elem = coarse_elem_begin + i;
+        bool old_entity = false;
+        for (IndexType inode = 0; inode < element_nodes; inode++)
+        {
+            if (coarse_elem->GetGeometry()[inode].Is(OLD_ENTITY))
+                old_entity = true;
+        }
+        if (old_entity)
+            coarse_elem->Set(OLD_ENTITY, true);
+    }
+
+    // Identify the refined elements to remove
+    const int nelems_ref = static_cast<int>(refined_model_part.Elements().size());
+    ModelPart::ElementsContainerType::iterator ref_elem_begin = refined_model_part.ElementsBegin();
+
+    for (int i = 0; i < nelems_ref; i++)
+    {
+        auto refined_elem = ref_elem_begin + i;
+        if ((refined_elem->GetValue(FATHER_ELEMENT))->Is(OLD_ENTITY))
+            refined_elem->Set(TO_ERASE, true);
+    }
+
 }
 
 
@@ -632,12 +685,25 @@ void MultiScaleRefiningProcess::FinalizeRefinement()
     int nnodes = static_cast<int>(coarse_model_part.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = coarse_model_part.NodesBegin();
 
-    // Resetting the flag
+    // Reseting the flag
     #pragma omp parallel for
     for (int i = 0; i < nnodes; i++)
     {
         auto node = nodes_begin + i;
         node->Set(NEW_ENTITY, false);
+        node->Set(INTERFACE, false);
+        node->Set(OLD_ENTITY, false);
+    }
+
+    int nelems = static_cast<int>(coarse_model_part.Elements().size());
+    ModelPart::ElementsContainerType::iterator elements_begin = coarse_model_part.ElementsBegin();
+
+    // Reseting the flag
+    #pragma omp parallel for
+    for (int i = 0; i < nelems; i++)
+    {
+        auto elem = elements_begin + i;
+        elem->Set(OLD_ENTITY, false);
     }
 }
 

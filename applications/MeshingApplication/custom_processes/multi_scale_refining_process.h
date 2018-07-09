@@ -359,6 +359,13 @@ public:
     void CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag);
 
     /**
+     * @brief IdentifyNodesToErase looks for the nodes which should be removed from the refined model part
+     * @detail Sets TO_ERASE flag when is not TO_REFINE and is currently refined
+     * @see CloneNodesToRefine
+     */
+    void IdentifyNodesToErase();
+
+    /**
      * @brief FinalizeRefinement reset the flags on the nodes and elements
      * @detail NEW_ENTITY is set to false
      * @see CloneNodesToRefine
