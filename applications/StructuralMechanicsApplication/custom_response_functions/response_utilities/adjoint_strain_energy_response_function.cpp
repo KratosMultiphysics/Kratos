@@ -69,12 +69,12 @@ namespace Kratos
              << "Calculate value for strain energy response is not available when using adjoint elements" << std::endl;
 
         // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
+        Matrix LHS;
+        Vector RHS;
+        Vector disp;
+
         for (auto& elem_i : r_model_part.Elements())
         {
-            Matrix LHS;
-            Vector RHS;
-            Vector disp;
-
             // Get state solution relevant for energy calculation
             elem_i.GetValuesVector(disp,0);
 
