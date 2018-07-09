@@ -74,7 +74,7 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum class HardeningCurveType {LinearSoftening = 0, ExponentialSoftening = 1, InitialHardeningExponentialSoftening = 2};
+    enum class HardeningCurveType {LinearSoftening = 0, ExponentialSoftening = 1, InitialHardeningExponentialSoftening = 2, PerfectPlasticity = 3};
 
     ///@}
     ///@name Life Cycle
@@ -350,7 +350,7 @@ public:
         if (dplastic_dissipation < 0.0 | dplastic_dissipation > 1.0) dplastic_dissipation = 0.0;
 
         rPlasticDissipation += dplastic_dissipation;
-        if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999; // warning vicente
+        if (rPlasticDissipation >= 1.0) rPlasticDissipation = 0.9999; 
     }
 
     /**
@@ -396,6 +396,11 @@ public:
 
                 case HardeningCurveType::InitialHardeningExponentialSoftening:
                     CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1,
+                        EqThrsholds[i], Slopes[i], rMaterialProperties);  
+                    break;
+
+                case HardeningCurveType::PerfectPPlasticity:
+                    CalculateEqStressThresholdHardCurve4(PlasticDissipation, r0, r1,
                         EqThrsholds[i], Slopes[i], rMaterialProperties);  
                     break;
 
@@ -497,6 +502,31 @@ public:
         }
     }
 
+
+    /**
+     * @brief This method computes the uniaxial threshold using a perfect plasticity law
+     * @param PlasticDissipation The internal variable of energy dissipation due to plasticity 
+     * @param r0 The tensile indicator
+     * @param r1 The compressive indicator
+     * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
+     * @param rSlope The slope of the PlasticDiss-Threshold curve
+     * @param rMaterialProperties The material properties
+     */
+    static void CalculateEqStressThresholdHardCurve4(
+        const double PlasticDissipation,
+        const double r0,
+        const double r1, 
+        double& rEquivalentStressThreshold, 
+        double& rSlope,
+        const Properties& rMaterialProperties
+    )
+    {
+        double InitialThreshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
+
+        rEquivalentStressThreshold = InitialThreshold;
+        rSlope = -0.5*InitialThreshold;
+    }
     /**
      * @brief This method computes hardening parameter needed for the algorithm
      * @param Gflux The derivative of the plastic potential
