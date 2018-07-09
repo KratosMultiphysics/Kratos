@@ -73,35 +73,28 @@ public:
     */
     GenericSmallStrainViscoplasticity3D(
         ConstitutiveLaw::Pointer pPlasticityLaw,
-        ConstitutiveLaw::Pointer pViscousLaw)
+        ConstitutiveLaw::Pointer pViscousLaw
+        ) :mpPlasticityConstitutiveLaw(pPlasticityLaw)
+          ,mpViscousConstitutiveLaw(pViscousLaw)
     {
-        mpPlasticityConstitutiveLaw = pPlasticityLaw;
-        mpViscousConstitutiveLaw    = pViscousLaw;
-    }
-    /**
-    * Clone.
-    */
-    ConstitutiveLaw::Pointer Clone(
-        // ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw,
-        // ConstitutiveLaw::Pointer mpViscousConstitutiveLaw
-    ) const override
-    {
-        //return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(*this);
-        //return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(mpPlasticityConstitutiveLaw,mpViscousConstitutiveLaw);
-   
-    //    return ConstitutiveLaw::Pointer(new GenericSmallStrainViscoplasticity3D(mpPlasticityConstitutiveLaw, mpViscousConstitutiveLaw));
-   
-   
-   
     }
 
     /**
-    * Copy constructor.
+    * Clone.
     */
-    GenericSmallStrainViscoplasticity3D(const GenericSmallStrainViscoplasticity3D& rOther)
-    : ConstitutiveLaw(rOther)
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(*this);
+    }
+
+    // Copy constructor
+    GenericSmallStrainViscoplasticity3D(GenericSmallStrainViscoplasticity3D const& rOther)
+        :ConstitutiveLaw(rOther)
+        ,mpPlasticityConstitutiveLaw(rOther.mpPlasticityConstitutiveLaw)
+        ,mpViscousConstitutiveLaw(rOther.mpViscousConstitutiveLaw)
     {
     }
+
     /**
     * Destructor.
     */
