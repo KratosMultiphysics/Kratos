@@ -862,6 +862,12 @@ protected:
     std::size_t NumberOfActiveNeighbours(WeakPointerVector< NodeType >& pNeighbourNodes);
 
     /**
+     * @brief This method reduces the residual of the EAS stabilization
+     * @param rCurrentProcessInfo The current process
+     */
+    void MinimizeAlphaResidual(ProcessInfo& rCurrentProcessInfo);
+
+    /**
      * @brief  It gets the nodal coordinates, according to the configutaion
      */
     void GetNodalCoordinates(

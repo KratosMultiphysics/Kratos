@@ -1366,6 +1366,9 @@ void SolidShellElementSprism3D6N::InitializeSolutionStep(ProcessInfo& rCurrentPr
 
     mFinalizedStep = false;
 
+//     // We minimize EAS residual
+//     MinimizeAlphaResidual(rCurrentProcessInfo);
+
     if (rCurrentProcessInfo[STEP] == 1) {
         /* Create and initialize element variables: */
         GeneralVariables general_variables;
@@ -1500,6 +1503,8 @@ void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProc
 void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     // TODO: Add something if necessary
+//     // We minimize EAS residual
+//     MinimizeAlphaResidual(rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -1507,6 +1512,9 @@ void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCu
 
 void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
+//     // We minimize EAS residual
+//     MinimizeAlphaResidual(rCurrentProcessInfo);
+
     /* Create and initialize element variables: */
     GeneralVariables general_variables;
     this->InitializeGeneralVariables(general_variables);
@@ -1880,6 +1888,105 @@ std::size_t SolidShellElementSprism3D6N::NumberOfActiveNeighbours(WeakPointerVec
            ++active_neighbours;
     }
     return active_neighbours;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SolidShellElementSprism3D6N::MinimizeAlphaResidual(ProcessInfo& rCurrentProcessInfo)
+{
+    /* Create and initialize element variables: */
+    GeneralVariables general_variables;
+    this->InitializeGeneralVariables(general_variables);
+
+    /* Create constitutive law parameters: */
+    ConstitutiveLaw::Parameters values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+    /* Set constitutive law flags: */
+    Flags &ConstitutiveLawOptions=values.GetOptions();
+
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    /* Reading integration points */
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+    /* Getting the alpha parameter of the EAS improvement */
+    double& alpha_eas = this->GetValue(ALPHA_EAS);
+
+    /* Calculate the cartesian derivatives */
+    CartesianDerivatives this_cartesian_derivatives;
+    this->CalculateCartesianDerivatives(this_cartesian_derivatives);
+
+    /* Calculate common components (B, C) */
+    CommonComponents common_components;
+    common_components.clear();
+    this->CalculateCommonComponents(common_components, this_cartesian_derivatives);
+
+    /* Reset the EAS integrated components */
+    EASComponents EAS;
+
+    bool is_converged = false;
+    SizeType iteration_number = 0;
+    const SizeType max_number_iterations = 20;
+    double reference_residual = 0;
+    double ratio_residual = 1.0;
+    const double absolute_tolerance = 1.0e-9;
+    const double relative_tolerance = 1.0e-4;
+
+    // We do a local NR trying to minimize the alpha residual before start solving the problem
+    while (is_converged == false && iteration_number++ < max_number_iterations) {
+        EAS.clear();
+
+        // Reading integration points
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+            const double zeta_gauss = 2.0 * integration_points[point_number].Z() - 1.0;
+
+            /* Assemble B */
+            this->CalculateDeformationMatrix(general_variables.B, common_components, zeta_gauss, alpha_eas);
+
+            // Compute element kinematics C, F ...
+            this->CalculateKinematics(general_variables, common_components, integration_points, point_number, alpha_eas, zeta_gauss);
+
+            // Set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(general_variables, values, point_number);
+
+            // Compute stresses and constitutive parameters
+            mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, this->GetStressMeasure());
+
+            // Calculating weights for integration on the "reference configuration"
+            const double integration_weight = integration_points[point_number].Weight() * general_variables.detJ;
+
+            /* Integrate in Zeta */
+            // EAS components
+            IntegrateEASInZeta(general_variables, EAS, zeta_gauss, integration_weight);
+        }
+
+        /* Getting the increase of displacements */
+        const BoundedMatrix<double, 36, 1 > delta_disp = GetVectorPreviousPosition();
+//         const BoundedMatrix<double, 36, 1 > delta_disp = (rCurrentProcessInfo[STEP] == 1) ? GetVectorCurrentPosition() : GetVectorCurrentPosition() - GetVectorPreviousPosition();
+
+        /* Update alpha EAS */
+        if (EAS.mStiffAlpha > std::numeric_limits<double>::epsilon()) // Avoid division by zero
+            alpha_eas -= (EAS.mRHSAlpha + prod(EAS.mHEAS, delta_disp)(0, 0)) / EAS.mStiffAlpha;
+
+        if (std::abs(EAS.mRHSAlpha) < std::numeric_limits<double>::epsilon()) {
+            is_converged = true;
+            break;
+        }
+
+        if (iteration_number == 1) reference_residual = EAS.mRHSAlpha;
+
+        ratio_residual = EAS.mRHSAlpha/reference_residual;
+
+        std::cout << "Iteration number" << iteration_number << "\tResidual: " << EAS.mRHSAlpha << "\tRatio residual: " << ratio_residual << std::endl;
+
+        if (std::abs(EAS.mRHSAlpha) < absolute_tolerance || std::abs(ratio_residual) < relative_tolerance) {
+            is_converged = true;
+            break;
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -3682,12 +3789,11 @@ void SolidShellElementSprism3D6N::SetGeneralVariables(
     rValues.SetShapeFunctionsValues(rVariables.N);
 
     // Computing gradient
-    Matrix DN_DX;
     const Matrix& DN_De = GetGeometry().ShapeFunctionLocalGradient(rPointNumber, this->GetIntegrationMethod());
     double detJ;
     Matrix inv_j;
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], inv_j, detJ );
-    noalias(DN_DX) = prod(DN_De, inv_j);
+    const Matrix DN_DX = prod(DN_De, inv_j);
     rValues.SetShapeFunctionsDerivatives(DN_DX);
 }
 
