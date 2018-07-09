@@ -159,8 +159,8 @@ namespace Kratos
             for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
             {
                 ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
-                const unsigned int number_of_nodes = it->GetGeometry().size();
-                for(unsigned int j = 0; j < number_of_nodes; ++j)
+                const SizeType number_of_nodes = it->GetGeometry().size();
+                for(IndexType j = 0; j < number_of_nodes; ++j)
                     it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
             }
         }
@@ -170,8 +170,8 @@ namespace Kratos
             for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
             {
                 ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
-                const unsigned int number_of_nodes = it->GetGeometry().size();
-                for(unsigned int j = 0; j < number_of_nodes; ++j)
+                const SizeType number_of_nodes = it->GetGeometry().size();
+                for(IndexType j = 0; j < number_of_nodes; ++j)
                     it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
             }  
         }
@@ -335,11 +335,11 @@ namespace Kratos
 
         int k = 0;
 
-        for (ModelPart::ElementIterator it = r_model_part.ElementsBegin(); it != r_model_part.ElementsEnd(); ++it)
+        for (auto& elem_i : r_model_part.Elements())
         {
-            Element::GeometryType& r_geom = it->GetGeometry();
+            Element::GeometryType& r_geom = elem_i.GetGeometry();
             bool update_sensitivities = false;
-            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
+            for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
                 if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
                 {
                     update_sensitivities = true;
@@ -350,7 +350,7 @@ namespace Kratos
                 continue;
 
             // Compute the pseudo load
-            it->CalculateSensitivityMatrix(
+            elem_i.CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
             if(sensitivity_matrix[k].size1() > 0)
@@ -358,11 +358,11 @@ namespace Kratos
                 // This part of the sensitivity is computed from the objective
                 // with primal variables treated as constant.
                 this->CalculateSensitivityGradient(
-                    *it, rSensitivityVariable, sensitivity_matrix[k],
+                    elem_i, rSensitivityVariable, sensitivity_matrix[k],
                     response_gradient[k], r_process_info);
 
                 // Get the adjoint displacement field
-                it->GetValuesVector(adjoint_vector[k]);
+                elem_i.GetValuesVector(adjoint_vector[k]);
 
                 if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
                     sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
@@ -377,11 +377,11 @@ namespace Kratos
         }
     
         // Assemble condition contributions.
-        for (ModelPart::ConditionIterator it = r_model_part.ConditionsBegin(); it != r_model_part.ConditionsEnd(); ++it)
+        for (auto& cond_i : r_model_part.Conditions())
         {
-            Condition::GeometryType& r_geom = it->GetGeometry();
+            Condition::GeometryType& r_geom = cond_i.GetGeometry();
             bool update_sensitivities = false;
-            for (unsigned int i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
+            for (IndexType i_node = 0; i_node < r_geom.PointsNumber(); ++i_node)
                 if (r_geom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
                 {
                     update_sensitivities = true;
@@ -393,7 +393,7 @@ namespace Kratos
 
             // This is multiplied with the adjoint to compute sensitivity
             // contributions from the condition.
-            it->CalculateSensitivityMatrix(
+            cond_i.CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
             if(sensitivity_matrix[k].size1() > 0)
@@ -401,11 +401,11 @@ namespace Kratos
                 // This part of the sensitivity is computed from the objective
                 // with primal variables treated as constant.
                 this->CalculateSensitivityGradient(
-                    *it, rSensitivityVariable, sensitivity_matrix[k],
+                    cond_i, rSensitivityVariable, sensitivity_matrix[k],
                     response_gradient[k], r_process_info);
 
                 // Get the adjoint displacement field
-                it->GetValuesVector(adjoint_vector[k]);
+                cond_i.GetValuesVector(adjoint_vector[k]);
 
                 if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
                     sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
@@ -612,8 +612,8 @@ namespace Kratos
                                               Vector const& rSensitivityVector,
                                               Element::GeometryType& rGeom)
     {
-        unsigned int index = 0;
-        for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
+        IndexType index = 0;
+        for (IndexType i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
             if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
             {
@@ -632,15 +632,15 @@ namespace Kratos
                                               Vector const& rSensitivityVector,
                                               Element::GeometryType& rGeom)
     {
-        unsigned int index = 0;
-        for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
+        IndexType index = 0;
+        for (IndexType i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
             if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES) == true)
             {
                 array_1d<double, 3>& r_sensitivity =
                     rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
                 rGeom[i_node].SetLock();
-                for (unsigned int d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
+                for (IndexType d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
                     r_sensitivity[d] += rSensitivityVector[index++];
                 rGeom[i_node].UnSetLock();
             }
@@ -669,8 +669,8 @@ namespace Kratos
                                               Vector const& rSensitivityVector,
                                               Element::GeometryType& rGeom)
     {
-        unsigned int index = 0;
-        for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
+        IndexType index = 0;
+        for (IndexType i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
             double& r_sensitivity =
                 rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
@@ -684,13 +684,13 @@ namespace Kratos
                                               Vector const& rSensitivityVector,
                                               Element::GeometryType& rGeom)
     {
-        unsigned int index = 0;
-        for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
+        IndexType index = 0;
+        for (IndexType i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
             array_1d<double, 3>& r_sensitivity =
                 rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
             rGeom[i_node].SetLock();
-            for (unsigned int d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
+            for (IndexType d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
                 r_sensitivity[d] += rSensitivityVector[index++];
             rGeom[i_node].UnSetLock();
         }
@@ -699,7 +699,7 @@ namespace Kratos
     void AdjointStructuralResponseFunction::ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables, 
         std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings)
     {
-        for (unsigned int i = 0; i < DesignVariableSettings.size(); ++i)
+        for (IndexType i = 0; i < DesignVariableSettings.size(); ++i)
         {
             const std::string variable_label = DesignVariableSettings[i].GetString();
             const std::string output_variable_label = variable_label + "_SENSITIVITY";
