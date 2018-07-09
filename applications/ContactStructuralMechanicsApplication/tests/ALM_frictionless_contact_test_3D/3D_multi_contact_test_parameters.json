@@ -116,7 +116,7 @@
             "model_part_name"  : "Parts_Lower"
         }
     }],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
