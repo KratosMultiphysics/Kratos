@@ -236,7 +236,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
             const auto& r_dndx = shape_derivatives[g];
             data.UpdateGeometryValues(
                 g, gauss_weights[g], row(shape_functions, g), r_dndx);
-            
+
             this->CalculateMaterialResponse(data);
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
@@ -432,7 +432,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -451,7 +451,7 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 
 
 template< class TElementData >
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -479,21 +479,21 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidElement<TElementData>::GetValueOnIntegrationPoints(
+void FluidElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -706,7 +706,7 @@ template <class TElementData>
 void FluidElement<TElementData>::GetCurrentValuesVector(
     const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
-        
+
     int local_index = 0;
 
     const auto& r_velocities = rData.Velocity;

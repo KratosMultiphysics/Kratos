@@ -41,9 +41,9 @@ namespace Kratos
    * @brief A utility for transforming values on integration points to nodes.
    *
    * This utility was created to transform vorticity and q-criterion variables
-   * from the integration points where they are computed to the nodes for 
-   * visualization. The utility is designed to work in both 2D and 3D with and 
-   * without the MPI library. Each nodal value is computed as a weighted average 
+   * from the integration points where they are computed to the nodes for
+   * visualization. The utility is designed to work in both 2D and 3D with and
+   * without the MPI library. Each nodal value is computed as a weighted average
    * of the neighboring elements.
    */
 
@@ -59,7 +59,7 @@ namespace Kratos
   KRATOS_CLASS_POINTER_DEFINITION(IntegrationPointToNodeTransformationUtility);
 
   template<class TVariableType>
-  void TransformFromIntegrationPointsToNodes(const Variable<TVariableType>& rVariable, 
+  void TransformFromIntegrationPointsToNodes(const Variable<TVariableType>& rVariable,
                                              ModelPart& rModelPart) const
   {
 #pragma omp parallel
@@ -84,7 +84,7 @@ namespace Kratos
 
       for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
 	{
-	  itElem->GetValueOnIntegrationPoints(rVariable,ValuesOnIntPoint,
+	  itElem->CalculateOnIntegrationPoints(rVariable,ValuesOnIntPoint,
 					      rModelPart.GetProcessInfo());
 	  Element::GeometryType& rGeom = itElem->GetGeometry();
 	  const double Weight = rGeom.Volume() / (double) TNumNodes;

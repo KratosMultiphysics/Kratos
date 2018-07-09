@@ -217,12 +217,13 @@ double VMS<3,4>::ElementSize(const double Volume)
 
 
 /**
- * @see VMS::GetValueOnIntegrationPoints
+ * @see VMS::CalculateOnIntegrationPoints
  */
 template <>
-void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-        std::vector<array_1d<double,3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+void VMS<2>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double,3> >& rVariable,
+    std::vector<array_1d<double,3> >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int Dim(2),NumNodes(3);
     if (rVariable == VORTICITY)
@@ -297,12 +298,13 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 }
 
 /**
- * @see VMS::GetValueOnIntegrationPoints
+ * @see VMS::CalculateOnIntegrationPoints
  */
 template <>
-void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-        std::vector<array_1d<double,3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
+void VMS<3>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double,3> >& rVariable,
+    std::vector<array_1d<double,3> >& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int Dim(3),NumNodes(4);
     if (rVariable == VORTICITY)

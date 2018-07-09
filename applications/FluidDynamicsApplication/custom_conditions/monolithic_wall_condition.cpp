@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -154,9 +154,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::CalculateLocalVelocityContribution
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable,
-                                                                          std::vector<array_1d<double,3> > &rValues,
-                                                                          const ProcessInfo &rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double,3> > &rVariable,
+    std::vector<array_1d<double,3> > &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
 {
     rValues.resize(1);
     if (rVariable == NORMAL)
@@ -176,9 +177,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const 
 }
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                                                          std::vector<double>& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     /*
@@ -193,9 +195,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const 
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                                                          std::vector<array_1d<double, 6 > >& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 6 > >& rVariable,
+    std::vector<array_1d<double, 6 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const MonolithicWallCondition* const_this = static_cast< const MonolithicWallCondition* >(this);
@@ -204,9 +207,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const 
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                                          std::vector<Vector>& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const MonolithicWallCondition* const_this = static_cast< const MonolithicWallCondition* >(this);
@@ -215,9 +219,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const 
 
 
 template<unsigned int TDim, unsigned int TNumNodes>
-void MonolithicWallCondition<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                                          std::vector<Matrix>& rValues,
-                                                                          const ProcessInfo& rCurrentProcessInfo)
+void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     rValues.resize(1);
     const MonolithicWallCondition* const_this = static_cast< const MonolithicWallCondition* >(this);

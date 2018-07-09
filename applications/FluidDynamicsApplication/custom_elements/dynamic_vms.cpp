@@ -437,7 +437,7 @@ void DynamicVMS<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariable,
 }
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const Matrix& NContainer = rGeom.ShapeFunctionsValues(this->mIntegrationMethod);
@@ -490,7 +490,7 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVari
 }
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable, std::vector<array_1d<double, 3 > > &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable, std::vector<array_1d<double, 3 > > &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->mIntegrationMethod);
@@ -511,7 +511,7 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<doubl
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::SetValuesOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
 

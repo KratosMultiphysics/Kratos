@@ -297,9 +297,10 @@ GeometryData::IntegrationMethod FractionalStep<TDim>::GetIntegrationMethod() con
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void FractionalStep<TDim>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == CONV_PROJ)
     {
@@ -397,9 +398,10 @@ void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<d
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+void FractionalStep<TDim>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == DIVPROJ)
     {

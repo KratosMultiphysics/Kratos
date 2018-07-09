@@ -507,26 +507,26 @@ public:
 	///@name Access
 	///@{
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
             std::vector<array_1d<double, 6 > >& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
             std::vector<Vector>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo) override;
 

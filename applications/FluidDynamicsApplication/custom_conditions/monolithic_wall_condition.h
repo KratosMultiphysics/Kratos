@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -191,7 +191,7 @@ public:
     {
         return Kratos::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
     }
-    
+
     /**
      * Clones the selected element variables, creating a new one
      * @param NewId the ID of the new element
@@ -199,14 +199,14 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    
+
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
     {
         Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-        
+
         pNewCondition->SetData(this->GetData());
         pNewCondition->SetFlags(this->GetFlags());
-        
+
         return pNewCondition;
     }
 
@@ -415,29 +415,34 @@ public:
     }
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                             std::vector<array_1d<double, 3 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                             std::vector<double>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                             std::vector<array_1d<double, 6 > >& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 6 > >& rVariable,
+        std::vector<array_1d<double, 6 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                             std::vector<Vector>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                             std::vector<Matrix>& rValues,
-                                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
 
     ///@}

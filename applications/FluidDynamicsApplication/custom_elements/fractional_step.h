@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
@@ -175,7 +175,7 @@ namespace Kratos
 	    {
             return Kratos::make_shared< FractionalStep<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 	    }
-	
+
         /**
          * Returns a pointer to a new FractionalStep element, created using given input
          * @param NewId the ID of the new element
@@ -183,12 +183,12 @@ namespace Kratos
          * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
-		
+
         Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
         {
             return Kratos::make_shared< FractionalStep<TDim> >(NewId, pGeom, pProperties);
         }
-        
+
         /**
          * Clones the selected element variables, creating a new one
          * @param NewId the ID of the new element
@@ -196,17 +196,17 @@ namespace Kratos
          * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
-        
+
         Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
         {
             Element::Pointer pNewElement = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
-            
+
             pNewElement->SetData(this->GetData());
             pNewElement->SetFlags(this->GetFlags());
-            
+
             return pNewElement;
         }
-        
+
         void Initialize() override;
 
         /// Initializes the element and all geometric information required for the problem.
@@ -276,7 +276,7 @@ namespace Kratos
         void GetDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
         /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
@@ -285,9 +285,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                std::vector<array_1d<double, 3 > >& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 3 > >& rVariable,
+            std::vector<array_1d<double, 3 > >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Obtain a double elemental variable, evaluated on gauss points.
         /**
@@ -295,9 +296,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                std::vector<double>& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(
+            const Variable<double>& rVariable,
+            std::vector<double>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /// Obtain an array_1d<double,6> elemental variable, evaluated on gauss points.
         /**
@@ -305,9 +307,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                std::vector<array_1d<double, 6 > >& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 6 > >& rVariable,
+            std::vector<array_1d<double, 6 > >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             this->GetElementalValueForOutput< array_1d<double,6> >(rVariable,rValues);
         }
@@ -318,9 +321,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                std::vector<Vector>& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             this->GetElementalValueForOutput< Vector >(rVariable,rValues);
         }
@@ -331,9 +335,10 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                std::vector<Matrix>& rValues,
-                const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<Matrix>& rVariable,
+            std::vector<Matrix>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             this->GetElementalValueForOutput< Matrix >(rVariable,rValues);
         }
@@ -634,17 +639,17 @@ namespace Kratos
         {
             GeometryType& rGeom = this->GetGeometry();
             const SizeType NumNodes = rGeom.PointsNumber();
-	    
+
 			const double& var = rGeom[0].FastGetSolutionStepValue(Var);
 			for (SizeType d = 0; d < TDim; ++d)
 				rResult[d] = rDN_DX(0,d) * var;
-			
+
 			for(SizeType i = 1; i < NumNodes; i++)
 			{
 			  const double& var = rGeom[i].FastGetSolutionStepValue(Var);
 			  for (SizeType d = 0; d < TDim; ++d)
 						rResult[d] += rDN_DX(i,d) * var;
-				
+
 			}
 		}
 
@@ -668,23 +673,20 @@ namespace Kratos
 
         /// Helper function to print results on gauss points
         /** Reads a variable from the element's database and returns it in a format
-          * that can be used by GetValueOnIntegrationPoints functions.
-          * @see GetValueOnIntegrationPoints
+          * that can be used by CalculateOnIntegrationPoints functions.
+          * @see CalculateOnIntegrationPoints
+          *
+          * @note It is important for this function to be const to avoid modification of the element's data.
+          * Data modification would happen if rVariable is not stored now (would initialize a pointer to &rVariable
+          * with associated value of 0.0). This is catastrophic if the variable referenced goes out of scope.
           */
         template<class TValueType>
         void GetElementalValueForOutput(const Kratos::Variable<TValueType>& rVariable,
-                                        std::vector<TValueType>& rOutput)
+                                        std::vector<TValueType>& rOutput) const
         {
             unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
             rOutput.resize(NumValues);
-            /*
-             The cast is done to avoid modification of the element's data. Data modification
-             would happen if rVariable is not stored now (would initialize a pointer to &rVariable
-             with associated value of 0.0). This is catastrophic if the variable referenced
-             goes out of scope.
-             */
-            const FractionalStep<TDim>* const_this = static_cast<const FractionalStep<TDim>*> (this);
-            const TValueType& Val = const_this->GetValue(rVariable);
+            const TValueType& Val = this->GetValue(rVariable);
 
             for (unsigned int i = 0; i < NumValues; i++)
                 rOutput[i] = Val;
