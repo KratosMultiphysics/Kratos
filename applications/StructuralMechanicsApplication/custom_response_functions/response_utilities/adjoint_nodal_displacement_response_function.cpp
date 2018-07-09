@@ -73,24 +73,20 @@ namespace Kratos
         KRATOS_TRY;
 
         ModelPart& r_model_part = this->GetModelPart();
-        bool neighboring_element_found = false;
 
         for (auto& elem_i : r_model_part.Elements())
         {
-            const SizeType number_of_nodes = elem_i.GetGeometry().size();
+            const SizeType number_of_nodes = elem_i.GetGeometry().PointsNumber();
             for(IndexType i = 0; i < number_of_nodes; ++i)
             {
                 if(elem_i.GetGeometry()[i].Id() == mpTracedNode->Id())
                 {
                     mpNeighboringElement = r_model_part.pGetElement(elem_i.Id());
-                    neighboring_element_found = true;
-                    break;
+                    return;
                 }
             }
-            if(neighboring_element_found) { break; }
         }
-        KRATOS_ERROR_IF_NOT(neighboring_element_found)
-             << "No neighboring element is available for the traced node." << std::endl;
+        KRATOS_ERROR << "No neighboring element is available for the traced node." << std::endl;
 
         KRATOS_CATCH("");
 
