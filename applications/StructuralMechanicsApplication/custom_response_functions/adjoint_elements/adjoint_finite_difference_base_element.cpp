@@ -39,15 +39,20 @@ Element::Pointer AdjointFiniteDifferencingBaseElement::Create(Element::Pointer p
 void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType num_dofs = 6 * GetGeometry().PointsNumber(); // 6 dofs per node
+    KRATOS_TRY
+    GeometryType& geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension = geom.WorkingSpaceDimension();
+    const SizeType num_dofs_per_node = dimension * 2;
+    const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
+
     if(rResult.size() != num_dofs)
         rResult.resize(num_dofs, false);
 
-    GeometryType& geom = this->GetGeometry();
-
     for(IndexType i = 0; i < geom.size(); ++i)
     {
-        const IndexType index = i * 6;
+        const IndexType index = i * num_dofs_per_node;
         NodeType& iNode = geom[i];
 
         rResult[index]     = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
@@ -58,48 +63,59 @@ void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType
         rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
         rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
     }
-
+    KRATOS_CATCH("")
 }
 
 void AdjointFiniteDifferencingBaseElement::GetDofList(DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo) {
+    ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
 
-    const SizeType num_dofs = 6 * GetGeometry().PointsNumber(); // 6 dofs per node
-    rElementalDofList.resize(0);
-    rElementalDofList.reserve(num_dofs);
+    const GeometryType & geom = this->GetGeometry();
 
-    GeometryType & geom = this->GetGeometry();
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs_per_node = dimension * 2;
+    const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
-    for (IndexType i = 0; i < geom.size(); ++i)
+    if (rElementalDofList.size() != num_dofs)
+        rElementalDofList.resize(num_dofs);
+
+    for (IndexType i = 0; i < number_of_nodes; ++i)
     {
-        NodeType & iNode = geom[i];
+        const IndexType index = i * num_dofs_per_node ;
+        rElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
+        rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
+        rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
 
-        rElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_X));
-        rElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_Y));
-        rElementalDofList.push_back(iNode.pGetDof(ADJOINT_DISPLACEMENT_Z));
-
-        rElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_X));
-        rElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_Y));
-        rElementalDofList.push_back(iNode.pGetDof(ADJOINT_ROTATION_Z));
+        rElementalDofList[index + 3] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X);
+        rElementalDofList[index + 4] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y);
+        rElementalDofList[index + 5] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z);
     }
+    KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingBaseElement::GetValuesVector(Vector& rValues, int Step) {
+void AdjointFiniteDifferencingBaseElement::GetValuesVector(Vector& rValues, int Step)
+{
+    KRATOS_TRY
 
-    const SizeType num_dofs = 6 * GetGeometry().PointsNumber(); // 6 dofs per node
+    const GeometryType & geom = this->GetGeometry();
+
+    const SizeType number_of_nodes = geom.PointsNumber();
+    const SizeType dimension =  geom.WorkingSpaceDimension();
+    const SizeType num_dofs_per_node = dimension * 2;
+    const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
+
     if(rValues.size() != num_dofs)
         rValues.resize(num_dofs, false);
 
-    const GeometryType & geom = this->GetGeometry();
-    const SizeType dimension = geom.WorkingSpaceDimension();
-
-    for (IndexType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < number_of_nodes; ++i)
     {
         const NodeType & iNode = geom[i];
         const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
         const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
 
-        const IndexType index = i * dimension * 2;
+        const IndexType index = i * num_dofs_per_node;
         rValues[index]     = disp[0];
         rValues[index + 1] = disp[1];
         rValues[index + 2] = disp[2];
@@ -108,7 +124,9 @@ void AdjointFiniteDifferencingBaseElement::GetValuesVector(Vector& rValues, int 
         rValues[index + 4] = rot[1];
         rValues[index + 5] = rot[2];
     }
+    KRATOS_CATCH("")
 }
+
 
 void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Matrix >& rVariable, Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)

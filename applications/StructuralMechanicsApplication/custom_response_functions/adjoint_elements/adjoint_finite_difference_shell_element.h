@@ -88,12 +88,6 @@ public:
 
     // TODO Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
-    void GetValuesVector(Vector& values, int Step = 0) override;
-
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override
     {

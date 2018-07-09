@@ -84,22 +84,24 @@ namespace Kratos
     //***********************************************************************
     //***********************************************************************
 
-    void AdjointSemiAnalyticPointLoadCondition::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    void AdjointSemiAnalyticPointLoadCondition::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dim =  GetGeometry().WorkingSpaceDimension();
-        if (ElementalDofList.size() != dim * number_of_nodes)
-            ElementalDofList.resize(dim*number_of_nodes);
+        const SizeType dimension =  GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = number_of_nodes * dimension;
 
-        if(dim == 2)
+        if (rElementalDofList.size() != num_dofs)
+            rElementalDofList.resize(num_dofs);
+
+        if(dimension == 2)
         {
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 const IndexType index = i * 2;
-                ElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
-                ElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
+                rElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
+                rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
             }
         }
         else
@@ -107,9 +109,9 @@ namespace Kratos
             for (IndexType i = 0; i < number_of_nodes; ++i)
             {
                 const IndexType index = i * 3;
-                ElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
-                ElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
-                ElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
+                rElementalDofList[index    ] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X);
+                rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
+                rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
             }
         }
 
@@ -122,17 +124,17 @@ namespace Kratos
     void AdjointSemiAnalyticPointLoadCondition::GetValuesVector(Vector& rValues, int Step)
     {
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dim = GetGeometry().WorkingSpaceDimension();
-        const SizeType mat_size = number_of_nodes * dim;
+        const SizeType dimension =  GetGeometry().WorkingSpaceDimension();
+        const SizeType num_dofs = number_of_nodes * dimension;
 
-        if (rValues.size() != mat_size)
-            rValues.resize(mat_size, false);
+        if (rValues.size() != num_dofs)
+            rValues.resize(num_dofs, false);
 
         for (IndexType i = 0; i < number_of_nodes; ++i)
         {
             const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
-            IndexType index = i * dim;
-            for(IndexType k = 0; k < dim; ++k)
+            IndexType index = i * dimension;
+            for(IndexType k = 0; k < dimension; ++k)
                 rValues[index + k] = Displacement[k];
         }
     }
@@ -185,7 +187,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+        KRATOS_ERROR_IF_NOT(mpPrimalCondition) << "Primal element pointer is nullptr!" << std::endl;
 
         // verify that the variables are correctly initialized
         KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);

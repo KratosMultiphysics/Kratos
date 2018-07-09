@@ -44,16 +44,6 @@ public:
 
     BaseType::Pointer Create(Element::Pointer pPrimalElement) const override;
 
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
-
     void Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
                         const ProcessInfo& rCurrentProcessInfo) override;
