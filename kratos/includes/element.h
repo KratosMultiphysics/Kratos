@@ -976,7 +976,7 @@ public:
     {
     }
 
-#else
+#endif
 
     /// Set data on the integration points of the element. Version for boolean variables.
     /** SetValuesOnIntegrationPoints methods can be used to provide data to the element.
@@ -1090,7 +1090,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo)
     {}
 
-#endif
     /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected

@@ -914,7 +914,7 @@ public:
     {
     }
 
-#else
+#endif
 
     /// Set data on the integration points of the condition. Version for boolean variables.
     /** SetValuesOnIntegrationPoints methods can be used to provide data to the condition.
@@ -1014,7 +1014,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo)
     {}
 
-#endif
 
     /**
      * This method provides the place to perform checks on the completeness of the input
