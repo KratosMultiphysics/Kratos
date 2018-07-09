@@ -173,7 +173,7 @@ public:
 
         //do movement
         array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
-        array_1d<double, TDim + 1 > N;
+        Vector N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
