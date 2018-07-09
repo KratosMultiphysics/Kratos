@@ -34,8 +34,8 @@ protected:
 
 public:
     NodeCurveGeometry3D(
-        const int& Degree,
-        const int& NbNodes)
+        const int Degree,
+        const int NbNodes)
         : CurveGeometryBaseType(Degree, NbNodes)
         , mNodes(NbNodes)
     {
@@ -43,7 +43,7 @@ public:
 
     NodePointer
     Node(
-        const int& Index
+        const int Index
     ) const
     {
         return mNodes[Index];
@@ -51,7 +51,7 @@ public:
 
     void
     SetNode(
-        const int& Index,
+        const int Index,
         NodePointer Value
     )
     {
@@ -60,7 +60,7 @@ public:
 
     VectorType
     Pole(
-        const int& Index) const override
+        const int Index) const override
     {
         auto node = Node(Index);
 
@@ -74,7 +74,7 @@ public:
 
     void
     SetPole(
-        const int& Index,
+        const int Index,
         const VectorType& Value) override
     {
         auto node = Node(Index);
@@ -92,7 +92,7 @@ public:
 
     ScalarType
     Weight(
-        const int& Index) const override
+        const int Index) const override
     {
         auto node = Node(Index);
 
@@ -101,8 +101,8 @@ public:
 
     void
     SetWeight(
-        const int& Index,
-        const ScalarType& Value) override
+        const int Index,
+        const ScalarType Value) override
     {
         auto node = Node(Index);
 
@@ -125,7 +125,7 @@ public:
     ValueAt2( // FIXME use pybind overloading
         const Variable<TDataType>& Variable,
         const double& T,
-        const int& Order)
+        const int Order)
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
             return Node(i)->GetValue(Variable);

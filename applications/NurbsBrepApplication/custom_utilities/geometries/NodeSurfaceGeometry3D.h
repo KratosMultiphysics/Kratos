@@ -32,10 +32,10 @@ protected:
 
 public:
     NodeSurfaceGeometry3D(
-        const int& DegreeU,
-        const int& DegreeV,
-        const int& NbNodesU,
-        const int& NbNodesV)
+        const int DegreeU,
+        const int DegreeV,
+        const int NbNodesU,
+        const int NbNodesV)
         : SurfaceGeometryBaseType(DegreeU, DegreeV, NbNodesU, NbNodesV)
         , mNodes(NbNodesU, NbNodesV)
     {
@@ -43,16 +43,16 @@ public:
 
     NodePointer
     Node(
-        const int& IndexU,
-        const int& IndexV) const
+        const int IndexU,
+        const int IndexV) const
     {
         return mNodes(IndexU, IndexV);
     }
 
     void
     SetNode(
-        const int& IndexU,
-        const int& IndexV,
+        const int IndexU,
+        const int IndexV,
         NodePointer Value)
     {
         mNodes(IndexU, IndexV) = Value;
@@ -60,8 +60,8 @@ public:
 
     VectorType
     Pole(
-        const int& IndexU,
-        const int& IndexV) const override
+        const int IndexU,
+        const int IndexV) const override
     {
         auto node = Node(IndexU, IndexV);
 
@@ -75,8 +75,8 @@ public:
 
     void
     SetPole(
-        const int& IndexU,
-        const int& IndexV,
+        const int IndexU,
+        const int IndexV,
         const VectorType& Value) override
     {
         auto node = Node(IndexU, IndexV);
@@ -94,8 +94,8 @@ public:
 
     ScalarType
     Weight(
-        const int& IndexU,
-        const int& IndexV) const override
+        const int IndexU,
+        const int IndexV) const override
     {
         auto node = Node(IndexU, IndexV);
 
@@ -104,9 +104,9 @@ public:
 
     void
     SetWeight(
-        const int& IndexU,
-        const int& IndexV,
-        const ScalarType& Value) override
+        const int IndexU,
+        const int IndexV,
+        const ScalarType Value) override
     {
         auto node = Node(IndexU, IndexV);
 
@@ -117,8 +117,8 @@ public:
     TDataType
     ValueAt(
         const Variable<TDataType>& Variable,
-        const double& U,
-        const double& V)
+        const double U,
+        const double V)
     {
         return EvaluateAt<TDataType>([&](int i, int j) -> TDataType {
             return Node(i, j)->GetValue(Variable);
@@ -129,9 +129,9 @@ public:
     std::vector<TDataType>
     ValueAt2( // FIXME use pybind overloading
         const Variable<TDataType>& Variable,
-        const double& U,
-        const double& V,
-        const int& Order)
+        const double U,
+        const double V,
+        const int Order)
     {
         return EvaluateAt<TDataType>([&](int i, int j) -> TDataType {
             return Node(i, j)->GetValue(Variable);
