@@ -47,13 +47,13 @@ namespace Kratos
         ModelPart& r_model_part = this->GetModelPart();
 
         #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); i++)
+        for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); ++i)
         {
             ModelPart::ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
             it->Initialize();
         }
         #pragma omp parallel for
-        for(int i=0; i< static_cast<int>(r_model_part.Conditions().size()); i++)
+        for(int i=0; i< static_cast<int>(r_model_part.Conditions().size()); ++i)
         {
             ModelPart::ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
             it->Initialize();
@@ -93,23 +93,6 @@ namespace Kratos
         return mCurrentResponseValue;
 
         KRATOS_CATCH("");
-    }
-
-    /// Turn back information as a string.
-    std::string AdjointStrainEnergyResponseFunction::Info() const
-    {
-        return "AdjointStrainEnergyResponseFunction";
-    }
-
-    /// Print information about this object.
-    void AdjointStrainEnergyResponseFunction::PrintInfo(std::ostream &rOStream) const
-    {
-        rOStream << "AdjointStrainEnergyResponseFunction";
-    }
-
-    /// Print object's data.
-    void AdjointStrainEnergyResponseFunction::PrintData(std::ostream &rOStream) const
-    {
     }
 
     void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,

@@ -50,6 +50,10 @@ public:
 
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
+    typedef std::size_t IndexType;
+    
+    typedef std::size_t SizeType;
+
     ///@}
     ///@name Life Cycle
     ///@{

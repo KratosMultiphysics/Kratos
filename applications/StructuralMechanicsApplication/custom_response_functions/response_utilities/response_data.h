@@ -16,13 +16,10 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 
 
 namespace Kratos
@@ -58,9 +55,9 @@ namespace Kratos
 
     enum class StressTreatment
     {
-        mean,
-        node,
-        GP,
+        Mean,
+        Node,
+        GaussPoint,
         StressTreatmentNotAvailable
     };
 
@@ -155,11 +152,11 @@ public:
     StressTreatment ConvertStressTreatment(const std::string& Str)
     {	
         if(Str == "mean") 
-            return StressTreatment::mean;
+            return StressTreatment::Mean;
         else if(Str == "node")
-            return StressTreatment::node;
+            return StressTreatment::Node;
         else if(Str == "GP")
-            return StressTreatment::GP;
+            return StressTreatment::GaussPoint;
         else
             return StressTreatment::StressTreatmentNotAvailable;
     }
