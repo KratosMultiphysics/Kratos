@@ -18,15 +18,11 @@
 
 namespace Kratos
 {
-    /// Default constructor.
     AdjointStrainEnergyResponseFunction::AdjointStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
-        // Initialize member variables to NULL
-        mCurrentResponseValue = 0.0;
     }
 
-    /// Destructor.
     AdjointStrainEnergyResponseFunction::~AdjointStrainEnergyResponseFunction()
     {
     }
@@ -61,7 +57,7 @@ namespace Kratos
         KRATOS_TRY;
 
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
-        mCurrentResponseValue = 0.0;
+        double response_value = 0.0;
 
         // Check if there are at the time of calling adjoint or primal elements
         KRATOS_ERROR_IF( r_current_process_info[IS_ADJOINT] )
@@ -80,10 +76,10 @@ namespace Kratos
             elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
             // Compute strain energy
-            mCurrentResponseValue += 0.5 * inner_prod(disp, prod(LHS,disp));
+            response_value += 0.5 * inner_prod(disp, prod(LHS,disp));
          }
 
-        return mCurrentResponseValue;
+        return response_value;
 
         KRATOS_CATCH("");
     }

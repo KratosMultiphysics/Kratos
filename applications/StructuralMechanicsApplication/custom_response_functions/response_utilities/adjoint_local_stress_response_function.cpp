@@ -18,7 +18,6 @@
 
 namespace Kratos
 {
-    /// Default constructor.
     AdjointLocalStressResponseFunction::AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
@@ -43,17 +42,16 @@ namespace Kratos
             mIdOfLocation = ResponseSettings["stress_location"].GetInt();
             KRATOS_ERROR_IF(mIdOfLocation < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << mIdOfLocation << std::endl;
         }
-
-        mStressValue = 0.0;
     }
 
-    /// Destructor.
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
 
 
     double AdjointLocalStressResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
+
+        double stress_value = 0.0;
 
         // Working variables
         ProcessInfo &r_current_precess_info = rModelPart.GetProcessInfo();
@@ -69,14 +67,14 @@ namespace Kratos
         if(mStressTreatment == StressTreatment::Mean)
         {
             for(IndexType i = 0; i < stress_vec_size; ++i)
-                mStressValue += element_stress[i];
+                stress_value += element_stress[i];
 
-            mStressValue /= stress_vec_size;
+            stress_value /= stress_vec_size;
         }
         else if(mStressTreatment == StressTreatment::GaussPoint)
         {
             if(stress_vec_size >= mIdOfLocation)
-                mStressValue = element_stress[mIdOfLocation - 1];
+                stress_value = element_stress[mIdOfLocation - 1];
             else
                 KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                 stress_vec_size  << "!"<< std::endl;
@@ -85,14 +83,14 @@ namespace Kratos
         {
             const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
             if(num_ele_nodes >= mIdOfLocation)
-                mStressValue = element_stress[mIdOfLocation - 1];
+                stress_value = element_stress[mIdOfLocation - 1];
             else
                 KRATOS_ERROR << "Chosen Node is not available. The element has only " <<
                                 num_ele_nodes  << " nodes."<< std::endl;
 
         }
 
-        return mStressValue;
+        return stress_value;
 
         KRATOS_CATCH("");
     }

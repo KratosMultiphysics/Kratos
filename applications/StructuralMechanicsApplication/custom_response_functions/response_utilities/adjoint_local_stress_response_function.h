@@ -165,7 +165,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mStressValue;
     unsigned int mIdOfLocation;
     Element::Pointer mpTracedElement;
     StressTreatment mStressTreatment;

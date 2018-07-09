@@ -62,7 +62,6 @@ namespace Kratos
                 << "Specified adjoint DOF is not available at traced node." << std::endl;
         }
 
-        mDisplacementValue = 0.0;
         this->GetNeighboringElementPointer();
     }
 
@@ -104,9 +103,7 @@ namespace Kratos
         const VariableComponentType& r_traced_dof =
             KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
 
-        mDisplacementValue = rModelPart.Nodes()[(mpTracedNode->Id())].FastGetSolutionStepValue(r_traced_dof, 0);
-
-        return mDisplacementValue;
+        return rModelPart.Nodes()[(mpTracedNode->Id())].FastGetSolutionStepValue(r_traced_dof, 0);
 
         KRATOS_CATCH("");
     }
