@@ -60,16 +60,16 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseKirchhoff(Con
 
 void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    Vector PlasticStrain = ZeroVector(6);
-    mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, PlasticStrain);
-    Vector& StrainVector = rValues.GetStrainVector();
-    const Vector strain_for_visco = StrainVector - PlasticStrain;
-    const Vector initial_strain_vector = StrainVector;
+    Vector plastic_strain = ZeroVector(6);
+    mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
+    Vector& strain_vector = rValues.GetStrainVector();
+    const Vector strain_for_visco = strain_vector - plastic_strain;
+    const Vector initial_strain_vector = strain_vector;
 
-    StrainVector = strain_for_visco;
+    strain_vector = strain_for_visco;
     mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Relaxes the Stress...
 
-    StrainVector = initial_strain_vector;
+    strain_vector = initial_strain_vector;
     mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Plastification occurs...
 
 } // End CalculateMaterialResponseCauchy
@@ -129,6 +129,7 @@ void GenericSmallStrainViscoplasticity3D::CalculateElasticMatrix(
 
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
+	this->CalculateMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -136,6 +137,7 @@ void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK1(Constituti
 
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
+	this->CalculateMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -143,6 +145,7 @@ void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponsePK2(Constituti
 
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
+	this->CalculateMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -151,5 +154,4 @@ void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseKirchhoff(Cons
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 }
-
 } // namespace kratos

@@ -376,7 +376,7 @@ public:
         const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
         const double n = yield_comp / yield_tension;
 
-        BoundedVector<double,2> Gf, Slopes, EqThrsholds;
+        BoundedVector<double,2> Gf, slopes, eq_thresholds;
 
         Gf[0] = rMaterialProperties[FRACTURE_ENERGY];
         Gf[1] = std::pow(n, 2)*Gf[0];
@@ -386,22 +386,22 @@ public:
             {
                 case HardeningCurveType::LinearSoftening:
                     CalculateEqStressThresholdHardCurve1(PlasticDissipation, r0, r1,
-                        EqThrsholds[i], Slopes[i], rMaterialProperties);
+                        eq_thresholds[i], slopes[i], rMaterialProperties);
                     break;
 
                 case HardeningCurveType::ExponentialSoftening:
                     CalculateEqStressThresholdHardCurve2(PlasticDissipation, r0, r1,
-                        EqThrsholds[i], Slopes[i], rMaterialProperties);
+                        eq_thresholds[i], slopes[i], rMaterialProperties);
                     break;
 
                 case HardeningCurveType::InitialHardeningExponentialSoftening:
                     CalculateEqStressThresholdHardCurve3(PlasticDissipation, r0, r1,
-                        EqThrsholds[i], Slopes[i], rMaterialProperties);  
+                        eq_thresholds[i], slopes[i], rMaterialProperties);  
                     break;
 
                 case HardeningCurveType::PerfectPlasticity:
                     CalculateEqStressThresholdHardCurve4(PlasticDissipation, r0, r1,
-                        EqThrsholds[i], Slopes[i], rMaterialProperties);  
+                        eq_thresholds[i], slopes[i], rMaterialProperties);  
                     break;
 
                 // Add more cases...
@@ -411,8 +411,8 @@ public:
                     break;
             }
         }
-        rEquivalentStressThreshold = r0*EqThrsholds[0] + r1*EqThrsholds[1];
-        rSlope = rEquivalentStressThreshold*((r0*Slopes[0] / EqThrsholds[0]) + (r1*Slopes[1] / EqThrsholds[1]));
+        rEquivalentStressThreshold = r0*eq_thresholds[0] + r1*eq_thresholds[1];
+        rSlope = rEquivalentStressThreshold*((r0*slopes[0] / eq_thresholds[0]) + (r1*slopes[1] / eq_thresholds[1]));
     }
 
     /**

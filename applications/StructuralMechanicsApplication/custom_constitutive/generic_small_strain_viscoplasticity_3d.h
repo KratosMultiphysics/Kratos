@@ -76,14 +76,23 @@ public:
         ConstitutiveLaw::Pointer pViscousLaw)
     {
         mpPlasticityConstitutiveLaw = pPlasticityLaw;
-        mpViscousConstitutiveLaw = pViscousLaw;
+        mpViscousConstitutiveLaw    = pViscousLaw;
     }
     /**
     * Clone.
     */
-    ConstitutiveLaw::Pointer Clone() const override
+    ConstitutiveLaw::Pointer Clone(
+        // ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw,
+        // ConstitutiveLaw::Pointer mpViscousConstitutiveLaw
+    ) const override
     {
-        return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(*this);
+        //return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(*this);
+        //return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(mpPlasticityConstitutiveLaw,mpViscousConstitutiveLaw);
+   
+    //    return ConstitutiveLaw::Pointer(new GenericSmallStrainViscoplasticity3D(mpPlasticityConstitutiveLaw, mpViscousConstitutiveLaw));
+   
+   
+   
     }
 
     /**
@@ -288,16 +297,16 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-        rSerializer.save("PlasticityConstitutiveLaw", mpPlasticityConstitutiveLaw);
-        rSerializer.save("ViscousConstitutiveLaw", mpViscousConstitutiveLaw);
+       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+       rSerializer.save("PlasticityConstitutiveLaw", mpPlasticityConstitutiveLaw);
+       rSerializer.save("ViscousConstitutiveLaw", mpViscousConstitutiveLaw);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
-        rSerializer.load("PlasticityConstitutiveLaw", mpPlasticityConstitutiveLaw);
-        rSerializer.load("ViscousConstitutiveLaw", mpViscousConstitutiveLaw);
+       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+       rSerializer.load("PlasticityConstitutiveLaw", mpPlasticityConstitutiveLaw);
+       rSerializer.load("ViscousConstitutiveLaw", mpViscousConstitutiveLaw);
     }
 
     ///@}
