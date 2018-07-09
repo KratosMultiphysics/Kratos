@@ -151,7 +151,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
     .def(init< const double, const double, const double>() );
 
-    class_<AdjointStructuralStaticSchemeType, typename AdjointStructuralStaticSchemeType::Pointer, BaseSchemeType>(m, "AdjointStructuralStaticScheme")
+    class_<AdjointStructuralStaticSchemeType, AdjointStructuralStaticSchemeType::Pointer, BaseSchemeType>(m, "AdjointStructuralStaticScheme")
         .def(init<Parameters&, AdjointStructuralResponseFunction::Pointer>());
 
 
