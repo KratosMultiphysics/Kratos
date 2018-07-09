@@ -201,6 +201,8 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+
     KRATOS_ERROR_IF(GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2)
     << "The beam element works only in 3D and with 2 noded elements" << "" << std::endl;
 

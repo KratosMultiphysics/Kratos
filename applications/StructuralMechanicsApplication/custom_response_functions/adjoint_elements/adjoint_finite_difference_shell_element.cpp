@@ -274,6 +274,7 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     GeometryType& r_geom = GetGeometry();
 

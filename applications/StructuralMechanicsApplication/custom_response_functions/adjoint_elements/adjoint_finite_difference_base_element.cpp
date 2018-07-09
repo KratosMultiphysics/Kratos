@@ -193,6 +193,8 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+
     GeometryType& r_geom = GetGeometry();
 
     // verify that the variables are correctly initialized
