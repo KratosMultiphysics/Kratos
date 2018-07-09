@@ -156,6 +156,55 @@ list GetIntegrationPointsFromElement( Element& dummy )
     return( integration_points_list );
 }
 
+
+#ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
+
+template< class TObject, class TDataType >
+void SetValuesOnIntegrationPointsInterface(
+    TObject& rObject,
+    const Variable<TDataType>& rVariable,
+    pybind11::list Values,
+    const ProcessInfo& rProcessInfo )
+{
+    std::size_t num_integration_points = rObject.GetGeometry().IntegrationPoints(rObject.GetIntegrationMethod()).size();
+
+    KRATOS_ERROR_IF( Values.size() != num_integration_points )
+        << "SetValuesOnIntegrationPoint received a list of length " << Values.size()
+        << " as input for an element that has " << num_integration_points << " integration points." << std::endl;
+
+    std::vector< TDataType > input_values( num_integration_points );
+    for( unsigned int i=0; i < num_integration_points; i++ )
+    {
+        if (isinstance<TDataType>(Values[i])) {
+            input_values[i] = Values[i].cast< TDataType >();
+        }
+        else {
+            KRATOS_ERROR
+                << "Unexpected type of input values for call to SetValuesOnIntegrationPoints with variable "
+                << rVariable.Name() << "." << std::endl;
+        }
+    }
+
+    rObject.SetValuesOnIntegrationPoints(rVariable,input_values,rProcessInfo);
+}
+
+template< class TObject, class TDataType >
+pybind11::list CalculateOnIntegrationPointsInterface(
+    TObject& rObject,
+    const Variable<TDataType>& rVariable,
+    ProcessInfo& rProcessInfo)
+{
+    std::vector<TDataType> result;
+    rObject.CalculateOnIntegrationPoints(rVariable, result, rProcessInfo);
+    pybind11::list output;
+    for (unsigned int i = 0; i < result.size(); i++)
+        output.append(result[i]);
+
+    return output;
+}
+
+#else
+
 pybind11::list CalculateOnIntegrationPointsDouble(
         Element& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
 {
@@ -206,27 +255,6 @@ pybind11::list CalculateOnIntegrationPointsMatrix(
     return result;
 }
 
-#ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-
-template< class TObject, class TDataType >
-pybind11::list CalculateOnIntegrationPointsInterface(
-    TObject& rObject,
-    const Variable<TDataType>& rVariable,
-    ProcessInfo& rProcessInfo)
-{
-    std::vector<TDataType> result;
-    rObject.CalculateOnIntegrationPoints(rVariable, result, rProcessInfo);
-    pybind11::list output;
-    for (unsigned int i = 0; i < result.size(); i++)
-        output.append(result[i]);
-
-    return output;
-}
-
-#endif
-
-#ifndef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-
 template< class TObject >
 pybind11::list GetValuesOnIntegrationPointsBool( TObject& dummy,
         const Variable<bool>& rVariable, const ProcessInfo& rCurrentProcessInfo )
@@ -263,8 +291,6 @@ pybind11::list GetValuesOnIntegrationPointsDouble( TObject& dummy,
     return( values_list );
 }
 
-# endif
-
 template< class TObject >
 void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>& rVariable, std::vector<double> values,  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -274,15 +300,8 @@ void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>&
     if(values.size() != integration_points.size())
         KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
 
-    #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    #else
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    #endif
 }
-
-
-#ifndef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
 
 template< class TObject >
 pybind11::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
@@ -304,8 +323,6 @@ pybind11::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
     return( values_list );
 }
 
-#endif
-
 template< class TObject >
 void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_1d<double,3> >& rVariable, pybind11::list values_list,  const ProcessInfo& rCurrentProcessInfo )
 {
@@ -319,15 +336,8 @@ void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_
         else
             KRATOS_ERROR << "expecting a list of array_1d<double,3> ";
     }
-    #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    #else
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    #endif
 }
-
-
-#ifndef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
 
 template< class TObject >
 pybind11::list GetValuesOnIntegrationPointsVector( TObject& dummy,
@@ -349,7 +359,6 @@ pybind11::list GetValuesOnIntegrationPointsVector( TObject& dummy,
     return( values_list );
 }
 
-#endif
 
 template< class TObject >
 void SetValuesOnIntegrationPointsVector( TObject& dummy,
@@ -365,14 +374,9 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
         else
             KRATOS_ERROR << "expecting a list of vectors";
     }
-    #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    #else
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    #endif
 }
 
-#ifndef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
 
 template< class TObject >
 pybind11::list GetValuesOnIntegrationPointsMatrix( TObject& dummy,
@@ -405,6 +409,8 @@ TDataType ElementCalculateInterface(Element& dummy, Variable<TDataType>& rVariab
     return aux;
 }
 
+#ifndef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
+
 void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable<ConstitutiveLaw::Pointer>& rVariable, pybind11::list values_list, const ProcessInfo& rCurrentProcessInfo )
 {
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
@@ -416,13 +422,11 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
             values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
         else
             KRATOS_ERROR << "expecting a list of ConstitutiveLaw::Pointer";
-     }
-    #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
-    dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    #else
+    }
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
-    #endif
 }
+
+#endif
 
 void ElementCalculateLocalSystem1(Element& dummy,
         Matrix& rLeftHandSideMatrix,
@@ -544,21 +548,31 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
+    #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Element,double>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Element,array_1d<double,3>>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Element,Vector>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Element,Matrix>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Element,double>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Element,array_1d<double,3>>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Element,Vector>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Element,Matrix>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Element,ConstitutiveLaw::Pointer>)
+    #else
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix)
-    #ifndef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsBool<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix<Element>)
-    #endif
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Element>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
+    #endif
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
     .def("Calculate", &ElementCalculateInterface<double>)
     .def("Calculate", &ElementCalculateInterface<array_1d<double,3> >)
@@ -652,18 +666,22 @@ void  AddMeshToPython(pybind11::module& m)
     #ifdef KRATOS_USE_NEW_INTEGRATION_POINT_METHODS
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Condition,double>)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Condition,array_1d<double,3>>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Condition, Vector>)
-    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Condition, Matrix>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Condition,Vector>)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsInterface<Condition,Matrix>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Condition,double>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Condition,array_1d<double,3>>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Condition,Vector>)
+    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsInterface<Condition,Matrix>)
     #else
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Condition>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix<Condition>)
-    #endif
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector<Condition>)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
+    #endif
     .def("GetNormal",GetNormalFromCondition)
     .def("GetNormal",FastGetNormalFromCondition)
     .def("GetArea",GetAreaFromCondition)
