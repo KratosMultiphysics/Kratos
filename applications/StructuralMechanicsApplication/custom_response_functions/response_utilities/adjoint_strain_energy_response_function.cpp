@@ -95,23 +95,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    /// Turn back information as a string.
-    std::string AdjointStrainEnergyResponseFunction::Info() const
-    {
-        return "AdjointStrainEnergyResponseFunction";
-    }
-
-    /// Print information about this object.
-    void AdjointStrainEnergyResponseFunction::PrintInfo(std::ostream &rOStream) const
-    {
-        rOStream << "AdjointStrainEnergyResponseFunction";
-    }
-
-    /// Print object's data.
-    void AdjointStrainEnergyResponseFunction::PrintData(std::ostream &rOStream) const
-    {
-    }
-
     void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
