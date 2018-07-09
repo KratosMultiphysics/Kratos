@@ -28,42 +28,42 @@ public:
     using typename SurfaceGeometryBaseType::VectorType;
 
 protected:
-    ANurbs::Grid<NodePointer> m_nodes;
+    ANurbs::Grid<NodePointer> mNodes;
 
 public:
     NodeSurfaceGeometry3D(
-        const int& degreeU,
-        const int& degreeV,
-        const int& nbNodesU,
-        const int& nbNodesV)
-        : SurfaceGeometryBaseType(degreeU, degreeV, nbNodesU, nbNodesV)
-        , m_nodes(nbNodesU, nbNodesV)
+        const int& DegreeU,
+        const int& DegreeV,
+        const int& NbNodesU,
+        const int& NbNodesV)
+        : SurfaceGeometryBaseType(DegreeU, DegreeV, NbNodesU, NbNodesV)
+        , mNodes(NbNodesU, NbNodesV)
     {
     }
 
     NodePointer
     Node(
-        const int& indexU,
-        const int& indexV) const
+        const int& IndexU,
+        const int& IndexV) const
     {
-        return m_nodes(indexU, indexV);
+        return mNodes(IndexU, IndexV);
     }
 
     void
     SetNode(
-        const int& indexU,
-        const int& indexV,
-        NodePointer value)
+        const int& IndexU,
+        const int& IndexV,
+        NodePointer Value)
     {
-        m_nodes(indexU, indexV) = value;
+        mNodes(IndexU, IndexV) = Value;
     }
 
     VectorType
     Pole(
-        const int& indexU,
-        const int& indexV) const override
+        const int& IndexU,
+        const int& IndexV) const override
     {
-        auto node = Node(indexU, indexV);
+        auto node = Node(IndexU, IndexV);
 
         VectorType pole;
         pole[0] = node->X();
@@ -75,15 +75,15 @@ public:
 
     void
     SetPole(
-        const int& indexU,
-        const int& indexV,
-        const VectorType& value) override
+        const int& IndexU,
+        const int& IndexV,
+        const VectorType& Value) override
     {
-        auto node = Node(indexU, indexV);
+        auto node = Node(IndexU, IndexV);
 
-        node->X() = value.X();
-        node->Y() = value.Y();
-        node->Z() = value.Z();
+        node->X() = Value.X();
+        node->Y() = Value.Y();
+        node->Z() = Value.Z();
     }
 
     bool
@@ -94,46 +94,46 @@ public:
 
     ScalarType
     Weight(
-        const int& indexU,
-        const int& indexV) const override
+        const int& IndexU,
+        const int& IndexV) const override
     {
-        auto node = Node(indexU, indexV);
+        auto node = Node(IndexU, IndexV);
 
         return node->GetValue(Kratos::INTEGRATION_WEIGHT); // FIXME use WEIGHT
     }
 
     void
     SetWeight(
-        const int& indexU,
-        const int& indexV,
-        const ScalarType& value) override
+        const int& IndexU,
+        const int& IndexV,
+        const ScalarType& Value) override
     {
-        auto node = Node(indexU, indexV);
+        auto node = Node(IndexU, IndexV);
 
-        node->SetValue(Kratos::INTEGRATION_WEIGHT, value); // FIXME use WEIGHT
+        node->SetValue(Kratos::INTEGRATION_WEIGHT, Value); // FIXME use WEIGHT
     }
     
     template <typename TDataType>
     TDataType
     ValueAt(
-        const Variable<TDataType>& variable,
-        const double& t)
+        const Variable<TDataType>& Variable,
+        const double& T)
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(variable);
-        }, t);
+            return Node(i)->GetValue(Variable);
+        }, T);
     }
     
     template <typename TDataType>
     std::vector<TDataType>
     ValueAt2( // FIXME use pybind overloading
-        const Variable<TDataType>& variable,
-        const double& t,
-        const int& order)
+        const Variable<TDataType>& Variable,
+        const double& T,
+        const int& Order)
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(variable);
-        }, t, order);
+            return Node(i)->GetValue(Variable);
+        }, T, Order);
     }
 };
 

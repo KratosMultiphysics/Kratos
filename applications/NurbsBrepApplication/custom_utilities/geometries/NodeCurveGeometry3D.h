@@ -30,39 +30,39 @@ public:
     using typename CurveGeometryBaseType::VectorType;
 
 protected:
-    std::vector<NodePointer> m_nodes;
+    std::vector<NodePointer> mNodes;
 
 public:
     NodeCurveGeometry3D(
-        const int& degree,
-        const int& nbNodes)
-        : CurveGeometryBaseType(degree, nbNodes)
-        , m_nodes(nbNodes)
+        const int& Degree,
+        const int& NbNodes)
+        : CurveGeometryBaseType(Degree, NbNodes)
+        , mNodes(NbNodes)
     {
     }
 
     NodePointer
     Node(
-        const int& index
+        const int& Index
     ) const
     {
-        return m_nodes[index];
+        return mNodes[Index];
     }
 
     void
     SetNode(
-        const int& index,
-        NodePointer value
+        const int& Index,
+        NodePointer Value
     )
     {
-        m_nodes[index] = value;
+        mNodes[Index] = Value;
     }
 
     VectorType
     Pole(
-        const int& index) const override
+        const int& Index) const override
     {
-        auto node = Node(index);
+        auto node = Node(Index);
 
         VectorType pole;
         pole[0] = node->X();
@@ -74,14 +74,14 @@ public:
 
     void
     SetPole(
-        const int& index,
-        const VectorType& value) override
+        const int& Index,
+        const VectorType& Value) override
     {
-        auto node = Node(index);
+        auto node = Node(Index);
 
-        node->X() = value.X();
-        node->Y() = value.Y();
-        node->Z() = value.Z();
+        node->X() = Value.X();
+        node->Y() = Value.Y();
+        node->Z() = Value.Z();
     }
 
     bool
@@ -92,44 +92,44 @@ public:
 
     ScalarType
     Weight(
-        const int& index) const override
+        const int& Index) const override
     {
-        auto node = Node(index);
+        auto node = Node(Index);
 
         return node->GetValue(Kratos::INTEGRATION_WEIGHT); // FIXME use WEIGHT
     }
 
     void
     SetWeight(
-        const int& index,
-        const ScalarType& value) override
+        const int& Index,
+        const ScalarType& Value) override
     {
-        auto node = Node(index);
+        auto node = Node(Index);
 
-        node->SetValue(Kratos::INTEGRATION_WEIGHT, value); // FIXME use WEIGHT
+        node->SetValue(Kratos::INTEGRATION_WEIGHT, Value); // FIXME use WEIGHT
     }
     
     template <typename TDataType>
     TDataType
     ValueAt(
-        const Variable<TDataType>& variable,
-        const double& t)
+        const Variable<TDataType>& Variable,
+        const double& T)
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(variable);
-        }, t);
+            return Node(i)->GetValue(Variable);
+        }, T);
     }
     
     template <typename TDataType>
     std::vector<TDataType>
     ValueAt2( // FIXME use pybind overloading
-        const Variable<TDataType>& variable,
-        const double& t,
-        const int& order)
+        const Variable<TDataType>& Variable,
+        const double& T,
+        const int& Order)
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(variable);
-        }, t, order);
+            return Node(i)->GetValue(Variable);
+        }, T, Order);
     }
 };
 
