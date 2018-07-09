@@ -48,11 +48,6 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
         import python_solvers_wrapper_contact_structural
         return python_solvers_wrapper_contact_structural.CreateSolver(self.model, self.project_parameters)
 
-        ## Add the processes to the solver
-        self.solver.AddProcessesList(self.list_of_processes)
-        if (self.have_output is True):
-            self.solver.AddPostProcess(self.output)
-
     def _GetSimulationName(self):
         return "::[KCSM Simulation]:: "
 
