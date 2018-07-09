@@ -479,68 +479,68 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
 
     noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k)) * itNode->GetValue(CONTACT_PRESSURE);
 
-//     //PART 2: Contributions from contact nodes: regard all nodes from the patch which are in contact
-//     // Patch center node:
-//     if (itPatchNode->Has(CONTACT_PRESSURE)){
-//         const array_1d<double, 3>& normal_patch_node = itPatchNode->GetValue(NORMAL);
-//         p_k(0,1)=0.0;
-//         p_k(0,2)=0.0;
-//         p_k(1,4)=0.0;
-//         p_k(1,5)=0.0;
-//         p_k(2,7)=0.0;
-//         p_k(2,8)=0.0;
-//         N_k(0,0) = normal_patch_node[0]*normal_patch_node[0];
-//         N_k(0,1) = normal_patch_node[1]*normal_patch_node[1];
-//         N_k(0,2) = 2*normal_patch_node[0]*normal_patch_node[1];
-//         T_k1(0,0) = normal_patch_node[0]*normal_patch_node[1];
-//         T_k1(0,1) = -normal_patch_node[0]*normal_patch_node[1];
-//         T_k1(0,2) = normal_patch_node[1]*normal_patch_node[1]-normal_patch_node[0]*normal_patch_node[0];
-//
-//         A1 = prod(trans(p_k),trans(N_k));
-//         A2 = prod(N_k,p_k);
-//         A+= mPenaltyNormal*prod(A1, A2);
-//
-//         A1 = prod(trans(p_k),trans(T_k1));
-//         A2 = prod(T_k1,p_k);
-//         A+= mPenaltyTangent*prod(A1, A2);
-//         //A+= mPenaltyNormal*prod(prod(trans(p_k),trans(N_k)),prod(N_k,p_k));
-//         //A+= mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k1)),T_k1),p_k);
-//
-//         b-= mPenaltyNormal*prod(trans(p_k),trans(N_k))*itPatchNode->GetValue(CONTACT_PRESSURE);
-//     }
-//
-//     // Neighboring nodes:
-//     for( auto& i_neighbour_nodes : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
-//         if (i_neighbour_nodes.Has(CONTACT_PRESSURE)){
-//             const array_1d<double, 3>& normal_neigh_node = i_neighbour_nodes.GetValue(NORMAL);
-//             const double x_patch = itPatchNode->X();
-//             const double y_patch = itPatchNode->Y();
-//             const double x_neigh = i_neighbour_nodes.X();
-//             const double y_neigh = i_neighbour_nodes.Y();
-//             p_k(0,1)= x_neigh-x_patch;
-//             p_k(0,2)= y_neigh-y_patch;
-//             p_k(1,4)= x_neigh-x_patch;
-//             p_k(1,5)= y_neigh-y_patch;
-//             p_k(2,7)= x_neigh-x_patch;
-//             p_k(2,8)= y_neigh-y_patch;
-//             N_k(0,0) = normal_neigh_node[0]*normal_neigh_node[0];
-//             N_k(0,1) = normal_neigh_node[1]*normal_neigh_node[1];
-//             N_k(0,2) = 2*normal_neigh_node[0]*normal_neigh_node[1];
-//             T_k1(0,0) = normal_neigh_node[0]*normal_neigh_node[1];
-//             T_k1(0,1) = -normal_neigh_node[0]*normal_neigh_node[1];
-//             T_k1(0,2) = normal_neigh_node[1]*normal_neigh_node[1]-normal_neigh_node[0]*normal_neigh_node[0];
-//
-//             A1 = prod(trans(p_k),trans(N_k));
-//             A2 = prod(N_k,p_k);
-//             A+= mPenaltyNormal*prod(A1, A2);
-//
-//             A1 = prod(trans(p_k),trans(T_k));
-//             A2 = prod(T_k,p_k);
-//             A+= mPenaltyTangent*prod(A1, A2);
-//
-//             b+= mPenaltyNormal*prod(trans(p_k),trans(N_k))*i_neighbour_node->GetValue(CONTACT_PRESSURE);
-//         }
-//     }
+    //PART 2: Contributions from contact nodes: regard all nodes from the patch which are in contact
+    // Patch center node:
+    if (itPatchNode->Has(CONTACT_PRESSURE)){
+        const array_1d<double, 3>& normal_patch_node = itPatchNode->GetValue(NORMAL);
+        p_k(0,1)=0.0;
+        p_k(0,2)=0.0;
+        p_k(1,4)=0.0;
+        p_k(1,5)=0.0;
+        p_k(2,7)=0.0;
+        p_k(2,8)=0.0;
+        N_k(0,0) = normal_patch_node[0]*normal_patch_node[0];
+        N_k(0,1) = normal_patch_node[1]*normal_patch_node[1];
+        N_k(0,2) = 2*normal_patch_node[0]*normal_patch_node[1];
+        T_k1(0,0) = normal_patch_node[0]*normal_patch_node[1];
+        T_k1(0,1) = -normal_patch_node[0]*normal_patch_node[1];
+        T_k1(0,2) = normal_patch_node[1]*normal_patch_node[1]-normal_patch_node[0]*normal_patch_node[0];
+
+        noalias(A1) = prod(trans(p_k),trans(N_k));
+        noalias(A2) = prod(N_k,p_k);
+        noalias(A) += mPenaltyNormal*prod(A1, A2);
+
+        noalias(A1) = prod(trans(p_k),trans(T_k1));
+        noalias(A2) = prod(T_k1,p_k);
+        noalias(A) += mPenaltyTangent*prod(A1, A2);
+        //noalias(A) += mPenaltyNormal*prod(prod(trans(p_k),trans(N_k)),prod(N_k,p_k));
+        //noalias(A) += mPenaltyTangent*prod(prod(prod(trans(p_k),trans(T_k1)),T_k1),p_k);
+
+        noalias(b) -= mPenaltyNormal*prod(trans(p_k),trans(N_k))*itPatchNode->GetValue(CONTACT_PRESSURE);
+    }
+
+    // Neighboring nodes:
+    for( auto& i_neighbour_node : itPatchNode->GetValue(NEIGHBOUR_NODES)) {
+        if (i_neighbour_node.Has(CONTACT_PRESSURE)){
+            const array_1d<double, 3>& normal_neigh_node = i_neighbour_node.GetValue(NORMAL);
+            const double x_patch = itPatchNode->X();
+            const double y_patch = itPatchNode->Y();
+            const double x_neigh = i_neighbour_node.X();
+            const double y_neigh = i_neighbour_node.Y();
+            p_k(0,1)= x_neigh-x_patch;
+            p_k(0,2)= y_neigh-y_patch;
+            p_k(1,4)= x_neigh-x_patch;
+            p_k(1,5)= y_neigh-y_patch;
+            p_k(2,7)= x_neigh-x_patch;
+            p_k(2,8)= y_neigh-y_patch;
+            N_k(0,0) = normal_neigh_node[0]*normal_neigh_node[0];
+            N_k(0,1) = normal_neigh_node[1]*normal_neigh_node[1];
+            N_k(0,2) = 2*normal_neigh_node[0]*normal_neigh_node[1];
+            T_k1(0,0) = normal_neigh_node[0]*normal_neigh_node[1];
+            T_k1(0,1) = -normal_neigh_node[0]*normal_neigh_node[1];
+            T_k1(0,2) = normal_neigh_node[1]*normal_neigh_node[1]-normal_neigh_node[0]*normal_neigh_node[0];
+
+            noalias(A1) = prod(trans(p_k),trans(N_k));
+            noalias(A2) = prod(N_k,p_k);
+            noalias(A) += mPenaltyNormal*prod(A1, A2);
+
+            noalias(A1) = prod(trans(p_k),trans(T_k1));
+            noalias(A2) = prod(T_k1,p_k);
+            noalias(A) += mPenaltyTangent*prod(A1, A2);
+
+            noalias(b) += mPenaltyNormal*prod(trans(p_k),trans(N_k))*i_neighbour_node.GetValue(CONTACT_PRESSURE);
+        }
+    }
 
     // Computing coefficients a: A*a=b
     KRATOS_INFO_IF("SPRMetricProcess", mEchoLevel > 3) << A << std::endl;
@@ -550,10 +550,10 @@ void SPRMetricProcess<TDim>::CalculatePatchContact(
     mpLinearSolver->Solve(A, coeff, b_vector);
 
     for (IndexType j = 0; j < SigmaSize;++j){
-        p_k(j,j*(TDim + 1) + 1)= itNode->X() - itPatchNode->X();
-        p_k(j,j*(TDim + 1) + 2)= itNode->Y() - itPatchNode->Y();
+        p_k(j,j*(TDim + 1) + 1) = itNode->X() - itPatchNode->X();
+        p_k(j,j*(TDim + 1) + 2) = itNode->Y() - itPatchNode->Y();
         if (TDim == 3)
-            p_k(j,j*(TDim + 1) + 3)= itNode->Z() - itPatchNode->Z();
+            p_k(j,j*(TDim + 1) + 3) = itNode->Z() - itPatchNode->Z();
     }
     
     BoundedMatrix<double, SigmaSize*(TDim + 1), 1> coeff_matrix;
