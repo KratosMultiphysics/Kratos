@@ -82,10 +82,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         if self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
             self._SolveSolutionStepSpecialStrainEnergy()
         else:
-            if self.settings["clear_storage"].GetBool():
-                self.Clear()
-            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-            mechanical_solution_strategy.Solve()
+            super(StructuralMechanicsAdjointStaticSolver, self).Solve()
 
     def SolveSolutionStep(self):
         if self.response_function_settings["response_type"].GetString() == "adjoint_strain_energy":
@@ -102,26 +99,19 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
                 adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
                 node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
 
-        #self.response_function.FinalizeSolutionStep()
-
     def _create_mechanical_solution_strategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        builder_and_solver = self.get_builder_and_solver()
-        calculate_reaction_flag = False
-        reform_dof_set_at_each_step = False
-        calculate_norm_dx_flag = False
-        move_mesh_flag = False
-
-        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
-                                                              mechanical_scheme,
-                                                              linear_solver,
-                                                              builder_and_solver,
-                                                              calculate_reaction_flag,
-                                                              reform_dof_set_at_each_step,
-                                                              calculate_norm_dx_flag,
-                                                              move_mesh_flag)
+        analysis_type = self.settings["analysis_type"].GetString()
+        if analysis_type == "linear":
+            if self.settings["compute_reactions"].GetBool():
+                raise Exception("\"compute_reactions\" is not possible for adjoint models parts")
+            if self.settings["move_mesh_flag"].GetBool():
+                raise Exception("\"move_mesh_flag\" is not allowed for adjoint models parts")
+            mechanical_solution_strategy = self._create_linear_strategy()
+        else:
+            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available for adjoints!\n"
+            err_msg += "Available options are: \"linear\""
+            raise Exception(err_msg)
+        return mechanical_solution_strategy
 
     def _create_solution_scheme(self):
         return StructuralMechanicsApplication.AdjointStructuralStaticScheme(self.scheme_settings, self.response_function)

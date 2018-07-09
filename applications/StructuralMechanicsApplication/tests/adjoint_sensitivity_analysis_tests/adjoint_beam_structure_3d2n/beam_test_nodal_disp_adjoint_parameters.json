@@ -14,6 +14,9 @@
     },
     "solver_settings"                  : {
         "solver_type"                  : "adjoint",
+        "analysis_type"                : "linear",
+        "compute_reactions"			   : false,
+        "move_mesh_flag"                    : false,
         "scheme_settings" : {
             "scheme_type"              : "adjoint_structural"
             },
