@@ -398,16 +398,6 @@ protected:
     ///@name Operations
     ///@{
 
-    virtual void AfterPerturbation(const Variable<double>& rDesignVariable,
-                            const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    virtual void AfterPerturbation(const Variable<array_1d<double,3>>& rDesignVariable,
-                            const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -427,6 +417,10 @@ private:
 
     ///@name Private Operations
     ///@{
+
+    const double GetPerturbationSize(const Variable<double>& rDesignVariable);
+
+    const double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
 
     virtual double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
 

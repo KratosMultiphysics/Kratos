@@ -55,9 +55,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  AdjointSemiAnalyticBaseCondi
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-
     /// Counted pointer of AdjointSemiAnalyticBaseCondition
     KRATOS_CLASS_POINTER_DEFINITION( AdjointSemiAnalyticBaseCondition );
 
