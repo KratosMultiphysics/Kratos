@@ -45,7 +45,7 @@ namespace Kratos
         mStressTreatment = stress_response_data.ConvertStressTreatment( ResponseSettings["stress_treatment"].GetString() );
         KRATOS_ERROR_IF(mStressTreatment == StressTreatment::StressTreatmentNotAvailable) << "Chosen option for stress treatmeant is not available! Chose 'GP','node' or 'mean'!" << std::endl;
 
-        if(mStressTreatment == StressTreatment::GP || mStressTreatment == StressTreatment::node)
+        if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node)
         {
             mIdOfLocation = ResponseSettings["stress_location"].GetInt();
             KRATOS_ERROR_IF(mIdOfLocation < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << mIdOfLocation << std::endl;
@@ -66,21 +66,21 @@ namespace Kratos
         ProcessInfo &r_current_precess_info = rModelPart.GetProcessInfo();
         Vector element_stress;
 
-        if(mStressTreatment == StressTreatment::mean || mStressTreatment == StressTreatment:: GP)
+        if(mStressTreatment == StressTreatment::Mean || mStressTreatment == StressTreatment:: GaussPoint)
             mpTracedElement->Calculate(STRESS_ON_GP, element_stress, r_current_precess_info);
         else
             mpTracedElement->Calculate(STRESS_ON_NODE, element_stress, r_current_precess_info);
 
         const SizeType stress_vec_size = element_stress.size();
 
-        if(mStressTreatment == StressTreatment::mean)
+        if(mStressTreatment == StressTreatment::Mean)
         {
             for(IndexType i = 0; i < stress_vec_size; ++i)
                 mStressValue += element_stress[i];
 
             mStressValue /= stress_vec_size;
         }
-        else if(mStressTreatment == StressTreatment::GP)
+        else if(mStressTreatment == StressTreatment::GaussPoint)
         {
             if(stress_vec_size >= mIdOfLocation)
                 mStressValue = element_stress[mIdOfLocation - 1];
@@ -88,7 +88,7 @@ namespace Kratos
                 KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                 stress_vec_size  << "!"<< std::endl;
         }
-        else if(mStressTreatment == StressTreatment::node)
+        else if(mStressTreatment == StressTreatment::Node)
         {
             const unsigned int num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
             if(num_ele_nodes >= mIdOfLocation)
@@ -117,7 +117,7 @@ namespace Kratos
         if(rAdjointElem.Id() == mIdOfTracedElement)
         {
             Matrix stress_displ_deriv;
-            if(mStressTreatment == StressTreatment::mean || mStressTreatment == StressTreatment::GP)
+            if(mStressTreatment == StressTreatment::Mean || mStressTreatment == StressTreatment::GaussPoint)
                 mpTracedElement->Calculate(STRESS_DISP_DERIV_ON_GP, stress_displ_deriv, rProcessInfo);
             else
                 mpTracedElement->Calculate(STRESS_DISP_DERIV_ON_NODE, stress_displ_deriv, rProcessInfo);
@@ -131,14 +131,14 @@ namespace Kratos
 
             for (IndexType dof_it = 0 ; dof_it < num_of_dofs; ++dof_it)
             {
-                if(mStressTreatment == StressTreatment::mean)
+                if(mStressTreatment == StressTreatment::Mean)
                 {
                     for(IndexType GP_it = 0; GP_it < num_of_deriv; ++GP_it)
                         stress_displ_deriv_value += stress_displ_deriv(dof_it, GP_it);
 
                     stress_displ_deriv_value /= num_of_deriv;
                 }
-                else if(mStressTreatment == StressTreatment::GP)
+                else if(mStressTreatment == StressTreatment::GaussPoint)
                 {
                     if(num_of_deriv >= mIdOfLocation)
                         stress_displ_deriv_value = stress_displ_deriv(dof_it, (mIdOfLocation-1));
@@ -146,7 +146,7 @@ namespace Kratos
                         KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                     num_of_deriv  << "!"<< std::endl;
                 }
-                else if(mStressTreatment == StressTreatment::node)
+                else if(mStressTreatment == StressTreatment::Node)
                 {
                     if(num_of_deriv >= mIdOfLocation)
                         stress_displ_deriv_value = stress_displ_deriv(dof_it, (mIdOfLocation-1));
@@ -176,7 +176,7 @@ namespace Kratos
             rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, rVariable.Name());
 
             Matrix stress_DV_deriv;
-            if(mStressTreatment == StressTreatment::mean || mStressTreatment == StressTreatment::GP)
+            if(mStressTreatment == StressTreatment::Mean || mStressTreatment == StressTreatment::GaussPoint)
                 rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_DV_deriv, rProcessInfo);
             else
                 rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_DV_deriv, rProcessInfo);
@@ -192,14 +192,14 @@ namespace Kratos
 
             for (IndexType dv_it = 0 ; dv_it < num_of_DV; ++dv_it)
             {
-                if(mStressTreatment == StressTreatment::mean)
+                if(mStressTreatment == StressTreatment::Mean)
                 {
                     for(IndexType GP_it = 0; GP_it < num_of_deriv; ++GP_it)
                         stress_DV_deriv_value += stress_DV_deriv(dv_it, GP_it);
 
                     stress_DV_deriv_value /= num_of_deriv;
                 }
-                else if(mStressTreatment == StressTreatment::GP)
+                else if(mStressTreatment == StressTreatment::GaussPoint)
                 {
                     if(num_of_deriv >= mIdOfLocation)
                         stress_DV_deriv_value = stress_DV_deriv(dv_it, (mIdOfLocation-1));
@@ -207,7 +207,7 @@ namespace Kratos
                         KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                     num_of_deriv  << "!"<< std::endl;
                 }
-                else if(mStressTreatment == StressTreatment::node)
+                else if(mStressTreatment == StressTreatment::Node)
                 {
                     if(num_of_deriv >= mIdOfLocation)
                         stress_DV_deriv_value = stress_DV_deriv(dv_it, (mIdOfLocation-1));
@@ -261,7 +261,7 @@ namespace Kratos
             rAdjointElem.SetValue(DESIGN_VARIABLE_NAME, rVariable.Name());
 
             Matrix stress_DV_deriv;
-            if(mStressTreatment == StressTreatment::mean || mStressTreatment == StressTreatment::GP)
+            if(mStressTreatment == StressTreatment::Mean || mStressTreatment == StressTreatment::GaussPoint)
                 rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_DV_deriv, rProcessInfo);
             else
                 rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_DV_deriv, rProcessInfo);
@@ -277,14 +277,14 @@ namespace Kratos
 
             for (IndexType dv_it = 0 ; dv_it < num_of_DV; ++dv_it)
             {
-                if(mStressTreatment == StressTreatment::mean)
+                if(mStressTreatment == StressTreatment::Mean)
                 {
                     for(IndexType GP_it = 0; GP_it < num_of_deriv; ++GP_it)
                         stress_DV_deriv_value += stress_DV_deriv(dv_it, GP_it);
 
                     stress_DV_deriv_value /= num_of_deriv;
                 }
-                else if(mStressTreatment == StressTreatment::GP)
+                else if(mStressTreatment == StressTreatment::GaussPoint)
                 {
                     if(num_of_deriv >= mIdOfLocation)
                         stress_DV_deriv_value = stress_DV_deriv(dv_it, (mIdOfLocation-1));
@@ -292,7 +292,7 @@ namespace Kratos
                         KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                     num_of_deriv  << "!"<< std::endl;
                 }
-                else if(mStressTreatment == StressTreatment::node)
+                else if(mStressTreatment == StressTreatment::Node)
                 {
                     if(num_of_deriv >= mIdOfLocation)
                         stress_DV_deriv_value = stress_DV_deriv(dv_it, (mIdOfLocation-1));
