@@ -399,7 +399,7 @@ public:
                         EqThrsholds[i], Slopes[i], rMaterialProperties);  
                     break;
 
-                case HardeningCurveType::PerfectPPlasticity:
+                case HardeningCurveType::PerfectPlasticity:
                     CalculateEqStressThresholdHardCurve4(PlasticDissipation, r0, r1,
                         EqThrsholds[i], Slopes[i], rMaterialProperties);  
                     break;

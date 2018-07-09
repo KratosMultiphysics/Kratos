@@ -268,6 +268,13 @@ private:
 
     friend class Serializer;
 
+    void save(Serializer& rSerializer) const
+    {
+    }
+
+    void load(Serializer& rSerializer)
+    {
+    }
 
     ///@}
 
