@@ -121,15 +121,15 @@ namespace Kratos
 
         if( rAdjointElem.Id() == mpNeighboringElement->Id() )
         {
-            DofsVectorType dofs_of_lement;
-            mpNeighboringElement->GetDofList(dofs_of_lement,rProcessInfo);
+            DofsVectorType dofs_of_element;
+            mpNeighboringElement->GetDofList(dofs_of_element,rProcessInfo);
 
             const VariableComponentType& r_traced_adjoint_dof =
                 KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDofLabel);
 
-            for(IndexType i = 0; i < dofs_of_lement.size(); ++i)
+            for(IndexType i = 0; i < dofs_of_element.size(); ++i)
             {
-                if(mpTracedNode->pGetDof(r_traced_adjoint_dof) == dofs_of_lement[i])
+                if(mpTracedNode->pGetDof(r_traced_adjoint_dof) == dofs_of_element[i])
                 {
                     rResponseGradient[i] = -1;
                 }
