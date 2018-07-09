@@ -71,11 +71,11 @@ namespace Kratos
         else
             mpTracedElement->Calculate(STRESS_ON_NODE, element_stress, r_current_precess_info);
 
-        int stress_vec_size = element_stress.size();
+        const SizeType stress_vec_size = element_stress.size();
 
         if(mStressTreatment == StressTreatment::mean)
         {
-            for(int i = 0; i < stress_vec_size; i++)
+            for(IndexType i = 0; i < stress_vec_size; ++i)
                 mStressValue += element_stress[i];
 
             mStressValue /= stress_vec_size;
@@ -90,7 +90,7 @@ namespace Kratos
         }
         else if(mStressTreatment == StressTreatment::node)
         {
-            const int num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
+            const unsigned int num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
             if(num_ele_nodes >= mIdOfLocation)
                 mStressValue = element_stress[mIdOfLocation - 1];
             else
@@ -122,18 +122,18 @@ namespace Kratos
             else
                 mpTracedElement->Calculate(STRESS_DISP_DERIV_ON_NODE, stress_displ_deriv, rProcessInfo);
 
-            int num_of_dofs = stress_displ_deriv.size1();
-            int num_of_deriv = stress_displ_deriv.size2();
+            const SizeType num_of_dofs = stress_displ_deriv.size1();
+            const SizeType num_of_deriv = stress_displ_deriv.size2();
             double stress_displ_deriv_value = 0.0;
 
             KRATOS_ERROR_IF(rResponseGradient.size() != stress_displ_deriv.size1())
                  << "Size of stress displacement derivative does not fit!" << std::endl;
 
-            for (int dof_it = 0 ; dof_it < num_of_dofs; dof_it++)
+            for (IndexType dof_it = 0 ; dof_it < num_of_dofs; ++dof_it)
             {
                 if(mStressTreatment == StressTreatment::mean)
                 {
-                    for(int GP_it = 0; GP_it < num_of_deriv; GP_it++)
+                    for(IndexType GP_it = 0; GP_it < num_of_deriv; ++GP_it)
                         stress_displ_deriv_value += stress_displ_deriv(dof_it, GP_it);
 
                     stress_displ_deriv_value /= num_of_deriv;
@@ -181,8 +181,8 @@ namespace Kratos
             else
                 rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_DV_deriv, rProcessInfo);
 
-            int num_of_DV = stress_DV_deriv.size1();
-            int num_of_deriv = stress_DV_deriv.size2();
+            const SizeType num_of_DV = stress_DV_deriv.size1();
+            const SizeType num_of_deriv = stress_DV_deriv.size2();
             double stress_DV_deriv_value = 0.0;
 
             if(rResponseGradient.size() != stress_DV_deriv.size1())
@@ -190,11 +190,11 @@ namespace Kratos
             KRATOS_ERROR_IF(rResponseGradient.size() != rDerivativesMatrix.size1())
                  << "Size of partial stress design variable derivative does not fit!" << std::endl;
 
-            for (int dv_it = 0 ; dv_it < num_of_DV; dv_it++)
+            for (IndexType dv_it = 0 ; dv_it < num_of_DV; ++dv_it)
             {
                 if(mStressTreatment == StressTreatment::mean)
                 {
-                    for(int GP_it = 0; GP_it < num_of_deriv; GP_it++)
+                    for(IndexType GP_it = 0; GP_it < num_of_deriv; ++GP_it)
                         stress_DV_deriv_value += stress_DV_deriv(dv_it, GP_it);
 
                     stress_DV_deriv_value /= num_of_deriv;
@@ -266,8 +266,8 @@ namespace Kratos
             else
                 rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_DV_deriv, rProcessInfo);
 
-            int num_of_DV = stress_DV_deriv.size1();
-            int num_of_deriv = stress_DV_deriv.size2();
+            const SizeType num_of_DV = stress_DV_deriv.size1();
+            const SizeType  num_of_deriv = stress_DV_deriv.size2();
             double stress_DV_deriv_value = 0.0;
 
             if(rResponseGradient.size() != stress_DV_deriv.size1())
@@ -275,11 +275,11 @@ namespace Kratos
             KRATOS_ERROR_IF(rResponseGradient.size() != rDerivativesMatrix.size1())
                 << "Size of partial stress design variable derivative does not fit!" << std::endl;
 
-            for (int dv_it = 0 ; dv_it < num_of_DV; dv_it++)
+            for (IndexType dv_it = 0 ; dv_it < num_of_DV; ++dv_it)
             {
                 if(mStressTreatment == StressTreatment::mean)
                 {
-                    for(int GP_it = 0; GP_it < num_of_deriv; GP_it++)
+                    for(IndexType GP_it = 0; GP_it < num_of_deriv; ++GP_it)
                         stress_DV_deriv_value += stress_DV_deriv(dv_it, GP_it);
 
                     stress_DV_deriv_value /= num_of_deriv;
