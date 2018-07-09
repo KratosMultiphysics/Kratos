@@ -117,23 +117,25 @@ public:
     TDataType
     ValueAt(
         const Variable<TDataType>& Variable,
-        const double& T)
+        const double& U,
+        const double& V)
     {
-        return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(Variable);
-        }, T);
+        return EvaluateAt<TDataType>([&](int i, int j) -> TDataType {
+            return Node(i, j)->GetValue(Variable);
+        }, U, V);
     }
     
     template <typename TDataType>
     std::vector<TDataType>
     ValueAt2( // FIXME use pybind overloading
         const Variable<TDataType>& Variable,
-        const double& T,
+        const double& U,
+        const double& V,
         const int& Order)
     {
-        return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(Variable);
-        }, T, Order);
+        return EvaluateAt<TDataType>([&](int i, int j) -> TDataType {
+            return Node(i, j)->GetValue(Variable);
+        }, U, V, Order);
     }
 };
 

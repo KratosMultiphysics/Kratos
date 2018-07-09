@@ -120,13 +120,16 @@ namespace Python
                 .def("SetWeight", &Type::SetWeight,
                     "Index"_a,
                     "Value"_a)
+                .def("Spans", &Type::Spans)
                 .def("PointAt", &Type::PointAt,
                     "T"_a)
-                .def("Spans", &Type::Spans)
+                .def("DerivativesAt", &Type::DerivativesAt,
+                    "T"_a,
+                    "Order"_a)
                 .def("ValueAt", &Type::ValueAt<double>,
                     "Variable"_a,
                     "T"_a)
-                .def("ValueAt2", &Type::ValueAt2<double>,
+                .def("ValueAt", &Type::ValueAt2<double>,
                     "Variable"_a,
                     "T"_a,
                     "Order"_a)
@@ -174,6 +177,19 @@ namespace Python
                 .def("PointAt", &Type::PointAt,
                     "U"_a,
                     "V"_a)
+                .def("DerivativesAt", &Type::DerivativesAt,
+                    "U"_a,
+                    "V"_a,
+                    "Order"_a)
+                .def("ValueAt", &Type::ValueAt<double>,
+                    "Variable"_a,
+                    "U"_a,
+                    "V"_a)
+                .def("ValueAt", &Type::ValueAt2<double>,
+                    "Variable"_a,
+                    "U"_a,
+                    "V"_a,
+                    "Order"_a)
             ;
         }
     }
