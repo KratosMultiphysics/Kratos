@@ -28,11 +28,6 @@ AdjointFiniteDifferenceCrBeamElement::~AdjointFiniteDifferenceCrBeamElement()
 {
 }
 
-Element::Pointer AdjointFiniteDifferenceCrBeamElement::Create(Element::Pointer pPrimalElement) const
-{
-    return Kratos::make_shared<AdjointFiniteDifferenceCrBeamElement>(pPrimalElement);
-}
-
 void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
                         const ProcessInfo& rCurrentProcessInfo)

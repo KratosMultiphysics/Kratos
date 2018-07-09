@@ -31,11 +31,6 @@ AdjointFiniteDifferencingBaseElement::AdjointFiniteDifferencingBaseElement(Eleme
 
 AdjointFiniteDifferencingBaseElement::~AdjointFiniteDifferencingBaseElement() {}
 
-Element::Pointer AdjointFiniteDifferencingBaseElement::Create(Element::Pointer pPrimalElement) const
-{
-    return Kratos::make_shared<AdjointFiniteDifferencingBaseElement>(pPrimalElement);
-}
-
 void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo)
 {

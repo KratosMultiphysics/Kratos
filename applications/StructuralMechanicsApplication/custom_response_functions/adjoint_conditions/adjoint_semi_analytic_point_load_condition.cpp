@@ -22,31 +22,14 @@
 
 namespace Kratos
 {
-    //******************************* CONSTRUCTOR ****************************************
-    //************************************************************************************
-
     AdjointSemiAnalyticPointLoadCondition::AdjointSemiAnalyticPointLoadCondition(Condition::Pointer pPrimalCondition )
         : AdjointSemiAnalyticBaseCondition(pPrimalCondition )
     {
     }
 
-    //********************************* CREATE *******************************************
-    //************************************************************************************
-
-    Condition::Pointer AdjointSemiAnalyticPointLoadCondition::Create(Condition::Pointer pPrimalCondition ) const
-    {
-        return Kratos::make_shared<AdjointSemiAnalyticPointLoadCondition>( pPrimalCondition );
-    }
-
-    //******************************* DESTRUCTOR *****************************************
-    //************************************************************************************
-
     AdjointSemiAnalyticPointLoadCondition::~AdjointSemiAnalyticPointLoadCondition()
     {
     }
-
-    //************************************************************************************
-    //************************************************************************************
 
     void AdjointSemiAnalyticPointLoadCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
     {
@@ -80,9 +63,6 @@ namespace Kratos
         }
         KRATOS_CATCH("")
     }
-
-    //***********************************************************************
-    //***********************************************************************
 
     void AdjointSemiAnalyticPointLoadCondition::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
     {
@@ -118,9 +98,6 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    //***********************************************************************
-    //***********************************************************************
-
     void AdjointSemiAnalyticPointLoadCondition::GetValuesVector(Vector& rValues, int Step)
     {
         const SizeType number_of_nodes = GetGeometry().size();
@@ -139,9 +116,6 @@ namespace Kratos
         }
     }
 
-    //************************************************************************************
-    //************************************************************************************
-
     void AdjointSemiAnalyticPointLoadCondition::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
@@ -152,9 +126,6 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-
-    //************************************************************************************
-    //************************************************************************************
 
     void AdjointSemiAnalyticPointLoadCondition::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
@@ -179,9 +150,6 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-
-    //***********************************************************************
-    //***********************************************************************
 
     int AdjointSemiAnalyticPointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
