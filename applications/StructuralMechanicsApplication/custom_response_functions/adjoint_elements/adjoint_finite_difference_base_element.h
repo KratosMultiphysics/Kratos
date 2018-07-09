@@ -422,9 +422,9 @@ private:
 
     const double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
 
-    virtual double GetDisturbanceMeasureCorrectionFactor(const Variable<double>& rVariable);
+    virtual double GetPerturbationSizeCorrectionFactor(const Variable<double>& rVariable);
 
-    virtual double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+    virtual double GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
 
     ///@}
 

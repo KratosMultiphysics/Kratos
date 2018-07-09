@@ -32,9 +32,9 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         self.shell_element.Initialize()
         self.adjoint_shell_element.Initialize()
 
-    def _create_shape_disturbed_elements(self,mp,delta):
+    def _create_shape_perturbed_elements(self,mp,delta):
         dim=3
-        self.model_part_1 = KratosMultiphysics.ModelPart("Shape_Disturbed_Elements")
+        self.model_part_1 = KratosMultiphysics.ModelPart("Shape_Perturbed_Elements")
         self._add_variables(self.model_part_1)
 
         x1 = mp.Nodes[1].X
@@ -81,9 +81,9 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
                 self._copy_solution_step_data_of_node(self.model_part_1.Nodes[index], self.model_part, i + 1, 0)
                 index += 1
 
-    def _create_property_disturbed_elements(self,mp,delta):
+    def _create_property_perturbed_elements(self,mp,delta):
         dim = 3
-        self.model_part_2 = KratosMultiphysics.ModelPart("Property_Disturbed_Elements")
+        self.model_part_2 = KratosMultiphysics.ModelPart("Property_Perturbed_Elements")
         self._add_variables(self.model_part_2)
         self.model_part_2.CreateNewNode(1, mp.Nodes[1].X, mp.Nodes[1].Y, mp.Nodes[1].Z)
         self.model_part_2.CreateNewNode(2, mp.Nodes[2].X, mp.Nodes[2].Y, mp.Nodes[2].Z)
@@ -95,12 +95,12 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
         prop = self.model_part_2.GetProperties()[0]
 
         self.model_part_2.CreateNewElement("ShellThinElement3D3N", 1, [1, 2, 3], prop)
-        self.property_disturbed_shell_element = self.model_part_2.GetElement(1)
+        self.property_perturbed_shell_element = self.model_part_2.GetElement(1)
 
         for i in range(3):
             self._copy_solution_step_data_of_node(self.model_part_2.Nodes[i+1], self.model_part, i+1, 0)
 
-        self.property_disturbed_shell_element.Initialize()
+        self.property_perturbed_shell_element.Initialize()
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -161,7 +161,7 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
             v[i] = 0.0
         return v
 
-    def _shape_disturbance_correction_factor(self):
+    def _shape_perturbation_correction_factor(self):
         dx = self.model_part.Nodes[1].X - self.model_part.Nodes[2].X
         dy = self.model_part.Nodes[1].Y - self.model_part.Nodes[2].Y
         dz = self.model_part.Nodes[1].Z - self.model_part.Nodes[2].Z
@@ -187,57 +187,57 @@ class TestShellThinAdjointElement3D3N(KratosUnittest.TestCase):
     def test_CalculateSensitivityMatrix_Shape(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
-        RHSUndisturbed = self._zero_vector(18)
+        RHSUnperturbed = self._zero_vector(18)
 
-        self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUndisturbed, self.model_part.ProcessInfo)
+        self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUnperturbed, self.model_part.ProcessInfo)
 
         # pseudo-load by finite difference approximation
         h = 0.000001
-        corr_factor = self._shape_disturbance_correction_factor()
+        corr_factor = self._shape_perturbation_correction_factor()
         alpha = corr_factor * h
 
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(9,18)
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
-        RHSDisturbed = self._zero_vector(18)
+        RHSPerturbed = self._zero_vector(18)
 
-        self._create_shape_disturbed_elements(self.model_part,alpha)
+        self._create_shape_perturbed_elements(self.model_part,alpha)
         row_index = 0
         for element in self.model_part_1.Elements:
-            element.CalculateLocalSystem(dummy_LHS, RHSDisturbed, self.model_part_1.ProcessInfo)
+            element.CalculateLocalSystem(dummy_LHS, RHSPerturbed, self.model_part_1.ProcessInfo)
             for j in range(18):
-                FDPseudoLoadMatrix[row_index,j] = (RHSDisturbed[j] - RHSUndisturbed[j]) / alpha
+                FDPseudoLoadMatrix[row_index,j] = (RHSPerturbed[j] - RHSUnperturbed[j]) / alpha
             row_index = row_index + 1
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(9,18)
-        self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
+        self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_shell_element.CalculateSensitivityMatrix(StructuralMechanicsApplication.SHAPE,PseudoLoadMatrix,self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
 
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
         dummy_LHS = KratosMultiphysics.Matrix(18,18)
-        RHSUndisturbed = self._zero_vector(18)
+        RHSUnperturbed = self._zero_vector(18)
 
-        self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUndisturbed, self.model_part.ProcessInfo)
+        self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUnperturbed, self.model_part.ProcessInfo)
 
         # pseudo-load by finite difference approximation
         h = 0.00001
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(1,18)
-        RHSDisturbed = self._zero_vector(18)
+        RHSPerturbed = self._zero_vector(18)
 
         inital_property_value = self.model_part.GetProperties()[0][KratosMultiphysics.THICKNESS]
         delta = h * inital_property_value
-        self._create_property_disturbed_elements(self.model_part,delta)
+        self._create_property_perturbed_elements(self.model_part,delta)
 
-        self.property_disturbed_shell_element.CalculateLocalSystem(dummy_LHS, RHSDisturbed, self.model_part_2.ProcessInfo)
+        self.property_perturbed_shell_element.CalculateLocalSystem(dummy_LHS, RHSPerturbed, self.model_part_2.ProcessInfo)
 
         for j in range(18):
-            FDPseudoLoadMatrix[0,j] = (RHSDisturbed[j] - RHSUndisturbed[j]) / delta
+            FDPseudoLoadMatrix[0,j] = (RHSPerturbed[j] - RHSUnperturbed[j]) / delta
 
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,18)
-        self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.DISTURBANCE_MEASURE, h)
+        self.adjoint_shell_element.SetValue(StructuralMechanicsApplication.PERTURBATION_SIZE, h)
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.THICKNESS, PseudoLoadMatrix, self.model_part.ProcessInfo)
         self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 7)
 

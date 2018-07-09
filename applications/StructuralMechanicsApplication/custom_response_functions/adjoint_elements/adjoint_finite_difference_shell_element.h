@@ -131,7 +131,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
+    double GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
     ///@}
     ///@}

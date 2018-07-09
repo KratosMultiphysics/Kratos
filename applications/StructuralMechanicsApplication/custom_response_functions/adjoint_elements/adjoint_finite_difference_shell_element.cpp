@@ -343,7 +343,7 @@ int AdjointFiniteDifferencingShellElement::Check(const ProcessInfo& rCurrentProc
 
 // private
 
-double AdjointFiniteDifferencingShellElement::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingShellElement::GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
 {
     KRATOS_TRY;
 

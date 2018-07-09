@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 
 
@@ -37,7 +37,7 @@ namespace Kratos
         this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, ResponseSettings["nodal_sensitivity_variables"]);
         this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, ResponseSettings["element_sensitivity_variables"]);
         this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, ResponseSettings["condition_sensitivity_variables"]);
-        
+
         // Set gradient mode
         const std::string gradient_mode = ResponseSettings["gradient_mode"].GetString();
 
@@ -65,7 +65,7 @@ namespace Kratos
       return mrModelPart;
     }
 
-    ModelPart& AdjointStructuralResponseFunction::GetModelPart() const 
+    ModelPart& AdjointStructuralResponseFunction::GetModelPart() const
     {
       return mrModelPart;
     }
@@ -87,8 +87,8 @@ namespace Kratos
 
     if(mGradientMode == 1)
     {
-        VariableUtils().SetNonHistoricalVariable(DISTURBANCE_MEASURE, mDelta, r_model_part.Elements());
-        VariableUtils().SetNonHistoricalVariable(DISTURBANCE_MEASURE, mDelta, r_model_part.Conditions());
+        VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, r_model_part.Elements());
+        VariableUtils().SetNonHistoricalVariable(PERTURBATION_SIZE, mDelta, r_model_part.Conditions());
     }
 
         KRATOS_CATCH("");
@@ -130,14 +130,14 @@ namespace Kratos
 
         // Set nodal sensitivity result variables to zero.
         for (const auto& variable_pair : mNodalSensitivityScalarVariables)
-            VariableUtils().SetToZero_ScalarVar(variable_pair[1], r_model_part.Nodes()); 
+            VariableUtils().SetToZero_ScalarVar(variable_pair[1], r_model_part.Nodes());
         for (const auto& variable_pair : mNodalSensitivityVectorVariables)
             VariableUtils().SetToZero_VectorVar(variable_pair[1], r_model_part.Nodes());
         // Set elemental sensitivity result variables to zero.
         for (const auto& variable_pair : mElementSensitivityScalarVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
+            for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i)
             {
                 ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
                 it->SetValue(variable_pair[1], variable_pair[1].Zero());
@@ -146,17 +146,17 @@ namespace Kratos
         for (const auto& variable_pair : mElementSensitivityVectorVariables)
         {
              #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
+            for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i)
             {
                 ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
                 it->SetValue(variable_pair[1], variable_pair[1].Zero());
-            }   
+            }
         }
         // Set conditional sensitivity result variables to zero.
         for (const auto& variable_pair : mConditionSensitivityScalarVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
+            for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i)
             {
                 ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
                 const unsigned int number_of_nodes = it->GetGeometry().size();
@@ -167,13 +167,13 @@ namespace Kratos
         for (const auto& variable_pair : mConditionSensitivityVectorVariables)
         {
             #pragma omp parallel for
-            for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
+            for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i)
             {
                 ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
                 const unsigned int number_of_nodes = it->GetGeometry().size();
                 for(unsigned int j = 0; j < number_of_nodes; ++j)
                     it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
-            }  
+            }
         }
 
         KRATOS_CATCH("");
@@ -251,7 +251,7 @@ namespace Kratos
             rResponseGradient.resize(rAdjointMatrix.size1(), false);
 
         rResponseGradient.clear();
-        
+
         KRATOS_CATCH("");
     }
 
@@ -327,7 +327,7 @@ namespace Kratos
 
         ModelPart& r_model_part = this->GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        const int num_threads = 1; 
+        const int num_threads = 1;
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
         std::vector<Vector> adjoint_vector(num_threads);
@@ -354,7 +354,7 @@ namespace Kratos
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
             if(sensitivity_matrix[k].size1() > 0)
-            {  
+            {
                 // This part of the sensitivity is computed from the objective
                 // with primal variables treated as constant.
                 this->CalculateSensitivityGradient(
@@ -372,10 +372,10 @@ namespace Kratos
                                 response_gradient[k]);
 
                 this->AssembleNodalSensitivityContribution(
-                    rOutputVariable, sensitivity_vector[k], r_geom); 
+                    rOutputVariable, sensitivity_vector[k], r_geom);
             }
         }
-    
+
         // Assemble condition contributions.
         for (ModelPart::ConditionIterator it = r_model_part.ConditionsBegin(); it != r_model_part.ConditionsEnd(); ++it)
         {
@@ -397,7 +397,7 @@ namespace Kratos
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
             if(sensitivity_matrix[k].size1() > 0)
-            {  
+            {
                 // This part of the sensitivity is computed from the objective
                 // with primal variables treated as constant.
                 this->CalculateSensitivityGradient(
@@ -413,7 +413,7 @@ namespace Kratos
                 // Compute the whole sensitivity
                 noalias(sensitivity_vector[k]) = (prod(sensitivity_matrix[k], adjoint_vector[k]) + response_gradient[k]);
 
-                this->AssembleNodalSensitivityContribution(rOutputVariable, sensitivity_vector[k], r_geom);	
+                this->AssembleNodalSensitivityContribution(rOutputVariable, sensitivity_vector[k], r_geom);
             }
         }
 
@@ -437,7 +437,7 @@ namespace Kratos
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
         #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i) 
+        for (int i = 0; i< static_cast<int> (r_model_part.Elements().size()); ++i)
         {
             const unsigned int k = OpenMPUtils::ThisThread();
             ElementsContainerType::iterator it = r_model_part.ElementsBegin() + i;
@@ -449,14 +449,14 @@ namespace Kratos
                     rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
                 if(sensitivity_matrix[k].size1() > 0)
-                {    
+                {
                     // This part of the sensitivity is computed from the objective
                     // with primal variables treated as constant.
                     this->CalculateSensitivityGradient(
                         *it, rSensitivityVariable, sensitivity_matrix[k],
                             response_gradient[k], r_process_info);
-                    
-                  
+
+
                     // Get the adjoint displacement field
                     it->GetValuesVector(adjoint_vector[k]);
 
@@ -468,10 +468,10 @@ namespace Kratos
                                     response_gradient[k]);
 
                     this->AssembleElementSensitivityContribution(
-                                rOutputVariable, sensitivity_vector[k], *it);		
+                                rOutputVariable, sensitivity_vector[k], *it);
                 }
             }
-            
+
         }
 
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
@@ -495,7 +495,7 @@ namespace Kratos
 
         //  Assemble condition contributions.
         #pragma omp parallel for
-        for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i) 
+        for (int i = 0; i< static_cast<int> (r_model_part.Conditions().size()); ++i)
         {
             const unsigned int k = OpenMPUtils::ThisThread();
             ConditionsContainerType::iterator it = r_model_part.ConditionsBegin() + i;
@@ -507,7 +507,7 @@ namespace Kratos
                     rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
                 if(sensitivity_matrix[k].size1() > 0)
-                {      
+                {
                     // This part of the sensitivity is computed from the objective
                     // with primal variables treated as constant.
                     this->CalculateSensitivityGradient(
@@ -526,7 +526,7 @@ namespace Kratos
 
                     Condition::GeometryType& r_geom = it->GetGeometry();
                     this->AssembleConditionSensitivityContribution(
-                                rOutputVariable, sensitivity_vector[k], r_geom); 
+                                rOutputVariable, sensitivity_vector[k], r_geom);
                 }
             }
         }
@@ -547,7 +547,7 @@ namespace Kratos
      * @param[out]    rResponseGradient  the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
-    void AdjointStructuralResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem, 
+    void AdjointStructuralResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -582,7 +582,7 @@ namespace Kratos
      * @param[out]    rResponseGradient  the gradient of the response function.
      * @param[in,out] rProcessInfo       the current process info.
      */
-    void AdjointStructuralResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem, 
+    void AdjointStructuralResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -595,7 +595,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointStructuralResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition, 
+    void AdjointStructuralResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
@@ -696,7 +696,7 @@ namespace Kratos
         }
     }
 
-    void AdjointStructuralResponseFunction::ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables, 
+    void AdjointStructuralResponseFunction::ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables,
         std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings)
     {
         for (unsigned int i = 0; i < DesignVariableSettings.size(); ++i)
@@ -711,39 +711,39 @@ namespace Kratos
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(variable_label);
 
-                helper_scalar_variables.push_back(r_variable); 
+                helper_scalar_variables.push_back(r_variable);
 
                 if (KratosComponents<Variable<double>>::Has(output_variable_label))
                 {
                     const Variable<double>& r_output_variable =
-                        KratosComponents<Variable<double>>::Get(output_variable_label); 
-                    helper_scalar_variables.push_back(r_output_variable); 
+                        KratosComponents<Variable<double>>::Get(output_variable_label);
+                    helper_scalar_variables.push_back(r_output_variable);
                 }
                 else
-                    KRATOS_ERROR << "Unsupported output variable: " << output_variable_label << "." << std::endl;  
+                    KRATOS_ERROR << "Unsupported output variable: " << output_variable_label << "." << std::endl;
 
-                rScalarDesignVariables.push_back(helper_scalar_variables);           
+                rScalarDesignVariables.push_back(helper_scalar_variables);
             }
             else if (KratosComponents<Variable<array_1d<double,3>>>::Has(variable_label))
             {
                 const Variable<array_1d<double, 3>>& r_variable =
                     KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_label);
 
-                helper_vector_variables.push_back(r_variable); 
+                helper_vector_variables.push_back(r_variable);
 
                 if (KratosComponents<Variable<array_1d<double,3>>>::Has(output_variable_label))
                 {
                     const Variable<array_1d<double, 3>>& r_output_variable =
-                        KratosComponents<Variable<array_1d<double, 3>>>::Get(output_variable_label); 
-                    helper_vector_variables.push_back(r_output_variable); 
-                }  
+                        KratosComponents<Variable<array_1d<double, 3>>>::Get(output_variable_label);
+                    helper_vector_variables.push_back(r_output_variable);
+                }
                 else
-                    KRATOS_ERROR << "Unsupported output variable: " << output_variable_label << "." << std::endl; 
+                    KRATOS_ERROR << "Unsupported output variable: " << output_variable_label << "." << std::endl;
 
-                rVectorDesignVariables.push_back(helper_vector_variables);      
+                rVectorDesignVariables.push_back(helper_vector_variables);
             }
             else
-                KRATOS_ERROR << "Unsupported variable: " << variable_label << "." << std::endl;  
+                KRATOS_ERROR << "Unsupported variable: " << variable_label << "." << std::endl;
         }
     }
 
