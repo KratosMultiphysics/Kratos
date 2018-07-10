@@ -288,23 +288,43 @@ namespace Kratos {
 	this->InitializeSolutionStep();
 	for(unsigned int it = 0; it < maxNonLinearIterations; ++it)
 	  {
-	    this->ResetNodalVariables();//zero to nodal area and shape functions derivative
-	    this->ComputeNodalVolume();
-	    this->InitializeNonLinearIterations();
-	    this->CalcNodalStrainsAndStresses();
 	  
 	    if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
 	      std::cout << "----- > iteration: " << it << std::endl;
-	     	      
-	      if( fixedTimeStep==false){
-		continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
-	      }
 
-	      momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations,fixedTimeStep);
-	      /* this->PrintVectors(); */
-	      this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
+	    if(it==0){
+	      this->ResetNodalVariables();//zero to nodal area and shape functions derivative
+	      this->ComputeNodalVolume();
+	      this->InitializeNonLinearIterations();
+	      this->CalcNodalStrainsAndStresses();
+	    }else{
+	      this->CalcNodalStrainsAndStresses();
+	    }
+	    
+	    /* this->ResetNodalVariables();//zero to nodal area and shape functions derivative */
+	    /* this->ComputeNodalVolume(); */
+	    /* this->InitializeNonLinearIterations(); */
+	    /* this->CalcNodalStrainsAndStressesForMomentum(); */
+	    
+	    /* if( fixedTimeStep==false){ */
+	    /*   continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations); */
+	    /* } */
+	    /* this->PrintVectors(); */
+	    
+	    momentumConverged = this->SolveMomentumIteration(it,maxNonLinearIterations,fixedTimeStep);
 
+	    this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
+	    this->ResetNodalVariables();//zero to nodal area and shape functions derivative
+	    this->ComputeNodalVolume();
+	    this->InitializeNonLinearIterations();
+	    /* this->CalcNodalStrainsAndStresses(); */
+	    this->CalcNodalStrains();
+	    	     	      
+	    if( fixedTimeStep==false){
+	      continuityConverged = this->SolveContinuityIteration(it,maxNonLinearIterations);
+	    }
+		
 	    if(it==maxNonLinearIterations-1 || ((continuityConverged && momentumConverged) && it>2)){
 	      this->UpdateStressStrain();
 	    }
@@ -341,19 +361,11 @@ namespace Kratos {
       void Initialize() override
       {
 	std::cout << "                 Initialize!!! " << std::endl;
+
 	ModelPart& rModelPart = BaseType::GetModelPart();
-	ElementsArrayType& pElements       = rModelPart.Elements();
 	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	unsigned int sizeStrains=3*(dimension-1);
 
-#ifdef _OPENMP
-	int number_of_threads = omp_get_max_threads();
-#else
-	int number_of_threads = 1;
-#endif
-
-	vector<unsigned int> element_partition;
-	OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
 #pragma omp parallel
 	{
@@ -367,7 +379,6 @@ namespace Kratos {
 	      unsigned int neighbourNodes=neighb_nodes.size();
 	      unsigned int sizeSDFNeigh=neighbourNodes*dimension;
 	      if(itNode->SolutionStepsDataHas(NODAL_CAUCHY_STRESS)){
-		std::cout<<itNode->Id()<<" THIS node has NODAL_CAUCHY_STRESS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 		Vector& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
 		if(rNodalStress.size() != sizeStrains)
 		  rNodalStress.resize(sizeStrains,false);
@@ -383,10 +394,10 @@ namespace Kratos {
 	      }else{
 		std::cout<<"THIS node does not have NODAL_DEVIATORIC_CAUCHY_STRESS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
-	      if(itNode->SolutionStepsDataHas(NODAL_AREA)){
-		itNode->FastGetSolutionStepValue(NODAL_AREA)=0;
+	      if(itNode->SolutionStepsDataHas(NODAL_VOLUME)){
+		itNode->FastGetSolutionStepValue(NODAL_VOLUME)=0;
 	      }else{
-		std::cout<<"THIS node does not have NODAL_AREA... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
+		std::cout<<"THIS node does not have NODAL_VOLUME... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
 	      if(itNode->SolutionStepsDataHas(NODAL_MEAN_MESH_SIZE)){
 		itNode->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE)=0;
@@ -427,6 +438,10 @@ namespace Kratos {
 		if(rFgrad.size1() != dimension)
 		  rFgrad.resize(dimension,dimension,false);
 		noalias(rFgrad)=ZeroMatrix(dimension,dimension);
+		for (unsigned int k = 0; k< dimension; k++)
+		  {
+		    rFgrad(k,k)=1.0;
+		  }
 	      }else{
 		std::cout<<"THIS node does not have NODAL_DEFORMATION_GRAD... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
@@ -450,6 +465,7 @@ namespace Kratos {
       void ComputeNodalVolume()
       {
 	std::cout << "ComputeNodalVolume: " << std::endl;
+
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	ElementsArrayType& pElements       = rModelPart.Elements();
 	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -484,11 +500,11 @@ namespace Kratos {
 	      for (unsigned int i = 0; i <geometry.size(); i++)
 		{
 		  // index = i*dimension;
-		  if(geometry(i)->SolutionStepsDataHas(NODAL_AREA)){
-		    double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_AREA);
+		  if(geometry(i)->SolutionStepsDataHas(NODAL_VOLUME)){
+		    double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_VOLUME);
 		    mass+=elementalVolume;
 		  }else{
-		    std::cout<<"THIS node does not have NODAL_AREA... "<<geometry(i)->X()<<" "<<geometry(i)->Y()<<std::endl;
+		    std::cout<<"THIS node does not have NODAL_VOLUME... "<<geometry(i)->X()<<" "<<geometry(i)->Y()<<std::endl;
 		  }
 		}
 
@@ -504,6 +520,7 @@ namespace Kratos {
    
       void FillNodalSFDVector()
       {
+
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	
 #pragma omp parallel
@@ -514,6 +531,12 @@ namespace Kratos {
 
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
+
+	      if(itNode->Is(FLUID) && itNode->IsNot(SOLID)){
+		unsigned int idNode=itNode->Id();
+		InitializeNodalVariablesForRemeshedDomain(idNode);
+	      }
+	      
 	      WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      unsigned int neighbourNodes=neighb_nodes.size()+1;
 	      if(itNode->SolutionStepsDataHas(NODAL_SFD_NEIGHBOURS_ORDER)){
@@ -538,6 +561,7 @@ namespace Kratos {
 
       void PrintVectors()
       {
+
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	
 #pragma omp parallel
@@ -550,20 +574,19 @@ namespace Kratos {
 	    {
 	      std::cout<<"THIS node "<<itNode->Id()<<" x="<<itNode->X()<<" y="<<itNode->Y();
 	      std::cout<<"has neigh "<<itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER)<<std::endl;
-	      /* std::cout<<"has common neigh "<<itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_COMMON_ELEMENTS)<<std::endl; */
-	      std::cout<<"has common volume "<<itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VOLUME_COMMON_ELEMENTS)<<std::endl;
+	      std::cout<<"has area "<<itNode->FastGetSolutionStepValue(NODAL_VOLUME)<<std::endl;
+	      std::cout<<"has h "<<itNode->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE)<<std::endl;
 	      std::cout<<"and shape derivatives "<<itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS)<<std::endl;
 	      std::cout<<"\n ";
-	      
 	    }
 	}
       }
 
 
 
-	    
       void ResetNodalVariables()
       {
+
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	unsigned int sizeStrains=3*(dimension-1);
@@ -579,10 +602,10 @@ namespace Kratos {
 	      WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      unsigned int neighbourNodes=neighb_nodes.size()+1;
 	      unsigned int sizeSDFNeigh=neighbourNodes*dimension;
-	      if(itNode->SolutionStepsDataHas(NODAL_AREA)){
-		itNode->FastGetSolutionStepValue(NODAL_AREA)=0;
+	      if(itNode->SolutionStepsDataHas(NODAL_VOLUME)){
+		itNode->FastGetSolutionStepValue(NODAL_VOLUME)=0;
 	      }else{
-		std::cout<<"THIS node does not have NODAL_AREA... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
+		std::cout<<"THIS node does not have NODAL_VOLUME... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
 	      if(itNode->SolutionStepsDataHas(NODAL_MEAN_MESH_SIZE)){
 		itNode->FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE)=0;
@@ -594,14 +617,6 @@ namespace Kratos {
 	      }else{
 		std::cout<<"THIS node does not have NODAL_FREESURFACE_AREA... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
-	      /* if(itNode->SolutionStepsDataHas(NODAL_SHAPE_FUNCTION_DERIVATIVE)){ */
-	      /* 	Vector& rShapeFunctions=itNode->FastGetSolutionStepValue(NODAL_SHAPE_FUNCTION_DERIVATIVE); */
-	      /* 	if(rShapeFunctions.size() != dimension) */
-	      /* 	  rShapeFunctions.resize(dimension,false); */
-	      /* 	noalias(rShapeFunctions)=ZeroVector(dimension); */
-	      /* }else{ */
-	      /* 	std::cout<<"THIS node does not have NODAL_SHAPE_FUNCTION_DERIVATIVE... "<<itNode->X()<<" "<<itNode->Y()<<std::endl; */
-	      /* } */
 	      if(itNode->SolutionStepsDataHas(NODAL_SFD_NEIGHBOURS)){
 		Vector& rNodalSFDneighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
 		if(rNodalSFDneighbours.size() != sizeSDFNeigh)
@@ -610,31 +625,6 @@ namespace Kratos {
 	      }else{
 		std::cout<<"THIS node does not have NODAL_SFD_NEIGHBOURS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
-	      /* if(itNode->SolutionStepsDataHas(NODAL_SFD_NEIGHBOURS_COMMON_ELEMENTS)){ */
-	      /* 	Vector& rNodeOrderedNeighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_COMMON_ELEMENTS); */
-	      /* 	if(rNodeOrderedNeighbours.size() != neighbourNodes) */
-	      /* 	  rNodeOrderedNeighbours.resize(neighbourNodes,false); */
-	      /* 	noalias(rNodeOrderedNeighbours)=ZeroVector(neighbourNodes); */
-	      /* }else{ */
-	      /* 	std::cout<<"THIS node does not have NODAL_SFD_NEIGHBOURS_COMMON_ELEMENTS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl; */
-	      /* } */
-	      if(itNode->SolutionStepsDataHas(NODAL_SFD_NEIGHBOURS_VOLUME_COMMON_ELEMENTS)){
-	      	Vector& rVolumeCommonElements=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_VOLUME_COMMON_ELEMENTS);
-	      	if(rVolumeCommonElements.size() != neighbourNodes)
-	      	  rVolumeCommonElements.resize(neighbourNodes,false);
-	      	noalias(rVolumeCommonElements)=ZeroVector(neighbourNodes);
-	      }else{
-	      	std::cout<<"THIS node does not have NODAL_SFD_NEIGHBOURS_VOLUME_COMMON_ELEMENTS... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
-	      }
-	      /* unsigned int sizeDim=dimension+1; */
-	      /* if(itNode->SolutionStepsDataHas(SHAPE_FUNCTION_DERIVATIVE)){ */
-	      /* 	Matrix& rShapeFunctions=itNode->FastGetSolutionStepValue(SHAPE_FUNCTION_DERIVATIVE); */
-	      /* 	if(rShapeFunctions.size1() != sizeDim) */
-	      /* 	  rShapeFunctions.resize(sizeDim,dimension,false); */
-	      /* 	noalias(rShapeFunctions)=ZeroMatrix(sizeDim,dimension); */
-	      /* }else{ */
-	      /* 	std::cout<<"THIS node does not have SHAPE_FUNCTION_DERIVATIVE... "<<itNode->X()<<" "<<itNode->Y()<<std::endl; */
-	      /* } */
 	      if(itNode->SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE)){
 		Vector& rSpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
 		if(rSpatialDefRate.size() != sizeStrains)
@@ -661,6 +651,10 @@ namespace Kratos {
 		if(rFgrad.size1() != dimension)
 		  rFgrad.resize(dimension,dimension,false);
 		noalias(rFgrad)=ZeroMatrix(dimension,dimension);
+		for (unsigned int k = 0; k< dimension; k++)
+		  {
+		    rFgrad(k,k)=1.0;
+		  }
 	      }else{
 		std::cout<<"THIS node does not have NODAL_DEFORMATION_GRAD... "<<itNode->X()<<" "<<itNode->Y()<<std::endl;
 	      }
@@ -676,11 +670,106 @@ namespace Kratos {
 	}
       }
 
+      
+      void InitializeNodalVariablesForRemeshedDomain(unsigned int idNode)
+      {
+
+	ModelPart& rModelPart = BaseType::GetModelPart();
+	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+	unsigned int sizeStrains=3*(dimension-1);
+	WeakPointerVector< Node < 3 > >& neighb_nodes = rModelPart.Nodes()[idNode].GetValue(NEIGHBOUR_NODES);
+	unsigned int neighbourNodes=neighb_nodes.size()+1;
+	unsigned int sizeSDFNeigh=neighbourNodes*dimension;
+
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_CAUCHY_STRESS)){
+	  Vector& rNodalStress = rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS);
+	  if(rNodalStress.size() != sizeStrains)
+	    rNodalStress.resize(sizeStrains,false);
+	  noalias(rNodalStress) = ZeroVector(sizeStrains);
+	}else{
+	  std::cout<<"THIS node does not have NODAL_CAUCHY_STRESS... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_DEVIATORIC_CAUCHY_STRESS)){
+	  Vector& rNodalStress = rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS);
+	  if(rNodalStress.size() != sizeStrains)
+	    rNodalStress.resize(sizeStrains,false);
+	  noalias(rNodalStress) = ZeroVector(sizeStrains);
+	}else{
+	  std::cout<<"THIS node does not have NODAL_DEVIATORIC_CAUCHY_STRESS... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_VOLUME)){
+	  rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_VOLUME)=0;
+	}else{
+	  std::cout<<"THIS node does not have NODAL_VOLUME... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_MEAN_MESH_SIZE)){
+	  rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_MEAN_MESH_SIZE)=0;
+	}else{
+	  std::cout<<"THIS node does not have NODAL_MEAN_MESH_SIZE... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_FREESURFACE_AREA)){
+	  rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_FREESURFACE_AREA)=0;
+	}else{
+	  std::cout<<"THIS node does not have NODAL_FREESURFACE_AREA... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_SFD_NEIGHBOURS)){
+	  Vector& rNodalSFDneighbours=rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
+	  if(rNodalSFDneighbours.size() != sizeSDFNeigh)
+	    rNodalSFDneighbours.resize(sizeSDFNeigh,false);
+	  noalias(rNodalSFDneighbours)=ZeroVector(sizeSDFNeigh);
+	}else{
+	  std::cout<<"THIS node does not have NODAL_SFD_NEIGHBOURS... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE)){
+	  Vector& rSpatialDefRate=rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
+	  if(rSpatialDefRate.size() != sizeStrains)
+	    rSpatialDefRate.resize(sizeStrains,false);
+	  noalias(rSpatialDefRate)=ZeroVector(sizeStrains);
+	}else{
+	  std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_VOLUMETRIC_DEF_RATE)){
+	  rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=0;
+	}else{
+	  std::cout<<"THIS node does not have NODAL_VOLUMETRIC_DEF_RATE... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_SPATIAL_DEF_RATE_BIS)){
+	  Vector& rSpatialDefRate=rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS);
+	  if(rSpatialDefRate.size() != sizeStrains)
+	    rSpatialDefRate.resize(sizeStrains,false);
+	  noalias(rSpatialDefRate)=ZeroVector(sizeStrains);
+	}else{
+	  std::cout<<"THIS node does not have NODAL_SPATIAL_DEF_RATE_BIS... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_DEFORMATION_GRAD)){
+	  Matrix& rFgrad=rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
+	  if(rFgrad.size1() != dimension)
+	    rFgrad.resize(dimension,dimension,false);
+	  noalias(rFgrad)=ZeroMatrix(dimension,dimension);
+	  for (unsigned int k = 0; k< dimension; k++)
+	    {
+	      rFgrad(k,k)=1.0;
+	    }
+	}else{
+	  std::cout<<"THIS node does not have NODAL_DEFORMATION_GRAD... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+	if(rModelPart.Nodes()[idNode].SolutionStepsDataHas(NODAL_DEFORMATION_GRAD_VEL)){
+	  Matrix& rFgradVel=rModelPart.Nodes()[idNode].FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
+	  if(rFgradVel.size1() != dimension)
+	    rFgradVel.resize(dimension,dimension,false);
+	  noalias(rFgradVel)=ZeroMatrix(dimension,dimension);
+	}else{
+	  std::cout<<"THIS node does not have NODAL_DEFORMATION_GRAD_VEL... "<<rModelPart.Nodes()[idNode].X()<<" "<<rModelPart.Nodes()[idNode].Y()<<std::endl;
+	}
+
+      }
+
 
 	
     void InitializeNonLinearIterations()
     {
       std::cout << "InitializeNonLinearIterations: " << std::endl;
+
       ModelPart& rModelPart = BaseType::GetModelPart();
       ElementsArrayType& pElements       = rModelPart.Elements();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -714,11 +803,14 @@ namespace Kratos {
 
 
 
+      
   void CalcNodalStrainsAndStresses()
   {
 
     std::cout << "Calc Nodal Strains And Stresses " << std::endl;
+
     ModelPart& rModelPart = BaseType::GetModelPart();
+
     const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
     const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
@@ -732,84 +824,87 @@ namespace Kratos {
 	{
 
 	  if(itNode->Is(SOLID) || itNode->Is(FLUID)){
-	    
+   
 	    Vector nodalSFDneighboursId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+	    double nodalVolume=itNode->FastGetSolutionStepValue(NODAL_VOLUME);
+	    if(nodalVolume>0){
+	      double deviatoricCoeff=0;
+	      double volumetricCoeff=0;
+	      if(itNode->Is(SOLID)){
+		double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
+		double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
+		deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
+		volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
+	      }else if(itNode->Is(FLUID)){
+		deviatoricCoeff = itNode->FastGetSolutionStepValue(VISCOSITY);
+		volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
+	      }
+	      double currFirstLame=volumetricCoeff - 2.0*deviatoricCoeff/3.0;
+
+	      Vector& rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
 	    
-	    double deviatoricCoeff=0;
-	    double volumetricCoeff=0;
-	    if(itNode->Is(SOLID)){
-	      double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
-	      double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
-	      deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
-	      volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
-	    }else if(itNode->Is(FLUID)){
-	      deviatoricCoeff = itNode->FastGetSolutionStepValue(VISCOSITY);
-	      volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-	    }
-	    double currFirstLame=volumetricCoeff - 2.0*deviatoricCoeff/3.0;
-
-	    Vector& rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
-	    this->ComputeAndStoreNodalDeformationGradient(nodalSFDneighboursId, rNodalSFDneigh);
+	      double theta=0.5;
+	      if(itNode->Is(SOLID)){
+		theta=1.0;
+	      }
+	      this->ComputeAndStoreNodalDeformationGradient(nodalSFDneighboursId, rNodalSFDneigh,theta);
 	  
-	    Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
-	    Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
-	    double detFgrad=1.0;
-	    Matrix InvFgrad=ZeroMatrix(dimension,dimension);
-	    Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
-	    //Inverse
+	      Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
+	      Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
+	      double detFgrad=1.0;
+	      Matrix InvFgrad=ZeroMatrix(dimension,dimension);
+	      Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
+	      //Inverse
 
-
-	    MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad);
+	      MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad);
 	  
-	    //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
-	    SpatialVelocityGrad=prod(FgradVel,InvFgrad);
+	      //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+	      SpatialVelocityGrad=prod(FgradVel,InvFgrad);
 
-	  
-	    if(dimension==2){
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
-	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+	      if(dimension==2){
+		itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
+		itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
+		itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+	 
+		double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[0];
+		double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[1];
+		double DefXY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[2];
 
-	      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[0];
-	      double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[1];
-	      double DefXY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[2];
+		DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+		DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+		DefXY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
 
-	      DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
-	      DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
-	      DefXY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
-
-	      double DefVol=DefX+DefY;
+		double DefVol=DefX+DefY;
 	      
-	      itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
+		itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
 
-  
-	      double nodalSigmaTot_xx= currFirstLame*DefVol + 2.0*deviatoricCoeff*DefX;
-	      double nodalSigmaTot_yy= currFirstLame*DefVol + 2.0*deviatoricCoeff*DefY;
-	      double nodalSigmaTot_xy= 2.0*deviatoricCoeff*DefXY;
+		double nodalSigmaTot_xx= currFirstLame*DefVol + 2.0*deviatoricCoeff*DefX;
+		double nodalSigmaTot_yy= currFirstLame*DefVol + 2.0*deviatoricCoeff*DefY;
+		double nodalSigmaTot_xy= 2.0*deviatoricCoeff*DefXY;
 
-	      double nodalSigmaDev_xx= 2.0*deviatoricCoeff*(DefX - DefVol/3.0);
-	      double nodalSigmaDev_yy= 2.0*deviatoricCoeff*(DefY - DefVol/3.0);
-	      double nodalSigmaDev_xy= 2.0*deviatoricCoeff*DefXY;
-	    
-	      nodalSigmaTot_xx+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[0];
-	      nodalSigmaTot_yy+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[1];
-	      nodalSigmaTot_xy+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[2];
-	    
-	      nodalSigmaDev_xx+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
-	      nodalSigmaDev_yy+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
-	      nodalSigmaDev_xy+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
+		double nodalSigmaDev_xx= 2.0*deviatoricCoeff*(DefX - DefVol/3.0);
+		double nodalSigmaDev_yy= 2.0*deviatoricCoeff*(DefY - DefVol/3.0);
+		double nodalSigmaDev_xy= 2.0*deviatoricCoeff*DefXY;
+		
+		if(itNode->Is(SOLID)){
+		  nodalSigmaTot_xx+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[0];
+		  nodalSigmaTot_yy+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[1];
+		  nodalSigmaTot_xy+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[2];
+
+		  nodalSigmaDev_xx+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
+		  nodalSigmaDev_yy+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
+		  nodalSigmaDev_xy+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
+		}
  
-	      itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
-	      itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
-	      itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_xy;
+		itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
+		itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
+		itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_xy;
 
-	      itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
-	      itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
-	      itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_xy;
+		itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[0]=nodalSigmaDev_xx;
+		itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[1]=nodalSigmaDev_yy;
+		itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[2]=nodalSigmaDev_xy;
 	    
-	    }else if (dimension==3){
-
-	      if(itNode->SolutionStepsDataHas(NODAL_CAUCHY_STRESS)){
+	      }else if (dimension==3){
 	   
 		itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
 		itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
@@ -838,25 +933,27 @@ namespace Kratos {
 
 		double nodalSigmaDev_xx= 2.0*deviatoricCoeff*(DefX - DefVol/3.0);
 		double nodalSigmaDev_yy= 2.0*deviatoricCoeff*(DefY - DefVol/3.0);
-		double nodalSigmaDev_zz= 2.0*deviatoricCoeff*(DefY - DefVol/3.0);
+		double nodalSigmaDev_zz= 2.0*deviatoricCoeff*(DefZ - DefVol/3.0);
 		double nodalSigmaDev_xy= 2.0*deviatoricCoeff*DefXY;
 		double nodalSigmaDev_xz= 2.0*deviatoricCoeff*DefXZ;
 		double nodalSigmaDev_yz= 2.0*deviatoricCoeff*DefYZ;
-	    
-		nodalSigmaTot_xx+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[0];
-		nodalSigmaTot_yy+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[1];
-		nodalSigmaTot_zz+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[2];
-		nodalSigmaTot_xy+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[3];
-		nodalSigmaTot_xz+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[4];
-		nodalSigmaTot_yz+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[5];  
 
-		nodalSigmaDev_xx+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
-		nodalSigmaDev_yy+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
-		nodalSigmaDev_zz+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
-		nodalSigmaDev_xy+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[3];
-		nodalSigmaDev_xz+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[4];
-		nodalSigmaDev_yz+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[5];
+		if(itNode->Is(SOLID)){
+		  nodalSigmaTot_xx+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[0];
+		  nodalSigmaTot_yy+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[1];
+		  nodalSigmaTot_zz+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[2];
+		  nodalSigmaTot_xy+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[3];
+		  nodalSigmaTot_xz+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[4];
+		  nodalSigmaTot_yz+=itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,1)[5];  
 
+		  nodalSigmaDev_xx+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[0];
+		  nodalSigmaDev_yy+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[1];
+		  nodalSigmaDev_zz+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[2];
+		  nodalSigmaDev_xy+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[3];
+		  nodalSigmaDev_xz+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[4];
+		  nodalSigmaDev_yz+=itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,1)[5];
+		}
+		  
 		itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[0]=nodalSigmaTot_xx;
 		itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[1]=nodalSigmaTot_yy;
 		itNode->GetSolutionStepValue(NODAL_CAUCHY_STRESS,0)[2]=nodalSigmaTot_zz;
@@ -870,7 +967,97 @@ namespace Kratos {
 		itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[3]=nodalSigmaDev_xy;
 		itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[4]=nodalSigmaDev_xz;
 		itNode->GetSolutionStepValue(NODAL_DEVIATORIC_CAUCHY_STRESS,0)[5]=nodalSigmaDev_yz;
+	
 	      }
+	    }
+	    else{
+	      unsigned int  idNode=itNode->Id();
+	      InitializeNodalVariablesForRemeshedDomain(idNode);
+	     
+	    }
+	  }
+
+	}
+    }
+
+    std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl;
+
+  }
+
+
+      
+  void CalcNodalStrains()
+  {
+
+    std::cout << "Calc Nodal Strains  " << std::endl;
+    ModelPart& rModelPart = BaseType::GetModelPart();
+
+    const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+
+#pragma omp parallel
+    {
+      ModelPart::NodeIterator NodesBegin;
+      ModelPart::NodeIterator NodesEnd;
+      OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+      for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+	{
+
+	  if(itNode->Is(SOLID) || itNode->Is(FLUID)){
+   
+	    Vector nodalSFDneighboursId=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
+
+	    Vector& rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
+	    double theta=1.0;
+	    this->ComputeAndStoreNodalDeformationGradient(nodalSFDneighboursId, rNodalSFDneigh,theta);
+	  
+	    Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
+	    Matrix FgradVel=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD_VEL);
+	    double detFgrad=1.0;
+	    Matrix InvFgrad=ZeroMatrix(dimension,dimension);
+	    Matrix SpatialVelocityGrad=ZeroMatrix(dimension,dimension);
+	    //Inverse
+
+	    
+	    MathUtils<double>::InvertMatrix(Fgrad,InvFgrad,detFgrad);
+	  
+	    //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+	    SpatialVelocityGrad=prod(FgradVel,InvFgrad);
+
+	    if(dimension==2){
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+	 
+	      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[0];
+	      double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE_BIS)[1];
+
+	      DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+	      DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+
+	      double DefVol=DefX+DefY;
+	      
+	      itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
+
+	    
+	    }else if (dimension==3){
+
+	   
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0]=SpatialVelocityGrad(0,0);
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1]=SpatialVelocityGrad(1,1);
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2]=SpatialVelocityGrad(2,2);
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[3]=0.5*(SpatialVelocityGrad(1,0)+SpatialVelocityGrad(0,1));
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[4]=0.5*(SpatialVelocityGrad(2,0)+SpatialVelocityGrad(0,2));
+	      itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[5]=0.5*(SpatialVelocityGrad(2,1)+SpatialVelocityGrad(1,2));
+
+	      double DefX=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[0];
+	      double DefY=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[1];
+	      double DefZ=itNode->GetSolutionStepValue(NODAL_SPATIAL_DEF_RATE)[2];
+
+	      double DefVol=DefX+DefY+DefZ;
+
+	      itNode->GetSolutionStepValue(NODAL_VOLUMETRIC_DEF_RATE)=DefVol;
+	    
 	    }
 
 	  }
@@ -880,24 +1067,21 @@ namespace Kratos {
 
     std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl;
 
-  } 
+  }
 
 
 
-
-  void ComputeAndStoreNodalDeformationGradient(Vector nodalSFDneighboursId, Vector rNodalSFDneigh){
+  void ComputeAndStoreNodalDeformationGradient(Vector nodalSFDneighboursId, Vector rNodalSFDneigh, double theta){
     
     KRATOS_TRY;
+
     ModelPart& rModelPart = BaseType::GetModelPart();
     const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     unsigned int idThisNode=nodalSFDneighboursId[0];
     const unsigned int neighSize = nodalSFDneighboursId.size();
     Matrix newFgrad=ZeroMatrix(dimension,dimension);
     Matrix newFgradVel=ZeroMatrix(dimension,dimension);
-    double theta=1.0;
-    if(rModelPart.Nodes()[idThisNode].IsNot(SOLID)){
-      theta=1.0;
-    }
+
     if(dimension==2){
       unsigned int firstRow=0;
 
