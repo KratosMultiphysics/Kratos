@@ -178,17 +178,23 @@ private:
     ///@name Private Operations
     ///@{
 
+    double CalculateMeanElementStress(ModelPart& rModelPart);
+
+    double CalculateGaussPointStress(ModelPart& rModelPart);
+
+    double CalculateNodeStress(ModelPart& rModelPart);
+
     void CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,
                                       const std::string& rVariableName,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
-                                      ProcessInfo& rProcessInfo);   
+                                      ProcessInfo& rProcessInfo);
 
-    void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);   
+    void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
-    void ExtractNodeStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);  
+    void ExtractNodeStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
-    void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);                                   
+    void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
     ///@}
     ///@name Private  Access

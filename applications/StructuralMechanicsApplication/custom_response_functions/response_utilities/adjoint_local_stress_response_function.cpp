@@ -50,43 +50,12 @@ namespace Kratos
 
         double stress_value = 0.0;
 
-        // Working variables
-        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
-        Vector element_stress;
-
-        if(mStressTreatment == StressTreatment::Mean || mStressTreatment == StressTreatment::GaussPoint)
-            mpTracedElement->Calculate(STRESS_ON_GP, element_stress, r_current_process_info);
-        else
-            mpTracedElement->Calculate(STRESS_ON_NODE, element_stress, r_current_process_info);
-
-        const SizeType stress_vec_size = element_stress.size();
-
         if(mStressTreatment == StressTreatment::Mean)
-        {
-            for(IndexType i = 0; i < stress_vec_size; ++i)
-                stress_value += element_stress[i];
-
-            stress_value /= stress_vec_size;
-        }
-        else if(mStressTreatment == StressTreatment::GaussPoint)
-        {
-            if(stress_vec_size >= mIdOfLocation)
-                stress_value = element_stress[mIdOfLocation - 1];
-            else
-                KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
-                                stress_vec_size  << "!"<< std::endl;
-        }
-        else if(mStressTreatment == StressTreatment::Node)
-        {
-            const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
-            if(num_ele_nodes >= mIdOfLocation)
-                stress_value = element_stress[mIdOfLocation - 1];
-            else
-                KRATOS_ERROR << "Chosen Node is not available. The element has only " <<
-                                num_ele_nodes  << " nodes."<< std::endl;
-
-        }
-
+            stress_value = CalculateMeanElementStress(rModelPart);
+        else if (mStressTreatment == StressTreatment::GaussPoint)
+            stress_value = CalculateGaussPointStress(rModelPart);
+        else if (mStressTreatment == StressTreatment::Node)
+            stress_value = CalculateNodeStress(rModelPart);
         return stress_value;
 
         KRATOS_CATCH("");
@@ -99,7 +68,7 @@ namespace Kratos
         KRATOS_TRY
 
         if(rAdjointElem.Id() == mpTracedElement->Id())
-        {   
+        {
             Matrix stress_displacement_derivative;
 
             if(mStressTreatment == StressTreatment::Mean)
@@ -121,7 +90,7 @@ namespace Kratos
             KRATOS_ERROR_IF(rResponseGradient.size() != rAdjointMatrix.size1())
                  << "Size of stress displacement derivative does not fit!" << std::endl;
 
-            rResponseGradient *= (-1);   
+            rResponseGradient *= (-1);
         }
         else
         {
@@ -144,7 +113,7 @@ namespace Kratos
 
         if(rAdjointElem.Id() == mpTracedElement->Id())
         {
-            this->CalculateElementContributionToSensitivityGradient(rAdjointElem, rVariable.Name(), rDerivativesMatrix, 
+            this->CalculateElementContributionToSensitivityGradient(rAdjointElem, rVariable.Name(), rDerivativesMatrix,
                                                                     rResponseGradient, rProcessInfo);
         }
         else
@@ -182,7 +151,7 @@ namespace Kratos
 
         if(rAdjointElem.Id() == mpTracedElement->Id())
         {
-            this->CalculateElementContributionToSensitivityGradient(rAdjointElem, rVariable.Name(), rDerivativesMatrix, 
+            this->CalculateElementContributionToSensitivityGradient(rAdjointElem, rVariable.Name(), rDerivativesMatrix,
                                                                     rResponseGradient, rProcessInfo);
         }
         else
@@ -210,6 +179,52 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    double AdjointLocalStressResponseFunction::CalculateMeanElementStress(ModelPart& rModelPart)
+    {
+        double stress_value = 0.0;
+
+        Vector element_stress;
+        mpTracedElement->Calculate(STRESS_ON_GP, element_stress, rModelPart.GetProcessInfo());
+
+        const SizeType stress_vec_size = element_stress.size();
+
+        for(IndexType i = 0; i < stress_vec_size; ++i)
+            stress_value += element_stress[i];
+
+        stress_value /= stress_vec_size;
+
+        return stress_value;
+    }
+
+    double AdjointLocalStressResponseFunction::CalculateGaussPointStress(ModelPart& rModelPart)
+    {
+        Vector element_stress;
+        mpTracedElement->Calculate(STRESS_ON_GP, element_stress, rModelPart.GetProcessInfo());
+
+        const SizeType stress_vec_size = element_stress.size();
+
+        if(stress_vec_size >= mIdOfLocation)
+            return element_stress[mIdOfLocation - 1];
+
+        KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
+                        stress_vec_size  << "!"<< std::endl;
+    }
+
+    double AdjointLocalStressResponseFunction::CalculateNodeStress(ModelPart& rModelPart)
+    {
+        Vector element_stress;
+        mpTracedElement->Calculate(STRESS_ON_GP, element_stress, rModelPart.GetProcessInfo());
+
+        const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
+
+        if(num_ele_nodes >= mIdOfLocation)
+            return element_stress[mIdOfLocation - 1];
+
+        KRATOS_ERROR << "Chosen Node is not available. The element has only " <<
+                        num_ele_nodes  << " nodes."<< std::endl;
+
+    }
+
     void AdjointLocalStressResponseFunction::CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,
                                       const std::string& rVariableName,
                                       const Matrix& rDerivativesMatrix,
@@ -231,9 +246,9 @@ namespace Kratos
         {
             rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
             this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rResponseGradient);
-        }    
+        }
         else if(mStressTreatment == StressTreatment::Node)
-        {   
+        {
             rAdjointElem.Calculate(STRESS_DESIGN_DERIVATIVE_ON_NODE, stress_design_variable_derivative, rProcessInfo);
             this->ExtractNodeStressDerivative(stress_design_variable_derivative, rResponseGradient);
         }
@@ -266,14 +281,14 @@ namespace Kratos
 
             rResponseGradient[deriv_it] = stress_derivative_value;
             stress_derivative_value = 0.0;
-        } 
+        }
 
         KRATOS_CATCH("");
-    } 
+    }
 
     void AdjointLocalStressResponseFunction::ExtractNodeStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient)
     {
-        KRATOS_TRY; 
+        KRATOS_TRY;
 
         const SizeType num_of_derivatives_per_stress = rStressDerivativesMatrix.size1();
         const SizeType num_of_stress_positions = rStressDerivativesMatrix.size2();
@@ -289,13 +304,13 @@ namespace Kratos
                 KRATOS_ERROR << "Chosen node is not available. The element has only " <<
                             num_of_stress_positions << " nodes."<< std::endl;
         }
-  
+
         KRATOS_CATCH("");
-    }   
+    }
 
     void AdjointLocalStressResponseFunction::ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient)
     {
-        KRATOS_TRY; 
+        KRATOS_TRY;
 
         const SizeType num_of_derivatives_per_stress = rStressDerivativesMatrix.size1();
         const SizeType num_of_stress_positions = rStressDerivativesMatrix.size2();
@@ -311,9 +326,9 @@ namespace Kratos
                 KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                                 num_of_stress_positions  << "!"<< std::endl;
         }
- 
+
         KRATOS_CATCH("");
-    }      
+    }
 
 } // namespace Kratos.
 
