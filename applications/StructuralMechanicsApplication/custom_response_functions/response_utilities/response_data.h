@@ -55,8 +55,7 @@ namespace Kratos
     {
         Mean,
         Node,
-        GaussPoint,
-        StressTreatmentNotAvailable
+        GaussPoint
     };
 
     namespace ResponseData
