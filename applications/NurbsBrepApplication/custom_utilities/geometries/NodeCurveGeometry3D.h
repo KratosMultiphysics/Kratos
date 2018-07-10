@@ -24,7 +24,8 @@ protected:
     using typename NodePointer = typename Node<3>::Pointer;
 
 public:
-    using CurveGeometryBaseType = ANurbs::CurveGeometryBase<double, ANurbs::Point3D>;
+    using CurveGeometryBaseType = ANurbs::CurveGeometryBase<double,
+        ANurbs::Point3D>;
     using typename CurveGeometryBaseType::KnotsType;
     using typename CurveGeometryBaseType::ScalarType;
     using typename CurveGeometryBaseType::VectorType;

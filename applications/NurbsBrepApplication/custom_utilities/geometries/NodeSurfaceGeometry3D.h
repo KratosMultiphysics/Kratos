@@ -22,7 +22,8 @@ protected:
     using typename NodePointer = typename Node<3>::Pointer;
 
 public:
-    using SurfaceGeometryBaseType = SurfaceGeometryBase<double, ANurbs::Point3D>;
+    using SurfaceGeometryBaseType = SurfaceGeometryBase<double,
+        ANurbs::Point3D>;
     using typename SurfaceGeometryBaseType::KnotsType;
     using typename SurfaceGeometryBaseType::ScalarType;
     using typename SurfaceGeometryBaseType::VectorType;
@@ -34,10 +35,11 @@ public:
     NodeSurfaceGeometry3D(
         const int DegreeU,
         const int DegreeV,
-        const int NbNodesU,
-        const int NbNodesV)
-        : SurfaceGeometryBaseType(DegreeU, DegreeV, NbNodesU, NbNodesV)
-        , mNodes(NbNodesU, NbNodesV)
+        const int NumberOfNodesU,
+        const int NumberOfNodesV)
+        : SurfaceGeometryBaseType(DegreeU, DegreeV, NumberOfNodesU,
+            NumberOfNodesV)
+        , mNodes(NumberOfNodesU, NumberOfNodesV)
     {
     }
 
