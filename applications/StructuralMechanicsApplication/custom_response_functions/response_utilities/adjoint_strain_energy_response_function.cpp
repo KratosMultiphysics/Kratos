@@ -99,9 +99,18 @@ namespace Kratos
               rResponseGradient.resize(rDerivativesMatrix.size1(), false);
         rResponseGradient.clear();
 
-        // There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces!
-
-          KRATOS_CATCH("")
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        Vector acc = ZeroVector(3);
+        if (rAdjointElem.GetProperties().Has( VOLUME_ACCELERATION ))
+            acc += rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
+          
+        if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) 
+            acc += rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    
+        KRATOS_ERROR_IF( norm_2(acc)>numerical_limit)
+                << "linear strain energy response is not able to treat structures with self-weight correctly!" << std::endl;
+            
+        KRATOS_CATCH("")
     }
 
     void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
@@ -119,7 +128,16 @@ namespace Kratos
               rResponseGradient.resize(rDerivativesMatrix.size1(), false);
         rResponseGradient.clear();
 
-        // There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces!
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        Vector acc = ZeroVector(3);
+        if (rAdjointElem.GetProperties().Has( VOLUME_ACCELERATION ))
+            acc+= rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
+          
+        if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) 
+            acc += rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    
+        KRATOS_ERROR_IF( norm_2(acc)>numerical_limit )
+                << "linear strain energy response is not able to treat structures with self-weight correctly!" << std::endl;
 
         KRATOS_CATCH("")
     }
