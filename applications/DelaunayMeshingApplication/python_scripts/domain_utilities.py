@@ -23,7 +23,6 @@ class DomainUtilities(object):
             # find element neighbours
             self.SearchElementNeighbours(model_part, echo_level)
 
-
             # set mesher utilities
             mesher_utils = KratosDelaunay.MesherUtilities()
 

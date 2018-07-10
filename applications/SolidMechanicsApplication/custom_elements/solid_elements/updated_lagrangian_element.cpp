@@ -318,8 +318,8 @@ void UpdatedLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
-
+    const GeometryType& rGeometry = GetGeometry();
+    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
 
     KRATOS_CATCH( "" )
 }
@@ -424,69 +424,6 @@ void UpdatedLagrangianElement::CalculateDeformationGradient(Matrix& rF,
 
     KRATOS_CATCH( "" )
 }
-
-
-
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
-                                                          const Matrix& rF,
-                                                          const Matrix& rDN_DX)
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-
-    rB.clear(); //set all components to zero
-
-    if( dimension == 2 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 2 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
-            rB( 2, index + 1 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else if( dimension == 3 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 3 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
-            rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-            rB( 4, index + 1 ) = rDN_DX( i, 2 );
-            rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
-            rB( 5, index + 0 ) = rDN_DX( i, 2 );
-            rB( 5, index + 2 ) = rDN_DX( i, 0 );
-
-        }
-    }
-    else
-    {
-      KRATOS_ERROR << " something is wrong with the dimension when computing B " << std::endl;
-    }
-
-    KRATOS_CATCH( "" )
-}
-
 
 
 //************************************************************************************

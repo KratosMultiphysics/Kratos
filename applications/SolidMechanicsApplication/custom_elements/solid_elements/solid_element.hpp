@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/element.h"
-#include "custom_utilities/comparison_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 
 namespace Kratos
@@ -91,7 +91,11 @@ protected:
       public:
 
         StressMeasureType StressMeasure;
-
+      
+        double  Tau;
+        double  TimeStep;
+        double  IntegrationWeight;
+      
         //for axisymmetric use only
         double  CurrentRadius;
         double  ReferenceRadius;
@@ -160,23 +164,33 @@ protected:
 			 const unsigned int& number_of_nodes )
         {
 	  StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
-	  //doubles
-	  //radius
+
+          //stabilization
+          Tau = 0;
+          
+          //time step
+          TimeStep = 0;
+          IntegrationWeight = 1;
+          
+          //radius
 	  CurrentRadius = 0;
 	  ReferenceRadius = 0;
-	  //jacobians
+
+          //jacobians
 	  detF  = 1;
 	  detF0 = 1;
 	  detH  = 1;
 	  detJ  = 1;
-	  //vectors
+
+          //vectors
 	  StrainVector.resize(voigt_size,false);
           StressVector.resize(voigt_size,false);
 	  N.resize(number_of_nodes,false);	  
 	  noalias(StrainVector) = ZeroVector(voigt_size);
 	  noalias(StressVector) = ZeroVector(voigt_size);
 	  noalias(N) = ZeroVector(number_of_nodes);
-	  //matrices
+
+          //matrices
 	  B.resize(voigt_size, dimension*number_of_nodes,false);
 	  H.resize(dimension,dimension,false);
 	  F.resize(dimension,dimension,false);
@@ -192,14 +206,16 @@ protected:
 	  noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
 	  noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
 	  noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-	  //others
+
+          //others
 	  J.resize(1,false);
 	  j.resize(1,false);
 	  J[0].resize(dimension,dimension,false);
 	  j[0].resize(dimension,dimension,false);
 	  noalias(J[0]) = ZeroMatrix(dimension,dimension);
 	  noalias(j[0]) = ZeroMatrix(dimension,dimension);
-	  //pointers
+
+          //pointers
 	  pDN_De = NULL;
 	  pNcontainer = NULL;
 	}
@@ -796,12 +812,6 @@ protected:
      */
     virtual void FinalizeStepVariables(ElementDataType & rVariables, 
 				       const double& rPointNumber);
-
-    /**
-     * Calculation of the Velocity Gradient
-     */
-    void CalculateVelocityGradient(const Matrix& rDN_DX,
-                                   Matrix& rDF );
 
 
     /**

@@ -63,7 +63,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosDelaunayMeshingApplication : public KratosApplication
+  class KRATOS_API(DELAUNAY_MESHING_APPLICATION) KratosDelaunayMeshingApplication : public KratosApplication
   {
   public:
 

@@ -217,12 +217,6 @@ protected:
     void CalculateDisplacementGradient(Matrix& rH,
                                        const Matrix& rDN_DX);
 
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    const Matrix& rDN_DX);
-
 
     ///@}
     ///@name Protected  Access

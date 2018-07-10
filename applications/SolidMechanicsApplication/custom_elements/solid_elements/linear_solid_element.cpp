@@ -459,6 +459,8 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     noalias(J[0])= ZeroMatrix(dimension,dimension);
     J = GetGeometry().Jacobian( J, mThisIntegrationMethod, DeltaPosition );
 
+    double IntegrationWeight = 1.0;
+    
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
 	//a.-compute element kinematics
@@ -513,7 +515,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	//d.- compute system component integrals
 
         //calculating weights for integration on the "reference configuration"
-        double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
+        IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
 
 	if( dimension == 2 ){
 	  if ( this->GetProperties().Has( THICKNESS ) )
@@ -521,12 +523,11 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	}
 
 	//compute the deformation matrix B
-	this->CalculateDeformationMatrix(B,DN_DX);
-
+        const GeometryType& rGeometry = GetGeometry();
+        ElementUtilities::CalculateLinearDeformationMatrix(B,rGeometry,DN_DX);
 	
 	//compute and add stiffness matrix (LHS = rLeftHandSideMatrix = K)
 	noalias( rLeftHandSideMatrix ) += prod( trans( B ),  IntegrationWeight * Matrix( prod( ConstitutiveMatrix, B ) ) );
-
 
 	//compute and add external forces 
 	Vector VolumeForce(dimension);
@@ -771,72 +772,6 @@ void LinearSolidElement::CalculateInfinitesimalStrain( Vector& rStrainVector, co
     KRATOS_CATCH( "" )
 
 }
-
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearSolidElement::CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX)
-{
-    KRATOS_TRY
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-
-    unsigned int voigt_size = dimension * (dimension +1) * 0.5;
-
-    if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
-      rB.resize(voigt_size, dimension*number_of_nodes, false );
-    
-    if( dimension == 2 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 2 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 0, index + 1 ) = 0.0;
-            rB( 1, index + 0 ) = 0.0;
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
-            rB( 2, index + 1 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else if( dimension == 3 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 3 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
-            rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-            rB( 4, index + 1 ) = rDN_DX( i, 2 );
-            rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
-            rB( 5, index + 0 ) = rDN_DX( i, 2 );
-            rB( 5, index + 2 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else
-    {
-
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
-
-    }
-
-    KRATOS_CATCH( "" )
-}
-
 
 //************************************CALCULATE VOLUME ACCELERATION*******************
 //************************************************************************************

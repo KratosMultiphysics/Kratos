@@ -238,12 +238,6 @@ protected:
                            const double& rPointNumber) override;
 
   /**
-   * Calculate Element Jacobian
-   */
-  void CalculateKinetics(ElementDataType& rVariables,
-                         const double& rPointNumber) override;
-
-  /**
    * Calculation and addition of the matrices of the LHS
    */
   void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
@@ -255,17 +249,6 @@ protected:
   void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                           ElementDataType& rVariables) override;
 
-  /**
-   * Calculation and addition of the matrices of the LHS
-   */
-  void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
-                                 ElementDataType& rVariables) override;
-
-  /**
-   * Calculation and addition of the vectors of the RHS
-   */
-  void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
-                                 ElementDataType& rVariables) override;
 
   /**
    * Get element size from the dofs
@@ -290,36 +273,7 @@ protected:
   void CalculateRegularizedKvvm(MatrixType& rLeftHandSideMatrix,
                                 ElementDataType& rVariables);
 
-
-
-  /**
-   * Calculation of the Pressure Stiffness Matrix. Kpp
-   */
-  void CalculateAndAddKpp2(MatrixType& rLeftHandSideMatrix,
-                          ElementDataType& rVariables);
-
-
-
-  void ComputeBoundLHSMatrix(Matrix& BoundLHSMatrix,
-                             const Vector& rN,
-                             const double Weight);
-
-
-
-  void CalculateAndAddPressureForces2(VectorType& rRightHandSideVector,
-                                     ElementDataType & rVariables);
-
-
-  void ComputeBoundRHSVector(VectorType& BoundRHSVector,
-                             const Vector& rN,
-                             const double TimeStep,
-                             const double BoundRHSCoeffAcc,
-                             const double BoundRHSCoeffDev);
-
-
-  double CalcNormalProjectionDefRate(Vector &SpatialDefRate);
-
-  double ElementSize();
+  
   /**
    * Calculation of the Pressure Stiffness Matrix. Kpp
    */
@@ -332,6 +286,12 @@ protected:
   void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
                                      ElementDataType & rVariables) override;
 
+  /**
+   * Calculation of the Pressure Vector.
+   */
+  void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+                                     ElementDataType & rVariables);
+  
   /**
    * Add volumetric part to Stress Vector
    */  
@@ -363,47 +323,7 @@ protected:
   void CalculateLumpedMatrixMeanValue(MatrixType& rMatrix, double& rMeanValue);
 
   
-  /**
-   * Calculation of the Pressure Vector.
-   */
-  void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-                                     ElementDataType & rVariables);
 
-  /**
-   * Calculation of the Deformation Matrix  BL
-   */
-  void CalculateDeformationMatrix(Matrix& rB,
-                                  const Matrix& rF,
-                                  const Matrix& rDN_DX);
-
-  /**
-   * Calculation of the velocity gradient
-   */
-  void CalculateVelocityGradient(Matrix& rH,
-                                 const Matrix& rDN_DX,
-                                 double Alpha = 1.0);
-
-  /**
-   * Calculation of the velocity gradient
-   */
-  void CalculateVelocityGradientVector(Vector& rH,
-                                       const Matrix& rDN_DX,
-                                       double Alpha = 1.0);
-  
-  
-  /**
-   * Calculation of the symmetric velocity gradient Vector
-   */
-  void CalculateSymmetricVelocityGradientVector(const Matrix& rH,
-                                                Vector& rStrainVector);
-  
-  /**
-   * Calculation of the skew symmetric velocity gradient Vector
-   */
-  void CalculateSkewSymmetricVelocityGradientVector(const Matrix& rH,
-                                                    Vector& rStrainVector);
-  
-  
   /**
    * Set Variables of the Element to the Parameters of the Constitutive Law
    */
@@ -430,7 +350,6 @@ protected:
    * Get Face weight
    */
   void GetFaceWeight(const std::vector<SizeType>& rFace, const ElementDataType & rVariables, double& rWeight, double& rNormalSize);
-
   
   /**
    * Get Face normal
@@ -454,8 +373,7 @@ protected:
    */
   void CalculateDampingMatrix(MatrixType& rDampingMatrix,
                               ProcessInfo& rCurrentProcessInfo) override;
-
-
+ 
   ///@}
   ///@name Protected  Access
   ///@{

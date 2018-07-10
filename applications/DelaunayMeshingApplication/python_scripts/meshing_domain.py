@@ -185,7 +185,6 @@ class MeshingDomain(object):
         self.RefiningParameters.SetErrorVariable(KratosMultiphysics.KratosGlobals.GetVariable(self.settings["refining_parameters"]["error_variable"].GetString()))
         self.RefiningParameters.SetReferenceError(self.settings["refining_parameters"]["reference_error"].GetDouble())
 
-
         removing_options = KratosMultiphysics.Flags()
 
         #remove nodes
@@ -256,22 +255,37 @@ class MeshingDomain(object):
     def SetMeshSizeValues(self):
 
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
+        critical_mesh_side = 0
+        
+        if (critical_mesh_size != 0.0):
+       
+            # set mesh refinement based on wall tip discretization size
+            # if(parameters["TipRadiusRefine"]):
+                # tip arch opening (in degrees = 5-7.5-10)
+                #tool_arch_opening = 12
+                # tip surface length
+                #tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
+                # critical mesh size based on wall tip
+                #critical_mesh_size = tool_arch_length * parameters["CriticalTipRadius"]
 
-        # set mesh refinement based on wall tip discretization size
-        # if(parameters["TipRadiusRefine"]):
-            # tip arch opening (in degrees = 5-7.5-10)
-            #tool_arch_opening = 12
-            # tip surface length
-            #tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
-            # critical mesh size based on wall tip
-            #critical_mesh_size = tool_arch_length * parameters["CriticalTipRadius"]
+            critical_mesh_side = critical_mesh_size * 3
+            
+        else:
+            number_of_nodes = 0
+            mean_nodal_size = 0
+            for node in self.main_model_part.Nodes:
+                if (node.IsNot(KratosMultiphysics.RIGID)):
+                    number_of_nodes += 1
+                    mean_nodal_size = mean_nodal_size + node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
+                
+            critical_mesh_size = mean_nodal_size / number_of_nodes;
+            critical_mesh_side = critical_mesh_size * 3
 
-        critical_mesh_size = critical_mesh_size
-        critical_mesh_side = critical_mesh_size * 3
-
+            self.RefiningParameters.SetInitialRadius(critical_mesh_size)
+            
         self.RefiningParameters.SetCriticalRadius(critical_mesh_size)
         self.RefiningParameters.SetCriticalSide(critical_mesh_side)
-
+        
     #
     def Check(self):
 

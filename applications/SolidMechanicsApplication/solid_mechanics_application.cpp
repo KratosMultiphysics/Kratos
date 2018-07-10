@@ -286,6 +286,13 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
       mUpdatedLagrangianVElement3D27N(
           0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
                  Element::GeometryType::PointsArrayType(27)))),
+
+      mUpdatedLagrangianSegregatedVPElement2D3N(
+          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
+                 Element::GeometryType::PointsArrayType(3)))),
+      mUpdatedLagrangianSegregatedVPElement3D4N(
+          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
+                 Element::GeometryType::PointsArrayType(4)))),
       
       mUpdatedLagrangianUPElement2D3N(
           0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
@@ -494,6 +501,10 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)        
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
+    //variables
+    KRATOS_REGISTER_VARIABLE( PRESSURE_VELOCITY )
+    KRATOS_REGISTER_VARIABLE( PRESSURE_ACCELERATION )
+        
     //solution
     KRATOS_REGISTER_VARIABLE(SEGREGATED_STEP)
     KRATOS_REGISTER_VARIABLE(WRITE_ID)
@@ -758,6 +769,11 @@ void KratosSolidMechanicsApplication::Register() {
         "UpdatedLagrangianVElement3D20N", mUpdatedLagrangianVElement3D20N)
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianVElement3D27N", mUpdatedLagrangianVElement3D27N)
+
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianSegregatedVPElement2D3N", mUpdatedLagrangianSegregatedVPElement2D3N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianSegregatedVPElement3D4N", mUpdatedLagrangianSegregatedVPElement3D4N)     
         
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianUPElement2D3N", mUpdatedLagrangianUPElement2D3N)

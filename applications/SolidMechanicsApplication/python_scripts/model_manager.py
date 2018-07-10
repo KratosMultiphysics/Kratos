@@ -244,7 +244,7 @@ class ModelManager(object):
                 body_parts_list.append(self.main_model_part.GetSubModelPart(body_parts_name_list[j].GetString()))
 
             body_model_part_type = bodies_list[i]["body_type"].GetString()
-            
+
             for part in body_parts_list:
                 entity_type = "Nodes"
                 if (body_model_part_type=="Fluid"):
@@ -276,7 +276,6 @@ class ModelManager(object):
             if( body_model_part_type == "Fluid" ):
                 body_model_part.Set(KratosMultiphysics.FLUID)
                 fluid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
-               
             if( body_model_part_type == "Rigid" ):
                 body_model_part.Set(KratosMultiphysics.RIGID)
                 rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
@@ -308,10 +307,10 @@ class ModelManager(object):
                 fluid_parts = True
             elif( domain_part.Is(KratosMultiphysics.SOLID) ):
                 solid_parts = True
-                
+
             domain_parts.append(domain_part)
-        
-            
+
+
         processes_parts = []
         for i in range(processes_model_part_names.size()):
             processes_parts.append(self.main_model_part.GetSubModelPart(processes_model_part_names[i].GetString()))

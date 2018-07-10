@@ -187,35 +187,9 @@ protected:
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     void SetElementData(ElementDataType& rVariables,
-                             ConstitutiveLaw::Parameters& rValues,
-                             const int & rPointNumber) override;
+                        ConstitutiveLaw::Parameters& rValues,
+                        const int & rPointNumber) override;
     
-    /**
-     * Calculation of the velocity gradient
-     */
-    void CalculateVelocityGradient(Matrix& rH,
-                                   const Matrix& rDN_DX,
-                                   unsigned int step = 0);
-
-    /**
-     * Calculation of the velocity gradient
-     */
-    void CalculateVelocityGradientVector(Vector& rH,
-                                         const Matrix& rDN_DX,
-                                         unsigned int step = 0);
-
-    
-    /**
-     * Calculation of the symmetric velocity gradient Vector
-     */
-    void CalculateSymmetricVelocityGradient(const Matrix& rH,
-                                            Vector& rStrainVector);
-
-    /**
-     * Calculation of the skew symmetric velocity gradient Vector
-     */
-    void CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
-                                                Vector& rStrainVector);
 
     ///@}
     ///@name Protected  Access

@@ -1052,9 +1052,9 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
       this->CalculateKinematics( Variables, PointNumber );
 
       //getting informations for integration
-      double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+      Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
-      IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+      Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
       //compute point volume change
       double PointVolumeChange = 0;
@@ -1072,7 +1072,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
 
       	      for ( SizeType k = 0; k < dimension; k++ )
       		{
-      		  rMassMatrix( indexupi+k , indexupj+k ) += Variables.N[i] * Variables.N[j] * CurrentDensity * IntegrationWeight;
+      		  rMassMatrix( indexupi+k , indexupj+k ) += Variables.N[i] * Variables.N[j] * CurrentDensity * Variables.IntegrationWeight;
       		}
       	    }
       	}

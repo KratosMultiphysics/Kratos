@@ -50,6 +50,7 @@
 #include "custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.hpp"
 
 #include "custom_elements/solid_elements/updated_lagrangian_V_element.hpp"
+#include "custom_elements/solid_elements/updated_lagrangian_segregated_V_P_element.hpp"
 
 //beam elements
 #include "custom_elements/beam_elements/beam_element.hpp"
@@ -329,7 +330,7 @@ typedef array_1d<double,6> Vector6;
    const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D15N;
    const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D20N;
    const SmallDisplacementBbarElement mSmallDisplacementBbarElement3D27N;
-   
+
    const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D3N;
    const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D4N;
    const AxisymmetricSmallDisplacementElement mAxisymSmallDisplacementElement2D6N;
@@ -390,7 +391,11 @@ typedef array_1d<double,6> Vector6;
    const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D15N;
    const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D20N;
    const UpdatedLagrangianVElement mUpdatedLagrangianVElement3D27N;
-   
+
+   //segregated VP elements
+   const UpdatedLagrangianSegregatedVPElement mUpdatedLagrangianSegregatedVPElement2D3N;
+   const UpdatedLagrangianSegregatedVPElement mUpdatedLagrangianSegregatedVPElement3D4N;
+
    //mixed elements UP
    const UpdatedLagrangianUPElement         mUpdatedLagrangianUPElement2D3N;
    const AxisymmetricUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
@@ -405,14 +410,14 @@ typedef array_1d<double,6> Vector6;
    const LargeDisplacementBeamSEMCElement   mLargeDisplacementBeamSEMCElement3D2N;
    const GeometricallyExactRodElement       mGeometricallyExactRodElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement2D2N;
-   
+
    //shells
    const ShellThickElement3D4N              mShellThickElement3D4N;
    const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
    const ShellThinElement3D3N                mShellThinElement3D3N;
    const ShellThinElement3D3N    mShellThinCorotationalElement3D3N;
 
-   
+
    //conditions
    const PointLoadCondition                    mPointLoadCondition3D1N;
    const PointLoadCondition                    mPointLoadCondition2D1N;
@@ -433,7 +438,7 @@ typedef array_1d<double,6> Vector6;
 
    const PointMomentCondition                mPointMomentCondition3D1N;
    const PointMomentCondition                mPointMomentCondition2D1N;
-   
+
    const LineMomentCondition                  mLineMomentCondition3D2N;
    const LineMomentCondition                  mLineMomentCondition3D3N;
    const LineMomentCondition                  mLineMomentCondition2D2N;
@@ -444,7 +449,7 @@ typedef array_1d<double,6> Vector6;
    const SurfaceMomentCondition            mSurfaceMomentCondition3D6N;
    const SurfaceMomentCondition            mSurfaceMomentCondition3D8N;
    const SurfaceMomentCondition            mSurfaceMomentCondition3D9N;
-   
+
    const PointElasticCondition                    mPointElasticCondition3D1N;
    const PointElasticCondition                    mPointElasticCondition2D1N;
    const AxisymmetricPointElasticCondition  mAxisymPointElasticCondition2D1N;
@@ -461,9 +466,9 @@ typedef array_1d<double,6> Vector6;
    const SurfaceElasticCondition                mSurfaceElasticCondition3D6N;
    const SurfaceElasticCondition                mSurfaceElasticCondition3D8N;
    const SurfaceElasticCondition                mSurfaceElasticCondition3D9N;
-   
+
    //constitutive laws
-    
+
    //Hyperelastic laws
    const HyperElastic3DLaw                       mHyperElastic3DLaw;
    const HyperElasticPlaneStrain2DLaw            mHyperElasticPlaneStrain2DLaw;
@@ -480,7 +485,7 @@ typedef array_1d<double,6> Vector6;
    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
    const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
 
-   //Hyperelastic Plastic J2 specilization laws 
+   //Hyperelastic Plastic J2 specilization laws
    const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;
    const HyperElasticPlasticJ2PlaneStrain2DLaw   mHyperElasticPlasticJ2PlaneStrain2DLaw;
    const HyperElasticPlasticJ2Axisym2DLaw        mHyperElasticPlasticJ2Axisym2DLaw;
@@ -489,7 +494,7 @@ typedef array_1d<double,6> Vector6;
    const HyperElasticPlasticUPJ23DLaw            mHyperElasticPlasticUPJ23DLaw;
    const HyperElasticPlasticUPJ2PlaneStrain2DLaw mHyperElasticPlasticUPJ2PlaneStrain2DLaw;
    const HyperElasticPlasticUPJ2Axisym2DLaw      mHyperElasticPlasticUPJ2Axisym2DLaw;
-        
+
    //Isotropic Damage Laws
    const IsotropicDamageSimoJu3DLaw              mIsotropicDamageSimoJu3DLaw;
    const IsotropicDamageSimoJuPlaneStrain2DLaw   mIsotropicDamageSimoJuPlaneStrain2DLaw;
@@ -498,24 +503,24 @@ typedef array_1d<double,6> Vector6;
    const IsotropicDamageModifiedMises3DLaw            mIsotropicDamageModifiedMises3DLaw;
    const IsotropicDamageModifiedMisesPlaneStrain2DLaw mIsotropicDamageModifiedMisesPlaneStrain2DLaw;
    const IsotropicDamageModifiedMisesPlaneStress2DLaw mIsotropicDamageModifiedMisesPlaneStress2DLaw;
-   
+
    //Flow Rules
    const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
    const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
    const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
-    
+
    //Yield Criteria
    const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
    const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
    const ModifiedMisesYieldCriterion             mModifiedMisesYieldCriterion;
-    
+
    //Hardening Laws
    const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
    const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
    const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
    const ModifiedExponentialDamageHardeningLaw   mModifiedExponentialDamageHardeningLaw;
 
-   
+
    ///@}
    ///@name Private Operators
    ///@{
@@ -567,6 +572,4 @@ typedef array_1d<double,6> Vector6;
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_SOLID_MECHANICS_APPLICATION_H_INCLUDED  defined
