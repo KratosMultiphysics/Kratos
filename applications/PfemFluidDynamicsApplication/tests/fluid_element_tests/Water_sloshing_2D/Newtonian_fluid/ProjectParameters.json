@@ -6,7 +6,7 @@
         "time_step"       : 0.01,
         "start_time"      : 0.0,
         "end_time"        : 0.1,
-        "echo_level"      : 1,
+        "echo_level"      : 0,
         "threads"         : 1,
         "gravity_vector"  : [0.0,-9.81,0.0]
     },
@@ -203,7 +203,7 @@
     }],
     "loads_process_list"       : [],
     "output_process_list"      : [],
-    "_check_process_list" : [
+    "check_process_list" : [
         {
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
@@ -228,21 +228,5 @@
             "time_frequency"       : 0.05
         }
     }
-    ],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteElementsOnly",
-                "MultiFileFlag"         : "MultipleFiles"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "node_output"         : true,
-            "nodal_results"       : ["DISPLACEMENT","VELOCITY","ACCELERATION","PRESSURE"],
-            "gauss_point_results" : ["CAUCHY_STRESS_TENSOR"]
-        }
-    }
+    ]
 }
