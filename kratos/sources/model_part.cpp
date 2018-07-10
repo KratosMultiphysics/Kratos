@@ -1045,8 +1045,8 @@ MasterSlaveConstraint::Pointer ModelPart::CreateNewMasterSlaveConstraint(const s
                                                                                     const ModelPart::VariableComponentType& rMasterVariable,
                                                                                     ModelPart::NodeType& rSlaveNode,
                                                                                     const ModelPart::VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant)
+                                                                                    const double Weight,
+                                                                                    const double Constant)
 {
 
     KRATOS_TRY

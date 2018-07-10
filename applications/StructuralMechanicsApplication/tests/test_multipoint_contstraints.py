@@ -189,17 +189,17 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
 
     def _apply_mpc_constraints(self, mp):
 
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 2, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[6], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
 
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 3, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 4, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 4, mp.Nodes[16], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 5, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_X, 0.5, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 6, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[7], KratosMultiphysics.DISPLACEMENT_Y, 0.5, 0)
 
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 7, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
-        mp.CreateNewMasterSlaveConstraint("UserProvidedLinearMasterSlaveConstraint", 8, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 7, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_X, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_X, 1.0, 0)
+        mp.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 8, mp.Nodes[18], KratosMultiphysics.DISPLACEMENT_Y, mp.Nodes[9], KratosMultiphysics.DISPLACEMENT_Y, 1.0, 0)
 
     def _set_and_fill_buffer(self, mp, buffer_size, delta_time):
         # Set buffer size

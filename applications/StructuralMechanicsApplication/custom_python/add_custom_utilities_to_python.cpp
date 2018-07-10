@@ -18,6 +18,8 @@
 
 //Utilities
 #include "custom_utilities/formfinding_io_utility.h"
+#include "custom_utilities/vtk_output.hpp"
+#include "custom_processes/apply_periodic_condition_process.h"
 
 
 namespace Kratos
@@ -35,6 +37,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
     .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
     ;
+
+    class_<VtkOutput>(m,"VtkOutput")
+    .def(init< ModelPart&, std::string, const Parameters >())
+    .def("PrintOutput", &VtkOutput::PrintOutput)
+    ;
+
+    class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
+    .def(init<ModelPart&, const Parameters>())
+    ;
+
 
 }
 

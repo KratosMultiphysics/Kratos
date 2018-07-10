@@ -560,6 +560,7 @@ private:
         mGlobalMasterSlaveRelations.clear();
         // Getting the array of the conditions
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        std::cout<<"######################## number_of_constraints :: "<<number_of_constraints<<std::endl;
         // Getting the beginning iterator
 
         ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
@@ -608,6 +609,7 @@ private:
 
             }
         }
+        std::cout<<"########################## :: Number of GlobalConstraints  : "<<mGlobalMasterSlaveRelations.size()<<std::endl;
     }
 
     void ResetConstraintRelations(ModelPart& rModelPart)
@@ -742,7 +744,7 @@ private:
         auto& geometry = pCurrentContainer->GetGeometry();
         const SizeType number_of_nodes = geometry.PointsNumber();
         for (IndexType j = 0; j < number_of_nodes; j++) {
-            bool node_is_slave = true;
+            bool node_is_slave = false;
             if (geometry[j].IsDefined(SLAVE))
                 node_is_slave = geometry[j].Is(SLAVE);
             if (node_is_slave) { // temporary, will be checked once at the beginning only
@@ -754,6 +756,9 @@ private:
         if (!slaveFound) {
             return;
         }
+        //std::cout<<"############################ "<<std::endl;
+        //std::cout<<"##################applyg for container :: "<<pCurrentContainer->Id()<<std::endl;
+        //std::cout<<"############################ "<<std::endl;
         // TODO: make shure that the order of the masters is same in the loops, in that case, the order of all the vectors should be same
         MatrixType lhs_contribution = rLHSContribution;
         VectorType rhs_contribution = rRHSContribution;

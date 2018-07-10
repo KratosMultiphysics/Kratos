@@ -102,7 +102,7 @@ public:
         mConstantVector(0) = Constant;
 
         // Setting the slave flag on the node
-        rSlaveNode.Set(SLAVE);
+        //rSlaveNode.Set(SLAVE);
     }
 
     /*
@@ -128,7 +128,7 @@ public:
         mConstantVector(0) = Constant;
 
         // Setting the slave flag on the node
-        rSlaveNode.Set(SLAVE);
+        //rSlaveNode.Set(SLAVE);
     }
 
     /// Destructor.

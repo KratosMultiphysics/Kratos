@@ -693,8 +693,8 @@ public:
                                                                                     const VariableComponentType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
                                                                                     const VariableComponentType& rSlaveVariable,
-                                                                                    double Weight,
-                                                                                    double Constant);
+                                                                                    const double Weight,
+                                                                                    const double Constant);
 
     /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
