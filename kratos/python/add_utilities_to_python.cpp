@@ -195,7 +195,7 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("AddDof", &VariableUtils::AddDofWithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
         .def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
         .def("CheckDofs", &VariableUtils::CheckDofs);
-  
+
     // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
     typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
     typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,int);
