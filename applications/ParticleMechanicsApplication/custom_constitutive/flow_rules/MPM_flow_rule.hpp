@@ -388,6 +388,11 @@ public:
         KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation for calling GetElasticLeftCauchyGreen!!", "" )
     };
 
+    virtual unsigned int GetPlasticRegion()
+    {
+        KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation for calling GetPlasticRegion!!", "" )
+    };
+
 
     ///@}
     ///@name Access
