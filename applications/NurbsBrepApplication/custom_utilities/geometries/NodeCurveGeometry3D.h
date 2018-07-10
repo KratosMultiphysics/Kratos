@@ -35,9 +35,9 @@ protected:
 public:
     NodeCurveGeometry3D(
         const int Degree,
-        const int NbNodes)
-        : CurveGeometryBaseType(Degree, NbNodes)
-        , mNodes(NbNodes)
+        const int NumberOfNodes)
+        : CurveGeometryBaseType(Degree, NumberOfNodes)
+        , mNodes(NumberOfNodes)
     {
     }
 
