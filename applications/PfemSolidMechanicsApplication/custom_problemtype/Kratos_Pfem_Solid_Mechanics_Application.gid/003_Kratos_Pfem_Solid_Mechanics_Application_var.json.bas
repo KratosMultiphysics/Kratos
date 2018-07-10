@@ -829,7 +829,7 @@
 *if(strcmp(GenData(CPT_PostProcess),"True")==0)
     },
     {
-        "help"            : "This process writes restart files",    
+        "help"            : "This process writes cptu files",    
         "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
         "python_module"   : "cone_penetration_utility",
         "process_name"    : "ConePenetrationUtility",
@@ -842,10 +842,20 @@
 *if(strcmp(GenData(Ploughing_PostProcess),"True")==0)
     },
     {
-        "help"            : "This process writes restart files",    
+        "help"            : "This process writes information_related_to_ploughing files",    
         "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
         "python_module"   : "ploughing_utility",
         "process_name"    : "PloughingUtility",
+        "Parameters": {
+         }
+*endif
+*if(strcmp(GenData(GaussPoint_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes information of the first Gauss point files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "gauss_point_utility",
+        "process_name"    : "GaussPointUtility",
         "Parameters": {
          }
 *endif
