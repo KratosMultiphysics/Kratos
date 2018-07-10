@@ -90,9 +90,12 @@ namespace Kratos
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo)
     {
-          KRATOS_TRY
+        KRATOS_TRY
 
-          if (rResponseGradient.size() != rDerivativesMatrix.size1())
+        // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
+        // Assuming that the elements don't have F, they do not contribute here.
+
+        if (rResponseGradient.size() != rDerivativesMatrix.size1())
               rResponseGradient.resize(rDerivativesMatrix.size1(), false);
         rResponseGradient.clear();
 
@@ -107,7 +110,10 @@ namespace Kratos
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo)
     {
-          KRATOS_TRY
+        KRATOS_TRY
+
+        // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
+        // Assuming that the elements don't have F, they do not contribute here.
 
         if (rResponseGradient.size() != rDerivativesMatrix.size1())
               rResponseGradient.resize(rDerivativesMatrix.size1(), false);
@@ -127,6 +133,9 @@ namespace Kratos
         KRATOS_TRY;
 
         Vector adjoint_variables;
+
+        // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
+        // Assuming that the conditions don't have K, the remaining content of rDerivativesMatrix \frac{\partial F}{\partial s}
 
         rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
@@ -150,6 +159,9 @@ namespace Kratos
         KRATOS_TRY;
 
         Vector adjoint_variables;
+
+        // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
+        // Assuming that the conditions don't have K, the remaining content of rDerivativesMatrix \frac{\partial F}{\partial s}
 
         rAdjointCondition.GetValuesVector(adjoint_variables); // = 0.5*u
 
