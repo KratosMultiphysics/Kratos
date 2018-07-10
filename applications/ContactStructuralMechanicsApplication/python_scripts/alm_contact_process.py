@@ -240,12 +240,11 @@ class ALMContactProcess(KM.Process):
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
         if(self.interval.IsInInterval(current_time)):
             self.database_step += 1
-            self.global_step = self.main_model_part.ProcessInfo[KM.STEP]
+            global_step = self.main_model_part.ProcessInfo[KM.STEP]
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
             if (self.database_step >= database_step_update or self.global_step == 1):
                 # We unset the flag MARKER (used in the nodes to not deactivate it)
                 KM.VariableUtils().SetFlag(KM.MARKER, False, self.contact_model_part.Nodes)
-
                 # We solve one linear step with a linear strategy if needed
                 for key in self.settings["contact_model_part"].keys():
                     if (self.settings["contact_model_part"][key].size() > 0):
@@ -308,6 +307,7 @@ class ALMContactProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
+        global_step = self.main_model_part.ProcessInfo[KM.STEP]
         if(self.interval.IsInInterval(current_time)):
             modified = self.main_model_part.Is(KM.MODIFIED)
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
@@ -316,6 +316,7 @@ class ALMContactProcess(KM.Process):
                     if (self.settings["contact_model_part"][key].size() > 0):
                         self.contact_search[key].ClearMortarConditions()
                 self.database_step = 0
+
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -608,6 +609,10 @@ class ALMContactProcess(KM.Process):
             # We transfer the list of submodelparts to the contact model part
             for i in range(0, param.size()):
                 partial_model_part = self.main_model_part.GetSubModelPart(param[i].GetString())
+
+                if (self.computing_model_part.Is(KM.MODIFIED)):
+                    KM.VariableUtils().SetFlag(KM.TO_ERASE, True, partial_model_part.Conditions)
+                    partial_model_part.RemoveConditions(KM.TO_ERASE)
 
                 # We generate the conditions
                 self._interface_preprocess(partial_model_part)
