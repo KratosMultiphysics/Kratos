@@ -360,10 +360,33 @@ public:
 
     /**
      * @brief IdentifyNodesToErase looks for the nodes which should be removed from the refined model part
-     * @detail Sets TO_ERASE flag when is not TO_REFINE and is currently refined
+     * @detail When a node is not TO_REFINE and is currently refined, sets OLD_ENTITY flag in the coarse
+     * model part and remove it from the unordered_maps
      * @see CloneNodesToRefine
      */
-    void IdentifyNodesToErase();
+    void IdentifyParentNodesToErase();
+
+    /**
+     * @brief IdentifyElementsToErase looks for the elements which should be removed from the refined model part
+     * @detail Sets TO_ERASE flag in the refined model part when a node in the coarse model part is OLD_ENTITY
+     * @see IdentifyParentNodesToErase
+     */
+    void IdentifyElementsToErase();
+
+    /**
+     * @brief IdentifyConditionsToErase looks for the condtions which should be removed from the refined model part
+     * @detail Sets TO_ERASE flag in the refined model part when a node in the coarse model part is OLD_ENTITY
+     * @see IdentifyParentNodesToRefine
+     */
+    void IdentifyConditionsToErase();
+
+    /**
+     * @brief IdentifyrefinedNodesToErase looks for the nodes which should be removed from the refiend model part
+     * @detail When a refined element is TO_ERASE, sets TO_ERASE flag to all its nodes.
+     * If a node is TO_REFINE (e.g. the refining interface), the element is not TO_ERASE
+     * @see IdentifyElementsToErase
+     */
+    void IdentifyRefinedNodesToErase();
 
     /**
      * @brief FinalizeRefinement reset the flags on the nodes and elements

@@ -133,11 +133,16 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
 void MultiScaleRefiningProcess::ExecuteCoarsening()
 {
-    IdentifyNodesToErase();
+    IdentifyParentNodesToErase();
+    IdentifyElementsToErase();
+    IdentifyConditionsToErase();
+    IdentifyRefinedNodesToErase();
 
     // NOTE: THIS IS TEMPORARY. THE UNIFORM REFINING UTILITY SHOULD BE
-    // A MEMBER OBJECT IN CHARGE TO EXECUTE THE REFINEMENT AND COARSENING
+    // A MEMBER OBJECT IN CHARGE TO EXECUTE THE REFINEMENT AND THE COARSENING
+    mpRefinedModelPart->RemoveNodesFromAllLevels(TO_ERASE);
     mpRefinedModelPart->RemoveElementsFromAllLevels(TO_ERASE);
+    mpRefinedModelPart->RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
 
@@ -509,10 +514,9 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 }
 
 
-void MultiScaleRefiningProcess::IdentifyNodesToErase()
+void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
 {
     ModelPart& coarse_model_part = *mpOwnModelPart.get();
-    ModelPart& refined_model_part = *mpRefinedModelPart.get();
 
     const int nnodes = static_cast<int>(coarse_model_part.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = coarse_model_part.NodesBegin();
@@ -532,6 +536,13 @@ void MultiScaleRefiningProcess::IdentifyNodesToErase()
             }
         }
     }
+}
+
+
+void MultiScaleRefiningProcess::IdentifyElementsToErase()
+{
+    ModelPart& coarse_model_part = *mpOwnModelPart.get();
+    ModelPart& refined_model_part = *mpRefinedModelPart.get();
 
     // Identify the parent elements to coarse
     const int nelems_coarse = static_cast<int>(coarse_model_part.Elements().size());
@@ -540,6 +551,7 @@ void MultiScaleRefiningProcess::IdentifyNodesToErase()
     // The number of nodes of the elements
     const IndexType element_nodes = coarse_elem_begin->GetGeometry().size();
 
+    #pragma omp parallel for
     for (int i = 0; i < nelems_coarse; i++)
     {
         auto coarse_elem = coarse_elem_begin + i;
@@ -557,13 +569,76 @@ void MultiScaleRefiningProcess::IdentifyNodesToErase()
     const int nelems_ref = static_cast<int>(refined_model_part.Elements().size());
     ModelPart::ElementsContainerType::iterator ref_elem_begin = refined_model_part.ElementsBegin();
 
+    #pragma omp parallel for
     for (int i = 0; i < nelems_ref; i++)
     {
         auto refined_elem = ref_elem_begin + i;
         if ((refined_elem->GetValue(FATHER_ELEMENT))->Is(OLD_ENTITY))
             refined_elem->Set(TO_ERASE, true);
     }
+}
 
+
+void MultiScaleRefiningProcess::IdentifyConditionsToErase()
+{
+    ModelPart& coarse_model_part = *mpOwnModelPart.get();
+    ModelPart& refined_model_part = *mpRefinedModelPart.get();
+
+    // Identify the parent conditions  to coarse
+    const int nconds_coarse = static_cast<int>(coarse_model_part.Conditions().size());
+    ModelPart::ConditionsContainerType::iterator coarse_cond_begin = coarse_model_part.ConditionsBegin();
+
+    // The number of nodes of the conditions
+    const IndexType condition_nodes = coarse_cond_begin->GetGeometry().size();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nconds_coarse; i++)
+    {
+        auto coarse_cond = coarse_cond_begin + i;
+        bool old_entity = false;
+        for (IndexType inode = 0; inode < condition_nodes; inode++)
+        {
+            if (coarse_cond->GetGeometry()[inode].Is(OLD_ENTITY))
+                old_entity = true;
+        }
+        if (old_entity)
+            coarse_cond->Set(OLD_ENTITY, true);
+    }
+
+    // Identify the refined conditions to remove
+    const int nconds_ref = static_cast<int>(refined_model_part.Conditions().size());
+    ModelPart::ConditionsContainerType::iterator ref_cond_begin = refined_model_part.ConditionsBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nconds_ref; i++)
+    {
+        auto refined_cond = ref_cond_begin + i;
+        if ((refined_cond->GetValue(FATHER_CONDITION))->Is(OLD_ENTITY))
+            refined_cond->Set(TO_ERASE, true);
+    }
+}
+
+
+void MultiScaleRefiningProcess::IdentifyRefinedNodesToErase()
+{
+    ModelPart& refined_model_part = *mpRefinedModelPart.get();
+
+    ModelPart::ElementsContainerType::iterator element_begin = refined_model_part.ElementsBegin();
+    const IndexType element_nodes = element_begin->GetGeometry().size();
+    const IndexType nelems = refined_model_part.Elements().size();
+
+    for (IndexType i = 0; i < nelems; i++)
+    {
+        auto elem = element_begin + i;
+        if (elem->Is(TO_ERASE))
+        {
+            for (IndexType inode = 0; inode < element_nodes; inode++)
+            {
+                if ((elem->GetGeometry()[inode]).IsNot(TO_REFINE))
+                    (elem->GetGeometry()[inode]).Set(TO_ERASE, true);
+            }
+        }
+    }
 }
 
 
