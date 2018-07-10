@@ -378,17 +378,17 @@ class Solution(object):
         [model_part_io_spheres, self.spheres_model_part, MPICommSetup] = self.parallelutils.SetCommunicator(self.spheres_model_part, model_part_io_spheres, spheres_mp_filename)
         model_part_io_spheres.ReadModelPart(self.spheres_model_part)
 
-        max_node_Id += self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part)
-        max_elem_Id += self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
+        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.spheres_model_part))
+        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part))
         old_max_elem_Id_spheres = max_elem_Id
-        max_cond_Id += self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
+        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part))
         rigidFace_mp_filename = self.GetFemFilename()
         model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
 
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part)
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part)
+        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part))
+        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part))
+        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part))
         clusters_mp_filename = self.GetClusterFilename()
         model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_clusters.ReadModelPart(self.cluster_model_part)
@@ -396,9 +396,9 @@ class Solution(object):
         if max_elem_Id != old_max_elem_Id_spheres:
             self.creator_destructor.RenumberElementIdsFromGivenValue(self.cluster_model_part, max_elem_Id)
 
-        max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.cluster_model_part)
-        max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part)
-        max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part)
+        max_node_Id = max(max_node_Id, self.creator_destructor.FindMaxNodeIdInModelPart(self.cluster_model_part))
+        max_elem_Id = max(max_elem_Id, self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part))
+        max_cond_Id = max(max_cond_Id, self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part))
         DEM_Inlet_filename = self.GetInletFilename()
         model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
@@ -454,7 +454,6 @@ class Solution(object):
 
             self.PrintResults()
 
-
             self.FinalizeTimeStep(self.time)
 
     def RunAnalytics(self, time, is_time_to_print=True):
@@ -494,8 +493,6 @@ class Solution(object):
     def BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
-                #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
-                #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
                 self.FillAnalyticSubModelPartsWithNewParticles()
 
     def BeforePrintingOperations(self, time):
@@ -517,9 +514,7 @@ class Solution(object):
     def Finalize(self):
 
         self.KRATOSprint("Finalizing execution...")
-
         self.GraphicalOutputFinalize()
-
         self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
