@@ -61,10 +61,10 @@ namespace Kratos
 
     namespace ResponseData
     {
-        
-        TracedStressType ConvertStressType(const std::string& Str);
 
-        StressTreatment ConvertStressTreatment(const std::string& Str);
+        TracedStressType ConvertStringToTracedStressType(const std::string& Str);
+
+        StressTreatment ConvertStringToStressTreatment(const std::string& Str);
 
     } // namespace ResponseData.
 
