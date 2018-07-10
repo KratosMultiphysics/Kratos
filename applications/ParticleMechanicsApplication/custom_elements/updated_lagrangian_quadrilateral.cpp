@@ -371,6 +371,10 @@ void UpdatedLagrangianQuadrilateral::CalculateElementalSystem( LocalSystemCompon
         this->SetValue(PREVIOUS_MP_ALMANSI_STRAIN_VECTOR, Variables.StrainVector);
     }
 
+    // Update the total determinant of deformation gradient after return mapping
+    // This is necessary for non-isochoric return mapping
+    Variables.detFT = Values.GetDeterminantF();
+
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
     However, the density and volume (integration weight) are changing every time step.*/
