@@ -137,6 +137,9 @@ public:
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 	                            ProcessInfo& rCurrentProcessInfo) override;
 
