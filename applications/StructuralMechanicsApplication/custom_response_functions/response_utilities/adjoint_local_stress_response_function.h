@@ -143,6 +143,7 @@ protected:
                                       Vector& rResponseGradient,
                                       ProcessInfo& rProcessInfo) override;
 
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -176,6 +177,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,
+                                      const std::string& rVariableName,
+                                      const Matrix& rDerivativesMatrix,
+                                      Vector& rResponseGradient,
+                                      ProcessInfo& rProcessInfo);   
+
+    void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);   
+
+    void ExtractNodeStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);  
+
+    void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);                                   
 
     ///@}
     ///@name Private  Access
