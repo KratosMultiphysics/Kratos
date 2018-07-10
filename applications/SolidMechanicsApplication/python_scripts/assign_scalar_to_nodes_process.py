@@ -194,6 +194,17 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
 
             self.AssignValueProcess.Execute()
 
+            if ( self.TimeIntegrationMethod == None and self.fix_derivated_variable):
+                for node in self.model_part.GetNodes():
+                    displ_variable = "DISPLACEMENT_"+self.variable_name[-1:]
+                    displ_variable = getattr(KratosMultiphysics, displ_variable)
+                    vel_variable = self.variable_name
+                    vel_variable = getattr(KratosMultiphysics,vel_variable)
+                    dispOLD = node.GetSolutionStepValue( displ_variable, 1)
+                    dispNEW = node.GetSolutionStepValue(vel_variable)
+                    dispNEW = dispOLD + dispNEW*self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+                    node.SetSolutionStepValue(displ_variable, dispNEW)
+
             if( self.fix_time_integration ):
                 for node in self.model_part.Nodes:
                     self.TimeIntegrationMethod.Predict(node)
