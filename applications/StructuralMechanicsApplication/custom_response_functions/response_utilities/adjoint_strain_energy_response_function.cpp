@@ -100,16 +100,15 @@ namespace Kratos
         rResponseGradient.clear();
 
         const double numerical_limit = std::numeric_limits<double>::epsilon();
-        Vector acc_1 = ZeroVector(3);
-        Vector acc_2 = ZeroVector(3);
+        Vector acc = ZeroVector(3);
         if (rAdjointElem.GetProperties().Has( VOLUME_ACCELERATION ))
-            acc_1 = rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
+            acc += rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
           
         if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) 
-            acc_2 = rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            acc += rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     
-        KRATOS_ERROR_IF( (norm_2(acc_1)>numerical_limit) or (norm_2(acc_2)>numerical_limit) )
-                << "linear strain energy response is not aible to treat structures with self-weight correctly!" << std::endl;
+        KRATOS_ERROR_IF( norm_2(acc)>numerical_limit)
+                << "linear strain energy response is not able to treat structures with self-weight correctly!" << std::endl;
             
         KRATOS_CATCH("")
     }
@@ -130,16 +129,15 @@ namespace Kratos
         rResponseGradient.clear();
 
         const double numerical_limit = std::numeric_limits<double>::epsilon();
-        Vector acc_1 = ZeroVector(3);
-        Vector acc_2 = ZeroVector(3);
+        Vector acc = ZeroVector(3);
         if (rAdjointElem.GetProperties().Has( VOLUME_ACCELERATION ))
-            acc_1 = rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
+            acc+= rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
           
         if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) 
-            acc_2 = rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            acc += rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     
-        KRATOS_ERROR_IF( (norm_2(acc_1)>numerical_limit) or (norm_2(acc_2)>numerical_limit) )
-                << "linear strain energy response is not aible to treat structures with self-weight correctly!" << std::endl;
+        KRATOS_ERROR_IF( norm_2(acc)>numerical_limit )
+                << "linear strain energy response is not able to treat structures with self-weight correctly!" << std::endl;
 
         KRATOS_CATCH("")
     }
