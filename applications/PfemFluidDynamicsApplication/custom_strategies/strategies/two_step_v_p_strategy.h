@@ -285,7 +285,7 @@ public:
 	      rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE,false);
 	      rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE,false);
 
-          KRATOS_WARNING("TwoStepVPStrategy") << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
+          KRATOS_INFO("TwoStepVPStrategy") << "V-P strategy converged in " << it+1 << " iterations." << std::endl;
 
 	      break;
 	    }
@@ -322,8 +322,8 @@ public:
 
       this->CalculateDisplacements();
       BaseType::MoveMesh();
-      // BoundaryNormalsCalculationUtilities BoundaryComputation;
-      // BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+      BoundaryNormalsCalculationUtilities BoundaryComputation;
+      BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
 
       KRATOS_CATCH("");
 
@@ -715,11 +715,9 @@ protected:
 	errorNormDv = NormDv / NormV;
 
         if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0){
-	  //std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
-	  //std::cout << "The norm of velocity is: " << NormV << std::endl;
-	  //std::cout << "Velocity error: " << errorNormDv << " VelocityTolerance: " << mVelocityTolerance<< std::endl;
-          std::cout << "(Velocity) Ratio : " << errorNormDv << " Norm : "<< NormDv << std::endl;
-          std::cout << " CorrectionNorm = " << NormDv << "; ReferenceNorm = " << NormV << std::endl;
+	  std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
+	  std::cout << "The norm of velocity is: " << NormV << std::endl;
+	  std::cout << "Velocity error: " << errorNormDv << "mVelocityTolerance: " << mVelocityTolerance<< std::endl;
 	}
 	/* else{ */
 	/*   std::cout<<"Velocity error: "<< errorNormDv <<" velTol: " << mVelocityTolerance<< std::endl; */
@@ -764,12 +762,9 @@ protected:
         errorNormDp = NormDp / NormP;
 
         if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0){
-	  //std::cout << "         The norm of pressure increment is: " << NormDp << std::endl;
-	  //std::cout << "         The norm of pressure is: " << NormP << std::endl;
-          //std::cout << "         Pressure error: " <<errorNormDp  << std::endl;
-          std::cout << "(PRESSURE) Ratio : " << errorNormDp << " Norm : "<< NormDp << std::endl;
-          std::cout << " CorrectionNorm = " << NormDp << "; ReferenceNorm = " << NormP << std::endl;
-
+	  std::cout << "         The norm of pressure increment is: " << NormDp << std::endl;
+	  std::cout << "         The norm of pressure is: " << NormP << std::endl;
+            std::cout << "         Pressure error: " <<errorNormDp  << std::endl;
 	}
 	/* else{ */
         /*     std::cout<<"         Pressure error: "<<errorNormDp <<" presTol: "<<mPressureTolerance << std::endl; */

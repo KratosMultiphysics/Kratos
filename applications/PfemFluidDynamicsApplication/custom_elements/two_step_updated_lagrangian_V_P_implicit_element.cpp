@@ -66,7 +66,7 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY; 
-    
+
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int LocalSize = TDim * NumNodes;
@@ -123,13 +123,11 @@ namespace Kratos {
 	rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;  
 
 	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
-       
+
 	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,rCurrentProcessInfo,rElementalVariables);
 
 	this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
-        
-        //std::cout<<" L "<<rElementalVariables.SpatialVelocityGrad<<" StressVector "<<rElementalVariables.UpdatedDeviatoricCauchyStress<<std::endl;
-        
+
 	// std::vector<double> rOutput;
 	// this->GetElementalValueForOutput(YIELDED,rOutput);
 	
@@ -169,8 +167,6 @@ namespace Kratos {
 	}
       }
 
-    //std::cout<<" Stress "<<rElementalVariables.UpdatedTotalCauchyStress<<" LameMu "<<DeviatoricCoeff<<" BulkModulus "<<VolumetricCoeff<<" DN_DX "<<rDN_DX<<std::endl;
-
     double lumpedDynamicWeight=totalVolume*Density;
     this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);    
 
@@ -181,6 +177,7 @@ namespace Kratos {
       // VolumetricCoeff*=BulkReductionCoefficient;
       VolumetricCoeff*=MeanValueMass*2.0/(TimeStep*MeanValueStiffness);
       StiffnessMatrix= ZeroMatrix(LocalSize,LocalSize);
+
       for (unsigned int g = 0; g < NumGauss; g++)
     	{
     	  const double GaussWeight = GaussWeights[g];
@@ -188,6 +185,7 @@ namespace Kratos {
     	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
     	}
     }
+
 
     // Add residual of previous iteration to RHS
     VectorType VelocityValues = ZeroVector(LocalSize);
@@ -201,26 +199,17 @@ namespace Kratos {
     // AccelerationValues += -VelocityValues/TimeStep; 
     // noalias( rRightHandSideVector ) += -prod(MassMatrix,AccelerationValues);
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
-    
-    // std::cout<<" velocity LHS "<<StiffnessMatrix<< "(" << this->Id() << ")" <<std::endl;
-    // std::cout<<" velocity RHS "<<rRightHandSideVector<< "(" << this->Id() << ")" <<std::endl;
-    
+
     //2nd order 
     this->GetAccelerationValues(AccelerationValues,0);
     this->GetVelocityValues(VelocityValues,0);
-    std::cout<<" Velocities "<<VelocityValues<<std::endl;
     noalias(AccelerationValues)+=-2.0*VelocityValues/TimeStep;
     this->GetVelocityValues(VelocityValues,1);
-    std::cout<<" Pre Velocities "<<VelocityValues<<std::endl;
     noalias(AccelerationValues)+=2.0*VelocityValues/TimeStep;//these are negative accelerations
     noalias( rRightHandSideVector )+= prod(MassMatrix,AccelerationValues);
     noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix + MassMatrix*2/TimeStep;
 
-    // std::cout<<" dynamic LHS "<<MassMatrix*2/TimeStep<<std::endl;
-    // std::cout<<" acceleration "<<AccelerationValues<<std::endl;
-    // std::cout<<" dynamic RHS "<<prod(MassMatrix,AccelerationValues)<<std::endl;
-    
-    //std::cout<<" velocity RHS "<< rRightHandSideVector << std::endl;
+
     // // Add residual of previous iteration to RHS
     // VectorType VelocityValues = ZeroVector(LocalSize);
     // VectorType UpdatedAccelerations = ZeroVector(LocalSize);
@@ -246,10 +235,6 @@ namespace Kratos {
     // noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix;
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
 
-
-    // std::cout<<" velocity DLHS "<<rLeftHandSideMatrix<< "(" << this->Id() << ")" <<std::endl;
-
-    
     KRATOS_CATCH( "" );
  
   }
@@ -282,7 +267,7 @@ namespace Kratos {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
-    
+
     SizeType FirstRow=0;
     SizeType FirstCol=0;
 
