@@ -171,6 +171,8 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CheckForBodyForces(Element& rAdjointElem);
+
     ///@}
     ///@name Private  Access
     ///@{

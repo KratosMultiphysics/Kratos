@@ -99,18 +99,9 @@ namespace Kratos
               rResponseGradient.resize(rDerivativesMatrix.size1(), false);
         rResponseGradient.clear();
 
-        const double numerical_limit = std::numeric_limits<double>::epsilon();
-        Vector acc = ZeroVector(3);
-        if (rAdjointElem.GetProperties().Has( VOLUME_ACCELERATION ))
-            acc += rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
-          
-        if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) 
-            acc += rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    
-        KRATOS_ERROR_IF( norm_2(acc)>numerical_limit)
-                << "linear strain energy response is not able to treat structures with self-weight correctly!" << std::endl;
+        this->CheckForBodyForces(rAdjointElem);
             
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
@@ -119,7 +110,7 @@ namespace Kratos
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         // The partial derivative of the linear strain energy is 0.5*u*\frac{\partial F}{\partial s}
         // Assuming that the elements don't have F, they do not contribute here.
@@ -128,18 +119,9 @@ namespace Kratos
               rResponseGradient.resize(rDerivativesMatrix.size1(), false);
         rResponseGradient.clear();
 
-        const double numerical_limit = std::numeric_limits<double>::epsilon();
-        Vector acc = ZeroVector(3);
-        if (rAdjointElem.GetProperties().Has( VOLUME_ACCELERATION ))
-            acc+= rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
-          
-        if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) 
-            acc += rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    
-        KRATOS_ERROR_IF( norm_2(acc)>numerical_limit )
-                << "linear strain energy response is not able to treat structures with self-weight correctly!" << std::endl;
+        this->CheckForBodyForces(rAdjointElem);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     void AdjointStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
@@ -192,6 +174,21 @@ namespace Kratos
         noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
 
         KRATOS_CATCH("");
+    }
+
+    void AdjointStrainEnergyResponseFunction::CheckForBodyForces(Element& rAdjointElem)
+    {
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+        Vector acc = ZeroVector(3);
+        if (rAdjointElem.GetProperties().Has( VOLUME_ACCELERATION ))
+            acc+= rAdjointElem.GetProperties()[VOLUME_ACCELERATION];
+          
+        if( rAdjointElem.GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION)) 
+            acc += rAdjointElem.GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    
+        KRATOS_ERROR_IF( norm_2(acc)>numerical_limit )
+                << "linear strain energy response is not able to treat structures with self-weight correctly!" << std::endl;
     }
 
 } // namespace Kratos.
