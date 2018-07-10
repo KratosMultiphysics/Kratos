@@ -157,8 +157,8 @@ namespace Kratos
 
       //Mesh Id=0
       
-      if( EchoLevel > 1 )
-	std::cout<<"   [ START MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
+       if( EchoLevel > 1 )
+	 std::cout<<"   [ START MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
       
       rModelPart.Nodes().clear();
       rModelPart.Elements().clear();

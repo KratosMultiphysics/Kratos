@@ -173,9 +173,10 @@ namespace Kratos
             }
             
             // We set the mapper parameters
-            Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24})" );
+            Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "origin_variable_historical" : false,
+        "destination_variable_historical" : false})" );
             mapping_parameters["distance_threshold"].SetDouble(ThisModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
-            typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
+            typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>> MapperType;
             MapperType mapper = MapperType(master_model_part, slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
             mapper.Execute();
             

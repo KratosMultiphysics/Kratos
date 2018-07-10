@@ -134,7 +134,7 @@ proc WriteLoadVectorProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","
         puts $MyFileVar "            \"active\":          \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 7],[lindex [lindex $Groups $i] 11]\],"
         puts $MyFileVar "            \"value\":           \[[lindex [lindex $Groups $i] 4],[lindex [lindex $Groups $i] 8],[lindex [lindex $Groups $i] 12]\],"
-        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
             puts $MyFileVar "            \"table\":           \[0,0,0\]"
         } else {
             puts $MyFileVar "            \"table\":           \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\]"
@@ -164,7 +164,7 @@ proc WriteNormalLoadProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         puts $MyFileVar "            \"variable_name\":        \"$VarName\","
         puts $MyFileVar "            \"active\":               \[[lindex [lindex $Groups $i] 3],[lindex [lindex $Groups $i] 11]\],"
         puts $MyFileVar "            \"value\":                \[[lindex [lindex $Groups $i] 5],[lindex [lindex $Groups $i] 12]\],"
-        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
             puts $MyFileVar "            \"table\":                \[0,0\],"
         } else {
             puts $MyFileVar "            \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1]\],"
@@ -209,7 +209,7 @@ proc WriteLoadScalarProcess {FileVar GroupNum Groups VarName TableDict NumGroups
         puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
         puts $MyFileVar "            \"variable_name\":   \"$VarName\","
         puts $MyFileVar "            \"value\":           [lindex [lindex $Groups $i] 3],"
-        if {[GiD_AccessValue get gendata Strategy_Type] eq "Arc-Length"} {
+        if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
             puts $MyFileVar "            \"table\":           0"
         } else {
             puts $MyFileVar "            \"table\":           [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"

@@ -119,7 +119,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         # First for nodes
         VariableUtils().SetNonHistoricalScalarVar(VISCOSITY, viscosity, model_part.Nodes)
-        VariableUtils().SetNonHistoricalVectorVar(DISPLACEMENT, displacement, model_part.Nodes)
+        VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Nodes)
 
         ##verify the result
         for node in model_part.Nodes:
@@ -157,7 +157,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         # First for nodes
         VariableUtils().SetNonHistoricalScalarVar(VISCOSITY, viscosity, model_part.Nodes)
-        VariableUtils().SetNonHistoricalVectorVar(DISPLACEMENT, displacement, model_part.Nodes)
+        VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Nodes)
 
         ##verify the result
         for node in model_part.Nodes:

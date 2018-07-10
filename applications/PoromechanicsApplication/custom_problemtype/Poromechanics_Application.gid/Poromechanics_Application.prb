@@ -34,7 +34,7 @@ VALUE: 0.05
 HELP: Length defining the domain of interaction between non-local damaged points.
 QUESTION: Fracture_Propagation#CB#(true,false)
 VALUE: false
-HELP: Only for pre-defined crack-tips defined with interface elements.
+HELP: Only for pre-defined crack tips defined with interface elements.
 DEPENDENCIES: (true,RESTORE,Propagation_Length,#CURRENT#,RESTORE,Propagation_Damage,#CURRENT#,RESTORE,Propagation_Frequency,#CURRENT#,RESTORE,Propagation_Width,#CURRENT#,RESTORE,Propagation_Height,#CURRENT#,RESTORE,Correction_Tolerance,#CURRENT#)(false,HIDE,Propagation_Length,#CURRENT#,HIDE,Propagation_Damage,#CURRENT#,HIDE,Propagation_Frequency,#CURRENT#,HIDE,Propagation_Width,#CURRENT#,HIDE,Propagation_Height,#CURRENT#,HIDE,Correction_Tolerance,#CURRENT#)
 QUESTION: Propagation_Damage
 VALUE: 0.5
@@ -57,8 +57,8 @@ HELP: Number of steps after which the fracture propagation will be checked. Set 
 
 
 TITLE:Solver_Settings
-QUESTION: Solution_Type#CB#(Quasi-Static,Dynamic)
-VALUE: Quasi-Static
+QUESTION: Solution_Type#CB#(quasi_static,Dynamic)
+VALUE: quasi_static
 QUESTION: Scheme_Type#CB#(Newmark)
 VALUE: Newmark
 QUESTION: Newmark_Beta
@@ -72,9 +72,9 @@ QUESTION: Rayleigh_Mass
 VALUE: 0.0
 QUESTION: Rayleigh_Stiffness
 VALUE: 0.0
-QUESTION: Strategy_Type#CB#(Newton-Raphson,Arc-Length)
-VALUE: Newton-Raphson
-DEPENDENCIES: (Newton-Raphson,HIDE,Desired_Iterations,#CURRENT#,HIDE,Max_Radius_Factor,#CURRENT#,HIDE,Min_Radius_Factor,#CURRENT#)(Arc-Length,RESTORE,Desired_Iterations,#CURRENT#,RESTORE,Max_Radius_Factor,#CURRENT#,RESTORE,Min_Radius_Factor,#CURRENT#)
+QUESTION: Strategy_Type#CB#(newton_raphson,arc_length)
+VALUE: newton_raphson
+DEPENDENCIES: (newton_raphson,HIDE,Desired_Iterations,#CURRENT#,HIDE,Max_Radius_Factor,#CURRENT#,HIDE,Min_Radius_Factor,#CURRENT#)(arc_length,RESTORE,Desired_Iterations,#CURRENT#,RESTORE,Max_Radius_Factor,#CURRENT#,RESTORE,Min_Radius_Factor,#CURRENT#)
 QUESTION: Convergence_Criterion#CB#(Displacement_criterion,Residual_criterion,And_criterion,Or_criterion)
 VALUE: Displacement_criterion
 DEPENDENCIES: (Displacement_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#)(Residual_criterion,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(And_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(Or_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)
