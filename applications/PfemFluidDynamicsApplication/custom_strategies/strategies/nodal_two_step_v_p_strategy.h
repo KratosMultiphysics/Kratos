@@ -455,7 +455,7 @@ namespace Kratos {
        
       void ComputeNodalVolume()
       {
-	std::cout << "ComputeNodalVolume: " << std::endl;
+	/* std::cout << "ComputeNodalVolume: " << std::endl; */
 
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	ElementsArrayType& pElements       = rModelPart.Elements();
@@ -759,7 +759,7 @@ namespace Kratos {
 	
     void InitializeNonLinearIterations()
     {
-      std::cout << "InitializeNonLinearIterations: " << std::endl;
+      /* std::cout << "InitializeNonLinearIterations: " << std::endl; */
 
       ModelPart& rModelPart = BaseType::GetModelPart();
       ElementsArrayType& pElements       = rModelPart.Elements();
@@ -798,7 +798,7 @@ namespace Kratos {
   void CalcNodalStrainsAndStresses()
   {
 
-    std::cout << "Calc Nodal Strains And Stresses " << std::endl;
+    /* std::cout << "Calc Nodal Strains And Stresses " << std::endl; */
 
     ModelPart& rModelPart = BaseType::GetModelPart();
 
@@ -971,7 +971,7 @@ namespace Kratos {
 	}
     }
 
-    std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl;
+    /* std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl; */
 
   }
 
@@ -980,7 +980,7 @@ namespace Kratos {
   void CalcNodalStrains()
   {
 
-    std::cout << "Calc Nodal Strains  " << std::endl;
+    /* std::cout << "Calc Nodal Strains  " << std::endl; */
     ModelPart& rModelPart = BaseType::GetModelPart();
 
     const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -1056,7 +1056,7 @@ namespace Kratos {
 	}
     }
 
-    std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl;
+    /* std::cout << "Calc Nodal Strains And Stresses DONE " << std::endl; */
 
   }
 
