@@ -181,6 +181,7 @@ class ALMContactProcess(KM.Process):
         ## We recompute the serach factor and the check in function of the relative size of the mesh
         if (self.settings["search_parameters"]["adapt_search"].GetBool() is True):
             factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.computing_model_part)
+            KM.Logger.PrintWarning("SEARCH ADAPT FACTOR: ", "{:.2e}".format(factor))
             search_factor = self.settings["search_parameters"]["search_factor"].GetDouble() * factor
             self.settings["search_parameters"]["search_factor"].SetDouble(search_factor)
             active_check_factor = self.settings["search_parameters"]["active_check_factor"].GetDouble() * factor
