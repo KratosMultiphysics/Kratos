@@ -138,6 +138,14 @@ namespace Kratos
     rCurrentRadius=0;
     rReferenceRadius=0;
 
+
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+       rCurrentRadius += rN[i] * GetGeometry()[i].X0();
+    }
+    rReferenceRadius = rCurrentRadius;
+    return;
+
     if ( dimension == 2 )
       {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
