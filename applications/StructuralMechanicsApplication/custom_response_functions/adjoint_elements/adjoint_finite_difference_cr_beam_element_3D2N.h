@@ -31,8 +31,6 @@ public:
 
     ~AdjointFiniteDifferenceCrBeamElement() override;
 
-    Element::Pointer Create(Element::Pointer pPrimalElement) const override;
-
     void Calculate(const Variable<Vector >& rVariable,
                         Vector& rOutput,
                         const ProcessInfo& rCurrentProcessInfo) override;

@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 #ifndef ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
 #define ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
@@ -85,7 +85,7 @@ public:
 
     double CalculateValue(ModelPart& rModelPart) override;
 
-      
+
     void CalculateGradient(const Element& rAdjointElem, const Matrix& rAdjointMatrix,
                                    Vector& rResponseGradient,
                                    ProcessInfo& rProcessInfo) override;
@@ -107,7 +107,7 @@ public:
     ///@{
 
     ///@}
- 
+
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -124,13 +124,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    
+
     void CalculateSensitivityGradient(Element& rAdjointElem,
                                       const Variable<double>& rVariable,
                                       const Matrix& rDerivativesMatrix,
                                       Vector& rResponseGradient,
                                       ProcessInfo& rProcessInfo) override;
-   
+
     void CalculateSensitivityGradient(Condition& rAdjointCondition,
                                      const Variable<double>& rVariable,
                                      const Matrix& rDerivativesMatrix,
@@ -173,7 +173,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mDisplacementValue;
     std::string mTracedDofLabel;
     PointTypePointer  mpTracedNode;
     Element::Pointer mpNeighboringElement;
@@ -194,7 +193,7 @@ private:
     ///@name Private Inquiry
     ///@{
 
-    ///@}    
+    ///@}
     ///@name Un accessible methods
     ///@{
 

@@ -62,7 +62,6 @@ namespace Kratos
                 << "Specified adjoint DOF is not available at traced node." << std::endl;
         }
 
-        mDisplacementValue = 0.0;
         this->GetNeighboringElementPointer();
     }
 
@@ -74,24 +73,20 @@ namespace Kratos
         KRATOS_TRY;
 
         ModelPart& r_model_part = this->GetModelPart();
-        bool neighboring_element_found = false;
 
         for (auto& elem_i : r_model_part.Elements())
         {
-            const SizeType number_of_nodes = elem_i.GetGeometry().size();
+            const SizeType number_of_nodes = elem_i.GetGeometry().PointsNumber();
             for(IndexType i = 0; i < number_of_nodes; ++i)
             {
                 if(elem_i.GetGeometry()[i].Id() == mpTracedNode->Id())
                 {
                     mpNeighboringElement = r_model_part.pGetElement(elem_i.Id());
-                    neighboring_element_found = true;
-                    break;
+                    return;
                 }
             }
-            if(neighboring_element_found) { break; }
         }
-        KRATOS_ERROR_IF_NOT(neighboring_element_found)
-             << "No neighboring element is available for the traced node." << std::endl;
+        KRATOS_ERROR << "No neighboring element is available for the traced node." << std::endl;
 
         KRATOS_CATCH("");
 
@@ -104,9 +99,7 @@ namespace Kratos
         const VariableComponentType& r_traced_dof =
             KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
 
-        mDisplacementValue = rModelPart.Nodes()[(mpTracedNode->Id())].FastGetSolutionStepValue(r_traced_dof, 0);
-
-        return mDisplacementValue;
+        return mpTracedNode->FastGetSolutionStepValue(r_traced_dof, 0);
 
         KRATOS_CATCH("");
     }
@@ -124,15 +117,15 @@ namespace Kratos
 
         if( rAdjointElem.Id() == mpNeighboringElement->Id() )
         {
-            DofsVectorType dofs_of_lement;
-            mpNeighboringElement->GetDofList(dofs_of_lement,rProcessInfo);
+            DofsVectorType dofs_of_element;
+            mpNeighboringElement->GetDofList(dofs_of_element,rProcessInfo);
 
             const VariableComponentType& r_traced_adjoint_dof =
                 KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDofLabel);
 
-            for(IndexType i = 0; i < dofs_of_lement.size(); ++i)
+            for(IndexType i = 0; i < dofs_of_element.size(); ++i)
             {
-                if(mpTracedNode->pGetDof(r_traced_adjoint_dof) == dofs_of_lement[i])
+                if(mpTracedNode->pGetDof(r_traced_adjoint_dof) == dofs_of_element[i])
                 {
                     rResponseGradient[i] = -1;
                 }

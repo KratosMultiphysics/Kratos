@@ -18,15 +18,11 @@
 
 namespace Kratos
 {
-    /// Default constructor.
     AdjointStrainEnergyResponseFunction::AdjointStrainEnergyResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
-        // Initialize member variables to NULL
-        mCurrentResponseValue = 0.0;
     }
 
-    /// Destructor.
     AdjointStrainEnergyResponseFunction::~AdjointStrainEnergyResponseFunction()
     {
     }
@@ -60,31 +56,30 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& r_model_part = rModelPart;
-        ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
-        mCurrentResponseValue = 0.0;
+        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
+        double response_value = 0.0;
 
         // Check if there are at the time of calling adjoint or primal elements
         KRATOS_ERROR_IF( r_current_process_info[IS_ADJOINT] )
              << "Calculate value for strain energy response is not available when using adjoint elements" << std::endl;
 
         // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
-        for (auto& elem_i : r_model_part.Elements())
-        {
-            Matrix LHS;
-            Vector RHS;
-            Vector disp;
+        Matrix LHS;
+        Vector RHS;
+        Vector disp;
 
+        for (auto& elem_i : rModelPart.Elements())
+        {
             // Get state solution relevant for energy calculation
             elem_i.GetValuesVector(disp,0);
 
             elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
 
             // Compute strain energy
-            mCurrentResponseValue += 0.5 * inner_prod(disp, prod(LHS,disp));
+            response_value += 0.5 * inner_prod(disp, prod(LHS,disp));
          }
 
-        return mCurrentResponseValue;
+        return response_value;
 
         KRATOS_CATCH("");
     }

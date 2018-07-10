@@ -82,10 +82,6 @@ public:
 
     // Basic
 
-    virtual Element::Pointer Create(Element::Pointer pPrimalElement) const;
-
-    // TODO Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const override;
-
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;

@@ -79,9 +79,6 @@ public:
 
     // Basic
 
-    Element::Pointer Create(Element::Pointer pPrimalElement) const override;
-
-    // TODO Element::Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override

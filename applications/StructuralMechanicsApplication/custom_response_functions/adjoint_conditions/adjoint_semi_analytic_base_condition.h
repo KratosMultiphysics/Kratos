@@ -91,13 +91,6 @@ public:
     ///@name Operations
     ///@{
 
-    virtual Condition::Pointer Create(Condition::Pointer pPrimalCondition ) const
-    {
-        return Kratos::make_shared<AdjointSemiAnalyticBaseCondition>(pPrimalCondition);
-    }
-
-    // TODO add missing create and clone methods
-
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "EquationIdVector of the base class called!" << std::endl;

@@ -6,8 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Martin Fusseder, https://github.com/MFusseder 
-//   
+//  Main authors:    Martin Fusseder, https://github.com/MFusseder
+//
 
 #ifndef ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
 #define ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
@@ -68,7 +68,7 @@ public:
 
     /// Destructor.
     ~AdjointStrainEnergyResponseFunction();
-   
+
     ///@}
     ///@name Operators
     ///@{
@@ -121,14 +121,14 @@ protected:
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo) override;
 
-  
+
     void CalculateSensitivityGradient(Element& rAdjointElem,
                                               const Variable<double>& rVariable,
                                               const Matrix& rDerivativesMatrix,
                                               Vector& rResponseGradient,
                                               ProcessInfo& rProcessInfo) override;
 
-    
+
     void CalculateSensitivityGradient(Condition& rAdjointCondition,
                                               const Variable<array_1d<double,3>>& rVariable,
                                               const Matrix& rDerivativesMatrix,
@@ -162,8 +162,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    double mCurrentResponseValue;
 
     ///@}
     ///@name Private Operators

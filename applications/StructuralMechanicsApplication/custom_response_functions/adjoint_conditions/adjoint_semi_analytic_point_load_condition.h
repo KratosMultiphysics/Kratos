@@ -73,8 +73,6 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(Condition::Pointer pPrimalCondition ) const override;
-
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
 
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;

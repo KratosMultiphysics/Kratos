@@ -28,12 +28,6 @@ AdjointFiniteDifferencingShellElement::AdjointFiniteDifferencingShellElement(Ele
 
 AdjointFiniteDifferencingShellElement::~AdjointFiniteDifferencingShellElement() {}
 
-Element::Pointer AdjointFiniteDifferencingShellElement::Create(Element::Pointer pPrimalElement) const
-{
-    return Kratos::make_shared<AdjointFiniteDifferencingShellElement>(pPrimalElement);
-}
-
-
 void AdjointFiniteDifferencingShellElement::Calculate(const Variable<Vector >& rVariable,
                            Vector& rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
