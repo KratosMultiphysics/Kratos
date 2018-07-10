@@ -93,7 +93,6 @@ protected:
 
         double  Alpha;
         double  Tau;
-        double  TimeStep;
         double  IntegrationWeight;
       
         //general variables for large displacement use
@@ -169,7 +168,6 @@ protected:
           Tau = 0;
           
           //time step
-          TimeStep = 0;
           IntegrationWeight = 1;
                     
 	  //jacobians

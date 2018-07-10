@@ -145,7 +145,7 @@ namespace Kratos
 
 
     // Add historical stress 
-    const MatrixType& rSpatialVelocityGradient = rValues.GetDeltaDeformationMatrix();
+    const MatrixType& rSpatialVelocityGradient = rValues.GetStrainMatrix();
     const double& rDeltaTime                   = rValues.GetProcessInfo()[DELTA_TIME];
     
     // Skewsymmetric spatial velocity gradient
@@ -165,7 +165,7 @@ namespace Kratos
 
     // To store when FinalizeModel (can be the total or the isochoric stress)
     rValues.StressMatrix = rStressMatrix;
-	
+
     KRATOS_CATCH(" ")
   }
 
@@ -210,7 +210,7 @@ namespace Kratos
     KRATOS_TRY
 
     noalias(rStressVector) = prod(rVariables.ConstitutiveTensor,rStrainVector);
-        
+    
     KRATOS_CATCH(" ")
   }
   
@@ -231,6 +231,7 @@ namespace Kratos
     this->CalculateAndAddConstitutiveTensor(Variables);
     
     VectorType StressVector;
+    StressVector.clear();
     this->CalculateAndAddIsochoricStressTensor(Variables,StrainVector,StressVector);
 
     rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);

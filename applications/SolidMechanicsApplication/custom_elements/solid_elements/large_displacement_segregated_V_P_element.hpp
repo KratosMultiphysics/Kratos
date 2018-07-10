@@ -159,6 +159,37 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
 
+    //************* COMPUTING  METHODS
+    
+    /**
+     * this is called during the assembling process in order
+     * to calculate all elemental contributions to the global system
+     * matrix and the right hand side
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
+                              VectorType& rRightHandSideVector, 
+                              ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental right hand side vector only
+     * @param rRightHandSideVector: the elemental right hand side vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, 
+                              ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental left hand side vector only
+     * @param rLeftHandSideVector: the elemental left hand side vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, 
+                              ProcessInfo& rCurrentProcessInfo) override;
+    
     /**
      * this is called during the assembling process in order
      * to calculate the elemental mass matrix

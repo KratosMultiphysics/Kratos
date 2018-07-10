@@ -93,7 +93,6 @@ protected:
         StressMeasureType StressMeasure;
       
         double  Tau;
-        double  TimeStep;
         double  IntegrationWeight;
       
         //for axisymmetric use only
@@ -169,7 +168,6 @@ protected:
           Tau = 0;
           
           //time step
-          TimeStep = 0;
           IntegrationWeight = 1;
           
           //radius

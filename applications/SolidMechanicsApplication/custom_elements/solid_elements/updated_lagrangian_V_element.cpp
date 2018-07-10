@@ -357,7 +357,7 @@ void UpdatedLagrangianVElement::CalculateKinetics(ElementDataType& rVariables, c
 
 void UpdatedLagrangianVElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
-    LargeDisplacementVElement::GetHistoricalVariables(rVariables,rPointNumber);
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
     //Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];

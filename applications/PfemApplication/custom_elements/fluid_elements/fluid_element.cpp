@@ -493,9 +493,6 @@ void FluidElement::InitializeElementData (ElementDataType& rVariables, const Pro
     const unsigned int voigt_size      = dimension * (dimension + 1) * 0.5;
 
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
-
-    //set variables including all integration points values
-    rVariables.TimeStep = rCurrentProcessInfo[DELTA_TIME];
         
     //reading shape functions
     rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));

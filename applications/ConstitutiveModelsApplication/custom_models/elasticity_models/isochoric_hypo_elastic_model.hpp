@@ -149,23 +149,24 @@ namespace Kratos
 
       VectorType StrainVector;
       StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
-
+      
       //Calculate Constitutive Matrix
       this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
 
       //Calculate Stress Matrix
       VectorType StressVector;
+      StressVector.clear();
       this->CalculateAndAddIsochoricStressTensor(Variables,StrainVector,StressVector);
-
+      
       rValues.StressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rValues.StressMatrix); //store isochoric stress matrix as StressMatrix
 
       this->CalculateAndAddVolumetricStressTensor(Variables,StrainVector,StressVector);
-
+      
       rStressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rStressMatrix);
 
       // Rate to stress value
       rStressMatrix *= rValues.GetProcessInfo()[DELTA_TIME];
-   
+
       // Isochoric stress stored in the HistoryVector
       this->AddHistoricalStress(rValues, rStressMatrix);
       
@@ -242,7 +243,7 @@ namespace Kratos
 
       //total stress
       VectorType StressVector;
-      this->CalculateAndAddStressTensor(rVariables,rStrainVector,rStressVector);
+      this->CalculateAndAddStressTensor(rVariables,rStrainVector,StressVector);
 
       //deviatoric stress
       double MeanStress = (1.0/3.0) * (StressVector[0]+StressVector[1]+StressVector[2]);

@@ -554,9 +554,9 @@ void SolidElement::ResetConstitutiveLaw()
 void SolidElement::InitializeElementData (ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
-    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
+    const unsigned int voigt_size   = dimension * (dimension +1) * 0.5;
 
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 

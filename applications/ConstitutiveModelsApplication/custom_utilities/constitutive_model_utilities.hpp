@@ -649,7 +649,7 @@ namespace Kratos
     static inline array_1d<double,6>& StrainTensorToVector(const MatrixType& rMatrix, array_1d<double,6>& rVector)
     {
         KRATOS_TRY;
-        
+
 	rVector[0]= rMatrix(0,0);
 	rVector[1]= rMatrix(1,1);
 	rVector[2]= rMatrix(2,2);
@@ -717,6 +717,9 @@ namespace Kratos
 	    rStrainTensor(2,1) = 0.5*rStrainVector[4];
 	    rStrainTensor(2,2) = rStrainVector[2];	    
         }
+        else{
+          KRATOS_ERROR << "Unexpected voigt size: " << rStrainVector.size() << std::endl;
+        }
 
         return rStrainTensor;
 	
@@ -758,6 +761,10 @@ namespace Kratos
             rStrainVector[4] = 2.0*rStrainTensor(1,2);
             rStrainVector[5] = 2.0*rStrainTensor(0,2);
         }
+        else{
+          KRATOS_ERROR << "Unexpected voigt size: " << rStrainVector.size() << std::endl;
+        }
+        
 
         return rStrainVector;
 
@@ -820,7 +827,10 @@ namespace Kratos
 	    rStressTensor(2,1) = rStressVector[4];
 	    rStressTensor(2,2) = rStressVector[2];	    
         }
-
+        else{
+          KRATOS_ERROR << "Unexpected voigt size: " << rStressVector.size() << std::endl;
+        }
+        
         return rStressTensor;
 	
         KRATOS_CATCH("");

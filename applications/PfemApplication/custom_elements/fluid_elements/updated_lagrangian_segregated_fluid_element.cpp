@@ -707,7 +707,8 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvm(MatrixType& rL
   // Add volumetric part to the constitutive tensor to compute Kvvm = Kdev + Kvol(quasi incompressible)
 
   // add fluid bulk modulus for quasi-incompressibility (must be implemented in a ConstituiveModel for Quasi-Incompressible Newtonian Fluid.
-  double BulkFactor = GetProperties()[BULK_MODULUS] * rVariables.TimeStep;
+  const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
+  double BulkFactor = GetProperties()[BULK_MODULUS] * TimeStep;
 
   // add fluid bulk modulus
   this->AddVolumetricPart(rVariables.ConstitutiveMatrix,BulkFactor);
@@ -745,9 +746,10 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateRegularizedKvvm(MatrixTyp
 
   double MassFactor = GetGeometry().DomainSize() * GetProperties()[DENSITY] / double(number_of_nodes);
 
+  const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
   double BulkFactor = 0.0;
   if(StiffnessFactor!=0 && MassFactor!=0)
-    BulkFactor = GetProperties()[BULK_MODULUS] * rVariables.TimeStep * ( MassFactor * 2.0 / (rVariables.TimeStep * StiffnessFactor) );
+    BulkFactor = GetProperties()[BULK_MODULUS] * TimeStep * ( MassFactor * 2.0 / (TimeStep * StiffnessFactor) );
 
   this->AddVolumetricPart(rVariables.ConstitutiveMatrix, BulkFactor);
 
@@ -950,9 +952,10 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKpp(MatrixType& rLe
   // Add Bulk Matrix
   const double& BulkModulus = GetProperties()[BULK_MODULUS];
   const double& Density     = GetProperties()[DENSITY];
-
-  double MassFactor = rVariables.IntegrationWeight / (BulkModulus * rVariables.TimeStep);
-  double BulkFactor = MassFactor * Density * rVariables.Tau / (rVariables.TimeStep);
+  const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
+  
+  double MassFactor = rVariables.IntegrationWeight / (BulkModulus * TimeStep);
+  double BulkFactor = MassFactor * Density * rVariables.Tau / TimeStep;
 
   // (LUMPED)
   // double coefficient = rGeometry.IntegrationPointsNumber() * (1 + dimension); //integration points independent
@@ -1086,7 +1089,7 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
   // Add Dynamic Bulk Vector
   const double& BulkModulus = GetProperties()[BULK_MODULUS];
   const double& Density     = GetProperties()[DENSITY];
-
+  
   double MassFactor = rVariables.IntegrationWeight / BulkModulus;
   double BulkFactor = MassFactor * Density * rVariables.Tau;
 
@@ -1094,11 +1097,11 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddPressureForces(Vect
   // double coefficient = rGeometry.IntegrationPointsNumber() * (1 + dimension); //integration points independent
   // MassFactor /= coefficient;
   // BulkFactor /= coefficient;
-
+  // const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
   // for( SizeType i=0; i<number_of_nodes; ++i)
   // {
-  //   rRightHandSideVector[i] -= MassFactor * (1.0/rVariables.TimeStep) * rGeometry[j].FastGetSolutionStepValue(PRESSURE_VELOCITY);
-  //   rRightHandSideVector[i] -= BulkFactor * (1.0/(rVariables.TimeStep*rVariables.TimeStep)) * rGeometry[j].FastGetSolutionStepValue(PRESSURE_ACCELERATION);
+  //   rRightHandSideVector[i] -= MassFactor * (1.0/ TimeStep) * rGeometry[j].FastGetSolutionStepValue(PRESSURE_VELOCITY);
+  //   rRightHandSideVector[i] -= BulkFactor * (1.0/(TimeStep*TimeStep)) * rGeometry[j].FastGetSolutionStepValue(PRESSURE_ACCELERATION);
   // }
 
   // (REDUCED INTEGRATION)
@@ -1157,11 +1160,12 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateStabilizationTau(ElementD
     // Get element properties
     const double& Density   = GetProperties()[DENSITY];
     const double& Viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+    const double& TimeStep  = rVariables.GetProcessInfo()[DELTA_TIME];
     
     // Get element size
     double element_size = rGeometry.AverageEdgeLength();
     
-    rVariables.Tau = (element_size * element_size * rVariables.TimeStep) / ( Density * mean_velocity * rVariables.TimeStep * element_size + Density * element_size * element_size +  8.0 * Viscosity * rVariables.TimeStep );
+    rVariables.Tau = (element_size * element_size * TimeStep) / ( Density * mean_velocity * TimeStep * element_size + Density * element_size * element_size +  8.0 * Viscosity * TimeStep );
 
   }
 

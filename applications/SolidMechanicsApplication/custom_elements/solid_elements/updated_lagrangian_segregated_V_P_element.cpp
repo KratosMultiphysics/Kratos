@@ -384,8 +384,9 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddKpp(MatrixType& rLeftH
         }
       }
     }
-  }
 
+  }
+  
   // Add Stabilized Laplacian Matrix
   double StabilizationFactor = rVariables.Tau * rVariables.IntegrationWeight;
   for( SizeType i=0; i<number_of_nodes; ++i )
@@ -399,18 +400,21 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddKpp(MatrixType& rLeftH
     }
   }
 
+  
   // Add Bulk Matrix
   const double& YoungModulus = GetProperties()[YOUNG_MODULUS];
   const double& Poisson = GetProperties()[POISSON_RATIO];
   double LameMu = YoungModulus/(2.0*(1.0+Poisson)); 
   double BulkModulus = (YoungModulus * Poisson)/((1.0+Poisson)*(1.0-2.0*Poisson)) + (2.0/3.0) * LameMu;
+  
   if( GetProperties().Has(BULK_MODULUS) )
     BulkModulus = GetProperties()[BULK_MODULUS];  
 
-  const double& Density     = GetProperties()[DENSITY];
-
-  double MassFactor = rVariables.IntegrationWeight / (BulkModulus * rVariables.TimeStep);
-  double BulkFactor = MassFactor * Density * rVariables.Tau / (rVariables.TimeStep);
+  const double& Density = GetProperties()[DENSITY];
+  const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
+      
+  double MassFactor = rVariables.IntegrationWeight / (BulkModulus * TimeStep);
+  double BulkFactor = MassFactor * Density * rVariables.Tau / TimeStep;
 
   // (LUMPED)
   // double coefficient = rGeometry.IntegrationPointsNumber() * (1 + dimension); //integration points independent
@@ -429,7 +433,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddKpp(MatrixType& rLeftH
       rLeftHandSideMatrix(i,j) += (MassFactor + BulkFactor) * rVariables.N[i] * rVariables.N[j];
     }
   }
-
+  
 
   KRATOS_CATCH( "" )
 }
@@ -472,6 +476,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
     // Get element properties
     const double& Density   = GetProperties()[DENSITY];
     double LameMu = YoungModulus/(2.0*(1.0+Poisson));
+    const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
     
     //h_n (normal h)
     Matrix L(dimension,dimension);
@@ -494,7 +499,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
       BoundFactor = rVariables.Tau * 2.0 / side_normal_size;
       
       BoundFactorA = rVariables.Tau * Density;
-      BoundFactorB = rVariables.Tau * 4.0 * ProjectionVelocityGradient * (LameMu * rVariables.TimeStep) / side_normal_size;
+      BoundFactorB = rVariables.Tau * 4.0 * ProjectionVelocityGradient * (LameMu * TimeStep) / side_normal_size;
       
       // Vector NodeNormal (dimension);
       // noalias(NodeNormal) = ZeroVector(dimension);
@@ -560,8 +565,8 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
   if( GetProperties().Has(BULK_MODULUS) )
     BulkModulus = GetProperties()[BULK_MODULUS];
 
-  const double& Density     = GetProperties()[DENSITY];
-
+  const double& Density = GetProperties()[DENSITY];
+  
   double MassFactor = rVariables.IntegrationWeight / BulkModulus;
   double BulkFactor = MassFactor * Density * rVariables.Tau;
 
@@ -569,11 +574,11 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
   // double coefficient = rGeometry.IntegrationPointsNumber() * (1 + dimension); //integration points independent
   // MassFactor /= coefficient;
   // BulkFactor /= coefficient;
-
+  // const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
   // for( SizeType i=0; i<number_of_nodes; ++i)
   // {
-  //   rRightHandSideVector[i] -= MassFactor * (1.0/rVariables.TimeStep) * rGeometry[j].FastGetSolutionStepValue(PRESSURE_VELOCITY);
-  //   rRightHandSideVector[i] -= BulkFactor * (1.0/(rVariables.TimeStep*rVariables.TimeStep)) * rGeometry[j].FastGetSolutionStepValue(PRESSURE_ACCELERATION);
+  //   rRightHandSideVector[i] -= MassFactor * (1.0/TimeStep) * rGeometry[j].FastGetSolutionStepValue(PRESSURE_VELOCITY);
+  //   rRightHandSideVector[i] -= BulkFactor * (1.0/(TimeStep*TimeStep)) * rGeometry[j].FastGetSolutionStepValue(PRESSURE_ACCELERATION);
   // }
 
   // (REDUCED INTEGRATION)
@@ -635,11 +640,12 @@ void UpdatedLagrangianSegregatedVPElement::CalculateStabilizationTau(ElementData
     // Get element properties
     const double& Density   = GetProperties()[DENSITY];
     double LameMu = YoungModulus/(2.0*(1.0+Poisson));
-                                                    
+    const double& TimeStep = rVariables.GetProcessInfo()[DELTA_TIME];
+    
     // Get element size
     double element_size = rGeometry.AverageEdgeLength();
     
-    rVariables.Tau = (element_size * element_size * rVariables.TimeStep) / ( Density * mean_velocity * rVariables.TimeStep * element_size + Density * element_size * element_size +  8.0 * LameMu * rVariables.TimeStep * rVariables.TimeStep );
+    rVariables.Tau = (element_size * element_size * TimeStep) / ( Density * mean_velocity * TimeStep * element_size + Density * element_size * element_size +  8.0 * LameMu * TimeStep * TimeStep );
 
   }
 
@@ -833,7 +839,7 @@ void UpdatedLagrangianSegregatedVPElement::GetFaceNormal(const std::vector<SizeT
 
 void UpdatedLagrangianSegregatedVPElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
-    LargeDisplacementVElement::GetHistoricalVariables(rVariables,rPointNumber);
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
     //Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
