@@ -143,9 +143,29 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
             self.AssignValueProcess.Execute()
 
 
+
+
     def ExecuteInitializeSolutionStep(self):
 
         if self.IsInsideInterval():
+            self.AssignValueProcess.Execute()
+        elif ( self.finalized):
+
+            # set model part
+            self.model_part = self.model[self.settings["model_part_name"].GetString()]
+            if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+                self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
+            for i in range(0,2):
+                self.value[i] = 0.0
+            # set processes
+            params = KratosMultiphysics.Parameters("{}")
+            params.AddValue("model_part_name", self.settings["model_part_name"])
+
+            params.AddEmptyValue("value")
+            params.__setitem__("value", self.settings["direction"])
+
+            self.CreateAssignmentProcess(params)
+
             self.AssignValueProcess.Execute()
 
     def ExecuteFinalizeSolutionStep(self):
