@@ -14,7 +14,6 @@
 #define KRATOS_BEAM_MATH_UTILITIES
 
 // System includes
-#include <cmath>
 
 // External includes
 

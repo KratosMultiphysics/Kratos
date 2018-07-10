@@ -17,22 +17,12 @@
 #define  KRATOS_MODEL_PART_H_INCLUDED
 
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
 #include "includes/process_info.h"
-#include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/condition.h"
