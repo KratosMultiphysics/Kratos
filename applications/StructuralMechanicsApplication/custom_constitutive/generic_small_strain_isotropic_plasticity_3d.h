@@ -83,8 +83,16 @@ public:
     */
     GenericSmallStrainIsotropicPlasticity3D (const GenericSmallStrainIsotropicPlasticity3D& rOther)
     : ConstitutiveLaw(rOther)
-    {
+    , mPlasticDissipation(rOther.mPlasticDissipation)
+    , mThreshold(rOther.mThreshold)
+    , mPlasticStrain(rOther.mPlasticStrain)
+    , mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation)
+    , mNonConvThreshold(rOther.mNonConvThreshold)
+    , mNonConvPlasticStrain(rOther.mNonConvPlasticStrain)
+    , mUniaxialStress(rOther.mUniaxialStress)
+    { 
     }
+
     /**
     * Destructor.
     */
@@ -159,15 +167,15 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-//     /**
-//      * Finalize the material response,  called by the element in FinalizeSolutionStep.
-//      * @see Parameters
-//      * @see StressMeasures
-//      */
-//      void FinalizeMaterialResponse (
-//          Parameters& rValues,
-//          const StressMeasure& rStressMeasure
-//          ) override;
+    /**
+     * Finalize the material response,  called by the element in FinalizeSolutionStep.
+     * @see Parameters
+     * @see StressMeasures
+     */
+    //  void FinalizeMaterialResponse (
+    //      Parameters& rValues,
+    //      const StressMeasure& rStressMeasure
+    //      ) override;
 
     /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
