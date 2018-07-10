@@ -668,6 +668,53 @@ public:
      */
     void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds);
 
+    /** Inserts a list of pointers to Master-Slave constraints
+     */
+    template<class TIteratorType >
+    void AddMasterSlaveConstraints(TIteratorType constraints_begin,  TIteratorType constraints_end, IndexType ThisIndex = 0)
+    {
+        KRATOS_TRY
+        ModelPart::MasterSlaveConstraintContainerType  aux;
+        ModelPart::MasterSlaveConstraintContainerType  aux_root;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+
+        for(TIteratorType it = constraints_begin; it!=constraints_end; it++)
+        {
+            auto it_found = root_model_part->MasterSlaveConstraints().find(it->Id());
+            if(it_found == root_model_part->MasterSlaveConstraintsEnd()) //node does not exist in the top model part
+            {
+                aux_root.push_back( *(it.base()) );
+                aux.push_back( *(it.base()) );
+            }
+            else //if it does exist verify it is the same node
+            {
+                if(&(*it_found) != &(*it))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new master-slave constraint with Id :" << it_found->Id() << ", unfortunately a (different) master-slave constraint with the same Id already exists" << std::endl;
+                else
+                    aux.push_back( *(it.base()) );
+            }
+        }
+
+        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
+                root_model_part->MasterSlaveConstraints().push_back( *(it.base()) );
+        root_model_part->MasterSlaveConstraints().Unique();
+
+        //add to all of the leaves
+
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
+
+            current_part->MasterSlaveConstraints().Unique();
+
+            current_part = current_part->GetParentModelPart();
+        }
+
+        KRATOS_CATCH("")
+    }
+
     /** Creates a new master-slave constraint in the current modelpart.
      * //TODO: replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
      */
