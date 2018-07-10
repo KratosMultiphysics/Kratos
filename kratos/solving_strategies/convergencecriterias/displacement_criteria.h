@@ -155,13 +155,13 @@ public:
 
             const TDataType absolute_norm = (final_correction_norm/std::sqrt(float_size_solution));
 
-            KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
+            KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
             if ( ratio <= mRatioTolerance  ||  absolute_norm<mAlwaysConvergedNorm )  { //  || (final_correction_norm/x.size())<=1e-7)
-                KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
+                KRATOS_INFO_IF("DISPLACEMENT CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
                 return true;
             } else {
                 return false;
@@ -287,11 +287,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    TDataType mRatioTolerance; /// The ratio threshold for the norm of the residual
+    TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
 
     TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
 
-    TDataType mReferenceDispNorm; /// The ratio threshold for the norm of the residual
+    TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
 
     ///@}

@@ -170,13 +170,13 @@ public:
 //             const TDataType float_size_residual = static_cast<TDataType>(size_b);
             const TDataType absolute_norm = (mCurrentResidualNorm/float_size_residual);
 
-            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
+            KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << " :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << absolute_norm << "; Expected norm =  " << mAlwaysConvergedNorm << "]" << std::endl;
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
             rModelPart.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
             if (ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm) {
-                KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
+                KRATOS_INFO_IF("RESIDUAL CRITERION", this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0) << "Convergence is achieved" << std::endl;
                 return true;
             } else {
                 return false;
@@ -305,9 +305,9 @@ private:
     ///@{
 
 
-    bool mInitialResidualIsSet; /// This "flag" is set in order to set that the initial residual is already computed
+    bool mInitialResidualIsSet;     /// This "flag" is set in order to set that the initial residual is already computed
 
-    TDataType mRatioTolerance; /// The ratio threshold for the norm of the residual
+    TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
 
     TDataType mInitialResidualNorm; /// The reference norm of the residual
 
@@ -315,7 +315,7 @@ private:
 
     TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
 
-    TDataType mReferenceDispNorm; /// The ratio threshold for the norm of the residual
+    TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
 
 
     ///@} 
