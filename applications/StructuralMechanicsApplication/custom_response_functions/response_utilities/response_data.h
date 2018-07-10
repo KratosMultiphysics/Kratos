@@ -156,7 +156,7 @@ public:
         else if(Str == "GP")
             return StressTreatment::GaussPoint;
         else
-            return StressTreatment::StressTreatmentNotAvailable;
+            KRATOS_ERROR << "Chosen stress treatment \n" <<Str<<"\" is not available!" << std::endl;
     }
 
     ///@}

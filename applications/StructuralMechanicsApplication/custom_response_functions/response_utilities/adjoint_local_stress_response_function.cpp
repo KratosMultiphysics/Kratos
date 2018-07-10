@@ -33,7 +33,6 @@ namespace Kratos
 
         // Get info how and where to treat the stress
         mStressTreatment = stress_response_data.ConvertStressTreatment( ResponseSettings["stress_treatment"].GetString() );
-        KRATOS_ERROR_IF(mStressTreatment == StressTreatment::StressTreatmentNotAvailable) << "Chosen option for stress treatmeant is not available! Chose 'GP','node' or 'mean'!" << std::endl;
 
         if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node)
         {
