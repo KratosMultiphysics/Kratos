@@ -180,8 +180,6 @@ class InletManagementMesherProcess
   ///@{
 
 
-
- 
   void CheckAndCreateNewInletLayer()
 
   {

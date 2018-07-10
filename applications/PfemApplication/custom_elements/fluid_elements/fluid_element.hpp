@@ -91,6 +91,7 @@ protected:
 
         StressMeasureType StressMeasure;
 
+        double  Alpha;
         double  Tau;
         double  TimeStep;
         double  IntegrationWeight;
@@ -161,6 +162,9 @@ protected:
         {
 	  StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 
+          //integration
+          Alpha = 1.0;
+          
           //stabilization
           Tau = 0;
           
@@ -626,6 +630,11 @@ protected:
     ///@{
 
     /**
+     * Sets process information to set member variables
+     */
+    virtual void SetProcessInformation(const ProcessInfo& rCurrentProcessInfo);
+    
+    /**
      * Increases the integration method in the "increment" order
      */
     void IncreaseIntegrationMethod(IntegrationMethod& rThisIntegrationMethod,
@@ -670,7 +679,6 @@ protected:
                                     ElementDataType& rVariables);
 
 
-
     /**
      * Calculation and addition of the matrices of the LHS
      */
@@ -681,16 +689,12 @@ protected:
     /**
      * Calculation and addition of the vectors of the RHS
      */
-
     virtual void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, 
 					   ElementDataType& rVariables);
-
-
 
     /**
      * Calculation of the Material Stiffness Matrix. Kvvm = BT * C * B
      */
-
     virtual void CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
                                      ElementDataType& rVariables);
 

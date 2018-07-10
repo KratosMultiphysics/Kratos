@@ -93,8 +93,9 @@ class MeshingStrategy(object):
         self.number_of_conditions = 0
 
         #print("::[--Meshing Strategy-]:: Ready")
+
     #
-    def SetMeshers(self):
+    def GetMeshers(self):
 
         meshers_list = []
 
@@ -110,6 +111,13 @@ class MeshingStrategy(object):
         elif( self.settings["transfer"].GetBool() ):
 
             meshers_list.append("transfer_mesher")
+
+        return meshers_list
+
+    #
+    def SetMeshers(self):
+
+        meshers_list = self.GetMeshers()
 
         print("  [", self.MeshingParameters.GetSubModelPartName(),"model part ] (REMESH:",self.settings["remesh"].GetBool(),"/ REFINE:",self.settings["refine"].GetBool(),"/ TRANSFER:",self.settings["transfer"].GetBool(),")")
 

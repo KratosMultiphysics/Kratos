@@ -25,7 +25,8 @@ class PreRefiningMesher(mesher.Mesher):
         self.model_part = self.main_model_part
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
-                       
+        print("::[--Refining Mesher--]:: Ready")
+        
     #
     def InitializeMeshing(self):
 
@@ -79,8 +80,6 @@ class PreRefiningMesher(mesher.Mesher):
 
         self.MeshingParameters.SetTessellationFlags(mesher_flags)
         self.MeshingParameters.SetTessellationInfo(mesher_info)
-
-        print("::[--Refining Mesher--]:: Ready")
 
     #
     def SetPreMeshingProcesses(self):

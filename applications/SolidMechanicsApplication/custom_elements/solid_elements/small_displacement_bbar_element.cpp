@@ -234,7 +234,8 @@ void SmallDisplacementBbarElement::CalculateDeformationMatrixBbar(Matrix& rB,
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     // Compute deformation matrix
-    this->CalculateDeformationMatrix(rB, rDN_DX);
+    const GeometryType& rGeometry = GetGeometry();
+    ElementUtilities::CalculateLinearDeformationMatrix(rB,rGeometry,rDN_DX);
 
     if (dimension == 2)
     {

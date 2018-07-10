@@ -144,7 +144,7 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    unsigned int   dofs_size        = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
@@ -252,9 +252,10 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 	strain_rate_measure = true;
     }
 
-    if( strain_rate_measure ){     
+    if( strain_rate_measure ){    
       //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
-      this->CalculateVelocityGradientVector( rVariables.StrainVector, rVariables.DN_DX, step );
+      GeometryType& rGeometry = GetGeometry();
+      ElementUtilities::CalculateVelocityGradientVector( rVariables.StrainVector, rGeometry, rVariables.DN_DX, step );
       Flags &ConstitutiveLawOptions=rValues.GetOptions();
       ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     }
@@ -272,199 +273,6 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
     rValues.SetShapeFunctionsValues(rVariables.N);
 
 }
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementVElement::CalculateVelocityGradient(Matrix& rH,
-                                                          const Matrix& rDN_DX,
-                                                          unsigned int step)
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-
-    rH = zero_matrix<double> ( dimension );
-
-    if( dimension == 2 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
-          
-            rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-        }
-
-    }
-    else if( dimension == 3)
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
-            
-            rH ( 0 , 0 ) += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH ( 0 , 1 ) += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH ( 0 , 2 ) += rCurrentVelocity[0]*rDN_DX ( i , 2 );
-            rH ( 1 , 0 ) += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH ( 1 , 1 ) += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH ( 1 , 2 ) += rCurrentVelocity[1]*rDN_DX ( i , 2 );
-            rH ( 2 , 0 ) += rCurrentVelocity[2]*rDN_DX ( i , 0 );
-            rH ( 2 , 1 ) += rCurrentVelocity[2]*rDN_DX ( i , 1 );
-            rH ( 2 , 2 ) += rCurrentVelocity[2]*rDN_DX ( i , 2 );
-        }
-
-    }
-    else
-    {
-      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
-    }
-    
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementVElement::CalculateVelocityGradientVector(Vector& rH,
-                                                                const Matrix& rDN_DX,
-                                                                unsigned int step)
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-
-    rH = ZeroVector( dimension * dimension );
-
-    if( dimension == 2 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
-          
-            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH[2] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH[3] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-
-        }
-
-    }
-    else if( dimension == 3)
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-          array_1d<double,3>& rCurrentVelocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,step);
-            
-            rH[0] += rCurrentVelocity[0]*rDN_DX ( i , 0 );
-            rH[1] += rCurrentVelocity[1]*rDN_DX ( i , 1 );
-            rH[2] += rCurrentVelocity[2]*rDN_DX ( i , 2 );
-            
-            rH[3] += rCurrentVelocity[0]*rDN_DX ( i , 1 );
-            rH[4] += rCurrentVelocity[1]*rDN_DX ( i , 2 );
-            rH[5] += rCurrentVelocity[2]*rDN_DX ( i , 0 );
-
-            rH[6] += rCurrentVelocity[1]*rDN_DX ( i , 0 );
-            rH[7] += rCurrentVelocity[2]*rDN_DX ( i , 1 );
-            rH[8] += rCurrentVelocity[0]*rDN_DX ( i , 2 );
-        }
-
-    }
-    else
-    {
-      KRATOS_ERROR << " something is wrong with the dimension when computing velocity gradient " << std::endl;
-    }
-    
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementVElement::CalculateSymmetricVelocityGradient(const Matrix& rH,
-                                                                  Vector& rStrainVector)
-{
-    KRATOS_TRY
-
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-    if( dimension == 2 )
-    {
-        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-
-        rStrainVector[0] = rH( 0, 0 );
-        rStrainVector[1] = rH( 1, 1 );
-        rStrainVector[2] = 0.5 * (rH( 0, 1 ) + rH( 1, 0 )); // xy
-
-    }
-    else if( dimension == 3 )
-    {
-        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-
-        rStrainVector[0] = rH( 0, 0 );
-        rStrainVector[1] = rH( 1, 1 );
-        rStrainVector[2] = rH( 2, 2 );
-        rStrainVector[3] = 0.5 * ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
-        rStrainVector[4] = 0.5 * ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
-        rStrainVector[5] = 0.5 * ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
-
-    }
-    else
-    {
-        KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementVElement::CalculateSkewSymmetricVelocityGradient(const Matrix& rH,
-                                                                      Vector& rStrainVector)
-{
-    KRATOS_TRY
-
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-    if( dimension == 2 )
-    {
-        if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
-
-        rStrainVector[0] = 0.0;
-        rStrainVector[1] = 0.0;
-        rStrainVector[2] = 0.5 * (rH( 0, 1 ) - rH( 1, 0 )); // xy
-
-    }
-    else if( dimension == 3 )
-    {
-        if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
-
-        rStrainVector[0] = 0.0;
-        rStrainVector[1] = 0.0;
-        rStrainVector[2] = 0.0;
-        rStrainVector[3] = 0.5 * ( rH( 0, 1 ) - rH( 1, 0 ) ); // xy
-        rStrainVector[4] = 0.5 * ( rH( 1, 2 ) - rH( 2, 1 ) ); // yz
-        rStrainVector[5] = 0.5 * ( rH( 0, 2 ) - rH( 2, 0 ) ); // xz
-
-    }
-    else
-    {
-        KRATOS_ERROR << " something is wrong with the dimension symmetric velocity gradient " << std::endl;
-    }
-
-    KRATOS_CATCH( "" )
-}
-
 
 //************************************************************************************
 //************************************************************************************

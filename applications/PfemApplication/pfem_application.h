@@ -61,7 +61,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosPfemApplication : public KratosApplication
+  class KRATOS_API(PFEM_APPLICATION) KratosPfemApplication : public KratosApplication
   {
   public:
 

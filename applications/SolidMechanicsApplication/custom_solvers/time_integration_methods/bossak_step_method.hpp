@@ -203,19 +203,7 @@ namespace Kratos
        
      KRATOS_CATCH( "" )
     } 
-    
-    double& GetSecondDerivativeKineticParameter(double& rParameter) override
-    {
-      rParameter = mAlpha;
-      return rParameter;
-    }
-    
-    double& GetSecondDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = (1.0 - mAlpha) * this->mNewmark.c0;
-      return rParameter;
-    }
-    
+      
      
     ///@}
     ///@name Access
@@ -280,7 +268,19 @@ namespace Kratos
     ///@}
     ///@name Protected  Access
     ///@{
-
+    
+    double& GetSecondDerivativeKineticParameter(double& rParameter) override
+    {
+      rParameter = mAlpha;
+      return rParameter;
+    }
+    
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = (1.0 - mAlpha) * this->mNewmark.c0;
+      return rParameter;
+    }
+    
     ///@}
     ///@name Protected Inquiry
     ///@{

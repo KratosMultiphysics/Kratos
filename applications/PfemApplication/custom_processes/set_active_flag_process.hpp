@@ -238,7 +238,7 @@ void SetPressureToIsolatedWallNodes(Geometry<Node<3> > & wallElementNodes)
   }
 
   KRATOS_CATCH(" ")
-      };
+};
 
 
 ///@}

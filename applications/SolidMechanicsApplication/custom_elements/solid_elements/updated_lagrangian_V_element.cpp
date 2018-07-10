@@ -133,11 +133,6 @@ UpdatedLagrangianVElement::~UpdatedLagrangianVElement()
 }
 
 
-
-//************************************************************************************
-//************************************************************************************
-
-
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
@@ -167,10 +162,6 @@ void UpdatedLagrangianVElement::SetValueOnIntegrationPoints( const Variable<doub
 
 
 }
-
-
-//************************************************************************************
-//************************************************************************************
 
 //**********************************GET DOUBLE VALUE**********************************
 //************************************************************************************
@@ -202,8 +193,6 @@ void UpdatedLagrangianVElement::GetValueOnIntegrationPoints( const Variable<doub
 
 }
 
-
-//************* STARTING - ENDING  METHODS
 //************************************************************************************
 //************************************************************************************
 
@@ -251,8 +240,8 @@ void UpdatedLagrangianVElement::InitializeElementData (ElementDataType& rVariabl
 
 }
 
-////************************************************************************************
-////************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
 void UpdatedLagrangianVElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 {
@@ -260,10 +249,6 @@ void UpdatedLagrangianVElement::FinalizeStepVariables( ElementDataType & rVariab
     mDeterminantF0[rPointNumber] = rVariables.detF * rVariables.detF0;
     noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
-
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
 
 
 //*********************************COMPUTE KINEMATICS*********************************
@@ -278,9 +263,12 @@ void UpdatedLagrangianVElement::CalculateKinematics(ElementDataType& rVariables,
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
-
+    
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
+    //Set Shape Functions Values for this integration point
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
@@ -292,8 +280,6 @@ void UpdatedLagrangianVElement::CalculateKinematics(ElementDataType& rVariables,
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
-    //
-    //
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
@@ -308,16 +294,13 @@ void UpdatedLagrangianVElement::CalculateKinematics(ElementDataType& rVariables,
     noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
-    //
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
-    //Set Shape Functions Values for this integration point
-    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
-
+    const GeometryType& rGeometry = GetGeometry();
     //Compute the deformation matrix B
-    CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
-
+    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
+    
     KRATOS_CATCH( "" )
 }
 
@@ -363,121 +346,6 @@ void UpdatedLagrangianVElement::CalculateKinetics(ElementDataType& rVariables, c
 
     //Set Shape Functions Values for this integration point
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
-
-    KRATOS_CATCH( "" )
-}
-
-
-//*************************COMPUTE DEFORMATION GRADIENT*******************************
-//************************************************************************************
-
-void UpdatedLagrangianVElement::CalculateDeformationGradient(Matrix& rF,
-                                                            const Matrix& rDN_DX,
-                                                            const Matrix& rDeltaPosition)
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-
-    rF = identity_matrix<double> ( dimension );
-
-    if( dimension == 2 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
-            rF ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
-            rF ( 1 , 0 ) += rDeltaPosition(i,1)*rDN_DX ( i , 0 );
-            rF ( 1 , 1 ) += rDeltaPosition(i,1)*rDN_DX ( i , 1 );
-        }
-
-    }
-    else if( dimension == 3)
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-
-            rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
-            rF ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
-            rF ( 0 , 2 ) += rDeltaPosition(i,0)*rDN_DX ( i , 2 );
-            rF ( 1 , 0 ) += rDeltaPosition(i,1)*rDN_DX ( i , 0 );
-            rF ( 1 , 1 ) += rDeltaPosition(i,1)*rDN_DX ( i , 1 );
-            rF ( 1 , 2 ) += rDeltaPosition(i,1)*rDN_DX ( i , 2 );
-            rF ( 2 , 0 ) += rDeltaPosition(i,2)*rDN_DX ( i , 0 );
-            rF ( 2 , 1 ) += rDeltaPosition(i,2)*rDN_DX ( i , 1 );
-            rF ( 2 , 2 ) += rDeltaPosition(i,2)*rDN_DX ( i , 2 );
-        }
-
-    }
-    else
-    {
-
-      KRATOS_ERROR << " something is wrong with the dimension when computing F " << std::endl;
-
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianVElement::CalculateDeformationMatrix(Matrix& rB,
-                                                          const Matrix& rF,
-                                                          const Matrix& rDN_DX)
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-
-    rB.clear(); //set all components to zero
-
-    if( dimension == 2 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 2 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
-            rB( 2, index + 1 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else if( dimension == 3 )
-    {
-
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 3 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
-            rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-            rB( 4, index + 1 ) = rDN_DX( i, 2 );
-            rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
-            rB( 5, index + 0 ) = rDN_DX( i, 2 );
-            rB( 5, index + 2 ) = rDN_DX( i, 0 );
-
-        }
-    }
-    else
-    {
-      KRATOS_ERROR << " something is wrong with the dimension when computing B " << std::endl;
-    }
 
     KRATOS_CATCH( "" )
 }
@@ -551,7 +419,6 @@ void UpdatedLagrangianVElement::save( Serializer& rSerializer ) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementVElement )
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-
 }
 
 void UpdatedLagrangianVElement::load( Serializer& rSerializer )
@@ -559,7 +426,6 @@ void UpdatedLagrangianVElement::load( Serializer& rSerializer )
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementVElement )
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-
 }
 
 

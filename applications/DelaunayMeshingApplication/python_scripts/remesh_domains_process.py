@@ -145,13 +145,12 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
     def RemeshDomains(self):
 
-        if( self.echo_level > 0 ):
-            print(self._class_prefix()+" MESHING DOMAIN...( call:", self.counter,")")
+        if( self.echo_level >= 0 ):
+            print(self._class_prefix()+" [ Mesh Generation (call:"+str(self.counter)+") ]")
 
-        meshing_options = KratosMultiphysics.Flags()
-        self.model_structure = KratosDelaunay.ModelStructure(self.main_model_part, meshing_options, self.echo_level)
+        self.model_manager = self.GetModelManager()
 
-        self.model_structure.ExecuteInitialize()
+        self.model_manager.ExecuteInitialize()
 
         #serial
         for domain in self.meshing_domains:
@@ -169,7 +168,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         #pool.joint()
         #
 
-        self.model_structure.ExecuteFinalize()
+        self.model_manager.ExecuteFinalize()
 
         self.counter += 1
 
@@ -185,6 +184,11 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
                 while(self.next_meshing <= self.step_count):
                     self.next_meshing += self.meshing_frequency
 
+
+    #
+    def GetModelManager(self):
+        meshing_options = KratosMultiphysics.Flags()
+        return KratosDelaunay.ModelStructure(self.main_model_part, meshing_options, self.echo_level)
 
     #
     def GetMeshingStep(self):

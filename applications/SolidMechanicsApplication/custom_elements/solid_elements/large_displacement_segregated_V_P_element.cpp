@@ -44,6 +44,7 @@ LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( Inde
 LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : LargeDisplacementVElement( NewId, pGeometry, pProperties )
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 
@@ -52,6 +53,7 @@ LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( Inde
 
 LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( LargeDisplacementSegregatedVPElement const& rOther)
     :LargeDisplacementVElement(rOther)
+    ,mStepVariable(rOther.mStepVariable)
 {
 }
 
@@ -62,7 +64,9 @@ LargeDisplacementSegregatedVPElement::LargeDisplacementSegregatedVPElement( Larg
 LargeDisplacementSegregatedVPElement&  LargeDisplacementSegregatedVPElement::operator=(LargeDisplacementSegregatedVPElement const& rOther)
 {
     LargeDisplacementVElement::operator=(rOther);
-
+    
+    mStepVariable = rOther.mStepVariable;
+    
     return *this;
 }
 
@@ -72,7 +76,7 @@ LargeDisplacementSegregatedVPElement&  LargeDisplacementSegregatedVPElement::ope
 
 Element::Pointer LargeDisplacementSegregatedVPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-  return Kratos::make_shared< LargeDisplacementSegregatedVPElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);    
+  return Kratos::make_shared< LargeDisplacementSegregatedVPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);    
 }
 
 
@@ -98,6 +102,11 @@ Element::Pointer LargeDisplacementSegregatedVPElement::Clone( IndexType NewId, N
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_ERROR << "constitutive law not has the correct size " << NewElement.mConstitutiveLawVector.size() << std::endl;
       }
+
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+    {
+      NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+    }
     
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
@@ -136,6 +145,7 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
             if( dimension == 3 )
               rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_Z ) );
           }
+          break;
         }
       case PRESSURE_STEP:
         {
@@ -143,6 +153,7 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
           {
             rElementalDofList.push_back( GetGeometry()[i].pGetDof( PRESSURE ) );
           }
+          break;
         }
       default:
         KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
@@ -157,7 +168,7 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    unsigned int   dofs_size        = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
@@ -191,6 +202,41 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
 
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+{
+  KRATOS_TRY
+
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+{
+  KRATOS_TRY
+
+
+  KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::SetProcessInformation(const ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+  mStepVariable = StepType(rCurrentProcessInfo[SEGREGATED_STEP]);
+
+  KRATOS_CATCH( "" )
+}
 
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
@@ -199,12 +245,12 @@ void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    unsigned int   dofs_size        = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -230,7 +276,7 @@ void LargeDisplacementSegregatedVPElement::GetValuesVector( Vector& rValues, int
           break;
         }
       default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
     }
 
 }
@@ -243,12 +289,12 @@ void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rV
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    unsigned int   dofs_size        = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -273,7 +319,7 @@ void LargeDisplacementSegregatedVPElement::GetFirstDerivativesVector( Vector& rV
           break;
         }
       default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
     }  
  
 }
@@ -285,12 +331,12 @@ void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& r
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    unsigned int   dofs_size        = GetDofsSize();
     
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -315,7 +361,7 @@ void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& r
           break;
         }
       default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
     }
 
 }
@@ -329,7 +375,7 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemCompone
        
     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+    switch(mStepVariable)
     {
       case VELOCITY_STEP:
         {
@@ -339,17 +385,20 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemCompone
           // operation performed: add Kg to the rLefsHandSideMatrix
           this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
           
-          rLeftHandSideMatrix *= rVariables.GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)  
+          rLeftHandSideMatrix *= rVariables.GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)
+          
           break;
         }
       case PRESSURE_STEP:
         {
+
           // operation performed: add Kpp to the rLefsHandSideMatrix
-          this->CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+          this->CalculateAndAddKpp( rLeftHandSideMatrix, rVariables );
+          
           break;
         }
       default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
     }
     
     //KRATOS_WATCH( rLeftHandSideMatrix )
@@ -358,7 +407,131 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemCompone
 }
 
 
+//************************************************************************************
+//************************************************************************************
 
+void LargeDisplacementSegregatedVPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+{
+  KRATOS_TRY
+
+  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        // operation performed: add InternalForces to the rRightHandSideVector
+        this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+
+        // operation performed: add ExternalForces to the rRightHandSideVector
+        this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );            
+        
+        break;
+      }
+    case PRESSURE_STEP:
+      {      
+        // operation performed: add PressureForces to the rRightHandSideVector
+        this->CalculateAndAddPressureForces( rRightHandSideVector, rVariables );
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::CalculateAndAddKpp(MatrixType& rLeftHandSideMatrix,
+                                                              ElementDataType& rVariables)
+
+{
+  KRATOS_TRY
+      
+  KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+                                                                         ElementDataType & rVariables)
+{
+  KRATOS_TRY
+
+  KRATOS_CATCH( "" )
+}
+      
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+  KRATOS_TRY
+
+  // the internal step variable must be set because InitializeNonLinearIteration is not called before this method
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        SolidElement::CalculateMassMatrix( rMassMatrix, rCurrentProcessInfo );
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        const unsigned int MatSize = this->GetDofsSize();
+        if ( rMassMatrix.size1() != MatSize )
+          rMassMatrix.resize( MatSize, MatSize, false );
+
+        noalias(rMassMatrix) = ZeroMatrix( MatSize, MatSize );
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
+
+  KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementSegregatedVPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+  KRATOS_TRY
+
+  // the internal step variable must be set because InitializeNonLinearIteration is not called before this method
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        SolidElement::CalculateDampingMatrix( rDampingMatrix, rCurrentProcessInfo );
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        const unsigned int MatSize = this->GetDofsSize();
+        if ( rDampingMatrix.size1() != MatSize )
+          rDampingMatrix.resize( MatSize, MatSize, false );
+
+        noalias(rDampingMatrix) = ZeroMatrix( MatSize, MatSize );
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
+
+  KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -371,7 +544,7 @@ unsigned int LargeDisplacementSegregatedVPElement::GetDofsSize()
   const SizeType number_of_nodes  = GetGeometry().PointsNumber();
   
   unsigned int size = 0;
-  switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+  switch(mStepVariable)
   {
     case VELOCITY_STEP:
       size = number_of_nodes * dimension; //size for velocity
@@ -380,7 +553,7 @@ unsigned int LargeDisplacementSegregatedVPElement::GetDofsSize()
       size = number_of_nodes; //size for pressure
       break;
     default:
-      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
       
   }
   return size;   
@@ -429,11 +602,16 @@ int  LargeDisplacementSegregatedVPElement::Check( const ProcessInfo& rCurrentPro
 void LargeDisplacementSegregatedVPElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementVElement )
+    int IntStepType = int(mStepVariable);
+    rSerializer.save("StepVariable",IntStepType);
 }
 
 void LargeDisplacementSegregatedVPElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementVElement )
+    int IntStepType;
+    rSerializer.load("StepVariable",IntStepType);
+    mStepVariable = StepType(IntStepType);        
 }
 
 

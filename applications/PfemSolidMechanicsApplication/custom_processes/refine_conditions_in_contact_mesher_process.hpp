@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "custom_processes/refine_conditions_mesher_process.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
@@ -112,7 +112,7 @@ public:
     /// Default constructor
     RefineConditionsInContactMesherProcess(ModelPart& rModelPart,
 				     std::vector<SpatialBoundingBox::Pointer> mRigidWalls,
-				     ModelerUtilities::MeshingParameters& rRemeshingParameters,
+				     MesherUtilities::MeshingParameters& rRemeshingParameters,
 				     int EchoLevel) 
       :RefineConditionsMesherProcess(rModelPart,rRemeshingParameters,EchoLevel)
     {    
@@ -159,7 +159,7 @@ public:
 
 
       //if the insert switches are activated, we check if the boundaries got too coarse
-      if( (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) || mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES)) && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY) )
+      if( (mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_INSERT_NODES) || mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_ADD_NODES)) && mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_BOUNDARY) )
 	{
 
 	  std::vector<Point > list_of_points;
@@ -563,7 +563,7 @@ private:
 
               Node<3>  MasterNode;
               bool condition_found = false;
-              ConditionType::Pointer MasterCondition  = mModelerUtilities.FindMasterCondition(*(ic.base()),MasterNode,rModelPart.Conditions(),condition_found);
+              ConditionType::Pointer MasterCondition  = mMesherUtilities.FindMasterCondition(*(ic.base()),MasterNode,rModelPart.Conditions(),condition_found);
 
 
               if(condition_found){
@@ -609,7 +609,7 @@ private:
 
 		      // ACTIVE CONTACT DETECTION START
 
-		      contact_active = mModelerUtilities.CheckContactActive(rConditionGeometry, contact_semi_active, semi_active_nodes);
+		      contact_active = mMesherUtilities.CheckContactActive(rConditionGeometry, contact_semi_active, semi_active_nodes);
 		      if(contact_active){
 			rLocalRefineInfo.number_of_active_contacts ++;
 		      }
@@ -617,7 +617,7 @@ private:
 		      // ACTIVE CONTACT DETECTION END
 
 
-		      side_length = mModelerUtilities.CalculateSideLength (rConditionGeometry[0],rConditionGeometry[1]);		    	     
+		      side_length = mMesherUtilities.CalculateSideLength (rConditionGeometry[0],rConditionGeometry[1]);		    	     
 
 		      if( side_length > size_for_tip_contact_side ){
 
@@ -649,9 +649,9 @@ private:
 			  // double& nodal_h0 = MasterNode.FastGetSolutionStepValue( NODAL_H );
 
 			  // double side = norm_2(rConditionGeometry[0]-rConditionGeometry[1]);
-			  // // double d1 = mModelerUtilities.FindBoundaryH (rConditionGeometry[0]);
-			  // // double d2 = mModelerUtilities.FindBoundaryH (rConditionGeometry[1]);
-			  // // double d0 = mModelerUtilities.FindBoundaryH (MasterNode);
+			  // // double d1 = mMesherUtilities.FindBoundaryH (rConditionGeometry[0]);
+			  // // double d2 = mMesherUtilities.FindBoundaryH (rConditionGeometry[1]);
+			  // // double d0 = mMesherUtilities.FindBoundaryH (MasterNode);
 			  // // double size_master = nodal_h0;
 
 			  // bool candidate =false;
@@ -677,9 +677,9 @@ private:
 		    double& nodal_h0 = MasterNode.FastGetSolutionStepValue( NODAL_H );
 
 		    double side = norm_2(rConditionGeometry[0]-rConditionGeometry[1]);
-		    // double d1 = mModelerUtilities.FindBoundaryH (rConditionGeometry[0]);
-		    // double d2 = mModelerUtilities.FindBoundaryH (rConditionGeometry[1]);
-		    // double d0 = mModelerUtilities.FindBoundaryH (MasterNode);
+		    // double d1 = mMesherUtilities.FindBoundaryH (rConditionGeometry[0]);
+		    // double d2 = mMesherUtilities.FindBoundaryH (rConditionGeometry[1]);
+		    // double d0 = mMesherUtilities.FindBoundaryH (MasterNode);
 		    // double size_master = nodal_h0;
 
 
@@ -818,7 +818,7 @@ private:
 	{
 	  cond_counter ++;
 	  bool refine_candidate = false;
-	  if( mrRemesh.Options.Is(ModelerUtilities::CONSTRAINED) ){
+	  if( mrRemesh.Options.Is(MesherUtilities::CONSTRAINED) ){
 	    if( ic->Is(BOUNDARY) ) //ONLY SET TO THE BOUNDARY SKIN CONDITIONS (CompositeCondition)
 	      refine_candidate = true;
 	    else
@@ -831,7 +831,7 @@ private:
 
 	  if( refine_candidate ){
 	    if (mrRemesh.Refine->RefiningBoxSetFlag == true ){
-	      refine_candidate = mModelerUtilities.CheckConditionInBox(*(ic.base()),*(mrRemesh.Refine->RefiningBox),CurrentProcessInfo);
+	      refine_candidate = mMesherUtilities.CheckConditionInBox(*(ic.base()),*(mrRemesh.Refine->RefiningBox),CurrentProcessInfo);
 	    }
 	  }
 
@@ -865,14 +865,14 @@ private:
 	      // ACTIVE CONTACT DETECTION START
 
 	      rConditionGeometry = ic->GetGeometry();
-	      contact_active = mModelerUtilities.CheckContactActive(rConditionGeometry, contact_semi_active, semi_active_nodes);
+	      contact_active = mMesherUtilities.CheckContactActive(rConditionGeometry, contact_semi_active, semi_active_nodes);
 
 	      // ACTIVE CONTACT DETECTION END
 
 
 	      if( contact_active ){
 
-		side_length = mModelerUtilities.CalculateSideLength (rConditionGeometry[0],rConditionGeometry[1]);		    	     
+		side_length = mMesherUtilities.CalculateSideLength (rConditionGeometry[0],rConditionGeometry[1]);		    	     
 
 		if( side_length > size_for_wall_tip_contact_side ){
 
@@ -971,7 +971,7 @@ private:
 
 	      unsigned int vsize=ic->GetValue(MASTER_ELEMENTS).size();
 
-	      if (!radius_insert && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) && vsize>0){
+	      if (!radius_insert && mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_BOUNDARY_ON_THRESHOLD) && vsize>0){
 
 		Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
 
@@ -990,16 +990,16 @@ private:
 		//computation of the condition master element radius start: 
 		//PointsArrayType& vertices = pGeom.Points();
 
-		// double average_side_length= mModelerUtilities.CalculateAverageSideLength (vertices[0].X(), vertices[0].Y(),
+		// double average_side_length= mMesherUtilities.CalculateAverageSideLength (vertices[0].X(), vertices[0].Y(),
 		// 							      vertices[1].X(), vertices[1].Y(),
 		// 							      vertices[2].X(), vertices[2].Y());
 		//condition_radius = pGeom.Area()/average_side_length;
 		//computation of the condition master element radius end;
 
 		//condition_radius is side_length
-		side_length = mModelerUtilities.CalculateSideLength (rConditionGeometry[0],rConditionGeometry[1]);
+		side_length = mMesherUtilities.CalculateSideLength (rConditionGeometry[0],rConditionGeometry[1]);
 
-		//condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
+		//condition_radius = mMesherUtilities.CalculateTriangleRadius (pGeom);
 
 		//if( plastic_power > mrRemesh.Refine->CriticalDissipation && condition_radius > mrRemesh.Refine->CriticalRadius )
 		if( plastic_power > mrRemesh.Refine->ReferenceThreshold * pGeom.Area() && side_length > size_for_energy_side )
@@ -1031,13 +1031,13 @@ private:
 		Geometry<Node<3> >& vertices = MasterElement.GetGeometry();
 		double Alpha =  mrRemesh.Refine->Alpha;
 
-		bool accepted = mModelerUtilities.AlphaShape(Alpha,vertices,2);
+		bool accepted = mMesherUtilities.AlphaShape(Alpha,vertices,2);
 
 
 		//condition_radius is side_length
-		side_length = mModelerUtilities.CalculateSideLength (rConditionGeometry[0],rConditionGeometry[1]);
+		side_length = mMesherUtilities.CalculateSideLength (rConditionGeometry[0],rConditionGeometry[1]);
 
-		//condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
+		//condition_radius = mMesherUtilities.CalculateTriangleRadius (pGeom);
 		double critical_side_size = 0;
 
 		bool on_tip = false;

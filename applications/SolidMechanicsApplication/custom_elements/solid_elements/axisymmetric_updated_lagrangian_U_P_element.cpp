@@ -806,7 +806,8 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
 
     int size = number_of_nodes * dimension;
 
-    Matrix Kuu = zero_matrix<double>(size,size);
+    Matrix Kuu(size,size);
+    noalias(Kuu) = ZeroMatrix(size,size);
 
     // axisymmetric geometric matrix
 
@@ -1125,13 +1126,13 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateTotalMass( double& rTot
 	this->CalculateKinematics(Variables,PointNumber);
 
 	//getting informations for integration
-        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
+        Variables.IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume change
 	double PointVolumeChange = 0;
 	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
 
-	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * Globals::Pi * Variables.CurrentRadius * IntegrationWeight;
+	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * Globals::Pi * Variables.CurrentRadius * Variables.IntegrationWeight;
 
       }
 

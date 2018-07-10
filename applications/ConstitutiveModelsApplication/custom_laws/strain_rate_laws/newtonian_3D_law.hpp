@@ -79,6 +79,13 @@ namespace Kratos
      */
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
+    /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
     
     /**
      * This function is designed to be called once to check compatibility with element

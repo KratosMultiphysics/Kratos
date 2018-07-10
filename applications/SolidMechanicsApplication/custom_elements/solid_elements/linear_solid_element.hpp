@@ -310,19 +310,11 @@ protected:
     Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
 
- 
-
     /**
      * Calculation of the Infinitesimal Strain Vector
      */
     void CalculateInfinitesimalStrain(Vector& rStrainVector,
 				      const Matrix& rDN_DX);
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    const Matrix& rDN_DX);
 
     /**
      * Calculation of the Volume Force of the Element

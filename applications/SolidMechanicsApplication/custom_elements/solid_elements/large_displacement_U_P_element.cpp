@@ -748,7 +748,9 @@ void LargeDisplacementUPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMa
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix ReducedKg = prod( rVariables.DN_DX,  rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
 
-    Matrix Kuu = zero_matrix<double> (size);
+    Matrix Kuu(size,size);
+    noalias(Kuu) = ZeroMatrix(size,size);
+    
     MathUtils<double>::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
 
     // MatrixType Kh=rLeftHandSideMatrix;
@@ -1050,9 +1052,9 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
       this->CalculateKinematics( Variables, PointNumber );
 
       //getting informations for integration
-      double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+      Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
-      IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+      Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
       //compute point volume change
       double PointVolumeChange = 0;
@@ -1070,7 +1072,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
 
       	      for ( SizeType k = 0; k < dimension; k++ )
       		{
-      		  rMassMatrix( indexupi+k , indexupj+k ) += Variables.N[i] * Variables.N[j] * CurrentDensity * IntegrationWeight;
+      		  rMassMatrix( indexupi+k , indexupj+k ) += Variables.N[i] * Variables.N[j] * CurrentDensity * Variables.IntegrationWeight;
       		}
       	    }
       	}

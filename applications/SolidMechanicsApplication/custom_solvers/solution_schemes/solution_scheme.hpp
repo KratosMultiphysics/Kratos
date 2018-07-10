@@ -43,30 +43,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Solver local flags class definition
- *  @details This is the base class for solver local flags
- */
-class SolverLocalFlags
-{
- public:
-  /// Flags for the solution control:
-  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( CONVERGED );
-  KRATOS_DEFINE_LOCAL_FLAG( DOFS_INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS_INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( CONDITIONS_INITIALIZED );
-
-  /// Flags for the solution options:
-  KRATOS_DEFINE_LOCAL_FLAG( MOVE_MESH );
-  KRATOS_DEFINE_LOCAL_FLAG( REFORM_DOFS );
-  KRATOS_DEFINE_LOCAL_FLAG( INCREMENTAL_SOLUTION );
-  KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_REACTIONS );
-  KRATOS_DEFINE_LOCAL_FLAG( CONSTANT_SYSTEM_MATRIX );
-  KRATOS_DEFINE_LOCAL_FLAG( RAYLEIGH_DAMPING );
-  KRATOS_DEFINE_LOCAL_FLAG( IMPLEX );
-};
-
-
 /** @brief Solution scheme base class
  *  @details This is the base class for the schemes
  */
@@ -129,6 +105,12 @@ class SolutionScheme : public Flags
   SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods) : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {}
 
   /// Constructor.
+  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+
+  /// Constructor.
+  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods) : Flags(), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+  
+  /// Constructor.
   SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
                  Flags& rOptions)
@@ -174,6 +156,9 @@ class SolutionScheme : public Flags
 
     if( this->mOptions.IsNotDefined(LocalFlagType::MOVE_MESH) )
       mOptions.Set(LocalFlagType::MOVE_MESH,true); //default : lagrangian mesh update
+
+    if( this->mOptions.IsNotDefined(LocalFlagType::UPDATE_VARIABLES) )
+      mOptions.Set(LocalFlagType::UPDATE_VARIABLES,true); //default : derivatives update
 
     if( this->mOptions.IsNotDefined(LocalFlagType::INCREMENTAL_SOLUTION) )
       mOptions.Set(LocalFlagType::INCREMENTAL_SOLUTION,true); //default : dof is the variable increment
@@ -447,22 +432,25 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    // Updating time derivatives (nodally for efficiency)
-    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector NodePartition;
-    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
-
-    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-    NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
-
-    #pragma omp parallel for firstprivate(NodeBegin)
-    for(int i = 0;  i < nnodes; i++)
-    {
-      NodesContainerType::iterator itNode = NodeBegin + i;
-
-      this->IntegrationMethodUpdate(*itNode);
+    if( this->mOptions.Is(LocalFlagType::UPDATE_VARIABLES) ){
+       
+      // Updating time derivatives (nodally for efficiency)
+      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      OpenMPUtils::PartitionVector NodePartition;
+      OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
+      
+      const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
+      
+      #pragma omp parallel for firstprivate(NodeBegin)
+      for(int i = 0;  i < nnodes; i++)
+      {
+        NodesContainerType::iterator itNode = NodeBegin + i;
+        
+        this->IntegrationMethodUpdate(*itNode);
+      }
     }
-
+    
     KRATOS_CATCH("")
   }
 
@@ -647,6 +635,7 @@ class SolutionScheme : public Flags
                                           Element::EquationIdVectorType& rEquationId,
                                           ProcessInfo& rCurrentProcessInfo)
   {
+    std::cout<< " it is C_LHS "<<std::endl;
     pCurrentElement->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
     pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
   }
@@ -966,25 +955,6 @@ class SolutionScheme : public Flags
 ///@name Type Definitions
 ///@{
 
-/**
- * Flags for the solution control
- */
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED,               0 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONVERGED,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, DOFS_INITIALIZED,          2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, ELEMENTS_INITIALIZED,      3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONDITIONS_INITIALIZED,    4 );
-
-/**
- * Flags for the solution options
- */
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, MOVE_MESH,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, REFORM_DOFS,               1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INCREMENTAL_SOLUTION,      2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_MATRIX,    4 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, RAYLEIGH_DAMPING,          5 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    6 );
 
 ///@}
 ///@name Input and output

@@ -271,21 +271,6 @@ namespace Kratos
     ///@name Access
     ///@{
 
-    // get parameters
-    double& GetFirstDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = mBDF[0];
-      return rParameter;
-    }
-
-    double& GetSecondDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = mBDF[0]*mBDF[0];
-      return rParameter;
-    }
-
-
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -405,6 +390,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
+      //if(this->Is(TimeIntegrationLocalFlags::NOT_PREDICT_PRIMARY_VARIABLE))
       this->PredictVariable(rNode);
       this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
@@ -417,7 +403,8 @@ namespace Kratos
       KRATOS_TRY
 
       this->PredictVariable(rNode);
-      this->PredictFirstDerivative(rNode);
+      //if(this->Is(TimeIntegrationLocalFlags::NOT_PREDICT_PRIMARY_VARIABLE))
+      //this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
 
       KRATOS_CATCH( "" )
@@ -561,6 +548,19 @@ namespace Kratos
     ///@}
     ///@name Protected  Access
     ///@{
+    
+    // get parameters
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = mBDF[0];
+      return rParameter;
+    }
+
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = mBDF[0]*mBDF[0];
+      return rParameter;
+    }
 
     ///@}
     ///@name Protected Inquiry

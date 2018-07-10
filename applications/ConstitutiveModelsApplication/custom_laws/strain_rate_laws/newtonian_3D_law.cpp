@@ -237,4 +237,19 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
     KRATOS_CATCH(" ")
   }
 
+  //************************************************************************************
+  //************************************************************************************
+
+  void Newtonian3DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+  {
+    KRATOS_TRY
+      
+    rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+    this->CalculateMaterialResponseCauchy(rValues);
+    rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+
+    KRATOS_CATCH(" ")
+  }
+
+
 } // Namespace Kratos

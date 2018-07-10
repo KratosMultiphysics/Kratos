@@ -298,7 +298,8 @@ void AxisymmetricSmallDisplacementElement::CalculateDisplacementGradient(Matrix&
 
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    rH = zero_matrix<double> ( 3 );
+    rH.resize(3,3,false);
+    noalias(rH) = ZeroMatrix(3,3);
 
     if( dimension == 2 )
     {

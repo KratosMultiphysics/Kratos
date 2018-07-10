@@ -183,7 +183,7 @@ namespace Kratos
             
         const double& rViscosity = rMaterialProperties[DYNAMIC_VISCOSITY];
 
-        const double pressure = (rStrainVector[0]+rStrainVector[1]+rStrainVector[2])/3.0;
+        const double pressure = (rStrainVector[0]+rStrainVector[1])/3.0;
         
         // Cauchy StressVector
         rStressVector[0] = 2.0*rViscosity*(rStrainVector[0] - pressure);

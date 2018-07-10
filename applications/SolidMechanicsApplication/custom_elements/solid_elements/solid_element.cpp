@@ -118,6 +118,11 @@ Element::Pointer SolidElement::Clone( IndexType NewId, NodesArrayType const& rTh
 
       }
 
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+      {
+	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+      }
+    
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
     
@@ -674,7 +679,6 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
 
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    double IntegrationWeight = 1;
 
     //auxiliary terms
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
@@ -696,14 +700,14 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         this->TransformElementData(Variables,PointNumber);
 
         //calculating weights for integration on the "reference configuration"
-        IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+        Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
-	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
+	    this->CalculateAndAddLHS ( rLocalSystem, Variables, Variables.IntegrationWeight );
         }
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
@@ -711,7 +715,7 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
             //contribution to external forces
             VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
 
-	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
+	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, Variables.IntegrationWeight );
         }
 
 	//for debugging purposes
@@ -750,7 +754,6 @@ void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    double IntegrationWeight = 1;
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
@@ -758,21 +761,21 @@ void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
         this->CalculateKinetics(Variables, PointNumber);
 
         //calculating weights for integration on the "reference configuration"
-        IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+        Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
 	  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables, rCurrentProcessInfo, IntegrationWeight );
+	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables, rCurrentProcessInfo, Variables.IntegrationWeight );
 
         }
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
 	  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables, rCurrentProcessInfo, IntegrationWeight );
+	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables, rCurrentProcessInfo, Variables.IntegrationWeight );
         }
 
 	//for debugging purposes
@@ -1456,37 +1459,6 @@ void SolidElement::CalculateKinematics(ElementDataType& rVariables, const double
 }
 
 
-//****************************COMPUTE VELOCITY GRADIENT*******************************
-//************************************************************************************
-
-void SolidElement::CalculateVelocityGradient(const Matrix& rDN_DX, Matrix& rDF )
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-
-    rDF=zero_matrix<double> ( dimension );
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-    {
-        //Displacement from the reference to the current configuration
-        array_1d<double, 3 > & CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        for ( SizeType j = 0; j < dimension; j++ )
-        {
-            for ( SizeType k = 0; k < dimension; k++ )
-            {
-                rDF ( j , k ) += CurrentVelocity[j]*rDN_DX ( i , k );
-            }
-
-        }
-
-    }
-
-    KRATOS_CATCH( "" )
-}
 
 //*************************COMPUTE DELTA POSITION*************************************
 //************************************************************************************
@@ -1495,23 +1467,11 @@ void SolidElement::CalculateVelocityGradient(const Matrix& rDN_DX, Matrix& rDF )
 Matrix& SolidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
+        
+    const GeometryType& rGeometry = GetGeometry();
 
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( SizeType j = 0; j < dimension; j++ )
-        {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-        }
-    }
-
+    ElementUtilities::CalculateDeltaPosition(rDeltaPosition,rGeometry);
+    
     return rDeltaPosition;
 
     KRATOS_CATCH( "" )
@@ -1524,21 +1484,9 @@ Matrix& SolidElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
 
-    const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeometry = GetGeometry();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( SizeType i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-        for ( SizeType j = 0; j < dimension; j++ )
-        {
-            rDeltaPosition(i,j) = CurrentDisplacement[j];
-        }
-    }
-
+    ElementUtilities::CalculateTotalDeltaPosition(rDeltaPosition,rGeometry);
     return rDeltaPosition;
 
     KRATOS_CATCH( "" )
@@ -1560,7 +1508,6 @@ double& SolidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    double IntegrationWeight = 1;
     double VolumeChange = 1;
 
     //reading integration points
@@ -1570,13 +1517,13 @@ double& SolidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 	this->CalculateKinematics(Variables,PointNumber);
 
 	//getting informations for integration
-        IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
+        Variables.IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume changes
 	VolumeChange = 1;
 	VolumeChange = this->CalculateVolumeChange( VolumeChange, Variables );
 
-	rTotalMass += VolumeChange * GetProperties()[DENSITY] * IntegrationWeight;
+	rTotalMass += VolumeChange * GetProperties()[DENSITY] * Variables.IntegrationWeight;
 
       }
 
@@ -1943,21 +1890,8 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
 
     noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
-
-    //1.-Calculate StiffnessMatrix:
-
-    MatrixType StiffnessMatrix  = Matrix();
-
-    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
-
-    //2.-Calculate MassMatrix:
-
-    MatrixType MassMatrix  = Matrix();
-
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-
-
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    
+    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) ){
       alpha = GetProperties()[RAYLEIGH_ALPHA];
@@ -1974,12 +1908,27 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
       beta = rCurrentProcessInfo[RAYLEIGH_BETA];
     }
 
-    //4.-Compose the Damping Matrix:
+    if( alpha != 0 || beta != 0){
+      
+      //1.-Calculate StiffnessMatrix:
 
-    //Rayleigh Damping Matrix: alpha*M + beta*K
-    rDampingMatrix  = alpha * MassMatrix;
-    rDampingMatrix += beta  * StiffnessMatrix;
+      MatrixType StiffnessMatrix  = Matrix();
 
+      this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+
+      //2.-Calculate MassMatrix:
+
+      MatrixType MassMatrix  = Matrix();
+
+      this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+
+      //3.-Compose the Damping Matrix:
+
+      //Rayleigh Damping Matrix: alpha*M + beta*K
+      rDampingMatrix  = alpha * MassMatrix;
+      rDampingMatrix += beta  * StiffnessMatrix;
+      
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -2054,8 +2003,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-            ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
+            rOutput[PointNumber] =  ElementUtilities::CalculateVonMises(Variables.StressVector);
         }
     }
     else if ( rVariable == NORM_ISOCHORIC_STRESS )
@@ -2085,8 +2033,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-	    ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateStressNorm(Variables.StressVector);
+            rOutput[PointNumber] =  ElementUtilities::CalculateStressNorm(Variables.StressVector);
         }
 
     }
@@ -2147,7 +2094,6 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
 	double StrainEnergy = 0;
-	double IntegrationWeight = 1;
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -2165,10 +2111,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 	    StrainEnergy = 0;
 	    mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY,StrainEnergy);
 
-	    IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-	    IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+	    Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+	    Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
-	    rOutput[PointNumber] = StrainEnergy * IntegrationWeight;
+	    rOutput[PointNumber] = StrainEnergy * Variables.IntegrationWeight;
         }
     }
     else

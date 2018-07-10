@@ -205,7 +205,8 @@ void SmallDisplacementElement::CalculateKinematics(ElementDataType& rVariables, 
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    this->CalculateDeformationMatrix( rVariables.B, rVariables.DN_DX );
+    const GeometryType& rGeometry = GetGeometry();
+    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
 
     //Compute infinitessimal strain
     this->CalculateInfinitesimalStrain( rVariables.H, rVariables.StrainVector );
@@ -319,69 +320,6 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Ve
 
     KRATOS_CATCH( "" )
 
-}
-
-
-//************************************************************************************
-//************************************************************************************
-void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX)
-{
-    KRATOS_TRY
-
-    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size            = dimension * (dimension +1) * 0.5;
-
-    if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
-      rB.resize(voigt_size, dimension*number_of_nodes, false );
-
-    if( dimension == 2 )
-    {
-        unsigned int index = 0;
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-            index = 2 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 0, index + 1 ) = 0.0;
-            rB( 1, index + 0 ) = 0.0;
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
-            rB( 2, index + 1 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else if( dimension == 3 )
-    {
-      unsigned int index = 0;
-      for ( SizeType i = 0; i < number_of_nodes; i++ )
-        {
-	  index = 3 * i;
-
-	  rB( 0, index + 0 ) = rDN_DX( i, 0 );
-	  rB( 1, index + 1 ) = rDN_DX( i, 1 );
-	  rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
-	  rB( 3, index + 0 ) = rDN_DX( i, 1 );
-	  rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-	  rB( 4, index + 1 ) = rDN_DX( i, 2 );
-	  rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
-	  rB( 5, index + 0 ) = rDN_DX( i, 2 );
-	  rB( 5, index + 2 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else
-    {
-        KRATOS_ERROR << " something is wrong with the dimension strain matrix " << std::endl;
-
-    }
-
-    KRATOS_CATCH( "" )
 }
 
 

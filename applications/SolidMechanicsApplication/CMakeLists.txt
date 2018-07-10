@@ -18,6 +18,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/solid_mechanics_application_variables.cpp
 
 	# Time integration methods
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/solution_local_flags.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/static_step_rotation_method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/newmark_step_rotation_method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/simo_step_rotation_method.cpp
@@ -38,6 +39,8 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_V_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_V_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_segregated_V_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_segregated_V_P_element.cpp
 
 	# Beam elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/beam_element.cpp
