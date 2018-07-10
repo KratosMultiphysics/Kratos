@@ -84,7 +84,12 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(*this);
+        auto p_law = Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(*this);
+
+		p_law->SetPlasticityConstitutiveLaw(mpPlasticityConstitutiveLaw->Clone());
+		p_law->SetViscousConstitutiveLaw(mpViscousConstitutiveLaw->Clone());
+
+		return p_law;
     }
 
     // Copy constructor
@@ -93,6 +98,8 @@ public:
         ,mpPlasticityConstitutiveLaw(rOther.mpPlasticityConstitutiveLaw)
         ,mpViscousConstitutiveLaw(rOther.mpViscousConstitutiveLaw)
     {
+		//KRATOS_WATCH(mpPlasticityConstitutiveLaw)
+		//KRATOS_WATCH(mpViscousConstitutiveLaw)
     }
 
     /**
@@ -261,6 +268,26 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+	ConstitutiveLaw::Pointer GetPlasticityConstitutiveLaw()
+	{
+		return mpPlasticityConstitutiveLaw;
+	}
+
+	void SetPlasticityConstitutiveLaw(ConstitutiveLaw::Pointer pPlasticityConstitutiveLaw) 
+	{
+		mpPlasticityConstitutiveLaw = pPlasticityConstitutiveLaw;
+	}
+
+	ConstitutiveLaw::Pointer GetViscousConstitutiveLaw()
+	{
+		return mpViscousConstitutiveLaw;
+	}
+
+	void SetViscousConstitutiveLaw(ConstitutiveLaw::Pointer pViscousConstitutiveLaw)
+	{
+		mpViscousConstitutiveLaw = pViscousConstitutiveLaw;
+	}
 
     /**
      * @brief This method computes the elastic tensor
