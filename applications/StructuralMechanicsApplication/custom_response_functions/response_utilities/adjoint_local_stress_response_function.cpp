@@ -21,18 +21,16 @@ namespace Kratos
     AdjointLocalStressResponseFunction::AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
-        ResponseData stress_response_data;
-
         // Get traced element
         const int id_of_traced_element = ResponseSettings["traced_element_id"].GetInt();
         mpTracedElement = rModelPart.pGetElement(id_of_traced_element);
 
         // Tell traced element the stress type
-        TracedStressType traced_stress_type = stress_response_data.ConvertStressType(ResponseSettings["stress_type"].GetString());
+        TracedStressType traced_stress_type = ResponseData::ConvertStressType(ResponseSettings["stress_type"].GetString());
         mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );
 
         // Get info how and where to treat the stress
-        mStressTreatment = stress_response_data.ConvertStressTreatment( ResponseSettings["stress_treatment"].GetString() );
+        mStressTreatment = ResponseData::ConvertStressTreatment( ResponseSettings["stress_treatment"].GetString() );
 
         if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node)
         {
