@@ -20,12 +20,10 @@
 #include "includes/dof.h"
 #include "includes/node.h"
 #include "includes/kratos_flags.h"
-#include "geometries/geometry.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
 #include "containers/vector_component_adaptor.h"
-#include "containers/variable_data.h"
 #include "includes/process_info.h"
 namespace Kratos
 {
@@ -67,10 +65,8 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
     typedef Dof<double> DofType;
     typedef std::vector< DofType::Pointer > DofPointerVectorType;
     typedef Node<3> NodeType;
-    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef double ConstantType;
     typedef Matrix MatrixType;
     typedef Vector VectorType;
     typedef Kratos::Variable<double> VariableType;
@@ -80,7 +76,7 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
 
 
     /// Empty Constructor
-    MasterSlaveConstraint(IndexType Id = 0):IndexedObject(Id), Flags()
+    MasterSlaveConstraint(IndexType Id = 0) : IndexedObject(Id), Flags()
     {
     }
 
@@ -100,10 +96,10 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @return a Pointer to the new constraint
      */
     virtual MasterSlaveConstraint::Pointer Create(IndexType Id,
-                                                DofPointerVectorType& MasterDofsVector,
-                                                DofPointerVectorType& SlaveDofsVector,
-                                                const MatrixType& RelationMatrix,
-                                                const VectorType& ConstantVector) const
+                                                  DofPointerVectorType& MasterDofsVector,
+                                                  DofPointerVectorType& SlaveDofsVector,
+                                                  const MatrixType& RelationMatrix,
+                                                  const VectorType& ConstantVector) const
     {
         KRATOS_TRY
 
@@ -123,12 +119,13 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @param Constant The constant in the master slave relation
      * @return a Pointer to the new constraint
      */
-    virtual MasterSlaveConstraint::Pointer Create(IndexType Id, NodeType& rMasterNode,
-                                        const VariableType& rMasterVariable,
-                                        NodeType& rSlaveNode,
-                                        const VariableType& rSlaveVariable,
-                                        const double Weight,
-                                        const double Constant) const
+    virtual MasterSlaveConstraint::Pointer Create(IndexType Id,
+                                                  NodeType& rMasterNode,
+                                                  const VariableType& rMasterVariable,
+                                                  NodeType& rSlaveNode,
+                                                  const VariableType& rSlaveVariable,
+                                                  const double Weight,
+                                                  const double Constant) const
     {
         KRATOS_TRY
 
@@ -148,12 +145,13 @@ class MasterSlaveConstraint :  public IndexedObject, public Flags
      * @param Constant The constant in the master slave relation
      * @return a Pointer to the new constraint
      */
-    virtual MasterSlaveConstraint::Pointer Create(IndexType Id, NodeType& rMasterNode,
-                                        const VariableComponentType& rMasterVariable,
-                                        NodeType& rSlaveNode,
-                                        const VariableComponentType& rSlaveVariable,
-                                        const double Weight,
-                                        const double Constant) const
+    virtual MasterSlaveConstraint::Pointer Create(IndexType Id,
+                                                  NodeType& rMasterNode,
+                                                  const VariableComponentType& rMasterVariable,
+                                                  NodeType& rSlaveNode,
+                                                  const VariableComponentType& rSlaveVariable,
+                                                  const double Weight,
+                                                  const double Constant) const
     {
         KRATOS_TRY
 

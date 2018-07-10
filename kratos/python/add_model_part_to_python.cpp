@@ -497,6 +497,11 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint3(Mo
     return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
 }
 
+void AddMasterSlaveConstraintsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ConstraintIds )
+{
+    rModelPart.AddMasterSlaveConstraints(ConstraintIds);
+}
+
 
 const ModelPart::MasterSlaveConstraintContainerType& ModelPartGetMasterSlaveConstraints1(ModelPart& rModelPart)
 {
@@ -820,6 +825,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveCondition", ModelPartRemoveCondition2)
         .def("RemoveCondition", ModelPartRemoveCondition3)
         .def("RemoveCondition", ModelPartRemoveCondition4)
+        .def("RemoveConditions", &ModelPart::RemoveConditions)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels1)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels2)
         .def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
@@ -874,6 +880,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels2)
         // .def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels3)
         .def("AddMasterSlaveConstraint", &ModelPart::AddMasterSlaveConstraint)
+        .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, return_value_policy::reference_internal)

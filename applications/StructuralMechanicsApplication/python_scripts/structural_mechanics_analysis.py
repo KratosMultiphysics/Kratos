@@ -15,6 +15,11 @@ try:
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
 except ImportError:
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
+try:
+    import KratosMultiphysics.MeshingApplication
+    KratosMultiphysics.Logger.PrintInfo("MeshingApplication", "succesfully imported")
+except ImportError:
+    KratosMultiphysics.Logger.PrintInfo("MeshingApplication", "not imported")
 
 # Importing the base class
 from analysis_stage import AnalysisStage

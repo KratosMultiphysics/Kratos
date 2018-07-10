@@ -26,19 +26,19 @@ namespace Python
 using namespace pybind11;
 
 template <class TContainerType, class TVariableType>
-bool HasHelperFunction(TContainerType &el, const TVariableType &rVar)
+bool HasHelperFunctionConstraint(TContainerType &el, const TVariableType &rVar)
 {
     return el.Has(rVar);
 }
 
 template <class TContainerType, class TVariableType>
-void SetValueHelperFunction(TContainerType &el, const TVariableType &rVar, const typename TVariableType::Type &Data)
+void SetValueHelperFunctionConstraint(TContainerType &el, const TVariableType &rVar, const typename TVariableType::Type &Data)
 {
     el.SetValue(rVar, Data);
 }
 
 template <class TContainerType, class TVariableType>
-typename TVariableType::Type GetValueHelperFunction(TContainerType &el, const TVariableType &rVar)
+typename TVariableType::Type GetValueHelperFunctionConstraint(TContainerType &el, const TVariableType &rVar)
 {
     return el.GetValue(rVar);
 }
@@ -48,11 +48,11 @@ void AddConstraintToPython(pybind11::module &m)
     class_<MasterSlaveConstraint, MasterSlaveConstraint::Pointer, MasterSlaveConstraint::BaseType>(m, "MasterSlaveConstraint")
         .def(init<>())
         .def(init<int>())
-        .def("__setitem__", SetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
-        .def("__getitem__", GetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
-        .def("Has", HasHelperFunction< MasterSlaveConstraint, Variable< bool > >)
-        .def("SetValue", SetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
-        .def("GetValue", GetValueHelperFunction< MasterSlaveConstraint, Variable< bool > >)
+        .def("__setitem__", SetValueHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
+        .def("__getitem__", GetValueHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
+        .def("Has", HasHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
+        .def("SetValue", SetValueHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
+        .def("GetValue", GetValueHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
         .def("__repr__", &MasterSlaveConstraint::PrintInfo);
         ;
 }
