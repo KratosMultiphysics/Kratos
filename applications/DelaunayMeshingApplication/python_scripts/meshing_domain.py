@@ -256,9 +256,9 @@ class MeshingDomain(object):
 
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
         critical_mesh_side = 0
-        
+
         if (critical_mesh_size != 0.0):
-       
+
             # set mesh refinement based on wall tip discretization size
             # if(parameters["TipRadiusRefine"]):
                 # tip arch opening (in degrees = 5-7.5-10)
@@ -269,7 +269,7 @@ class MeshingDomain(object):
                 #critical_mesh_size = tool_arch_length * parameters["CriticalTipRadius"]
 
             critical_mesh_side = critical_mesh_size * 3
-            
+
         else:
             number_of_nodes = 0
             mean_nodal_size = 0
@@ -277,15 +277,15 @@ class MeshingDomain(object):
                 if (node.IsNot(KratosMultiphysics.RIGID)):
                     number_of_nodes += 1
                     mean_nodal_size = mean_nodal_size + node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
-                
+
             critical_mesh_size = mean_nodal_size / number_of_nodes;
             critical_mesh_side = critical_mesh_size * 3
 
             self.RefiningParameters.SetInitialRadius(critical_mesh_size)
-            
+
         self.RefiningParameters.SetCriticalRadius(critical_mesh_size)
         self.RefiningParameters.SetCriticalSide(critical_mesh_side)
-        
+
     #
     def Check(self):
 

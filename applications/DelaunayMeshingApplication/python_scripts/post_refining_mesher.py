@@ -13,18 +13,18 @@ def CreateMesher(main_model_part, meshing_parameters):
     return PostRefiningMesher(main_model_part, meshing_parameters)
 
 class PostRefiningMesher(mesher.Mesher):
-    
+
     #
-    def __init__(self, main_model_part, meshing_parameters): 
-        
+    def __init__(self, main_model_part, meshing_parameters):
+
         mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
 
         print("::[PostRefining_Mesher]:: -BUILT-")
-           
+
     #
     def InitializeMeshing(self):
-        
-        
+
+
         # set mesher flags: to set options for the mesher (triangle 2D, tetgen 3D)
         # REFINE
 
@@ -37,21 +37,21 @@ class PostRefiningMesher(mesher.Mesher):
         meshing_options = self.MeshingParameters.GetOptions()
 
         if( self.dimension == 2 ):
-           
+
             if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES) ):
                 #"YYJaqrn" "YJq1.4arn" "Jq1.4arn"
                 if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
-                    mesher_flags = "pYJq1.4arnCQ"  
+                    mesher_flags = "pYJq1.4arnCQ"
                 else:
                     mesher_flags = "YJq1.4arnQ"
 
             if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_INSERT_NODES) ):
                 #"riYYJQ" "riYYJQ" "riJQ" "riQ"
                 if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
-                    mesher_flags = "rinYYJQ"  
+                    mesher_flags = "rinYYJQ"
                 else:
                     mesher_flags = "rinJQ"
-            
+
         elif( self.dimension == 3 ):
 
             if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES) ):
@@ -62,7 +62,7 @@ class PostRefiningMesher(mesher.Mesher):
 
             if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_INSERT_NODES) ):
                 if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
-                    mesher_flags = "rinYYJBQF"  
+                    mesher_flags = "rinYYJBQF"
                 else:
                     mesher_flags = "rinJBQF"
 
@@ -74,5 +74,8 @@ class PostRefiningMesher(mesher.Mesher):
     def SetPreMeshingProcesses(self):
         # no process to start
         pass
-     
 
+    #
+    def _class_prefix(self):
+        header = "::[---Post Refining---]::"
+        return header

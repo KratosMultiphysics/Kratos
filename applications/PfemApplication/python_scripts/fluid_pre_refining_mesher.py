@@ -11,32 +11,25 @@ KratosMultiphysics.CheckForPreviousImport()
 import mesher
 
 def CreateMesher(main_model_part, meshing_parameters):
-    return PreRefiningMesher(main_model_part, meshing_parameters)
+    return FluidPreRefiningMesher(main_model_part, meshing_parameters)
 
-class PreRefiningMesher(mesher.Mesher):
-    
+class FluidPreRefiningMesher(mesher.Mesher):
+
     #
-    def __init__(self, main_model_part, meshing_parameters): 
-        
-        self.echo_level        = 1
-        self.main_model_part   = main_model_part 
-        self.MeshingParameters = meshing_parameters
-        
-        self.model_part = self.main_model_part
-        if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
-            self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
-        print("::[--Refining Mesher--]:: Ready")
-        
+    def __init__(self, main_model_part, meshing_parameters):
+
+        mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
+
     #
     def InitializeMeshing(self):
 
         self.MeshingParameters.InitializeMeshing()
-   
+
         # set execution flags: to set the options to be executed in methods and processes
         meshing_options = self.MeshingParameters.GetOptions()
 
         execution_options = KratosMultiphysics.Flags()
-    
+
         execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, True)
         execution_options.Set(KratosDelaunay.MesherUtilities.FINALIZE_MESHER_INPUT,  True)
 
@@ -52,20 +45,18 @@ class PreRefiningMesher(mesher.Mesher):
 
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
-        
+
         # set mesher flags: to set options for the mesher (triangle 2D, tetgen 3D)
-        # RECONNECT
-            
         mesher_flags = ""
         mesher_info  = "Prepare domain for refinement"
         if( self.dimension == 2 ):
-           
+
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
-                mesher_flags = "pnBYYQ"  
+                mesher_flags = "pnBYYQ"
             else:
                 mesher_flags = "nQP"
 
-            
+
         elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
@@ -92,7 +83,7 @@ class PreRefiningMesher(mesher.Mesher):
 
         #recover_volume_losses  = KratosPfem.RecoverVolumeLosses(self.model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPreMeshingProcess(recover_volume_losses)
-        
+
         unactive_peak_elements = False
         unactive_sliver_elements = False
         set_active_flag = KratosPfem.SetActiveEntities(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
@@ -123,7 +114,7 @@ class PreRefiningMesher(mesher.Mesher):
         select_mesh_elements  = KratosPfem.SelectFluidElements(self.model_part, self.MeshingParameters, self.echo_level)
         #select_mesh_elements  = KratosDelaunay.SelectElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
-        
+
         #rebuild elements
         #rebuild_mesh_elements = KratosDelaunay.GenerateNewElements(self.main_model_part, self.MeshingParameters, self.echo_level)
         #self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
@@ -143,7 +134,7 @@ class PreRefiningMesher(mesher.Mesher):
 
     #
     def FinalizeMeshing(self):
-        
+
         if(self.echo_level>0):
             print("::[fluid_pre_refining_mesher]:: -START FinalizeMeshing-")
 
@@ -161,7 +152,7 @@ class PreRefiningMesher(mesher.Mesher):
 
             if( meshing_options.Is(KratosDelaunay.MesherUtilities.CONSTRAINED) ):
                 execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
-                 
+
 
         if( refining_options.Is(KratosDelaunay.MesherUtilities.REFINE_ADD_NODES) ):
             execution_options.Set(KratosDelaunay.MesherUtilities.INITIALIZE_MESHER_INPUT, False)
@@ -172,3 +163,8 @@ class PreRefiningMesher(mesher.Mesher):
         execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, True)
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
+
+    #
+    def _class_prefix(self):
+        header = "::[--Refining Mesher--]::"
+        return header
