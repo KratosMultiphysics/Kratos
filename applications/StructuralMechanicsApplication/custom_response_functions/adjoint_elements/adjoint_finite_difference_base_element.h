@@ -435,13 +435,13 @@ private:
      * Get the perturbation size correction factor for a scalar variable
      * This can be overwritten by derived classes.
      */
-    virtual double GetPerturbationSizeCorrectionFactor(const Variable<double>& rVariable);
+    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable);
 
     /**
      * Get the perturbation size correction factor for a vector variable
      * This can be overwritten by derived classes.
      */
-    virtual double GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
+    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable);
 
     ///@}
 

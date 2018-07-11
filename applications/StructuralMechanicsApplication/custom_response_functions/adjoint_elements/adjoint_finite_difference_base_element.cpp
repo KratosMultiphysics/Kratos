@@ -542,7 +542,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
 // private
 const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<double>& rDesignVariable)
 {
-    const double correction_factor = this->GetPerturbationSizeCorrectionFactor(rDesignVariable);
+    const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
     const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
@@ -550,13 +550,13 @@ const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Var
 
 const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
 {
-    const double correction_factor = this->GetPerturbationSizeCorrectionFactor(rDesignVariable);
+    const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
     const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
 }
 
-double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeCorrectionFactor(const Variable<double>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeModificationFactor(const Variable<double>& rDesignVariable)
 {
     KRATOS_TRY;
 
@@ -571,13 +571,13 @@ double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeCorrectionFactor
     KRATOS_CATCH("")
 }
 
-double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
 {
     KRATOS_TRY;
 
     if(rDesignVariable == SHAPE)
     {
-        KRATOS_ERROR << "GetPerturbationSizeCorrectionFactor NOT_IMPLEMENTED" << std::endl;
+        KRATOS_ERROR << "GetPerturbationSizeModificationFactor NOT_IMPLEMENTED" << std::endl;
     }
     else
         return 1.0;

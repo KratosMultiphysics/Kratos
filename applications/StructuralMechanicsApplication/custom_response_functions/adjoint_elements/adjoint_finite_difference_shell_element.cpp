@@ -316,7 +316,7 @@ void AdjointFiniteDifferencingShellElement::CheckSpecificProperties()
 }
 
 
-double AdjointFiniteDifferencingShellElement::GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingShellElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
 {
     KRATOS_TRY;
 

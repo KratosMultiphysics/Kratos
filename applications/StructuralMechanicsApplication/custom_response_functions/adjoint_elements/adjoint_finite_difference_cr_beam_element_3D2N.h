@@ -41,7 +41,7 @@ protected:
 
 
 private:
-    double GetPerturbationSizeCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
+    double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
