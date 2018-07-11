@@ -4237,6 +4237,7 @@ void SolidShellElementSprism3D6N::save( Serializer& rSerializer ) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseSolidElement);
     rSerializer.save("FinalizedStep",mFinalizedStep);
     rSerializer.save("HistoricalF0",mAuxContainer);
+    rSerializer.save("ELementalFlags",mELementalFlags);
 }
 
 /***********************************************************************************/
@@ -4247,6 +4248,7 @@ void SolidShellElementSprism3D6N::load( Serializer& rSerializer )
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseSolidElement);
     rSerializer.load("FinalizedStep",mFinalizedStep);
     rSerializer.load("HistoricalF0",mAuxContainer);
+    rSerializer.load("ELementalFlags",mELementalFlags);
 }
 
 } // Namespace Kratos.
