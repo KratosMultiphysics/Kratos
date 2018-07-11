@@ -30,16 +30,6 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
         
 
 
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-        print(custom_settings)
-        
         self.transient_settings = KratosMultiphysics.Parameters("""
         {
             "transient_parameters" : {
@@ -49,25 +39,13 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
         }
         """)
 
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-        print(self.transient_settings)
-        
+              
         self.validate_and_transfer_matching_settings(custom_settings, self.transient_settings)
 
         # Validate the remaining settings in the base class.
-        print(custom_settings)
         # Construct the base solver.
         #construct the linear solvers
 
-        print("+++++++++++++++++++++++++++++++++++++++++++++++",custom_settings)
         super(ConvectionDiffusionTransientSolver, self).__init__(model, custom_settings)
         
         self.print_on_rank_zero("::[ConvectionDiffusionTransientSolver]:: ", "Construction finished")
@@ -79,7 +57,7 @@ class ConvectionDiffusionTransientSolver(convection_diffusion_base_solver.Convec
     #### Private functions ####
 
     def _create_solution_scheme(self):
-         
+        
         #Variable defining the temporal scheme (0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson)
         self.GetComputingModelPart().ProcessInfo[ConvectionDiffusionApplication.THETA] = self.transient_settings["transient_parameters"]["theta"].GetDouble()
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.transient_settings["transient_parameters"]["dynamic_tau"].GetDouble()

@@ -1,0 +1,1 @@
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp -g    CMakeFiles/minigzip.dir/test/minigzip.o  -o minigzip  -L/usr/lib/libblas/libblas.so.3.0  -L/usr/lib/lapack/liblapack.so.3.0 -rdynamic libz.so.1.2.8 -Wl,-rpath,/usr/lib/libblas/libblas.so.3.0:/usr/lib/lapack/liblapack.so.3.0:/home/julio/Kratos/debug_build/external_libraries/zlib 

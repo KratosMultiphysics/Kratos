@@ -18,7 +18,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
 
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
-        print (solver_settings)
         
         if not solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
@@ -40,17 +39,14 @@ class FluidDynamicsAnalysis(AnalysisStage):
         
     def _CreateSolver(self):
         
-        #ñppppppppppppppppppppp
         import python_solvers_wrapper_fluid
-        ##print("FIRSTTTTTTTTTTTTTTTTTTTTTTTTTT")
-        #ññññññññññññññññññññññññññññ
+        
         import coupled_fluid_thermal_solver
-        ##print("###################################") 
-        ##print(self.model) 
         
-        return coupled_fluid_thermal_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
         
-        #return python_solvers_wrapper_fluid.CreateSolver(self.model, self.project_parameters)
+        
+        return python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.project_parameters["solver_settings"],"OpenMP")
+        #self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
         
 
     def _CreateProcesses(self, parameter_name, initialization_order):

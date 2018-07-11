@@ -13,16 +13,15 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 #import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 
 def CreateSolver(main_model_part, custom_settings):
-    ###print("ESTOYYYYYYYYYYYYYYYYYYY AQUIIIIIIIIIIIIIIIIIIIIII")
     
     return CoupledFluidThermalSolver(main_model_part, custom_settings)
 
 class CoupledFluidThermalSolver(object):
-
+    
     def __init__(self, model, custom_settings):
-        
         self.model = model
-
+        print("######################",custom_settings)
+        
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "solver_type" : "ThermallyCoupled",
@@ -91,12 +90,14 @@ class CoupledFluidThermalSolver(object):
                 }
             }
             """)
-
+        
         ## Overwrite the default settings with user-provided parameters
+
         self.settings = custom_settings
+
         
         self.settings.ValidateAndAssignDefaults(default_settings)
-        print("**********************",self.settings)
+        
         domain_size = self.settings["domain_size"].GetInt()
         if(self.settings["fluid_solver_settings"]["domain_size"].GetInt() != domain_size):
             raise Exception("domain size for the fluid solver is not consistent")
@@ -107,52 +108,30 @@ class CoupledFluidThermalSolver(object):
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         
-        #self.settings.ValidateAndAssignDefaults(default_settings["thermal_solver_settings"])
+        import python_solvers_wrapper_fluid
         
 
-        import python_solvers_wrapper_fluid
-         
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
         
         self.main_model_part = self.fluid_solver.main_model_part
         
                 
-        ##print("primerrrrrrrrrrrrrro y segundoooooooooooooooo")
-        #self.fluid_solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.settings)
-
-        #bolbol_model_part =  KratosMultiphysics.ModelPart("bolbol_model_part")
-        
-        #self.main_model_part =  KratosMultiphysics.ModelPart("main_model_part") 
-        #print("modellllllllllllllllllllllllllllllllpart")
-        #print("modellllllllllllllllllllllllllllllllpart")
-        #print("modellllllllllllllllllllllllllllllllpart")
-        #print(self.main_model_part)
-        #ljdflkjsldkjlgjdlk
-        #self.thermal_model_part =  KratosMultiphysics.ModelPart("Thermal")
-        
-        
-        
         import python_solvers_wrapper_convection_diffusion
         
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,custom_settings["thermal_solver_settings"],"OpenMP")
-        #likjljlkjlkjlkjljk
-        #sssssssssssss
-
+        
 
 
     def AddVariables(self):
         self.fluid_solver.AddVariables()
-        self.thermal_solver.AddVariables() #self.fluid_solver.main_model_part)
+        self.thermal_solver.AddVariables() 
         KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part)
         
      
 
     def ImportModelPart(self):
 
-        print("noooooooooooosssssssssssssssssssse")
         self.fluid_solver.ImportModelPart()
-        
-        #print(self.fluid_solver)
         
         #here cloning the fluid modelpart to thermal_model_part so that the nodes are shared
         convection_diffusion_settings = self.thermal_solver.GetComputingModelPart().ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
@@ -162,7 +141,7 @@ class CoupledFluidThermalSolver(object):
             modeler.GenerateModelPart(self.main_model_part, self.thermal_solver.GetComputingModelPart(), "Element2D3N", "LineCondition2D2N")
         else:
             modeler.GenerateModelPart(self.main_model_part, self.thermal_solver.GetComputingModelPart(), "Element3D4N", "SurfaceCondition3D3N")
-        #sssssssssssssss
+
         self.thermal_solver.GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
         print(self.thermal_solver.GetComputingModelPart())
@@ -212,13 +191,6 @@ class CoupledFluidThermalSolver(object):
 
     def AdvanceInTime(self, current_time):
         
-        print("fluid ", self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME])
-        print("thermal ", self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME])
-        print("fluid ", self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
-        print("thermal ", self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
-        print("fluid ", self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
-        print("thermal ", self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
-        
         dt = self.ComputeDeltaTime()
         new_time = current_time + dt
 
@@ -243,9 +215,28 @@ class CoupledFluidThermalSolver(object):
     def Predict(self):
         self.fluid_solver.Predict()
         self.thermal_solver.Predict()
+        #print (self.fluid_solver.GetComputingModelPart())
+        
+
+             #       if node.X0>0.298:
+             #   node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,5)		
+             #   node.Fix(KratosMultiphysics.TEMPERATURE)
+
+
+
+        for node in self.fluid_solver.GetComputingModelPart().Nodes:
+            temperature=node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)	
+            gravity_y=-10.0*(1-0.001*(temperature-0.0))
+            node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y,gravity_y)	
+            #node.Fix(KratosMultiphysics.TEMPERATURE)
+
+            #node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0)		    
+ 
+
 
     def SolveSolutionStep(self):
         self.fluid_solver.SolveSolutionStep()
+        
         self.thermal_solver.SolveSolutionStep()
         
     def FinalizeSolutionStep(self):

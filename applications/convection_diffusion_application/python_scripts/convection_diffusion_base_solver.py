@@ -277,7 +277,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def PrepareModelPart(self):
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
-            # self._execute_after_reading()
+            self._execute_after_reading()
 
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
@@ -394,12 +394,15 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return self._convection_diffusion_solution_strategy
 
     def import_materials(self):
+        
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
             import read_materials_process
+            
             # Add constitutive laws and material properties from json file to model parts.
             read_materials_process.ReadMaterialsProcess(self.model, self.settings["material_import_settings"])
             
+           
             # We set the properties that are nodal
             self._assign_nodally_properties()
             
@@ -427,6 +430,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             
             for key, value in mat["Variables"].items():
                 var = KratosMultiphysics.KratosGlobals.GetVariable(key)
+                                
                 if (self._check_variable_to_set(var)):
                     if value.IsDouble():
                         KratosMultiphysics.VariableUtils().SetScalarVar(var, value.GetDouble(), model_part.Nodes)
@@ -434,6 +438,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                         KratosMultiphysics.VariableUtils().SetVectorVar(var, value.GetVector(), model_part.Nodes)
                     else:
                         raise ValueError("Type of value is not available")
+                        
     
     def _check_variable_to_set(self, var):
         thermal_settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
@@ -467,13 +472,13 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
         # Auxiliary parameters object for the CheckAndPepareModelProcess
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # Assign mesh entities from domain and process sub model parts to the computing model part.
-        import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
-        check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+        # params = KratosMultiphysics.Parameters("{}")
+        # params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
+        # params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+        # params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+        # # Assign mesh entities from domain and process sub model parts to the computing model part.
+        # import check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
+        # check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
         # This will be removed once the Model is fully supported! => It wont e necessary anymore
         # if not self.model.HasModelPart(self.main_model_part.Name):
