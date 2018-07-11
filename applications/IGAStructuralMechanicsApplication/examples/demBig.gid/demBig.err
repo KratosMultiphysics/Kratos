@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "KratosDEM.py", line 1, in <module>
-    import KratosMultiphysics
-ImportError: No module named KratosMultiphysics
