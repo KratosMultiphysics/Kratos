@@ -380,9 +380,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
     def import_materials(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
-            import read_materials_process
             # Add constitutive laws and material properties from json file to model parts.
-            read_materials_process.ReadMaterialsProcess(self.model, self.settings["material_import_settings"])
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
             
             # We set the properties that are nodal
             self._assign_nodally_properties()
