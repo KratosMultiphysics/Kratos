@@ -141,12 +141,11 @@ public:
         double nodal_h;
         double sum_nodal_h = 0.0;
 
-        #pragma omp parallel for  private(nodal_h) reduction(+:sum_nodal_h)
+        #pragma omp parallel for reduction(+:sum_nodal_h)
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
-            nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
-            sum_nodal_h += nodal_h;
+            sum_nodal_h += it_node->FastGetSolutionStepValue(NODAL_H);;
         }
 
         return sum_nodal_h/static_cast<double>(nodes_array.size());
