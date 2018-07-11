@@ -55,6 +55,7 @@ STABILIZED_CFD_APPLICATION;\
 HDF5_APPLICATION;\
 FREE_SURFACE_APPLICATION;\
 FLUID_TRANSPORT_APPLICATION;\
+NURBS_BREP_APPLICATION;\
 ")
 
 message( " ")
@@ -308,6 +309,10 @@ endif(${FREE_SURFACE_APPLICATION} MATCHES ON)
 if(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
   add_subdirectory(FluidTransportApplication)
 endif(${FLUID_TRANSPORT_APPLICATION} MATCHES ON)
+
+if(${NURBS_BREP_APPLICATION} MATCHES ON)
+  add_subdirectory(NurbsBrepApplication)
+endif(${NURBS_BREP_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
