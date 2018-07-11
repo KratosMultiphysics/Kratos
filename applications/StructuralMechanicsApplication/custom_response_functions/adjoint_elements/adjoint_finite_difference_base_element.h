@@ -367,13 +367,13 @@ public:
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Calculates the stress-design variable derivative of the given rStressVariable.
-     * this is done by finite differencing of the Calculate funciton of the primal element
+     * this is done by finite differencing of the Calculate function of the primal element
      */
     void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
                                         Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Calculates the stress-design variable derivative of the given rStressVariable.
-     * this is done by finite differencing of the Calculate funciton of the primal element
+     * this is done by finite differencing of the Calculate function of the primal element
      */
     void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
                                             const Variable<Vector>& rStressVariable,
