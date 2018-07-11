@@ -160,7 +160,7 @@ public:
         IndexType is_converged = 0;
         
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-//         const double epsilon = r_process_info[INITIAL_PENALTY];
+        const double common_epsilon = r_process_info[INITIAL_PENALTY];
         const double scale_factor = r_process_info[SCALE_FACTOR];
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
@@ -168,8 +168,8 @@ public:
         #pragma omp parallel for reduction(+:is_converged)
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
-            
-            const double epsilon = it_node->GetValue(INITIAL_PENALTY);
+
+            const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
             
             const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 

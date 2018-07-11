@@ -16,6 +16,7 @@ class SkinDetectionProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(""" 
         {
             "model_part_name"                       : "Main",
+            "computing_model_part_name"             : "computing_domain",
             "recursive_detection"                   : false,
             "name_auxiliar_model_part"              : "SkinModelPart",
             "name_auxiliar_condition"               : "Condition",
@@ -27,9 +28,18 @@ class SkinDetectionProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
+        # The main model part
         self.model_part = Model[settings["model_part_name"].GetString()]
+        # The computing model part
+        self.computing_model_part = Model[settings["computing_model_part_name"].GetString()]
+
+        # Recursive detection
         self.recursive_detection = settings["recursive_detection"].GetBool()
 
+        # Skin model part name
+        self.name_auxiliar_model_part = settings["name_auxiliar_model_part"].GetString()
+
+        # Process parameters
         detect_skin_parameters = KratosMultiphysics.Parameters("""{}""")
         detect_skin_parameters.AddValue("name_auxiliar_model_part", settings["name_auxiliar_model_part"])
         detect_skin_parameters.AddValue("name_auxiliar_condition", settings["name_auxiliar_condition"])
@@ -43,6 +53,10 @@ class SkinDetectionProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         # We execute the process
         self.detect_skin.Execute()
+        # We copy the conditions to the contact model part
+        skin_model_part = self.model_part.GetSubModelPart(self.name_auxiliar_model_part)
+        transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.computing_model_part, skin_model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS)
+        transfer_process.Execute()
 
     def ExecuteBeforeSolutionLoop(self):
         pass
@@ -51,6 +65,10 @@ class SkinDetectionProcess(KratosMultiphysics.Process):
         # If recurive we detect each time step
         if (self.recursive_detection is True):
             self.detect_skin.Execute()
+            # We copy the conditions to the contact model part
+            skin_model_part = self.model_part.GetSubModelPart(self.name_auxiliar_model_part)
+            transfer_process = KratosMultiphysics.FastTransferBetweenModelPartsProcess(self.computing_model_part, skin_model_part, KratosMultiphysics.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS)
+            transfer_process.Execute()
 
     def ExecuteFinalizeSolutionStep(self):
         pass
