@@ -371,8 +371,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
         if self.ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool():
             self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
-        #self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
-        # TODO: Is it necessary to add other variables (e.g. POINT_LOAD_SENSITIVITY)?
+        self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.IS_ADJOINT] = False
 
