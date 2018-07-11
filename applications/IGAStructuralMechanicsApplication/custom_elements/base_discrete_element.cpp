@@ -418,9 +418,9 @@ namespace Kratos
             const array_1d<double, 3 >& displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
             const unsigned int index = i * 3;
 
-            rValues[i]     = displacement[0];
-            rValues[i + 1] = displacement[1];
-            rValues[i + 2] = displacement[2];
+            rValues[index]     = displacement[0];
+            rValues[index + 1] = displacement[1];
+            rValues[index + 2] = displacement[2];
         }
     }
 
