@@ -185,6 +185,7 @@ void SkinDetectionProcess<TDim>::Execute()
         auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop_0);
         r_auxiliar_model_part.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
+        p_cond->Initialize();
     }
 
     // Adding to the auxiliar model part
@@ -192,7 +193,7 @@ void SkinDetectionProcess<TDim>::Execute()
     indexes_skin.insert(indexes_skin.end(), nodes_in_the_skin.begin(), nodes_in_the_skin.end());
     r_auxiliar_model_part.AddNodes(indexes_skin);
 
-    KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << inverse_face_map.size() << "have been created" << std::endl;
+    KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << inverse_face_map.size() << " have been created" << std::endl;
 
     // Now we set the falg on the nodes. The list of nodes of the auxiliar model part
     auto& nodes_array = r_auxiliar_model_part.Nodes();
