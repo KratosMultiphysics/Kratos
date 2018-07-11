@@ -487,8 +487,8 @@ namespace Kratos
     //***********************************************************************************/
     void BaseDiscreteElement::Jacobian(const Matrix& DN_De,
         Matrix& Jacobian,
-        const int& rWorkingSpaceDimension,
-        const int& rLocalSpaceDimension)
+        const int rWorkingSpaceDimension,
+        const int rLocalSpaceDimension)
     {
         const unsigned int number_of_control_points = GetGeometry().size();
 

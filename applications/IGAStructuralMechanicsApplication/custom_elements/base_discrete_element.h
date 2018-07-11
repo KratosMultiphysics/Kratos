@@ -11,7 +11,6 @@
 //
 
 
-
 #if !defined(KRATOS_BASE_DISCRETE_ELEMENT_H_INCLUDED )
 #define  KRATOS_BASE_DISCRETE_ELEMENT_H_INCLUDED
 
@@ -218,65 +217,53 @@ public:
 
 
 /********************************************************************/
-/*    CalculateOnIntegrationPoints                                  */
+/*    Calculate                                                     */
 /********************************************************************/
     /**
-    * @brief Calculate a boolean Variable on the Element Constitutive Law
+    * @brief Calculate a double Variable on the Element
     * @param rVariable The variable we want to get
     * @param rOutput The values obtained int the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void CalculateOnIntegrationPoints(
-        const Variable<bool>& rVariable,
-        std::vector<bool>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-    * @brief Calculate a double Variable on the Element Constitutive Law
-    * @param rVariable The variable we want to get
-    * @param rOutput The values obtained int the integration points
-    * @param rCurrentProcessInfo the current process info instance
-    */
-    void CalculateOnIntegrationPoints(
+    void Calculate(
         const Variable<double>& rVariable,
-        std::vector<double>& rOutput,
+        double& rOutput,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
-    * @brief Calculate a double array_1d on the Element Constitutive Law
+    * @brief Calculate a double array_1d on the Element
     * @param rVariable The variable we want to get
     * @param rOutput The values obtained int the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void CalculateOnIntegrationPoints(
+    void Calculate(
         const Variable<array_1d<double, 3>>& rVariable,
-        std::vector<array_1d<double, 3>>& rOutput,
+        array_1d<double, 3>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
-    * @brief Calculate a Vector Variable on the Element Constitutive Law
+    * @brief Calculate a Vector Variable on the Element
     * @param rVariable The variable we want to get
     * @param rOutput The values obtained int the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void CalculateOnIntegrationPoints(
+    void Calculate(
         const Variable<Vector>& rVariable,
-        std::vector<Vector>& rOutput,
+        Vector& rOutput,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
-    * @brief Calculate a Matrix Variable on the Element Constitutive Law
+    * @brief Calculate a Matrix Variable on the Element
     * @param rVariable The variable we want to get
     * @param rOutput The values obtained int the integration points
     * @param rCurrentProcessInfo the current process info instance
     */
-    void CalculateOnIntegrationPoints(
+    void Calculate(
         const Variable<Matrix >& rVariable,
-        std::vector< Matrix >& rOutput,
+        Matrix& rOutput,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
@@ -393,8 +380,8 @@ protected:
     */
     void Jacobian(const Matrix& DN_De,
         Matrix& Jacobian,
-        const int& rWorkingSpaceDimension = 3,
-        const int& rLocalSpaceDimension = 2);
+        const int rWorkingSpaceDimension = 3,
+        const int rLocalSpaceDimension = 2);
 
     ///@}
 private:
