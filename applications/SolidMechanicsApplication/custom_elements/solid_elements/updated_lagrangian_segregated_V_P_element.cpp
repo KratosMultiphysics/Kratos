@@ -284,10 +284,10 @@ void UpdatedLagrangianSegregatedVPElement::CalculateKinematics(ElementDataType& 
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
     
-    GeometryType&  rGeometry = GetGeometry();    
     //Compute the deformation matrix B
-    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B, rGeometry, rVariables.DN_DX);
-    
+    const GeometryType& rGeometry = GetGeometry();
+    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
+
     KRATOS_CATCH( "" )
 }
 
@@ -368,7 +368,6 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddKpp(MatrixType& rLeftH
     
     for( SizeType i=0; i<Faces.size(); ++i ){
 
-      //std::cout<<" Face "<<i<<std::endl;
       GetFaceWeight(Faces[i], rVariables, SideWeight, side_normal_size);
 
       BoundFactor = rVariables.Tau * 2.0 / side_normal_size;
@@ -486,7 +485,6 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
 
     for( SizeType i=0; i<Faces.size(); ++i ){
 
-      //std::cout<<" Face "<<i<<std::endl;
       GetFaceNormal(Faces[i], rVariables, Normal);
 
       GetFaceWeight(Faces[i], rVariables, SideWeight, side_normal_size);
@@ -519,11 +517,11 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
         
         // Add LHS to RHS: boundary terms (incremental pressure formulation)
         //(lumped)
-        //rRightHandSideVector[Faces[i][j]] -=  SideWeight * BoundFactor * rVariables.N[Faces[i][j]] * rGeometry[Faces[i][j]].FastGetSolutionStepValue(PRESSURE,0);
+        //rRightHandSideVector[Faces[i][j]] -=  SideWeight * BoundFactor * rVariables.N[Faces[i][j]] * rGeometry[Faces[i][j]].FastGetSolutionStepValue(PRESSURE);
 
         //(reduced integration)
         for( SizeType k=0; k<Faces[i].size(); ++k ){
-          rRightHandSideVector[Faces[i][j]] -= SideWeight * BoundFactor * rVariables.N[Faces[i][j]] * rVariables.N[Faces[i][k]] * rGeometry[Faces[i][k]].FastGetSolutionStepValue(PRESSURE,0);
+          rRightHandSideVector[Faces[i][j]] -= SideWeight * BoundFactor * rVariables.N[Faces[i][j]] * rVariables.N[Faces[i][k]] * rGeometry[Faces[i][k]].FastGetSolutionStepValue(PRESSURE);
         }
       }
       
@@ -602,7 +600,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateAndAddPressureForces(VectorT
     {
       for ( SizeType k = 0; k < dimension; ++k )
       {
-        rRightHandSideVector[i] -= (StabilizationFactor * rVariables.DN_DX(i,k) * rVariables.DN_DX(j,k)) * rGeometry[j].FastGetSolutionStepValue(PRESSURE,0);
+        rRightHandSideVector[i] -= (StabilizationFactor * rVariables.DN_DX(i,k) * rVariables.DN_DX(j,k)) * rGeometry[j].FastGetSolutionStepValue(PRESSURE);
       }
     }
   }

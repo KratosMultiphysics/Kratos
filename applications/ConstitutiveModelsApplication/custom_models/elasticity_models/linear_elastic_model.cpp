@@ -93,7 +93,7 @@ namespace Kratos
     //add initial strain
     if(this->mOptions.Is(ConstitutiveModel::ADD_HISTORY_VECTOR) && this->mOptions.Is(ConstitutiveModel::HISTORY_STRAIN_MEASURE) ){
        VectorType StrainVector;
-       StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+       ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
        for(unsigned int i=0; i<StrainVector.size(); i++)
        {
           StrainVector[i] += this->mHistoryVector[i];	
@@ -132,7 +132,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
     this->CalculateAndAddConstitutiveTensor(Variables);
     
@@ -171,7 +171,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
     this->CalculateAndAddConstitutiveTensor(Variables);
     
@@ -324,7 +324,7 @@ namespace Kratos
     this->InitializeElasticData(rValues,Variables);
     
     VectorType StrainVector;
-    StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+    ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
     //Set constitutive matrix to zero before adding
     rConstitutiveMatrix.clear();

@@ -94,14 +94,14 @@ Element::Pointer LargeDisplacementVElement::Clone( IndexType NewId, NodesArrayTy
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
       {
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
+
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_ERROR << "constitutive law not has the correct size " << NewElement.mConstitutiveLawVector.size() << std::endl;
       }
-    
+
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-    
+
     return Kratos::make_shared< LargeDisplacementVElement >(NewElement);
 }
 
@@ -169,20 +169,20 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
 void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
     KRATOS_TRY
-       
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
     // operation performed: add Km to the rLefsHandSideMatrix
     this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-   
+
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    rLeftHandSideMatrix *= rVariables.GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)  
-    
+    rLeftHandSideMatrix *= rVariables.GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)
+
     //KRATOS_WATCH( rLeftHandSideMatrix )
-  
-    KRATOS_CATCH( "" )  
+
+    KRATOS_CATCH( "" )
 }
 
 
@@ -194,14 +194,14 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
 unsigned int LargeDisplacementVElement::GetDofsSize()
 {
   KRATOS_TRY
-     
+
   const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-  const SizeType number_of_nodes  = GetGeometry().PointsNumber();    
-  
+  const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+
   unsigned int size = number_of_nodes * dimension; //usual size for velocity based elements
-  
-  return size;   
-  
+
+  return size;
+
   KRATOS_CATCH( "" )
 }
 
@@ -214,14 +214,14 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 {
 
     //to take in account previous step for output print purposes
-    unsigned int step = 0;
+    unsigned int Alpha = 1; //current step
     if( this->Is(SolidElement::FINALIZED_STEP) ){
-      step = 1;
+      Alpha = 0; //previous step
       this->GetHistoricalVariables(rVariables,rPointNumber);
     }
-  
+
     if(rVariables.detF<0){
-        
+
 	std::cout<<" Element: "<<this->Id()<<std::endl;
 
 	SizeType number_of_nodes  = GetGeometry().PointsNumber();
@@ -244,7 +244,7 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
     //Compute strain rate measures if they are required by the constitutive law
     ConstitutiveLaw::Features LawFeatures;
     mConstitutiveLawVector[rPointNumber]->GetLawFeatures(LawFeatures);
-    
+
     bool strain_rate_measure = false;
     for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
     {
@@ -252,10 +252,10 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 	strain_rate_measure = true;
     }
 
-    if( strain_rate_measure ){    
+    if( strain_rate_measure ){
       //Compute symmetric spatial velocity gradient [DN_DX = dN/dx_n*1] stored in a vector
       GeometryType& rGeometry = GetGeometry();
-      ElementUtilities::CalculateVelocityGradientVector( rVariables.StrainVector, rGeometry, rVariables.DN_DX, step );
+      ElementUtilities::CalculateVelocityGradientVector( rVariables.StrainVector, rGeometry, rVariables.DN_DX, Alpha );
       Flags &ConstitutiveLawOptions=rValues.GetOptions();
       ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
     }
@@ -263,7 +263,7 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
     //Compute F and detF (from 0 to n+1) : store it in H variable and detH
     rVariables.detH = rVariables.detF * rVariables.detF0;
     noalias(rVariables.H) = prod( rVariables.F, rVariables.F0 );
-    
+
     rValues.SetDeterminantF(rVariables.detH);
     rValues.SetDeformationGradientF(rVariables.H);
     rValues.SetStrainVector(rVariables.StrainVector);
@@ -292,7 +292,7 @@ int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
-	
+
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
 	KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
@@ -324,5 +324,3 @@ void LargeDisplacementVElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

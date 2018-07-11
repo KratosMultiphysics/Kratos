@@ -111,7 +111,9 @@ class ElementUtilities
 
     if( rVelocityGradient.size1() != dimension || rVelocityGradient.size2() != dimension )
       rVelocityGradient.resize(dimension,dimension);
-          
+
+    noalias(rVelocityGradient) = ZeroMatrix(dimension,dimension);
+    
     if( Alpha != 1.0 ){
       
       array_1d<double,3> Velocity;

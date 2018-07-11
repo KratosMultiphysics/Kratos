@@ -21,6 +21,7 @@
 
 // Project includes
 #include "delaunay_meshing_application_variables.h"
+#include "custom_utilities/mesher_utilities.hpp"
 
 namespace Kratos
 {
@@ -102,7 +103,9 @@ namespace Kratos
       mEchoLevel = EchoLevel;
 
       if( !rModelPart.IsSubModelPart() ){
-	
+
+        this->ResetBodyNormals(rModelPart); //clear boundary normals
+
 	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	  {
 
@@ -117,12 +120,14 @@ namespace Kratos
 	  }
       }
       else{
-	
-	//if( rModelPart.IsNot(ACTIVE) && rModelPart.IsNot(BOUNDARY) && rModelPart.IsNot(CONTACT) ){
-	  CalculateBoundaryNormals(rModelPart);
 
-	  //standard assignation // fails in sharp edges angle<90
-	  AddNormalsToNodes(rModelPart);
+        this->ResetBodyNormals(rModelPart); //clear boundary normals
+        
+	//if( rModelPart.IsNot(ACTIVE) && rModelPart.IsNot(BOUNDARY) && rModelPart.IsNot(CONTACT) ){
+        CalculateBoundaryNormals(rModelPart);
+
+        //standard assignation // fails in sharp edges angle<90
+        AddNormalsToNodes(rModelPart);
 	//}
 	
       }
@@ -142,11 +147,13 @@ namespace Kratos
       mEchoLevel = EchoLevel;
       
       if( !rModelPart.IsSubModelPart() ){
-	
+
+        this->ResetBodyNormals(rModelPart); //clear boundary normals
+        
 	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin(); i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	  {	  
 	    if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) && i_mp->IsNot(CONTACT) ){
-	      
+              
 	      CalculateBoundaryNormals(*i_mp);
 	      
 	      //assignation for solid boundaries : Unity Normals on nodes and Shrink_Factor on nodes
@@ -157,12 +164,14 @@ namespace Kratos
       }
       else{
 
+        this->ResetBodyNormals(rModelPart); //clear boundary normals
+        
 	//if( rModelPart.IsNot(ACTIVE) && rModelPart.IsNot(BOUNDARY) && rModelPart.IsNot(CONTACT) ){
-
-	  CalculateBoundaryNormals(rModelPart);
-
-	  //assignation for solid boundaries: Unity Normals on nodes and Shrink_Factor on nodes
-	  AddWeightedNormalsToNodes(rModelPart);
+        
+        CalculateBoundaryNormals(rModelPart);
+        
+        //assignation for solid boundaries: Unity Normals on nodes and Shrink_Factor on nodes
+        AddWeightedNormalsToNodes(rModelPart);
 	//}
 	
       }
@@ -226,8 +235,6 @@ namespace Kratos
 	
 	ConditionsContainerType& rConditions = rModelPart.Conditions();
 	    
-	this->ResetBodyNormals(rModelPart); //delete body normals after interpolation
-
 	this->CalculateBoundaryNormals(rConditions);
 	    
       }
@@ -240,8 +247,6 @@ namespace Kratos
 	
 	  MeshType& rMesh = rModelPart.GetMesh();
 	    
-	  this->ResetBodyNormals(rModelPart); //delete body normals after interpolation  
-
 	  this->CalculateBoundaryNormals(rMesh);
 	  
 	}
@@ -251,8 +256,6 @@ namespace Kratos
 	    std::cout<<"   ["<<rModelPart.Name()<<"] (BE)"<<std::endl;
 		    
 	  ElementsContainerType& rElements = rModelPart.Elements();
-
-	  this->ResetBodyNormals(rModelPart); //delete body normals after interpolation     
 
 	  this->CalculateBoundaryNormals(rElements);
 	      
@@ -277,17 +280,12 @@ namespace Kratos
 
       array_1d<double,3>& normal = (it)->GetValue(NORMAL);
       noalias(normal) = An/norm_2(An);
-
-      //std::cout<<" Normal ["<<it->Id()<<"] "<<normal<<std::endl;
     }
 
     static void CalculateUnityNormal3D(ConditionsContainerType::iterator it, array_1d<double,3>& An,
 				       array_1d<double,3>& v1,array_1d<double,3>& v2 )
     {
       Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
-
-      // if(pGeometry.size()<3)
-      // 	std::cout<<" Warning 3D geometry with only "<<pGeometry.size()<<" nodes :: multiple normal definitions "<<std::endl;
 		
       v1[0] = pGeometry[1].X() - pGeometry[0].X();
       v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
@@ -364,8 +362,8 @@ namespace Kratos
     {
       KRATOS_TRY
 		  
-	//resetting the normals
-	for(NodesArrayType::iterator in =  rModelPart.NodesBegin();
+          //resetting the normals
+          for(NodesArrayType::iterator in =  rModelPart.NodesBegin();
 	    in !=rModelPart.NodesEnd(); in++)
 	  {
 	    (in->GetSolutionStepValue(NORMAL)).clear();
@@ -405,13 +403,13 @@ namespace Kratos
       KRATOS_TRY
 		  
       //resetting the normals
-      for(ConditionsContainerType::iterator it =  rConditions.begin();
-	  it != rConditions.end(); it++)
-	{
-	  Element::GeometryType& rNodes = it->GetGeometry();
-	  for(unsigned int in = 0; in<rNodes.size(); in++)
-	    ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
-	}
+      // for(ConditionsContainerType::iterator it =  rConditions.begin();
+      //     it != rConditions.end(); it++)
+      //   {
+      //     Element::GeometryType& rNodes = it->GetGeometry();
+      //     for(unsigned int in = 0; in<rNodes.size(); in++)
+      //       ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
+      //   }
 
       const unsigned int dimension = (rConditions.begin())->GetGeometry().WorkingSpaceDimension();
 
@@ -461,12 +459,12 @@ namespace Kratos
       KRATOS_TRY
 
       //resetting the normals
-      for(ElementsContainerType::iterator it =  rElements.begin(); it != rElements.end(); it++)
-	{
-	  Element::GeometryType& rNodes = it->GetGeometry();
-	  for(unsigned int in = 0; in<rNodes.size(); in++)
-	    ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
-	}
+      // for(ElementsContainerType::iterator it =  rElements.begin(); it != rElements.end(); it++)
+      //   {
+      //     Element::GeometryType& rNodes = it->GetGeometry();
+      //     for(unsigned int in = 0; in<rNodes.size(); in++)
+      //       ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
+      //   }
 
       const unsigned int dimension = (rElements.begin())->GetGeometry().WorkingSpaceDimension();
 
@@ -766,7 +764,7 @@ namespace Kratos
 	  }
 	
       }
-      else if( rModelPart.NumberOfElements() && this->CheckElementsDimension(rModelPart, dimension-1)){
+      else if( rModelPart.NumberOfElements() && this->CheckElementsDimension(rModelPart, dimension-1) ){
 	    
 	ElementsContainerType& rElements = rModelPart.Elements();
 
@@ -800,11 +798,12 @@ namespace Kratos
 
       ModelPart::NodesContainerType& rNodes = rModelPart.Nodes();
 
-      std::vector<int> Ids(rModelPart.GetParentModelPart()->NumberOfNodes()+1);
+      unsigned int MaxNodeId = MesherUtilities::GetMaxNodeId(rModelPart);
+      std::vector<int> Ids(MaxNodeId+1);
       std::fill( Ids.begin(), Ids.end(), 0 );
 
       if(mEchoLevel > 1) 
-	std::cout<<"  ["<<rModelPart.Name()<<"] [conditions:"<<rModelPart.NumberOfConditions()<<", elements:"<<rModelPart.NumberOfElements()<<"] dimension: "<<dimension<<std::endl;
+	std::cout<<"   ["<<rModelPart.Name()<<"] [conditions:"<<rModelPart.NumberOfConditions()<<", elements:"<<rModelPart.NumberOfElements()<<"] dimension: "<<dimension<<std::endl;
 
       
       if( rModelPart.NumberOfConditions() && this->CheckConditionsLocalSpace(rModelPart, dimension-1) ){
@@ -824,10 +823,12 @@ namespace Kratos
 			
 	      Condition::GeometryType& pGeometry = i_cond->GetGeometry();
 
+              if( mEchoLevel > 2 )
+                std::cout<<" Condition ID "<<i_cond->Id()<<" id "<<id<<std::endl;
+
 	      for(unsigned int i = 0; i < pGeometry.size(); i++)
 		{
 		  if( mEchoLevel > 2 ){
-		    std::cout<<" Condition ID "<<i_cond->Id()<<" id "<<id<<std::endl;
 		    if(Ids.size()<=pGeometry[i].Id())
 		      std::cout<<" Shrink node in geom "<<pGeometry[i].Id()<<" number of nodes "<<Ids.size()<<std::endl;
 		  }
@@ -881,13 +882,15 @@ namespace Kratos
 	    if(i_elem->IsNot(CONTACT) && i_elem->Is(BOUNDARY)){
 			
 	      Condition::GeometryType& pGeometry = i_elem->GetGeometry();
+              
+              if( mEchoLevel > 2 )
+                std::cout<<" Element ID "<<i_elem->Id()<<" id "<<id<<std::endl;
 
 	      for(unsigned int i = 0; i < pGeometry.size(); i++)
 		{
 		  if( mEchoLevel > 2 ){
-		    std::cout<<" Condition ID "<<i_elem->Id()<<" id "<<id<<std::endl;
 		    if(Ids.size()<=pGeometry[i].Id())
-		      std::cout<<" Shrink node in geom "<<pGeometry[i].Id()<<" number of nodes "<<Ids.size()<<std::endl;
+		      std::cout<<" Shrink node in geom "<<pGeometry[i].Id()<<" number of nodes "<<Ids.size()<<" Ids[id] "<<Ids[pGeometry[i].Id()]<<std::endl;
 		  }
 			  
 		  if(Ids[pGeometry[i].Id()]==0){
@@ -895,8 +898,7 @@ namespace Kratos
 		    Neighbours[id].push_back( Element::WeakPointer( *(i_elem.base()) ) );
 		    id++;
 		  }
-		  else{
-			    
+		  else{			    
 		    Neighbours[Ids[pGeometry[i].Id()]].push_back( Element::WeakPointer( *(i_elem.base()) ) );
 		  }
 			    
@@ -959,11 +961,14 @@ namespace Kratos
 	  double&       shrink_factor=(boundary_nodes_begin + pn)->FastGetSolutionStepValue(SHRINK_FACTOR);
 				
 	  //initialize
-	  Normal.clear();
-	  shrink_factor=0;
 
 	  unsigned int normals_size = rNeighbours[rIds[(boundary_nodes_begin + pn)->Id()]].size();
-				
+          if( normals_size != 0 )
+          {
+            Normal.clear();
+            shrink_factor=0;
+          }            
+          
 	  if( mEchoLevel > 1 )
 	    std::cout<<" Id "<<rIds[(boundary_nodes_begin + pn)->Id()]<<" normals size "<<normals_size<<" normal "<<Normal<<" shrink "<<shrink_factor<<std::endl;
 
@@ -1274,14 +1279,14 @@ namespace Kratos
 	  if(shrink_factor!=0)
 	    {
 	      if( mEchoLevel > 2 )
-		std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;
+		std::cout<<"[Id "<<rIds[(boundary_nodes_begin + pn)->Id()]<<" shrink_factor "<<shrink_factor<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<"] shrink "<<std::endl;
 	      Normal/=shrink_factor;
 
 	    }
 	  else{
 
 	    if( mEchoLevel > 1 )
-	      std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;		     
+	      std::cout<<"[Id "<<rIds[(boundary_nodes_begin + pn)->Id()]<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<"] no shrink "<<std::endl;		     
 			
 	    Normal.clear();
 	    shrink_factor=1;

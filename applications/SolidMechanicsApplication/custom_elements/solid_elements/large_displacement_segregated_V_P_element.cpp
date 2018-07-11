@@ -426,8 +426,7 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemCompone
     switch(mStepVariable)
     {
       case VELOCITY_STEP:
-        {
-
+        {                   
           // operation performed: add Km to the rLefsHandSideMatrix
           this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
           
@@ -435,7 +434,6 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemCompone
           this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
           
           rLeftHandSideMatrix *= rVariables.GetProcessInfo()[DELTA_TIME]; // backward Euler Approach (BDF order 1)
-          //std::cout<<" velocity LHS "<<rLeftHandSideMatrix<<std::endl;
           
           break;
         }
@@ -444,8 +442,6 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddLHS(LocalSystemCompone
 
           // operation performed: add Kpp to the rLefsHandSideMatrix
           this->CalculateAndAddKpp( rLeftHandSideMatrix, rVariables );
-          
-          //std::cout<<" pressure LHS "<<rLeftHandSideMatrix<<std::endl;
           
           break;
         }
@@ -471,13 +467,12 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddRHS(LocalSystemCompone
   switch(mStepVariable)
   {
     case VELOCITY_STEP:
-      {
+      {        
         // operation performed: add InternalForces to the rRightHandSideVector
         this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
 
         // operation performed: add ExternalForces to the rRightHandSideVector
         this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );            
-        //std::cout<<" velocity RHS "<<rRightHandSideVector<<std::endl;
         
         break;
       }
@@ -485,8 +480,6 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddRHS(LocalSystemCompone
       {      
         // operation performed: add PressureForces to the rRightHandSideVector
         this->CalculateAndAddPressureForces( rRightHandSideVector, rVariables );
-
-        //std::cout<<" pressure RHS "<<rRightHandSideVector<<std::endl;
 
         break;
       }

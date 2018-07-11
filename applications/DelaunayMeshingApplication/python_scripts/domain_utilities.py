@@ -43,8 +43,9 @@ class DomainUtilities(object):
 
             model_part.ProcessInfo.SetValue(KratosDelaunay.INITIALIZED_DOMAINS, True)
 
-            print("::[--Domain Utilities-]:: Resultant ModelPart")
-            print(model_part)
+            if( echo_level > 0 ):
+                print("::[--Domain Utilities-]:: Resultant ModelPart")
+                print(model_part)
 
 
     #

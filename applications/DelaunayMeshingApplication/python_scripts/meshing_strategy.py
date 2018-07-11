@@ -39,7 +39,7 @@ class MeshingStrategy(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level = 1
+        self.echo_level = 0
 
     #
     def Initialize(self,meshing_parameters,dimension):
@@ -119,7 +119,8 @@ class MeshingStrategy(object):
 
         meshers_list = self.GetMeshers()
 
-        print("  [", self.MeshingParameters.GetSubModelPartName(),"model part ] (REMESH:",self.settings["remesh"].GetBool(),"/ REFINE:",self.settings["refine"].GetBool(),"/ TRANSFER:",self.settings["transfer"].GetBool(),")")
+        if( self.echo_level > 0 ):
+            print("  [", self.MeshingParameters.GetSubModelPartName(),"model part ] (REMESH:",self.settings["remesh"].GetBool(),"/ REFINE:",self.settings["refine"].GetBool(),"/ TRANSFER:",self.settings["transfer"].GetBool(),")")
 
         for mesher in meshers_list:
             meshing_module =__import__(mesher)

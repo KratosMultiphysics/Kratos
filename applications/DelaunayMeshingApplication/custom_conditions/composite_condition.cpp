@@ -132,17 +132,17 @@ Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType co
   
   for (ConditionConstantIterator cn = this->mChildConditions.begin(); cn != this->mChildConditions.end(); ++cn)
     {
-         Condition::Pointer pNewChildCondition;
-	 pNewChildCondition = cn->Clone(this->Id(), rThisNodes);
-         NewCompositeCondition.AddChild( pNewChildCondition );
-         // std::cout<<" Add Child "<<std::endl;
-	 //NewCompositeCondition.AddChild(*(cn.base())); //problems in split, previous geometry is preserved, clone is needed.
+      Condition::Pointer pNewChildCondition;
+      pNewChildCondition = cn->Clone(cn->Id(), rThisNodes);
+      NewCompositeCondition.AddChild( pNewChildCondition );
+      // std::cout<<" Add Child "<<std::endl;
+      //NewCompositeCondition.AddChild(*(cn.base())); //problems in split, previous geometry is preserved, clone is needed.
     }
 
   NewCompositeCondition.SetData(this->GetData());
   NewCompositeCondition.SetFlags(this->GetFlags());
   
-  return Condition::Pointer( new CompositeCondition(NewCompositeCondition) );
+  return Kratos::make_shared< CompositeCondition > (NewCompositeCondition);
 }
 
 

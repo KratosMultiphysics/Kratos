@@ -203,7 +203,7 @@ namespace Kratos
       ModelPart::ElementsContainerType::iterator elements_end    = mrModelPart.ElementsEnd();
     
       rConditionId=0;
-      for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ie++)
+      for(ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end ; ++ie)
 	{
 	  
 	  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
@@ -241,7 +241,7 @@ namespace Kratos
 	    
 	    //loop on neighbour elements of an element
 	    unsigned int iface=0;
-	    for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ne++)
+	    for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ++ne)
 	      {
 
 		unsigned int NumberNodesInFace = lnofa[iface];
@@ -250,7 +250,7 @@ namespace Kratos
 		  {
 		    
 		    //if no neighbour is present => the face is free surface
-		    for(unsigned int j=1; j<=NumberNodesInFace; j++)
+		    for(unsigned int j=1; j<=NumberNodesInFace; ++j)
 		      {
 			rElementGeometry[lpofa(j,iface)].Set(BOUNDARY);
 		      }
@@ -262,7 +262,7 @@ namespace Kratos
 		    bool point_condition = false; 
 
 		    bool inserted = false;
-		    for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ic++)
+		    for(ModelPart::ConditionsContainerType::iterator ic = rTemporaryConditions.begin(); ic!= rTemporaryConditions.end(); ++ic)
 		      {
 			Geometry< Node<3> >& rConditionGeometry = ic->GetGeometry();
 
@@ -355,7 +355,7 @@ namespace Kratos
 		      
 		      FaceNodes.reserve(NumberNodesInFace);
 
-		      for(unsigned int j=1; j<=NumberNodesInFace; j++)
+		      for(unsigned int j=1; j<=NumberNodesInFace; ++j)
 			{
 			  FaceNodes.push_back(rElementGeometry(lpofa(j,iface)));
 			}
@@ -365,7 +365,7 @@ namespace Kratos
 		      //Create a condition
 		      Condition::Pointer p_cond;
 		      if(condition_found){
-			
+
 			p_cond = pBoundaryCondition->Clone(rConditionId, FaceNodes);
 		      
 			//p_cond->Data() = pBoundaryCondition->Data();
@@ -387,7 +387,7 @@ namespace Kratos
 			if( mEchoLevel > 1 ){
 			  std::cout<<"   NOT FOUND CONDITION :: CREATED-> ["<<rConditionId<<"] (";
 			  std::cout<<FaceNodes[0].Id();
-			  for(unsigned int f=1; f<FaceNodes.size(); f++)
+			  for(unsigned int f=1; f<FaceNodes.size(); ++f)
 			    std::cout<<", "<<FaceNodes[f].Id();
 			    
 			  std::cout<<")"<<std::endl;				
@@ -399,7 +399,7 @@ namespace Kratos
 			p_cond = rReferenceCondition.Create(rConditionId, FaceNodes, properties);
 		      
 			//if a condition is created new nodes must be labeled TO_REFINE
-			for(unsigned int j=0; j<FaceNodes.size(); j++)
+			for(unsigned int j=0; j<FaceNodes.size(); ++j)
 			  {
 			    FaceNodes[j].Set(TO_REFINE);
 			  }
@@ -433,7 +433,7 @@ namespace Kratos
 	      } //end loop neighbours
 	  }
 	}
-      	
+
       return true;
 
       KRATOS_CATCH( "" )
@@ -452,7 +452,7 @@ namespace Kratos
 	
       Geometry< Node<3> >& rConditionGeometry = rCondition.GetGeometry();
 
-      for(unsigned int j=0; j<rConditionGeometry.size(); j++)
+      for(unsigned int j=0; j<rConditionGeometry.size(); ++j)
 	{
 	  if( rConditionGeometry[j].Is(TO_ERASE) || rConditionGeometry[j].Is(TO_REFINE) )
 	    node_not_preserved = true;

@@ -115,11 +115,12 @@ namespace Kratos
       this->InitializeElasticData(rValues,Variables);
 
       VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
+      ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
       
       this->CalculateAndAddConstitutiveTensor(Variables);
 
       VectorType StressVector;
+      noalias(StressVector) = ZeroVector(6);
       this->CalculateAndAddIsochoricStressTensor(Variables,StrainVector,StressVector);
 
       rValues.StressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rValues.StressMatrix); //store isochoric stress matrix as StressMatrix
@@ -148,14 +149,14 @@ namespace Kratos
       this->InitializeElasticData(rValues,Variables);
 
       VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
+      ConstitutiveModelUtilities::StrainTensorToVector(Variables.StrainMatrix, StrainVector);
       
       //Calculate Constitutive Matrix
       this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
 
       //Calculate Stress Matrix
       VectorType StressVector;
-      StressVector.clear();
+      noalias(StressVector) = ZeroVector(6);
       this->CalculateAndAddIsochoricStressTensor(Variables,StrainVector,StressVector);
       
       rValues.StressMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(StressVector,rValues.StressMatrix); //store isochoric stress matrix as StressMatrix
@@ -268,7 +269,6 @@ namespace Kratos
       double MeanStress = (1.0/3.0) * (StressVector[0]+StressVector[1]+StressVector[2]);
       for (unsigned int i = 0; i < 3; i++)
         rStressVector[i] += MeanStress;
-
       
       KRATOS_CATCH(" ")
     }

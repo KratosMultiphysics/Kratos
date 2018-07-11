@@ -595,7 +595,7 @@ namespace Kratos
      * @param rVector the corresponding second order tensor in vector form
      */
     
-    static inline array_1d<double,6>& SymmetricTensorToVector(const MatrixType& rMatrix, array_1d<double,6>& rVector)
+    static inline void SymmetricTensorToVector(const MatrixType& rMatrix, array_1d<double,6>& rVector)
     {
         KRATOS_TRY;
         
@@ -606,8 +606,6 @@ namespace Kratos
 	rVector[3]= rMatrix(0,1);
 	rVector[4]= rMatrix(1,2);
 	rVector[5]= rMatrix(2,0);
-
-        return rVector;
         
         KRATOS_CATCH("");
      }
@@ -646,7 +644,7 @@ namespace Kratos
      * @param rVector the corresponding second order tensor in vector form
      */
     
-    static inline array_1d<double,6>& StrainTensorToVector(const MatrixType& rMatrix, array_1d<double,6>& rVector)
+    static inline void StrainTensorToVector(const MatrixType& rMatrix, array_1d<double,6>& rVector)
     {
         KRATOS_TRY;
 
@@ -656,8 +654,6 @@ namespace Kratos
 	rVector[3]= 2.0*rMatrix(0,1);
 	rVector[4]= 2.0*rMatrix(1,2);
 	rVector[5]= 2.0*rMatrix(0,2);
-
-        return rVector;
         
         KRATOS_CATCH("");
      }
@@ -741,25 +737,25 @@ namespace Kratos
 	
 	if (rStrainVector.size() == 3)
         {
-	    rStrainVector[0] = rStrainTensor(0,0);
-            rStrainVector[1] = rStrainTensor(1,1);
-            rStrainVector[2] = 2.0*rStrainTensor(0,1);
+          rStrainVector[0] = rStrainTensor(0,0);
+          rStrainVector[1] = rStrainTensor(1,1);
+          rStrainVector[2] = 2.0*rStrainTensor(0,1);
         }
         else if (rStrainVector.size() == 4)
         {
-	    rStrainVector[0] = rStrainTensor(0,0);
-            rStrainVector[1] = rStrainTensor(1,1);
-            rStrainVector[2] = rStrainTensor(2,2);
-            rStrainVector[3] = 2.0*rStrainTensor(0,1);            
+          rStrainVector[0] = rStrainTensor(0,0);
+          rStrainVector[1] = rStrainTensor(1,1);
+          rStrainVector[2] = rStrainTensor(2,2);
+          rStrainVector[3] = 2.0*rStrainTensor(0,1);            
         }
         else if (rStrainVector.size() == 6)
         {
-	    rStrainVector[0] = rStrainTensor(0,0);
-            rStrainVector[1] = rStrainTensor(1,1);
-            rStrainVector[2] = rStrainTensor(2,2);
-            rStrainVector[3] = 2.0*rStrainTensor(0,1);
-            rStrainVector[4] = 2.0*rStrainTensor(1,2);
-            rStrainVector[5] = 2.0*rStrainTensor(0,2);
+          rStrainVector[0] = rStrainTensor(0,0);
+          rStrainVector[1] = rStrainTensor(1,1);
+          rStrainVector[2] = rStrainTensor(2,2);
+          rStrainVector[3] = 2.0*rStrainTensor(0,1);
+          rStrainVector[4] = 2.0*rStrainTensor(1,2);
+          rStrainVector[5] = 2.0*rStrainTensor(0,2);
         }
         else{
           KRATOS_ERROR << "Unexpected voigt size: " << rStrainVector.size() << std::endl;
@@ -787,45 +783,45 @@ namespace Kratos
         
 	if (rStressVector.size() == 3)
         {
-   	    rStressTensor(0,0) = rStressVector[0];
-	    rStressTensor(0,1) = rStressVector[2];
-	    rStressTensor(0,2) = 0.0;
+          rStressTensor(0,0) = rStressVector[0];
+          rStressTensor(0,1) = rStressVector[2];
+          rStressTensor(0,2) = 0.0;
 
-	    rStressTensor(1,0) = rStressVector[2];
-	    rStressTensor(1,1) = rStressVector[1];
-	    rStressTensor(1,2) = 0.0;
+          rStressTensor(1,0) = rStressVector[2];
+          rStressTensor(1,1) = rStressVector[1];
+          rStressTensor(1,2) = 0.0;
 
-	    rStressTensor(2,0) = 0.0;
-	    rStressTensor(2,1) = 0.0;
-	    rStressTensor(2,2) = 0.0;
+          rStressTensor(2,0) = 0.0;
+          rStressTensor(2,1) = 0.0;
+          rStressTensor(2,2) = 0.0;
         }
         else if (rStressVector.size() == 4)
         {
-   	    rStressTensor(0,0) = rStressVector[0];
-	    rStressTensor(0,1) = rStressVector[3];
-	    rStressTensor(0,2) = 0.0;
+          rStressTensor(0,0) = rStressVector[0];
+          rStressTensor(0,1) = rStressVector[3];
+          rStressTensor(0,2) = 0.0;
 
-	    rStressTensor(1,0) = rStressVector[3];
-	    rStressTensor(1,1) = rStressVector[1];
-	    rStressTensor(1,2) = 0.0;
+          rStressTensor(1,0) = rStressVector[3];
+          rStressTensor(1,1) = rStressVector[1];
+          rStressTensor(1,2) = 0.0;
 
-	    rStressTensor(2,0) = 0.0;
-	    rStressTensor(2,1) = 0.0;
-	    rStressTensor(2,2) = rStressVector[2];
+          rStressTensor(2,0) = 0.0;
+          rStressTensor(2,1) = 0.0;
+          rStressTensor(2,2) = rStressVector[2];
         }
         else if (rStressVector.size() == 6)
         {
-	    rStressTensor(0,0) = rStressVector[0];
-	    rStressTensor(0,1) = rStressVector[3];
-	    rStressTensor(0,2) = rStressVector[5];
+          rStressTensor(0,0) = rStressVector[0];
+          rStressTensor(0,1) = rStressVector[3];
+          rStressTensor(0,2) = rStressVector[5];
 
-	    rStressTensor(1,0) = rStressVector[3];
-	    rStressTensor(1,1) = rStressVector[1];
-	    rStressTensor(1,2) = rStressVector[4];
+          rStressTensor(1,0) = rStressVector[3];
+          rStressTensor(1,1) = rStressVector[1];
+          rStressTensor(1,2) = rStressVector[4];
 
-	    rStressTensor(2,0) = rStressVector[5];
-	    rStressTensor(2,1) = rStressVector[4];
-	    rStressTensor(2,2) = rStressVector[2];	    
+          rStressTensor(2,0) = rStressVector[5];
+          rStressTensor(2,1) = rStressVector[4];
+          rStressTensor(2,2) = rStressVector[2];	    
         }
         else{
           KRATOS_ERROR << "Unexpected voigt size: " << rStressVector.size() << std::endl;

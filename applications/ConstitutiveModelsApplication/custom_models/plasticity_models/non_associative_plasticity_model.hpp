@@ -782,9 +782,9 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType HenckyStrain;
+               MatrixType HenckyStrain;
                ConvertCauchyGreenTensorToHenckyTensor( rStrainMatrix, HenckyStrain);
-               rStrainVector = ConstitutiveModelUtilities::StrainTensorToVector( HenckyStrain, rStrainVector);
+               ConstitutiveModelUtilities::StrainTensorToVector( HenckyStrain, rStrainVector);
 
                KRATOS_CATCH("")
             }

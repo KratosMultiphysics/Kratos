@@ -402,7 +402,7 @@ namespace Kratos
       // const MatrixType& rStrainMatrix  = rVariables.GetStrainMatrix();
 
       // VectorType StrainVector;
-      // StrainVector  = ConstitutiveModelUtilities::StrainTensorToVector(rStrainMatrix, StrainVector);
+      // ConstitutiveModelUtilities::StrainTensorToVector(rStrainMatrix, StrainVector);
 
       // VectorType EffectiveStressVector;
       // noalias(EffectiveStressVector) = prod(rConstitutiveMatrix,StrainVector);

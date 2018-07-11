@@ -126,8 +126,8 @@ namespace Kratos
     rVariables.Normal[1] =  rVariables.j[rPointNumber](0, 0); // x_1,e
 
     if(dimension==3){
-      rVariables.Tangent1[2] = rVariables.J[rPointNumber](2, 0); // x_3,e
-      rVariables.Normal[2]   = rVariables.J[rPointNumber](2, 0); // x_3,e
+      rVariables.Tangent1[2] = rVariables.j[rPointNumber](2, 0); // x_3,e
+      rVariables.Normal[2]   = rVariables.j[rPointNumber](2, 0); // x_3,e
     }
     
     //Jacobian to the deformed configuration

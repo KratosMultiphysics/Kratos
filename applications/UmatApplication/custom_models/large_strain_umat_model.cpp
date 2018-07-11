@@ -76,7 +76,7 @@ namespace Kratos
       StrainMatrix *= (-0.5);
 
       VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(StrainMatrix, StrainVector);
+      ConstitutiveModelUtilities::StrainTensorToVector(StrainMatrix, StrainVector);
 
       rpIncrementalStrain = new double[6];
       rpStrain = new double[6];

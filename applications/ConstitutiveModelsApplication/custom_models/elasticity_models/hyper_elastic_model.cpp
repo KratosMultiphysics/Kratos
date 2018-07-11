@@ -88,7 +88,7 @@ namespace Kratos
     KRATOS_TRY
       
     //update total strain measure
-    this->mHistoryVector = ConstitutiveModelUtilities::SymmetricTensorToVector(rValues.StrainMatrix, this->mHistoryVector);
+    ConstitutiveModelUtilities::SymmetricTensorToVector(rValues.StrainMatrix, this->mHistoryVector);
     
     KRATOS_CATCH(" ")
   }

@@ -228,7 +228,7 @@ namespace Kratos
 
       //elastic strain
       VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+      ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
       StrainVector -= mPlasticStrainVector;
 
@@ -257,7 +257,7 @@ namespace Kratos
       //update plastic strain measure
       rValues.StrainMatrix  = ConstitutiveModelUtilities::StrainVectorToTensor(mPlasticStrainVector, rValues.StrainMatrix);
       rValues.StrainMatrix += rDeltaGamma *  rStressMatrix / (rVariables.StressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma);
-      mPlasticStrainVector  = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, mPlasticStrainVector);
+      ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, mPlasticStrainVector);
       
       KRATOS_CATCH(" ")    
     }

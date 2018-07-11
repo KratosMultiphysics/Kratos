@@ -184,7 +184,6 @@ namespace Kratos
       const double& Pressure = rValues.GetPressure();
       for(unsigned int i = 0; i < 3; i++)
         rStressVector[i] += Pressure;
-
       
       KRATOS_CATCH(" ")
     }

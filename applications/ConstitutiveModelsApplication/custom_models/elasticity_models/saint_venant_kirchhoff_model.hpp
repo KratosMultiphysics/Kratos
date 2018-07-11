@@ -138,7 +138,7 @@ namespace Kratos
       // this->CalculateAndAddConstitutiveMatrix(Variables,ConstitutiveTensor);
 
       // VectorType StrainVector;
-      // StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.Matrix,StrainVector);
+      // ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.Matrix,StrainVector);
 
       // VectorType StressVector;
       // this->CalculateAndAddStressTensor(Variables,ConstitutiveTensor,StrainVector,StressVector);
@@ -199,7 +199,7 @@ namespace Kratos
       this->CalculateAndAddConstitutiveMatrix(Variables,ConstitutiveTensor);
 
       // VectorType StrainVector;
-      // StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.Matrix,StrainVector);
+      // ConstitutiveModelUtilities::StrainTensorToVector(Variables.Strain.Matrix,StrainVector);
       
       // VectorType StressVector;
       // this->CalculateAndAddStressTensor(Variables,ConstitutiveTensor,StrainVector,StressVector);

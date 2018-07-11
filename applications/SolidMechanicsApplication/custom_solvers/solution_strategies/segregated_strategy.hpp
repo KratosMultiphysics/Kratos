@@ -228,7 +228,8 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     //plots a warning if the maximum number of iterations is exceeded
     if(iteration_number >= MaxIterationNumber)
     {
-      KRATOS_WARNING("Max Iterations Exceeded") << " **** [The iterative loop interrupted : " << iteration_number << " iterations performed] ****\n";
+      if( this->GetEchoLevel() > 0 )
+        KRATOS_WARNING("Max Iterations Exceeded") << " **** [The iterative loop interrupted : " << iteration_number << " iterations performed] ****\n";
     }
 
     return (this->Is(LocalFlagType::CONVERGED));
@@ -259,7 +260,8 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
 
     bool convergence = std::all_of(convergences.begin(), convergences.end(), [](bool const n){return n == true;});
     if(convergence == true){
-      KRATOS_WARNING("Convergence Achieved") << " **** [" << this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << " iterations performed] ****\n";
+      if( this->GetEchoLevel() > 0 )
+        KRATOS_WARNING("Convergence Achieved") << " **** [" << this->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << " iterations performed] ****\n";
     }
     
     return (convergence);

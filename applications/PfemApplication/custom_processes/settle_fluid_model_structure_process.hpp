@@ -171,7 +171,7 @@ namespace Kratos
       unsigned int condId=1;
       
      
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
 	{
 	  // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
 	  if(  (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
@@ -188,7 +188,7 @@ namespace Kratos
 	    temporal_nodes.swap(i_mp->Nodes());
 
 	    if( !i_mp->NumberOfElements() ){	  
-	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
+	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; ++i_node)
 		{
 		  if( i_node->IsNot(TO_ERASE) ){
 		    (i_mp->Nodes()).push_back(*(i_node.base()));
@@ -200,12 +200,12 @@ namespace Kratos
 	    }
 	    else{
 
-	      for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
+	      for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
 		{
 		  if( i_elem->IsNot(TO_ERASE) ){					
 		  
 		    PointsArrayType& vertices=i_elem->GetGeometry().Points();
-		    for(unsigned int i=0; i<vertices.size(); i++)
+		    for(unsigned int i=0; i<vertices.size(); ++i)
 		      {
 			vertices[i].Set(BLOCKED);
 			if(i_mp->Is(FLUID)) {
@@ -221,7 +221,7 @@ namespace Kratos
 		}
 
 	    
-	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
+	      for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; ++i_node)
 		{
 		  //i_node->PrintInfo(std::cout);
 		  //std::cout<<std::endl;
@@ -231,7 +231,9 @@ namespace Kratos
 		      if( i_node->Is(RIGID) && i_node->IsNot(BLOCKED))
 			{
 			  // double pressureRigid=i_node->FastGetSolutionStepValue(PRESSURE);
-			  i_node->FastGetSolutionStepValue(PRESSURE) = 0;
+                          if( i_node->IsNot(SOLID) )
+                            i_node->FastGetSolutionStepValue(PRESSURE) = 0;
+                          
 			  if(i_mp->Is(FLUID)) {
 			    i_node->Reset(FLUID);   //reset isolated
 			  }
@@ -260,7 +262,8 @@ namespace Kratos
 		    i_node->Reset(BLOCKED); 
 
 		    if( mOptions.Is(MesherUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
-		      i_node->FastGetSolutionStepValue(PRESSURE) = 0;
+                      if( i_node->IsNot(SOLID) )
+                        i_node->FastGetSolutionStepValue(PRESSURE) = 0;
 		      (i_mp->Nodes()).push_back(*(i_node.base()));
 		      (rModelPart.Nodes()).push_back(*(i_node.base()));	
 		      rModelPart.Nodes().back().SetId(nodeId);
@@ -281,14 +284,16 @@ namespace Kratos
 	    }
 	    //i_mp->Nodes().Sort();  
 	    
-	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
 	      {
 		if( i_cond->IsNot(TO_ERASE) ){
+                  
 		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+                  
+                  (*(i_cond.base()))->SetId(condId);
+                  condId+=1;
+                  
 		  PreservedConditions.push_back(*(i_cond.base()));
-		  PreservedConditions.back().SetId(condId);
-		  condId+=1;    
-
 
 		  Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
 		  unsigned int NumNodes=rGeometry.size();
@@ -321,11 +326,11 @@ namespace Kratos
 
       this->BuildBoundaryModelParts(rModelPart,PreservedConditions, nodeId, elemId, condId);
 
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
 	{
 	  if( i_mp->Is(BOUNDARY) ){ //boundary model part
 
-	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
 	      {
 		if( i_cond->IsNot(TO_ERASE) ){
 		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
@@ -338,7 +343,7 @@ namespace Kratos
 	  
 	}
       
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
+      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); ++i_cond)
 	{
 	  if(i_cond->Is(CONTACT)){
 	    PreservedConditions.push_back(*(i_cond.base()));
@@ -361,8 +366,8 @@ namespace Kratos
       
       //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
       unsigned int consecutive_index = 1;
-      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; in++)
-	in->SetId(consecutive_index++);
+      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; ++in)
+	in->SetId(++consecutive_index);
       
       
       this->BuildComputingDomain(rModelPart, EchoLevel);
@@ -386,7 +391,7 @@ namespace Kratos
       KRATOS_TRY
 	
       std::string ComputingModelPartName;
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
 	{
 	  // if( (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) ){ //solid_computing_domain
 	  if(  (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(ACTIVE) && i_mp->Is(FLUID)) ){ // solid_computing_domain and fluid_computing_domain
@@ -402,25 +407,25 @@ namespace Kratos
       rComputingModelPart.Elements().clear();
       rComputingModelPart.Conditions().clear();
 
-      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
 	{
 	  // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ 
 	  if( ((i_mp->IsNot(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID))) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) ){ 
 
-            std::cout<<" ModelPart Name "<<i_mp->Name()<<std::endl;
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+            //std::cout<<" ModelPart Name "<<i_mp->Name()<<std::endl;
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
 	      {
 		rComputingModelPart.Nodes().push_back(*(i_node.base()));
 		// rComputingModelPart.AddNode(*(i_node.base())); // very slow!
 	      }
 
-	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
 	      {
 		rComputingModelPart.AddCondition(*(i_cond.base()));
 	      }
 
 	    
-	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
+	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
 	      {
 		rComputingModelPart.AddElement(*(i_elem.base()));
 	      }
