@@ -229,8 +229,8 @@ public:
     unsigned int mEchoLevel;
     unsigned int mDivisionsAtLevel;
 
-    ModelPart::Pointer mpOwnModelPart;     /// The coarse sub model part
-    ModelPart::Pointer mpRefinedModelPart; /// Where the refinement is performed
+    // ModelPart::Pointer mpOwnModelPart;     /// The coarse sub model part
+    // ModelPart::Pointer mpRefinedModelPart; /// Where the refinement is performed
 
     StringVectorType mModelPartsNames;  /// The names of the sub model parts hierarchy
 
@@ -278,8 +278,8 @@ public:
      */
     void InitializeOwnModelPart(const StringVectorType& rNames);
 
-    /* TODO: remove this method */
-    void InitializeOwnModelPart(const std::string& rOwnName, const StringVectorType& rNames);
+    // /* TODO: remove this method */
+    // void InitializeOwnModelPart(const std::string& rOwnName, const StringVectorType& rNames);
 
     /**
      * @brief InitializeRefinedModelPart creates the refined sub model part. Inside it creates the own model part
@@ -287,8 +287,8 @@ public:
      */
     void InitializeRefinedModelPart(const StringVectorType& rNames);
 
-    /* TODO: remove this method */
-    void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames);
+    // /* TODO: remove this method */
+    // void InitializeRefinedModelPart(const std::string& rRefinedName, const std::string& rOwnName, const StringVectorType& rNames);
 
     /**
      * @brief AddAllPropertiesToModelPart adds all properties from an origin model part to a destination model part
