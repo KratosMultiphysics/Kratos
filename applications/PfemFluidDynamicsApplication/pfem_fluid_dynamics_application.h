@@ -40,7 +40,6 @@
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_solid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_solid_element.h"
 #include "custom_elements/updated_lagrangian_V_implicit_solid_element.h"
-#include "custom_elements/updated_lagrangian_V_implicit_nodally_integrated_solid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
@@ -267,14 +266,6 @@ namespace Kratos
     /// 3D velocity solid element
     const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3D;
     const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3Dquadratic;
-    
-    /// 2D velocity solid NodallyIntegrated element
-    const UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<2> mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement2D;
-    const UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<2> mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement2Dquadratic;
-
-    /// 3D velocity solid NodallyIntegrated element
-    const UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<3> mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement3D;
-    const UpdatedLagrangianVImplicitNodallyIntegratedSolidElement<3> mUpdatedLagrangianVImplicitNodallyIntegratedSolidElement3Dquadratic;
 
     /// 2D two step v-p fluid element
     const TwoStepUpdatedLagrangianVPImplicitFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidElement2D;

@@ -319,93 +319,9 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
 
-
-      /* void ComputeLumpedMassMatrix(Matrix& rMassMatrix, */
-      /* 				   const double Weight, */
-      /* 				   double& MeanValue); */
-
-      /* void ComputeMeanValueMaterialTangentMatrix(ElementalVariables& rElementalVariables, */
-      /* 						 double& MeanValue, */
-      /* 						 const ShapeFunctionDerivativesType& rShapeDeriv, */
-      /* 						 const double secondLame, */
-      /* 						 double& bulkModulus, */
-      /* 						 const double Weight, */
-      /* 						 double& MeanValueMass, */
-      /* 						 const double TimeStep){}; */
-      
-      /* void ComputeBulkReductionCoefficient(MatrixType MassMatrix, */
-      /* 					   MatrixType StiffnessMatrix, */
-      /* 					   double& meanValueStiff, */
-      /* 					   double& bulkCoefficient, */
-      /* 					   double timeStep) override{}; */
-      
-      /* void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
-      /* 					       const double Weight); */
-
-
-      /* void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix, */
-      /* 					   const ShapeFunctionsType& rN, */
-      /* 					   const double Weight); */
-
-      /* void ComputeBoundLHSMatrix(MatrixType& BoundLHSMatrix, */
-      /* 				 const ShapeFunctionsType& rN, */
-      /* 				 const double Weight) override{}; */
-
-      /* void ComputeBoundRHSVector(VectorType& BoundRHSVector, */
-      /* 				 const ShapeFunctionsType& rN, */
-      /* 				 const double TimeStep, */
-      /* 				 const double BoundRHSCoeffAcc, */
-      /* 				 const double BoundRHSCoeffDev) override{}; */
-
-      /* virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 					const ProcessInfo& rCurrentProcessInfo, */
-      /* 					const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 					unsigned int g); */
-	
-      /* void GetPositions(Vector& rValues, */
-      /* 			const ProcessInfo& rCurrentProcessInfo, */
-      /* 			const double theta) override; */
-	
-      /* void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, */
-      /* 					    double TimeStep, */
-      /* 					    unsigned int g) override; */
-      	      
-      /* void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, */
-      /* 						 VectorType& rRightHandSideVector, */
-      /* 						 ProcessInfo& rCurrentProcessInfo) override; */
- 
-      /* double GetThetaMomentum () override{return 1.0;}; */
-
-      /* double GetThetaContinuity () override{return 1.0;}; */
-
-      ///@}
-      ///@name Protected  Access
-      ///@{
-
-
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
-
-
       ///@}
 
     private:
-      ///@name Static Member Variables
-      ///@{
-
-      ///@}
-      ///@name Member Variables
-      ///@{
-
-      ///@}
-      ///@name Serialization
-      ///@{
 
       friend class Serializer;
 
@@ -419,29 +335,6 @@ namespace Kratos
 	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
       }
 
-      ///@}
-      ///@name Private Operators
-      ///@{
-
-
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-
-      ///@}
-      ///@name Private  Access
-      ///@{
-
-
-      ///@}
-      ///@name Private Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Un accessible methods
-      ///@{
 
       /// Assignment operator.
       TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement & operator=(TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement const& rOther);

@@ -361,8 +361,8 @@ namespace Kratos
 		double secondLame=0;
 		double volumetricCoeff=0;
 		double density=itNode->FastGetSolutionStepValue(DENSITY);
-		double theta=1.0;
-	      
+		double theta=0.5;
+		/* double theta=1.0;  */
 		if(itNode->Is(SOLID)){
 		  double youngModulus=itNode->FastGetSolutionStepValue(YOUNG_MODULUS);
 		  double poissonRatio=itNode->FastGetSolutionStepValue(POISSON_RATIO);
@@ -372,7 +372,7 @@ namespace Kratos
 		else if(itNode->Is(FLUID)){		  		
 		  secondLame = itNode->FastGetSolutionStepValue(VISCOSITY);
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
-		  theta=0.5;
+		  /* theta=0.5; */
 		  /* volumetricCoeff*=0.000025;//dam break fine */
 		  /* volumetricCoeff*=0.04;//sloshing coarse */
 		  /* volumetricCoeff*=0.0055;//sloshing coarse */

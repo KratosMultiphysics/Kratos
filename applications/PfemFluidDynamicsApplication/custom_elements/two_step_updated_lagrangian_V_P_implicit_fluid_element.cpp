@@ -1072,6 +1072,8 @@ namespace Kratos {
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[1].Is(FREE_SURFACE) ){ 
       noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
       noalias(AccB)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1);
+      // noalias(AccA)=rGeom[0].FastGetSolutionStepValue(ACCELERATION,0);
+      // noalias(AccB)=rGeom[1].FastGetSolutionStepValue(ACCELERATION,0);
       const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[1].FastGetSolutionStepValue(NORMAL);
       if(rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
@@ -1082,6 +1084,8 @@ namespace Kratos {
     if(rGeom[0].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
       noalias(AccA)= factor*(rGeom[0].FastGetSolutionStepValue(VELOCITY,0)-rGeom[0].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION,1); 
       noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
+      // noalias(AccA)=rGeom[0].FastGetSolutionStepValue(ACCELERATION,0);
+      // noalias(AccB)=rGeom[2].FastGetSolutionStepValue(ACCELERATION,0);
       const array_1d<double, 3> &NormalA    = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
       if(rGeom[0].IsNot(INLET))
@@ -1092,7 +1096,9 @@ namespace Kratos {
     if(rGeom[1].Is(FREE_SURFACE)  && rGeom[2].Is(FREE_SURFACE) ){
       noalias(AccA)= factor*(rGeom[1].FastGetSolutionStepValue(VELOCITY,0)-rGeom[1].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION,1); 
       noalias(AccB)= factor*(rGeom[2].FastGetSolutionStepValue(VELOCITY,0)-rGeom[2].FastGetSolutionStepValue(VELOCITY,1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION,1); 
-      const array_1d<double, 3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
+      // noalias(AccA)=rGeom[1].FastGetSolutionStepValue(ACCELERATION,0);
+      // noalias(AccB)=rGeom[2].FastGetSolutionStepValue(ACCELERATION,0);
+     const array_1d<double, 3> &NormalA    = rGeom[1].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB    = rGeom[2].FastGetSolutionStepValue(NORMAL);
       if(rGeom[1].IsNot(INLET))
 	BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc*(AccA[0]*NormalA[0]+AccA[1]*NormalA[1]) + BoundRHSCoeffDev);
@@ -1347,6 +1353,7 @@ namespace Kratos {
   template<>
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::GetPositions(Vector& rValues,const ProcessInfo& rCurrentProcessInfo,const double theta)
   {
+
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = 2*NumNodes;
@@ -1636,7 +1643,7 @@ namespace Kratos {
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
     double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
 
-    if(DeviatoricCoeff>maxViscousValueForStabilization){
+    if(DeviatoricCoeff>maxViscousValueForStabilization){ 
       DeviatoricCoeff=maxViscousValueForStabilization;
     }
 
@@ -1670,7 +1677,7 @@ namespace Kratos {
 	  double NProjSpatialDefRate=this->CalcNormalProjectionDefRate(rElementalVariables.SpatialDefRate);
 
 	  double BoundRHSCoeffAcc=Tau*Density*2*GaussWeight/ElemSize;
-	  double BoundRHSCoeffDev=Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
+	  double BoundRHSCoeffDev=-Tau*8.0*NProjSpatialDefRate*DeviatoricCoeff*GaussWeight/(ElemSize*ElemSize);
 	  // if(TDim==3){
 	  //   BoundRHSCoeffAcc=Tau*GaussWeight*Density/(0.81649658*ElemSize);
 	  //   BoundRHSCoeffDev=Tau*GaussWeight*4.0*NProjSpatialDefRate*DeviatoricCoeff/(0.81649658*ElemSize*ElemSize);

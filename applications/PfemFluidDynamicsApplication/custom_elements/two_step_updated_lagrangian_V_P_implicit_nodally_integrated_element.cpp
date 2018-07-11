@@ -262,9 +262,9 @@ namespace Kratos {
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType RHSVelocities = ZeroVector(LocalSize);
     double theta=0.5;
-    if(rGeom[0].Is(SOLID) && rGeom[1].Is(SOLID) && rGeom[2].Is(SOLID)){
-      theta=1.0;
-    }
+    // if(rGeom[0].Is(SOLID) && rGeom[1].Is(SOLID) && rGeom[2].Is(SOLID)){
+    //   theta=1.0;
+    // }
     this->GetNodesPosition(NodesPosition,rCurrentProcessInfo,theta);
     this->GetVelocityValues(RHSVelocities,0); 
     RHSVelocities*=theta;

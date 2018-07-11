@@ -197,24 +197,6 @@ namespace Kratos
       void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 
 
-      /* void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override; */
-
-      /* void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, */
-      /* 				 ProcessInfo& rCurrentProcessInfo) override */
-      /* { */
-      /* 	KRATOS_TRY; */
-      /* 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement::CalculateLeftHandSide not implemented",""); */
-      /* 	KRATOS_CATCH(""); */
-      /* } */
-
-      /* void CalculateRightHandSide(VectorType& rRightHandSideVector, */
-      /* 				  ProcessInfo& rCurrentProcessInfo) override */
-      /* { */
-      /* 	KRATOS_TRY; */
-      /* 	KRATOS_THROW_ERROR(std::logic_error,"TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement::CalculateRightHandSide not implemented",""); */
-      /* 	KRATOS_CATCH(""); */
-      /* } */
-
       // The following methods have different implementations depending on TDim
       /// Provides the global indices for each one of this element's local rows
       /**

@@ -362,16 +362,16 @@ namespace Kratos
 
 		    const array_1d<double, 3> &Normal    = itNode->FastGetSolutionStepValue(NORMAL);
 		    Vector& SpatialDefRate=itNode->FastGetSolutionStepValue(NODAL_SPATIAL_DEF_RATE);
-		    array_1d<double, 3> nodalAcceleration=  0.5*(itNode->FastGetSolutionStepValue(VELOCITY,0)-itNode->FastGetSolutionStepValue(VELOCITY,1))/timeInterval - itNode->FastGetSolutionStepValue(ACCELERATION,1);
+		    array_1d<double, 3> nodalAcceleration=  2.0*(itNode->FastGetSolutionStepValue(VELOCITY,0)-itNode->FastGetSolutionStepValue(VELOCITY,1))/timeInterval - itNode->FastGetSolutionStepValue(ACCELERATION,1);
 
 		    double nodalNormalAcceleration=0;
 		    double nodalNormalProjDefRate=0;
 		    if(dimension==2){
 		      nodalNormalProjDefRate=Normal[0]*SpatialDefRate[0]*Normal[0] + Normal[1]*SpatialDefRate[1]*Normal[1] + 2*Normal[0]*SpatialDefRate[2]*Normal[1];
-		      nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X,0) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y,0);
+		      /* nodalNormalAcceleration=Normal[0]*itNode->FastGetSolutionStepValue(ACCELERATION_X,1) + Normal[1]*itNode->FastGetSolutionStepValue(ACCELERATION_Y,1); */
 		      /* nodalNormalAcceleration=(itNode->FastGetSolutionStepValue(VELOCITY_X,0)-itNode->FastGetSolutionStepValue(VELOCITY_X,1))*Normal[0]/timeInterval + */
 		      /* 	(itNode->FastGetSolutionStepValue(VELOCITY_Y,0)-itNode->FastGetSolutionStepValue(VELOCITY_Y,1))*Normal[1]/timeInterval; */
-		      /* nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1]; */
+		      nodalNormalAcceleration=Normal[0]*nodalAcceleration[0] + Normal[1]*nodalAcceleration[1];
 		      /* if(neighSize==3){ */
 		      /* 	unsigned int idNodeA=nodalSFDneighboursId[1]; */
 		      /* 	unsigned int idNodeB=nodalSFDneighboursId[2]; */

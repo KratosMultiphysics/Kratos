@@ -835,9 +835,9 @@ namespace Kratos {
 	      Vector& rNodalSFDneigh = itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
 	    
 	      double theta=0.5;
-	      if(itNode->Is(SOLID)){
-		theta=1.0;
-	      }
+	      /* if(itNode->Is(SOLID)){ */
+	      /* 	theta=1.0; */
+	      /* } */
 	      this->ComputeAndStoreNodalDeformationGradient(nodalSFDneighboursId, rNodalSFDneigh,theta);
 	  
 	      Matrix Fgrad=itNode->FastGetSolutionStepValue(NODAL_DEFORMATION_GRAD);
@@ -1086,7 +1086,7 @@ namespace Kratos {
 	    rModelPart.Nodes()[idNode].FastGetSolutionStepValue(VELOCITY_X,1)*(1-theta);
 	  double VelocityY = rModelPart.Nodes()[idNode].FastGetSolutionStepValue(VELOCITY_Y,0)*theta +
 	    rModelPart.Nodes()[idNode].FastGetSolutionStepValue(VELOCITY_Y,1)*(1-theta);
-		  
+
 	  Fgrad(0,0)+=dNdXi*rModelPart.Nodes()[idNode].X();
 	  Fgrad(0,1)+=dNdYi*rModelPart.Nodes()[idNode].X();
 	  Fgrad(1,0)+=dNdXi*rModelPart.Nodes()[idNode].Y();
