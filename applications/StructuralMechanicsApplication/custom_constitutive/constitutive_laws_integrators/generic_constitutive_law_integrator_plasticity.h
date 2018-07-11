@@ -144,16 +144,15 @@ public:
     {
         bool is_converged = false; 
         int iteration = 0, max_iter = 9000;  
-        BoundedVector<double, 6> DSigma, DS;
-        double PlasticConsistencyFactorIncrement, F;  
+        BoundedVector<double,6> DSigma, DS;
+        double PlasticConsistencyFactorIncrement, F;
 
         // Backward Euler  
         while (is_converged == false && iteration <= max_iter) {
             
             F = UniaxialStress - Threshold;
             PlasticConsistencyFactorIncrement = F * PlasticDenominator; 
-            if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
-
+            //if (PlasticConsistencyFactorIncrement < 0.0) PlasticConsistencyFactorIncrement = 0.0; 
             noalias(PlasticStrainIncrement) = PlasticConsistencyFactorIncrement * Gflux; 
             noalias(PlasticStrain) += PlasticStrainIncrement; 
             noalias(DS) = prod(C, PlasticStrainIncrement); 
@@ -165,13 +164,13 @@ public:
 
             F = UniaxialStress - Threshold;
 
-            if (F < std::abs(1.0e-8 * Threshold)) { // Has converged
-                is_converged = true; 
+            if (std::abs(F) <= std::abs(1.0e-4 * Threshold)) { // Has converged
+                is_converged = true;
             } else {
                 iteration++;
             }
         }
-        if (iteration == max_iter) KRATOS_ERROR << "Reached max iterations inside the Plasticity loop" << std::endl; 
+        if (iteration == max_iter) KRATOS_WARNING("Backward Euler Plasticity") << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
     /**
@@ -291,6 +290,7 @@ public:
             sumb += SB[i];
             sumc += SC[i];
         }
+
         if (std::abs(suma) > tolerance) {
             r0 = sumb/suma;
             r1 = sumc/suma;
@@ -433,12 +433,12 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        //const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        double InitialThreshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
+        //const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
-        rEquivalentStressThreshold = InitialThreshold * std::sqrt(1.0 - PlasticDissipation);
-        rSlope = -0.5*(std::pow(InitialThreshold, 2) / (rEquivalentStressThreshold));
+        rEquivalentStressThreshold = initial_threshold * std::sqrt(1.0 - PlasticDissipation);
+        rSlope = -0.5*(std::pow(initial_threshold, 2.0) / (rEquivalentStressThreshold));
     }
 
     /**
@@ -459,12 +459,12 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        //const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        double InitialThreshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
+        //const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
-        rEquivalentStressThreshold = InitialThreshold * (1.0 - PlasticDissipation);
-        rSlope = -0.5*InitialThreshold;
+        rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
+        rSlope = -0.5*initial_threshold;
     }
 
     /**
@@ -485,20 +485,24 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        //const double InitialThreshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];  // sikma
+        //const double initial_threshold = rMaterialProperties[YIELD_STRESS_COMPRESSION];  // sikma
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
-        const double UltimateStress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
-        const double MaxStressPosition = rMaterialProperties[MAXIMUM_STRESS_POSITION];  // cappi
+        const double ultimate_stress = rMaterialProperties[MAXIMUM_STRESS];              // sikpi
+        const double max_stress_position = rMaterialProperties[MAXIMUM_STRESS_POSITION];  // cappi
         
         if (PlasticDissipation < 1.0) {
-            const double Ro = std::sqrt(1.0 - initial_threshold / UltimateStress);
-            double Alpha = std::log((1.0 - (1.0 - Ro)*(1.0 - Ro)) / ((3.0 - Ro)*(1.0 + Ro)*MaxStressPosition));
-            Alpha = std::exp(Alpha / (1.0 - MaxStressPosition));
-            const double Phi = std::pow((1.0 - Ro), 2) + ((3.0 - Ro)*(1.0 + Ro)*PlasticDissipation*(std::pow(Alpha, (1.0 - PlasticDissipation))));
-            rEquivalentStressThreshold = UltimateStress*(2.0*std::sqrt(Phi) - Phi);
-            rSlope = UltimateStress*((1.0 / std::sqrt(Phi)) - 1.0)*(3.0 - Ro)*(1.0 + Ro)*(std::pow(Alpha, (1.0 - PlasticDissipation)))*
+            const double ro = std::sqrt(1.0 - initial_threshold / ultimate_stress);
+            double Alpha = std::log((1.0 - (1.0 - ro)*(1.0 - ro)) / ((3.0 - ro)*(1.0 + ro)*max_stress_position));
+            Alpha = std::exp(Alpha / (1.0 - max_stress_position));
+            const double phi = std::pow((1.0 - ro), 2.0) + ((3.0 - ro)*(1.0 + ro)*PlasticDissipation*(std::pow(Alpha, (1.0 - PlasticDissipation))));
+
+            rEquivalentStressThreshold = ultimate_stress*(2.0*std::sqrt(phi) - phi);
+            rSlope = ultimate_stress*((1.0 / std::sqrt(phi)) - 1.0)*(3.0 - ro)*(1.0 + ro)*(std::pow(Alpha, (1.0 - PlasticDissipation)))*
                 (1.0 - std::log(Alpha)*PlasticDissipation);
+
+        } else {
+            KRATOS_ERROR << "PlasticDissipation > 1.0 " << PlasticDissipation << std::endl;
         }
     }
 
@@ -521,11 +525,11 @@ public:
         const Properties& rMaterialProperties
     )
     {
-        double InitialThreshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, InitialThreshold);
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
 
-        rEquivalentStressThreshold = InitialThreshold;
-        rSlope = -0.5*InitialThreshold;
+        rEquivalentStressThreshold = initial_threshold;
+        rSlope = -0.5*initial_threshold;
     }
     /**
      * @brief This method computes hardening parameter needed for the algorithm

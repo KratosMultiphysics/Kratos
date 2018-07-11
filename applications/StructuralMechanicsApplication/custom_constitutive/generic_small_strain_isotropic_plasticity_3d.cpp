@@ -100,7 +100,8 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateM
 
     const double F = UniaxialStress - Threshold;
 
-    if (F <= std::abs(1.0e-8 * Threshold)) {   // Elastic case
+
+    if (F <= std::abs(1.0e-4 * Threshold)) {   // Elastic case
 
         noalias(IntegratedStressVector) = PredictiveStressVector;
         this->SetNonConvPlasticDissipation(PlasticDissipation);

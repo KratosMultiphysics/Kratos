@@ -98,8 +98,6 @@ public:
         ,mpPlasticityConstitutiveLaw(rOther.mpPlasticityConstitutiveLaw)
         ,mpViscousConstitutiveLaw(rOther.mpViscousConstitutiveLaw)
     {
-		//KRATOS_WATCH(mpPlasticityConstitutiveLaw)
-		//KRATOS_WATCH(mpViscousConstitutiveLaw)
     }
 
     /**
