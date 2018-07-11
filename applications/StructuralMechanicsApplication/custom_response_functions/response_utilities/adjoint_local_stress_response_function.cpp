@@ -26,11 +26,11 @@ namespace Kratos
         mpTracedElement = rModelPart.pGetElement(id_of_traced_element);
 
         // Tell traced element the stress type
-        TracedStressType traced_stress_type = ResponseData::ConvertStringToTracedStressType(ResponseSettings["stress_type"].GetString());
+        TracedStressType traced_stress_type = StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["stress_type"].GetString());
         mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );
 
         // Get info how and where to treat the stress
-        mStressTreatment = ResponseData::ConvertStringToStressTreatment( ResponseSettings["stress_treatment"].GetString() );
+        mStressTreatment = StressResponseDefinitions::ConvertStringToStressTreatment( ResponseSettings["stress_treatment"].GetString() );
 
         if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node)
         {

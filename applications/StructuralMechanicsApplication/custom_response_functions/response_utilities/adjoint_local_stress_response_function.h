@@ -19,7 +19,7 @@
 
 // Project includes
 #include "adjoint_structural_response_function.h"
-#include "response_data.h"
+#include "stress_response_definitions.h"
 
 namespace Kratos
 {

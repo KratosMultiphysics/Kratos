@@ -16,11 +16,11 @@
 // External includes
 
 // Project includes
-#include "response_data.h"
+#include "stress_response_definitions.h"
 
 namespace Kratos
 {
-    namespace ResponseData
+    namespace StressResponseDefinitions
     {
         TracedStressType ConvertStringToTracedStressType(const std::string& Str)
         {
@@ -88,7 +88,7 @@ namespace Kratos
                 KRATOS_ERROR << "Chosen stress treatment \n" <<Str<<"\" is not available!" << std::endl;
         }
 
-    }  // namespace ResponseData.  
+    }  // namespace StressResponseDefinitions.  
 
 }  // namespace Kratos.
 

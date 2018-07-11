@@ -10,8 +10,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#if !defined(KRATOS_RESPONSE_DATA_H_INCLUDED )
-#define  KRATOS_RESPONSE_DATA_H_INCLUDED
+#if !defined(KRATOS_STRESS_RESPONSE_DEFINITIONS_H_INCLUDED )
+#define  KRATOS_STRESS_RESPONSE_DEFINITIONS_H_INCLUDED
 
 
 // System includes
@@ -58,18 +58,18 @@ namespace Kratos
         GaussPoint
     };
 
-    namespace ResponseData
+    namespace StressResponseDefinitions
     {
 
         TracedStressType ConvertStringToTracedStressType(const std::string& Str);
 
         StressTreatment ConvertStringToStressTreatment(const std::string& Str);
 
-    } // namespace ResponseData.
+    } // namespace StressResponseDefinitions.
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RESPONSE_DATA_H_INCLUDED  defined
+#endif // KRATOS_STRESS_RESPONSE_DEFINITIONS_H_INCLUDED  defined
 
 
